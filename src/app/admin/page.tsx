@@ -490,25 +490,44 @@ export default function AdminPage() {
                               ? 'bg-blue-50 text-blue-700 border-blue-300'
                               : order.status === 'pending'
                               ? 'bg-amber-50 text-amber-700 border-amber-300'
-                              : 'bg-red-50 text-red-700 border-red-300'
+                              : order.status === 'suspended'
+                              ? 'bg-red-50 text-red-700 border-red-300'
+                              : 'bg-gray-100 text-gray-700 border-gray-300'
                           }`}
                         >
                           <option value="pending">Pendente (⏰)</option>
                           <option value="in_progress">Em Desenvolvimento (⚙️)</option>
-                          <option value="completed">Concluído (✓)</option>
+                          <option value="completed">Concluído / Ativo (✓)</option>
+                          <option value="suspended">Suspenso (🛑)</option>
                           <option value="cancelled">Cancelado (✗)</option>
                         </select>
                       </td>
                       <td className="py-3.5 px-4">
-                        <a
-                          href={`https://wa.me/${order.clientPhone.replace(/\D/g, '')}?text=${encodeURIComponent(`Olá ${order.clientName}, sobre o seu pedido (${order.serviceName})...`)}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold text-xs rounded-lg transition inline-flex items-center space-x-1 border border-emerald-200"
-                        >
-                          <MessageSquare className="h-3.5 w-3.5" />
-                          <span>WhatsApp</span>
-                        </a>
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() => {
+                              const newStatus = order.status === 'suspended' ? 'completed' : 'suspended';
+                              handleUpdateOrderStatus(order.id, newStatus);
+                            }}
+                            className={`px-2.5 py-1 rounded-md text-xs font-semibold transition cursor-pointer ${
+                              order.status === 'suspended'
+                                ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
+                                : 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200'
+                            }`}
+                          >
+                            {order.status === 'suspended' ? 'Reativar Serviço' : 'Suspender Serviço'}
+                          </button>
+
+                          <a
+                            href={`https://wa.me/${order.clientPhone.replace(/\D/g, '')}?text=${encodeURIComponent(`Olá ${order.clientName}, referente ao seu pedido de serviço ${order.serviceName} na WEHOSTHERE:`)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-md transition"
+                            title="Contato via WhatsApp"
+                          >
+                            <MessageSquare className="h-4 w-4" />
+                          </a>
+                        </div>
                       </td>
                     </tr>
                   ))}

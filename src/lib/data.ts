@@ -305,7 +305,7 @@ export interface ServiceOrder {
   serviceName: string;
   amount: number;
   paymentMethod: 'mpesa' | 'emola' | 'card';
-  status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
+  status: 'pending' | 'in_progress' | 'completed' | 'cancelled' | 'suspended';
   createdAt: string;
 }
 
