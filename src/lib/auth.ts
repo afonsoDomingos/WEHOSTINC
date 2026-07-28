@@ -1,11 +1,11 @@
-// Simulação de sistema de autenticação para MVP
-// Em produção, usar NextAuth.js ou similar
-
 export interface User {
   id: string;
   name: string;
   email: string;
   plan: 'basic' | 'pro' | 'enterprise';
+  status?: 'active' | 'pending' | 'suspended';
+  dueDate?: number;
+  role?: 'admin' | 'user';
   createdAt: string;
 }
 
@@ -17,13 +17,54 @@ export interface AuthState {
 // Simulação de banco de dados em localStorage
 const STORAGE_KEY = 'wehosthere_auth';
 
+const DEFAULT_USERS: Array<User & { password?: string }> = [
+  {
+    id: 'admin_root',
+    name: 'Administrador WEHOSTHERE',
+    email: 'admin@wehosthere.com',
+    password: '@Admin123@',
+    plan: 'enterprise',
+    status: 'active',
+    role: 'admin',
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'client_msservices',
+    name: 'MSServices',
+    email: 'info@msservices.co.mz',
+    password: '@Admin123@',
+    plan: 'pro',
+    status: 'active',
+    dueDate: 29,
+    role: 'user',
+    createdAt: new Date().toISOString()
+  }
+];
+
+const seedDefaultUsers = () => {
+  if (typeof window === 'undefined') return;
+  
+  DEFAULT_USERS.forEach((defaultUser) => {
+    const key = `user_${defaultUser.id}`;
+    if (!localStorage.getItem(key)) {
+      localStorage.setItem(key, JSON.stringify(defaultUser));
+    }
+  });
+};
+
 export const auth = {
+  // Inicialização de dados padrão
+  initDefaults: (): void => {
+    seedDefaultUsers();
+  },
+
   // Registrar novo usuário
-  register: (name: string, email: string, password: string): User => {
+  register: (name: string, email: string, password: string, plan: 'basic' | 'pro' | 'enterprise' = 'basic', status: 'active' | 'pending' | 'suspended' = 'active', dueDate: number = 29): User => {
+    seedDefaultUsers();
     const users = auth.getUsers();
     
     // Verificar se email já existe
-    if (users.find(u => u.email === email)) {
+    if (users.find(u => u.email.toLowerCase() === email.toLowerCase())) {
       throw new Error('Email já cadastrado');
     }
 
@@ -31,14 +72,16 @@ export const auth = {
       id: Date.now().toString(),
       name,
       email,
-      plan: 'basic',
+      plan,
+      status,
+      dueDate,
+      role: 'user',
       createdAt: new Date().toISOString()
     };
 
-    // Salvar usuário (em produção, usar bcrypt para senha)
     localStorage.setItem(`user_${newUser.id}`, JSON.stringify({
       ...newUser,
-      password // Em produção, hash a senha!
+      password
     }));
 
     return newUser;
@@ -46,14 +89,14 @@ export const auth = {
 
   // Login
   login: (email: string, password: string): User => {
+    seedDefaultUsers();
     const users = auth.getUsers();
-    const user = users.find(u => u.email === email);
+    const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
 
     if (!user) {
       throw new Error('Usuário não encontrado');
     }
 
-    // Em produção, verificar hash da senha
     const userData = JSON.parse(localStorage.getItem(`user_${user.id}`) || '{}');
     if (userData.password !== password) {
       throw new Error('Senha incorreta');
@@ -68,11 +111,15 @@ export const auth = {
 
   // Logout
   logout: (): void => {
-    localStorage.removeItem(STORAGE_KEY);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(STORAGE_KEY);
+    }
   },
 
   // Obter usuário atual
-  getCurrentUser = (): User | null => {
+  getCurrentUser: (): User | null => {
+    if (typeof window === 'undefined') return null;
+    seedDefaultUsers();
     const session = localStorage.getItem(STORAGE_KEY);
     if (!session) return null;
 
@@ -81,12 +128,14 @@ export const auth = {
   },
 
   // Verificar se está autenticado
-  isAuthenticated = (): boolean => {
+  isAuthenticated: (): boolean => {
     return auth.getCurrentUser() !== null;
   },
 
   // Obter todos os usuários (para simulação)
-  getUsers = (): User[] => {
+  getUsers: (): User[] => {
+    if (typeof window === 'undefined') return [];
+    seedDefaultUsers();
     const users: User[] = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
@@ -99,17 +148,21 @@ export const auth = {
   },
 
   // Atualizar plano do usuário
-  updatePlan = (userId: string, plan: 'basic' | 'pro' | 'enterprise'): void => {
+  updatePlan: (userId: string, plan: 'basic' | 'pro' | 'enterprise'): void => {
+    if (typeof window === 'undefined') return;
     const userData = JSON.parse(localStorage.getItem(`user_${userId}`) || '{}');
     userData.plan = plan;
     localStorage.setItem(`user_${userId}`, JSON.stringify(userData));
 
-    // Atualizar sessão
+    // Atualizar sessão se for o usuário atual
     const session = localStorage.getItem(STORAGE_KEY);
     if (session) {
       const parsed = JSON.parse(session);
-      parsed.user.plan = plan;
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+      if (parsed.user.id === userId) {
+        parsed.user.plan = plan;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+      }
     }
   }
 };
+

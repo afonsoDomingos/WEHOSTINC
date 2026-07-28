@@ -82,6 +82,7 @@ const EMAILS_KEY = 'wehosthere_emails';
 export const dataManager = {
   // Sites
   getSites: (): Site[] => {
+    if (typeof window === 'undefined') return [];
     const data = localStorage.getItem(SITES_KEY);
     return data ? JSON.parse(data) : [];
   },
@@ -94,17 +95,22 @@ export const dataManager = {
       createdAt: new Date().toISOString()
     };
     sites.push(newSite);
-    localStorage.setItem(SITES_KEY, JSON.stringify(sites));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(SITES_KEY, JSON.stringify(sites));
+    }
     return newSite;
   },
 
   deleteSite: (id: string): void => {
     const sites = dataManager.getSites().filter(s => s.id !== id);
-    localStorage.setItem(SITES_KEY, JSON.stringify(sites));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(SITES_KEY, JSON.stringify(sites));
+    }
   },
 
   // Emails
   getEmails: (): EmailAccount[] => {
+    if (typeof window === 'undefined') return [];
     const data = localStorage.getItem(EMAILS_KEY);
     return data ? JSON.parse(data) : [];
   },
@@ -117,12 +123,16 @@ export const dataManager = {
       createdAt: new Date().toISOString()
     };
     emails.push(newEmail);
-    localStorage.setItem(EMAILS_KEY, JSON.stringify(emails));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(EMAILS_KEY, JSON.stringify(emails));
+    }
     return newEmail;
   },
 
   deleteEmail: (id: string): void => {
     const emails = dataManager.getEmails().filter(e => e.id !== id);
-    localStorage.setItem(EMAILS_KEY, JSON.stringify(emails));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(EMAILS_KEY, JSON.stringify(emails));
+    }
   }
 };

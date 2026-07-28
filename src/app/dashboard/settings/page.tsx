@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
   Settings as SettingsIcon, LayoutDashboard, Globe, Mail, Database, LogOut, Server,
-  User, Lock, Bell, Shield, Key
+  User as UserIcon, Lock, Bell, Shield, Key
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 
@@ -186,7 +186,7 @@ export default function SettingsPage() {
             <div className="bg-white rounded-xl shadow-sm p-6">
               <div className="flex items-center space-x-4 mb-6">
                 <div className="bg-primary-100 p-3 rounded-lg">
-                  <User className="h-6 w-6 text-primary-600" />
+                  <UserIcon className="h-6 w-6 text-primary-600" />
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-gray-900">Perfil</h2>

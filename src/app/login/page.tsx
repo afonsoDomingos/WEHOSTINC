@@ -19,8 +19,12 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      auth.login(email, password);
-      router.push('/dashboard');
+      const user = auth.login(email, password);
+      if (user.role === 'admin' || user.email === 'admin@wehosthere.com') {
+        router.push('/admin');
+      } else {
+        router.push('/dashboard');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao fazer login');
     } finally {

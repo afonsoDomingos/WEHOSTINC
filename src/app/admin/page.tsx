@@ -13,8 +13,8 @@ import { dataManager } from '@/lib/data';
 export default function AdminPage() {
   const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
-  const [sites, setSites] = useState(dataManager.getSites());
-  const [emails, setEmails] = useState(dataManager.getEmails());
+  const [sites, setSites] = useState<any[]>([]);
+  const [emails, setEmails] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -167,6 +167,7 @@ export default function AdminPage() {
                     <th className="text-left py-3 px-4 text-gray-400 font-medium">Nome</th>
                     <th className="text-left py-3 px-4 text-gray-400 font-medium">Email</th>
                     <th className="text-left py-3 px-4 text-gray-400 font-medium">Plano</th>
+                    <th className="text-left py-3 px-4 text-gray-400 font-medium">Vencimento</th>
                     <th className="text-left py-3 px-4 text-gray-400 font-medium">Status</th>
                     <th className="text-left py-3 px-4 text-gray-400 font-medium">Cadastro</th>
                     <th className="text-left py-3 px-4 text-gray-400 font-medium">Ações</th>
@@ -188,10 +189,13 @@ export default function AdminPage() {
                           {user.plan === 'basic' ? 'Básico' : user.plan === 'pro' ? 'Profissional' : 'Empresarial'}
                         </span>
                       </td>
+                      <td className="py-3 px-4 text-gray-300">
+                        {user.dueDate ? `Dia ${user.dueDate}` : 'Dia 29'}
+                      </td>
                       <td className="py-3 px-4">
                         <div className="flex items-center space-x-2">
                           {getStatusIcon(getUserStatus(user))}
-                          <span className="text-sm">Ativo</span>
+                          <span className="text-sm capitalize">{getUserStatus(user) === 'active' ? 'Ativo' : getUserStatus(user)}</span>
                         </div>
                       </td>
                       <td className="py-3 px-4 text-gray-300">
