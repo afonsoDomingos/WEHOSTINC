@@ -309,13 +309,22 @@ export default function AdminPage() {
                       </td>
                       <td className="py-3.5 px-4 text-gray-600 font-mono text-sm">{user.email}</td>
                       <td className="py-3.5 px-4">
-                        <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${
-                          user.plan === 'basic' ? 'bg-gray-100 text-gray-700 border-gray-200' :
-                          user.plan === 'pro' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                          'bg-purple-50 text-purple-700 border-purple-200'
-                        }`}>
-                          {user.plan === 'basic' ? 'Básico' : user.plan === 'pro' ? 'Profissional' : 'Empresarial'}
-                        </span>
+                        <select
+                          value={user.plan}
+                          onChange={(e) => {
+                            auth.updatePlan(user.id, e.target.value as any);
+                            setUsers(auth.getUsers());
+                          }}
+                          className={`px-2.5 py-1 rounded-lg text-xs font-bold outline-none border cursor-pointer ${
+                            user.plan === 'basic' ? 'bg-gray-100 text-gray-800 border-gray-300' :
+                            user.plan === 'pro' ? 'bg-blue-50 text-blue-800 border-blue-300' :
+                            'bg-purple-50 text-purple-800 border-purple-300'
+                          }`}
+                        >
+                          <option value="basic">Básico (1.200 MT)</option>
+                          <option value="pro">Profissional (3.000 MT)</option>
+                          <option value="enterprise">Empresarial (6.200 MT)</option>
+                        </select>
                       </td>
                       <td className="py-3.5 px-4 text-gray-600 text-sm font-medium">
                         {user.dueDate ? `Dia ${user.dueDate}` : 'Dia 29'}
