@@ -137,7 +137,7 @@ export default function AdminPage() {
               <DollarSign className="h-8 w-8 text-emerald-600" />
               <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">MRR</span>
             </div>
-            <p className="text-3xl font-bold text-gray-900">R$ {totalRevenue}</p>
+            <p className="text-3xl font-bold text-gray-900">${totalRevenue} USD</p>
             <p className="text-gray-500 text-sm mt-1">Receita mensal</p>
           </div>
         </div>

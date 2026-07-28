@@ -100,7 +100,7 @@ export default function Home() {
               <h3 className="text-2xl font-bold text-gray-900 mb-2">Básico</h3>
               <p className="text-gray-600 mb-4">Ideal para iniciantes</p>
               <div className="mb-6">
-                <span className="text-4xl font-bold text-gray-900">R$ 19</span>
+                <span className="text-4xl font-bold text-gray-900">$19</span>
                 <span className="text-gray-600">/mês</span>
               </div>
               <ul className="space-y-3 mb-8">
@@ -134,7 +134,7 @@ export default function Home() {
               <h3 className="text-2xl font-bold text-white mb-2">Profissional</h3>
               <p className="text-blue-100 mb-4">Para negócios em crescimento</p>
               <div className="mb-6">
-                <span className="text-4xl font-bold text-white">R$ 49</span>
+                <span className="text-4xl font-bold text-white">$49</span>
                 <span className="text-blue-100">/mês</span>
               </div>
               <ul className="space-y-3 mb-8">
@@ -169,7 +169,7 @@ export default function Home() {
               <h3 className="text-2xl font-bold text-gray-900 mb-2">Empresarial</h3>
               <p className="text-gray-600 mb-4">Para grandes operações</p>
               <div className="mb-6">
-                <span className="text-4xl font-bold text-gray-900">R$ 99</span>
+                <span className="text-4xl font-bold text-gray-900">$99</span>
                 <span className="text-gray-600">/mês</span>
               </div>
               <ul className="space-y-3 mb-8">
