@@ -247,23 +247,23 @@ export default function SitesPage() {
                         </div>
                         <div className="grid sm:grid-cols-2 gap-2">
                           <div className="flex items-center justify-between bg-white px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-mono">
-                            <span className="text-gray-800 font-bold">ns1.wehosthere.co.mz</span>
+                            <span className="text-gray-800 font-bold">ns1.wehosthere.com</span>
                             <button
                               type="button"
-                              onClick={() => copyToClipboard('ns1.wehosthere.co.mz')}
+                              onClick={() => copyToClipboard('ns1.wehosthere.com')}
                               className="text-primary-600 hover:text-primary-700 font-sans text-[11px] font-bold px-2 py-0.5 rounded bg-primary-50 hover:bg-primary-100 transition cursor-pointer"
                             >
-                              {copiedNS === 'ns1.wehosthere.co.mz' ? 'Copiado ✓' : 'Copiar'}
+                              {copiedNS === 'ns1.wehosthere.com' ? 'Copiado ✓' : 'Copiar'}
                             </button>
                           </div>
                           <div className="flex items-center justify-between bg-white px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-mono">
-                            <span className="text-gray-800 font-bold">ns2.wehosthere.co.mz</span>
+                            <span className="text-gray-800 font-bold">ns2.wehosthere.com</span>
                             <button
                               type="button"
-                              onClick={() => copyToClipboard('ns2.wehosthere.co.mz')}
+                              onClick={() => copyToClipboard('ns2.wehosthere.com')}
                               className="text-primary-600 hover:text-primary-700 font-sans text-[11px] font-bold px-2 py-0.5 rounded bg-primary-50 hover:bg-primary-100 transition cursor-pointer"
                             >
-                              {copiedNS === 'ns2.wehosthere.co.mz' ? 'Copiado ✓' : 'Copiar'}
+                              {copiedNS === 'ns2.wehosthere.com' ? 'Copiado ✓' : 'Copiar'}
                             </button>
                           </div>
                         </div>

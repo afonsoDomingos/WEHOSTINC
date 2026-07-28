@@ -561,9 +561,9 @@ export default function AdminPage() {
               <span className="text-blue-700">Insira na CIUEM ou Namecheap ao registrar o domínio do cliente:</span>
             </div>
             <div className="flex items-center space-x-2 font-mono font-bold text-blue-900 bg-white px-3 py-1.5 rounded-lg border border-blue-200">
-              <span>ns1.wehosthere.co.mz</span>
+              <span>ns1.wehosthere.com</span>
               <span className="text-gray-300">|</span>
-              <span>ns2.wehosthere.co.mz</span>
+              <span>ns2.wehosthere.com</span>
             </div>
           </div>
 
