@@ -280,6 +280,32 @@ export const auth = {
         }
       } catch (e) {}
     }
+  },
+
+  // Eliminar usuário
+  deleteUser: (userId: string): void => {
+    if (typeof window === 'undefined') return;
+    localStorage.removeItem(`user_${userId}`);
+
+    const currentList = auth.getUsers();
+    const updatedList = currentList.filter(u => u.id !== userId);
+    localStorage.setItem('wehosthere_all_users', JSON.stringify(updatedList));
+
+    fetch('/api/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'delete', userId })
+    }).catch(err => console.error('Erro ao eliminar usuário no servidor:', err));
+
+    const session = localStorage.getItem(STORAGE_KEY);
+    if (session) {
+      try {
+        const parsed = JSON.parse(session);
+        if (parsed.user.id === userId) {
+          localStorage.removeItem(STORAGE_KEY);
+        }
+      } catch (e) {}
+    }
   }
 };
 

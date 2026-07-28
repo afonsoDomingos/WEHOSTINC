@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { 
   Users, Server, Mail, Database, TrendingUp, DollarSign,
   LogOut, Settings, Home, CheckCircle, Clock, XCircle, Search,
-  ShoppingBag, MessageSquare, ExternalLink
+  ShoppingBag, MessageSquare, ExternalLink, Trash2
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 import { dataManager, ServiceOrder } from '@/lib/data';
@@ -398,10 +398,23 @@ export default function AdminPage() {
                             className={`px-2.5 py-1 rounded-md text-xs font-semibold transition ${
                               getUserStatus(user) === 'suspended'
                                 ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
-                                : 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200'
+                                : 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200'
                             }`}
                           >
                             {getUserStatus(user) === 'suspended' ? 'Reativar' : 'Suspender'}
+                          </button>
+
+                          <button
+                            onClick={() => {
+                              if (confirm(`Tem certeza que deseja eliminar permanentemente o cliente "${user.name}" (${user.email})?`)) {
+                                auth.deleteUser(user.id);
+                                setUsers(auth.getUsers());
+                              }
+                            }}
+                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition"
+                            title="Eliminar cliente"
+                          >
+                            <Trash2 className="h-4 w-4" />
                           </button>
                         </div>
                       </td>

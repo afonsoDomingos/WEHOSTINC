@@ -70,6 +70,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true, users: GLOBAL_USERS });
     }
 
+    if (action === 'delete') {
+      GLOBAL_USERS = GLOBAL_USERS.filter(u => u.id !== userId);
+      return NextResponse.json({ success: true, users: GLOBAL_USERS });
+    }
+
     // Registrar ou adicionar usuário
     const existingIndex = GLOBAL_USERS.findIndex(
       u => u.email.toLowerCase() === (user?.email || body.email || '').toLowerCase()
