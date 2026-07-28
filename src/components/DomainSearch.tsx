@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, CheckCircle2, XCircle, Globe, ArrowRight, Sparkles, Loader2 } from 'lucide-react';
-import { DOMAIN_PRICES, checkDomainAvailability, DomainCheckResult } from '@/lib/domains';
+import { DOMAIN_PRICES, checkDomainRealAsync, DomainCheckResult } from '@/lib/domains';
 
 export default function DomainSearch() {
   const router = useRouter();
@@ -12,23 +12,26 @@ export default function DomainSearch() {
   const [isSearching, setIsSearching] = useState(false);
   const [result, setResult] = useState<DomainCheckResult | null>(null);
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!query.trim()) return;
 
     setIsSearching(true);
     setResult(null);
 
-    // Simulação com pequeno atraso para UX realista
-    setTimeout(() => {
-      let fullQuery = query.trim();
-      if (!fullQuery.includes('.')) {
-        fullQuery = fullQuery + selectedTld;
-      }
-      const searchResult = checkDomainAvailability(fullQuery);
+    let fullQuery = query.trim();
+    if (!fullQuery.includes('.')) {
+      fullQuery = fullQuery + selectedTld;
+    }
+
+    try {
+      const searchResult = await checkDomainRealAsync(fullQuery);
       setResult(searchResult);
+    } catch (err) {
+      console.error('Erro na busca de domínio:', err);
+    } finally {
       setIsSearching(false);
-    }, 400);
+    }
   };
 
   const handleRegister = (domain: string, price: number) => {

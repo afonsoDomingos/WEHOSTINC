@@ -90,3 +90,21 @@ export function checkDomainAvailability(rawInput: string): DomainCheckResult {
     alternatives,
   };
 }
+
+/**
+ * Consulta a API de verificação de DNS em tempo real do servidor.
+ */
+export async function checkDomainRealAsync(rawInput: string): Promise<DomainCheckResult> {
+  try {
+    const response = await fetch(`/api/domains/check?domain=${encodeURIComponent(rawInput)}`);
+    if (!response.ok) {
+      throw new Error('Falha na resposta da API');
+    }
+    const data: DomainCheckResult = await response.json();
+    return data;
+  } catch (err) {
+    console.warn('Fallback para verificação local de domínio:', err);
+    return checkDomainAvailability(rawInput);
+  }
+}
+
