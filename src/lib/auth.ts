@@ -87,6 +87,13 @@ export const auth = {
       const currentList = auth.getUsers();
       const updatedList = [...currentList.filter(u => u.id !== newUser.id), newUser];
       localStorage.setItem('wehosthere_all_users', JSON.stringify(updatedList));
+
+      // Sincronizar com a API do Servidor para aparecer no Admin em qualquer navegador/dispositivo
+      fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user: userWithPassword })
+      }).catch(err => console.error('Erro de sync no servidor:', err));
     }
 
     return newUser;
@@ -185,6 +192,38 @@ export const auth = {
     return allUsers;
   },
 
+  // Buscar usuários do servidor via API e atualizar LocalStorage
+  fetchUsersAsync: async (): Promise<User[]> => {
+    try {
+      const res = await fetch('/api/users');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.users && Array.isArray(data.users)) {
+          const serverUsers: User[] = data.users;
+          const localUsers = auth.getUsers();
+          
+          const userMap = new Map<string, User>();
+          localUsers.forEach(u => userMap.set(u.id, u));
+          serverUsers.forEach(u => userMap.set(u.id, u));
+
+          const merged = Array.from(userMap.values());
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('wehosthere_all_users', JSON.stringify(merged));
+            merged.forEach(u => {
+              if (!localStorage.getItem(`user_${u.id}`)) {
+                localStorage.setItem(`user_${u.id}`, JSON.stringify(u));
+              }
+            });
+          }
+          return merged;
+        }
+      }
+    } catch (e) {
+      console.error('Falha ao buscar usuários da API:', e);
+    }
+    return auth.getUsers();
+  },
+
   // Atualizar plano do usuário
   updatePlan: (userId: string, plan: 'basic' | 'pro' | 'enterprise'): void => {
     if (typeof window === 'undefined') return;
@@ -195,6 +234,12 @@ export const auth = {
     const currentList = auth.getUsers();
     const updatedList = currentList.map(u => u.id === userId ? { ...u, plan } : u);
     localStorage.setItem('wehosthere_all_users', JSON.stringify(updatedList));
+
+    fetch('/api/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'update_plan', userId, plan })
+    }).catch(err => console.error('Erro de sync de plano:', err));
 
     const session = localStorage.getItem(STORAGE_KEY);
     if (session) {
@@ -218,6 +263,12 @@ export const auth = {
     const currentList = auth.getUsers();
     const updatedList = currentList.map(u => u.id === userId ? { ...u, status } : u);
     localStorage.setItem('wehosthere_all_users', JSON.stringify(updatedList));
+
+    fetch('/api/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'update_status', userId, status })
+    }).catch(err => console.error('Erro de sync de status:', err));
 
     const session = localStorage.getItem(STORAGE_KEY);
     if (session) {

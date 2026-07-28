@@ -48,6 +48,25 @@ export default function AdminPage() {
     setEmails(dataManager.getEmails());
     setOrders(dataManager.getOrders());
     setLoading(false);
+
+    // Buscar usuários atualizados do servidor via API
+    auth.fetchUsersAsync().then((fetched) => {
+      if (fetched && fetched.length > 0) {
+        setUsers(fetched);
+      }
+    });
+
+    // Polling a cada 5s para sincronizar novos cadastros em tempo real
+    const interval = setInterval(() => {
+      auth.fetchUsersAsync().then((fetched) => {
+        if (fetched && fetched.length > 0) {
+          setUsers(fetched);
+        }
+      });
+      setOrders(dataManager.getOrders());
+    }, 5000);
+
+    return () => clearInterval(interval);
   }, [router]);
 
   const handleUpdateOrderStatus = (id: string, newStatus: ServiceOrder['status']) => {
