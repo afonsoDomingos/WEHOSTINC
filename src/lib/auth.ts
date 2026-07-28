@@ -163,6 +163,23 @@ export const auth = {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
       }
     }
+  },
+
+  // Atualizar status do usuário (Ativo, Pendente, Suspenso)
+  updateUserStatus: (userId: string, status: 'active' | 'pending' | 'suspended'): void => {
+    if (typeof window === 'undefined') return;
+    const userData = JSON.parse(localStorage.getItem(`user_${userId}`) || '{}');
+    userData.status = status;
+    localStorage.setItem(`user_${userId}`, JSON.stringify(userData));
+
+    const session = localStorage.getItem(STORAGE_KEY);
+    if (session) {
+      const parsed = JSON.parse(session);
+      if (parsed.user.id === userId) {
+        parsed.user.status = status;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+      }
+    }
   }
 };
 

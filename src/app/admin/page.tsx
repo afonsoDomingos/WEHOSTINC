@@ -321,23 +321,43 @@ export default function AdminPage() {
                         {user.dueDate ? `Dia ${user.dueDate}` : 'Dia 29'}
                       </td>
                       <td className="py-3.5 px-4">
-                        <div className="flex items-center space-x-2">
-                          {getStatusIcon(getUserStatus(user))}
-                          <span className="text-sm font-medium text-gray-700 capitalize">
-                            {getUserStatus(user) === 'active' ? 'Ativo' : getUserStatus(user)}
-                          </span>
-                        </div>
+                        <select
+                          value={getUserStatus(user)}
+                          onChange={(e) => {
+                            auth.updateUserStatus(user.id, e.target.value as any);
+                            setUsers(auth.getUsers());
+                          }}
+                          className={`px-2.5 py-1 rounded-lg text-xs font-bold outline-none border cursor-pointer ${
+                            getUserStatus(user) === 'active'
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                              : getUserStatus(user) === 'pending'
+                              ? 'bg-amber-50 text-amber-700 border-amber-300'
+                              : 'bg-red-50 text-red-700 border-red-300'
+                          }`}
+                        >
+                          <option value="active">Ativo (✓)</option>
+                          <option value="pending">Pendente (⏰)</option>
+                          <option value="suspended">Suspenso (✗)</option>
+                        </select>
                       </td>
                       <td className="py-3.5 px-4 text-gray-500 text-sm">
                         {new Date(user.createdAt).toLocaleDateString('pt-BR')}
                       </td>
                       <td className="py-3.5 px-4">
-                        <div className="flex items-center space-x-2">
-                          <button className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition" title="Configurações">
-                            <Settings className="h-4 w-4" />
-                          </button>
-                          <button className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition" title="Suspender">
-                            <XCircle className="h-4 w-4" />
+                        <div className="flex items-center space-x-1.5">
+                          <button
+                            onClick={() => {
+                              const newStatus = getUserStatus(user) === 'suspended' ? 'active' : 'suspended';
+                              auth.updateUserStatus(user.id, newStatus);
+                              setUsers(auth.getUsers());
+                            }}
+                            className={`px-2.5 py-1 rounded-md text-xs font-semibold transition ${
+                              getUserStatus(user) === 'suspended'
+                                ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
+                                : 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200'
+                            }`}
+                          >
+                            {getUserStatus(user) === 'suspended' ? 'Reativar' : 'Suspender'}
                           </button>
                         </div>
                       </td>
