@@ -216,6 +216,15 @@ export default function SitesPage() {
                           <p className="font-semibold text-gray-900">{site.bandwidth} GB</p>
                         </div>
                       </div>
+
+                      {site.status === 'pending' && (
+                        <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800 flex items-center space-x-2">
+                          <Clock className="h-4 w-4 text-amber-600 flex-shrink-0 animate-pulse" />
+                          <span>
+                            <strong>Registo de Domínio em Processamento:</strong> A equipe WEHOSTHERE está a configurar os servidores de nomes para activar este domínio.
+                          </span>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

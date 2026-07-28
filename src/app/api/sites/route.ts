@@ -29,6 +29,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true, sites: GLOBAL_SITES });
     }
 
+    if (action === 'update_status') {
+      const { status } = body;
+      GLOBAL_SITES = GLOBAL_SITES.map(s => s.id === siteId ? { ...s, status } : s);
+      return NextResponse.json({ success: true, sites: GLOBAL_SITES });
+    }
+
     const newSite: ServerSite = site || {
       id: body.id || Date.now().toString(),
       domain: body.domain,

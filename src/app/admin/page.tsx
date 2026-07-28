@@ -90,6 +90,11 @@ export default function AdminPage() {
     setOrders(dataManager.getOrders());
   };
 
+  const handleUpdateSiteStatus = (id: string, newStatus: 'active' | 'pending' | 'suspended') => {
+    dataManager.updateSiteStatus(id, newStatus);
+    setSites(dataManager.getSites());
+  };
+
   const handleCreateClient = (e: React.FormEvent) => {
     e.preventDefault();
     setCreateError('');
@@ -527,6 +532,83 @@ export default function AdminPage() {
                           >
                             <MessageSquare className="h-4 w-4" />
                           </a>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {/* Gestão de Domínios e Sites */}
+        <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm mb-8">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">Gestão de Domínios e Sites</h2>
+              <p className="text-gray-500 text-sm">Aprove registros e gerencie o status dos domínios dos clientes em tempo real</p>
+            </div>
+            <span className="bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1.5 rounded-full border border-amber-300">
+              {sites.filter(s => s.status === 'pending').length} Domínio(s) Pendente(s)
+            </span>
+          </div>
+
+          {sites.length === 0 ? (
+            <div className="text-center py-8 text-gray-500 text-sm">
+              Nenhum domínio ou site cadastrado até o momento.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-200 bg-gray-50/50">
+                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Domínio</th>
+                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Status Atual</th>
+                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Data de Cadastro</th>
+                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Ação do Administrador</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {sites.map((site) => (
+                    <tr key={site.id} className="hover:bg-gray-50/80 transition">
+                      <td className="py-3.5 px-4">
+                        <span className="font-bold text-gray-900 block">{site.domain}</span>
+                        <span className="text-xs text-gray-500">{site.name}</span>
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <span className={`inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${
+                          site.status === 'active' ? 'bg-emerald-50 text-emerald-800 border-emerald-300' :
+                          site.status === 'pending' ? 'bg-amber-50 text-amber-800 border-amber-300' :
+                          'bg-red-50 text-red-800 border-red-300'
+                        }`}>
+                          <span>{site.status === 'active' ? '🟢 Ativo' : site.status === 'pending' ? '🟡 Pendente (Processando)' : '🔴 Suspenso'}</span>
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4 text-xs text-gray-500 font-mono">
+                        {new Date(site.createdAt).toLocaleDateString('pt-MZ')}
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <div className="flex items-center space-x-2">
+                          {site.status === 'pending' ? (
+                            <button
+                              onClick={() => handleUpdateSiteStatus(site.id, 'active')}
+                              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg shadow transition flex items-center space-x-1.5 cursor-pointer"
+                            >
+                              <CheckCircle className="h-3.5 w-3.5" />
+                              <span>Ativar Domínio Agora</span>
+                            </button>
+                          ) : (
+                            <select
+                              value={site.status}
+                              onChange={(e) => handleUpdateSiteStatus(site.id, e.target.value as any)}
+                              className="px-2.5 py-1 text-xs font-bold rounded-lg border border-gray-300 bg-white outline-none cursor-pointer"
+                            >
+                              <option value="active">🟢 Ativo</option>
+                              <option value="pending">🟡 Pendente</option>
+                              <option value="suspended">🔴 Suspenso</option>
+                            </select>
+                          )}
                         </div>
                       </td>
                     </tr>

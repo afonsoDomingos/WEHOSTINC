@@ -114,6 +114,17 @@ function CheckoutContent() {
         status: (selectedPlan && selectedPlan.id === 'website_creation') ? 'in_progress' : 'completed'
       });
 
+      // Cadastra o domínio na lista de sites do cliente com status 'pending' (Pendente / Em Processamento)
+      if (domainParam) {
+        dataManager.addSite({
+          name: domainParam,
+          domain: domainParam,
+          status: 'pending',
+          storage: selectedPlan ? selectedPlan.features.storage : 10,
+          bandwidth: 100
+        });
+      }
+
       setPushModal(false);
       setLoading(false);
       setSuccess(true);

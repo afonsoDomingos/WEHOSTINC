@@ -164,6 +164,19 @@ export const dataManager = {
     }
   },
 
+  updateSiteStatus: (id: string, status: Site['status']): void => {
+    const sites = dataManager.getSites().map(s => s.id === id ? { ...s, status } : s);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(SITES_KEY, JSON.stringify(sites));
+
+      fetch('/api/sites', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update_status', siteId: id, status })
+      }).catch(err => console.error('Erro de sync de status de site:', err));
+    }
+  },
+
   // Emails
   getEmails: (): EmailAccount[] => {
     if (typeof window === 'undefined') return [];
