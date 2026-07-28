@@ -554,6 +554,19 @@ export default function AdminPage() {
             </span>
           </div>
 
+          {/* Banner de Name Servers para cópia pelo Admin */}
+          <div className="bg-blue-50/70 border border-blue-200 rounded-xl p-3.5 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+            <div>
+              <span className="font-bold text-blue-900 block">🌐 Servidores de Nomes Oficiais WEHOSTHERE para Apontamento:</span>
+              <span className="text-blue-700">Insira na CIUEM ou Namecheap ao registrar o domínio do cliente:</span>
+            </div>
+            <div className="flex items-center space-x-2 font-mono font-bold text-blue-900 bg-white px-3 py-1.5 rounded-lg border border-blue-200">
+              <span>ns1.wehosthere.co.mz</span>
+              <span className="text-gray-300">|</span>
+              <span>ns2.wehosthere.co.mz</span>
+            </div>
+          </div>
+
           {sites.length === 0 ? (
             <div className="text-center py-8 text-gray-500 text-sm">
               Nenhum domínio ou site cadastrado até o momento.

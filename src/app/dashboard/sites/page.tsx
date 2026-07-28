@@ -56,7 +56,17 @@ export default function SitesPage() {
     }
   };
 
-  const getStatusIcon = (status: string) => {
+  const [copiedNS, setCopiedNS] = useState<string | null>(null);
+
+  const copyToClipboard = (text: string) => {
+    if (typeof navigator !== 'undefined') {
+      navigator.clipboard.writeText(text);
+      setCopiedNS(text);
+      setTimeout(() => setCopiedNS(null), 2500);
+    }
+  };
+
+  const getStatusIcon = (status: Site['status']) => {
     switch (status) {
       case 'active':
         return <CheckCircle className="h-5 w-5 text-green-500" />;
@@ -225,6 +235,39 @@ export default function SitesPage() {
                           </span>
                         </div>
                       )}
+
+                      {/* Caixa de Apontamento DNS / Name Servers */}
+                      <div className="mt-3 pt-3 border-t border-gray-100 bg-gray-50/80 p-3 rounded-xl border">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-[11px] font-bold text-gray-700 uppercase tracking-wider flex items-center space-x-1">
+                            <Server className="h-3.5 w-3.5 text-primary-600" />
+                            <span>Servidores de Nomes da WEHOSTHERE (DNS Pointers)</span>
+                          </span>
+                          <span className="text-[10px] text-gray-500 font-medium">Use na CIUEM ou Namecheap</span>
+                        </div>
+                        <div className="grid sm:grid-cols-2 gap-2">
+                          <div className="flex items-center justify-between bg-white px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-mono">
+                            <span className="text-gray-800 font-bold">ns1.wehosthere.co.mz</span>
+                            <button
+                              type="button"
+                              onClick={() => copyToClipboard('ns1.wehosthere.co.mz')}
+                              className="text-primary-600 hover:text-primary-700 font-sans text-[11px] font-bold px-2 py-0.5 rounded bg-primary-50 hover:bg-primary-100 transition cursor-pointer"
+                            >
+                              {copiedNS === 'ns1.wehosthere.co.mz' ? 'Copiado ✓' : 'Copiar'}
+                            </button>
+                          </div>
+                          <div className="flex items-center justify-between bg-white px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-mono">
+                            <span className="text-gray-800 font-bold">ns2.wehosthere.co.mz</span>
+                            <button
+                              type="button"
+                              onClick={() => copyToClipboard('ns2.wehosthere.co.mz')}
+                              className="text-primary-600 hover:text-primary-700 font-sans text-[11px] font-bold px-2 py-0.5 rounded bg-primary-50 hover:bg-primary-100 transition cursor-pointer"
+                            >
+                              {copiedNS === 'ns2.wehosthere.co.mz' ? 'Copiado ✓' : 'Copiar'}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
