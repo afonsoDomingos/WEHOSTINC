@@ -1,9 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import Link from "next/link";
 import { Server, Mail, Shield, Zap, Globe, Users, Search, Sparkles, CheckCircle } from "lucide-react";
 
 export default function Home() {
+  const [isAnnual, setIsAnnual] = useState(false);
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       {/* Header */}
@@ -130,110 +132,183 @@ export default function Home() {
       {/* Pricing */}
       <section id="planos" className="py-20 px-4 bg-blue-50">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
-            Planos de Hospedagem
-          </h2>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Planos de Hospedagem
+            </h2>
+            <p className="text-gray-600 max-w-xl mx-auto mb-6">
+              Escolha o plano ideal para o seu projeto com pagamento mensal ou anual com desconto.
+            </p>
+
+            {/* Mensal / Anual Toggle Switch */}
+            <div className="inline-flex items-center bg-gray-200 p-1.5 rounded-full border border-gray-300 shadow-inner">
+              <button
+                type="button"
+                onClick={() => setIsAnnual(false)}
+                className={`px-5 py-2 rounded-full text-sm font-bold transition cursor-pointer ${
+                  !isAnnual ? 'bg-white text-gray-900 shadow-md' : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Cobrança Mensal
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsAnnual(true)}
+                className={`px-5 py-2 rounded-full text-sm font-bold transition flex items-center space-x-1.5 cursor-pointer ${
+                  isAnnual ? 'bg-primary-600 text-white shadow-md' : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <span>Cobrança Anual</span>
+                <span className="bg-amber-400 text-gray-900 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                  2 Meses Grátis
+                </span>
+              </button>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 items-stretch">
             {/* Basic Plan */}
-            <div className="bg-white rounded-xl shadow-lg p-8">
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Básico</h3>
-              <p className="text-gray-600 mb-4">Ideal para iniciantes</p>
-              <div className="mb-6">
-                <span className="text-4xl font-bold text-gray-900">1.200 MT</span>
-                <span className="text-gray-600">/mês</span>
+            <div className="bg-white rounded-xl shadow-lg p-8 flex flex-col justify-between border border-gray-100">
+              <div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">Básico</h3>
+                <p className="text-gray-600 mb-4">Ideal para iniciantes</p>
+                <div className="mb-6">
+                  <span className="text-4xl font-bold text-gray-900">
+                    {isAnnual ? '12.000 MT' : '1.200 MT'}
+                  </span>
+                  <span className="text-gray-600 text-sm font-medium">
+                    {isAnnual ? ' /ano' : ' /mês'}
+                  </span>
+                  {isAnnual && (
+                    <div className="text-xs font-semibold text-emerald-600 mt-1">
+                      Equivale a 1.000 MT/mês (Economize 2.400 MT)
+                    </div>
+                  )}
+                </div>
+                <ul className="space-y-3 mb-8">
+                  <li className="flex items-center text-gray-700">
+                    <Server className="h-5 w-5 text-primary-600 mr-2 flex-shrink-0" />
+                    1 Site
+                  </li>
+                  <li className="flex items-center text-gray-700">
+                    <Mail className="h-5 w-5 text-primary-600 mr-2 flex-shrink-0" />
+                    5 Contas de Email
+                  </li>
+                  <li className="flex items-center text-gray-700">
+                    <Globe className="h-5 w-5 text-primary-600 mr-2 flex-shrink-0" />
+                    10 GB Armazenamento
+                  </li>
+                  <li className="flex items-center text-gray-700">
+                    <Zap className="h-5 w-5 text-primary-600 mr-2 flex-shrink-0" />
+                    Tráfego Ilimitado
+                  </li>
+                </ul>
               </div>
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-center text-gray-700">
-                  <Server className="h-5 w-5 text-primary-600 mr-2" />
-                  1 Site
-                </li>
-                <li className="flex items-center text-gray-700">
-                  <Mail className="h-5 w-5 text-primary-600 mr-2" />
-                  5 Contas de Email
-                </li>
-                <li className="flex items-center text-gray-700">
-                  <Globe className="h-5 w-5 text-primary-600 mr-2" />
-                  10 GB Armazenamento
-                </li>
-                <li className="flex items-center text-gray-700">
-                  <Zap className="h-5 w-5 text-primary-600 mr-2" />
-                  Tráfego Ilimitado
-                </li>
-              </ul>
-              <Link href="/checkout?plan=basic" className="block w-full py-3 text-center border-2 border-primary-600 text-primary-600 rounded-lg hover:bg-primary-50 transition">
+              <Link
+                href={`/checkout?plan=basic&billingCycle=${isAnnual ? 'annual' : 'monthly'}`}
+                className="block w-full py-3 text-center border-2 border-primary-600 text-primary-600 font-bold rounded-xl hover:bg-primary-50 transition"
+              >
                 Assinar Agora
               </Link>
             </div>
 
             {/* Pro Plan */}
-            <div className="bg-primary-600 rounded-xl shadow-lg p-8 transform scale-105">
-              <div className="bg-yellow-400 text-white text-xs font-bold px-3 py-1 rounded-full inline-block mb-4">
+            <div className="bg-primary-600 rounded-xl shadow-xl p-8 text-white flex flex-col justify-between relative transform lg:-translate-y-2 border border-primary-500">
+              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-amber-400 text-gray-900 text-xs font-black px-4 py-1 rounded-full uppercase tracking-wider shadow">
                 MAIS POPULAR
               </div>
-              <h3 className="text-2xl font-bold text-white mb-2">Profissional</h3>
-              <p className="text-blue-100 mb-4">Para negócios em crescimento</p>
-              <div className="mb-6">
-                <span className="text-4xl font-bold text-white">3.000 MT</span>
-                <span className="text-blue-100">/mês</span>
+              <div>
+                <h3 className="text-2xl font-bold text-white mb-2 pt-2">Profissional</h3>
+                <p className="text-blue-100 mb-4">Para negócios em crescimento</p>
+                <div className="mb-6">
+                  <span className="text-4xl font-bold text-white">
+                    {isAnnual ? '30.000 MT' : '3.000 MT'}
+                  </span>
+                  <span className="text-blue-100 text-sm font-medium">
+                    {isAnnual ? ' /ano' : ' /mês'}
+                  </span>
+                  {isAnnual && (
+                    <div className="text-xs font-semibold text-amber-300 mt-1">
+                      Equivale a 2.500 MT/mês (Economize 6.000 MT)
+                    </div>
+                  )}
+                </div>
+                <ul className="space-y-3 mb-8">
+                  <li className="flex items-center text-white">
+                    <Server className="h-5 w-5 text-blue-200 mr-2 flex-shrink-0" />
+                    5 Sites
+                  </li>
+                  <li className="flex items-center text-white">
+                    <Mail className="h-5 w-5 text-blue-200 mr-2 flex-shrink-0" />
+                    20 Contas de Email
+                  </li>
+                  <li className="flex items-center text-white">
+                    <Globe className="h-5 w-5 text-blue-200 mr-2 flex-shrink-0" />
+                    50 GB Armazenamento
+                  </li>
+                  <li className="flex items-center text-white">
+                    <Zap className="h-5 w-5 text-blue-200 mr-2 flex-shrink-0" />
+                    Tráfego Ilimitado
+                  </li>
+                  <li className="flex items-center text-white">
+                    <Shield className="h-5 w-5 text-blue-200 mr-2 flex-shrink-0" />
+                    SSL Grátis
+                  </li>
+                </ul>
               </div>
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-center text-white">
-                  <Server className="h-5 w-5 text-blue-200 mr-2" />
-                  5 Sites
-                </li>
-                <li className="flex items-center text-white">
-                  <Mail className="h-5 w-5 text-blue-200 mr-2" />
-                  20 Contas de Email
-                </li>
-                <li className="flex items-center text-white">
-                  <Globe className="h-5 w-5 text-blue-200 mr-2" />
-                  50 GB Armazenamento
-                </li>
-                <li className="flex items-center text-white">
-                  <Zap className="h-5 w-5 text-blue-200 mr-2" />
-                  Tráfego Ilimitado
-                </li>
-                <li className="flex items-center text-white">
-                  <Shield className="h-5 w-5 text-blue-200 mr-2" />
-                  SSL Grátis
-                </li>
-              </ul>
-              <Link href="/checkout?plan=pro" className="block w-full py-3 text-center bg-white text-primary-600 rounded-lg hover:bg-gray-100 transition font-semibold">
+              <Link
+                href={`/checkout?plan=pro&billingCycle=${isAnnual ? 'annual' : 'monthly'}`}
+                className="block w-full py-3.5 text-center bg-white text-primary-700 rounded-xl hover:bg-gray-100 transition font-bold shadow-md"
+              >
                 Assinar Agora
               </Link>
             </div>
 
             {/* Enterprise Plan */}
-            <div className="bg-white rounded-xl shadow-lg p-8">
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Empresarial</h3>
-              <p className="text-gray-600 mb-4">Para grandes operações</p>
-              <div className="mb-6">
-                <span className="text-4xl font-bold text-gray-900">6.200 MT</span>
-                <span className="text-gray-600">/mês</span>
+            <div className="bg-white rounded-xl shadow-lg p-8 flex flex-col justify-between border border-gray-100">
+              <div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">Empresarial</h3>
+                <p className="text-gray-600 mb-4">Para grandes operações</p>
+                <div className="mb-6">
+                  <span className="text-4xl font-bold text-gray-900">
+                    {isAnnual ? '62.000 MT' : '6.200 MT'}
+                  </span>
+                  <span className="text-gray-600 text-sm font-medium">
+                    {isAnnual ? ' /ano' : ' /mês'}
+                  </span>
+                  {isAnnual && (
+                    <div className="text-xs font-semibold text-emerald-600 mt-1">
+                      Equivale a 5.166 MT/mês (Economize 12.400 MT)
+                    </div>
+                  )}
+                </div>
+                <ul className="space-y-3 mb-8">
+                  <li className="flex items-center text-gray-700">
+                    <Server className="h-5 w-5 text-primary-600 mr-2 flex-shrink-0" />
+                    Sites Ilimitados
+                  </li>
+                  <li className="flex items-center text-gray-700">
+                    <Mail className="h-5 w-5 text-primary-600 mr-2 flex-shrink-0" />
+                    Email Ilimitado
+                  </li>
+                  <li className="flex items-center text-gray-700">
+                    <Globe className="h-5 w-5 text-primary-600 mr-2 flex-shrink-0" />
+                    200 GB Armazenamento
+                  </li>
+                  <li className="flex items-center text-gray-700">
+                    <Zap className="h-5 w-5 text-primary-600 mr-2 flex-shrink-0" />
+                    Tráfego Ilimitado
+                  </li>
+                  <li className="flex items-center text-gray-700">
+                    <Shield className="h-5 w-5 text-primary-600 mr-2 flex-shrink-0" />
+                    SSL + CDN Grátis
+                  </li>
+                </ul>
               </div>
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-center text-gray-700">
-                  <Server className="h-5 w-5 text-primary-600 mr-2" />
-                  Sites Ilimitados
-                </li>
-                <li className="flex items-center text-gray-700">
-                  <Mail className="h-5 w-5 text-primary-600 mr-2" />
-                  Email Ilimitado
-                </li>
-                <li className="flex items-center text-gray-700">
-                  <Globe className="h-5 w-5 text-primary-600 mr-2" />
-                  200 GB Armazenamento
-                </li>
-                <li className="flex items-center text-gray-700">
-                  <Zap className="h-5 w-5 text-primary-600 mr-2" />
-                  Tráfego Ilimitado
-                </li>
-                <li className="flex items-center text-gray-700">
-                  <Shield className="h-5 w-5 text-primary-600 mr-2" />
-                  SSL + CDN Grátis
-                </li>
-              </ul>
-              <Link href="/checkout?plan=enterprise" className="block w-full py-3 text-center border-2 border-primary-600 text-primary-600 rounded-lg hover:bg-primary-50 transition">
+              <Link
+                href={`/checkout?plan=enterprise&billingCycle=${isAnnual ? 'annual' : 'monthly'}`}
+                className="block w-full py-3 text-center border-2 border-primary-600 text-primary-600 font-bold rounded-xl hover:bg-primary-50 transition"
+              >
                 Assinar Agora
               </Link>
             </div>

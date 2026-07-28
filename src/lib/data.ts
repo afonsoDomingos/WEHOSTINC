@@ -23,6 +23,7 @@ export interface HostingPlan {
   id: string;
   name: string;
   price: number;
+  priceAnnual: number;
   features: {
     sites: number;
     emails: number;
@@ -38,6 +39,7 @@ export const hostingPlans: HostingPlan[] = [
     id: 'basic',
     name: 'Básico',
     price: 1200,
+    priceAnnual: 12000,
     features: {
       sites: 1,
       emails: 5,
@@ -51,6 +53,7 @@ export const hostingPlans: HostingPlan[] = [
     id: 'pro',
     name: 'Profissional',
     price: 3000,
+    priceAnnual: 30000,
     features: {
       sites: 5,
       emails: 20,
@@ -64,6 +67,7 @@ export const hostingPlans: HostingPlan[] = [
     id: 'enterprise',
     name: 'Empresarial',
     price: 6200,
+    priceAnnual: 62000,
     features: {
       sites: -1, // -1 significa ilimitado
       emails: -1,
@@ -77,6 +81,7 @@ export const hostingPlans: HostingPlan[] = [
     id: 'website_creation',
     name: 'Criação de Site Profissional',
     price: 25000,
+    priceAnnual: 25000,
     features: {
       sites: 1,
       emails: -1,

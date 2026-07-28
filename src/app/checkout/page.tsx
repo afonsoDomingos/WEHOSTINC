@@ -44,12 +44,21 @@ function CheckoutContent() {
     }
   }, []);
 
+  const cycleParam = searchParams.get('billingCycle');
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>(
+    cycleParam === 'annual' ? 'annual' : 'monthly'
+  );
+
   useEffect(() => {
     const plan = hostingPlans.find(p => p.id === planIdParam);
     if (plan) {
       setSelectedPlan(plan);
     }
   }, [planIdParam]);
+
+  const finalPrice = selectedPlan.id === 'website_creation' 
+    ? selectedPlan.price 
+    : (billingCycle === 'annual' ? selectedPlan.priceAnnual : selectedPlan.price);
 
   const [pushModal, setPushModal] = useState(false);
   const [countdown, setCountdown] = useState(45);
@@ -82,8 +91,8 @@ function CheckoutContent() {
         clientName: name,
         clientEmail: email,
         clientPhone: `${ddi} ${phonePayment || whatsapp}`,
-        serviceName: selectedPlan.name,
-        amount: selectedPlan.price,
+        serviceName: `${selectedPlan.name} (${billingCycle === 'annual' ? 'Anual' : 'Mensal'})`,
+        amount: finalPrice,
         paymentMethod: paymentMethod,
         status: selectedPlan.id === 'website_creation' ? 'in_progress' : 'completed'
       });
@@ -455,22 +464,73 @@ function CheckoutContent() {
               )}
             </div>
 
+            {/* Ciclo de Pagamento (se não for criação de site) */}
+            {selectedPlan.id !== 'website_creation' && (
+              <div className="pt-2">
+                <label className="block text-sm font-semibold text-gray-800 mb-2">
+                  Ciclo de Pagamento
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setBillingCycle('monthly')}
+                    className={`p-3.5 border-2 rounded-xl text-left transition cursor-pointer ${
+                      billingCycle === 'monthly'
+                        ? 'border-primary-600 bg-primary-50/50 ring-2 ring-primary-500/20'
+                        : 'border-gray-200 bg-white hover:border-gray-300'
+                    }`}
+                  >
+                    <span className="text-xs font-bold text-gray-500 block uppercase">Cobrança Mensal</span>
+                    <span className="text-base font-bold text-gray-900 block mt-0.5">
+                      {selectedPlan.price.toLocaleString('pt-MZ')} MT <span className="text-xs font-normal text-gray-500">/mês</span>
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setBillingCycle('annual')}
+                    className={`p-3.5 border-2 rounded-xl text-left transition relative cursor-pointer ${
+                      billingCycle === 'annual'
+                        ? 'border-primary-600 bg-primary-50/50 ring-2 ring-primary-500/20'
+                        : 'border-gray-200 bg-white hover:border-gray-300'
+                    }`}
+                  >
+                    <span className="absolute -top-2.5 right-3 bg-amber-400 text-gray-900 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
+                      2 Meses Grátis
+                    </span>
+                    <span className="text-xs font-bold text-gray-500 block uppercase">Cobrança Anual</span>
+                    <span className="text-base font-bold text-gray-900 block mt-0.5">
+                      {selectedPlan.priceAnnual.toLocaleString('pt-MZ')} MT <span className="text-xs font-normal text-gray-500">/ano</span>
+                    </span>
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* 3. Resumo da Compra (Order Summary) */}
             <div className="pt-4 border-t border-gray-200">
               <h4 className="text-sm font-semibold text-gray-800 mb-3">Resumo da compra</h4>
               
               <div className="space-y-2 text-sm text-gray-700 bg-gray-50 p-4 rounded-xl border border-gray-200">
                 <div className="flex justify-between items-center">
-                  <span className="font-semibold text-gray-900">Plano {selectedPlan.name}</span>
-                  <span className="font-bold text-gray-900">{selectedPlan.price.toLocaleString('pt-MZ')} MT</span>
+                  <span className="font-semibold text-gray-900">
+                    Plano {selectedPlan.name} ({selectedPlan.id === 'website_creation' ? 'Projeto Único' : (billingCycle === 'annual' ? 'Anual' : 'Mensal')})
+                  </span>
+                  <span className="font-bold text-gray-900">{finalPrice.toLocaleString('pt-MZ')} MT</span>
                 </div>
                 <div className="text-xs text-gray-500">
                   {selectedPlan.features.sites === -1 ? 'Sites ilimitados' : `${selectedPlan.features.sites} site(s)`} • {selectedPlan.features.storage}GB Armazenamento
                 </div>
+
+                {billingCycle === 'annual' && selectedPlan.id !== 'website_creation' && (
+                  <div className="bg-emerald-50 text-emerald-700 p-2 rounded-lg text-xs font-semibold border border-emerald-200 mt-2">
+                    🎉 Economia de 2 meses grátis ({(selectedPlan.price * 2).toLocaleString('pt-MZ')} MT economizados)!
+                  </div>
+                )}
                 
                 <div className="flex justify-between items-center border-t border-gray-200 pt-3 mt-3 font-bold text-base text-gray-900">
-                  <span>Total</span>
-                  <span className="text-xl text-gray-900">{selectedPlan.price.toLocaleString('pt-MZ')} MT</span>
+                  <span>Total a Pagar</span>
+                  <span className="text-xl text-gray-900">{finalPrice.toLocaleString('pt-MZ')} MT</span>
                 </div>
               </div>
             </div>
