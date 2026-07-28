@@ -7,18 +7,24 @@ import { DOMAIN_PRICES, sanitizeDomainName, getDomainPrice } from '@/lib/domains
  * Tenta resolver Name Servers (NS), registros de IP (A) ou registros de Email (MX).
  */
 async function isDomainTakenViaDNS(domain: string): Promise<boolean> {
-  // 1. Tentar resolução de IP nativa do SO (dns.lookup / getaddrinfo)
   try {
-    const lookupPromise = dns.lookup(domain);
+    dns.setServers(['8.8.8.8', '1.1.1.1']);
+  } catch (e) {}
+
+  // 1. Tentar resolução de IP (A Record)
+  try {
+    const resolvePromise = dns.resolve4(domain);
     const timeoutPromise = new Promise<never>((_, reject) =>
       setTimeout(() => reject(new Error('DNS Timeout')), 2500)
     );
-    const res = await Promise.race([lookupPromise, timeoutPromise]);
-    if (res && res.address) {
-      return true; // Possui IP ativo na internet -> Ocupado!
+    const records = await Promise.race([resolvePromise, timeoutPromise]);
+    if (Array.isArray(records) && records.length > 0) {
+      return true; // Possui registros de IP ativos -> Ocupado!
     }
-  } catch (error) {
-    // ENOTFOUND significa que o nome de domínio não tem IP apontado
+  } catch (error: any) {
+    if (error.code === 'ENODATA' || error.code === 'ESERVFAIL') {
+      return true; // Registrado no servidor DNS pai -> Ocupado!
+    }
   }
 
   // 2. Tentar consulta de servidores de nomes (NameServers / NS)
@@ -31,11 +37,29 @@ async function isDomainTakenViaDNS(domain: string): Promise<boolean> {
     if (Array.isArray(nsRecords) && nsRecords.length > 0) {
       return true; // Possui NameServers registrados -> Ocupado!
     }
-  } catch (error) {
-    // Sem registros NS
+  } catch (error: any) {
+    if (error.code === 'ENODATA' || error.code === 'ESERVFAIL') {
+      return true; // Ocupado!
+    }
   }
 
-  return false; // Livre para registro!
+  // 3. Tentar resolução de IP genérica (dns.lookup)
+  try {
+    const lookupPromise = dns.lookup(domain);
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('DNS Timeout')), 2500)
+    );
+    const res = await Promise.race([lookupPromise, timeoutPromise]);
+    if (res && res.address) {
+      return true; // Ocupado!
+    }
+  } catch (error: any) {
+    if (error.code === 'ENODATA' || error.code === 'ESERVFAIL') {
+      return true; // Ocupado!
+    }
+  }
+
+  return false; // Domínio 100% Livre para registro!
 }
 
 export async function GET(req: NextRequest) {
