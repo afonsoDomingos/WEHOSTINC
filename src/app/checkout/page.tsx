@@ -51,6 +51,39 @@ function CheckoutContent() {
     }
   }, [planIdParam]);
 
+  const [pushModal, setPushModal] = useState(false);
+  const [countdown, setCountdown] = useState(45);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (pushModal && countdown > 0) {
+      timer = setInterval(() => setCountdown(prev => prev - 1), 1000);
+    } else if (pushModal && countdown === 0) {
+      // Auto complete simulation when countdown finishes
+      finalizeOrder();
+    }
+    return () => clearInterval(timer);
+  }, [pushModal, countdown]);
+
+  const finalizeOrder = () => {
+    try {
+      const user = auth.getCurrentUser();
+      if (user) {
+        auth.updatePlan(user.id, selectedPlan.id as 'basic' | 'pro' | 'enterprise');
+      } else {
+        const newUser = auth.register(name, email, '@Admin123@', selectedPlan.id as 'basic' | 'pro' | 'enterprise', 'active', 29);
+        auth.login(newUser.email, '@Admin123@');
+      }
+      setPushModal(false);
+      setLoading(false);
+      setSuccess(true);
+    } catch (err) {
+      setPushModal(false);
+      setLoading(false);
+      setError(err instanceof Error ? err.message : 'Erro ao processar o pagamento.');
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -71,9 +104,9 @@ function CheckoutContent() {
     setLoading(true);
 
     try {
-      if (paymentMethod === 'mpesa') {
+      if (paymentMethod === 'mpesa' || paymentMethod === 'emola') {
         const phone = phonePayment || whatsapp;
-        const res = await fetch('/api/payments/mpesa/c2b', {
+        fetch('/api/payments/mpesa/c2b', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -82,22 +115,15 @@ function CheckoutContent() {
             reference: `REF_${Date.now().toString().slice(-6)}`,
             thirdPartyReference: `ORDER_${Date.now().toString().slice(-6)}`
           })
-        });
-        const mpesaResult = await res.json();
-        if (mpesaResult.error) {
-          console.warn('Alerta M-Pesa API:', mpesaResult.error);
-        }
-      }
+        }).catch(err => console.warn('M-Pesa API Call:', err));
 
-      const user = auth.getCurrentUser();
-      if (user) {
-        auth.updatePlan(user.id, selectedPlan.id as 'basic' | 'pro' | 'enterprise');
+        // Open PUSH visual countdown modal
+        setCountdown(45);
+        setPushModal(true);
       } else {
-        const newUser = auth.register(name, email, '@Admin123@', selectedPlan.id as 'basic' | 'pro' | 'enterprise', 'active', 29);
-        auth.login(newUser.email, '@Admin123@');
+        // Direct card payment
+        finalizeOrder();
       }
-      setLoading(false);
-      setSuccess(true);
     } catch (err) {
       setLoading(false);
       setError(err instanceof Error ? err.message : 'Erro ao processar o pagamento.');
@@ -147,7 +173,58 @@ function CheckoutContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900">
+    <div className="min-h-screen bg-gray-50 text-gray-900 relative">
+      {/* PUSH Modal Overlay */}
+      {pushModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 text-center border border-gray-200 animate-in fade-in zoom-in duration-200">
+            <div className="relative w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+              <div className="absolute inset-0 bg-red-100 rounded-full animate-ping opacity-75"></div>
+              <div className="relative w-16 h-16 bg-red-600 text-white rounded-full flex items-center justify-center shadow-lg">
+                <Smartphone className="h-8 w-8" />
+              </div>
+            </div>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-2">
+              Autorize no seu Telemóvel
+            </h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Enviamos um pedido PUSH para o número <span className="font-bold text-gray-900">{ddi} {phonePayment || whatsapp}</span>.
+            </p>
+
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 text-left text-sm text-red-900 space-y-1">
+              <p className="font-semibold text-red-700">Instruções:</p>
+              <p>1. Verifique a tela do seu celular.</p>
+              <p>2. Digite seu <strong>PIN {paymentMethod.toUpperCase()}</strong> para autorizar <strong>{selectedPlan.price.toLocaleString('pt-MZ')} MT</strong>.</p>
+            </div>
+
+            <div className="mb-6">
+              <div className="text-xs text-gray-400 font-semibold mb-1 uppercase tracking-wider">Aguardando confirmação</div>
+              <div className="text-3xl font-mono font-bold text-gray-800">
+                00:{countdown < 10 ? `0${countdown}` : countdown}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <button
+                type="button"
+                onClick={finalizeOrder}
+                className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl shadow transition text-sm cursor-pointer"
+              >
+                Já digitei meu PIN (Confirmar Agora)
+              </button>
+              <button
+                type="button"
+                onClick={() => setPushModal(false)}
+                className="w-full py-2.5 text-xs font-semibold text-gray-500 hover:text-gray-800 transition"
+              >
+                Cancelar ou Alterar número
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Top Brand Accent Line (Inspired by reference) */}
       <div className="h-1.5 bg-red-600 w-full" />
 

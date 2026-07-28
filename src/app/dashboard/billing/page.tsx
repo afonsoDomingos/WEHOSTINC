@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
   Database, CheckCircle, LayoutDashboard, Globe, Mail, Settings as SettingsIcon, LogOut, Server,
-  CreditCard, TrendingUp, Calendar, Zap, Shield
+  CreditCard, TrendingUp, Calendar, Zap, Shield, Download, Printer
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 import { hostingPlans } from '@/lib/data';
@@ -166,11 +166,20 @@ export default function BillingPage() {
                       <p className="text-sm text-gray-600">Pagamento mensal</p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-gray-900">{currentPlan?.price ? currentPlan.price.toLocaleString('pt-MZ') : '0'} MT</p>
-                    <p className="text-sm text-gray-600">
-                      {new Date().toLocaleDateString('pt-BR')}
-                    </p>
+                  <div className="flex items-center space-x-4">
+                    <div className="text-right">
+                      <p className="font-semibold text-gray-900">{currentPlan?.price ? currentPlan.price.toLocaleString('pt-MZ') : '0'} MT</p>
+                      <p className="text-sm text-gray-600">
+                        {new Date().toLocaleDateString('pt-BR')}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => window.print()}
+                      className="px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium text-xs rounded-lg transition flex items-center space-x-1.5 cursor-pointer border border-gray-200"
+                    >
+                      <Printer className="h-4 w-4 text-gray-600" />
+                      <span>Fatura (PDF)</span>
+                    </button>
                   </div>
                 </div>
               </div>

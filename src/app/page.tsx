@@ -1,5 +1,7 @@
+'use client';
+
 import Link from "next/link";
-import { Server, Mail, Shield, Zap, Globe, Users } from "lucide-react";
+import { Server, Mail, Shield, Zap, Globe, Users, Search } from "lucide-react";
 
 export default function Home() {
   return (
@@ -36,21 +38,56 @@ export default function Home() {
       </header>
 
       {/* Hero Section */}
-      <section className="py-20 px-4">
+      <section className="py-16 px-4">
         <div className="max-w-7xl mx-auto text-center">
           <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
             Hospedagem de Sites e Email <span className="text-primary-600">Profissional</span>
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            A solução completa para sua presença online. Hospedagem de alta performance, 
-            email corporativo e suporte especializado 24/7.
+            A solução completa para sua presença online em Moçambique. Hospedagem de alta performance, 
+            pagamento M-Pesa/eMola e suporte especializado 24/7.
           </p>
+
+          {/* Domain Search Component */}
+          <div className="max-w-2xl mx-auto mb-10 bg-white p-3 rounded-2xl shadow-xl border border-gray-200">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const form = e.target as HTMLFormElement;
+                const domain = (form.elements.namedItem('domain') as HTMLInputElement).value;
+                if (domain) {
+                  window.location.href = `/checkout?plan=pro&domain=${encodeURIComponent(domain)}`;
+                }
+              }}
+              className="flex flex-col sm:flex-row items-center gap-2"
+            >
+              <div className="relative flex-1 w-full">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <input
+                  name="domain"
+                  type="text"
+                  placeholder="Pesquisar seu domínio (ex: suaempresa.co.mz)"
+                  className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary-500 font-medium text-gray-900 text-sm"
+                  required
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full sm:w-auto px-6 py-3.5 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl shadow transition text-sm flex items-center justify-center space-x-2 cursor-pointer"
+              >
+                <span>Pesquisar Domínio</span>
+              </button>
+            </form>
+            <div className="flex justify-center items-center space-x-4 mt-3 text-xs text-gray-500 font-medium">
+              <span className="bg-emerald-50 text-emerald-700 px-2.5 py-0.5 rounded-full border border-emerald-200">.co.mz (Moçambique)</span>
+              <span className="bg-blue-50 text-blue-700 px-2.5 py-0.5 rounded-full border border-blue-200">.com</span>
+              <span className="bg-purple-50 text-purple-700 px-2.5 py-0.5 rounded-full border border-purple-200">.org.mz</span>
+            </div>
+          </div>
+
           <div className="flex justify-center space-x-4">
-            <Link href="/register" className="px-8 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition text-lg">
-              Começar Agora
-            </Link>
-            <Link href="#planos" className="px-8 py-3 border-2 border-primary-600 text-primary-600 rounded-lg hover:bg-primary-50 transition text-lg">
-              Ver Planos
+            <Link href="#planos" className="px-8 py-3.5 bg-primary-600 text-white font-bold rounded-xl hover:bg-primary-700 transition text-base shadow-md">
+              Ver Planos de Hospedagem
             </Link>
           </div>
         </div>

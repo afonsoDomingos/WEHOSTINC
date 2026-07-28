@@ -17,6 +17,16 @@ export default function AdminPage() {
   const [emails, setEmails] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Modal Novo Cliente State
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [newEmail, setNewEmail] = useState('');
+  const [newPassword, setNewPassword] = useState('@Admin123@');
+  const [newPlan, setNewPlan] = useState<'basic' | 'pro' | 'enterprise'>('pro');
+  const [newDueDate, setNewDueDate] = useState<number>(29);
+  const [newStatus, setNewStatus] = useState<'active' | 'pending' | 'suspended'>('active');
+  const [createError, setCreateError] = useState('');
+
   useEffect(() => {
     // Simulação de admin check
     const currentUser = auth.getCurrentUser();
@@ -31,6 +41,21 @@ export default function AdminPage() {
     setEmails(dataManager.getEmails());
     setLoading(false);
   }, [router]);
+
+  const handleCreateClient = (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreateError('');
+
+    try {
+      auth.register(newName, newEmail, newPassword, newPlan, newStatus, newDueDate);
+      setUsers(auth.getUsers());
+      setShowAddModal(false);
+      setNewName('');
+      setNewEmail('');
+    } catch (err) {
+      setCreateError(err instanceof Error ? err.message : 'Erro ao cadastrar cliente.');
+    }
+  };
 
   const handleLogout = () => {
     auth.logout();
@@ -162,9 +187,17 @@ export default function AdminPage() {
               <h2 className="text-xl font-bold text-gray-900">Usuários Cadastrados</h2>
               <p className="text-sm text-gray-500 mt-1">Gestão de clientes e assinaturas ativas</p>
             </div>
-            <div className="flex items-center space-x-2 bg-gray-100 px-3 py-1.5 rounded-lg border border-gray-200">
-              <Users className="h-4 w-4 text-gray-500" />
-              <span className="text-sm font-medium text-gray-700">{users.length} usuários</span>
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2 bg-gray-100 px-3 py-1.5 rounded-lg border border-gray-200">
+                <Users className="h-4 w-4 text-gray-500" />
+                <span className="text-sm font-medium text-gray-700">{users.length} usuários</span>
+              </div>
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-semibold text-sm rounded-lg shadow transition flex items-center space-x-2 cursor-pointer"
+              >
+                <span>+ Criar Novo Cliente</span>
+              </button>
             </div>
           </div>
 
@@ -364,6 +397,114 @@ export default function AdminPage() {
           </div>
         </div>
       </div>
+
+      {/* Modal Criar Novo Cliente */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-gray-200">
+            <h3 className="text-xl font-bold text-gray-900 mb-1">Cadastrar Novo Cliente</h3>
+            <p className="text-sm text-gray-500 mb-6">Preencha as informações para cadastrar o cliente manualmente</p>
+
+            {createError && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-2.5 rounded-lg text-sm mb-4">
+                {createError}
+              </div>
+            )}
+
+            <form onSubmit={handleCreateClient} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Nome do Cliente / Empresa</label>
+                <input
+                  type="text"
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  placeholder="Ex: MSServices"
+                  required
+                  className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">E-mail</label>
+                <input
+                  type="email"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                  placeholder="Ex: info@msservices.co.mz"
+                  required
+                  className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Senha Inicial</label>
+                <input
+                  type="text"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  required
+                  className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500 font-mono"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Plano</label>
+                  <select
+                    value={newPlan}
+                    onChange={(e) => setNewPlan(e.target.value as any)}
+                    className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"
+                  >
+                    <option value="basic">Básico (1.200 MT)</option>
+                    <option value="pro">Profissional (3.000 MT)</option>
+                    <option value="enterprise">Empresarial (6.200 MT)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Dia de Vencimento</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="31"
+                    value={newDueDate}
+                    onChange={(e) => setNewDueDate(Number(e.target.value))}
+                    className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Status Inicial</label>
+                <select
+                  value={newStatus}
+                  onChange={(e) => setNewStatus(e.target.value as any)}
+                  className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"
+                >
+                  <option value="active">Ativo (✓)</option>
+                  <option value="pending">Pendente (⏰)</option>
+                  <option value="suspended">Suspenso (✗)</option>
+                </select>
+              </div>
+
+              <div className="flex space-x-3 pt-4 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="flex-1 py-2.5 border border-gray-300 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50 transition"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-semibold shadow transition"
+                >
+                  Salvar Cliente
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
