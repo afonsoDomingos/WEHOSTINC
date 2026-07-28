@@ -72,6 +72,19 @@ export const hostingPlans: HostingPlan[] = [
       ssl: true,
       cdn: true
     }
+  },
+  {
+    id: 'website_creation',
+    name: 'Criação de Site Profissional',
+    price: 25000,
+    features: {
+      sites: 1,
+      emails: -1,
+      storage: 100,
+      bandwidth: 'Ilimitado',
+      ssl: true,
+      cdn: true
+    }
   }
 ];
 
