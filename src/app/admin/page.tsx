@@ -49,30 +49,36 @@ export default function AdminPage() {
     setOrders(dataManager.getOrders());
     setLoading(false);
 
-    // Buscar usuários e pedidos atualizados do servidor via API
+    // Buscar dados atualizados do servidor via API
     auth.fetchUsersAsync().then((fetched) => {
-      if (fetched && fetched.length > 0) {
-        setUsers(fetched);
-      }
+      if (fetched && fetched.length > 0) setUsers(fetched);
     });
 
     dataManager.fetchOrdersAsync().then((fetched) => {
-      if (fetched && fetched.length > 0) {
-        setOrders(fetched);
-      }
+      if (fetched && fetched.length > 0) setOrders(fetched);
     });
 
-    // Polling a cada 5s para sincronizar novos cadastros e pedidos em tempo real
+    dataManager.fetchSitesAsync().then((fetched) => {
+      if (fetched && fetched.length > 0) setSites(fetched);
+    });
+
+    dataManager.fetchEmailsAsync().then((fetched) => {
+      if (fetched && fetched.length > 0) setEmails(fetched);
+    });
+
+    // Polling a cada 5s para sincronizar usuários, pedidos, sites e e-mails em tempo real
     const interval = setInterval(() => {
       auth.fetchUsersAsync().then((fetched) => {
-        if (fetched && fetched.length > 0) {
-          setUsers(fetched);
-        }
+        if (fetched && fetched.length > 0) setUsers(fetched);
       });
       dataManager.fetchOrdersAsync().then((fetched) => {
-        if (fetched && fetched.length > 0) {
-          setOrders(fetched);
-        }
+        if (fetched && fetched.length > 0) setOrders(fetched);
+      });
+      dataManager.fetchSitesAsync().then((fetched) => {
+        if (fetched && fetched.length > 0) setSites(fetched);
+      });
+      dataManager.fetchEmailsAsync().then((fetched) => {
+        if (fetched && fetched.length > 0) setEmails(fetched);
       });
     }, 5000);
 

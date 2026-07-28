@@ -105,6 +105,32 @@ export const dataManager = {
     return data ? JSON.parse(data) : [];
   },
 
+  fetchSitesAsync: async (): Promise<Site[]> => {
+    try {
+      const res = await fetch('/api/sites');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.sites && Array.isArray(data.sites)) {
+          const serverSites: Site[] = data.sites;
+          const localSites = dataManager.getSites();
+
+          const siteMap = new Map<string, Site>();
+          localSites.forEach(s => siteMap.set(s.id, s));
+          serverSites.forEach(s => siteMap.set(s.id, s));
+
+          const merged = Array.from(siteMap.values());
+          if (typeof window !== 'undefined') {
+            localStorage.setItem(SITES_KEY, JSON.stringify(merged));
+          }
+          return merged;
+        }
+      }
+    } catch (e) {
+      console.error('Falha ao buscar sites da API:', e);
+    }
+    return dataManager.getSites();
+  },
+
   addSite: (site: Omit<Site, 'id' | 'createdAt'>): Site => {
     const sites = dataManager.getSites();
     const newSite: Site = {
@@ -115,6 +141,12 @@ export const dataManager = {
     sites.push(newSite);
     if (typeof window !== 'undefined') {
       localStorage.setItem(SITES_KEY, JSON.stringify(sites));
+
+      fetch('/api/sites', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ site: newSite })
+      }).catch(err => console.error('Erro de sync de site no servidor:', err));
     }
     return newSite;
   },
@@ -123,6 +155,12 @@ export const dataManager = {
     const sites = dataManager.getSites().filter(s => s.id !== id);
     if (typeof window !== 'undefined') {
       localStorage.setItem(SITES_KEY, JSON.stringify(sites));
+
+      fetch('/api/sites', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete', siteId: id })
+      }).catch(err => console.error('Erro de exclusão de site no servidor:', err));
     }
   },
 
@@ -131,6 +169,32 @@ export const dataManager = {
     if (typeof window === 'undefined') return [];
     const data = localStorage.getItem(EMAILS_KEY);
     return data ? JSON.parse(data) : [];
+  },
+
+  fetchEmailsAsync: async (): Promise<EmailAccount[]> => {
+    try {
+      const res = await fetch('/api/emails');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.emails && Array.isArray(data.emails)) {
+          const serverEmails: EmailAccount[] = data.emails;
+          const localEmails = dataManager.getEmails();
+
+          const emailMap = new Map<string, EmailAccount>();
+          localEmails.forEach(e => emailMap.set(e.id, e));
+          serverEmails.forEach(e => emailMap.set(e.id, e));
+
+          const merged = Array.from(emailMap.values());
+          if (typeof window !== 'undefined') {
+            localStorage.setItem(EMAILS_KEY, JSON.stringify(merged));
+          }
+          return merged;
+        }
+      }
+    } catch (e) {
+      console.error('Falha ao buscar e-mails da API:', e);
+    }
+    return dataManager.getEmails();
   },
 
   addEmail: (email: Omit<EmailAccount, 'id' | 'createdAt'>): EmailAccount => {
@@ -143,6 +207,12 @@ export const dataManager = {
     emails.push(newEmail);
     if (typeof window !== 'undefined') {
       localStorage.setItem(EMAILS_KEY, JSON.stringify(emails));
+
+      fetch('/api/emails', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: newEmail })
+      }).catch(err => console.error('Erro de sync de e-mail no servidor:', err));
     }
     return newEmail;
   },
@@ -151,6 +221,12 @@ export const dataManager = {
     const emails = dataManager.getEmails().filter(e => e.id !== id);
     if (typeof window !== 'undefined') {
       localStorage.setItem(EMAILS_KEY, JSON.stringify(emails));
+
+      fetch('/api/emails', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete', emailId: id })
+      }).catch(err => console.error('Erro de exclusão de e-mail no servidor:', err));
     }
   },
 
