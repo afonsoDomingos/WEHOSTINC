@@ -129,7 +129,7 @@ export default function BillingPage() {
                   <p className="text-blue-100">Gerencie sua assinatura</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-4xl font-bold">${currentPlan?.price}</p>
+                  <p className="text-4xl font-bold">{currentPlan?.price ? currentPlan.price.toLocaleString('pt-MZ') : '0'} MT</p>
                   <p className="text-blue-100">/mês</p>
                 </div>
               </div>
@@ -167,7 +167,7 @@ export default function BillingPage() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold text-gray-900">${currentPlan?.price}</p>
+                    <p className="font-semibold text-gray-900">{currentPlan?.price ? currentPlan.price.toLocaleString('pt-MZ') : '0'} MT</p>
                     <p className="text-sm text-gray-600">
                       {new Date().toLocaleDateString('pt-BR')}
                     </p>
@@ -196,7 +196,7 @@ export default function BillingPage() {
                     )}
                     <h4 className="text-xl font-bold text-gray-900 mb-2">{plan.name}</h4>
                     <div className="mb-4">
-                      <span className="text-3xl font-bold text-gray-900">${plan.price}</span>
+                      <span className="text-3xl font-bold text-gray-900">{plan.price.toLocaleString('pt-MZ')} MT</span>
                       <span className="text-gray-600">/mês</span>
                     </div>
                     <ul className="space-y-3 mb-6">

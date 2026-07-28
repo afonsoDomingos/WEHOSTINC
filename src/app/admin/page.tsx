@@ -46,7 +46,7 @@ export default function AdminPage() {
   }
 
   const totalRevenue = users.reduce((sum, user) => {
-    const planPrices = { basic: 19, pro: 49, enterprise: 99 };
+    const planPrices = { basic: 1200, pro: 3000, enterprise: 6000 };
     return sum + (planPrices[user.plan as keyof typeof planPrices] || 0);
   }, 0);
 
@@ -137,7 +137,7 @@ export default function AdminPage() {
               <DollarSign className="h-8 w-8 text-emerald-600" />
               <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">MRR</span>
             </div>
-            <p className="text-3xl font-bold text-gray-900">${totalRevenue} USD</p>
+            <p className="text-3xl font-bold text-gray-900">{totalRevenue.toLocaleString('pt-MZ')} MT</p>
             <p className="text-gray-500 text-sm mt-1">Receita mensal</p>
           </div>
         </div>

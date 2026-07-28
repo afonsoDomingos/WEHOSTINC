@@ -37,7 +37,7 @@ export const hostingPlans: HostingPlan[] = [
   {
     id: 'basic',
     name: 'Básico',
-    price: 19,
+    price: 1200,
     features: {
       sites: 1,
       emails: 5,
@@ -50,7 +50,7 @@ export const hostingPlans: HostingPlan[] = [
   {
     id: 'pro',
     name: 'Profissional',
-    price: 49,
+    price: 3000,
     features: {
       sites: 5,
       emails: 20,
@@ -63,7 +63,7 @@ export const hostingPlans: HostingPlan[] = [
   {
     id: 'enterprise',
     name: 'Empresarial',
-    price: 99,
+    price: 6000,
     features: {
       sites: -1, // -1 significa ilimitado
       emails: -1,
