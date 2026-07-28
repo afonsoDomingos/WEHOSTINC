@@ -121,7 +121,7 @@ export default function Home() {
                   Tráfego Ilimitado
                 </li>
               </ul>
-              <Link href="/register" className="block w-full py-3 text-center border-2 border-primary-600 text-primary-600 rounded-lg hover:bg-primary-50 transition">
+              <Link href="/checkout?plan=basic" className="block w-full py-3 text-center border-2 border-primary-600 text-primary-600 rounded-lg hover:bg-primary-50 transition">
                 Assinar Agora
               </Link>
             </div>
@@ -159,7 +159,7 @@ export default function Home() {
                   SSL Grátis
                 </li>
               </ul>
-              <Link href="/register" className="block w-full py-3 text-center bg-white text-primary-600 rounded-lg hover:bg-gray-100 transition font-semibold">
+              <Link href="/checkout?plan=pro" className="block w-full py-3 text-center bg-white text-primary-600 rounded-lg hover:bg-gray-100 transition font-semibold">
                 Assinar Agora
               </Link>
             </div>
@@ -194,7 +194,7 @@ export default function Home() {
                   SSL + CDN Grátis
                 </li>
               </ul>
-              <Link href="/register" className="block w-full py-3 text-center border-2 border-primary-600 text-primary-600 rounded-lg hover:bg-primary-50 transition">
+              <Link href="/checkout?plan=enterprise" className="block w-full py-3 text-center border-2 border-primary-600 text-primary-600 rounded-lg hover:bg-primary-50 transition">
                 Assinar Agora
               </Link>
             </div>
