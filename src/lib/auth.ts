@@ -64,8 +64,9 @@ export const auth = {
     const users = auth.getUsers();
     
     // Verificar se email já existe
-    if (users.find(u => u.email.toLowerCase() === email.toLowerCase())) {
-      throw new Error('Email já cadastrado');
+    const existing = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+    if (existing) {
+      return existing;
     }
 
     const newUser: User = {
@@ -79,10 +80,14 @@ export const auth = {
       createdAt: new Date().toISOString()
     };
 
-    localStorage.setItem(`user_${newUser.id}`, JSON.stringify({
-      ...newUser,
-      password
-    }));
+    const userWithPassword = { ...newUser, password };
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(`user_${newUser.id}`, JSON.stringify(userWithPassword));
+      const currentList = auth.getUsers();
+      const updatedList = [...currentList.filter(u => u.id !== newUser.id), newUser];
+      localStorage.setItem('wehosthere_all_users', JSON.stringify(updatedList));
+    }
 
     return newUser;
   },
@@ -97,14 +102,23 @@ export const auth = {
       throw new Error('Usuário não encontrado');
     }
 
-    const userData = JSON.parse(localStorage.getItem(`user_${user.id}`) || '{}');
-    if (userData.password !== password) {
+    let userData: any = user;
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem(`user_${user.id}`);
+      if (stored) {
+        userData = JSON.parse(stored);
+      }
+    }
+
+    if (userData.password && userData.password !== password) {
       throw new Error('Senha incorreta');
     }
 
     // Salvar sessão
     const session = { user: userData };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+    }
 
     return userData;
   },
@@ -123,8 +137,12 @@ export const auth = {
     const session = localStorage.getItem(STORAGE_KEY);
     if (!session) return null;
 
-    const { user } = JSON.parse(session);
-    return user;
+    try {
+      const { user } = JSON.parse(session);
+      return user;
+    } catch (e) {
+      return null;
+    }
   },
 
   // Verificar se está autenticado
@@ -132,19 +150,39 @@ export const auth = {
     return auth.getCurrentUser() !== null;
   },
 
-  // Obter todos os usuários (para simulação)
+  // Obter todos os usuários (com persistência garantida)
   getUsers: (): User[] => {
-    if (typeof window === 'undefined') return [];
+    if (typeof window === 'undefined') return DEFAULT_USERS;
     seedDefaultUsers();
-    const users: User[] = [];
+
+    const userMap = new Map<string, User>();
+    DEFAULT_USERS.forEach(u => userMap.set(u.id, u));
+
+    const storedList = localStorage.getItem('wehosthere_all_users');
+    if (storedList) {
+      try {
+        const parsed: User[] = JSON.parse(storedList);
+        parsed.forEach(u => {
+          if (u && u.id) userMap.set(u.id, u);
+        });
+      } catch (e) {}
+    }
+
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
       if (key?.startsWith('user_')) {
-        const userData = JSON.parse(localStorage.getItem(key) || '{}');
-        users.push(userData);
+        try {
+          const userData = JSON.parse(localStorage.getItem(key) || '{}');
+          if (userData && userData.id) {
+            userMap.set(userData.id, userData);
+          }
+        } catch (e) {}
       }
     }
-    return users;
+
+    const allUsers = Array.from(userMap.values());
+    localStorage.setItem('wehosthere_all_users', JSON.stringify(allUsers));
+    return allUsers;
   },
 
   // Atualizar plano do usuário
@@ -154,14 +192,19 @@ export const auth = {
     userData.plan = plan;
     localStorage.setItem(`user_${userId}`, JSON.stringify(userData));
 
-    // Atualizar sessão se for o usuário atual
+    const currentList = auth.getUsers();
+    const updatedList = currentList.map(u => u.id === userId ? { ...u, plan } : u);
+    localStorage.setItem('wehosthere_all_users', JSON.stringify(updatedList));
+
     const session = localStorage.getItem(STORAGE_KEY);
     if (session) {
-      const parsed = JSON.parse(session);
-      if (parsed.user.id === userId) {
-        parsed.user.plan = plan;
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
-      }
+      try {
+        const parsed = JSON.parse(session);
+        if (parsed.user.id === userId) {
+          parsed.user.plan = plan;
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+        }
+      } catch (e) {}
     }
   },
 
@@ -172,13 +215,19 @@ export const auth = {
     userData.status = status;
     localStorage.setItem(`user_${userId}`, JSON.stringify(userData));
 
+    const currentList = auth.getUsers();
+    const updatedList = currentList.map(u => u.id === userId ? { ...u, status } : u);
+    localStorage.setItem('wehosthere_all_users', JSON.stringify(updatedList));
+
     const session = localStorage.getItem(STORAGE_KEY);
     if (session) {
-      const parsed = JSON.parse(session);
-      if (parsed.user.id === userId) {
-        parsed.user.status = status;
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
-      }
+      try {
+        const parsed = JSON.parse(session);
+        if (parsed.user.id === userId) {
+          parsed.user.status = status;
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+        }
+      } catch (e) {}
     }
   }
 };

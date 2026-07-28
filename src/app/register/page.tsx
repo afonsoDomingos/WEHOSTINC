@@ -33,6 +33,7 @@ export default function RegisterPage() {
 
     try {
       auth.register(name, email, password);
+      auth.login(email, password);
       router.push('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao criar conta');
