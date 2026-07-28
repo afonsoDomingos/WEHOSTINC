@@ -23,7 +23,7 @@ function CheckoutContent() {
   const [email, setEmail] = useState('');
   const [ddi, setDdi] = useState('+258');
   const [whatsapp, setWhatsapp] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<'mpesa' | 'emola' | 'card' | 'crypto'>('mpesa');
+  const [paymentMethod, setPaymentMethod] = useState<'mpesa' | 'emola' | 'card'>('mpesa');
   
   // Phone for M-Pesa / eMola push payment
   const [phonePayment, setPhonePayment] = useState('');
@@ -240,7 +240,7 @@ function CheckoutContent() {
                 Método de Pagamento
               </label>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 {/* M-Pesa Option */}
                 <button
                   type="button"
@@ -287,22 +287,6 @@ function CheckoutContent() {
                     <CreditCard className="h-6 w-6" />
                   </div>
                   <span className="text-xs font-bold text-gray-800">Cartão de Crédito</span>
-                </button>
-
-                {/* Crypto Option */}
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod('crypto')}
-                  className={`p-3 border-2 rounded-xl text-center flex flex-col items-center justify-center transition cursor-pointer ${
-                    paymentMethod === 'crypto'
-                      ? 'border-amber-500 bg-amber-50/50 shadow-sm ring-2 ring-amber-500/20'
-                      : 'border-gray-200 bg-white hover:border-gray-300'
-                  }`}
-                >
-                  <div className="w-7 h-7 bg-amber-500 text-white rounded-full flex items-center justify-center font-bold text-xs mb-1">
-                    <Bitcoin className="h-4 w-4" />
-                  </div>
-                  <span className="text-xs font-bold text-gray-800">Criptomoeda</span>
                 </button>
               </div>
 
