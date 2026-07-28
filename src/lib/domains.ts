@@ -108,3 +108,42 @@ export async function checkDomainRealAsync(rawInput: string): Promise<DomainChec
   }
 }
 
+export interface DomainSearchLog {
+  id: string;
+  domain: string;
+  extension: string;
+  isAvailable: boolean;
+  timestamp: string;
+}
+
+export const DOMAIN_SEARCH_LOGS: DomainSearchLog[] = [
+  {
+    id: 'log-1',
+    domain: 'empresaexemplo.co.mz',
+    extension: '.co.mz',
+    isAvailable: true,
+    timestamp: new Date(Date.now() - 300000).toISOString()
+  },
+  {
+    id: 'log-2',
+    domain: 'mcel.co.mz',
+    extension: '.co.mz',
+    isAvailable: false,
+    timestamp: new Date(Date.now() - 900000).toISOString()
+  }
+];
+
+export function addDomainSearchLog(domain: string, extension: string, isAvailable: boolean) {
+  DOMAIN_SEARCH_LOGS.unshift({
+    id: Date.now().toString(),
+    domain,
+    extension,
+    isAvailable,
+    timestamp: new Date().toISOString()
+  });
+
+  if (DOMAIN_SEARCH_LOGS.length > 100) {
+    DOMAIN_SEARCH_LOGS.pop();
+  }
+}
+

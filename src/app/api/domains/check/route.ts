@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dns from 'dns/promises';
-import { DOMAIN_PRICES, sanitizeDomainName, getDomainPrice } from '@/lib/domains';
+import { DOMAIN_PRICES, sanitizeDomainName, getDomainPrice, addDomainSearchLog } from '@/lib/domains';
 
 /**
  * Verifica se um domínio possui registros DNS ativos na internet.
@@ -89,6 +89,9 @@ export async function GET(req: NextRequest) {
   }
 
   const isAvailable = !isTaken;
+
+  // Registrar no histórico de pesquisas em tempo real
+  addDomainSearchLog(fullDomain, extension, isAvailable);
 
   // Consultar disponibilidade das alternativas em paralelo
   const altTLDs = DOMAIN_PRICES.filter(tld => tld.extension !== extension);

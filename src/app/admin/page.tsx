@@ -33,6 +33,17 @@ export default function AdminPage() {
   const [createError, setCreateError] = useState('');
 
   const [orders, setOrders] = useState<ServiceOrder[]>([]);
+  const [domainLogs, setDomainLogs] = useState<Array<{ id: string; domain: string; extension: string; isAvailable: boolean; timestamp: string }>>([]);
+
+  const fetchDomainLogs = async () => {
+    try {
+      const res = await fetch('/api/domains/history');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.logs) setDomainLogs(data.logs);
+      }
+    } catch (e) {}
+  };
 
   useEffect(() => {
     // Simulação de admin check
@@ -47,6 +58,7 @@ export default function AdminPage() {
     setSites(dataManager.getSites());
     setEmails(dataManager.getEmails());
     setOrders(dataManager.getOrders());
+    fetchDomainLogs();
     setLoading(false);
 
     // Buscar dados atualizados do servidor via API
@@ -66,7 +78,7 @@ export default function AdminPage() {
       if (fetched && fetched.length > 0) setEmails(fetched);
     });
 
-    // Polling a cada 5s para sincronizar usuários, pedidos, sites e e-mails em tempo real
+    // Polling a cada 5s para sincronizar usuários, pedidos, sites, e-mails e pesquisas em tempo real
     const interval = setInterval(() => {
       auth.fetchUsersAsync().then((fetched) => {
         if (fetched && fetched.length > 0) setUsers(fetched);
@@ -80,6 +92,7 @@ export default function AdminPage() {
       dataManager.fetchEmailsAsync().then((fetched) => {
         if (fetched && fetched.length > 0) setEmails(fetched);
       });
+      fetchDomainLogs();
     }, 5000);
 
     return () => clearInterval(interval);
@@ -635,6 +648,77 @@ export default function AdminPage() {
                             </select>
                           )}
                         </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {/* Histórico de Pesquisas de Domínio em Tempo Real */}
+        <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900 flex items-center space-x-2">
+                <Search className="h-5 w-5 text-primary-600" />
+                <span>Histórico de Pesquisas de Domínio (Tempo Real)</span>
+              </h2>
+              <p className="text-gray-500 text-sm">Acompanhe os nomes de domínio que os visitantes estão buscando no site</p>
+            </div>
+
+            <div className="flex items-center space-x-3">
+              <span className="bg-primary-50 text-primary-800 text-xs font-bold px-3 py-1.5 rounded-full border border-primary-200">
+                {domainLogs.length} Buscas Registradas
+              </span>
+              <span className="bg-emerald-50 text-emerald-800 text-xs font-bold px-3 py-1.5 rounded-full border border-emerald-200">
+                {domainLogs.filter(l => l.isAvailable).length} Livres ({domainLogs.length > 0 ? Math.round((domainLogs.filter(l => l.isAvailable).length / domainLogs.length) * 100) : 0}%)
+              </span>
+            </div>
+          </div>
+
+          {domainLogs.length === 0 ? (
+            <div className="text-center py-8 text-gray-500 text-sm">
+              Nenhuma pesquisa realizada no site ainda. As buscas dos clientes aparecerão aqui em tempo real!
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-200 bg-gray-50/50">
+                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Domínio Consultado</th>
+                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Extensão</th>
+                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Resultado da Busca</th>
+                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Horário da Busca</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {domainLogs.slice(0, 15).map((log) => (
+                    <tr key={log.id} className="hover:bg-gray-50/80 transition">
+                      <td className="py-3 px-4 font-mono text-sm font-bold text-gray-900">
+                        {log.domain}
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className="bg-gray-100 text-gray-800 text-xs font-bold px-2 py-0.5 rounded">
+                          {log.extension}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4">
+                        {log.isAvailable ? (
+                          <span className="inline-flex items-center space-x-1 bg-emerald-50 text-emerald-800 border border-emerald-300 text-xs font-bold px-2.5 py-0.5 rounded-full">
+                            <CheckCircle className="h-3.5 w-3.5 text-emerald-600" />
+                            <span>LIVRE PARA REGISTRO</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center space-x-1 bg-red-50 text-red-800 border border-red-300 text-xs font-bold px-2.5 py-0.5 rounded-full">
+                            <XCircle className="h-3.5 w-3.5 text-red-600" />
+                            <span>INDISPONÍVEL / OCUPADO</span>
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-3 px-4 text-xs text-gray-500 font-mono">
+                        {new Date(log.timestamp).toLocaleTimeString('pt-MZ', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                       </td>
                     </tr>
                   ))}
