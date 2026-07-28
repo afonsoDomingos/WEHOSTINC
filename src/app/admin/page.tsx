@@ -51,6 +51,19 @@ export default function AdminPage() {
   }, 0);
 
   const getUserStatus = (user: User) => {
+    if (user.status === 'suspended') return 'suspended';
+
+    const today = new Date();
+    const currentDay = today.getDate();
+    const dueDay = user.dueDate || 29;
+
+    // Tolerância de 3 dias para pagamento: pendente entre dia 29 e +3 dias, suspenso após +5 dias
+    if (currentDay > dueDay + 5) {
+      return 'suspended';
+    } else if (currentDay > dueDay) {
+      return 'pending';
+    }
+
     return user.status || 'active';
   };
 
