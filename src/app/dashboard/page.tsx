@@ -9,6 +9,8 @@ import {
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 
+import DashboardNav from '@/components/DashboardNav';
+
 export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
@@ -54,32 +56,13 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <Link href="/" className="flex items-center space-x-2">
-              <Server className="h-8 w-8 text-primary-600" />
-              <span className="text-2xl font-bold text-gray-900">WEHOSTHERE</span>
-            </Link>
-            <div className="flex items-center space-x-4">
-              <span className="text-gray-700">Olá, {user.name}</span>
-              <button
-                onClick={handleLogout}
-                className="flex items-center space-x-2 text-gray-700 hover:text-primary-600 transition"
-              >
-                <LogOut className="h-5 w-5" />
-                <span>Sair</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
+      {/* Header Responsivo do Dashboard */}
+      <DashboardNav userName={user.name} onLogout={handleLogout} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid lg:grid-cols-4 gap-8">
-          {/* Sidebar */}
-          <div className="lg:col-span-1">
+          {/* Sidebar (Desktop) */}
+          <div className="hidden lg:block lg:col-span-1">
             <div className="bg-white rounded-xl shadow-sm p-6">
               <nav className="space-y-2">
                 <Link

@@ -4,43 +4,14 @@ import { useState } from 'react';
 import Link from "next/link";
 import { Server, Mail, Shield, Zap, Globe, Users, Search, Sparkles, CheckCircle } from "lucide-react";
 
+import Navbar from '@/components/Navbar';
+
 export default function Home() {
   const [isAnnual, setIsAnnual] = useState(false);
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-2">
-              <Server className="h-8 w-8 text-primary-600" />
-              <span className="text-2xl font-bold text-gray-900">WEHOSTHERE</span>
-            </div>
-            <nav className="hidden md:flex space-x-8">
-              <Link href="#planos" className="text-gray-700 hover:text-primary-600 transition">
-                Planos
-              </Link>
-              <Link href="#criacao-sites" className="text-primary-600 font-semibold hover:text-primary-700 transition">
-                Criação de Sites (25.000 MT)
-              </Link>
-              <Link href="#recursos" className="text-gray-700 hover:text-primary-600 transition">
-                Recursos
-              </Link>
-              <Link href="#contato" className="text-gray-700 hover:text-primary-600 transition">
-                Contato
-              </Link>
-            </nav>
-            <div className="flex space-x-4">
-              <Link href="/login" className="px-4 py-2 text-gray-700 hover:text-primary-600 transition">
-                Login
-              </Link>
-              <Link href="/register" className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition">
-                Criar Conta
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
+      {/* Navbar Responsivo */}
+      <Navbar />
 
       {/* Hero Section */}
       <section className="py-16 px-4">
