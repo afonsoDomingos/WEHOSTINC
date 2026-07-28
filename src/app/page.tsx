@@ -40,12 +40,11 @@ export default function Home() {
       {/* Hero Section */}
       <section className="py-16 px-4">
         <div className="max-w-7xl mx-auto text-center">
-          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-            Hospedagem de Sites e Email <span className="text-primary-600">Profissional</span>
+          <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 mb-4 tracking-tight">
+            Domínio, Hospedagem e <span className="text-primary-600">Email</span>
           </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            A solução completa para sua presença online em Moçambique. Hospedagem de alta performance, 
-            pagamento M-Pesa/eMola e suporte especializado 24/7.
+          <p className="text-lg md:text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+            Tudo o que a sua empresa precisa para ter uma presença online de alta performance em Moçambique.
           </p>
 
           {/* Domain Search Component */}
