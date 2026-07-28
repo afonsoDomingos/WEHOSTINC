@@ -34,7 +34,11 @@ export default function DomainSearch() {
     }
   };
 
-  const handleRegister = (domain: string, price: number) => {
+  const handleRegisterOnly = (domain: string, price: number) => {
+    router.push(`/checkout?plan=none&domain=${encodeURIComponent(domain)}&domainPrice=${price}`);
+  };
+
+  const handleRegisterWithHosting = (domain: string, price: number) => {
     router.push(`/checkout?plan=pro&domain=${encodeURIComponent(domain)}&domainPrice=${price}`);
   };
 
@@ -126,7 +130,7 @@ export default function DomainSearch() {
       {result && (
         <div className="mt-6 bg-white rounded-3xl p-6 shadow-xl border border-gray-200 animate-in fade-in slide-in-from-bottom-2 duration-300">
           {/* Domínio Principal Consultado */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-gradient-to-r from-gray-50 to-blue-50/30 border border-gray-200">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-4 rounded-2xl bg-gradient-to-r from-gray-50 to-blue-50/30 border border-gray-200">
             <div className="flex items-center space-x-3">
               {result.isAvailable ? (
                 <div className="p-2.5 bg-emerald-100 text-emerald-600 rounded-xl flex-shrink-0">
@@ -153,28 +157,40 @@ export default function DomainSearch() {
                 </div>
                 <p className="text-xs text-gray-500 mt-0.5">
                   {result.isAvailable 
-                    ? 'Este domínio está pronto para registro imediato.' 
+                    ? 'Este domínio está livre para registro imediato.' 
                     : 'Este domínio já se encontra registrado. Experimente uma das alternativas abaixo.'}
                 </p>
               </div>
             </div>
 
             {result.isAvailable && (
-              <div className="flex items-center justify-between sm:justify-end space-x-4 border-t sm:border-t-0 pt-3 sm:pt-0">
-                <div className="text-left sm:text-right">
-                  <span className="text-xs text-gray-500 block">Preço de Registro</span>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between lg:justify-end gap-3 border-t lg:border-t-0 pt-3 lg:pt-0">
+                <div className="text-left sm:text-right pr-2">
+                  <span className="text-xs text-gray-500 block">Preço do Domínio</span>
                   <span className="text-xl font-black text-primary-600">
                     {result.price.toLocaleString('pt-MZ')} MT<span className="text-xs text-gray-500 font-normal">/ano</span>
                   </span>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => handleRegister(result.fullDomain, result.price)}
-                  className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl shadow-md hover:shadow-lg transition flex items-center space-x-2 cursor-pointer"
-                >
-                  <span>Registrar</span>
-                  <ArrowRight className="h-4 w-4" />
-                </button>
+
+                <div className="flex items-center space-x-2 w-full sm:w-auto">
+                  <button
+                    type="button"
+                    onClick={() => handleRegisterOnly(result.fullDomain, result.price)}
+                    className="flex-1 sm:flex-initial px-4 py-2.5 bg-white border border-gray-300 hover:bg-gray-100 text-gray-800 font-bold text-xs md:text-sm rounded-xl shadow-sm transition flex items-center justify-center space-x-1.5 cursor-pointer whitespace-nowrap"
+                  >
+                    <Globe className="h-4 w-4 text-gray-600" />
+                    <span>Apenas Domínio</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleRegisterWithHosting(result.fullDomain, result.price)}
+                    className="flex-1 sm:flex-initial px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs md:text-sm rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center space-x-1.5 cursor-pointer whitespace-nowrap"
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    <span>Domínio + Hospedagem</span>
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -197,7 +213,7 @@ export default function DomainSearch() {
                     </div>
                     <button
                       type="button"
-                      onClick={() => handleRegister(alt.fullDomain, alt.price)}
+                      onClick={() => handleRegisterOnly(alt.fullDomain, alt.price)}
                       className="px-3 py-1.5 bg-primary-50 text-primary-700 hover:bg-primary-600 hover:text-white rounded-lg text-xs font-bold transition cursor-pointer"
                     >
                       Registrar

@@ -14,7 +14,8 @@ import { getDomainPrice, sanitizeDomainName } from '@/lib/domains';
 function CheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const planIdParam = searchParams.get('plan') || 'pro';
+  const rawPlanId = searchParams.get('plan');
+  const planIdParam = rawPlanId === 'none' ? 'none' : (rawPlanId || 'pro');
   const domainParam = searchParams.get('domain');
   const domainPriceParam = searchParams.get('domainPrice');
 
@@ -22,9 +23,9 @@ function CheckoutContent() {
     ? (domainPriceParam ? Number(domainPriceParam) : getDomainPrice(sanitizeDomainName(domainParam).extension))
     : 0;
 
-  const [selectedPlan, setSelectedPlan] = useState<HostingPlan>(
-    hostingPlans.find(p => p.id === planIdParam) || hostingPlans[1]
-  );
+  const [selectedPlanId, setSelectedPlanId] = useState<string>(planIdParam);
+
+  const selectedPlan = hostingPlans.find(p => p.id === selectedPlanId) || null;
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -57,15 +58,16 @@ function CheckoutContent() {
   );
 
   useEffect(() => {
-    const plan = hostingPlans.find(p => p.id === planIdParam);
-    if (plan) {
-      setSelectedPlan(plan);
+    if (planIdParam) {
+      setSelectedPlanId(planIdParam);
     }
   }, [planIdParam]);
 
-  const basePrice = selectedPlan.id === 'website_creation' 
-    ? selectedPlan.price 
-    : (billingCycle === 'annual' ? selectedPlan.priceAnnual : selectedPlan.price);
+  const basePrice = selectedPlan
+    ? (selectedPlan.id === 'website_creation' 
+        ? selectedPlan.price 
+        : (billingCycle === 'annual' ? selectedPlan.priceAnnual : selectedPlan.price))
+    : 0;
 
   const grandTotal = basePrice + domainCost;
 
@@ -87,25 +89,29 @@ function CheckoutContent() {
     try {
       const user = auth.getCurrentUser();
       if (user) {
-        if (selectedPlan.id !== 'website_creation') {
+        if (selectedPlan && selectedPlan.id !== 'website_creation') {
           auth.updatePlan(user.id, selectedPlan.id as 'basic' | 'pro' | 'enterprise');
         }
       } else {
-        const newUser = auth.register(name, email, '@Admin123@', selectedPlan.id === 'website_creation' ? 'pro' : selectedPlan.id as 'basic' | 'pro' | 'enterprise', 'active', 29);
+        const newUser = auth.register(name, email, '@Admin123@', (selectedPlan && selectedPlan.id === 'website_creation') ? 'pro' : (selectedPlan ? selectedPlan.id as 'basic' | 'pro' | 'enterprise' : 'basic'), 'active', 29);
         auth.login(newUser.email, '@Admin123@');
       }
+
+      const serviceName = selectedPlan
+        ? (domainParam 
+            ? `${selectedPlan.name} (${billingCycle === 'annual' ? 'Anual' : 'Mensal'}) + Domínio (${domainParam})` 
+            : `${selectedPlan.name} (${billingCycle === 'annual' ? 'Anual' : 'Mensal'})`)
+        : `Registo de Domínio: ${domainParam || 'Domínio Avulso'}`;
 
       // Registra pedido de serviço para gestão no Admin
       dataManager.addOrder({
         clientName: name,
         clientEmail: email,
         clientPhone: `${ddi} ${phonePayment || whatsapp}`,
-        serviceName: domainParam 
-          ? `${selectedPlan.name} (${billingCycle === 'annual' ? 'Anual' : 'Mensal'}) + Domínio (${domainParam})` 
-          : `${selectedPlan.name} (${billingCycle === 'annual' ? 'Anual' : 'Mensal'})`,
+        serviceName,
         amount: grandTotal,
         paymentMethod: paymentMethod,
-        status: selectedPlan.id === 'website_creation' ? 'in_progress' : 'completed'
+        status: (selectedPlan && selectedPlan.id === 'website_creation') ? 'in_progress' : 'completed'
       });
 
       setPushModal(false);
@@ -145,7 +151,7 @@ function CheckoutContent() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             msisdn: phone,
-            amount: selectedPlan.price,
+            amount: grandTotal,
             reference: `REF_${Date.now().toString().slice(-6)}`,
             thirdPartyReference: `ORDER_${Date.now().toString().slice(-6)}`
           })
@@ -173,7 +179,7 @@ function CheckoutContent() {
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Pagamento Confirmado!</h2>
           <p className="text-gray-600 mb-6">
-            Parabéns! Sua assinatura do <span className="font-semibold text-gray-900">{selectedPlan.name}</span> foi ativada com sucesso.
+            Parabéns! Seu pedido de <span className="font-semibold text-gray-900">{selectedPlan ? selectedPlan.name : (domainParam ? `Registo do Domínio ${domainParam}` : 'Serviço')}</span> foi ativado com sucesso.
           </p>
 
           <div className="bg-gray-50 rounded-xl p-4 mb-6 text-left border border-gray-200 space-y-2 text-sm text-gray-700">
@@ -191,7 +197,7 @@ function CheckoutContent() {
             </div>
             <div className="flex justify-between border-t border-gray-200 pt-2 font-bold text-base">
               <span>Total Pago:</span>
-              <span className="text-emerald-600">{selectedPlan.price.toLocaleString('pt-MZ')} MT</span>
+              <span className="text-emerald-600">{grandTotal.toLocaleString('pt-MZ')} MT</span>
             </div>
           </div>
 
@@ -229,7 +235,7 @@ function CheckoutContent() {
             <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 text-left text-sm text-red-900 space-y-1">
               <p className="font-semibold text-red-700">Instruções:</p>
               <p>1. Verifique a tela do seu celular.</p>
-              <p>2. Digite seu <strong>PIN {paymentMethod.toUpperCase()}</strong> para autorizar <strong>{selectedPlan.price.toLocaleString('pt-MZ')} MT</strong>.</p>
+              <p>2. Digite seu <strong>PIN {paymentMethod.toUpperCase()}</strong> para autorizar <strong>{grandTotal.toLocaleString('pt-MZ')} MT</strong>.</p>
             </div>
 
             <div className="mb-6">
@@ -475,46 +481,73 @@ function CheckoutContent() {
               )}
             </div>
 
-            {/* Ciclo de Pagamento (se não for criação de site) */}
-            {selectedPlan.id !== 'website_creation' && (
-              <div className="pt-2">
-                <label className="block text-sm font-semibold text-gray-800 mb-2">
-                  Ciclo de Pagamento
-                </label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setBillingCycle('monthly')}
-                    className={`p-3.5 border-2 rounded-xl text-left transition cursor-pointer ${
-                      billingCycle === 'monthly'
-                        ? 'border-primary-600 bg-primary-50/50 ring-2 ring-primary-500/20'
-                        : 'border-gray-200 bg-white hover:border-gray-300'
-                    }`}
-                  >
-                    <span className="text-xs font-bold text-gray-500 block uppercase">Cobrança Mensal</span>
-                    <span className="text-base font-bold text-gray-900 block mt-0.5">
-                      {selectedPlan.price.toLocaleString('pt-MZ')} MT <span className="text-xs font-normal text-gray-500">/mês</span>
-                    </span>
-                  </button>
+            {/* Ciclo de Pagamento ou Banner Apenas Domínio */}
+            {selectedPlan ? (
+              selectedPlan.id !== 'website_creation' && (
+                <div className="pt-2">
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-semibold text-gray-800">
+                      Ciclo de Pagamento da Hospedagem
+                    </label>
+                    {domainParam && (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedPlanId('none')}
+                        className="text-xs text-red-600 hover:text-red-700 font-medium underline cursor-pointer"
+                      >
+                        Remover Hospedagem (Comprar apenas o domínio)
+                      </button>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setBillingCycle('monthly')}
+                      className={`p-3.5 border-2 rounded-xl text-left transition cursor-pointer ${
+                        billingCycle === 'monthly'
+                          ? 'border-primary-600 bg-primary-50/50 ring-2 ring-primary-500/20'
+                          : 'border-gray-200 bg-white hover:border-gray-300'
+                      }`}
+                    >
+                      <span className="text-xs font-bold text-gray-500 block uppercase">Cobrança Mensal</span>
+                      <span className="text-base font-bold text-gray-900 block mt-0.5">
+                        {selectedPlan.price.toLocaleString('pt-MZ')} MT <span className="text-xs font-normal text-gray-500">/mês</span>
+                      </span>
+                    </button>
 
-                  <button
-                    type="button"
-                    onClick={() => setBillingCycle('annual')}
-                    className={`p-3.5 border-2 rounded-xl text-left transition relative cursor-pointer ${
-                      billingCycle === 'annual'
-                        ? 'border-primary-600 bg-primary-50/50 ring-2 ring-primary-500/20'
-                        : 'border-gray-200 bg-white hover:border-gray-300'
-                    }`}
-                  >
-                    <span className="absolute -top-2.5 right-3 bg-amber-400 text-gray-900 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
-                      2 Meses Grátis
-                    </span>
-                    <span className="text-xs font-bold text-gray-500 block uppercase">Cobrança Anual</span>
-                    <span className="text-base font-bold text-gray-900 block mt-0.5">
-                      {selectedPlan.priceAnnual.toLocaleString('pt-MZ')} MT <span className="text-xs font-normal text-gray-500">/ano</span>
-                    </span>
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => setBillingCycle('annual')}
+                      className={`p-3.5 border-2 rounded-xl text-left transition relative cursor-pointer ${
+                        billingCycle === 'annual'
+                          ? 'border-primary-600 bg-primary-50/50 ring-2 ring-primary-500/20'
+                          : 'border-gray-200 bg-white hover:border-gray-300'
+                      }`}
+                    >
+                      <span className="absolute -top-2.5 right-3 bg-amber-400 text-gray-900 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
+                        2 Meses Grátis
+                      </span>
+                      <span className="text-xs font-bold text-gray-500 block uppercase">Cobrança Anual</span>
+                      <span className="text-base font-bold text-gray-900 block mt-0.5">
+                        {selectedPlan.priceAnnual.toLocaleString('pt-MZ')} MT <span className="text-xs font-normal text-gray-500">/ano</span>
+                      </span>
+                    </button>
+                  </div>
                 </div>
+              )
+            ) : (
+              <div className="p-4 bg-blue-50/80 border border-blue-200 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 my-2">
+                <div>
+                  <span className="text-xs font-black text-blue-900 uppercase block tracking-wider">Comprando Apenas Registro de Domínio</span>
+                  <span className="text-xs text-blue-700 mt-0.5 block">Nenhum plano de hospedagem adicionado. Deseja incluir hospedagem?</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedPlanId('pro')}
+                  className="px-3.5 py-2 bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs rounded-lg transition whitespace-nowrap cursor-pointer shadow-sm"
+                >
+                  + Adicionar Plano Pro (3.000 MT/mês)
+                </button>
               </div>
             )}
 
@@ -523,15 +556,23 @@ function CheckoutContent() {
               <h4 className="text-sm font-semibold text-gray-800 mb-3">Resumo da compra</h4>
               
               <div className="space-y-2 text-sm text-gray-700 bg-gray-50 p-4 rounded-xl border border-gray-200">
-                <div className="flex justify-between items-center">
-                  <span className="font-semibold text-gray-900">
-                    Plano {selectedPlan.name} ({selectedPlan.id === 'website_creation' ? 'Projeto Único' : (billingCycle === 'annual' ? 'Anual' : 'Mensal')})
-                  </span>
-                  <span className="font-bold text-gray-900">{basePrice.toLocaleString('pt-MZ')} MT</span>
-                </div>
-                <div className="text-xs text-gray-500">
-                  {selectedPlan.features.sites === -1 ? 'Sites ilimitados' : `${selectedPlan.features.sites} site(s)`} • {selectedPlan.features.storage}GB Armazenamento
-                </div>
+                {selectedPlan ? (
+                  <>
+                    <div className="flex justify-between items-center">
+                      <span className="font-semibold text-gray-900">
+                        Plano {selectedPlan.name} ({selectedPlan.id === 'website_creation' ? 'Projeto Único' : (billingCycle === 'annual' ? 'Anual' : 'Mensal')})
+                      </span>
+                      <span className="font-bold text-gray-900">{basePrice.toLocaleString('pt-MZ')} MT</span>
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {selectedPlan.features.sites === -1 ? 'Sites ilimitados' : `${selectedPlan.features.sites} site(s)`} • {selectedPlan.features.storage}GB Armazenamento
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-xs text-gray-500 font-medium italic">
+                    Nenhum plano de hospedagem selecionado (Registro de Domínio Avulso).
+                  </div>
+                )}
 
                 {domainParam && (
                   <div className="flex justify-between items-center pt-2 mt-2 border-t border-gray-200">
@@ -543,7 +584,7 @@ function CheckoutContent() {
                   </div>
                 )}
 
-                {billingCycle === 'annual' && selectedPlan.id !== 'website_creation' && (
+                {selectedPlan && billingCycle === 'annual' && selectedPlan.id !== 'website_creation' && (
                   <div className="bg-emerald-50 text-emerald-700 p-2 rounded-lg text-xs font-semibold border border-emerald-200 mt-2">
                     🎉 Economia de 2 meses grátis ({(selectedPlan.price * 2).toLocaleString('pt-MZ')} MT economizados)!
                   </div>
