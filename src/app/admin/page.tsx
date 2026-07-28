@@ -49,21 +49,31 @@ export default function AdminPage() {
     setOrders(dataManager.getOrders());
     setLoading(false);
 
-    // Buscar usuários atualizados do servidor via API
+    // Buscar usuários e pedidos atualizados do servidor via API
     auth.fetchUsersAsync().then((fetched) => {
       if (fetched && fetched.length > 0) {
         setUsers(fetched);
       }
     });
 
-    // Polling a cada 5s para sincronizar novos cadastros em tempo real
+    dataManager.fetchOrdersAsync().then((fetched) => {
+      if (fetched && fetched.length > 0) {
+        setOrders(fetched);
+      }
+    });
+
+    // Polling a cada 5s para sincronizar novos cadastros e pedidos em tempo real
     const interval = setInterval(() => {
       auth.fetchUsersAsync().then((fetched) => {
         if (fetched && fetched.length > 0) {
           setUsers(fetched);
         }
       });
-      setOrders(dataManager.getOrders());
+      dataManager.fetchOrdersAsync().then((fetched) => {
+        if (fetched && fetched.length > 0) {
+          setOrders(fetched);
+        }
+      });
     }, 5000);
 
     return () => clearInterval(interval);

@@ -161,6 +161,32 @@ export const dataManager = {
     return data ? JSON.parse(data) : DEFAULT_ORDERS;
   },
 
+  fetchOrdersAsync: async (): Promise<ServiceOrder[]> => {
+    try {
+      const res = await fetch('/api/orders');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.orders && Array.isArray(data.orders)) {
+          const serverOrders: ServiceOrder[] = data.orders;
+          const localOrders = dataManager.getOrders();
+
+          const orderMap = new Map<string, ServiceOrder>();
+          localOrders.forEach(o => orderMap.set(o.id, o));
+          serverOrders.forEach(o => orderMap.set(o.id, o));
+
+          const merged = Array.from(orderMap.values());
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('wehosthere_orders', JSON.stringify(merged));
+          }
+          return merged;
+        }
+      }
+    } catch (e) {
+      console.error('Falha ao buscar pedidos da API:', e);
+    }
+    return dataManager.getOrders();
+  },
+
   addOrder: (order: Omit<ServiceOrder, 'id' | 'createdAt'>): ServiceOrder => {
     const orders = dataManager.getOrders();
     const newOrder: ServiceOrder = {
@@ -171,6 +197,12 @@ export const dataManager = {
     orders.unshift(newOrder);
     if (typeof window !== 'undefined') {
       localStorage.setItem('wehosthere_orders', JSON.stringify(orders));
+
+      fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order: newOrder })
+      }).catch(err => console.error('Erro de sync de pedido no servidor:', err));
     }
     return newOrder;
   },
@@ -179,6 +211,12 @@ export const dataManager = {
     const orders = dataManager.getOrders().map(o => o.id === id ? { ...o, status } : o);
     if (typeof window !== 'undefined') {
       localStorage.setItem('wehosthere_orders', JSON.stringify(orders));
+
+      fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update_status', orderId: id, status })
+      }).catch(err => console.error('Erro de sync de status de pedido:', err));
     }
   }
 };
