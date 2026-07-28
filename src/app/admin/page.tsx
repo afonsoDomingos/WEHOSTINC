@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
   Users, Server, Mail, Database, TrendingUp, DollarSign,
-  LogOut, Settings, Home, CheckCircle, Clock, XCircle
+  LogOut, Settings, Home, CheckCircle, Clock, XCircle, Search
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 import { dataManager } from '@/lib/data';
@@ -16,6 +16,10 @@ export default function AdminPage() {
   const [sites, setSites] = useState<any[]>([]);
   const [emails, setEmails] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Search and Filter State
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'pending' | 'suspended'>('all');
 
   // Modal Novo Cliente State
   const [showAddModal, setShowAddModal] = useState(false);
@@ -91,6 +95,16 @@ export default function AdminPage() {
 
     return user.status || 'active';
   };
+
+  const filteredUsers = users.filter((user) => {
+    const status = getUserStatus(user);
+    const matchesSearch = 
+      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === 'all' || status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -201,11 +215,68 @@ export default function AdminPage() {
             </div>
           </div>
 
-          {users.length === 0 ? (
+          {/* Search and Status Filters */}
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6 pt-4 border-t border-gray-100">
+            <div className="relative w-full md:w-80">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Buscar cliente por nome ou e-mail..."
+                className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"
+              />
+            </div>
+
+            <div className="flex items-center space-x-1.5 w-full md:w-auto overflow-x-auto">
+              <button
+                onClick={() => setStatusFilter('all')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                  statusFilter === 'all'
+                    ? 'bg-gray-900 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                Todos ({users.length})
+              </button>
+              <button
+                onClick={() => setStatusFilter('active')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                  statusFilter === 'active'
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
+                }`}
+              >
+                Ativos ({users.filter(u => getUserStatus(u) === 'active').length})
+              </button>
+              <button
+                onClick={() => setStatusFilter('pending')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                  statusFilter === 'pending'
+                    ? 'bg-amber-500 text-white'
+                    : 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200'
+                }`}
+              >
+                Pendentes ({users.filter(u => getUserStatus(u) === 'pending').length})
+              </button>
+              <button
+                onClick={() => setStatusFilter('suspended')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                  statusFilter === 'suspended'
+                    ? 'bg-red-600 text-white'
+                    : 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200'
+                }`}
+              >
+                Suspensos ({users.filter(u => getUserStatus(u) === 'suspended').length})
+              </button>
+            </div>
+          </div>
+
+          {filteredUsers.length === 0 ? (
             <div className="text-center py-12">
               <Users className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-800 mb-1">Nenhum usuário cadastrado</h3>
-              <p className="text-gray-500">Os usuários aparecerão aqui quando se cadastrarem</p>
+              <h3 className="text-lg font-semibold text-gray-800 mb-1">Nenhum cliente encontrado</h3>
+              <p className="text-gray-500">Tente ajustar a busca ou o filtro de status</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -222,7 +293,7 @@ export default function AdminPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {users.map((user) => (
+                  {filteredUsers.map((user) => (
                     <tr key={user.id} className="hover:bg-gray-50/80 transition">
                       <td className="py-3.5 px-4">
                         <span className="font-semibold text-gray-900">{user.name}</span>

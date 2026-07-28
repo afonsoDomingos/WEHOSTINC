@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
   Mail, Plus, Trash2, Settings, CheckCircle, Clock, XCircle,
-  LayoutDashboard, Globe, Database, Settings as SettingsIcon, LogOut, Server
+  LayoutDashboard, Globe, Database, Settings as SettingsIcon, LogOut, Server, ExternalLink
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 import { dataManager, EmailAccount } from '@/lib/data';
@@ -36,8 +36,8 @@ export default function EmailPage() {
 
     const newEmailAccount = dataManager.addEmail({
       email: newEmail,
-      status: 'pending',
-      storage: 0
+      status: 'active',
+      storage: 5
     });
 
     setEmails([...emails, newEmailAccount]);
@@ -205,12 +205,22 @@ export default function EmailPage() {
                             <span className="text-sm text-gray-600">{getStatusText(email.status)}</span>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <button className="p-2 text-gray-600 hover:text-primary-600 transition">
+                            <a
+                              href="https://webmail.wehosthere.com"
+                              target="_blank"
+                              rel="noreferrer"
+                              className="px-3 py-1.5 bg-primary-50 hover:bg-primary-100 text-primary-700 font-semibold text-xs rounded-lg transition flex items-center space-x-1 border border-primary-200"
+                            >
+                              <span>Acessar Webmail</span>
+                              <ExternalLink className="h-3.5 w-3.5" />
+                            </a>
+                            <button className="p-2 text-gray-600 hover:text-primary-600 transition" title="Configurações">
                               <Settings className="h-5 w-5" />
                             </button>
                             <button
                               onClick={() => handleDeleteEmail(email.id)}
                               className="p-2 text-gray-600 hover:text-red-600 transition"
+                              title="Excluir"
                             >
                               <Trash2 className="h-5 w-5" />
                             </button>
