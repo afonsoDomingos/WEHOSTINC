@@ -5,10 +5,11 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
   Users, Server, Mail, Database, TrendingUp, DollarSign,
-  LogOut, Settings, Home, CheckCircle, Clock, XCircle, Search
+  LogOut, Settings, Home, CheckCircle, Clock, XCircle, Search,
+  ShoppingBag, MessageSquare, ExternalLink
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
-import { dataManager } from '@/lib/data';
+import { dataManager, ServiceOrder } from '@/lib/data';
 
 export default function AdminPage() {
   const router = useRouter();
@@ -31,6 +32,8 @@ export default function AdminPage() {
   const [newStatus, setNewStatus] = useState<'active' | 'pending' | 'suspended'>('active');
   const [createError, setCreateError] = useState('');
 
+  const [orders, setOrders] = useState<ServiceOrder[]>([]);
+
   useEffect(() => {
     // Simulação de admin check
     const currentUser = auth.getCurrentUser();
@@ -43,8 +46,14 @@ export default function AdminPage() {
     setUsers(auth.getUsers());
     setSites(dataManager.getSites());
     setEmails(dataManager.getEmails());
+    setOrders(dataManager.getOrders());
     setLoading(false);
   }, [router]);
+
+  const handleUpdateOrderStatus = (id: string, newStatus: ServiceOrder['status']) => {
+    dataManager.updateOrderStatus(id, newStatus);
+    setOrders(dataManager.getOrders());
+  };
 
   const handleCreateClient = (e: React.FormEvent) => {
     e.preventDefault();
@@ -331,6 +340,98 @@ export default function AdminPage() {
                             <XCircle className="h-4 w-4" />
                           </button>
                         </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {/* Gestão de Pedidos de Serviços */}
+        <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm mb-8">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900 flex items-center space-x-2">
+                <ShoppingBag className="h-6 w-6 text-primary-600" />
+                <span>Gestão de Pedidos & Serviços</span>
+              </h2>
+              <p className="text-sm text-gray-500 mt-1">Acompanhamento de solicitações de hospedagem e criação de sites</p>
+            </div>
+            <div className="flex items-center space-x-2 bg-primary-50 px-3 py-1.5 rounded-lg border border-primary-200 text-primary-700 font-semibold text-xs">
+              <span>{orders.length} pedidos totais</span>
+            </div>
+          </div>
+
+          {orders.length === 0 ? (
+            <div className="text-center py-12">
+              <ShoppingBag className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-800 mb-1">Nenhum pedido de serviço recebido</h3>
+              <p className="text-gray-500">Os pedidos efetuados no checkout aparecerão aqui</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-200 bg-gray-50/50">
+                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">ID / Data</th>
+                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Cliente / Contato</th>
+                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Serviço Solicidado</th>
+                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Valor / Método</th>
+                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Status do Pedido</th>
+                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Ações</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {orders.map((order) => (
+                    <tr key={order.id} className="hover:bg-gray-50/80 transition">
+                      <td className="py-3.5 px-4">
+                        <span className="font-mono font-bold text-gray-900 text-sm block">{order.id}</span>
+                        <span className="text-xs text-gray-400">{new Date(order.createdAt).toLocaleDateString('pt-BR')}</span>
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <span className="font-semibold text-gray-900 block">{order.clientName}</span>
+                        <span className="text-xs text-gray-500 block">{order.clientEmail}</span>
+                        <span className="text-xs text-emerald-600 font-medium">{order.clientPhone}</span>
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <span className="font-semibold text-gray-900 text-sm">{order.serviceName}</span>
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <span className="font-bold text-emerald-600 block">{order.amount.toLocaleString('pt-MZ')} MT</span>
+                        <span className="text-xs font-semibold uppercase text-gray-500">{order.paymentMethod}</span>
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <select
+                          value={order.status}
+                          onChange={(e) => handleUpdateOrderStatus(order.id, e.target.value as any)}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold outline-none border cursor-pointer ${
+                            order.status === 'completed'
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                              : order.status === 'in_progress'
+                              ? 'bg-blue-50 text-blue-700 border-blue-300'
+                              : order.status === 'pending'
+                              ? 'bg-amber-50 text-amber-700 border-amber-300'
+                              : 'bg-red-50 text-red-700 border-red-300'
+                          }`}
+                        >
+                          <option value="pending">Pendente (⏰)</option>
+                          <option value="in_progress">Em Desenvolvimento (⚙️)</option>
+                          <option value="completed">Concluído (✓)</option>
+                          <option value="cancelled">Cancelado (✗)</option>
+                        </select>
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <a
+                          href={`https://wa.me/${order.clientPhone.replace(/\D/g, '')}?text=${encodeURIComponent(`Olá ${order.clientName}, sobre o seu pedido (${order.serviceName})...`)}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold text-xs rounded-lg transition inline-flex items-center space-x-1 border border-emerald-200"
+                        >
+                          <MessageSquare className="h-3.5 w-3.5" />
+                          <span>WhatsApp</span>
+                        </a>
                       </td>
                     </tr>
                   ))}

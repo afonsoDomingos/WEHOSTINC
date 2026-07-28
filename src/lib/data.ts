@@ -147,5 +147,70 @@ export const dataManager = {
     if (typeof window !== 'undefined') {
       localStorage.setItem(EMAILS_KEY, JSON.stringify(emails));
     }
+  },
+
+  // Pedidos de Serviços
+  getOrders: (): ServiceOrder[] => {
+    if (typeof window === 'undefined') return DEFAULT_ORDERS;
+    const data = localStorage.getItem('wehosthere_orders');
+    return data ? JSON.parse(data) : DEFAULT_ORDERS;
+  },
+
+  addOrder: (order: Omit<ServiceOrder, 'id' | 'createdAt'>): ServiceOrder => {
+    const orders = dataManager.getOrders();
+    const newOrder: ServiceOrder = {
+      ...order,
+      id: `ORD-${Date.now().toString().slice(-5)}`,
+      createdAt: new Date().toISOString()
+    };
+    orders.unshift(newOrder);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('wehosthere_orders', JSON.stringify(orders));
+    }
+    return newOrder;
+  },
+
+  updateOrderStatus: (id: string, status: ServiceOrder['status']): void => {
+    const orders = dataManager.getOrders().map(o => o.id === id ? { ...o, status } : o);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('wehosthere_orders', JSON.stringify(orders));
+    }
   }
 };
+
+export interface ServiceOrder {
+  id: string;
+  clientName: string;
+  clientEmail: string;
+  clientPhone: string;
+  serviceName: string;
+  amount: number;
+  paymentMethod: 'mpesa' | 'emola' | 'card';
+  status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
+  createdAt: string;
+}
+
+const DEFAULT_ORDERS: ServiceOrder[] = [
+  {
+    id: 'ORD-98214',
+    clientName: 'MSServices',
+    clientEmail: 'info@msservices.co.mz',
+    clientPhone: '+258 84 123 4567',
+    serviceName: 'Criação de Site Profissional',
+    amount: 25000,
+    paymentMethod: 'mpesa',
+    status: 'in_progress',
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'ORD-97410',
+    clientName: 'Afonso Domingos',
+    clientEmail: 'afonso@wehostinc.co.mz',
+    clientPhone: '+258 85 987 6543',
+    serviceName: 'Plano Hospedagem Profissional',
+    amount: 3000,
+    paymentMethod: 'mpesa',
+    status: 'completed',
+    createdAt: new Date(Date.now() - 86400000 * 2).toISOString()
+  }
+];

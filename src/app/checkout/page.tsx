@@ -7,7 +7,7 @@ import {
   Server, ShieldCheck, Lock, Check, CreditCard, 
   Smartphone, Bitcoin, ArrowLeft, CheckCircle2, AlertCircle
 } from 'lucide-react';
-import { hostingPlans, HostingPlan } from '@/lib/data';
+import { hostingPlans, HostingPlan, dataManager } from '@/lib/data';
 import { auth } from '@/lib/auth';
 
 function CheckoutContent() {
@@ -69,11 +69,25 @@ function CheckoutContent() {
     try {
       const user = auth.getCurrentUser();
       if (user) {
-        auth.updatePlan(user.id, selectedPlan.id as 'basic' | 'pro' | 'enterprise');
+        if (selectedPlan.id !== 'website_creation') {
+          auth.updatePlan(user.id, selectedPlan.id as 'basic' | 'pro' | 'enterprise');
+        }
       } else {
-        const newUser = auth.register(name, email, '@Admin123@', selectedPlan.id as 'basic' | 'pro' | 'enterprise', 'active', 29);
+        const newUser = auth.register(name, email, '@Admin123@', selectedPlan.id === 'website_creation' ? 'pro' : selectedPlan.id as 'basic' | 'pro' | 'enterprise', 'active', 29);
         auth.login(newUser.email, '@Admin123@');
       }
+
+      // Registra pedido de serviço para gestão no Admin
+      dataManager.addOrder({
+        clientName: name,
+        clientEmail: email,
+        clientPhone: `${ddi} ${phonePayment || whatsapp}`,
+        serviceName: selectedPlan.name,
+        amount: selectedPlan.price,
+        paymentMethod: paymentMethod,
+        status: selectedPlan.id === 'website_creation' ? 'in_progress' : 'completed'
+      });
+
       setPushModal(false);
       setLoading(false);
       setSuccess(true);
