@@ -7,21 +7,35 @@ import { DOMAIN_PRICES, sanitizeDomainName, getDomainPrice } from '@/lib/domains
  * Tenta resolver Name Servers (NS), registros de IP (A) ou registros de Email (MX).
  */
 async function isDomainTakenViaDNS(domain: string): Promise<boolean> {
+  // 1. Tentar resolução de IP nativa do SO (dns.lookup / getaddrinfo)
   try {
-    // Configurar um timeout rápido de 2.5 segundos para evitar bloqueio
-    const nsPromise = dns.resolveNs(domain);
-    const aPromise = dns.resolve4(domain);
-    const mxPromise = dns.resolveMx(domain);
-
-    const results = await Promise.allSettled([nsPromise, aPromise, mxPromise]);
-    
-    // Se qualquer uma das consultas retornar registros válidos, o domínio está em uso
-    const hasRecords = results.some(r => r.status === 'fulfilled' && Array.isArray(r.value) && r.value.length > 0);
-    return hasRecords;
+    const lookupPromise = dns.lookup(domain);
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('DNS Timeout')), 2500)
+    );
+    const res = await Promise.race([lookupPromise, timeoutPromise]);
+    if (res && res.address) {
+      return true; // Possui IP ativo na internet -> Ocupado!
+    }
   } catch (error) {
-    // Se falhar a resolução DNS ou estourar erro ENOTFOUND / SERVFAIL, o domínio provavelmente está livre
-    return false;
+    // ENOTFOUND significa que o nome de domínio não tem IP apontado
   }
+
+  // 2. Tentar consulta de servidores de nomes (NameServers / NS)
+  try {
+    const nsPromise = dns.resolveNs(domain);
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('DNS Timeout')), 2500)
+    );
+    const nsRecords = await Promise.race([nsPromise, timeoutPromise]);
+    if (Array.isArray(nsRecords) && nsRecords.length > 0) {
+      return true; // Possui NameServers registrados -> Ocupado!
+    }
+  } catch (error) {
+    // Sem registros NS
+  }
+
+  return false; // Livre para registro!
 }
 
 export async function GET(req: NextRequest) {
