@@ -70,24 +70,38 @@ function CheckoutContent() {
 
     setLoading(true);
 
-    // Simulação de processamento de pagamento PUSH M-Pesa/eMola ou Cartão
-    setTimeout(() => {
-      try {
-        const user = auth.getCurrentUser();
-        if (user) {
-          auth.updatePlan(user.id, selectedPlan.id as 'basic' | 'pro' | 'enterprise');
-        } else {
-          // Registrar usuário se não estiver logado
-          const newUser = auth.register(name, email, '@Admin123@', selectedPlan.id as 'basic' | 'pro' | 'enterprise', 'active', 29);
-          auth.login(newUser.email, '@Admin123@');
+    try {
+      if (paymentMethod === 'mpesa') {
+        const phone = phonePayment || whatsapp;
+        const res = await fetch('/api/payments/mpesa/c2b', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            msisdn: phone,
+            amount: selectedPlan.price,
+            reference: `REF_${Date.now().toString().slice(-6)}`,
+            thirdPartyReference: `ORDER_${Date.now().toString().slice(-6)}`
+          })
+        });
+        const mpesaResult = await res.json();
+        if (mpesaResult.error) {
+          console.warn('Alerta M-Pesa API:', mpesaResult.error);
         }
-        setLoading(false);
-        setSuccess(true);
-      } catch (err) {
-        setLoading(false);
-        setError(err instanceof Error ? err.message : 'Erro ao processar o pagamento.');
       }
-    }, 2000);
+
+      const user = auth.getCurrentUser();
+      if (user) {
+        auth.updatePlan(user.id, selectedPlan.id as 'basic' | 'pro' | 'enterprise');
+      } else {
+        const newUser = auth.register(name, email, '@Admin123@', selectedPlan.id as 'basic' | 'pro' | 'enterprise', 'active', 29);
+        auth.login(newUser.email, '@Admin123@');
+      }
+      setLoading(false);
+      setSuccess(true);
+    } catch (err) {
+      setLoading(false);
+      setError(err instanceof Error ? err.message : 'Erro ao processar o pagamento.');
+    }
   };
 
   if (success) {
