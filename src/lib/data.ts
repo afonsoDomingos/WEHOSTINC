@@ -63,7 +63,7 @@ export const hostingPlans: HostingPlan[] = [
   {
     id: 'enterprise',
     name: 'Empresarial',
-    price: 6000,
+    price: 6200,
     features: {
       sites: -1, // -1 significa ilimitado
       emails: -1,

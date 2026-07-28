@@ -169,7 +169,7 @@ export default function Home() {
               <h3 className="text-2xl font-bold text-gray-900 mb-2">Empresarial</h3>
               <p className="text-gray-600 mb-4">Para grandes operações</p>
               <div className="mb-6">
-                <span className="text-4xl font-bold text-gray-900">6.000 MT</span>
+                <span className="text-4xl font-bold text-gray-900">6.200 MT</span>
                 <span className="text-gray-600">/mês</span>
               </div>
               <ul className="space-y-3 mb-8">

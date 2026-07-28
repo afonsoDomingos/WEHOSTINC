@@ -46,7 +46,7 @@ export default function AdminPage() {
   }
 
   const totalRevenue = users.reduce((sum, user) => {
-    const planPrices = { basic: 1200, pro: 3000, enterprise: 6000 };
+    const planPrices = { basic: 1200, pro: 3000, enterprise: 6200 };
     return sum + (planPrices[user.plan as keyof typeof planPrices] || 0);
   }, 0);
 
