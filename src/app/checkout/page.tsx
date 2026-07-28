@@ -9,11 +9,18 @@ import {
 } from 'lucide-react';
 import { hostingPlans, HostingPlan, dataManager } from '@/lib/data';
 import { auth } from '@/lib/auth';
+import { getDomainPrice, sanitizeDomainName } from '@/lib/domains';
 
 function CheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const planIdParam = searchParams.get('plan') || 'pro';
+  const domainParam = searchParams.get('domain');
+  const domainPriceParam = searchParams.get('domainPrice');
+
+  const domainCost = domainParam 
+    ? (domainPriceParam ? Number(domainPriceParam) : getDomainPrice(sanitizeDomainName(domainParam).extension))
+    : 0;
 
   const [selectedPlan, setSelectedPlan] = useState<HostingPlan>(
     hostingPlans.find(p => p.id === planIdParam) || hostingPlans[1]
@@ -56,9 +63,11 @@ function CheckoutContent() {
     }
   }, [planIdParam]);
 
-  const finalPrice = selectedPlan.id === 'website_creation' 
+  const basePrice = selectedPlan.id === 'website_creation' 
     ? selectedPlan.price 
     : (billingCycle === 'annual' ? selectedPlan.priceAnnual : selectedPlan.price);
+
+  const grandTotal = basePrice + domainCost;
 
   const [pushModal, setPushModal] = useState(false);
   const [countdown, setCountdown] = useState(45);
@@ -91,8 +100,10 @@ function CheckoutContent() {
         clientName: name,
         clientEmail: email,
         clientPhone: `${ddi} ${phonePayment || whatsapp}`,
-        serviceName: `${selectedPlan.name} (${billingCycle === 'annual' ? 'Anual' : 'Mensal'})`,
-        amount: finalPrice,
+        serviceName: domainParam 
+          ? `${selectedPlan.name} (${billingCycle === 'annual' ? 'Anual' : 'Mensal'}) + Domínio (${domainParam})` 
+          : `${selectedPlan.name} (${billingCycle === 'annual' ? 'Anual' : 'Mensal'})`,
+        amount: grandTotal,
         paymentMethod: paymentMethod,
         status: selectedPlan.id === 'website_creation' ? 'in_progress' : 'completed'
       });
@@ -516,11 +527,21 @@ function CheckoutContent() {
                   <span className="font-semibold text-gray-900">
                     Plano {selectedPlan.name} ({selectedPlan.id === 'website_creation' ? 'Projeto Único' : (billingCycle === 'annual' ? 'Anual' : 'Mensal')})
                   </span>
-                  <span className="font-bold text-gray-900">{finalPrice.toLocaleString('pt-MZ')} MT</span>
+                  <span className="font-bold text-gray-900">{basePrice.toLocaleString('pt-MZ')} MT</span>
                 </div>
                 <div className="text-xs text-gray-500">
                   {selectedPlan.features.sites === -1 ? 'Sites ilimitados' : `${selectedPlan.features.sites} site(s)`} • {selectedPlan.features.storage}GB Armazenamento
                 </div>
+
+                {domainParam && (
+                  <div className="flex justify-between items-center pt-2 mt-2 border-t border-gray-200">
+                    <div>
+                      <span className="font-semibold text-gray-900 block">Registo de Domínio</span>
+                      <span className="text-xs font-mono text-primary-700 font-bold">{domainParam}</span>
+                    </div>
+                    <span className="font-bold text-emerald-700">{domainCost.toLocaleString('pt-MZ')} MT/ano</span>
+                  </div>
+                )}
 
                 {billingCycle === 'annual' && selectedPlan.id !== 'website_creation' && (
                   <div className="bg-emerald-50 text-emerald-700 p-2 rounded-lg text-xs font-semibold border border-emerald-200 mt-2">
@@ -530,7 +551,7 @@ function CheckoutContent() {
                 
                 <div className="flex justify-between items-center border-t border-gray-200 pt-3 mt-3 font-bold text-base text-gray-900">
                   <span>Total a Pagar</span>
-                  <span className="text-xl text-gray-900">{finalPrice.toLocaleString('pt-MZ')} MT</span>
+                  <span className="text-xl text-emerald-600 font-black">{grandTotal.toLocaleString('pt-MZ')} MT</span>
                 </div>
               </div>
             </div>
