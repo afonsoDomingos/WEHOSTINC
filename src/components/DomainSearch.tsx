@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, CheckCircle2, XCircle, Globe, ArrowRight, Sparkles, Loader2, Rocket } from 'lucide-react';
 import { DOMAIN_PRICES, checkDomainRealAsync, DomainCheckResult } from '@/lib/domains';
+import { hostingPlans } from '@/lib/data';
 
 export default function DomainSearch() {
   const router = useRouter();
@@ -11,6 +12,11 @@ export default function DomainSearch() {
   const [selectedTld, setSelectedTld] = useState('.co.mz');
   const [isSearching, setIsSearching] = useState(false);
   const [result, setResult] = useState<DomainCheckResult | null>(null);
+  const [selectedHostingPlan, setSelectedHostingPlan] = useState<'basic' | 'pro' | 'enterprise'>('basic');
+  const [hostingCycle, setHostingCycle] = useState<'annual' | 'monthly'>('annual');
+
+  const currentHostingPlan = hostingPlans.find(p => p.id === selectedHostingPlan) || hostingPlans[0];
+  const hostingPrice = hostingCycle === 'annual' ? currentHostingPlan.priceAnnual : currentHostingPlan.price;
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,8 +44,8 @@ export default function DomainSearch() {
     router.push(`/checkout?plan=none&domain=${encodeURIComponent(domain)}&domainPrice=${price}`);
   };
 
-  const handleRegisterWithHosting = (domain: string, price: number) => {
-    router.push(`/checkout?plan=pro&domain=${encodeURIComponent(domain)}&domainPrice=${price}`);
+  const handleRegisterWithHosting = (domain: string, price: number, planId: string = selectedHostingPlan, cycle: string = hostingCycle) => {
+    router.push(`/checkout?plan=${planId}&billingCycle=${cycle}&domain=${encodeURIComponent(domain)}&domainPrice=${price}`);
   };
 
   const handleRegisterWithWebsite = (domain: string, price: number) => {
@@ -215,7 +221,7 @@ export default function DomainSearch() {
                   </div>
                 </div>
 
-                {/* Opção 2: Domínio + Hospedagem Pro */}
+                {/* Opção 2: Domínio + Hospedagem */}
                 <div className="flex flex-col justify-between p-4 rounded-2xl border-2 border-emerald-500 bg-emerald-50/30 transition shadow-sm relative overflow-hidden group">
                   <div className="absolute top-0 right-0 bg-emerald-600 text-white text-[10px] font-black uppercase px-3 py-0.5 rounded-bl-xl tracking-wider">
                     Recomendado
@@ -226,29 +232,80 @@ export default function DomainSearch() {
                       <Sparkles className="h-5 w-5 text-emerald-600" />
                       <span className="font-bold text-sm text-emerald-950">Domínio + Hospedagem</span>
                     </div>
-                    <p className="text-xs text-gray-600 mb-4 leading-relaxed">
-                      Inclui o domínio e <strong>Hospedagem Pro</strong> (E-mails corporativos, SSL grátis e cPanel).
+
+                    {/* Seletor de Plano de Hospedagem */}
+                    <div className="mb-3 space-y-2">
+                      <div>
+                        <label className="block text-[11px] font-bold uppercase tracking-wider text-emerald-900 mb-1">
+                          Plano de Hospedagem:
+                        </label>
+                        <select
+                          value={selectedHostingPlan}
+                          onChange={(e) => setSelectedHostingPlan(e.target.value as 'basic' | 'pro' | 'enterprise')}
+                          className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-xl text-xs font-bold text-gray-900 outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer shadow-sm"
+                        >
+                          <option value="basic">Básico ({hostingCycle === 'annual' ? '1.200 MT/ano' : '120 MT/mês'})</option>
+                          <option value="pro">Profissional ({hostingCycle === 'annual' ? '3.000 MT/ano' : '300 MT/mês'})</option>
+                          <option value="enterprise">Empresarial ({hostingCycle === 'annual' ? '6.200 MT/ano' : '620 MT/mês'})</option>
+                        </select>
+                      </div>
+
+                      {/* Alternador Mensal / Anual */}
+                      <div className="flex bg-emerald-100/70 p-1 rounded-xl border border-emerald-200 text-xs">
+                        <button
+                          type="button"
+                          onClick={() => setHostingCycle('annual')}
+                          className={`flex-1 py-1 px-2 rounded-lg font-bold transition text-[11px] cursor-pointer ${
+                            hostingCycle === 'annual'
+                              ? 'bg-emerald-600 text-white shadow-sm'
+                              : 'text-emerald-900 hover:bg-emerald-200/60'
+                          }`}
+                        >
+                          Anual (2 Meses Grátis)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setHostingCycle('monthly')}
+                          className={`flex-1 py-1 px-2 rounded-lg font-bold transition text-[11px] cursor-pointer ${
+                            hostingCycle === 'monthly'
+                              ? 'bg-emerald-600 text-white shadow-sm'
+                              : 'text-emerald-900 hover:bg-emerald-200/60'
+                          }`}
+                        >
+                          Mensal
+                        </button>
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-gray-600 mb-3 leading-relaxed">
+                      Inclui o domínio e <strong>Hospedagem {currentHostingPlan.name}</strong> ({hostingCycle === 'annual' ? 'Anual' : 'Mensal'}).
                     </p>
                   </div>
 
                   <div>
                     <div className="flex items-baseline justify-between pt-3 border-t border-emerald-200/60 mb-3">
-                      <span className="text-xs text-emerald-800 font-medium">Total Anual:</span>
+                      <span className="text-xs text-emerald-800 font-medium">1º Pagamento:</span>
                       <div className="text-right">
                         <span className="text-lg font-black text-emerald-700">
-                          {(result.price + 3000).toLocaleString('pt-MZ')} MT <span className="text-xs font-normal text-gray-600">/ano</span>
+                          {(result.price + hostingPrice).toLocaleString('pt-MZ')} MT <span className="text-xs font-normal text-gray-600">{hostingCycle === 'annual' ? '/ano' : '/total inicial'}</span>
                         </span>
-                        <span className="text-[10px] text-gray-500 block font-normal">({result.price.toLocaleString('pt-MZ')} MT Domínio + 3.000 MT Hospedagem)</span>
+                        <span className="text-[10px] text-gray-500 block font-normal">
+                          {hostingCycle === 'annual'
+                            ? `(${result.price.toLocaleString('pt-MZ')} MT Domínio/ano + ${hostingPrice.toLocaleString('pt-MZ')} MT Hospedagem Anual)`
+                            : `(${result.price.toLocaleString('pt-MZ')} MT Domínio/ano + ${hostingPrice.toLocaleString('pt-MZ')} MT 1º Mês Hospedagem)`}
+                        </span>
                       </div>
                     </div>
 
                     <button
                       type="button"
-                      onClick={() => handleRegisterWithHosting(result.fullDomain, result.price)}
+                      onClick={() => handleRegisterWithHosting(result.fullDomain, result.price, selectedHostingPlan, hostingCycle)}
                       className="w-full py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center space-x-1.5 cursor-pointer"
                     >
                       <Sparkles className="h-4 w-4" />
-                      <span>Domínio + Hospedagem ({(result.price + 3000).toLocaleString('pt-MZ')} MT)</span>
+                      <span>
+                        Domínio + Hospedagem {hostingCycle === 'annual' ? 'Anual' : 'Mensal'} ({(result.price + hostingPrice).toLocaleString('pt-MZ')} MT)
+                      </span>
                     </button>
                   </div>
                 </div>
