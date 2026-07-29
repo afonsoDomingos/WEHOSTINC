@@ -128,12 +128,19 @@ export default function DashboardPage() {
 
           {/* Main Content */}
           <div className="lg:col-span-3 space-y-6">
-            {/* Welcome Card */}
-            <div className="bg-gradient-to-r from-primary-600 to-primary-700 rounded-xl shadow-lg p-6 sm:p-8 text-white">
-              <h1 className="text-2xl sm:text-3xl font-bold mb-2">Bem-vindo ao Painel!</h1>
-              <p className="text-blue-100 mb-6 text-sm sm:text-base">
-                Gerencie seus sites, emails e consulte ou solicite criação de sites profissionais.
-              </p>
+            {/* Welcome Card com Datacenter Background */}
+            <div className="relative overflow-hidden bg-slate-950 rounded-2xl shadow-xl p-6 sm:p-8 text-white border border-slate-800">
+              <div 
+                className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-35 mix-blend-luminosity"
+                style={{ backgroundImage: "url('/datacenter-bg.jpg')" }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-900/90 to-primary-950/80" />
+
+              <div className="relative z-10">
+                <h1 className="text-2xl sm:text-3xl font-bold mb-2 text-white">Bem-vindo ao Painel, {user.name}!</h1>
+                <p className="text-slate-300 mb-6 text-sm sm:text-base max-w-xl font-medium">
+                  Sua conta está conectada à nossa infraestrutura Datacenter de alta performance em Moçambique.
+                </p>
               <div className="flex flex-wrap gap-3">
                 <Link
                   href="/site-quote"
@@ -156,6 +163,7 @@ export default function DashboardPage() {
                   <Mail className="h-5 w-5" />
                   <span>Configurar Email</span>
                 </Link>
+                </div>
               </div>
             </div>
 

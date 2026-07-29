@@ -32,21 +32,34 @@ export default function Home() {
       {/* Navbar Responsivo */}
       <Navbar />
 
-      {/* Hero Section */}
-      <section className="py-16 px-4">
-        <div className="max-w-7xl mx-auto text-center">
-          <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 mb-4 tracking-tight">
-            Domínio, Hospedagem e <span className="text-primary-600">Email</span>
+      {/* Hero Section com Fundo do Datacenter em Alta Tecnologia */}
+      <section className="relative py-20 px-4 bg-slate-950 text-white overflow-hidden shadow-2xl">
+        {/* Imagem de Fundo Datacenter com Overlay de Gradiente */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-35 mix-blend-luminosity"
+          style={{ backgroundImage: "url('/datacenter-bg.jpg')" }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/70 via-slate-900/85 to-slate-950" />
+
+        <div className="relative z-10 max-w-7xl mx-auto text-center">
+          {/* Badge Datacenter */}
+          <div className="inline-flex items-center space-x-2 bg-primary-500/20 border border-primary-500/40 text-primary-300 px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold mb-6 backdrop-blur-md">
+            <Sparkles className="h-4 w-4 text-primary-400" />
+            <span>Infraestrutura Datacenter de Última Geração</span>
+          </div>
+
+          <h1 className="text-4xl sm:text-6xl font-extrabold text-white mb-4 tracking-tight leading-tight">
+            Domínio, Hospedagem e <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-indigo-400">Email Corporativo</span>
           </h1>
-          <p className="text-lg md:text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            Tudo o que a sua empresa precisa para ter uma presença online de alta performance em Moçambique.
+          <p className="text-base sm:text-xl text-slate-300 mb-8 max-w-2xl mx-auto font-medium">
+            Tudo o que a sua empresa precisa para ter uma presença online de alta performance em Moçambique com servidores ultrarrápidos e seguros.
           </p>
 
           {/* Domain Search Component */}
           <DomainSearch />
 
           <div className="flex justify-center space-x-4">
-            <Link href="#planos" className="px-8 py-3.5 bg-primary-600 text-white font-bold rounded-xl hover:bg-primary-700 transition text-base shadow-md">
+            <Link href="#planos" className="px-8 py-3.5 bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-500 hover:to-indigo-500 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition text-base cursor-pointer">
               Ver Planos de Hospedagem
             </Link>
           </div>
