@@ -685,7 +685,7 @@ function CheckoutContent() {
                   onClick={() => setSelectedPlanId('pro')}
                   className="px-3.5 py-2 bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs rounded-lg transition whitespace-nowrap cursor-pointer shadow-sm"
                 >
-                  + Adicionar Plano Pro (300 MT/mês)
+                  + Adicionar Plano Pro (2.500 MT/mês)
                 </button>
               </div>
             )}
