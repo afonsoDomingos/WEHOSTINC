@@ -6,10 +6,11 @@ import { useRouter } from 'next/navigation';
 import { 
   Users, Server, Mail, Database, TrendingUp, DollarSign,
   LogOut, Settings, Home, CheckCircle, Clock, XCircle, Search,
-  ShoppingBag, MessageSquare, ExternalLink, Trash2, LifeBuoy, Send, ShieldCheck, CheckCircle2, AlertCircle
+  ShoppingBag, MessageSquare, ExternalLink, Trash2, LifeBuoy, Send, ShieldCheck, CheckCircle2, AlertCircle,
+  Paperclip, FileText, Image as ImageIcon, Download, File, X, Loader2
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
-import { dataManager, ServiceOrder, SupportTicket, TicketMessage } from '@/lib/data';
+import { dataManager, ServiceOrder, SupportTicket, TicketMessage, TicketAttachment } from '@/lib/data';
 
 export default function AdminPage() {
   const router = useRouter();
@@ -41,6 +42,44 @@ export default function AdminPage() {
   const [adminReplyMessage, setAdminReplyMessage] = useState('');
   const [ticketSearchTerm, setTicketSearchTerm] = useState('');
   const [ticketFilterStatus, setTicketFilterStatus] = useState<'all' | 'open' | 'answered' | 'closed'>('all');
+  
+  // Anexos Admin
+  const [adminReplyAttachments, setAdminReplyAttachments] = useState<TicketAttachment[]>([]);
+  const [adminUploading, setAdminUploading] = useState(false);
+
+  const handleAdminFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setAdminUploading(true);
+    const file = files[0];
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.url) {
+          const newAtt: TicketAttachment = {
+            url: data.url,
+            name: data.name || file.name,
+            type: data.type || (file.type.startsWith('image/') ? 'image' : file.type === 'application/pdf' ? 'pdf' : 'file'),
+            bytes: data.bytes || file.size
+          };
+          setAdminReplyAttachments(prev => [...prev, newAtt]);
+        }
+      }
+    } catch (err) {
+      console.error('Erro no upload de anexo do admin:', err);
+    } finally {
+      setAdminUploading(false);
+      e.target.value = '';
+    }
+  };
 
   const fetchDomainLogs = async () => {
     try {
@@ -118,20 +157,22 @@ export default function AdminPage() {
 
   const handleAdminSendReply = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedTicket || !adminReplyMessage.trim()) return;
+    if (!selectedTicket || (!adminReplyMessage.trim() && adminReplyAttachments.length === 0)) return;
 
     const updated = dataManager.addTicketReply(
       selectedTicket.id,
       'support',
       'Equipa de Suporte WeHostHere',
       adminReplyMessage.trim(),
-      'answered'
+      'answered',
+      adminReplyAttachments
     );
 
     if (updated) {
       setSelectedTicket(updated);
       setTickets(prev => prev.map(t => t.id === updated.id ? updated : t));
       setAdminReplyMessage('');
+      setAdminReplyAttachments([]);
     }
   };
 
@@ -1305,6 +1346,45 @@ export default function AdminPage() {
                       }`}
                     >
                       {msg.message}
+
+                      {msg.attachments && msg.attachments.length > 0 && (
+                        <div className="mt-3 space-y-2 border-t border-gray-100/30 pt-2">
+                          {msg.attachments.map((att, idx) => (
+                            <div key={idx} className="flex items-center space-x-2">
+                              {att.type === 'image' ? (
+                                <div className="group relative rounded-xl overflow-hidden border border-gray-200 bg-black/5 mt-1">
+                                  <img src={att.url} alt={att.name} className="max-h-48 max-w-full rounded-xl object-cover" />
+                                  <a
+                                    href={att.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="absolute bottom-2 right-2 bg-black/70 hover:bg-black text-white p-1.5 rounded-lg text-xs font-bold flex items-center space-x-1 backdrop-blur-sm transition"
+                                  >
+                                    <ExternalLink className="w-3.5 h-3.5" />
+                                    <span>Ver Imagem</span>
+                                  </a>
+                                </div>
+                              ) : (
+                                <a
+                                  href={att.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  download={att.name}
+                                  className={`inline-flex items-center space-x-2.5 p-3 rounded-xl border text-xs font-bold transition ${
+                                    !isClient
+                                      ? 'bg-white/10 hover:bg-white/20 text-white border-white/20'
+                                      : 'bg-gray-50 hover:bg-gray-100 text-gray-800 border-gray-200'
+                                  }`}
+                                >
+                                  <FileText className="w-4 h-4 text-red-500 flex-shrink-0" />
+                                  <span className="truncate max-w-[200px]">{att.name}</span>
+                                  <Download className="w-3.5 h-3.5 opacity-70" />
+                                </a>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
@@ -1314,9 +1394,26 @@ export default function AdminPage() {
             {/* Formulário de Resposta pelo Admin */}
             <div className="p-4 sm:p-6 border-t border-gray-200 bg-white rounded-b-3xl">
               <form onSubmit={handleAdminSendReply} className="flex flex-col gap-3">
+                {adminReplyAttachments.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {adminReplyAttachments.map((att, idx) => (
+                      <div key={idx} className="flex items-center space-x-1.5 bg-primary-50 text-primary-900 border border-primary-200 px-3 py-1.5 rounded-xl text-xs font-semibold">
+                        {att.type === 'image' ? <ImageIcon className="w-3.5 h-3.5 text-primary-600" /> : <FileText className="w-3.5 h-3.5 text-red-500" />}
+                        <span className="truncate max-w-[150px]">{att.name}</span>
+                        <button
+                          type="button"
+                          onClick={() => setAdminReplyAttachments(prev => prev.filter((_, i) => i !== idx))}
+                          className="p-0.5 text-gray-400 hover:text-red-600"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 <textarea
                   rows={3}
-                  required
                   placeholder="Escreva a resposta oficial do suporte para o cliente..."
                   value={adminReplyMessage}
                   onChange={(e) => setAdminReplyMessage(e.target.value)}
@@ -1324,14 +1421,23 @@ export default function AdminPage() {
                 ></textarea>
                 
                 <div className="flex items-center justify-between">
-                  <div className="text-xs text-gray-500 flex items-center space-x-1">
-                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                    <span>Ao enviar, o status é automaticamente atualizado para <strong>Respondido</strong>.</span>
+                  <div className="flex items-center space-x-3">
+                    <label className="cursor-pointer inline-flex items-center space-x-2 px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition border border-gray-200">
+                      {adminUploading ? <Loader2 className="w-4 h-4 animate-spin text-primary-600" /> : <Paperclip className="w-4 h-4" />}
+                      <span>Anexar Imagem/PDF</span>
+                      <input
+                        type="file"
+                        accept="image/*,application/pdf"
+                        className="hidden"
+                        onChange={handleAdminFileUpload}
+                        disabled={adminUploading}
+                      />
+                    </label>
                   </div>
 
                   <button
                     type="submit"
-                    disabled={!adminReplyMessage.trim()}
+                    disabled={!adminReplyMessage.trim() && adminReplyAttachments.length === 0}
                     className="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl shadow transition flex items-center space-x-2 disabled:opacity-50"
                   >
                     <Send className="w-4 h-4" />

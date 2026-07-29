@@ -342,7 +342,7 @@ export const dataManager = {
     return dataManager.getTickets();
   },
 
-  addTicket: (ticketData: Omit<SupportTicket, 'id' | 'createdAt' | 'updatedAt' | 'messages'> & { initialMessage: string }): SupportTicket => {
+  addTicket: (ticketData: Omit<SupportTicket, 'id' | 'createdAt' | 'updatedAt' | 'messages'> & { initialMessage: string; initialAttachments?: TicketAttachment[] }): SupportTicket => {
     const tickets = dataManager.getTickets();
     const now = new Date().toISOString();
     const newTicket: SupportTicket = {
@@ -362,7 +362,8 @@ export const dataManager = {
           sender: 'client',
           senderName: ticketData.userName,
           message: ticketData.initialMessage,
-          timestamp: now
+          timestamp: now,
+          attachments: ticketData.initialAttachments || []
         }
       ]
     };
@@ -379,7 +380,7 @@ export const dataManager = {
     return newTicket;
   },
 
-  addTicketReply: (ticketId: string, sender: 'client' | 'support' | 'admin', senderName: string, message: string, newStatus?: SupportTicket['status']): SupportTicket | null => {
+  addTicketReply: (ticketId: string, sender: 'client' | 'support' | 'admin', senderName: string, message: string, newStatus?: SupportTicket['status'], attachments?: TicketAttachment[]): SupportTicket | null => {
     const tickets = dataManager.getTickets();
     const index = tickets.findIndex(t => t.id === ticketId);
     if (index === -1) return null;
@@ -390,7 +391,8 @@ export const dataManager = {
       sender,
       senderName,
       message,
-      timestamp: now
+      timestamp: now,
+      attachments: attachments || []
     };
 
     const updatedTicket: SupportTicket = {
@@ -449,13 +451,20 @@ export interface ServiceOrder {
   createdAt: string;
 }
 
+export interface TicketAttachment {
+  url: string;
+  name: string;
+  type: 'image' | 'pdf' | 'file';
+  bytes?: number;
+}
+
 export interface TicketMessage {
   id: string;
   sender: 'client' | 'support' | 'admin';
   senderName: string;
   message: string;
   timestamp: string;
-  attachments?: string[];
+  attachments?: TicketAttachment[];
 }
 
 export interface SupportTicket {

@@ -4,11 +4,12 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   LifeBuoy, Plus, Search, Filter, MessageSquare, Clock, CheckCircle2, 
-  AlertCircle, ChevronRight, X, Send, User as UserIcon, ShieldCheck, Tag
+  AlertCircle, ChevronRight, X, Send, User as UserIcon, ShieldCheck, Tag,
+  Paperclip, FileText, Image as ImageIcon, Download, ExternalLink, File, Trash2, Loader2
 } from 'lucide-react';
 import DashboardNav from '@/components/DashboardNav';
 import { auth, User } from '@/lib/auth';
-import { dataManager, SupportTicket, TicketMessage } from '@/lib/data';
+import { dataManager, SupportTicket, TicketMessage, TicketAttachment } from '@/lib/data';
 
 export default function ClientTicketsPage() {
   const router = useRouter();
@@ -33,6 +34,49 @@ export default function ClientTicketsPage() {
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
   const [replyMessage, setReplyMessage] = useState('');
   const [replying, setReplying] = useState(false);
+
+  // Anexos
+  const [createAttachments, setCreateAttachments] = useState<TicketAttachment[]>([]);
+  const [replyAttachments, setReplyAttachments] = useState<TicketAttachment[]>([]);
+  const [uploading, setUploading] = useState(false);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, isReply: boolean = false) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploading(true);
+    const file = files[0];
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.url) {
+          const newAtt: TicketAttachment = {
+            url: data.url,
+            name: data.name || file.name,
+            type: data.type || (file.type.startsWith('image/') ? 'image' : file.type === 'application/pdf' ? 'pdf' : 'file'),
+            bytes: data.bytes || file.size
+          };
+          if (isReply) {
+            setReplyAttachments(prev => [...prev, newAtt]);
+          } else {
+            setCreateAttachments(prev => [...prev, newAtt]);
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Erro no upload de anexo:', err);
+    } finally {
+      setUploading(false);
+      e.target.value = '';
+    }
+  };
 
   useEffect(() => {
     const currentUser = auth.getCurrentUser();
@@ -96,12 +140,14 @@ export default function ClientTicketsPage() {
         category,
         priority,
         status: 'open',
-        initialMessage: message.trim()
+        initialMessage: message.trim(),
+        initialAttachments: createAttachments
       });
 
       setTickets(prev => [newTicket, ...prev]);
       setSubject('');
       setMessage('');
+      setCreateAttachments([]);
       setShowCreateModal(false);
     } catch (err) {
       setCreateError('Ocorreu um erro ao criar o ticket.');
@@ -112,7 +158,7 @@ export default function ClientTicketsPage() {
 
   const handleSendReply = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedTicket || !replyMessage.trim() || !user) return;
+    if (!selectedTicket || (!replyMessage.trim() && replyAttachments.length === 0) || !user) return;
 
     setReplying(true);
     const updated = dataManager.addTicketReply(
@@ -120,13 +166,15 @@ export default function ClientTicketsPage() {
       'client',
       user.name,
       replyMessage.trim(),
-      'open' // Quando cliente responde, reabre/marca como aberto
+      'open',
+      replyAttachments
     );
 
     if (updated) {
       setSelectedTicket(updated);
       setTickets(prev => prev.map(t => t.id === updated.id ? updated : t));
       setReplyMessage('');
+      setReplyAttachments([]);
     }
     setReplying(false);
   };
@@ -466,6 +514,50 @@ export default function ClientTicketsPage() {
                 ></textarea>
               </div>
 
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1.5 flex items-center justify-between">
+                  <span>Anexar Ficheiro (Imagem ou PDF)</span>
+                  {uploading && (
+                    <span className="text-primary-600 font-normal flex items-center space-x-1">
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      <span>A carregar no Cloudinary...</span>
+                    </span>
+                  )}
+                </label>
+                <div className="flex items-center space-x-3">
+                  <label className="cursor-pointer inline-flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition border border-gray-200">
+                    <Paperclip className="w-4 h-4" />
+                    <span>Escolher Ficheiro</span>
+                    <input
+                      type="file"
+                      accept="image/*,application/pdf"
+                      className="hidden"
+                      onChange={(e) => handleFileUpload(e, false)}
+                      disabled={uploading}
+                    />
+                  </label>
+                  <span className="text-[11px] text-gray-400">PDF, PNG, JPG, WebP até 10MB</span>
+                </div>
+
+                {createAttachments.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {createAttachments.map((att, idx) => (
+                      <div key={idx} className="flex items-center space-x-1.5 bg-primary-50 text-primary-900 border border-primary-200 px-3 py-1.5 rounded-xl text-xs font-semibold">
+                        {att.type === 'image' ? <ImageIcon className="w-3.5 h-3.5 text-primary-600" /> : <FileText className="w-3.5 h-3.5 text-red-500" />}
+                        <span className="truncate max-w-[150px]">{att.name}</span>
+                        <button
+                          type="button"
+                          onClick={() => setCreateAttachments(prev => prev.filter((_, i) => i !== idx))}
+                          className="p-0.5 text-gray-400 hover:text-red-600"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <div className="pt-4 flex items-center justify-end space-x-3 border-t border-gray-100">
                 <button
                   type="button"
@@ -555,6 +647,45 @@ export default function ClientTicketsPage() {
                       }`}
                     >
                       {msg.message}
+
+                      {msg.attachments && msg.attachments.length > 0 && (
+                        <div className="mt-3 space-y-2 border-t border-gray-100/30 pt-2">
+                          {msg.attachments.map((att, idx) => (
+                            <div key={idx} className="flex items-center space-x-2">
+                              {att.type === 'image' ? (
+                                <div className="group relative rounded-xl overflow-hidden border border-gray-200 bg-black/5 mt-1">
+                                  <img src={att.url} alt={att.name} className="max-h-48 max-w-full rounded-xl object-cover" />
+                                  <a
+                                    href={att.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="absolute bottom-2 right-2 bg-black/70 hover:bg-black text-white p-1.5 rounded-lg text-xs font-bold flex items-center space-x-1 backdrop-blur-sm transition"
+                                  >
+                                    <ExternalLink className="w-3.5 h-3.5" />
+                                    <span>Ver Imagem</span>
+                                  </a>
+                                </div>
+                              ) : (
+                                <a
+                                  href={att.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  download={att.name}
+                                  className={`inline-flex items-center space-x-2.5 p-3 rounded-xl border text-xs font-bold transition ${
+                                    isClient
+                                      ? 'bg-white/10 hover:bg-white/20 text-white border-white/20'
+                                      : 'bg-gray-50 hover:bg-gray-100 text-gray-800 border-gray-200'
+                                  }`}
+                                >
+                                  <FileText className="w-4 h-4 text-red-500 flex-shrink-0" />
+                                  <span className="truncate max-w-[200px]">{att.name}</span>
+                                  <Download className="w-3.5 h-3.5 opacity-70" />
+                                </a>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
@@ -568,23 +699,56 @@ export default function ClientTicketsPage() {
                   Este ticket foi marcado como **Fechado**. Para abrir um novo pedido, crie um novo ticket de suporte.
                 </div>
               ) : (
-                <form onSubmit={handleSendReply} className="flex gap-3">
-                  <textarea
-                    rows={2}
-                    required
-                    placeholder="Escreva a sua resposta para a equipa de suporte..."
-                    value={replyMessage}
-                    onChange={(e) => setReplyMessage(e.target.value)}
-                    className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-gray-900"
-                  ></textarea>
-                  <button
-                    type="submit"
-                    disabled={replying || !replyMessage.trim()}
-                    className="px-5 py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl transition flex items-center space-x-2 self-end disabled:opacity-50"
-                  >
-                    <Send className="w-4 h-4" />
-                    <span className="hidden sm:inline">Enviar</span>
-                  </button>
+                <form onSubmit={handleSendReply} className="flex flex-col gap-3">
+                  {replyAttachments.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {replyAttachments.map((att, idx) => (
+                        <div key={idx} className="flex items-center space-x-1.5 bg-primary-50 text-primary-900 border border-primary-200 px-3 py-1.5 rounded-xl text-xs font-semibold">
+                          {att.type === 'image' ? <ImageIcon className="w-3.5 h-3.5 text-primary-600" /> : <FileText className="w-3.5 h-3.5 text-red-500" />}
+                          <span className="truncate max-w-[150px]">{att.name}</span>
+                          <button
+                            type="button"
+                            onClick={() => setReplyAttachments(prev => prev.filter((_, i) => i !== idx))}
+                            className="p-0.5 text-gray-400 hover:text-red-600"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="flex gap-3">
+                    <textarea
+                      rows={2}
+                      placeholder="Escreva a sua resposta para a equipa de suporte..."
+                      value={replyMessage}
+                      onChange={(e) => setReplyMessage(e.target.value)}
+                      className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-gray-900"
+                    ></textarea>
+
+                    <div className="flex flex-col gap-2 justify-end">
+                      <label className="p-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition cursor-pointer flex items-center justify-center border border-gray-200" title="Anexar Imagem ou PDF">
+                        {uploading ? <Loader2 className="w-4 h-4 animate-spin text-primary-600" /> : <Paperclip className="w-4 h-4" />}
+                        <input
+                          type="file"
+                          accept="image/*,application/pdf"
+                          className="hidden"
+                          onChange={(e) => handleFileUpload(e, true)}
+                          disabled={uploading}
+                        />
+                      </label>
+
+                      <button
+                        type="submit"
+                        disabled={replying || (!replyMessage.trim() && replyAttachments.length === 0)}
+                        className="px-5 py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl transition flex items-center space-x-2 self-end disabled:opacity-50"
+                      >
+                        <Send className="w-4 h-4" />
+                        <span className="hidden sm:inline">Enviar</span>
+                      </button>
+                    </div>
+                  </div>
                 </form>
               )}
             </div>
