@@ -3,13 +3,14 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Server, Lock, Mail } from 'lucide-react';
+import { Server, Lock, Mail, Eye, EyeOff, ArrowRight, ShieldCheck } from 'lucide-react';
 import { auth } from '@/lib/auth';
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -17,7 +18,6 @@ export default function LoginPage() {
     e.preventDefault();
     setError('');
     setLoading(true);
-
     try {
       const user = auth.login(email, password);
       if (user.role === 'admin' || user.email === 'admin@wehosthere.com') {
@@ -26,99 +26,140 @@ export default function LoginPage() {
         router.push('/dashboard');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao fazer login');
+      setError(err instanceof Error ? err.message : 'Credenciais inválidas. Tente novamente.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex items-center justify-center px-4">
-      <div className="max-w-md w-full">
-        <div className="text-center mb-8">
-          <Link href="/" className="flex items-center justify-center space-x-2 mb-6">
-            <Server className="h-10 w-10 text-primary-600" />
-            <span className="text-3xl font-bold text-gray-900">WEHOSTHERE</span>
+    <div
+      className="min-h-screen flex items-center justify-center px-4 py-10 relative bg-slate-950"
+    >
+      {/* Fundo Datacenter */}
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-30"
+        style={{ backgroundImage: "url('/servidores-banner.png')" }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-950/90 via-slate-900/85 to-primary-950/80" />
+
+      <div className="relative z-10 w-full max-w-sm">
+        {/* Logo */}
+        <div className="text-center mb-7">
+          <Link href="/" className="inline-flex items-center space-x-2 group">
+            <div className="bg-primary-600/20 border border-primary-500/40 p-2.5 rounded-xl">
+              <Server className="h-7 w-7 text-primary-400" />
+            </div>
+            <span className="text-2xl font-extrabold text-white tracking-tight">WEHOSTHERE</span>
           </Link>
-          <h2 className="text-2xl font-bold text-gray-900">Entre na sua conta</h2>
-          <p className="text-gray-600 mt-2">Acesse seu painel de controle</p>
+          <h1 className="text-xl font-bold text-white mt-4">Bem-vindo de volta</h1>
+          <p className="text-slate-400 text-sm mt-1">Acesse o seu painel de controlo</p>
         </div>
 
-        <div className="bg-white rounded-xl shadow-lg p-8">
+        {/* Card */}
+        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl">
+
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
-              {error}
+            <div className="bg-red-500/15 border border-red-500/40 text-red-300 px-4 py-2.5 rounded-xl mb-5 text-sm font-medium flex items-center space-x-2">
+              <ShieldCheck className="h-4 w-4 shrink-0" />
+              <span>{error}</span>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Email */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="email" className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider">
                 Email
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <input
                   id="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                  className="w-full pl-9 pr-4 py-2.5 bg-white/8 border border-white/15 rounded-xl text-white placeholder-slate-500 focus:ring-2 focus:ring-primary-500/60 focus:border-primary-500/60 outline-none text-sm transition"
                   placeholder="seu@email.com"
                   required
+                  autoComplete="email"
                 />
               </div>
             </div>
 
+            {/* Senha */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                Senha
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label htmlFor="password" className="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                  Senha
+                </label>
+                <Link href="#" className="text-xs text-primary-400 hover:text-primary-300 transition">
+                  Esqueceu?
+                </Link>
+              </div>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <input
                   id="password"
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                  className="w-full pl-9 pr-10 py-2.5 bg-white/8 border border-white/15 rounded-xl text-white placeholder-slate-500 focus:ring-2 focus:ring-primary-500/60 focus:border-primary-500/60 outline-none text-sm transition"
                   placeholder="••••••••"
                   required
+                  autoComplete="current-password"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 transition"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
-              <label className="flex items-center">
-                <input type="checkbox" className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" />
-                <span className="ml-2 text-sm text-gray-600">Lembrar-me</span>
-              </label>
-              <Link href="#" className="text-sm text-primary-600 hover:text-primary-700">
-                Esqueceu a senha?
-              </Link>
-            </div>
+            {/* Lembrar-me */}
+            <label className="flex items-center space-x-2 cursor-pointer">
+              <input type="checkbox" className="w-4 h-4 rounded text-primary-600 border-slate-600 bg-slate-800 focus:ring-primary-500" />
+              <span className="text-sm text-slate-400">Manter sessão iniciada</span>
+            </label>
 
+            {/* Botão */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
+              className="w-full py-3 bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-500 hover:to-indigo-500 text-white font-bold rounded-xl transition shadow-lg hover:shadow-primary-500/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 text-sm mt-2"
             >
-              {loading ? 'Entrando...' : 'Entrar'}
+              {loading ? (
+                <span className="flex items-center space-x-2">
+                  <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  <span>A entrar...</span>
+                </span>
+              ) : (
+                <>
+                  <span>Entrar na conta</span>
+                  <ArrowRight className="h-4 w-4" />
+                </>
+              )}
             </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-gray-600">
-              Não tem uma conta?{' '}
-              <Link href="/register" className="text-primary-600 hover:text-primary-700 font-semibold">
-                Cadastre-se
+          <div className="mt-5 pt-4 border-t border-white/10 text-center">
+            <p className="text-sm text-slate-400">
+              Não tem conta?{' '}
+              <Link href="/register" className="text-primary-400 hover:text-primary-300 font-semibold transition">
+                Criar conta gratuita
               </Link>
             </p>
           </div>
         </div>
 
-        <div className="mt-6 text-center">
-          <Link href="/" className="text-gray-600 hover:text-primary-600">
+        <div className="mt-5 text-center">
+          <Link href="/" className="text-xs text-slate-500 hover:text-slate-300 transition">
             ← Voltar para a página inicial
           </Link>
         </div>
