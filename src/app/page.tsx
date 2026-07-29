@@ -33,13 +33,13 @@ export default function Home() {
       <Navbar />
 
       {/* Hero Section com Fundo do Datacenter em Alta Tecnologia */}
-      <section className="relative py-20 px-4 bg-slate-950 text-white overflow-hidden shadow-2xl">
-        {/* Imagem de Fundo Datacenter com Overlay de Gradiente */}
+      <section className="relative py-16 px-4 bg-slate-950 text-white overflow-hidden shadow-2xl">
+        {/* Imagem de Fundo Datacenter com Ajuste Completo */}
         <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-35 mix-blend-luminosity"
+          className="absolute inset-0 bg-contain sm:bg-cover bg-center bg-no-repeat opacity-40 mix-blend-luminosity"
           style={{ backgroundImage: "url('/datacenter-bg.jpg')" }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/70 via-slate-900/85 to-slate-950" />
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/75 via-slate-900/90 to-slate-950" />
 
         <div className="relative z-10 max-w-7xl mx-auto text-center">
           {/* Badge Datacenter */}
@@ -59,9 +59,47 @@ export default function Home() {
           <DomainSearch />
 
           <div className="flex justify-center space-x-4">
-            <Link href="#planos" className="px-8 py-3.5 bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-500 hover:to-indigo-500 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition text-base cursor-pointer">
-              Ver Planos de Hospedagem
+            <Link href="#infraestrutura" className="px-8 py-3.5 bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-500 hover:to-indigo-500 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition text-base cursor-pointer">
+              Ver Nossa Infraestrutura
             </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Secção Infraestrutura Datacenter - Imagem 100% Completa em Alta Resolução */}
+      <section id="infraestrutura" className="py-16 px-4 bg-slate-950 text-white border-t border-slate-800">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-8">
+            <span className="bg-primary-500/20 text-primary-300 border border-primary-500/40 text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wider">
+              Infraestrutura Física Dedicada
+            </span>
+            <h2 className="text-3xl sm:text-5xl font-extrabold text-white mt-4 mb-3 tracking-tight">
+              Datacenter de Alta Performance
+            </h2>
+            <p className="text-slate-400 text-sm sm:text-base max-w-2xl mx-auto">
+              Infraestrutura física moderna com Racks de servidores de máxima velocidade, conectividade redundante e segurança 24/7 em Moçambique.
+            </p>
+          </div>
+
+          {/* Imagem do Datacenter 100% Completa sem cortes */}
+          <div className="relative rounded-3xl overflow-hidden border-2 border-primary-500/50 shadow-[0_0_60px_rgba(59,130,246,0.35)] bg-slate-900">
+            <img 
+              src="/datacenter-bg.jpg" 
+              alt="Datacenter WEHOSTHERE Servidores" 
+              className="w-full h-auto object-contain block mx-auto rounded-3xl"
+            />
+            <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent p-6 sm:p-10 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div>
+                <h3 className="text-xl sm:text-2xl font-bold text-white flex items-center space-x-2">
+                  <span className="w-3.5 h-3.5 bg-emerald-400 rounded-full animate-ping inline-block mr-1"></span>
+                  <span>Servidores Racks Ativos & Monitorizados 24/7/365</span>
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-300 mt-1">Uptime garantido de 99.9% com fibra óptica de baixa latência e proteção DDoS</p>
+              </div>
+              <Link href="#planos" className="px-7 py-3.5 bg-primary-600 hover:bg-primary-500 text-white font-bold text-sm rounded-xl transition shadow-xl shrink-0 cursor-pointer">
+                Escolher Plano de Hospedagem
+              </Link>
+            </div>
           </div>
         </div>
       </section>
