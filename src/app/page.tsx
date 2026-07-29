@@ -32,26 +32,26 @@ export default function Home() {
       {/* Navbar Responsivo */}
       <Navbar />
 
-      {/* Hero Section com Fundo do Datacenter em Alta Tecnologia */}
-      <section className="relative py-16 px-4 bg-slate-950 text-white overflow-hidden shadow-2xl">
-        {/* Imagem de Fundo Datacenter com Ajuste Completo */}
+      {/* Hero Section com Fundo do Datacenter em Alta Tecnologia (Vibrante e Full-Width) */}
+      <section className="relative py-24 px-4 bg-slate-950 text-white overflow-hidden shadow-2xl w-full">
+        {/* Imagem de Fundo Datacenter 100% Visível e Nitida */}
         <div 
-          className="absolute inset-0 bg-contain sm:bg-cover bg-center bg-no-repeat opacity-40 mix-blend-luminosity"
-          style={{ backgroundImage: "url('/datacenter-bg.jpg')" }}
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-70"
+          style={{ backgroundImage: "url('/servidores-banner.png')" }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/75 via-slate-900/90 to-slate-950" />
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/60 via-slate-950/75 to-slate-950" />
 
         <div className="relative z-10 max-w-7xl mx-auto text-center">
           {/* Badge Datacenter */}
-          <div className="inline-flex items-center space-x-2 bg-primary-500/20 border border-primary-500/40 text-primary-300 px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold mb-6 backdrop-blur-md">
-            <Sparkles className="h-4 w-4 text-primary-400" />
+          <div className="inline-flex items-center space-x-2 bg-primary-600/30 border border-primary-400/50 text-primary-200 px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold mb-6 backdrop-blur-md shadow-lg">
+            <Sparkles className="h-4 w-4 text-primary-300" />
             <span>Infraestrutura Datacenter de Última Geração</span>
           </div>
 
-          <h1 className="text-4xl sm:text-6xl font-extrabold text-white mb-4 tracking-tight leading-tight">
-            Domínio, Hospedagem, Email <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-indigo-400">e Site</span>
+          <h1 className="text-4xl sm:text-6xl font-extrabold text-white mb-4 tracking-tight leading-tight drop-shadow-lg">
+            Domínio, Hospedagem, Email <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 via-blue-300 to-indigo-400">e Site</span>
           </h1>
-          <p className="text-base sm:text-xl text-slate-300 mb-8 max-w-2xl mx-auto font-medium">
+          <p className="text-base sm:text-xl text-slate-200 mb-8 max-w-2xl mx-auto font-semibold drop-shadow">
             Tudo o que a sua empresa precisa para ter uma presença online de alta performance em Moçambique com servidores ultrarrápidos e seguros.
           </p>
 
@@ -59,47 +59,47 @@ export default function Home() {
           <DomainSearch />
 
           <div className="flex justify-center space-x-4">
-            <Link href="#infraestrutura" className="px-8 py-3.5 bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-500 hover:to-indigo-500 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition text-base cursor-pointer">
-              Ver Nossa Infraestrutura
+            <Link href="#infraestrutura" className="px-8 py-3.5 bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-500 hover:to-indigo-500 text-white font-bold rounded-xl shadow-xl hover:shadow-2xl transition text-base cursor-pointer">
+              Ver Nossa Infraestrutura Física
             </Link>
           </div>
         </div>
       </section>
 
-      {/* Secção Infraestrutura Datacenter - Imagem 100% Completa em Alta Resolução */}
-      <section id="infraestrutura" className="py-16 px-4 bg-slate-950 text-white border-t border-slate-800">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-8">
-            <span className="bg-primary-500/20 text-primary-300 border border-primary-500/40 text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wider">
-              Infraestrutura Física Dedicada
-            </span>
-            <h2 className="text-3xl sm:text-5xl font-extrabold text-white mt-4 mb-3 tracking-tight">
-              Datacenter de Alta Performance
-            </h2>
-            <p className="text-slate-400 text-sm sm:text-base max-w-2xl mx-auto">
-              Infraestrutura física moderna com Racks de servidores de máxima velocidade, conectividade redundante e segurança 24/7 em Moçambique.
-            </p>
-          </div>
+      {/* Secção Infraestrutura Datacenter - Imagem dos Servidores Infortrend em 100% Largura Total (Full Width) */}
+      <section id="infraestrutura" className="relative w-full bg-slate-950 text-white py-16 border-t border-slate-800 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 mb-8 text-center">
+          <span className="bg-primary-500/20 text-primary-300 border border-primary-500/40 text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wider">
+            Infraestrutura Física Dedicada
+          </span>
+          <h2 className="text-3xl sm:text-5xl font-extrabold text-white mt-4 mb-3 tracking-tight">
+            Datacenter de Alta Performance
+          </h2>
+          <p className="text-slate-300 text-sm sm:text-base max-w-2xl mx-auto font-medium">
+            Servidores Racks dedicados com fibra óptica redundante de baixa latência e monitorização contínua 24/7/365.
+          </p>
+        </div>
 
-          {/* Imagem do Datacenter 100% Completa sem cortes */}
-          <div className="relative rounded-3xl overflow-hidden border-2 border-primary-500/50 shadow-[0_0_60px_rgba(59,130,246,0.35)] bg-slate-900">
-            <img 
-              src="/datacenter-bg.jpg" 
-              alt="Datacenter WEHOSTHERE Servidores" 
-              className="w-full h-auto object-contain block mx-auto rounded-3xl"
-            />
-            <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent p-6 sm:p-10 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div>
-                <h3 className="text-xl sm:text-2xl font-bold text-white flex items-center space-x-2">
-                  <span className="w-3.5 h-3.5 bg-emerald-400 rounded-full animate-ping inline-block mr-1"></span>
-                  <span>Servidores Racks Ativos & Monitorizados 24/7/365</span>
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-300 mt-1">Uptime garantido de 99.9% com fibra óptica de baixa latência e proteção DDoS</p>
-              </div>
-              <Link href="#planos" className="px-7 py-3.5 bg-primary-600 hover:bg-primary-500 text-white font-bold text-sm rounded-xl transition shadow-xl shrink-0 cursor-pointer">
-                Escolher Plano de Hospedagem
-              </Link>
+        {/* Banner com Imagem de Servidores Infortrend de Largura Total (Edge to Edge) e 100% Visível */}
+        <div className="relative w-full overflow-hidden shadow-2xl border-y border-primary-500/50 bg-black">
+          <img 
+            src="/servidores-banner.png" 
+            alt="Datacenter Servidores Racks Infortrend WEHOSTHERE" 
+            className="w-full h-auto max-h-[650px] object-cover sm:object-contain object-center block mx-auto drop-shadow-2xl"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-slate-950/30" />
+
+          <div className="absolute bottom-0 inset-x-0 bg-slate-950/85 backdrop-blur-md p-6 sm:p-10 border-t border-primary-500/30 flex flex-col sm:flex-row items-center justify-between gap-4 max-w-7xl mx-auto my-4 rounded-3xl">
+            <div>
+              <h3 className="text-xl sm:text-2xl font-black text-white flex items-center space-x-2">
+                <span className="w-3.5 h-3.5 bg-emerald-400 rounded-full animate-ping inline-block mr-1"></span>
+                <span>Servidores Racks Ativos em Moçambique</span>
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-300 mt-1">Uptime garantido de 99.9% com suporte técnico dedicado</p>
             </div>
+            <Link href="#planos" className="px-8 py-4 bg-primary-600 hover:bg-primary-500 text-white font-extrabold text-sm sm:text-base rounded-xl transition shadow-xl shrink-0 cursor-pointer">
+              Escolher Plano de Hospedagem
+            </Link>
           </div>
         </div>
       </section>
@@ -412,12 +412,12 @@ export default function Home() {
 
       {/* Footer com Fundo do Datacenter em Alta Tecnologia */}
       <footer id="contacto" className="relative bg-slate-950 text-white py-16 px-4 overflow-hidden border-t border-slate-800">
-        {/* Imagem de Fundo Datacenter com Overlay de Gradiente */}
+        {/* Imagem de Fundo Datacenter 100% Visível em Cores Reais */}
         <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-25 mix-blend-luminosity"
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-65"
           style={{ backgroundImage: "url('/footer-bg.jpg')" }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/90 to-slate-950/80" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/75 to-slate-950/80" />
 
         <div className="relative z-10 max-w-7xl mx-auto">
           <div className="grid md:grid-cols-4 gap-8">
