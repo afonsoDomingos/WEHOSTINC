@@ -13,7 +13,7 @@ export default function DomainSearch() {
   const [isSearching, setIsSearching] = useState(false);
   const [result, setResult] = useState<DomainCheckResult | null>(null);
   const [selectedHostingPlan, setSelectedHostingPlan] = useState<'basic' | 'pro' | 'enterprise'>('basic');
-  const [hostingCycle, setHostingCycle] = useState<'annual' | 'monthly'>('annual');
+  const [hostingCycle, setHostingCycle] = useState<'annual' | 'monthly'>('monthly');
 
   const currentHostingPlan = hostingPlans.find(p => p.id === selectedHostingPlan) || hostingPlans[0];
   const hostingPrice = hostingCycle === 'annual' ? currentHostingPlan.priceAnnual : currentHostingPlan.price;

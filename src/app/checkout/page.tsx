@@ -322,7 +322,7 @@ function CheckoutContent() {
             <Server className="h-7 w-7 text-primary-600" />
             <span className="text-2xl font-bold tracking-tight text-gray-900">WEHOSTHERE</span>
           </Link>
-          <div className="flex items-center space-x-2 text-xs font-semibold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200">
+          <div className="hidden sm:flex items-center space-x-2 text-xs font-semibold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200">
             <ShieldCheck className="h-4 w-4 text-emerald-600" />
             <span>Ambiente 100% Seguro</span>
           </div>
@@ -387,11 +387,11 @@ function CheckoutContent() {
                 <label htmlFor="whatsapp" className="block text-sm font-semibold text-gray-800 mb-1.5">
                   Número do WhatsApp <span className="text-red-500">*</span>
                 </label>
-                <div className="flex space-x-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <select
                     value={ddi}
                     onChange={(e) => setDdi(e.target.value)}
-                    className="px-3 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none text-gray-900 font-semibold shadow-sm cursor-pointer"
+                    className="w-full sm:w-auto px-3 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none text-gray-900 font-semibold shadow-sm cursor-pointer"
                   >
                     <option value="+258">+258 (Moçambique)</option>
                     <option value="+244">+244 (Angola)</option>
@@ -404,9 +404,9 @@ function CheckoutContent() {
                     type="tel"
                     value={whatsapp}
                     onChange={(e) => setWhatsapp(e.target.value)}
-                    placeholder="Número sem DDI"
+                    placeholder="Número sem DDI (ex: 84 123 4567)"
                     required
-                    className="flex-1 px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition text-gray-900 placeholder-gray-400 shadow-sm"
+                    className="w-full sm:flex-1 px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition text-gray-900 placeholder-gray-400 shadow-sm"
                   />
                 </div>
               </div>

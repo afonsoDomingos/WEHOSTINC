@@ -115,14 +115,14 @@ export default function Home() {
                 <p className="text-gray-600 mb-4">Ideal para iniciantes</p>
                 <div className="mb-6">
                   <span className="text-4xl font-bold text-gray-900">
-                    {isAnnual ? '12.000 MT' : '1.200 MT'}
+                    {isAnnual ? '1.200 MT' : '120 MT'}
                   </span>
                   <span className="text-gray-600 text-sm font-medium">
                     {isAnnual ? ' /ano' : ' /mês'}
                   </span>
                   {isAnnual && (
                     <div className="text-xs font-semibold text-emerald-600 mt-1">
-                      Equivale a 1.000 MT/mês (Economize 2.400 MT)
+                      Equivale a 100 MT/mês (Economize 240 MT)
                     </div>
                   )}
                 </div>
@@ -163,14 +163,14 @@ export default function Home() {
                 <p className="text-blue-100 mb-4">Para negócios em crescimento</p>
                 <div className="mb-6">
                   <span className="text-4xl font-bold text-white">
-                    {isAnnual ? '30.000 MT' : '3.000 MT'}
+                    {isAnnual ? '3.000 MT' : '300 MT'}
                   </span>
                   <span className="text-blue-100 text-sm font-medium">
                     {isAnnual ? ' /ano' : ' /mês'}
                   </span>
                   {isAnnual && (
                     <div className="text-xs font-semibold text-amber-300 mt-1">
-                      Equivale a 2.500 MT/mês (Economize 6.000 MT)
+                      Equivale a 250 MT/mês (Economize 600 MT)
                     </div>
                   )}
                 </div>
@@ -212,14 +212,14 @@ export default function Home() {
                 <p className="text-gray-600 mb-4">Para grandes operações</p>
                 <div className="mb-6">
                   <span className="text-4xl font-bold text-gray-900">
-                    {isAnnual ? '62.000 MT' : '6.200 MT'}
+                    {isAnnual ? '6.200 MT' : '620 MT'}
                   </span>
                   <span className="text-gray-600 text-sm font-medium">
                     {isAnnual ? ' /ano' : ' /mês'}
                   </span>
                   {isAnnual && (
                     <div className="text-xs font-semibold text-emerald-600 mt-1">
-                      Equivale a 5.166 MT/mês (Economize 12.400 MT)
+                      Equivale a 516 MT/mês (Economize 1.240 MT)
                     </div>
                   )}
                 </div>
