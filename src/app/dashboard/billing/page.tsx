@@ -285,19 +285,23 @@ export default function BillingPage() {
               <div className="grid md:grid-cols-2 sm:grid-cols-4 gap-3 bg-gray-50 p-4 rounded-xl border border-gray-200 mb-6 font-mono text-xs text-gray-800">
                 <div className="p-2.5 bg-white rounded-lg border border-gray-200">
                   <strong className="text-gray-900 block font-sans font-bold text-sm">Millennium BIM</strong>
-                  NIB: 00010098765432100147
+                  NIB: 433372004293948
                 </div>
                 <div className="p-2.5 bg-white rounded-lg border border-gray-200">
                   <strong className="text-gray-900 block font-sans font-bold text-sm">BCI</strong>
-                  NIB: 00080012345678900125
+                  <span className="text-gray-400 italic font-sans">NIB em breve</span>
                 </div>
                 <div className="p-2.5 bg-white rounded-lg border border-gray-200">
                   <strong className="text-gray-900 block font-sans font-bold text-sm">Standard Bank</strong>
-                  NIB: 00030045678912300188
+                  <span className="text-gray-400 italic font-sans">NIB em breve</span>
                 </div>
                 <div className="p-2.5 bg-white rounded-lg border border-gray-200">
                   <strong className="text-gray-900 block font-sans font-bold text-sm">M-Pesa Manual</strong>
-                  +258 84 123 4567 (WEHOSTHERE)
+                  +258 847877405
+                </div>
+                <div className="p-2.5 bg-white rounded-lg border border-gray-200">
+                  <strong className="text-gray-900 block font-sans font-bold text-sm">E-Mola Manual</strong>
+                  879642412
                 </div>
               </div>
 

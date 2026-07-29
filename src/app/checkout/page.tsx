@@ -556,19 +556,23 @@ function CheckoutContent() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-white p-3 rounded-xl border border-emerald-200 font-mono text-[11px]">
                       <div>
                         <strong className="text-gray-900">Millennium BIM:</strong><br />
-                        NIB: 00010098765432100147
+                        NIB: 433372004293948
                       </div>
                       <div>
                         <strong className="text-gray-900">BCI:</strong><br />
-                        NIB: 00080012345678900125
+                        <span className="text-gray-400 italic">NIB em breve</span>
                       </div>
                       <div>
                         <strong className="text-gray-900">Standard Bank:</strong><br />
-                        NIB: 00030045678912300188
+                        <span className="text-gray-400 italic">NIB em breve</span>
                       </div>
                       <div>
                         <strong className="text-gray-900">M-Pesa Manual:</strong><br />
-                        +258 84 123 4567 (WEHOSTHERE)
+                        +258 847877405 (WEHOSTHERE)
+                      </div>
+                      <div>
+                        <strong className="text-gray-900">E-Mola Manual:</strong><br />
+                        879642412 (WEHOSTHERE)
                       </div>
                     </div>
                   </div>
