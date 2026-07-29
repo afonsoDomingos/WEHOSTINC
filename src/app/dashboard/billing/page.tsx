@@ -49,11 +49,30 @@ export default function BillingPage() {
   }, [router]);
 
   const handleUpgrade = (planId: string) => {
-    if (user) {
-      auth.updatePlan(user.id, planId as 'basic' | 'pro' | 'enterprise');
-      setUser({ ...user, plan: planId as 'basic' | 'pro' | 'enterprise' });
-      alert('Plano atualizado com sucesso!');
-    }
+    if (!user) return;
+
+    const newPlan = hostingPlans.find(p => p.id === planId);
+    if (!newPlan) return;
+
+    // Atualiza o plano do utilizador no auth
+    auth.updatePlan(user.id, planId as 'basic' | 'pro' | 'enterprise');
+    setUser({ ...user, plan: planId as 'basic' | 'pro' | 'enterprise' });
+
+    // Cria um ServiceOrder real com o valor e plano novo
+    const newOrder = dataManager.addOrder({
+      clientName: user.name,
+      clientEmail: user.email,
+      clientPhone: '',
+      serviceName: `Upgrade de Plano → ${newPlan.name}`,
+      amount: newPlan.price,
+      paymentMethod: 'bank_transfer',
+      status: 'pending',
+    });
+
+    // Atualiza a lista de faturas imediatamente na UI
+    setUserOrders(prev => [newOrder, ...prev]);
+
+    alert(`Plano atualizado para ${newPlan.name} (${newPlan.price.toLocaleString('pt-MZ')} MT/mês)!\nFatura gerada: ${newOrder.id}\nStatus: Pagamento Pendente — envie o comprovativo para activação.`);
   };
 
   const getCurrentPlan = () => {
