@@ -114,6 +114,7 @@ export interface DomainSearchLog {
   extension: string;
   isAvailable: boolean;
   timestamp: string;
+  searchCount?: number;
 }
 
 export const DOMAIN_SEARCH_LOGS: DomainSearchLog[] = [
@@ -122,6 +123,7 @@ export const DOMAIN_SEARCH_LOGS: DomainSearchLog[] = [
     domain: 'empresaexemplo.co.mz',
     extension: '.co.mz',
     isAvailable: true,
+    searchCount: 1,
     timestamp: new Date(Date.now() - 300000).toISOString()
   },
   {
@@ -129,18 +131,39 @@ export const DOMAIN_SEARCH_LOGS: DomainSearchLog[] = [
     domain: 'mcel.co.mz',
     extension: '.co.mz',
     isAvailable: false,
+    searchCount: 1,
     timestamp: new Date(Date.now() - 900000).toISOString()
   }
 ];
 
 export function addDomainSearchLog(domain: string, extension: string, isAvailable: boolean) {
-  DOMAIN_SEARCH_LOGS.unshift({
-    id: Date.now().toString(),
-    domain,
-    extension,
-    isAvailable,
-    timestamp: new Date().toISOString()
-  });
+  const cleanDomain = domain.toLowerCase().trim();
+  const existingIndex = DOMAIN_SEARCH_LOGS.findIndex(
+    l => l.domain.toLowerCase().trim() === cleanDomain
+  );
+
+  if (existingIndex >= 0) {
+    // Se o mesmo domínio for pesquisado novamente:
+    // Atualiza o horário para a hora mais recente, atualiza a disponibilidade e incrementa o contador de buscas!
+    const existing = DOMAIN_SEARCH_LOGS[existingIndex];
+    existing.timestamp = new Date().toISOString();
+    existing.isAvailable = isAvailable;
+    existing.searchCount = (existing.searchCount || 1) + 1;
+
+    // Move para o topo do histórico (tempo real)
+    DOMAIN_SEARCH_LOGS.splice(existingIndex, 1);
+    DOMAIN_SEARCH_LOGS.unshift(existing);
+  } else {
+    // Novo domínio no histórico
+    DOMAIN_SEARCH_LOGS.unshift({
+      id: Date.now().toString() + Math.random().toString(36).substring(2, 6),
+      domain: cleanDomain,
+      extension,
+      isAvailable,
+      searchCount: 1,
+      timestamp: new Date().toISOString()
+    });
+  }
 
   if (DOMAIN_SEARCH_LOGS.length > 100) {
     DOMAIN_SEARCH_LOGS.pop();

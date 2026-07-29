@@ -67,7 +67,7 @@ export default function AdminPage() {
   const [createError, setCreateError] = useState('');
 
   const [orders, setOrders] = useState<ServiceOrder[]>([]);
-  const [domainLogs, setDomainLogs] = useState<Array<{ id: string; domain: string; extension: string; isAvailable: boolean; timestamp: string }>>([]);
+  const [domainLogs, setDomainLogs] = useState<Array<{ id: string; domain: string; extension: string; isAvailable: boolean; timestamp: string; searchCount?: number }>>([]);
 
   // Tickets de Suporte State
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
@@ -1064,8 +1064,13 @@ export default function AdminPage() {
                 <tbody className="divide-y divide-gray-100">
                   {domainLogs.slice(0, 15).map((log) => (
                     <tr key={log.id} className="hover:bg-gray-50/80 transition">
-                      <td className="py-3 px-4 font-mono text-sm font-bold text-gray-900">
-                        {log.domain}
+                      <td className="py-3 px-4 font-mono text-sm font-bold text-gray-900 flex items-center space-x-2">
+                        <span>{log.domain}</span>
+                        {log.searchCount && log.searchCount > 1 && (
+                          <span className="bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-extrabold px-2 py-0.5 rounded-full" title={`Pesquisado ${log.searchCount} vezes`}>
+                            🔥 {log.searchCount}x buscas
+                          </span>
+                        )}
                       </td>
                       <td className="py-3 px-4">
                         <span className="bg-gray-100 text-gray-800 text-xs font-bold px-2 py-0.5 rounded">
