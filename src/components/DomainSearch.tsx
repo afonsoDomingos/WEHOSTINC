@@ -132,89 +132,175 @@ export default function DomainSearch() {
 
       {/* Card de Resultado da Pesquisa */}
       {result && (
-        <div className="mt-6 bg-white rounded-3xl p-6 shadow-xl border border-gray-200 animate-in fade-in slide-in-from-bottom-2 duration-300">
-          {/* Domínio Principal Consultado */}
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-4 rounded-2xl bg-gradient-to-r from-gray-50 to-blue-50/30 border border-gray-200">
+        <div className="mt-6 bg-white rounded-3xl p-5 sm:p-6 shadow-xl border border-gray-200 animate-in fade-in slide-in-from-bottom-2 duration-300">
+          {/* Cabeçalho do Domínio Consultado */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-gradient-to-r from-gray-50 to-blue-50/40 border border-gray-200">
             <div className="flex items-center space-x-3">
               {result.isAvailable ? (
-                <div className="p-2.5 bg-emerald-100 text-emerald-600 rounded-xl flex-shrink-0">
-                  <CheckCircle2 className="h-7 w-7" />
+                <div className="p-2.5 bg-emerald-500 text-white rounded-xl flex-shrink-0 shadow-sm">
+                  <CheckCircle2 className="h-6 w-6" />
                 </div>
               ) : (
-                <div className="p-2.5 bg-red-100 text-red-600 rounded-xl flex-shrink-0">
-                  <XCircle className="h-7 w-7" />
+                <div className="p-2.5 bg-red-500 text-white rounded-xl flex-shrink-0 shadow-sm">
+                  <XCircle className="h-6 w-6" />
                 </div>
               )}
 
               <div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-lg md:text-xl font-black text-gray-900">{result.fullDomain}</span>
+                <div className="flex items-center space-x-2 flex-wrap gap-1">
+                  <span className="text-xl sm:text-2xl font-black text-gray-900">{result.fullDomain}</span>
                   {result.isAvailable ? (
-                    <span className="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-0.5 rounded-full border border-emerald-300">
+                    <span className="bg-emerald-600 text-white text-xs font-bold px-2.5 py-0.5 rounded-full shadow-sm">
                       Disponível!
                     </span>
                   ) : (
-                    <span className="bg-red-100 text-red-800 text-xs font-bold px-2.5 py-0.5 rounded-full border border-red-300">
+                    <span className="bg-red-600 text-white text-xs font-bold px-2.5 py-0.5 rounded-full shadow-sm">
                       Indisponível
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-gray-500 mt-0.5">
+                <p className="text-xs text-gray-500 mt-0.5 font-medium">
                   {result.isAvailable 
-                    ? 'Este domínio está livre para registro imediato.' 
-                    : 'Este domínio já se encontra registrado. Experimente uma das alternativas abaixo.'}
+                    ? 'Este domínio está totalmente livre para registo imediato.' 
+                    : 'Este domínio já se encontra registrado. Veja as extensões alternativas abaixo.'}
                 </p>
               </div>
             </div>
 
             {result.isAvailable && (
-              <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 border-t lg:border-t-0 pt-3 lg:pt-0 w-full lg:w-auto">
-                <div className="text-left lg:text-right pr-2">
-                  <span className="text-xs text-gray-500 block">Preço do Domínio</span>
-                  <span className="text-xl font-black text-primary-600">
-                    {result.price.toLocaleString('pt-MZ')} MT<span className="text-xs text-gray-500 font-normal">/ano</span>
-                  </span>
-                </div>
-
-                <div className="flex flex-col sm:flex-row flex-wrap gap-2 w-full lg:w-auto">
-                  <button
-                    type="button"
-                    onClick={() => handleRegisterOnly(result.fullDomain, result.price)}
-                    className="w-full sm:w-auto px-3.5 py-2.5 bg-white border border-gray-300 hover:bg-gray-100 text-gray-800 font-bold text-xs md:text-sm rounded-xl shadow-sm transition flex items-center justify-center space-x-1.5 cursor-pointer whitespace-nowrap"
-                  >
-                    <Globe className="h-4 w-4 text-gray-600" />
-                    <span>Apenas Domínio</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleRegisterWithHosting(result.fullDomain, result.price)}
-                    className="w-full sm:w-auto px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs md:text-sm rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center space-x-1.5 cursor-pointer whitespace-nowrap"
-                  >
-                    <Sparkles className="h-4 w-4" />
-                    <span>Domínio + Hospedagem</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleRegisterWithWebsite(result.fullDomain, result.price)}
-                    className="w-full sm:w-auto px-3.5 py-2.5 bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-700 hover:to-indigo-700 text-white font-bold text-xs md:text-sm rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center space-x-1.5 cursor-pointer whitespace-nowrap"
-                  >
-                    <Rocket className="h-4 w-4 text-amber-300" />
-                    <span>Domínio + Criação de Site</span>
-                  </button>
-                </div>
+              <div className="bg-white px-4 py-2.5 rounded-xl border border-gray-200 shadow-sm flex flex-row sm:flex-col items-center sm:items-end justify-between shrink-0">
+                <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Registo do Domínio</span>
+                <span className="text-lg font-black text-primary-600">
+                  {result.price.toLocaleString('pt-MZ')} MT <span className="text-xs text-gray-500 font-normal">/ano</span>
+                </span>
               </div>
             )}
           </div>
 
+          {/* Opções de Contratação com Preços Transparentes */}
+          {result.isAvailable && (
+            <div className="mt-5">
+              <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
+                Escolha a sua opção de contratação:
+              </h4>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+                {/* Opção 1: Apenas Domínio */}
+                <div className="flex flex-col justify-between p-4 rounded-2xl border-2 border-gray-200 hover:border-primary-400 bg-white transition shadow-sm group">
+                  <div>
+                    <div className="flex items-center space-x-2 text-gray-700 mb-2">
+                      <Globe className="h-5 w-5 text-gray-600 group-hover:text-primary-600 transition" />
+                      <span className="font-bold text-sm text-gray-900">Apenas Domínio</span>
+                    </div>
+                    <p className="text-xs text-gray-500 mb-4 leading-relaxed">
+                      Registo do nome <strong className="text-gray-800">{result.fullDomain}</strong> sem hospedagem associada.
+                    </p>
+                  </div>
+
+                  <div>
+                    <div className="flex items-baseline justify-between pt-3 border-t border-gray-100 mb-3">
+                      <span className="text-xs text-gray-400 font-medium">Total:</span>
+                      <span className="text-lg font-extrabold text-gray-900">
+                        {result.price.toLocaleString('pt-MZ')} MT <span className="text-xs font-normal text-gray-500">/ano</span>
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleRegisterOnly(result.fullDomain, result.price)}
+                      className="w-full py-2.5 px-3 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold text-xs rounded-xl transition flex items-center justify-center space-x-1.5 cursor-pointer"
+                    >
+                      <span>Apenas Domínio ({result.price.toLocaleString('pt-MZ')} MT)</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Opção 2: Domínio + Hospedagem Pro */}
+                <div className="flex flex-col justify-between p-4 rounded-2xl border-2 border-emerald-500 bg-emerald-50/30 transition shadow-sm relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 bg-emerald-600 text-white text-[10px] font-black uppercase px-3 py-0.5 rounded-bl-xl tracking-wider">
+                    Recomendado
+                  </div>
+
+                  <div>
+                    <div className="flex items-center space-x-2 text-emerald-800 mb-2">
+                      <Sparkles className="h-5 w-5 text-emerald-600" />
+                      <span className="font-bold text-sm text-emerald-950">Domínio + Hospedagem</span>
+                    </div>
+                    <p className="text-xs text-gray-600 mb-4 leading-relaxed">
+                      Inclui o domínio e <strong>Hospedagem Pro</strong> (E-mails corporativos, SSL grátis e cPanel).
+                    </p>
+                  </div>
+
+                  <div>
+                    <div className="flex items-baseline justify-between pt-3 border-t border-emerald-200/60 mb-3">
+                      <span className="text-xs text-emerald-800 font-medium">Total Anual:</span>
+                      <div className="text-right">
+                        <span className="text-lg font-black text-emerald-700">
+                          {(result.price + 3000).toLocaleString('pt-MZ')} MT <span className="text-xs font-normal text-gray-600">/ano</span>
+                        </span>
+                        <span className="text-[10px] text-gray-500 block font-normal">({result.price.toLocaleString('pt-MZ')} MT Domínio + 3.000 MT Hospedagem)</span>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleRegisterWithHosting(result.fullDomain, result.price)}
+                      className="w-full py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center space-x-1.5 cursor-pointer"
+                    >
+                      <Sparkles className="h-4 w-4" />
+                      <span>Domínio + Hospedagem ({(result.price + 3000).toLocaleString('pt-MZ')} MT)</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Opção 3: Domínio + Criação de Site (Investimento Único) */}
+                <div className="flex flex-col justify-between p-4 rounded-2xl border-2 border-primary-500 bg-primary-50/30 transition shadow-sm relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 bg-primary-600 text-white text-[10px] font-black uppercase px-3 py-0.5 rounded-bl-xl tracking-wider">
+                    Investimento Único
+                  </div>
+
+                  <div>
+                    <div className="flex items-center space-x-2 text-primary-900 mb-2">
+                      <Rocket className="h-5 w-5 text-amber-500" />
+                      <span className="font-bold text-sm text-primary-950">Domínio + Criação de Site</span>
+                    </div>
+                    <p className="text-xs text-gray-600 mb-4 leading-relaxed">
+                      Desenvolvimento de <strong>Website Profissional Chave na Mão</strong> + Domínio e Configuração.
+                    </p>
+                  </div>
+
+                  <div>
+                    <div className="flex items-baseline justify-between pt-3 border-t border-primary-200/60 mb-3">
+                      <span className="text-xs text-primary-800 font-medium">Total:</span>
+                      <div className="text-right">
+                        <span className="text-lg font-black text-primary-700">
+                          {(result.price + 25000).toLocaleString('pt-MZ')} MT
+                        </span>
+                        <span className="text-[10px] text-gray-500 block font-normal">({result.price.toLocaleString('pt-MZ')} MT Domínio + 25.000 MT Projeto Site)</span>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleRegisterWithWebsite(result.fullDomain, result.price)}
+                      className="w-full py-2.5 px-3 bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-700 hover:to-indigo-700 text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center space-x-1.5 cursor-pointer"
+                    >
+                      <Rocket className="h-4 w-4 text-amber-300" />
+                      <span>Domínio + Criação de Site ({(result.price + 25000).toLocaleString('pt-MZ')} MT)</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Alternativas sugeridas */}
           {result.alternatives.length > 0 && (
-            <div className="mt-6">
+            <div className="mt-6 pt-5 border-t border-gray-100">
               <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
                 Outras extensões disponíveis para {result.sld}:
               </h4>
-              <div className="grid sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                 {result.alternatives.map((alt) => (
                   <div 
                     key={alt.extension} 
