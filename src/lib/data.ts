@@ -475,6 +475,19 @@ export const dataManager = {
     }
   },
 
+  updateEmail: (id: string, updates: Partial<EmailAccount>): EmailAccount | null => {
+    const emails = dataManager.getEmails();
+    const index = emails.findIndex(e => e.id === id);
+    if (index !== -1) {
+      emails[index] = { ...emails[index], ...updates };
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(EMAILS_KEY, JSON.stringify(emails));
+      }
+      return emails[index];
+    }
+    return null;
+  },
+
   // Pedidos de Serviços
   getOrders: (): ServiceOrder[] => {
     if (typeof window === 'undefined') return DEFAULT_ORDERS;
