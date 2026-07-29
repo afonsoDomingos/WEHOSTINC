@@ -244,9 +244,9 @@ export default function DomainSearch() {
                           onChange={(e) => setSelectedHostingPlan(e.target.value as 'basic' | 'pro' | 'enterprise')}
                           className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-xl text-xs font-bold text-gray-900 outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer shadow-sm"
                         >
-                          <option value="basic">Básico ({hostingCycle === 'annual' ? '1.200 MT/ano' : '120 MT/mês'})</option>
-                          <option value="pro">Profissional ({hostingCycle === 'annual' ? '3.000 MT/ano' : '300 MT/mês'})</option>
-                          <option value="enterprise">Empresarial ({hostingCycle === 'annual' ? '6.200 MT/ano' : '620 MT/mês'})</option>
+                          <option value="basic">Básico ({hostingCycle === 'annual' ? '5.500 MT/ano' : '550 MT/mês'})</option>
+                          <option value="pro">Profissional ({hostingCycle === 'annual' ? '25.000 MT/ano' : '2.500 MT/mês'})</option>
+                          <option value="enterprise">Empresarial ({hostingCycle === 'annual' ? '62.000 MT/ano' : '6.200 MT/mês'})</option>
                         </select>
                       </div>
 

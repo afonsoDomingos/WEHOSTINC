@@ -562,9 +562,9 @@ export default function AdminPage() {
                             'bg-purple-50 text-purple-800 border-purple-300'
                           }`}
                         >
-                          <option value="basic">Básico (1.200 MT)</option>
-                          <option value="pro">Profissional (3.000 MT)</option>
-                          <option value="enterprise">Empresarial (6.200 MT)</option>
+                          <option value="basic">Básico (550 MT/mês)</option>
+                          <option value="pro">Profissional (2.500 MT/mês)</option>
+                          <option value="enterprise">Empresarial (6.200 MT/mês)</option>
                         </select>
                       </td>
                       <td className="py-3.5 px-4 text-gray-600 text-sm font-medium">
@@ -1282,9 +1282,9 @@ export default function AdminPage() {
                     onChange={(e) => setNewPlan(e.target.value as any)}
                     className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"
                   >
-                    <option value="basic">Básico (1.200 MT)</option>
-                    <option value="pro">Profissional (3.000 MT)</option>
-                    <option value="enterprise">Empresarial (6.200 MT)</option>
+                    <option value="basic">Básico (550 MT/mês)</option>
+                    <option value="pro">Profissional (2.500 MT/mês)</option>
+                    <option value="enterprise">Empresarial (6.200 MT/mês)</option>
                   </select>
                 </div>
                 <div>

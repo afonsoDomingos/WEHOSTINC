@@ -115,7 +115,7 @@ export default function Home() {
                 <p className="text-gray-600 mb-4">Ideal para iniciantes</p>
                 <div className="mb-6">
                   <span className="text-4xl font-bold text-gray-900">
-                    {isAnnual ? '1.200 MT' : '120 MT'}
+                    {isAnnual ? '5.500 MT' : '550 MT'}
                   </span>
                   <span className="text-gray-600 text-sm font-medium">
                     {isAnnual ? ' /ano' : ' /mês'}
@@ -163,7 +163,7 @@ export default function Home() {
                 <p className="text-blue-100 mb-4">Para negócios em crescimento</p>
                 <div className="mb-6">
                   <span className="text-4xl font-bold text-white">
-                    {isAnnual ? '3.000 MT' : '300 MT'}
+                    {isAnnual ? '25.000 MT' : '2.500 MT'}
                   </span>
                   <span className="text-blue-100 text-sm font-medium">
                     {isAnnual ? ' /ano' : ' /mês'}
@@ -212,7 +212,7 @@ export default function Home() {
                 <p className="text-gray-600 mb-4">Para grandes operações</p>
                 <div className="mb-6">
                   <span className="text-4xl font-bold text-gray-900">
-                    {isAnnual ? '6.200 MT' : '620 MT'}
+                    {isAnnual ? '62.000 MT' : '6.200 MT'}
                   </span>
                   <span className="text-gray-600 text-sm font-medium">
                     {isAnnual ? ' /ano' : ' /mês'}
