@@ -7,8 +7,10 @@ export interface ServerServiceOrder {
   clientPhone: string;
   serviceName: string;
   amount: number;
-  paymentMethod: 'mpesa' | 'emola' | 'card';
-  status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
+  paymentMethod: 'mpesa' | 'emola' | 'card' | 'bank_transfer';
+  proofUrl?: string;
+  proofName?: string;
+  status: 'pending' | 'in_progress' | 'completed' | 'cancelled' | 'suspended';
   createdAt: string;
 }
 

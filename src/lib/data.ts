@@ -446,7 +446,9 @@ export interface ServiceOrder {
   clientPhone: string;
   serviceName: string;
   amount: number;
-  paymentMethod: 'mpesa' | 'emola' | 'card';
+  paymentMethod: 'mpesa' | 'emola' | 'card' | 'bank_transfer';
+  proofUrl?: string;
+  proofName?: string;
   status: 'pending' | 'in_progress' | 'completed' | 'cancelled' | 'suspended';
   createdAt: string;
 }

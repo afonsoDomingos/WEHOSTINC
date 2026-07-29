@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { 
   Server, ShieldCheck, Lock, Check, CreditCard, 
-  Smartphone, Bitcoin, ArrowLeft, CheckCircle2, AlertCircle
+  Smartphone, Bitcoin, ArrowLeft, CheckCircle2, AlertCircle,
+  Landmark, Paperclip, FileText, Image as ImageIcon, Upload, Loader2
 } from 'lucide-react';
 import { hostingPlans, HostingPlan, dataManager } from '@/lib/data';
 import { auth } from '@/lib/auth';
@@ -31,7 +32,7 @@ function CheckoutContent() {
   const [email, setEmail] = useState('');
   const [ddi, setDdi] = useState('+258');
   const [whatsapp, setWhatsapp] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<'mpesa' | 'emola' | 'card'>('mpesa');
+  const [paymentMethod, setPaymentMethod] = useState<'mpesa' | 'emola' | 'card' | 'bank_transfer'>('mpesa');
   
   // Phone for M-Pesa / eMola push payment
   const [phonePayment, setPhonePayment] = useState('');
@@ -39,6 +40,39 @@ function CheckoutContent() {
   const [cardNumber, setCardNumber] = useState('');
   const [cardExpiry, setCardExpiry] = useState('');
   const [cardCvc, setCardCvc] = useState('');
+
+  // Comprovativo de Pagamento Bancário
+  const [proofUrl, setProofUrl] = useState('');
+  const [proofName, setProofName] = useState('');
+  const [uploadingProof, setUploadingProof] = useState(false);
+
+  const handleProofUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploadingProof(true);
+    const file = files[0];
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.url) {
+          setProofUrl(data.url);
+          setProofName(data.name || file.name);
+        }
+      }
+    } catch (err) {
+      console.error('Erro no upload do comprovativo:', err);
+    } finally {
+      setUploadingProof(false);
+    }
+  };
 
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -111,7 +145,9 @@ function CheckoutContent() {
         serviceName,
         amount: grandTotal,
         paymentMethod: paymentMethod,
-        status: (selectedPlan && selectedPlan.id === 'website_creation') ? 'in_progress' : 'completed'
+        proofUrl: proofUrl || undefined,
+        proofName: proofName || undefined,
+        status: (paymentMethod === 'bank_transfer' || (selectedPlan && selectedPlan.id === 'website_creation')) ? 'in_progress' : 'completed'
       });
 
       // Cadastra o domínio na lista de sites do cliente com status 'pending' (Pendente / Em Processamento)
@@ -382,7 +418,7 @@ function CheckoutContent() {
                 Método de Pagamento
               </label>
 
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {/* M-Pesa Option */}
                 <button
                   type="button"
@@ -429,6 +465,22 @@ function CheckoutContent() {
                     <CreditCard className="h-6 w-6" />
                   </div>
                   <span className="text-xs font-bold text-gray-800">Cartão de Crédito</span>
+                </button>
+
+                {/* Bank Transfer Option */}
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod('bank_transfer')}
+                  className={`p-3 border-2 rounded-xl text-center flex flex-col items-center justify-center transition cursor-pointer ${
+                    paymentMethod === 'bank_transfer'
+                      ? 'border-emerald-600 bg-emerald-50/50 shadow-sm ring-2 ring-emerald-500/20'
+                      : 'border-gray-200 bg-white hover:border-gray-300'
+                  }`}
+                >
+                  <div className="flex items-center space-x-1 mb-1 text-emerald-600">
+                    <Landmark className="h-6 w-6" />
+                  </div>
+                  <span className="text-xs font-bold text-gray-800">Transferência / Comprovativo</span>
                 </button>
               </div>
 
@@ -487,6 +539,76 @@ function CheckoutContent() {
                         className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"
                       />
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {paymentMethod === 'bank_transfer' && (
+                <div className="mt-4 p-4 bg-emerald-50/60 rounded-xl border border-emerald-200 space-y-4">
+                  <div className="space-y-2 text-xs text-emerald-900">
+                    <span className="font-bold block text-sm text-emerald-950">🏦 Contas Bancárias Oficiais para Transferência:</span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-white p-3 rounded-xl border border-emerald-200 font-mono text-[11px]">
+                      <div>
+                        <strong className="text-gray-900">Millennium BIM:</strong><br />
+                        NIB: 00010098765432100147
+                      </div>
+                      <div>
+                        <strong className="text-gray-900">BCI:</strong><br />
+                        NIB: 00080012345678900125
+                      </div>
+                      <div>
+                        <strong className="text-gray-900">Standard Bank:</strong><br />
+                        NIB: 00030045678912300188
+                      </div>
+                      <div>
+                        <strong className="text-gray-900">M-Pesa Manual:</strong><br />
+                        +258 84 123 4567 (WEHOSTHERE)
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5 flex items-center justify-between">
+                      <span>Anexar Comprovativo de Pagamento (Imagem ou PDF)</span>
+                      {uploadingProof && (
+                        <span className="text-emerald-700 font-normal flex items-center space-x-1">
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                          <span>A carregar no Cloudinary...</span>
+                        </span>
+                      )}
+                    </label>
+
+                    <div className="flex items-center space-x-3">
+                      <label className="cursor-pointer inline-flex items-center space-x-2 px-4 py-2.5 bg-white hover:bg-emerald-100/50 text-emerald-800 text-xs font-bold rounded-xl transition border border-emerald-300 shadow-sm">
+                        <Paperclip className="w-4 h-4 text-emerald-600" />
+                        <span>{proofName ? 'Substituir Comprovativo' : 'Carregar Comprovativo'}</span>
+                        <input
+                          type="file"
+                          accept="image/*,application/pdf"
+                          className="hidden"
+                          onChange={handleProofUpload}
+                          disabled={uploadingProof}
+                        />
+                      </label>
+                      <span className="text-[11px] text-emerald-700">Formatos aceites: PDF, JPG, PNG</span>
+                    </div>
+
+                    {proofUrl && (
+                      <div className="mt-2.5 p-2.5 bg-white rounded-xl border border-emerald-300 flex items-center justify-between text-xs">
+                        <div className="flex items-center space-x-2 truncate">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                          <span className="font-bold text-gray-900 truncate">{proofName || 'Comprovativo Anexado'}</span>
+                        </div>
+                        <a
+                          href={proofUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-emerald-700 hover:text-emerald-900 font-bold underline flex-shrink-0"
+                        >
+                          Ver Ficheiro
+                        </a>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

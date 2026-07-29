@@ -247,20 +247,72 @@ export default function BillingPage() {
 
             {/* Payment Method */}
             <div className="bg-white rounded-xl shadow-sm p-6">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Método de Pagamento</h3>
-              <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex items-center space-x-4">
-                  <div className="bg-primary-100 p-3 rounded-lg">
-                    <CreditCard className="h-6 w-6 text-primary-600" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-gray-900">Cartão de Crédito</p>
-                    <p className="text-sm text-gray-600">•••• •••• •••• 4242</p>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Métodos de Pagamento Suportados</h3>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="flex items-center justify-between p-4 border rounded-xl bg-gray-50">
+                  <div className="flex items-center space-x-4">
+                    <div className="bg-primary-100 p-3 rounded-lg">
+                      <CreditCard className="h-6 w-6 text-primary-600" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900">M-Pesa / eMola / Cartão</p>
+                      <p className="text-sm text-gray-600">Cobrança automática em Meticais (MT)</p>
+                    </div>
                   </div>
                 </div>
-                <button className="text-primary-600 hover:text-primary-700 font-semibold">
-                  Alterar
-                </button>
+
+                <div className="flex items-center justify-between p-4 border rounded-xl bg-emerald-50/60 border-emerald-200">
+                  <div className="flex items-center space-x-4">
+                    <div className="bg-emerald-100 p-3 rounded-lg">
+                      <CheckCircle className="h-6 w-6 text-emerald-600" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-emerald-950">Transferência Bancária</p>
+                      <p className="text-sm text-emerald-700">Comprovativo com ativação pelo admin</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Banco & Envio de Comprovativo Manual */}
+            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Enviar Comprovativo de Pagamento</h3>
+              <p className="text-gray-500 text-sm mb-6">
+                Efetue a transferência para uma de nossas contas oficiais abaixo e anexe o comprovativo em PDF ou imagem para validação rápida.
+              </p>
+
+              <div className="grid md:grid-cols-2 sm:grid-cols-4 gap-3 bg-gray-50 p-4 rounded-xl border border-gray-200 mb-6 font-mono text-xs text-gray-800">
+                <div className="p-2.5 bg-white rounded-lg border border-gray-200">
+                  <strong className="text-gray-900 block font-sans font-bold text-sm">Millennium BIM</strong>
+                  NIB: 00010098765432100147
+                </div>
+                <div className="p-2.5 bg-white rounded-lg border border-gray-200">
+                  <strong className="text-gray-900 block font-sans font-bold text-sm">BCI</strong>
+                  NIB: 00080012345678900125
+                </div>
+                <div className="p-2.5 bg-white rounded-lg border border-gray-200">
+                  <strong className="text-gray-900 block font-sans font-bold text-sm">Standard Bank</strong>
+                  NIB: 00030045678912300188
+                </div>
+                <div className="p-2.5 bg-white rounded-lg border border-gray-200">
+                  <strong className="text-gray-900 block font-sans font-bold text-sm">M-Pesa Manual</strong>
+                  +258 84 123 4567 (WEHOSTHERE)
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-primary-50/50 rounded-xl border border-primary-100">
+                <div className="text-xs text-gray-600">
+                  <span className="font-bold text-gray-900 block text-sm">Carregar Novo Comprovativo:</span>
+                  <span>Aceites ficheiros em formato PDF, PNG ou JPG (máx. 10MB)</span>
+                </div>
+                <Link
+                  href="/checkout?plan=pro"
+                  className="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs rounded-xl shadow transition flex items-center space-x-2"
+                >
+                  <Download className="w-4 h-4 rotate-180" />
+                  <span>Submeter Comprovativo no Checkout</span>
+                </Link>
               </div>
             </div>
           </div>
