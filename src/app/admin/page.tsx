@@ -6,10 +6,10 @@ import { useRouter } from 'next/navigation';
 import { 
   Users, Server, Mail, Database, TrendingUp, DollarSign,
   LogOut, Settings, Home, CheckCircle, Clock, XCircle, Search,
-  ShoppingBag, MessageSquare, ExternalLink, Trash2
+  ShoppingBag, MessageSquare, ExternalLink, Trash2, LifeBuoy, Send, ShieldCheck, CheckCircle2, AlertCircle
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
-import { dataManager, ServiceOrder } from '@/lib/data';
+import { dataManager, ServiceOrder, SupportTicket, TicketMessage } from '@/lib/data';
 
 export default function AdminPage() {
   const router = useRouter();
@@ -35,6 +35,13 @@ export default function AdminPage() {
   const [orders, setOrders] = useState<ServiceOrder[]>([]);
   const [domainLogs, setDomainLogs] = useState<Array<{ id: string; domain: string; extension: string; isAvailable: boolean; timestamp: string }>>([]);
 
+  // Tickets de Suporte State
+  const [tickets, setTickets] = useState<SupportTicket[]>([]);
+  const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
+  const [adminReplyMessage, setAdminReplyMessage] = useState('');
+  const [ticketSearchTerm, setTicketSearchTerm] = useState('');
+  const [ticketFilterStatus, setTicketFilterStatus] = useState<'all' | 'open' | 'answered' | 'closed'>('all');
+
   const fetchDomainLogs = async () => {
     try {
       const res = await fetch('/api/domains/history');
@@ -58,6 +65,7 @@ export default function AdminPage() {
     setSites(dataManager.getSites());
     setEmails(dataManager.getEmails());
     setOrders(dataManager.getOrders());
+    setTickets(dataManager.getTickets());
     fetchDomainLogs();
     setLoading(false);
 
@@ -78,7 +86,11 @@ export default function AdminPage() {
       if (fetched && fetched.length > 0) setEmails(fetched);
     });
 
-    // Polling a cada 5s para sincronizar usuários, pedidos, sites, e-mails e pesquisas em tempo real
+    dataManager.fetchTicketsAsync().then((fetched) => {
+      if (fetched && fetched.length > 0) setTickets(fetched);
+    });
+
+    // Polling a cada 5s para sincronizar usuários, pedidos, sites, e-mails, tickets e pesquisas em tempo real
     const interval = setInterval(() => {
       auth.fetchUsersAsync().then((fetched) => {
         if (fetched && fetched.length > 0) setUsers(fetched);
@@ -92,11 +104,45 @@ export default function AdminPage() {
       dataManager.fetchEmailsAsync().then((fetched) => {
         if (fetched && fetched.length > 0) setEmails(fetched);
       });
+      dataManager.fetchTicketsAsync().then((fetched) => {
+        if (fetched && fetched.length > 0) {
+          setTickets(fetched);
+          setSelectedTicket(prev => prev ? fetched.find(t => t.id === prev.id) || prev : null);
+        }
+      });
       fetchDomainLogs();
     }, 5000);
 
     return () => clearInterval(interval);
   }, [router]);
+
+  const handleAdminSendReply = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedTicket || !adminReplyMessage.trim()) return;
+
+    const updated = dataManager.addTicketReply(
+      selectedTicket.id,
+      'support',
+      'Equipa de Suporte WeHostHere',
+      adminReplyMessage.trim(),
+      'answered'
+    );
+
+    if (updated) {
+      setSelectedTicket(updated);
+      setTickets(prev => prev.map(t => t.id === updated.id ? updated : t));
+      setAdminReplyMessage('');
+    }
+  };
+
+  const handleAdminUpdateTicketStatus = (ticketId: string, status: SupportTicket['status'], priority?: SupportTicket['priority']) => {
+    dataManager.updateTicketStatus(ticketId, status, priority);
+    const updatedTickets = dataManager.getTickets();
+    setTickets(updatedTickets);
+    if (selectedTicket && selectedTicket.id === ticketId) {
+      setSelectedTicket(prev => prev ? { ...prev, status, priority: priority || prev.priority } : null);
+    }
+  };
 
   const handleUpdateOrderStatus = (id: string, newStatus: ServiceOrder['status']) => {
     dataManager.updateOrderStatus(id, newStatus);
@@ -623,6 +669,173 @@ export default function AdminPage() {
           )}
         </div>
 
+        {/* Gestão de Tickets de Suporte (Helpdesk) */}
+        <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900 flex items-center space-x-2">
+                <LifeBuoy className="h-6 w-6 text-primary-600" />
+                <span>Central de Tickets de Suporte (Helpdesk)</span>
+              </h2>
+              <p className="text-sm text-gray-500 mt-1">Atendimento ao cliente, resposta a chamados técnicos e faturamento</p>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <span className="bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1.5 rounded-full border border-amber-300">
+                {tickets.filter(t => t.status === 'open' || t.status === 'in_progress').length} Pendente(s)
+              </span>
+              <span className="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1.5 rounded-full border border-blue-300">
+                {tickets.length} Totais
+              </span>
+            </div>
+          </div>
+
+          {/* Filtros e Busca de Tickets */}
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6 pt-4 border-t border-gray-100">
+            <div className="relative w-full md:w-80">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <input
+                type="text"
+                value={ticketSearchTerm}
+                onChange={(e) => setTicketSearchTerm(e.target.value)}
+                placeholder="Buscar por ID, cliente, e-mail ou assunto..."
+                className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"
+              />
+            </div>
+
+            <div className="flex items-center space-x-1.5 w-full md:w-auto overflow-x-auto">
+              <button
+                onClick={() => setTicketFilterStatus('all')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                  ticketFilterStatus === 'all' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                Todos ({tickets.length})
+              </button>
+              <button
+                onClick={() => setTicketFilterStatus('open')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                  ticketFilterStatus === 'open' ? 'bg-amber-500 text-white' : 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200'
+                }`}
+              >
+                Abertos ({tickets.filter(t => t.status === 'open' || t.status === 'in_progress').length})
+              </button>
+              <button
+                onClick={() => setTicketFilterStatus('answered')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                  ticketFilterStatus === 'answered' ? 'bg-emerald-600 text-white' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
+                }`}
+              >
+                Respondidos ({tickets.filter(t => t.status === 'answered').length})
+              </button>
+              <button
+                onClick={() => setTicketFilterStatus('closed')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                  ticketFilterStatus === 'closed' ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                Fechados ({tickets.filter(t => t.status === 'closed').length})
+              </button>
+            </div>
+          </div>
+
+          {tickets.length === 0 ? (
+            <div className="text-center py-12">
+              <LifeBuoy className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-800 mb-1">Nenhum ticket registrado</h3>
+              <p className="text-gray-500">Os chamados abertos pelos clientes aparecerão aqui</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-200 bg-gray-50/50">
+                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">ID / Data</th>
+                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Cliente / Contato</th>
+                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Assunto / Categoria</th>
+                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Prioridade</th>
+                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Status</th>
+                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Ações</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {tickets
+                    .filter(t => {
+                      const matchesSearch = 
+                        t.subject.toLowerCase().includes(ticketSearchTerm.toLowerCase()) ||
+                        t.userName.toLowerCase().includes(ticketSearchTerm.toLowerCase()) ||
+                        t.userEmail.toLowerCase().includes(ticketSearchTerm.toLowerCase()) ||
+                        t.id.toLowerCase().includes(ticketSearchTerm.toLowerCase());
+                      if (ticketFilterStatus === 'open') return matchesSearch && (t.status === 'open' || t.status === 'in_progress');
+                      if (ticketFilterStatus === 'answered') return matchesSearch && t.status === 'answered';
+                      if (ticketFilterStatus === 'closed') return matchesSearch && t.status === 'closed';
+                      return matchesSearch;
+                    })
+                    .map((ticket) => (
+                      <tr key={ticket.id} className="hover:bg-gray-50/80 transition">
+                        <td className="py-3.5 px-4">
+                          <span className="font-mono font-bold text-gray-900 text-sm block">{ticket.id}</span>
+                          <span className="text-xs text-gray-400">{new Date(ticket.createdAt).toLocaleDateString('pt-MZ')}</span>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span className="font-semibold text-gray-900 block">{ticket.userName}</span>
+                          <span className="text-xs text-gray-500 font-mono block">{ticket.userEmail}</span>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span className="font-bold text-gray-900 text-sm block">{ticket.subject}</span>
+                          <span className="text-[11px] font-semibold text-gray-500 uppercase">{ticket.category}</span>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <select
+                            value={ticket.priority}
+                            onChange={(e) => handleAdminUpdateTicketStatus(ticket.id, ticket.status, e.target.value as any)}
+                            className={`px-2 py-1 rounded text-xs font-bold border outline-none cursor-pointer ${
+                              ticket.priority === 'urgent' ? 'bg-red-100 text-red-700 border-red-300' :
+                              ticket.priority === 'high' ? 'bg-orange-100 text-orange-700 border-orange-300' :
+                              ticket.priority === 'medium' ? 'bg-amber-100 text-amber-700 border-amber-300' :
+                              'bg-gray-100 text-gray-700 border-gray-300'
+                            }`}
+                          >
+                            <option value="low">Baixa</option>
+                            <option value="medium">Média</option>
+                            <option value="high">Alta</option>
+                            <option value="urgent">Urgente 🔥</option>
+                          </select>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <select
+                            value={ticket.status}
+                            onChange={(e) => handleAdminUpdateTicketStatus(ticket.id, e.target.value as any)}
+                            className={`px-2.5 py-1 rounded-lg text-xs font-bold outline-none border cursor-pointer ${
+                              ticket.status === 'answered' ? 'bg-emerald-50 text-emerald-700 border-emerald-300' :
+                              ticket.status === 'in_progress' ? 'bg-purple-50 text-purple-700 border-purple-300' :
+                              ticket.status === 'open' ? 'bg-amber-50 text-amber-700 border-amber-300' :
+                              'bg-gray-100 text-gray-700 border-gray-300'
+                            }`}
+                          >
+                            <option value="open">Aberto (⏰)</option>
+                            <option value="in_progress">Em Análise (⚙️)</option>
+                            <option value="answered">Respondido (✓)</option>
+                            <option value="closed">Fechado (🛑)</option>
+                          </select>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <button
+                            onClick={() => setSelectedTicket(ticket)}
+                            className="px-3 py-1.5 bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs rounded-lg shadow transition flex items-center space-x-1.5 cursor-pointer"
+                          >
+                            <MessageSquare className="h-3.5 w-3.5" />
+                            <span>Atender / Responder</span>
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
         {/* Gestão de Domínios e Sites */}
         <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm mb-8">
           <div className="flex justify-between items-center mb-6">
@@ -1017,6 +1230,116 @@ export default function AdminPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal / Thread de Atendimento do Ticket no Admin */}
+      {selectedTicket && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-3xl w-full flex flex-col max-h-[90vh] shadow-2xl animate-in zoom-in-95 duration-200">
+            {/* Header da Conversa */}
+            <div className="p-6 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gray-50/50 rounded-t-3xl">
+              <div>
+                <div className="flex flex-wrap items-center gap-2 mb-1">
+                  <span className="text-xs font-mono font-bold text-gray-500">{selectedTicket.id}</span>
+                  <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800">
+                    Cliente: {selectedTicket.userName} ({selectedTicket.userEmail})
+                  </span>
+                </div>
+                <h2 className="text-xl font-black text-gray-900">{selectedTicket.subject}</h2>
+              </div>
+
+              <div className="flex items-center space-x-3">
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase">Alterar Status</label>
+                  <select
+                    value={selectedTicket.status}
+                    onChange={(e) => handleAdminUpdateTicketStatus(selectedTicket.id, e.target.value as any)}
+                    className="px-2.5 py-1 text-xs font-bold rounded-lg border border-gray-300 bg-white outline-none cursor-pointer"
+                  >
+                    <option value="open">Aberto (⏰)</option>
+                    <option value="in_progress">Em Análise (⚙️)</option>
+                    <option value="answered">Respondido (✓)</option>
+                    <option value="closed">Fechado (🛑)</option>
+                  </select>
+                </div>
+
+                <button
+                  onClick={() => setSelectedTicket(null)}
+                  className="p-1.5 rounded-xl text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition"
+                >
+                  <XCircle className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+
+            {/* Corpo das Mensagens */}
+            <div className="p-6 overflow-y-auto flex-1 space-y-4 bg-gray-50/30">
+              {selectedTicket.messages.map((msg) => {
+                const isClient = msg.sender === 'client';
+                return (
+                  <div
+                    key={msg.id}
+                    className={`flex flex-col ${isClient ? 'items-start' : 'items-end'}`}
+                  >
+                    <div className="flex items-center space-x-2 mb-1">
+                      <span className="text-xs font-bold text-gray-700">
+                        {isClient ? msg.senderName : (
+                          <span className="flex items-center space-x-1 text-primary-700 font-bold">
+                            <ShieldCheck className="w-3.5 h-3.5 text-primary-600" />
+                            <span>{msg.senderName} (Suporte)</span>
+                          </span>
+                        )}
+                      </span>
+                      <span className="text-[10px] text-gray-400">
+                        {new Date(msg.timestamp).toLocaleDateString('pt-PT')} às {new Date(msg.timestamp).toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+
+                    <div
+                      className={`max-w-xl p-4 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
+                        !isClient
+                          ? 'bg-primary-600 text-white rounded-br-none shadow-sm'
+                          : 'bg-white border border-gray-200 text-gray-900 rounded-bl-none shadow-sm'
+                      }`}
+                    >
+                      {msg.message}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Formulário de Resposta pelo Admin */}
+            <div className="p-4 sm:p-6 border-t border-gray-200 bg-white rounded-b-3xl">
+              <form onSubmit={handleAdminSendReply} className="flex flex-col gap-3">
+                <textarea
+                  rows={3}
+                  required
+                  placeholder="Escreva a resposta oficial do suporte para o cliente..."
+                  value={adminReplyMessage}
+                  onChange={(e) => setAdminReplyMessage(e.target.value)}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-gray-900"
+                ></textarea>
+                
+                <div className="flex items-center justify-between">
+                  <div className="text-xs text-gray-500 flex items-center space-x-1">
+                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                    <span>Ao enviar, o status é automaticamente atualizado para <strong>Respondido</strong>.</span>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={!adminReplyMessage.trim()}
+                    className="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl shadow transition flex items-center space-x-2 disabled:opacity-50"
+                  >
+                    <Send className="w-4 h-4" />
+                    <span>Enviar Resposta ao Cliente</span>
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}
