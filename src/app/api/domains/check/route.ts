@@ -90,8 +90,23 @@ export async function GET(req: NextRequest) {
 
   const isAvailable = !isTaken;
 
-  // Registrar no histórico de pesquisas em tempo real e obter contagem
-  const searchCount = addDomainSearchLog(fullDomain, extension, isAvailable);
+  // Registar no histórico central via POST (persiste no mesmo store que o admin vê)
+  // Usar URL absoluta para garantir funcionamento em server-side
+  let searchCount = 1;
+  try {
+    const baseUrl = req.nextUrl.origin;
+    const logRes = await fetch(`${baseUrl}/api/domains/history`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ domain: fullDomain, extension, isAvailable }),
+    });
+    if (logRes.ok) {
+      const logData = await logRes.json();
+      searchCount = logData.searchCount || 1;
+    }
+  } catch (logErr) {
+    console.warn('Erro ao registar pesquisa de domínio no histórico:', logErr);
+  }
 
   // Consultar disponibilidade das alternativas em paralelo
   const altTLDs = DOMAIN_PRICES.filter(tld => tld.extension !== extension);
