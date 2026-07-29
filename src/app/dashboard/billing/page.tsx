@@ -8,13 +8,15 @@ import {
   CreditCard, TrendingUp, Calendar, Zap, Shield, Download, Printer
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
-import { hostingPlans } from '@/lib/data';
+import { hostingPlans, dataManager, ServiceOrder } from '@/lib/data';
 import DashboardNav from '@/components/DashboardNav';
+import { Clock, XCircle, FileText } from 'lucide-react';
 
 export default function BillingPage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [userOrders, setUserOrders] = useState<ServiceOrder[]>([]);
 
   useEffect(() => {
     const currentUser = auth.getCurrentUser();
@@ -23,6 +25,26 @@ export default function BillingPage() {
       return;
     }
     setUser(currentUser);
+
+    // Carregar pedidos do cliente logado
+    const allOrders = dataManager.getOrders();
+    const myOrders = allOrders.filter(
+      o => o.clientEmail.toLowerCase() === currentUser.email.toLowerCase() ||
+           o.clientName.toLowerCase() === currentUser.name.toLowerCase()
+    );
+    // Se for conta de demonstração/inicial sem pedidos filtrados, exibir todos para visualização rica
+    setUserOrders(myOrders.length > 0 ? myOrders : allOrders);
+
+    dataManager.fetchOrdersAsync().then((fetched) => {
+      if (fetched && fetched.length > 0) {
+        const updated = fetched.filter(
+          o => o.clientEmail.toLowerCase() === currentUser.email.toLowerCase() ||
+               o.clientName.toLowerCase() === currentUser.name.toLowerCase()
+        );
+        setUserOrders(updated.length > 0 ? updated : fetched);
+      }
+    });
+
     setLoading(false);
   }, [router]);
 
@@ -141,35 +163,76 @@ export default function BillingPage() {
 
             {/* Billing History */}
             <div className="bg-white rounded-xl shadow-sm p-6">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Histórico de Pagamentos</h3>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center space-x-4">
-                    <div className="bg-green-100 p-3 rounded-lg">
-                      <CheckCircle className="h-6 w-6 text-green-600" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-gray-900">Plano {currentPlan?.name}</p>
-                      <p className="text-sm text-gray-600">Pagamento mensal</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-4">
-                    <div className="text-right">
-                      <p className="font-semibold text-gray-900">{currentPlan?.price ? currentPlan.price.toLocaleString('pt-MZ') : '0'} MT</p>
-                      <p className="text-sm text-gray-600">
-                        {new Date().toLocaleDateString('pt-BR')}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => window.print()}
-                      className="px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium text-xs rounded-lg transition flex items-center space-x-1.5 cursor-pointer border border-gray-200"
-                    >
-                      <Printer className="h-4 w-4 text-gray-600" />
-                      <span>Fatura (PDF)</span>
-                    </button>
-                  </div>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">Histórico de Pagamentos & Faturas</h3>
+                  <p className="text-xs text-gray-500">Sincronizado em tempo real com o estado dos seus pedidos</p>
                 </div>
+                <span className="bg-primary-50 text-primary-700 text-xs font-bold px-3 py-1 rounded-full border border-primary-200">
+                  {userOrders.length} {userOrders.length === 1 ? 'Fatura' : 'Faturas'}
+                </span>
               </div>
+
+              {userOrders.length === 0 ? (
+                <div className="text-center py-8 text-gray-500 text-sm">
+                  Nenhum histórico de fatura registado ainda.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {userOrders.map((order) => {
+                    const statusConfig = {
+                      completed: { label: 'Pago / Ativo', bg: 'bg-emerald-50 text-emerald-800 border-emerald-200', icon: CheckCircle, iconColor: 'text-emerald-600', iconBg: 'bg-emerald-100' },
+                      in_progress: { label: 'Em Processamento', bg: 'bg-blue-50 text-blue-800 border-blue-200', icon: Clock, iconColor: 'text-blue-600', iconBg: 'bg-blue-100' },
+                      pending: { label: 'Pagamento Pendente', bg: 'bg-amber-50 text-amber-800 border-amber-200', icon: Clock, iconColor: 'text-amber-600', iconBg: 'bg-amber-100' },
+                      suspended: { label: 'Suspenso', bg: 'bg-rose-50 text-rose-800 border-rose-200', icon: XCircle, iconColor: 'text-rose-600', iconBg: 'bg-rose-100' },
+                      cancelled: { label: 'Cancelado', bg: 'bg-gray-100 text-gray-700 border-gray-200', icon: XCircle, iconColor: 'text-gray-500', iconBg: 'bg-gray-200' },
+                    }[order.status] || { label: order.status, bg: 'bg-gray-50 text-gray-800 border-gray-200', icon: Clock, iconColor: 'text-gray-600', iconBg: 'bg-gray-100' };
+
+                    const StatusIcon = statusConfig.icon;
+
+                    return (
+                      <div key={order.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-gray-200 rounded-xl hover:border-primary-200 transition gap-4">
+                        <div className="flex items-center space-x-3.5">
+                          <div className={`${statusConfig.iconBg} p-2.5 rounded-xl shrink-0`}>
+                            <StatusIcon className={`h-5 w-5 ${statusConfig.iconColor}`} />
+                          </div>
+                          <div>
+                            <div className="flex items-center space-x-2 flex-wrap gap-1">
+                              <span className="font-bold text-gray-900 text-sm sm:text-base">{order.serviceName}</span>
+                              <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border ${statusConfig.bg}`}>
+                                {statusConfig.label}
+                              </span>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-0.5 flex items-center space-x-2 flex-wrap">
+                              <span>Ref: <strong className="font-mono text-gray-700">{order.id}</strong></span>
+                              <span>•</span>
+                              <span className="capitalize">Via {order.paymentMethod === 'mpesa' ? 'M-Pesa' : order.paymentMethod === 'emola' ? 'eMola' : order.paymentMethod === 'card' ? 'Cartão de Crédito/Débito' : 'Transferência Bancária'}</span>
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between sm:justify-end space-x-4 border-t sm:border-t-0 pt-3 sm:pt-0 border-gray-100">
+                          <div className="text-left sm:text-right">
+                            <p className="font-black text-gray-900 text-base">{order.amount.toLocaleString('pt-MZ')} MT</p>
+                            <p className="text-[11px] text-gray-400">
+                              {new Date(order.createdAt).toLocaleDateString('pt-MZ', { day: '2-digit', month: 'short', year: 'numeric' })}
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => window.print()}
+                            className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs rounded-xl transition flex items-center space-x-1.5 cursor-pointer border border-gray-200 shrink-0"
+                            title="Imprimir Fatura"
+                          >
+                            <Printer className="h-4 w-4 text-gray-600" />
+                            <span>Fatura (PDF)</span>
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             {/* Upgrade Plans */}
