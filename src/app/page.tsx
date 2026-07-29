@@ -36,33 +36,35 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Features */}
-      <section id="recursos" className="py-20 px-4 bg-white">
+      {/* Features - 1 Única Linha no Mobile */}
+      <section id="recursos" className="py-8 sm:py-14 px-3 sm:px-6 bg-white">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
+          <h2 className="text-xl sm:text-3xl font-extrabold text-center text-gray-900 mb-6 sm:mb-10">
             Por que escolher a WEHOSTHERE?
           </h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center p-6">
-              <div className="flex justify-center mb-4">
-                <Zap className="h-12 w-12 text-primary-600" />
+          <div className="grid grid-cols-3 gap-2 sm:gap-6">
+            <div className="text-center p-2.5 sm:p-5 bg-gray-50/80 rounded-2xl border border-gray-100">
+              <div className="flex justify-center mb-1.5">
+                <Zap className="h-6 w-6 sm:h-10 sm:w-10 text-primary-600" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Ultra Rápido</h3>
-              <p className="text-gray-600">Servidores otimizados para máxima performance</p>
+              <h3 className="text-xs sm:text-lg font-bold text-gray-900 mb-0.5">Ultra Rápido</h3>
+              <p className="text-[10px] sm:text-sm text-gray-500 leading-tight">Servidores de máxima performance</p>
             </div>
-            <div className="text-center p-6">
-              <div className="flex justify-center mb-4">
-                <Shield className="h-12 w-12 text-primary-600" />
+
+            <div className="text-center p-2.5 sm:p-5 bg-gray-50/80 rounded-2xl border border-gray-100">
+              <div className="flex justify-center mb-1.5">
+                <Shield className="h-6 w-6 sm:h-10 sm:w-10 text-primary-600" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">100% Seguro</h3>
-              <p className="text-gray-600">Backup diário e proteção avançada</p>
+              <h3 className="text-xs sm:text-lg font-bold text-gray-900 mb-0.5">100% Seguro</h3>
+              <p className="text-[10px] sm:text-sm text-gray-500 leading-tight">Backup diário &amp; proteção total</p>
             </div>
-            <div className="text-center p-6">
-              <div className="flex justify-center mb-4">
-                <Users className="h-12 w-12 text-primary-600" />
+
+            <div className="text-center p-2.5 sm:p-5 bg-gray-50/80 rounded-2xl border border-gray-100">
+              <div className="flex justify-center mb-1.5">
+                <Users className="h-6 w-6 sm:h-10 sm:w-10 text-primary-600" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Suporte 24/7</h3>
-              <p className="text-gray-600">Equipe especializada sempre disponível</p>
+              <h3 className="text-xs sm:text-lg font-bold text-gray-900 mb-0.5">Suporte 24/7</h3>
+              <p className="text-[10px] sm:text-sm text-gray-500 leading-tight">Equipa técnica sempre disponível</p>
             </div>
           </div>
         </div>
