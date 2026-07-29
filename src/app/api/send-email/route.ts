@@ -19,7 +19,10 @@ export async function POST(req: Request) {
     // Tipo: mensagem enviada do Webmail corporativo
     if (type === 'webmail') {
       if (!from) {
-        return NextResponse.json({ success: false, error: 'Remetente (from) é obrigatório para Webmail.' }, { status: 400 });
+        return NextResponse.json(
+          { success: false, error: 'Remetente (from) é obrigatório para Webmail.' },
+          { status: 400 }
+        );
       }
       result = await sendWebmailMessage(from, to, subject || '(Sem assunto)', msgBody || text || '');
     } else {
@@ -34,15 +37,15 @@ export async function POST(req: Request) {
     }
 
     if (result.success) {
-      return NextResponse.json({ success: true, message: 'E-mail enviado com sucesso via SendGrid.' });
+      return NextResponse.json({ success: true, message: 'E-mail enviado com sucesso via Resend.' });
     } else {
-      // Fallback gracioso — regista o erro mas retorna 200 para não quebrar a UI
-      console.warn('[API/send-email] SendGrid falhou:', result.error);
+      // Fallback gracioso — regista o erro mas não quebra a UI
+      console.warn('[API/send-email] Resend falhou:', result.error);
       return NextResponse.json({
         success: false,
-        error: result.error || 'Erro desconhecido no SendGrid.',
+        error: result.error || 'Erro desconhecido no Resend.',
         fallback: true,
-        message: 'E-mail registado localmente. Configura SENDGRID_API_KEY para envio real.',
+        message: 'E-mail registado localmente. Verifica as variáveis RESEND_API_KEY e EMAIL_USER no .env.local.',
       }, { status: 200 });
     }
   } catch (err) {
