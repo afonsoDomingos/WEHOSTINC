@@ -360,7 +360,7 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer id="contato" className="bg-gray-900 text-white py-12 px-4">
+      <footer id="contacto" className="bg-gray-900 text-white py-12 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
@@ -387,7 +387,7 @@ export default function Home() {
                 <li>Central de Ajuda</li>
                 <li>Tutoriais</li>
                 <li>Status do Sistema</li>
-                <li>Contato</li>
+                <li>Contacto</li>
               </ul>
             </div>
             <div>

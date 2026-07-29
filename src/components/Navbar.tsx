@@ -47,10 +47,10 @@ export default function Navbar() {
               Recursos
             </Link>
             <Link 
-              href="#contato" 
+              href="#contacto" 
               className="text-sm font-medium text-gray-700 hover:text-primary-600 transition"
             >
-              Contato
+              Contacto
             </Link>
           </nav>
 
@@ -115,11 +115,11 @@ export default function Navbar() {
               Recursos
             </Link>
             <Link
-              href="#contato"
+              href="#contacto"
               onClick={closeMobileMenu}
               className="px-4 py-3 rounded-xl text-base font-medium text-gray-800 hover:bg-primary-50 hover:text-primary-600 transition"
             >
-              Contato
+              Contacto
             </Link>
           </nav>
 

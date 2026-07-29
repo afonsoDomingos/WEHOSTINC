@@ -711,7 +711,7 @@ export default function AdminPage() {
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50/50">
                     <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">ID / Data</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Cliente / Contato</th>
+                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Cliente / Contacto</th>
                     <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Serviço Solicidado</th>
                     <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Valor / Método</th>
                     <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Status do Pedido</th>
@@ -806,7 +806,7 @@ export default function AdminPage() {
                             target="_blank"
                             rel="noopener noreferrer"
                             className="p-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-md transition"
-                            title="Contato via WhatsApp"
+                            title="Contacto via WhatsApp"
                           >
                             <MessageSquare className="h-4 w-4" />
                           </a>
@@ -902,7 +902,7 @@ export default function AdminPage() {
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50/50">
                     <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">ID / Data</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Cliente / Contato</th>
+                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Cliente / Contacto</th>
                     <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Assunto / Categoria</th>
                     <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Prioridade</th>
                     <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Status</th>
