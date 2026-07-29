@@ -49,8 +49,8 @@ export default function DomainSearch() {
   return (
     <div className="w-full max-w-4xl mx-auto mb-12">
       {/* Box de Pesquisa Principal */}
-      <div className="bg-white p-3 md:p-4 rounded-3xl shadow-2xl border border-gray-200/80">
-        <form onSubmit={handleSearch} className="flex flex-col md:flex-row items-center gap-2">
+      <div className="bg-white p-3 sm:p-4 rounded-3xl shadow-2xl border border-gray-200/80 w-full overflow-hidden">
+        <form onSubmit={handleSearch} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full">
           
           {/* Input do nome de domínio */}
           <div className="relative flex-1 w-full">
@@ -65,12 +65,12 @@ export default function DomainSearch() {
             />
           </div>
 
-          {/* Seletor de Extensão TLD */}
-          <div className="w-full md:w-auto flex items-center gap-2">
+          {/* Seletor de Extensão TLD + Botão Pesquisar */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
             <select
               value={selectedTld}
               onChange={(e) => setSelectedTld(e.target.value)}
-              className="w-full md:w-auto px-4 py-3.5 bg-gray-100 border border-gray-200 rounded-2xl font-bold text-gray-800 text-sm outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer"
+              className="w-full sm:w-auto px-4 py-3.5 bg-gray-100 border border-gray-200 rounded-2xl font-bold text-gray-800 text-sm outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer text-center sm:text-left"
             >
               {DOMAIN_PRICES.map((tld) => (
                 <option key={tld.extension} value={tld.extension}>
@@ -82,7 +82,7 @@ export default function DomainSearch() {
             <button
               type="submit"
               disabled={isSearching}
-              className="w-full md:w-auto px-7 py-3.5 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 text-white font-bold rounded-2xl shadow-lg hover:shadow-xl transition text-sm md:text-base flex items-center justify-center space-x-2 cursor-pointer flex-shrink-0"
+              className="w-full sm:w-auto px-7 py-3.5 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 text-white font-bold rounded-2xl shadow-lg hover:shadow-xl transition text-sm md:text-base flex items-center justify-center space-x-2 cursor-pointer"
             >
               {isSearching ? (
                 <>
