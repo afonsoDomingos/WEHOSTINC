@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
   Globe, Plus, Trash2, Settings, CheckCircle, Clock, XCircle,
-  LayoutDashboard, Mail, Database, Settings as SettingsIcon, LogOut, Server
+  LayoutDashboard, Mail, Database, Settings as SettingsIcon, LogOut, Server, Sparkles, ArrowRight
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 import { dataManager, Site } from '@/lib/data';
@@ -120,35 +120,42 @@ export default function SitesPage() {
               <nav className="space-y-2">
                 <Link
                   href="/dashboard"
-                  className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition"
+                  className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition font-medium"
                 >
                   <LayoutDashboard className="h-5 w-5" />
                   <span>Dashboard</span>
                 </Link>
                 <Link
                   href="/dashboard/sites"
-                  className="flex items-center space-x-3 px-4 py-3 bg-primary-50 text-primary-700 rounded-lg"
+                  className="flex items-center space-x-3 px-4 py-3 bg-primary-50 text-primary-700 rounded-lg font-medium"
                 >
                   <Globe className="h-5 w-5" />
                   <span>Meus Sites</span>
                 </Link>
                 <Link
+                  href="/site-quote"
+                  className="flex items-center space-x-3 px-4 py-3 bg-amber-50 text-amber-900 border border-amber-200/80 rounded-lg font-bold hover:bg-amber-100 transition"
+                >
+                  <Sparkles className="h-5 w-5 text-amber-600" />
+                  <span>Solicitar Site</span>
+                </Link>
+                <Link
                   href="/dashboard/email"
-                  className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition"
+                  className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition font-medium"
                 >
                   <Mail className="h-5 w-5" />
                   <span>Email</span>
                 </Link>
                 <Link
                   href="/dashboard/billing"
-                  className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition"
+                  className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition font-medium"
                 >
                   <Database className="h-5 w-5" />
                   <span>Faturamento</span>
                 </Link>
                 <Link
                   href="/dashboard/settings"
-                  className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition"
+                  className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition font-medium"
                 >
                   <SettingsIcon className="h-5 w-5" />
                   <span>Configurações</span>
@@ -158,31 +165,71 @@ export default function SitesPage() {
           </div>
 
           {/* Main Content */}
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-3 space-y-6">
+            {/* Banner de Promoção do Serviço de Criação de Sites */}
+            <div className="bg-gradient-to-r from-amber-500 via-amber-600 to-orange-600 rounded-xl shadow-md p-6 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="inline-flex items-center space-x-1.5 bg-amber-900/30 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider text-amber-100">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  <span>Criação de Sites Chave na Mão</span>
+                </div>
+                <h2 className="text-xl sm:text-2xl font-extrabold text-white">Precisa de um site profissional para o seu negócio?</h2>
+                <p className="text-amber-100 text-xs sm:text-sm">Escolha entre 18 categorias (Landing Page, Loja Virtual, ERP, SaaS, etc.) a partir de 12.000 MT.</p>
+              </div>
+              <Link
+                href="/site-quote"
+                className="flex items-center space-x-2 bg-white text-gray-900 hover:bg-gray-100 font-extrabold text-xs sm:text-sm px-5 py-3 rounded-xl shadow transition whitespace-nowrap cursor-pointer shrink-0"
+              >
+                <span>Consultar & Solicitar</span>
+                <ArrowRight className="h-4 w-4 text-amber-600" />
+              </Link>
+            </div>
+
             <div className="bg-white rounded-xl shadow-sm p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold text-gray-900">Meus Sites</h1>
-                <button
-                  onClick={() => setShowModal(true)}
-                  className="flex items-center space-x-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition"
-                >
-                  <Plus className="h-5 w-5" />
-                  <span>Adicionar Site</span>
-                </button>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900">Meus Sites</h1>
+                  <p className="text-xs text-gray-500 mt-0.5">Sites e domínios associados à sua conta de hospedagem</p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Link
+                    href="/site-quote"
+                    className="flex items-center space-x-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold text-xs px-3.5 py-2 rounded-lg transition"
+                  >
+                    <Sparkles className="h-4 w-4 text-amber-600" />
+                    <span>Solicitar Criação</span>
+                  </Link>
+                  <button
+                    onClick={() => setShowModal(true)}
+                    className="flex items-center space-x-1.5 bg-primary-600 text-white font-bold text-xs px-4 py-2 rounded-lg hover:bg-primary-700 transition"
+                  >
+                    <Plus className="h-4 w-4" />
+                    <span>Adicionar Site</span>
+                  </button>
+                </div>
               </div>
 
               {sites.length === 0 ? (
                 <div className="text-center py-12">
                   <Globe className="h-16 w-16 text-gray-300 mx-auto mb-4" />
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhum site configurado</h3>
-                  <p className="text-gray-600 mb-4">Comece adicionando seu primeiro site</p>
-                  <button
-                    onClick={() => setShowModal(true)}
-                    className="flex items-center space-x-2 bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition mx-auto"
-                  >
-                    <Plus className="h-5 w-5" />
-                    <span>Adicionar Site</span>
-                  </button>
+                  <p className="text-gray-600 mb-4 text-sm">Adicione um site já existente ou solicite a criação de um novo site profissional</p>
+                  <div className="flex items-center justify-center space-x-3">
+                    <Link
+                      href="/site-quote"
+                      className="flex items-center space-x-2 bg-amber-500 hover:bg-amber-600 text-white font-bold px-5 py-2.5 rounded-lg shadow transition text-sm"
+                    >
+                      <Sparkles className="h-4 w-4" />
+                      <span>Solicitar Criação de Site</span>
+                    </Link>
+                    <button
+                      onClick={() => setShowModal(true)}
+                      className="flex items-center space-x-2 bg-primary-600 text-white font-bold px-5 py-2.5 rounded-lg hover:bg-primary-700 transition text-sm"
+                    >
+                      <Plus className="h-4 w-4" />
+                      <span>Adicionar Site</span>
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-4">

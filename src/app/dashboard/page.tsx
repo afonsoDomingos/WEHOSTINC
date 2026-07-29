@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
   Server, Mail, LayoutDashboard, Settings, LogOut, 
-  Plus, Globe, Database, TrendingUp, Users, CheckCircle 
+  Plus, Globe, Database, TrendingUp, Users, CheckCircle, Sparkles, ArrowRight
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 
@@ -67,35 +67,42 @@ export default function DashboardPage() {
               <nav className="space-y-2">
                 <Link
                   href="/dashboard"
-                  className="flex items-center space-x-3 px-4 py-3 bg-primary-50 text-primary-700 rounded-lg"
+                  className="flex items-center space-x-3 px-4 py-3 bg-primary-50 text-primary-700 rounded-lg font-medium"
                 >
                   <LayoutDashboard className="h-5 w-5" />
                   <span>Dashboard</span>
                 </Link>
                 <Link
                   href="/dashboard/sites"
-                  className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition"
+                  className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition font-medium"
                 >
                   <Globe className="h-5 w-5" />
                   <span>Meus Sites</span>
                 </Link>
                 <Link
+                  href="/site-quote"
+                  className="flex items-center space-x-3 px-4 py-3 bg-amber-50 text-amber-900 border border-amber-200/80 rounded-lg font-bold hover:bg-amber-100 transition"
+                >
+                  <Sparkles className="h-5 w-5 text-amber-600" />
+                  <span>Solicitar Site</span>
+                </Link>
+                <Link
                   href="/dashboard/email"
-                  className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition"
+                  className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition font-medium"
                 >
                   <Mail className="h-5 w-5" />
                   <span>Email</span>
                 </Link>
                 <Link
                   href="/dashboard/billing"
-                  className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition"
+                  className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition font-medium"
                 >
                   <Database className="h-5 w-5" />
                   <span>Faturamento</span>
                 </Link>
                 <Link
                   href="/dashboard/settings"
-                  className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition"
+                  className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition font-medium"
                 >
                   <Settings className="h-5 w-5" />
                   <span>Configurações</span>
@@ -122,22 +129,29 @@ export default function DashboardPage() {
           {/* Main Content */}
           <div className="lg:col-span-3 space-y-6">
             {/* Welcome Card */}
-            <div className="bg-gradient-to-r from-primary-600 to-primary-700 rounded-xl shadow-lg p-8 text-white">
-              <h1 className="text-3xl font-bold mb-2">Bem-vindo ao Painel!</h1>
-              <p className="text-blue-100 mb-6">
-                Gerencie seus sites, emails e configurações em um só lugar.
+            <div className="bg-gradient-to-r from-primary-600 to-primary-700 rounded-xl shadow-lg p-6 sm:p-8 text-white">
+              <h1 className="text-2xl sm:text-3xl font-bold mb-2">Bem-vindo ao Painel!</h1>
+              <p className="text-blue-100 mb-6 text-sm sm:text-base">
+                Gerencie seus sites, emails e consulte ou solicite criação de sites profissionais.
               </p>
-              <div className="flex space-x-4">
+              <div className="flex flex-wrap gap-3">
+                <Link
+                  href="/site-quote"
+                  className="flex items-center space-x-2 bg-amber-400 hover:bg-amber-300 text-gray-900 px-5 py-3 rounded-lg font-extrabold text-sm shadow-md transition"
+                >
+                  <Sparkles className="h-5 w-5 text-gray-900" />
+                  <span>Solicitar Criação de Site</span>
+                </Link>
                 <Link
                   href="/dashboard/sites"
-                  className="flex items-center space-x-2 bg-white text-primary-600 px-6 py-3 rounded-lg hover:bg-gray-100 transition font-semibold"
+                  className="flex items-center space-x-2 bg-white text-primary-600 px-5 py-3 rounded-lg hover:bg-gray-100 transition font-semibold text-sm"
                 >
                   <Plus className="h-5 w-5" />
                   <span>Novo Site</span>
                 </Link>
                 <Link
                   href="/dashboard/email"
-                  className="flex items-center space-x-2 bg-primary-500 text-white px-6 py-3 rounded-lg hover:bg-primary-400 transition font-semibold"
+                  className="flex items-center space-x-2 bg-primary-500 text-white px-5 py-3 rounded-lg hover:bg-primary-400 transition font-semibold text-sm"
                 >
                   <Mail className="h-5 w-5" />
                   <span>Configurar Email</span>
@@ -180,8 +194,24 @@ export default function DashboardPage() {
               <h2 className="text-xl font-bold text-gray-900 mb-4">Ações Rápidas</h2>
               <div className="grid md:grid-cols-2 gap-4">
                 <Link
+                  href="/site-quote"
+                  className="flex items-center space-x-4 p-4 border-2 border-amber-300 bg-amber-50/60 rounded-xl hover:bg-amber-100/70 transition"
+                >
+                  <div className="bg-amber-500 p-3 rounded-lg text-white">
+                    <Sparkles className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-gray-900 flex items-center gap-1.5">
+                      <span>Solicitar Criação de Site</span>
+                      <span className="text-[10px] bg-amber-200 text-amber-900 font-extrabold px-2 py-0.5 rounded-full">Novo</span>
+                    </h3>
+                    <p className="text-xs text-amber-900 font-medium mt-0.5">Catálogo com 18 tipos de sites • a partir de 12.000 MT</p>
+                  </div>
+                </Link>
+
+                <Link
                   href="/dashboard/sites"
-                  className="flex items-center space-x-4 p-4 border rounded-lg hover:bg-gray-50 transition"
+                  className="flex items-center space-x-4 p-4 border rounded-xl hover:bg-gray-50 transition"
                 >
                   <div className="bg-primary-100 p-3 rounded-lg">
                     <Globe className="h-6 w-6 text-primary-600" />
@@ -194,7 +224,7 @@ export default function DashboardPage() {
 
                 <Link
                   href="/dashboard/email"
-                  className="flex items-center space-x-4 p-4 border rounded-lg hover:bg-gray-50 transition"
+                  className="flex items-center space-x-4 p-4 border rounded-xl hover:bg-gray-50 transition"
                 >
                   <div className="bg-primary-100 p-3 rounded-lg">
                     <Mail className="h-6 w-6 text-primary-600" />
@@ -207,7 +237,7 @@ export default function DashboardPage() {
 
                 <Link
                   href="/dashboard/billing"
-                  className="flex items-center space-x-4 p-4 border rounded-lg hover:bg-gray-50 transition"
+                  className="flex items-center space-x-4 p-4 border rounded-xl hover:bg-gray-50 transition"
                 >
                   <div className="bg-primary-100 p-3 rounded-lg">
                     <TrendingUp className="h-6 w-6 text-primary-600" />
@@ -215,19 +245,6 @@ export default function DashboardPage() {
                   <div>
                     <h3 className="font-semibold text-gray-900">Upgrade de Plano</h3>
                     <p className="text-sm text-gray-600">Aumente seus recursos</p>
-                  </div>
-                </Link>
-
-                <Link
-                  href="/dashboard/settings"
-                  className="flex items-center space-x-4 p-4 border rounded-lg hover:bg-gray-50 transition"
-                >
-                  <div className="bg-primary-100 p-3 rounded-lg">
-                    <Settings className="h-6 w-6 text-primary-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">Configurações</h3>
-                    <p className="text-sm text-gray-600">Gerencie sua conta</p>
                   </div>
                 </Link>
               </div>

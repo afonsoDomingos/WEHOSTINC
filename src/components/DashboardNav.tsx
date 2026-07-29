@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
   Server, LayoutDashboard, Globe, Mail, 
-  Database, Settings as SettingsIcon, LogOut, Menu, X, User, LifeBuoy
+  Database, Settings as SettingsIcon, LogOut, Menu, X, User, LifeBuoy, Sparkles
 } from 'lucide-react';
 
 interface DashboardNavProps {
@@ -20,6 +20,7 @@ export default function DashboardNav({ userName, onLogout }: DashboardNavProps) 
   const navItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/dashboard/sites', label: 'Meus Sites', icon: Globe },
+    { href: '/site-quote', label: 'Solicitar Site', icon: Sparkles },
     { href: '/dashboard/email', label: 'Email', icon: Mail },
     { href: '/dashboard/billing', label: 'Faturamento', icon: Database },
     { href: '/dashboard/tickets', label: 'Suporte', icon: LifeBuoy },
