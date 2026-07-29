@@ -38,7 +38,7 @@ export default function Navbar() {
               href="#criacao-sites" 
               className="text-sm font-semibold text-primary-600 hover:text-primary-700 bg-primary-50 px-3 py-1.5 rounded-lg border border-primary-200/60 transition"
             >
-              Criação de Sites (25.000 MT)
+              Criação de Sites (a partir de 12.000 MT)
             </Link>
             <Link 
               href="#recursos" 
@@ -105,7 +105,7 @@ export default function Navbar() {
               className="px-4 py-3 rounded-xl text-base font-semibold text-primary-700 bg-primary-50/80 border border-primary-100 flex items-center justify-between transition"
             >
               <span>Criação de Sites</span>
-              <span className="text-xs bg-primary-600 text-white px-2.5 py-1 rounded-full">25.000 MT</span>
+              <span className="text-xs bg-primary-600 text-white px-2.5 py-1 rounded-full">a partir 12.000 MT</span>
             </Link>
             <Link
               href="#recursos"

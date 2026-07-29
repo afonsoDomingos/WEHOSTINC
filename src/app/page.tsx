@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from "next/link";
 import { Server, Mail, Shield, Zap, Globe, Users, Search, Sparkles, CheckCircle } from "lucide-react";
+import { websiteTypes } from '@/lib/data';
 
 import Navbar from '@/components/Navbar';
 
@@ -10,6 +11,22 @@ import DomainSearch from '@/components/DomainSearch';
 
 export default function Home() {
   const [isAnnual, setIsAnnual] = useState(false);
+
+  // Ticker animado pelos tipos de sites e seus preços
+  const tickerTypes = websiteTypes.filter(t => t.basePrice < 100000);
+  const [tickerIndex, setTickerIndex] = useState(0);
+  const [tickerVisible, setTickerVisible] = useState(true);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTickerVisible(false);
+      setTimeout(() => {
+        setTickerIndex(prev => (prev + 1) % tickerTypes.length);
+        setTickerVisible(true);
+      }, 350);
+    }, 2500);
+    return () => clearInterval(interval);
+  }, [tickerTypes.length]);
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       {/* Navbar Responsivo */}
@@ -290,20 +307,51 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="w-full lg:w-72 bg-gradient-to-b from-gray-50 to-primary-50/40 rounded-2xl p-5 border border-gray-200 text-center flex flex-col justify-between shrink-0 shadow-sm">
+              <div className="w-full lg:w-72 bg-gradient-to-b from-gray-50 to-primary-50/40 rounded-2xl p-5 border border-gray-200 text-center flex flex-col justify-between shrink-0 shadow-sm overflow-hidden">
                 <div>
-                  <span className="text-[11px] uppercase font-bold text-gray-500 tracking-wider block mb-1">Taxa Única de Projeto</span>
-                  <div className="text-3xl sm:text-4xl font-black text-gray-900 mb-1">
-                    25.000 MT
+                  <span className="text-[11px] uppercase font-bold text-gray-500 tracking-wider block mb-2">Investimento Único</span>
+
+                  {/* Ticker animado */}
+                  <div className="min-h-[80px] flex flex-col items-center justify-center">
+                    <div
+                      style={{
+                        opacity: tickerVisible ? 1 : 0,
+                        transform: tickerVisible ? 'translateY(0)' : 'translateY(8px)',
+                        transition: 'opacity 0.35s ease, transform 0.35s ease'
+                      }}
+                    >
+                      <div className="flex items-center justify-center space-x-1.5 mb-1">
+                        <span className="text-lg">{tickerTypes[tickerIndex]?.emoji}</span>
+                        <span className="text-[11px] font-bold text-gray-500 truncate max-w-[160px]">
+                          {tickerTypes[tickerIndex]?.name}
+                        </span>
+                      </div>
+                      <div className="text-3xl sm:text-4xl font-black text-primary-700">
+                        {tickerTypes[tickerIndex]?.basePrice.toLocaleString('pt-MZ')} MT
+                      </div>
+                    </div>
                   </div>
-                  <p className="text-[11px] text-gray-500 mb-4 font-medium">Pagamento parcelado ou via M-Pesa / eMola / Cartão</p>
+
+                  {/* Dots indicadores */}
+                  <div className="flex justify-center gap-1 mt-2 mb-3">
+                    {tickerTypes.map((_, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => { setTickerVisible(false); setTimeout(() => { setTickerIndex(i); setTickerVisible(true); }, 300); }}
+                        className={`rounded-full transition-all duration-300 cursor-pointer ${i === tickerIndex ? 'w-4 h-1.5 bg-primary-600' : 'w-1.5 h-1.5 bg-gray-300'}`}
+                      />
+                    ))}
+                  </div>
+
+                  <p className="text-[10px] text-gray-400 mb-4 font-medium">Preço varia consoante o tipo de site • Pagamento parcelado</p>
                 </div>
 
                 <Link
                   href="/site-quote"
                   className="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow transition duration-200 block text-center"
                 >
-                  Solicitar Criação de Site
+                  Ver Todos os Tipos de Site →
                 </Link>
               </div>
             </div>
