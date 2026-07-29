@@ -38,8 +38,8 @@ export const hostingPlans: HostingPlan[] = [
   {
     id: 'basic',
     name: 'Básico',
-    price: 1200,
-    priceAnnual: 12000,
+    price: 120,
+    priceAnnual: 1200,
     features: {
       sites: 1,
       emails: 5,
@@ -52,8 +52,8 @@ export const hostingPlans: HostingPlan[] = [
   {
     id: 'pro',
     name: 'Profissional',
-    price: 3000,
-    priceAnnual: 30000,
+    price: 300,
+    priceAnnual: 3000,
     features: {
       sites: 5,
       emails: 20,
@@ -66,8 +66,8 @@ export const hostingPlans: HostingPlan[] = [
   {
     id: 'enterprise',
     name: 'Empresarial',
-    price: 6200,
-    priceAnnual: 62000,
+    price: 620,
+    priceAnnual: 6200,
     features: {
       sites: -1, // -1 significa ilimitado
       emails: -1,
@@ -90,6 +90,238 @@ export const hostingPlans: HostingPlan[] = [
       ssl: true,
       cdn: true
     }
+  }
+];
+
+export interface WebsiteType {
+  id: string;
+  name: string;
+  emoji: string;
+  shortDesc: string;
+  description: string;
+  examples: string[];
+  basePrice: number;
+  priceNote: string;
+  complexity: 'simple' | 'medium' | 'complex' | 'enterprise';
+  deliveryDays: number;
+}
+
+export const websiteTypes: WebsiteType[] = [
+  {
+    id: 'institutional',
+    name: 'Website Institucional',
+    emoji: '🏢',
+    shortDesc: 'Apresentação da empresa, equipa e serviços',
+    description: 'Apresenta uma empresa, organização ou profissional. Inclui serviços, equipa, contactos, localização e portfólio.',
+    examples: ['Página de Sobre', 'Serviços', 'Equipa', 'Portfólio', 'Contactos', 'Localização'],
+    basePrice: 25000,
+    priceNote: 'Investimento único',
+    complexity: 'simple',
+    deliveryDays: 14
+  },
+  {
+    id: 'ecommerce',
+    name: 'Loja Virtual (E-commerce)',
+    emoji: '🛒',
+    shortDesc: 'Venda de produtos e serviços online',
+    description: 'Venda de produtos e serviços online com carrinho de compras, pagamentos, gestão de encomendas e stock.',
+    examples: ['Catálogo de produtos', 'Carrinho', 'Pagamentos M-Pesa/eMola', 'Gestão de stock', 'Encomendas'],
+    basePrice: 65000,
+    priceNote: 'Investimento único',
+    complexity: 'complex',
+    deliveryDays: 30
+  },
+  {
+    id: 'webapp',
+    name: 'Sistema Web (Aplicação)',
+    emoji: '⚙️',
+    shortDesc: 'Plataformas para automatizar processos empresariais',
+    description: 'Plataformas personalizadas para automatizar processos internos ou externos da sua empresa.',
+    examples: ['CRM', 'ERP', 'Gestão Escolar', 'Gestão Hospitalar', 'Sistema de Empréstimos', 'Gestão Empresarial'],
+    basePrice: 150000,
+    priceNote: 'Preço sob orçamento',
+    complexity: 'enterprise',
+    deliveryDays: 90
+  },
+  {
+    id: 'landing',
+    name: 'Landing Page',
+    emoji: '🎯',
+    shortDesc: 'Página focada numa única ação ou campanha',
+    description: 'Página focada numa única ação. Ideal para campanhas de marketing, geração de leads e venda de produtos.',
+    examples: ['Geração de leads', 'Venda de produto', 'Campanha de marketing', 'Captura de emails'],
+    basePrice: 12000,
+    priceNote: 'Investimento único',
+    complexity: 'simple',
+    deliveryDays: 7
+  },
+  {
+    id: 'saas',
+    name: 'Website de Assinaturas (SaaS)',
+    emoji: '💻',
+    shortDesc: 'Software acessado pela internet via subscrição',
+    description: 'Software acessado pela internet mediante subscrição mensal ou anual.',
+    examples: ['CRM', 'Faturação', 'Gestão Financeira', 'Automação', 'Gestão de Projetos'],
+    basePrice: 200000,
+    priceNote: 'Preço sob orçamento',
+    complexity: 'enterprise',
+    deliveryDays: 120
+  },
+  {
+    id: 'realestate',
+    name: 'Website Imobiliário',
+    emoji: '🏠',
+    shortDesc: 'Venda e arrendamento de imóveis online',
+    description: 'Plataforma para venda e arrendamento de imóveis com pesquisa avançada, filtros e mapas.',
+    examples: ['Listagem de imóveis', 'Pesquisa avançada', 'Filtros', 'Mapas', 'Contacto com consultores'],
+    basePrice: 75000,
+    priceNote: 'Investimento único',
+    complexity: 'complex',
+    deliveryDays: 45
+  },
+  {
+    id: 'events',
+    name: 'Website de Eventos',
+    emoji: '🎪',
+    shortDesc: 'Divulgação, bilhetes e inscrições para eventos',
+    description: 'Divulgação e gestão de eventos com venda de bilhetes, inscrições online, check-in com QR Code e emissão de certificados.',
+    examples: ['Venda de bilhetes', 'Inscrições', 'Check-in QR Code', 'Certificados', 'Agenda de eventos'],
+    basePrice: 55000,
+    priceNote: 'Investimento único',
+    complexity: 'medium',
+    deliveryDays: 30
+  },
+  {
+    id: 'elearning',
+    name: 'Plataforma de Cursos (E-learning)',
+    emoji: '🎓',
+    shortDesc: 'Venda e gestão de cursos online',
+    description: 'Plataforma para venda e gestão de cursos online com vídeos, avaliações, certificados e acompanhamento de alunos.',
+    examples: ['Cursos em vídeo', 'Avaliações', 'Certificados', 'Acompanhamento de alunos', 'Pagamentos'],
+    basePrice: 90000,
+    priceNote: 'Investimento único',
+    complexity: 'complex',
+    deliveryDays: 60
+  },
+  {
+    id: 'health',
+    name: 'Website de Saúde',
+    emoji: '🏥',
+    shortDesc: 'Clínicas, hospitais e laboratórios online',
+    description: 'Plataforma digital para clínicas, hospitais e laboratórios com agendamento de consultas, resultados de exames e telemedicina.',
+    examples: ['Agendamento de consultas', 'Resultados de exames', 'Telemedicina', 'Perfil de médicos'],
+    basePrice: 80000,
+    priceNote: 'Investimento único',
+    complexity: 'complex',
+    deliveryDays: 45
+  },
+  {
+    id: 'tourism',
+    name: 'Website de Turismo',
+    emoji: '✈️',
+    shortDesc: 'Hotéis, agências e reservas online',
+    description: 'Plataforma para hotéis, agências de viagens e passeios com reservas online.',
+    examples: ['Reservas online', 'Galeria de destinos', 'Listagem de pacotes', 'Pagamento', 'Avaliações'],
+    basePrice: 60000,
+    priceNote: 'Investimento único',
+    complexity: 'medium',
+    deliveryDays: 30
+  },
+  {
+    id: 'education',
+    name: 'Website Educacional',
+    emoji: '📚',
+    shortDesc: 'Escolas, universidades e centros de formação',
+    description: 'Plataforma digital para escolas, universidades e centros de formação com matrículas e área do aluno.',
+    examples: ['Matrículas online', 'Área do aluno', 'Calendário escolar', 'Notícias', 'Corpo docente'],
+    basePrice: 55000,
+    priceNote: 'Investimento único',
+    complexity: 'medium',
+    deliveryDays: 30
+  },
+  {
+    id: 'jobs',
+    name: 'Website de Empregos',
+    emoji: '💼',
+    shortDesc: 'Divulgação de vagas e candidaturas online',
+    description: 'Plataforma para divulgação de vagas, candidaturas online e gestão de currículos.',
+    examples: ['Listagem de vagas', 'Candidaturas online', 'Gestão de currículos', 'Alertas de emprego'],
+    basePrice: 50000,
+    priceNote: 'Investimento único',
+    complexity: 'medium',
+    deliveryDays: 21
+  },
+  {
+    id: 'portfolio',
+    name: 'Portfólio',
+    emoji: '🎨',
+    shortDesc: 'Apresentação de trabalhos para freelancers',
+    description: 'Apresentação de trabalhos. Muito utilizado por freelancers e profissionais criativos.',
+    examples: ['Galeria de trabalhos', 'Sobre mim', 'Serviços', 'Contacto', 'Blog'],
+    basePrice: 15000,
+    priceNote: 'Investimento único',
+    complexity: 'simple',
+    deliveryDays: 10
+  },
+  {
+    id: 'blog',
+    name: 'Blog',
+    emoji: '✍️',
+    shortDesc: 'Publicação de artigos e marketing de conteúdo',
+    description: 'Plataforma para publicação de artigos com SEO e marketing de conteúdo.',
+    examples: ['Publicação de artigos', 'Categorias', 'SEO', 'Comentários', 'Newsletter'],
+    basePrice: 18000,
+    priceNote: 'Investimento único',
+    complexity: 'simple',
+    deliveryDays: 10
+  },
+  {
+    id: 'streaming',
+    name: 'Website de Streaming',
+    emoji: '📺',
+    shortDesc: 'Vídeos, música e transmissões ao vivo',
+    description: 'Plataforma de streaming de vídeos, música e transmissões ao vivo com sistema de assinaturas.',
+    examples: ['Player de vídeo', 'Músicas', 'Live streaming', 'Assinaturas', 'Biblioteca de conteúdos'],
+    basePrice: 120000,
+    priceNote: 'Preço sob orçamento',
+    complexity: 'enterprise',
+    deliveryDays: 90
+  },
+  {
+    id: 'news',
+    name: 'Portal de Notícias',
+    emoji: '📰',
+    shortDesc: 'Notícias organizadas por categorias',
+    description: 'Portal de notícias organizadas por categorias com publicidade e assinaturas.',
+    examples: ['Notícias por categoria', 'Publicidade', 'Assinaturas', 'Comentários', 'Pesquisa'],
+    basePrice: 45000,
+    priceNote: 'Investimento único',
+    complexity: 'medium',
+    deliveryDays: 25
+  },
+  {
+    id: 'government',
+    name: 'Website Governamental',
+    emoji: '🏛️',
+    shortDesc: 'Serviços públicos e informações institucionais',
+    description: 'Plataforma para serviços públicos com formulários e informações institucionais.',
+    examples: ['Serviços públicos', 'Formulários online', 'Informações', 'Notícias oficiais', 'Documentos'],
+    basePrice: 85000,
+    priceNote: 'Preço sob orçamento',
+    complexity: 'complex',
+    deliveryDays: 60
+  },
+  {
+    id: 'ngo',
+    name: 'Website de ONGs e Associações',
+    emoji: '🤝',
+    shortDesc: 'Projetos sociais, doações e voluntariado',
+    description: 'Plataforma para organizações sociais com projetos, doações online e programas de voluntariado.',
+    examples: ['Projetos sociais', 'Doações online', 'Voluntariado', 'Relatórios', 'Galeria'],
+    basePrice: 30000,
+    priceNote: 'Investimento único',
+    complexity: 'medium',
+    deliveryDays: 21
   }
 ];
 

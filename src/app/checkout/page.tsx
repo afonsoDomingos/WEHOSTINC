@@ -19,6 +19,9 @@ function CheckoutContent() {
   const planIdParam = rawPlanId === 'none' ? 'none' : (rawPlanId || 'pro');
   const domainParam = searchParams.get('domain');
   const domainPriceParam = searchParams.get('domainPrice');
+  const siteTypeParam = searchParams.get('siteType');
+  const siteTypeName = searchParams.get('siteTypeName');
+  const siteTypePrice = searchParams.get('siteTypePrice');
 
   const domainCost = domainParam 
     ? (domainPriceParam ? Number(domainPriceParam) : getDomainPrice(sanitizeDomainName(domainParam).extension))
@@ -99,7 +102,7 @@ function CheckoutContent() {
 
   const basePrice = selectedPlan
     ? (selectedPlan.id === 'website_creation' 
-        ? selectedPlan.price 
+        ? (siteTypePrice ? Number(siteTypePrice) : selectedPlan.price)
         : (billingCycle === 'annual' ? selectedPlan.priceAnnual : selectedPlan.price))
     : 0;
 
@@ -131,10 +134,13 @@ function CheckoutContent() {
         auth.login(newUser.email, '@Admin123@');
       }
 
+      const isWebsite = selectedPlan?.id === 'website_creation';
+      const siteLabel = isWebsite && siteTypeName ? ` — ${siteTypeName}` : '';
+      const cycleLabel = isWebsite ? '' : ` (${billingCycle === 'annual' ? 'Anual' : 'Mensal'})`;
       const serviceName = selectedPlan
         ? (domainParam 
-            ? `${selectedPlan.name} (${billingCycle === 'annual' ? 'Anual' : 'Mensal'}) + Domínio (${domainParam})` 
-            : `${selectedPlan.name} (${billingCycle === 'annual' ? 'Anual' : 'Mensal'})`)
+            ? `${selectedPlan.name}${siteLabel}${cycleLabel} + Domínio (${domainParam})` 
+            : `${selectedPlan.name}${siteLabel}${cycleLabel}`)
         : `Registo de Domínio: ${domainParam || 'Domínio Avulso'}`;
 
       // Registra pedido de serviço para gestão no Admin
@@ -679,7 +685,7 @@ function CheckoutContent() {
                   onClick={() => setSelectedPlanId('pro')}
                   className="px-3.5 py-2 bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs rounded-lg transition whitespace-nowrap cursor-pointer shadow-sm"
                 >
-                  + Adicionar Plano Pro (3.000 MT/mês)
+                  + Adicionar Plano Pro (300 MT/mês)
                 </button>
               </div>
             )}
@@ -693,12 +699,16 @@ function CheckoutContent() {
                   <>
                     <div className="flex justify-between items-center">
                       <span className="font-semibold text-gray-900">
-                        Plano {selectedPlan.name} ({selectedPlan.id === 'website_creation' ? 'Projeto Único' : (billingCycle === 'annual' ? 'Anual' : 'Mensal')})
+                        {selectedPlan.id === 'website_creation'
+                          ? (siteTypeName ? siteTypeName : 'Criação de Site Profissional')
+                          : `Plano ${selectedPlan.name} (${billingCycle === 'annual' ? 'Anual' : 'Mensal'})`}
                       </span>
                       <span className="font-bold text-gray-900">{basePrice.toLocaleString('pt-MZ')} MT</span>
                     </div>
                     <div className="text-xs text-gray-500">
-                      {selectedPlan.features.sites === -1 ? 'Sites ilimitados' : `${selectedPlan.features.sites} site(s)`} • {selectedPlan.features.storage}GB Armazenamento
+                      {selectedPlan.id === 'website_creation'
+                        ? `Investimento único • Entrega estimada`
+                        : `${selectedPlan.features.sites === -1 ? 'Sites ilimitados' : `${selectedPlan.features.sites} site(s)`} • ${selectedPlan.features.storage}GB Armazenamento`}
                     </div>
                   </>
                 ) : (

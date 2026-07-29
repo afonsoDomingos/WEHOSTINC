@@ -300,7 +300,7 @@ export default function Home() {
                 </div>
 
                 <Link
-                  href="/checkout?plan=website_creation"
+                  href="/site-quote"
                   className="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow transition duration-200 block text-center"
                 >
                   Solicitar Criação de Site

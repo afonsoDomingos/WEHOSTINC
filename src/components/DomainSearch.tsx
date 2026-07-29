@@ -49,7 +49,7 @@ export default function DomainSearch() {
   };
 
   const handleRegisterWithWebsite = (domain: string, price: number) => {
-    router.push(`/checkout?plan=website_creation&domain=${encodeURIComponent(domain)}&domainPrice=${price}`);
+    router.push(`/site-quote?domain=${encodeURIComponent(domain)}&domainPrice=${price}`);
   };
 
   return (
