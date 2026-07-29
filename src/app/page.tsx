@@ -49,7 +49,7 @@ export default function Home() {
           </div>
 
           <h1 className="text-4xl sm:text-6xl font-extrabold text-white mb-4 tracking-tight leading-tight">
-            Domínio, Hospedagem e <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-indigo-400">Email Corporativo</span>
+            Domínio, Hospedagem, Email <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-indigo-400">e Site</span>
           </h1>
           <p className="text-base sm:text-xl text-slate-300 mb-8 max-w-2xl mx-auto font-medium">
             Tudo o que a sua empresa precisa para ter uma presença online de alta performance em Moçambique com servidores ultrarrápidos e seguros.
