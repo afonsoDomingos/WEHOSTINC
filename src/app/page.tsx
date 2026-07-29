@@ -253,55 +253,53 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Website Creation Service Banner (25.000 MT) */}
-          <div id="criacao-sites" className="mt-16 bg-gradient-to-r from-gray-900 via-primary-950 to-gray-900 rounded-3xl p-8 md:p-12 text-white shadow-2xl border border-primary-800/30 relative overflow-hidden">
-            <div className="absolute top-0 right-0 transform translate-x-8 -translate-y-8 bg-primary-600/10 w-96 h-96 rounded-full blur-3xl pointer-events-none"></div>
-            
-            <div className="grid lg:grid-cols-3 gap-8 items-center relative z-10">
-              <div className="lg:col-span-2">
-                <div className="inline-flex items-center space-x-2 bg-primary-500/20 text-primary-300 border border-primary-500/30 px-3.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wider mb-4">
-                  <Sparkles className="h-4 w-4" />
+          {/* Website Creation Service Banner (25.000 MT - Light Theme & Compact) */}
+          <div id="criacao-sites" className="mt-10 bg-white rounded-3xl p-5 sm:p-8 shadow-xl border border-gray-200 relative overflow-hidden">
+            <div className="flex flex-col lg:flex-row items-center justify-between gap-6 relative z-10">
+              <div className="flex-1">
+                <div className="inline-flex items-center space-x-1.5 bg-primary-50 text-primary-800 border border-primary-200 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider mb-2.5">
+                  <Sparkles className="h-3.5 w-3.5 text-primary-600" />
                   <span>Serviço Premium de Desenvolvimento</span>
                 </div>
-                <h3 className="text-3xl md:text-4xl font-extrabold text-white mb-4">
+                <h3 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-2">
                   Criação de Sites Profissionais
                 </h3>
-                <p className="text-gray-300 text-lg mb-6 leading-relaxed">
+                <p className="text-gray-600 text-xs sm:text-sm mb-4 leading-relaxed max-w-2xl">
                   Desenvolvemos a presença online completa da sua empresa em Moçambique com design exclusivo, moderno, rápido e otimizado para o Google.
                 </p>
 
-                <div className="grid sm:grid-cols-2 gap-3 text-sm text-gray-200 mb-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-gray-700">
                   <div className="flex items-center space-x-2">
-                    <CheckCircle className="h-5 w-5 text-emerald-400 flex-shrink-0" />
+                    <CheckCircle className="h-4 w-4 text-emerald-600 flex-shrink-0" />
                     <span>Design Responsivo (Mobile & Desktop)</span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <CheckCircle className="h-5 w-5 text-emerald-400 flex-shrink-0" />
+                    <CheckCircle className="h-4 w-4 text-emerald-600 flex-shrink-0" />
                     <span>Domínio .co.mz + 1 Ano Hospedagem Grátis</span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <CheckCircle className="h-5 w-5 text-emerald-400 flex-shrink-0" />
-                    <span>Integração com WhatsApp & Redes Sociais</span>
+                    <CheckCircle className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+                    <span>Integração WhatsApp & Redes Sociais</span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <CheckCircle className="h-5 w-5 text-emerald-400 flex-shrink-0" />
+                    <CheckCircle className="h-4 w-4 text-emerald-600 flex-shrink-0" />
                     <span>E-mails Corporativos Ilimitados</span>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/10 text-center flex flex-col justify-between">
+              <div className="w-full lg:w-72 bg-gradient-to-b from-gray-50 to-primary-50/40 rounded-2xl p-5 border border-gray-200 text-center flex flex-col justify-between shrink-0 shadow-sm">
                 <div>
-                  <span className="text-xs uppercase font-semibold text-primary-300 tracking-wider block mb-1">Taxa Única de Projeto</span>
-                  <div className="text-4xl md:text-5xl font-extrabold text-white mb-2">
+                  <span className="text-[11px] uppercase font-bold text-gray-500 tracking-wider block mb-1">Taxa Única de Projeto</span>
+                  <div className="text-3xl sm:text-4xl font-black text-gray-900 mb-1">
                     25.000 MT
                   </div>
-                  <p className="text-xs text-gray-300 mb-6">Pagamento parcelado ou via M-Pesa / eMola / Cartão</p>
+                  <p className="text-[11px] text-gray-500 mb-4 font-medium">Pagamento parcelado ou via M-Pesa / eMola / Cartão</p>
                 </div>
 
                 <Link
                   href="/checkout?plan=website_creation"
-                  className="w-full py-4 bg-primary-600 hover:bg-primary-500 text-white font-bold text-base rounded-xl shadow-lg transition duration-200 block text-center"
+                  className="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow transition duration-200 block text-center"
                 >
                   Solicitar Criação de Site
                 </Link>
