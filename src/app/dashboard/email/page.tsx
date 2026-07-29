@@ -285,18 +285,14 @@ export default function EmailPage() {
                             <span>{getStatusText(email.status)}</span>
                           </div>
 
-                          {/* Botão Acessar Webmail */}
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setWebmailAccount(email);
-                              window.open(`https://webmail.wehosthere.com?user=${encodeURIComponent(email.email)}`, '_blank');
-                            }}
-                            className="px-3.5 py-2 bg-primary-50 hover:bg-primary-100 text-primary-700 font-bold text-xs rounded-xl transition flex items-center space-x-1.5 border border-primary-200 cursor-pointer shadow-sm"
+                          {/* Botão Acessar Webmail Integrado */}
+                          <Link
+                            href={`/webmail?user=${encodeURIComponent(email.email)}`}
+                            className="px-3.5 py-2 bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs rounded-xl transition flex items-center space-x-1.5 cursor-pointer shadow-sm"
                           >
-                            <span>Acessar Webmail</span>
-                            <ExternalLink className="h-3.5 w-3.5" />
-                          </button>
+                            <Mail className="h-3.5 w-3.5" />
+                            <span>Abrir Webmail</span>
+                          </Link>
 
                           {/* Botão Configurações / Editar Senha */}
                           <button
