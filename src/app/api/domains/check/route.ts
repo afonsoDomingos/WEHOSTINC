@@ -90,8 +90,8 @@ export async function GET(req: NextRequest) {
 
   const isAvailable = !isTaken;
 
-  // Registrar no histórico de pesquisas em tempo real
-  addDomainSearchLog(fullDomain, extension, isAvailable);
+  // Registrar no histórico de pesquisas em tempo real e obter contagem
+  const searchCount = addDomainSearchLog(fullDomain, extension, isAvailable);
 
   // Consultar disponibilidade das alternativas em paralelo
   const altTLDs = DOMAIN_PRICES.filter(tld => tld.extension !== extension);
@@ -118,6 +118,7 @@ export async function GET(req: NextRequest) {
     extension,
     isAvailable,
     price,
+    searchCount,
     alternatives,
   });
 }

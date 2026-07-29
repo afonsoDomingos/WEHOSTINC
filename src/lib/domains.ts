@@ -56,6 +56,7 @@ export interface DomainCheckResult {
   extension: string;
   isAvailable: boolean;
   price: number;
+  searchCount?: number;
   alternatives: { extension: string; fullDomain: string; price: number; isAvailable: boolean }[];
 }
 
@@ -81,12 +82,15 @@ export function checkDomainAvailability(rawInput: string): DomainCheckResult {
       isAvailable: !reserved.includes(cleanSld),
     }));
 
+  const searchCount = addDomainSearchLog(fullDomain, extension, isAvailable);
+
   return {
     fullDomain,
     sld: cleanSld,
     extension,
     isAvailable,
     price: mainPrice,
+    searchCount,
     alternatives,
   };
 }
@@ -136,11 +140,13 @@ export const DOMAIN_SEARCH_LOGS: DomainSearchLog[] = [
   }
 ];
 
-export function addDomainSearchLog(domain: string, extension: string, isAvailable: boolean) {
+export function addDomainSearchLog(domain: string, extension: string, isAvailable: boolean): number {
   const cleanDomain = domain.toLowerCase().trim();
   const existingIndex = DOMAIN_SEARCH_LOGS.findIndex(
     l => l.domain.toLowerCase().trim() === cleanDomain
   );
+
+  let currentCount = 1;
 
   if (existingIndex >= 0) {
     // Se o mesmo domínio for pesquisado novamente:
@@ -149,6 +155,7 @@ export function addDomainSearchLog(domain: string, extension: string, isAvailabl
     existing.timestamp = new Date().toISOString();
     existing.isAvailable = isAvailable;
     existing.searchCount = (existing.searchCount || 1) + 1;
+    currentCount = existing.searchCount;
 
     // Move para o topo do histórico (tempo real)
     DOMAIN_SEARCH_LOGS.splice(existingIndex, 1);
@@ -168,5 +175,7 @@ export function addDomainSearchLog(domain: string, extension: string, isAvailabl
   if (DOMAIN_SEARCH_LOGS.length > 100) {
     DOMAIN_SEARCH_LOGS.pop();
   }
+
+  return currentCount;
 }
 

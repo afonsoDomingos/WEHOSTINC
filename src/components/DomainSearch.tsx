@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, CheckCircle2, XCircle, Globe, ArrowRight, Sparkles, Loader2, Rocket } from 'lucide-react';
+import { Search, CheckCircle2, XCircle, Globe, ArrowRight, Sparkles, Loader2, Rocket, Flame } from 'lucide-react';
 import { DOMAIN_PRICES, checkDomainRealAsync, DomainCheckResult } from '@/lib/domains';
 import { hostingPlans } from '@/lib/data';
 
@@ -153,7 +153,7 @@ export default function DomainSearch() {
               )}
 
               <div>
-                <div className="flex items-center space-x-2 flex-wrap gap-1">
+                <div className="flex items-center space-x-2 flex-wrap gap-1.5">
                   <span className="text-xl sm:text-2xl font-black text-gray-900">{result.fullDomain}</span>
                   {result.isAvailable ? (
                     <span className="bg-emerald-600 text-white text-xs font-bold px-2.5 py-0.5 rounded-full shadow-sm">
@@ -162,6 +162,12 @@ export default function DomainSearch() {
                   ) : (
                     <span className="bg-red-600 text-white text-xs font-bold px-2.5 py-0.5 rounded-full shadow-sm">
                       Indisponível
+                    </span>
+                  )}
+                  {result.searchCount && result.searchCount > 1 && (
+                    <span className="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-extrabold px-3 py-0.5 rounded-full shadow-sm flex items-center space-x-1 animate-pulse">
+                      <Flame className="h-3.5 w-3.5 fill-white" />
+                      <span>Alta Procura ({result.searchCount}x buscas)</span>
                     </span>
                   )}
                 </div>
@@ -182,6 +188,21 @@ export default function DomainSearch() {
               </div>
             )}
           </div>
+
+          {/* Banner Alerta de Alta Procura (Urgency Marketing) */}
+          {result.isAvailable && result.searchCount && result.searchCount > 1 && (
+            <div className="mt-4 p-3.5 bg-amber-500/10 border-2 border-amber-400/80 rounded-2xl flex items-center space-x-3 text-amber-950 shadow-sm">
+              <div className="p-2 bg-gradient-to-br from-amber-500 to-orange-600 text-white rounded-xl font-bold shrink-0 shadow">
+                <Flame className="h-5 w-5 fill-amber-100" />
+              </div>
+              <div className="text-xs leading-relaxed">
+                <span className="font-extrabold text-amber-950 block text-sm">🔥 Alta Procura Detectada!</span>
+                <span>
+                  Este domínio já foi pesquisado <strong className="font-black text-amber-950 underline">{result.searchCount} vezes</strong> no nosso site. Garanta o seu registo agora antes que outra pessoa o reserve!
+                </span>
+              </div>
+            </div>
+          )}
 
           {/* Opções de Contratação com Preços Transparentes */}
           {result.isAvailable && (
