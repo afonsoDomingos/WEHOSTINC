@@ -410,48 +410,55 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer id="contacto" className="bg-gray-900 text-white py-12 px-4">
-        <div className="max-w-7xl mx-auto">
+      {/* Footer com Fundo do Datacenter em Alta Tecnologia */}
+      <footer id="contacto" className="relative bg-slate-950 text-white py-16 px-4 overflow-hidden border-t border-slate-800">
+        {/* Imagem de Fundo Datacenter com Overlay de Gradiente */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-25 mix-blend-luminosity"
+          style={{ backgroundImage: "url('/footer-bg.jpg')" }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/90 to-slate-950/80" />
+
+        <div className="relative z-10 max-w-7xl mx-auto">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center space-x-2 mb-4">
                 <Server className="h-8 w-8 text-primary-400" />
-                <span className="text-2xl font-bold">WEHOSTHERE</span>
+                <span className="text-2xl font-bold tracking-tight">WEHOSTHERE</span>
               </div>
-              <p className="text-gray-400">
-                Sua solução completa em hospedagem de sites e email.
+              <p className="text-slate-400 text-sm leading-relaxed">
+                Sua solução completa em hospedagem de sites, e-mail corporativo e servidores em Moçambique.
               </p>
             </div>
             <div>
-              <h4 className="font-semibold mb-4">Produtos</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li>Hospedagem de Sites</li>
-                <li>Email Corporativo</li>
-                <li>VPS</li>
-                <li>Dominios</li>
+              <h4 className="font-bold text-white mb-4 uppercase tracking-wider text-xs">Produtos</h4>
+              <ul className="space-y-2 text-slate-400 text-sm">
+                <li className="hover:text-primary-300 transition cursor-pointer">Hospedagem de Sites</li>
+                <li className="hover:text-primary-300 transition cursor-pointer">Email Corporativo</li>
+                <li className="hover:text-primary-300 transition cursor-pointer">Servidores VPS</li>
+                <li className="hover:text-primary-300 transition cursor-pointer">Registo de Domínios</li>
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold mb-4">Suporte</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li>Central de Ajuda</li>
-                <li>Tutoriais</li>
-                <li>Status do Sistema</li>
-                <li>Contacto</li>
+              <h4 className="font-bold text-white mb-4 uppercase tracking-wider text-xs">Suporte</h4>
+              <ul className="space-y-2 text-slate-400 text-sm">
+                <li className="hover:text-primary-300 transition cursor-pointer">Central de Ajuda</li>
+                <li className="hover:text-primary-300 transition cursor-pointer">Tutoriais & Documentação</li>
+                <li className="hover:text-primary-300 transition cursor-pointer">Status do Sistema</li>
+                <li className="hover:text-primary-300 transition cursor-pointer">Contacto Direto</li>
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold mb-4">Legal</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li>Termos de Serviço</li>
-                <li>Política de Privacidade</li>
-                <li>SLA</li>
+              <h4 className="font-bold text-white mb-4 uppercase tracking-wider text-xs">Legal & Garantias</h4>
+              <ul className="space-y-2 text-slate-400 text-sm">
+                <li className="hover:text-primary-300 transition cursor-pointer">Termos de Serviço</li>
+                <li className="hover:text-primary-300 transition cursor-pointer">Política de Privacidade</li>
+                <li className="hover:text-primary-300 transition cursor-pointer">SLA 99.9% Uptime</li>
               </ul>
             </div>
           </div>
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 WEHOSTHERE. Todos os direitos reservados.</p>
+          <div className="border-t border-slate-800/80 mt-12 pt-8 text-center text-slate-400 text-xs font-medium">
+            <p>&copy; {new Date().getFullYear()} WEHOSTHERE. Todos os direitos reservados. Moçambique.</p>
           </div>
         </div>
       </footer>
