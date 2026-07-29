@@ -223,47 +223,47 @@ function WebmailContent() {
   const unreadInboxCount = messages.filter(m => m.folder === 'inbox' && !m.isRead).length;
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
       {/* Webmail Header Bar */}
-      <header className="bg-slate-900 text-white px-4 py-3 border-b border-slate-800 flex items-center justify-between shadow-md">
+      <header className="bg-white text-gray-800 px-4 py-3 border-b border-gray-200 flex items-center justify-between shadow-sm">
         <div className="flex items-center space-x-3">
-          <Link href="/dashboard/email" className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-300 transition" title="Voltar ao Painel">
+          <Link href="/dashboard/email" className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-500 transition" title="Voltar ao Painel">
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <div className="flex items-center space-x-2">
             <div className="p-1.5 bg-primary-600 rounded-lg">
               <Mail className="h-5 w-5 text-white" />
             </div>
-            <span className="font-extrabold text-base tracking-tight text-white">WEHOSTHERE <span className="text-primary-400 font-normal text-xs uppercase tracking-wider">Webmail Client</span></span>
+            <span className="font-extrabold text-base tracking-tight text-gray-900">WEHOSTHERE <span className="text-primary-500 font-normal text-xs uppercase tracking-wider">Webmail Client</span></span>
           </div>
         </div>
 
         {/* Account Switcher */}
         <div className="flex items-center space-x-3">
           {accounts.length > 0 ? (
-            <div className="flex items-center space-x-2 bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-700">
-              <User className="h-3.5 w-3.5 text-primary-400" />
+            <div className="flex items-center space-x-2 bg-gray-100 px-3 py-1.5 rounded-xl border border-gray-200">
+              <User className="h-3.5 w-3.5 text-primary-500" />
               <select
                 value={selectedAccountEmail}
                 onChange={(e) => setSelectedAccountEmail(e.target.value)}
-                className="bg-transparent text-xs font-bold text-slate-200 outline-none cursor-pointer"
+                className="bg-transparent text-xs font-bold text-gray-700 outline-none cursor-pointer"
               >
                 {accounts.map(acc => (
-                  <option key={acc.id} value={acc.email} className="bg-slate-900 text-white">
+                  <option key={acc.id} value={acc.email} className="bg-white text-gray-900">
                     {acc.email}
                   </option>
                 ))}
               </select>
             </div>
           ) : (
-            <span className="text-xs text-slate-300 font-mono font-bold bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-700">
+            <span className="text-xs text-gray-600 font-mono font-bold bg-gray-100 px-3 py-1.5 rounded-xl border border-gray-200">
               {selectedAccountEmail}
             </span>
           )}
 
           <button
             onClick={refreshMessages}
-            className="p-2 hover:bg-slate-800 rounded-xl text-slate-300 transition cursor-pointer"
+            className="p-2 hover:bg-gray-100 rounded-xl text-gray-500 transition cursor-pointer"
             title="Atualizar"
           >
             <RefreshCw className="h-4 w-4" />
@@ -274,11 +274,11 @@ function WebmailContent() {
       {/* Main Layout Grid */}
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar Nav */}
-        <aside className="w-56 bg-slate-900 text-slate-300 flex flex-col p-3 border-r border-slate-800 space-y-4 shrink-0">
+        <aside className="w-56 bg-white text-gray-600 flex flex-col p-3 border-r border-gray-200 space-y-4 shrink-0">
           <button
             type="button"
             onClick={() => setShowCompose(true)}
-            className="w-full py-3 bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-500 hover:to-indigo-500 text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg transition flex items-center justify-center space-x-2 cursor-pointer"
+            className="w-full py-3 bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-500 hover:to-indigo-500 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md transition flex items-center justify-center space-x-2 cursor-pointer"
           >
             <Edit3 className="h-4 w-4" />
             <span>Escrever E-mail</span>
@@ -288,11 +288,11 @@ function WebmailContent() {
             <button
               onClick={() => setCurrentFolder('inbox')}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition cursor-pointer ${
-                currentFolder === 'inbox' ? 'bg-primary-600/30 text-white border border-primary-500/40 font-bold' : 'hover:bg-slate-800 text-slate-300'
+                currentFolder === 'inbox' ? 'bg-primary-50 text-primary-700 border border-primary-200 font-bold' : 'hover:bg-gray-100 text-gray-600'
               }`}
             >
               <div className="flex items-center space-x-2.5">
-                <Inbox className="h-4 w-4 text-primary-400" />
+                <Inbox className="h-4 w-4 text-primary-500" />
                 <span>Entrada</span>
               </div>
               {unreadInboxCount > 0 && (
@@ -305,7 +305,7 @@ function WebmailContent() {
             <button
               onClick={() => setCurrentFolder('starred')}
               className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl transition cursor-pointer ${
-                currentFolder === 'starred' ? 'bg-primary-600/30 text-white border border-primary-500/40 font-bold' : 'hover:bg-slate-800 text-slate-300'
+                currentFolder === 'starred' ? 'bg-amber-50 text-amber-700 border border-amber-200 font-bold' : 'hover:bg-gray-100 text-gray-600'
               }`}
             >
               <Star className="h-4 w-4 text-amber-400" />
@@ -315,17 +315,17 @@ function WebmailContent() {
             <button
               onClick={() => setCurrentFolder('sent')}
               className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl transition cursor-pointer ${
-                currentFolder === 'sent' ? 'bg-primary-600/30 text-white border border-primary-500/40 font-bold' : 'hover:bg-slate-800 text-slate-300'
+                currentFolder === 'sent' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold' : 'hover:bg-gray-100 text-gray-600'
               }`}
             >
-              <Send className="h-4 w-4 text-emerald-400" />
+              <Send className="h-4 w-4 text-emerald-500" />
               <span>Enviados</span>
             </button>
 
             <button
               onClick={() => setCurrentFolder('trash')}
               className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl transition cursor-pointer ${
-                currentFolder === 'trash' ? 'bg-primary-600/30 text-white border border-primary-500/40 font-bold' : 'hover:bg-slate-800 text-slate-300'
+                currentFolder === 'trash' ? 'bg-rose-50 text-rose-700 border border-rose-200 font-bold' : 'hover:bg-gray-100 text-gray-600'
               }`}
             >
               <Trash2 className="h-4 w-4 text-rose-400" />
@@ -333,15 +333,15 @@ function WebmailContent() {
             </button>
           </nav>
 
-          <div className="mt-auto pt-4 border-t border-slate-800 text-[11px] text-slate-400 space-y-2">
+          <div className="mt-auto pt-4 border-t border-gray-200 text-[11px] text-gray-400 space-y-2">
             <div className="flex items-center justify-between">
               <span>Cota de Armazenamento</span>
-              <span className="font-bold text-slate-200">1.2 / 5 GB</span>
+              <span className="font-bold text-gray-600">1.2 / 5 GB</span>
             </div>
-            <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+            <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
               <div className="bg-primary-500 h-full w-[24%]" />
             </div>
-            <p className="text-[10px] text-slate-500 text-center">Protegido com SSL WEHOSTHERE</p>
+            <p className="text-[10px] text-gray-400 text-center">Protegido com SSL WEHOSTHERE</p>
           </div>
         </aside>
 
