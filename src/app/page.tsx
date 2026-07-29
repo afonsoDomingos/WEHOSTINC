@@ -32,16 +32,17 @@ export default function Home() {
       {/* Navbar Responsivo */}
       <Navbar />
 
-      {/* Hero Section com Fundo do Datacenter em Alta Tecnologia (Vibrante e Full-Width) */}
-      <section className="relative py-24 px-4 bg-slate-950 text-white overflow-hidden shadow-2xl w-full">
-        {/* Imagem de Fundo Datacenter 100% Visível e Nitida */}
+      {/* Hero + Banner unificados — fundo estático, sem layout shift ao pesquisar */}
+      <section id="infraestrutura" className="relative min-h-[700px] px-4 bg-slate-950 text-white overflow-hidden shadow-2xl w-full flex items-start justify-center pb-0">
+        {/* Imagem de Fundo estática — não se move com o conteúdo */}
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-70"
           style={{ backgroundImage: "url('/servidores-banner.png')" }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/60 via-slate-950/75 to-slate-950" />
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/65 via-slate-950/70 to-slate-950" />
 
-        <div className="relative z-10 max-w-7xl mx-auto text-center">
+        {/* Conteúdo que cresce para baixo — o fundo não mexe */}
+        <div className="relative z-10 w-full max-w-7xl mx-auto text-center pt-24 pb-10">
           {/* Badge Datacenter */}
           <div className="inline-flex items-center space-x-2 bg-primary-600/30 border border-primary-400/50 text-primary-200 px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold mb-6 backdrop-blur-md shadow-lg">
             <Sparkles className="h-4 w-4 text-primary-300" />
@@ -55,41 +56,8 @@ export default function Home() {
             Tudo o que a sua empresa precisa para ter uma presença online de alta performance em Moçambique com servidores ultrarrápidos e seguros.
           </p>
 
-          {/* Domain Search Component */}
+          {/* Domain Search — expande para baixo sem mover o fundo */}
           <DomainSearch />
-
-          <div className="flex justify-center space-x-4">
-            <Link href="#infraestrutura" className="px-8 py-3.5 bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-500 hover:to-indigo-500 text-white font-bold rounded-xl shadow-xl hover:shadow-2xl transition text-base cursor-pointer">
-              Ver Nossa Infraestrutura Física
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Secção Infraestrutura Datacenter - Imagem dos Servidores Infortrend em 100% Largura Total (Full Width) */}
-      <section id="infraestrutura" className="relative w-full bg-slate-950 text-white border-t border-slate-800 overflow-hidden">
-
-        {/* Banner com Imagem de Servidores Infortrend de Largura Total (Edge to Edge) e 100% Visível */}
-        <div className="relative w-full overflow-hidden shadow-2xl border-y border-primary-500/50 bg-black">
-          <img 
-            src="/servidores-banner.png" 
-            alt="Datacenter Servidores Racks Infortrend WEHOSTHERE" 
-            className="w-full h-auto max-h-[650px] object-cover sm:object-contain object-center block mx-auto drop-shadow-2xl"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-slate-950/30" />
-
-          <div className="absolute bottom-0 inset-x-0 bg-slate-950/85 backdrop-blur-md p-6 sm:p-10 border-t border-primary-500/30 flex flex-col sm:flex-row items-center justify-between gap-4 max-w-7xl mx-auto my-4 rounded-3xl">
-            <div>
-              <h3 className="text-xl sm:text-2xl font-black text-white flex items-center space-x-2">
-                <span className="w-3.5 h-3.5 bg-emerald-400 rounded-full animate-ping inline-block mr-1"></span>
-                <span>Servidores Racks Ativos em Moçambique</span>
-              </h3>
-              <p className="text-xs sm:text-sm text-slate-300 mt-1">Uptime garantido de 99.9% com suporte técnico dedicado</p>
-            </div>
-            <Link href="#planos" className="px-8 py-4 bg-primary-600 hover:bg-primary-500 text-white font-extrabold text-sm sm:text-base rounded-xl transition shadow-xl shrink-0 cursor-pointer">
-              Escolher Plano de Hospedagem
-            </Link>
-          </div>
         </div>
       </section>
 
