@@ -1,10 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, CheckCircle2, XCircle, Globe, ArrowRight, Sparkles, Loader2, Rocket, Flame } from 'lucide-react';
+import { Search, CheckCircle2, XCircle, Globe, ArrowRight, Sparkles, Loader2, Rocket, Flame, WifiOff, Wifi, AlertTriangle } from 'lucide-react';
 import { DOMAIN_PRICES, checkDomainRealAsync, DomainCheckResult } from '@/lib/domains';
 import { hostingPlans } from '@/lib/data';
+
+// Timeout de conexão lenta em ms
+const SLOW_CONNECTION_TIMEOUT = 8000;
 
 export default function DomainSearch() {
   const router = useRouter();
@@ -15,6 +18,33 @@ export default function DomainSearch() {
   const [selectedHostingPlan, setSelectedHostingPlan] = useState<'basic' | 'pro' | 'enterprise'>('basic');
   const [hostingCycle, setHostingCycle] = useState<'annual' | 'monthly'>('monthly');
 
+  // Estados de conexão
+  const [isOffline, setIsOffline] = useState(false);
+  const [isSlowConnection, setIsSlowConnection] = useState(false);
+  const [networkError, setNetworkError] = useState<string | null>(null);
+  const slowTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Detectar mudanças de estado de rede em tempo real
+  useEffect(() => {
+    const handleOffline = () => {
+      setIsOffline(true);
+      setIsSlowConnection(false);
+    };
+    const handleOnline = () => {
+      setIsOffline(false);
+      setIsSlowConnection(false);
+      setNetworkError(null);
+    };
+    window.addEventListener('offline', handleOffline);
+    window.addEventListener('online', handleOnline);
+    // Verificar estado inicial
+    if (!navigator.onLine) setIsOffline(true);
+    return () => {
+      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('online', handleOnline);
+    };
+  }, []);
+
   const currentHostingPlan = hostingPlans.find(p => p.id === selectedHostingPlan) || hostingPlans[0];
   const hostingPrice = hostingCycle === 'annual' ? currentHostingPlan.priceAnnual : currentHostingPlan.price;
 
@@ -22,6 +52,16 @@ export default function DomainSearch() {
     e.preventDefault();
     if (!query.trim()) return;
 
+    // Verificar conexão antes de pesquisar
+    if (!navigator.onLine) {
+      setIsOffline(true);
+      setNetworkError('Sem ligação à internet. Verifique a sua conexão e tente novamente.');
+      return;
+    }
+
+    setIsOffline(false);
+    setIsSlowConnection(false);
+    setNetworkError(null);
     setIsSearching(true);
     setResult(null);
 
@@ -30,12 +70,30 @@ export default function DomainSearch() {
       fullQuery = fullQuery + selectedTld;
     }
 
+    // Iniciar temporizador de conexão lenta
+    slowTimeoutRef.current = setTimeout(() => {
+      setIsSlowConnection(true);
+    }, SLOW_CONNECTION_TIMEOUT);
+
     try {
       const searchResult = await checkDomainRealAsync(fullQuery);
       setResult(searchResult);
-    } catch (err) {
+      setIsSlowConnection(false);
+      setNetworkError(null);
+    } catch (err: any) {
       console.error('Erro na busca de domínio:', err);
+      // Distinguir erro de rede de outros erros
+      if (!navigator.onLine) {
+        setIsOffline(true);
+        setNetworkError('Ligação perdida durante a pesquisa. Verifique o Wi-Fi ou dados móveis.');
+      } else if (err?.name === 'AbortError' || err?.message?.includes('timeout')) {
+        setNetworkError('A pesquisa demorou demasiado. A sua conexão pode estar lenta.');
+      } else {
+        setNetworkError('Erro ao verificar o domínio. Tente novamente.');
+      }
     } finally {
+      if (slowTimeoutRef.current) clearTimeout(slowTimeoutRef.current);
+      setIsSlowConnection(false);
       setIsSearching(false);
     }
   };
@@ -54,6 +112,38 @@ export default function DomainSearch() {
 
   return (
     <div className="w-full max-w-4xl mx-auto mb-12">
+
+      {/* Banner de Estado de Rede */}
+      {isOffline && (
+        <div className="flex items-center space-x-3 bg-red-900/80 backdrop-blur border border-red-500/60 text-red-100 px-4 py-3 rounded-2xl mb-4 shadow-lg animate-pulse">
+          <WifiOff className="h-5 w-5 text-red-400 shrink-0" />
+          <div className="text-left">
+            <p className="text-sm font-bold">Sem ligação à Internet</p>
+            <p className="text-xs text-red-300">{networkError || 'Verifique o Wi-Fi ou dados móveis e tente novamente.'}</p>
+          </div>
+        </div>
+      )}
+
+      {isSlowConnection && !isOffline && (
+        <div className="flex items-center space-x-3 bg-amber-900/80 backdrop-blur border border-amber-500/60 text-amber-100 px-4 py-3 rounded-2xl mb-4 shadow-lg">
+          <AlertTriangle className="h-5 w-5 text-amber-400 shrink-0" />
+          <div className="text-left">
+            <p className="text-sm font-bold">Conexão lenta detectada</p>
+            <p className="text-xs text-amber-300">A pesquisa está a demorar mais do esperado. Por favor aguarde...</p>
+          </div>
+        </div>
+      )}
+
+      {networkError && !isOffline && !isSlowConnection && (
+        <div className="flex items-center space-x-3 bg-orange-900/80 backdrop-blur border border-orange-500/60 text-orange-100 px-4 py-3 rounded-2xl mb-4 shadow-lg">
+          <AlertTriangle className="h-5 w-5 text-orange-400 shrink-0" />
+          <div className="text-left">
+            <p className="text-sm font-bold">Erro na pesquisa</p>
+            <p className="text-xs text-orange-300">{networkError}</p>
+          </div>
+        </div>
+      )}
+
       {/* Box de Pesquisa Principal */}
       <div className="bg-white p-3 sm:p-4 rounded-3xl shadow-2xl border border-gray-200/80 w-full overflow-hidden">
         <form onSubmit={handleSearch} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full">
