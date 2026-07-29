@@ -11,6 +11,44 @@ import DashboardNav from '@/components/DashboardNav';
 import { auth, User } from '@/lib/auth';
 import { dataManager, SupportTicket, TicketMessage, TicketAttachment } from '@/lib/data';
 
+const CLIENT_TICKET_TEMPLATES = [
+  {
+    title: '🌐 Apontamento de DNS',
+    subject: 'Apontamento de DNS e Propagação de NameServers',
+    category: 'domain' as const,
+    priority: 'medium' as const,
+    message: 'Olá, configurei o meu domínio na plataforma mas gostaria de confirmar se os NameServers ns1.wehosthere.com e ns2.wehosthere.com já propagaram corretamente.'
+  },
+  {
+    title: '💳 Confirmação M-Pesa',
+    subject: 'Confirmação de Pagamento via M-Pesa',
+    category: 'billing' as const,
+    priority: 'high' as const,
+    message: 'Efetuei o pagamento via M-Pesa para a contratação/renovação do meu serviço. Segue em anexo o comprovante da transação para validação e ativação rápida.'
+  },
+  {
+    title: '📧 Configurar E-mail',
+    subject: 'Ajuda para configurar E-mail Corporativo (Webmail / Outlook)',
+    category: 'technical' as const,
+    priority: 'medium' as const,
+    message: 'Preciso de assistência técnica para configurar a minha conta de e-mail corporativo no Outlook / telemóvel (portas IMAP 993 / SMTP 465 com SSL).'
+  },
+  {
+    title: '⚡ Upgrade de VPS',
+    subject: 'Solicitação de Upgrade de Recursos no Servidor VPS',
+    category: 'vps' as const,
+    priority: 'high' as const,
+    message: 'Gostaria de solicitar informações e orçamento sobre o aumento de memória RAM, núcleos de CPU e espaço em disco SSD para o meu servidor VPS.'
+  },
+  {
+    title: '🔐 Ativação de SSL',
+    subject: 'Solicitação de Ativação do Certificado SSL Let\'s Encrypt',
+    category: 'technical' as const,
+    priority: 'medium' as const,
+    message: 'O meu site está a apresentar um aviso de conexão não segura no navegador. Solicito a emissão e instalação do certificado SSL gratuito Let\'s Encrypt.'
+  }
+];
+
 export default function ClientTicketsPage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
@@ -451,6 +489,31 @@ export default function ClientTicketsPage() {
             )}
 
             <form onSubmit={handleCreateTicket} className="mt-6 space-y-4">
+              {/* Atalhos de Modelos Rápidos */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1.5 flex items-center space-x-1">
+                  <Tag className="w-3.5 h-3.5 text-primary-600" />
+                  <span>Problemas Frequentes (Preenchimento Rápido)</span>
+                </label>
+                <div className="flex flex-wrap gap-1.5">
+                  {CLIENT_TICKET_TEMPLATES.map((tpl, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => {
+                        setSubject(tpl.subject);
+                        setCategory(tpl.category);
+                        setPriority(tpl.priority);
+                        setMessage(tpl.message);
+                      }}
+                      className="px-3 py-1.5 bg-primary-50 hover:bg-primary-100 text-primary-800 border border-primary-200/80 rounded-xl text-xs font-semibold transition text-left cursor-pointer"
+                    >
+                      {tpl.title}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1.5">
                   Assunto do Chamado

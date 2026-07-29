@@ -7,10 +7,43 @@ import {
   Users, Server, Mail, Database, TrendingUp, DollarSign,
   LogOut, Settings, Home, CheckCircle, Clock, XCircle, Search,
   ShoppingBag, MessageSquare, ExternalLink, Trash2, LifeBuoy, Send, ShieldCheck, CheckCircle2, AlertCircle,
-  Paperclip, FileText, Image as ImageIcon, Download, File, X, Loader2
+  Paperclip, FileText, Image as ImageIcon, Download, File, X, Loader2, Tag
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 import { dataManager, ServiceOrder, SupportTicket, TicketMessage, TicketAttachment } from '@/lib/data';
+
+const ADMIN_CANNED_RESPONSES = [
+  {
+    label: '✅ DNS Propagado',
+    text: 'Olá! Confirmamos que o seu domínio já se encontra devidamente apontado e propagado para os nossos NameServers oficiais (ns1.wehosthere.com e ns2.wehosthere.com). O seu serviço está 100% ativo.',
+    suggestedStatus: 'answered' as const
+  },
+  {
+    label: '💳 Pagamento Confirmado',
+    text: 'Olá! Confirmamos a recepção do pagamento. A sua fatura foi marcada como liquidada no nosso sistema e o seu plano/serviço foi totalmente ativado com sucesso.',
+    suggestedStatus: 'answered' as const
+  },
+  {
+    label: '📧 Acesso Webmail & SSL',
+    text: 'Para aceder ao seu e-mail corporativo via navegador, utilize o endereço webmail.seudominio.co.mz (Porta 2096 com SSL). Para configurar no Outlook ou telemóvel, utilize servidor IMAP porta 993 e SMTP porta 465.',
+    suggestedStatus: 'answered' as const
+  },
+  {
+    label: '⚙️ VPS Provisionada',
+    text: 'A sua máquina VPS foi provisionada com sucesso no painel. O IP dedicado atribuído e os acessos do utilizador root já se encontram ativos na secção de servidores.',
+    suggestedStatus: 'answered' as const
+  },
+  {
+    label: '🔒 SSL Re-emitido',
+    text: 'O certificado SSL gratuito Let\'s Encrypt foi re-emitido e instalado com sucesso para o seu domínio e subdomínios. O tráfego HTTPS agora está seguro.',
+    suggestedStatus: 'answered' as const
+  },
+  {
+    label: '⚙️ Em Análise Técnica',
+    text: 'Olá! A nossa equipa de engenharia de sistemas recebeu o seu chamado e já está a analisar a questão técnica. Voltararemos a contactar com novidades em breve.',
+    suggestedStatus: 'in_progress' as const
+  }
+];
 
 export default function AdminPage() {
   const router = useRouter();
@@ -1394,6 +1427,31 @@ export default function AdminPage() {
             {/* Formulário de Resposta pelo Admin */}
             <div className="p-4 sm:p-6 border-t border-gray-200 bg-white rounded-b-3xl">
               <form onSubmit={handleAdminSendReply} className="flex flex-col gap-3">
+                {/* Respostas Rápidas / Canned Responses */}
+                <div>
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5 flex items-center space-x-1">
+                    <Tag className="w-3.5 h-3.5 text-primary-600" />
+                    <span>Respostas Rápidas do Atendimento</span>
+                  </label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {ADMIN_CANNED_RESPONSES.map((item, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => {
+                          setAdminReplyMessage(item.text);
+                          if (selectedTicket) {
+                            handleAdminUpdateTicketStatus(selectedTicket.id, item.suggestedStatus);
+                          }
+                        }}
+                        className="px-2.5 py-1 bg-gray-100 hover:bg-primary-50 hover:text-primary-800 text-gray-700 border border-gray-200 rounded-lg text-xs font-semibold transition cursor-pointer"
+                      >
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 {adminReplyAttachments.length > 0 && (
                   <div className="flex flex-wrap gap-2">
                     {adminReplyAttachments.map((att, idx) => (
