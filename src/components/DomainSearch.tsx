@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, CheckCircle2, XCircle, Globe, ArrowRight, Sparkles, Loader2 } from 'lucide-react';
+import { Search, CheckCircle2, XCircle, Globe, ArrowRight, Sparkles, Loader2, Rocket } from 'lucide-react';
 import { DOMAIN_PRICES, checkDomainRealAsync, DomainCheckResult } from '@/lib/domains';
 
 export default function DomainSearch() {
@@ -40,6 +40,10 @@ export default function DomainSearch() {
 
   const handleRegisterWithHosting = (domain: string, price: number) => {
     router.push(`/checkout?plan=pro&domain=${encodeURIComponent(domain)}&domainPrice=${price}`);
+  };
+
+  const handleRegisterWithWebsite = (domain: string, price: number) => {
+    router.push(`/checkout?plan=website_creation&domain=${encodeURIComponent(domain)}&domainPrice=${price}`);
   };
 
   return (
@@ -164,19 +168,19 @@ export default function DomainSearch() {
             </div>
 
             {result.isAvailable && (
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between lg:justify-end gap-3 border-t lg:border-t-0 pt-3 lg:pt-0">
-                <div className="text-left sm:text-right pr-2">
+              <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 border-t lg:border-t-0 pt-3 lg:pt-0 w-full lg:w-auto">
+                <div className="text-left lg:text-right pr-2">
                   <span className="text-xs text-gray-500 block">Preço do Domínio</span>
                   <span className="text-xl font-black text-primary-600">
                     {result.price.toLocaleString('pt-MZ')} MT<span className="text-xs text-gray-500 font-normal">/ano</span>
                   </span>
                 </div>
 
-                <div className="flex items-center space-x-2 w-full sm:w-auto">
+                <div className="flex flex-col sm:flex-row flex-wrap gap-2 w-full lg:w-auto">
                   <button
                     type="button"
                     onClick={() => handleRegisterOnly(result.fullDomain, result.price)}
-                    className="flex-1 sm:flex-initial px-4 py-2.5 bg-white border border-gray-300 hover:bg-gray-100 text-gray-800 font-bold text-xs md:text-sm rounded-xl shadow-sm transition flex items-center justify-center space-x-1.5 cursor-pointer whitespace-nowrap"
+                    className="w-full sm:w-auto px-3.5 py-2.5 bg-white border border-gray-300 hover:bg-gray-100 text-gray-800 font-bold text-xs md:text-sm rounded-xl shadow-sm transition flex items-center justify-center space-x-1.5 cursor-pointer whitespace-nowrap"
                   >
                     <Globe className="h-4 w-4 text-gray-600" />
                     <span>Apenas Domínio</span>
@@ -185,10 +189,19 @@ export default function DomainSearch() {
                   <button
                     type="button"
                     onClick={() => handleRegisterWithHosting(result.fullDomain, result.price)}
-                    className="flex-1 sm:flex-initial px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs md:text-sm rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center space-x-1.5 cursor-pointer whitespace-nowrap"
+                    className="w-full sm:w-auto px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs md:text-sm rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center space-x-1.5 cursor-pointer whitespace-nowrap"
                   >
                     <Sparkles className="h-4 w-4" />
                     <span>Domínio + Hospedagem</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleRegisterWithWebsite(result.fullDomain, result.price)}
+                    className="w-full sm:w-auto px-3.5 py-2.5 bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-700 hover:to-indigo-700 text-white font-bold text-xs md:text-sm rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center space-x-1.5 cursor-pointer whitespace-nowrap"
+                  >
+                    <Rocket className="h-4 w-4 text-amber-300" />
+                    <span>Domínio + Criação de Site</span>
                   </button>
                 </div>
               </div>
