@@ -148,10 +148,21 @@ export default function AdminPage() {
     );
   }
 
-  const totalRevenue = users.reduce((sum, user) => {
+  const actualOrdersRevenue = orders.reduce((acc, order) => acc + (order.status !== 'cancelled' ? order.amount : 0), 0);
+
+  const mrr = users.reduce((acc, user) => {
     const planPrices = { basic: 1200, pro: 3000, enterprise: 6200 };
-    return sum + (planPrices[user.plan as keyof typeof planPrices] || 0);
+    return acc + (planPrices[user.plan as keyof typeof planPrices] || 0);
   }, 0);
+
+  const totalRevenue = actualOrdersRevenue > 0 ? actualOrdersRevenue : mrr;
+
+  const averageTicket = orders.length > 0 ? Math.round(totalRevenue / orders.length) : (users.length > 0 ? Math.round(mrr / users.length) : 0);
+
+  const mpesaRevenue = orders.filter(o => o.paymentMethod === 'mpesa' && o.status !== 'cancelled').reduce((acc, o) => acc + o.amount, 0);
+  const emolaRevenue = orders.filter(o => o.paymentMethod === 'emola' && o.status !== 'cancelled').reduce((acc, o) => acc + o.amount, 0);
+  const cardRevenue = orders.filter(o => o.paymentMethod === 'card' && o.status !== 'cancelled').reduce((acc, o) => acc + o.amount, 0);
+  const validOrdersTotal = (mpesaRevenue + emolaRevenue + cardRevenue) || 1;
 
   const getUserStatus = (user: User) => {
     if (user.status === 'suspended') return 'suspended';
@@ -229,7 +240,7 @@ export default function AdminPage() {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats */}
+        {/* Top KPIs */}
         <div className="grid md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition">
             <div className="flex items-center justify-between mb-4">
@@ -251,20 +262,65 @@ export default function AdminPage() {
 
           <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition">
             <div className="flex items-center justify-between mb-4">
-              <Mail className="h-8 w-8 text-primary-600" />
-              <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">Total</span>
+              <DollarSign className="h-8 w-8 text-emerald-600" />
+              <span className="text-xs font-semibold uppercase tracking-wider text-emerald-700">Faturamento</span>
             </div>
-            <p className="text-3xl font-bold text-gray-900">{emails.length}</p>
-            <p className="text-gray-500 text-sm mt-1">Contas de email</p>
+            <p className="text-3xl font-bold text-emerald-600">{totalRevenue.toLocaleString('pt-MZ')} MT</p>
+            <p className="text-gray-500 text-sm mt-1">Receita total acumulada</p>
           </div>
 
           <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition">
             <div className="flex items-center justify-between mb-4">
-              <DollarSign className="h-8 w-8 text-emerald-600" />
-              <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">MRR</span>
+              <TrendingUp className="h-8 w-8 text-purple-600" />
+              <span className="text-xs font-semibold uppercase tracking-wider text-purple-700">MRR Mensal</span>
             </div>
-            <p className="text-3xl font-bold text-gray-900">{totalRevenue.toLocaleString('pt-MZ')} MT</p>
-            <p className="text-gray-500 text-sm mt-1">Receita mensal</p>
+            <p className="text-3xl font-bold text-purple-700">{mrr.toLocaleString('pt-MZ')} MT</p>
+            <p className="text-gray-500 text-sm mt-1">Receita recorrente garantida</p>
+          </div>
+        </div>
+
+        {/* Módulo de Análise Financeira & Métricas Recorrentes */}
+        <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm mb-8">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900 flex items-center space-x-2">
+                <DollarSign className="h-6 w-6 text-emerald-600" />
+                <span>Análise Financeira & Desempenho de Vendas (WEHOSTINC)</span>
+              </h2>
+              <p className="text-gray-500 text-sm mt-0.5">Métricas de faturamento em Meticais, ticket médio e liquidação via M-Pesa / eMola</p>
+            </div>
+            <span className="bg-emerald-100 text-emerald-800 text-xs font-extrabold px-3 py-1.5 rounded-full border border-emerald-300">
+              Projeção Anual: {(mrr * 12).toLocaleString('pt-MZ')} MT
+            </span>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6 pt-2">
+            {/* Ticket Médio */}
+            <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
+              <span className="text-xs font-bold text-gray-500 uppercase tracking-wider block">Ticket Médio por Cliente</span>
+              <span className="text-2xl font-black text-gray-900 block mt-1">{averageTicket.toLocaleString('pt-MZ')} MT</span>
+              <span className="text-xs text-gray-500 mt-1 block">Média de gasto por contratação na plataforma</span>
+            </div>
+
+            {/* Faturamento M-Pesa */}
+            <div className="p-4 bg-red-50/70 border border-red-200 rounded-xl">
+              <span className="text-xs font-bold text-red-900 uppercase tracking-wider block">Faturamento via M-Pesa (Vodacom)</span>
+              <span className="text-2xl font-black text-red-700 block mt-1">{mpesaRevenue.toLocaleString('pt-MZ')} MT</span>
+              <div className="w-full bg-red-200 h-2 rounded-full mt-2">
+                <div className="bg-red-600 h-2 rounded-full" style={{ width: `${Math.round((mpesaRevenue / validOrdersTotal) * 100)}%` }}></div>
+              </div>
+              <span className="text-[11px] font-semibold text-red-700 mt-1 block">{Math.round((mpesaRevenue / validOrdersTotal) * 100)}% do volume de vendas</span>
+            </div>
+
+            {/* Faturamento eMola / Cartão */}
+            <div className="p-4 bg-orange-50/70 border border-orange-200 rounded-xl">
+              <span className="text-xs font-bold text-orange-900 uppercase tracking-wider block">eMola (Movitel) & Cartão</span>
+              <span className="text-2xl font-black text-orange-700 block mt-1">{(emolaRevenue + cardRevenue).toLocaleString('pt-MZ')} MT</span>
+              <div className="w-full bg-orange-200 h-2 rounded-full mt-2">
+                <div className="bg-orange-600 h-2 rounded-full" style={{ width: `${Math.round(((emolaRevenue + cardRevenue) / validOrdersTotal) * 100)}%` }}></div>
+              </div>
+              <span className="text-[11px] font-semibold text-orange-700 mt-1 block">{Math.round(((emolaRevenue + cardRevenue) / validOrdersTotal) * 100)}% do volume de vendas</span>
+            </div>
           </div>
         </div>
 
