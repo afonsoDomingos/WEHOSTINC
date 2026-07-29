@@ -106,13 +106,28 @@ function WebmailContent() {
     }
   };
 
-  const handleSendEmail = (e: React.FormEvent) => {
+  const handleSendEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!composeTo || !composeBody) return;
 
     setSendingMsg(true);
 
-    setTimeout(() => {
+    try {
+      // 1. Chamar a API real do SendGrid
+      const res = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'webmail',
+          from: selectedAccountEmail,
+          to: composeTo,
+          subject: composeSubject || '(Sem assunto)',
+          body: composeBody,
+        }),
+      });
+      const data = await res.json();
+
+      // 2. Guardar na pasta Enviados (localStorage) independente do resultado real
       webmailManager.sendMessage(
         selectedAccountEmail,
         composeTo,
@@ -121,7 +136,15 @@ function WebmailContent() {
       );
 
       setSendingMsg(false);
-      setSentSuccessMsg('Mensagem enviada com sucesso!');
+
+      if (data.success) {
+        setSentSuccessMsg('✅ E-mail enviado com sucesso via SendGrid!');
+      } else if (data.fallback) {
+        setSentSuccessMsg('📤 E-mail guardado localmente. Configura SENDGRID_API_KEY para envio real.');
+      } else {
+        setSentSuccessMsg(`⚠️ Erro: ${data.error || 'Falha no envio. Verifica a API Key.'}`);
+      }
+
       setTimeout(() => {
         setShowCompose(false);
         setSentSuccessMsg('');
@@ -129,23 +152,53 @@ function WebmailContent() {
         setComposeSubject('');
         setComposeBody('');
         refreshMessages();
-      }, 1200);
-    }, 600);
+      }, 2000);
+    } catch (err) {
+      console.error('Erro ao enviar e-mail:', err);
+      setSendingMsg(false);
+      setSentSuccessMsg('❌ Erro de rede. Verifica a ligação e tenta novamente.');
+    }
   };
 
-  const handleSendQuickReply = () => {
+  const [quickReplySending, setQuickReplySending] = useState(false);
+  const [quickReplyStatus, setQuickReplyStatus] = useState<'idle' | 'sent' | 'error'>('idle');
+
+  const handleSendQuickReply = async () => {
     if (!replyText || !selectedMessage) return;
 
-    webmailManager.sendMessage(
-      selectedAccountEmail,
-      selectedMessage.fromEmail,
-      `Re: ${selectedMessage.subject}`,
-      replyText
-    );
+    setQuickReplySending(true);
 
-    setReplyText('');
-    refreshMessages();
-    alert('Resposta enviada com sucesso!');
+    try {
+      const res = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'webmail',
+          from: selectedAccountEmail,
+          to: selectedMessage.fromEmail,
+          subject: `Re: ${selectedMessage.subject}`,
+          body: replyText,
+        }),
+      });
+      const data = await res.json();
+
+      // Guardar na pasta Enviados localmente
+      webmailManager.sendMessage(
+        selectedAccountEmail,
+        selectedMessage.fromEmail,
+        `Re: ${selectedMessage.subject}`,
+        replyText
+      );
+
+      setReplyText('');
+      refreshMessages();
+      setQuickReplyStatus(data.success ? 'sent' : 'error');
+    } catch {
+      setQuickReplyStatus('error');
+    } finally {
+      setQuickReplySending(false);
+      setTimeout(() => setQuickReplyStatus('idle'), 3000);
+    }
   };
 
   // Filtragem por Pasta e Pesquisa
@@ -422,15 +475,20 @@ function WebmailContent() {
                   placeholder="Escreva a sua resposta..."
                   className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 outline-none focus:ring-2 focus:ring-primary-500 font-sans"
                 />
-                <div className="flex justify-end">
+                <div className="flex items-center justify-between">
+                  {quickReplyStatus !== 'idle' && (
+                    <span className={`text-xs font-semibold ${quickReplyStatus === 'sent' ? 'text-emerald-600' : 'text-red-500'}`}>
+                      {quickReplyStatus === 'sent' ? '✅ Resposta enviada!' : '❌ Erro ao enviar. Tenta novamente.'}
+                    </span>
+                  )}
                   <button
                     type="button"
                     onClick={handleSendQuickReply}
-                    disabled={!replyText.trim()}
-                    className="px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow transition cursor-pointer flex items-center space-x-1.5"
+                    disabled={!replyText.trim() || quickReplySending}
+                    className="ml-auto px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow transition cursor-pointer flex items-center space-x-1.5"
                   >
                     <Send className="h-3.5 w-3.5" />
-                    <span>Enviar Resposta</span>
+                    <span>{quickReplySending ? 'A enviar...' : 'Enviar Resposta'}</span>
                   </button>
                 </div>
               </div>
