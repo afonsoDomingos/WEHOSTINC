@@ -67,18 +67,7 @@ export default function Home() {
       </section>
 
       {/* Secção Infraestrutura Datacenter - Imagem dos Servidores Infortrend em 100% Largura Total (Full Width) */}
-      <section id="infraestrutura" className="relative w-full bg-slate-950 text-white py-16 border-t border-slate-800 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 mb-8 text-center">
-          <span className="bg-primary-500/20 text-primary-300 border border-primary-500/40 text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wider">
-            Infraestrutura Física Dedicada
-          </span>
-          <h2 className="text-3xl sm:text-5xl font-extrabold text-white mt-4 mb-3 tracking-tight">
-            Datacenter de Alta Performance
-          </h2>
-          <p className="text-slate-300 text-sm sm:text-base max-w-2xl mx-auto font-medium">
-            Servidores Racks dedicados com fibra óptica redundante de baixa latência e monitorização contínua 24/7/365.
-          </p>
-        </div>
+      <section id="infraestrutura" className="relative w-full bg-slate-950 text-white border-t border-slate-800 overflow-hidden">
 
         {/* Banner com Imagem de Servidores Infortrend de Largura Total (Edge to Edge) e 100% Visível */}
         <div className="relative w-full overflow-hidden shadow-2xl border-y border-primary-500/50 bg-black">
