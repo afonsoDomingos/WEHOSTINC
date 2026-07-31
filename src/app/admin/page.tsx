@@ -484,14 +484,16 @@ export default function AdminPage() {
 
   const actualOrdersRevenue = orders.reduce((acc, order) => acc + (order.status !== 'cancelled' ? order.amount : 0), 0);
 
-  const mrr = users.reduce((acc, user) => {
+  const clientUsers = users.filter(u => u.role !== 'admin' && u.email.toLowerCase() !== 'admin@wehosthere.com');
+
+  const mrr = clientUsers.reduce((acc, user) => {
     const planPrices = { basic: 1200, pro: 3000, enterprise: 6200 };
     return acc + (planPrices[user.plan as keyof typeof planPrices] || 0);
   }, 0);
 
   const totalRevenue = actualOrdersRevenue > 0 ? actualOrdersRevenue : mrr;
 
-  const averageTicket = orders.length > 0 ? Math.round(totalRevenue / orders.length) : (users.length > 0 ? Math.round(mrr / users.length) : 0);
+  const averageTicket = orders.length > 0 ? Math.round(totalRevenue / orders.length) : (clientUsers.length > 0 ? Math.round(mrr / clientUsers.length) : 0);
 
   const mpesaRevenue = orders.filter(o => o.paymentMethod === 'mpesa' && o.status !== 'cancelled').reduce((acc, o) => acc + o.amount, 0);
   const emolaRevenue = orders.filter(o => o.paymentMethod === 'emola' && o.status !== 'cancelled').reduce((acc, o) => acc + o.amount, 0);
