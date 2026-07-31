@@ -87,11 +87,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true, emails: GLOBAL_EMAILS });
     }
 
-    const newEmail: ServerEmailAccount = email || {
+    const newEmail: ServerEmailAccount = email ? {
+      ...email,
+      userEmail: email.userEmail || body.userEmail
+    } : {
       id: body.id || Date.now().toString(),
       email: body.email,
       domain: body.domain || body.email?.split('@')[1] || '',
       status: body.status || 'pending',
+      userEmail: body.userEmail,
       quotaGB: body.quotaGB || 5,
       usedGB: body.usedGB || 0.1,
       storage: body.storage || 5,
