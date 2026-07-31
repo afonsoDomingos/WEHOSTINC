@@ -104,7 +104,7 @@ export const auth = {
   },
 
   // Registrar novo usuário assincronamente (com confirmação de salvamento no servidor)
-  registerAsync: async (name: string, email: string, password: string, plan: 'basic' | 'pro' | 'enterprise' = 'basic', status: 'active' | 'pending' | 'suspended' = 'active', dueDate: number = 29): Promise<User> => {
+  registerAsync: async (name: string, email: string, password: string, plan: 'basic' | 'pro' | 'enterprise' = 'basic', status: 'active' | 'pending' | 'suspended' = 'pending', dueDate: number = 29): Promise<User> => {
     seedDefaultUsers();
     
     // 1. Sincronizar usuários atualizados do servidor para garantir validação global
@@ -157,7 +157,7 @@ export const auth = {
   },
 
   // Registrar novo usuário
-  register: (name: string, email: string, password: string, plan: 'basic' | 'pro' | 'enterprise' = 'basic', status: 'active' | 'pending' | 'suspended' = 'active', dueDate: number = 29): User => {
+  register: (name: string, email: string, password: string, plan: 'basic' | 'pro' | 'enterprise' = 'basic', status: 'active' | 'pending' | 'suspended' = 'pending', dueDate: number = 29): User => {
     seedDefaultUsers();
     const users = auth.getUsers();
     

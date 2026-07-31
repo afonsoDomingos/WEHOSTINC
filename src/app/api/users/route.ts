@@ -124,7 +124,7 @@ export async function POST(req: Request) {
       email: body.email,
       password: body.password || '@Admin123@',
       plan: body.plan || 'basic',
-      status: body.status || 'active',
+      status: body.status || 'pending',
       dueDate: body.dueDate || 29,
       role: body.role || 'user',
       createdAt: body.createdAt || new Date().toISOString()

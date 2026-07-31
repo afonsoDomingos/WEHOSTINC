@@ -166,6 +166,27 @@ export default function DashboardPage() {
 
           {/* Main Content */}
           <div className="lg:col-span-3 space-y-6">
+            {/* Banner de Status Pendente */}
+            {user.status === 'pending' && (
+              <div className="bg-amber-50 border-2 border-amber-300 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-amber-900 shadow-sm">
+                <div className="flex items-start gap-3">
+                  <span className="text-2xl">⏳</span>
+                  <div>
+                    <h3 className="font-bold text-amber-950 text-base">Conta em Fase de Ativação (Aguardando Pagamento)</h3>
+                    <p className="text-xs sm:text-sm text-amber-800 mt-0.5">
+                      O seu registo foi concluído com sucesso! Para ativar o seu plano de hospedagem ou serviço, selecione o plano e conclua o pagamento.
+                    </p>
+                  </div>
+                </div>
+                <Link
+                  href="/dashboard/billing"
+                  className="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold whitespace-nowrap shadow transition"
+                >
+                  Efetuar Pagamento →
+                </Link>
+              </div>
+            )}
+
             {/* Welcome Card com Datacenter Background */}
             <div className="relative overflow-hidden bg-slate-950 rounded-2xl shadow-xl p-6 sm:p-8 text-white border border-slate-800">
               <div 
