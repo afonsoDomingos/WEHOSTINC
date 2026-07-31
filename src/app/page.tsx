@@ -11,7 +11,7 @@ import Navbar from '@/components/Navbar';
 import DomainSearch from '@/components/DomainSearch';
 
 export default function Home() {
-  const [isAnnual, setIsAnnual] = useState(false);
+  const [durationMonths, setDurationMonths] = useState<number>(1);
 
   // Ticker animado pelos tipos de sites e seus preços
   const tickerTypes = websiteTypes.filter(t => t.basePrice < 100000);
@@ -129,25 +129,49 @@ export default function Home() {
               Escolha o plano ideal para o seu projeto com pagamento mensal ou anual com desconto.
             </p>
 
-            {/* Mensal / Anual Toggle Switch */}
-            <div className="inline-flex items-center bg-gray-200 p-1.5 rounded-full border border-gray-300 shadow-inner">
+            {/* Seleção de Duração / Período da Hospedagem */}
+            <div className="inline-flex flex-wrap items-center justify-center bg-gray-200 p-1.5 rounded-2xl border border-gray-300 shadow-inner gap-1 max-w-full">
               <button
                 type="button"
-                onClick={() => setIsAnnual(false)}
-                className={`px-5 py-2 rounded-full text-sm font-bold transition cursor-pointer ${
-                  !isAnnual ? 'bg-white text-gray-900 shadow-md' : 'text-gray-600 hover:text-gray-900'
+                onClick={() => setDurationMonths(1)}
+                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer ${
+                  durationMonths === 1 ? 'bg-white text-gray-900 shadow-md' : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
-                Cobrança Mensal
+                1 Mês (Mensal)
               </button>
               <button
                 type="button"
-                onClick={() => setIsAnnual(true)}
-                className={`px-5 py-2 rounded-full text-sm font-bold transition flex items-center space-x-1.5 cursor-pointer ${
-                  isAnnual ? 'bg-primary-600 text-white shadow-md' : 'text-gray-600 hover:text-gray-900'
+                onClick={() => setDurationMonths(3)}
+                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center space-x-1 cursor-pointer ${
+                  durationMonths === 3 ? 'bg-blue-600 text-white shadow-md' : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
-                <span>Cobrança Anual</span>
+                <span>3 Meses</span>
+                <span className="bg-blue-200 text-blue-900 text-[10px] font-extrabold px-1.5 py-0.2 rounded-full">
+                  -5% OFF
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setDurationMonths(6)}
+                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center space-x-1 cursor-pointer ${
+                  durationMonths === 6 ? 'bg-purple-600 text-white shadow-md' : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <span>6 Meses</span>
+                <span className="bg-purple-200 text-purple-900 text-[10px] font-extrabold px-1.5 py-0.2 rounded-full">
+                  -10% OFF
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setDurationMonths(12)}
+                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center space-x-1.5 cursor-pointer ${
+                  durationMonths === 12 ? 'bg-primary-600 text-white shadow-md' : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <span>1 Ano (12M)</span>
                 <span className="bg-amber-400 text-gray-900 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider">
                   2 Meses Grátis
                 </span>
@@ -163,14 +187,24 @@ export default function Home() {
                 <p className="text-gray-600 mb-4">Ideal para iniciantes</p>
                 <div className="mb-6">
                   <span className="text-4xl font-bold text-gray-900">
-                    {isAnnual ? '5.500 MT' : '550 MT'}
+                    {durationMonths === 12
+                      ? '5.500 MT'
+                      : durationMonths === 6
+                      ? '2.970 MT'
+                      : durationMonths === 3
+                      ? '1.568 MT'
+                      : '550 MT'}
                   </span>
                   <span className="text-gray-600 text-sm font-medium">
-                    {isAnnual ? ' /ano' : ' /mês'}
+                    {durationMonths === 12 ? ' /ano' : ` /${durationMonths}M`}
                   </span>
-                  {isAnnual && (
+                  {durationMonths > 1 && (
                     <div className="text-xs font-semibold text-emerald-600 mt-1">
-                      Equivale a 100 MT/mês (Economize 240 MT)
+                      {durationMonths === 12
+                        ? 'Economize 1.100 MT (2 meses grátis)'
+                        : durationMonths === 6
+                        ? 'Economize 330 MT (10% Desconto)'
+                        : 'Economize 82 MT (5% Desconto)'}
                     </div>
                   )}
                 </div>
@@ -194,7 +228,7 @@ export default function Home() {
                 </ul>
               </div>
               <Link
-                href={`/checkout?plan=basic&billingCycle=${isAnnual ? 'annual' : 'monthly'}`}
+                href={`/checkout?plan=basic&billingCycle=${durationMonths === 12 ? 'annual' : 'monthly'}`}
                 className="block w-full py-3 text-center border-2 border-primary-600 text-primary-600 font-bold rounded-xl hover:bg-primary-50 transition"
               >
                 Assinar Agora
@@ -211,14 +245,24 @@ export default function Home() {
                 <p className="text-blue-100 mb-4">Para negócios em crescimento</p>
                 <div className="mb-6">
                   <span className="text-4xl font-bold text-white">
-                    {isAnnual ? '25.000 MT' : '2.500 MT'}
+                    {durationMonths === 12
+                      ? '25.000 MT'
+                      : durationMonths === 6
+                      ? '13.500 MT'
+                      : durationMonths === 3
+                      ? '7.125 MT'
+                      : '2.500 MT'}
                   </span>
                   <span className="text-blue-100 text-sm font-medium">
-                    {isAnnual ? ' /ano' : ' /mês'}
+                    {durationMonths === 12 ? ' /ano' : ` /${durationMonths}M`}
                   </span>
-                  {isAnnual && (
+                  {durationMonths > 1 && (
                     <div className="text-xs font-semibold text-amber-300 mt-1">
-                      Equivale a 250 MT/mês (Economize 600 MT)
+                      {durationMonths === 12
+                        ? 'Economize 5.000 MT (2 meses grátis)'
+                        : durationMonths === 6
+                        ? 'Economize 1.500 MT (10% Desconto)'
+                        : 'Economize 375 MT (5% Desconto)'}
                     </div>
                   )}
                 </div>
@@ -246,7 +290,7 @@ export default function Home() {
                 </ul>
               </div>
               <Link
-                href={`/checkout?plan=pro&billingCycle=${isAnnual ? 'annual' : 'monthly'}`}
+                href={`/checkout?plan=pro&billingCycle=${durationMonths === 12 ? 'annual' : 'monthly'}`}
                 className="block w-full py-3.5 text-center bg-white text-primary-700 rounded-xl hover:bg-gray-100 transition font-bold shadow-md"
               >
                 Assinar Agora
@@ -260,14 +304,24 @@ export default function Home() {
                 <p className="text-gray-600 mb-4">Para grandes operações</p>
                 <div className="mb-6">
                   <span className="text-4xl font-bold text-gray-900">
-                    {isAnnual ? '62.000 MT' : '6.200 MT'}
+                    {durationMonths === 12
+                      ? '62.000 MT'
+                      : durationMonths === 6
+                      ? '33.480 MT'
+                      : durationMonths === 3
+                      ? '17.670 MT'
+                      : '6.200 MT'}
                   </span>
                   <span className="text-gray-600 text-sm font-medium">
-                    {isAnnual ? ' /ano' : ' /mês'}
+                    {durationMonths === 12 ? ' /ano' : ` /${durationMonths}M`}
                   </span>
-                  {isAnnual && (
+                  {durationMonths > 1 && (
                     <div className="text-xs font-semibold text-emerald-600 mt-1">
-                      Equivale a 516 MT/mês (Economize 1.240 MT)
+                      {durationMonths === 12
+                        ? 'Economize 12.400 MT (2 meses grátis)'
+                        : durationMonths === 6
+                        ? 'Economize 3.720 MT (10% Desconto)'
+                        : 'Economize 930 MT (5% Desconto)'}
                     </div>
                   )}
                 </div>
@@ -295,7 +349,7 @@ export default function Home() {
                 </ul>
               </div>
               <Link
-                href={`/checkout?plan=enterprise&billingCycle=${isAnnual ? 'annual' : 'monthly'}`}
+                href={`/checkout?plan=enterprise&billingCycle=${durationMonths === 12 ? 'annual' : 'monthly'}`}
                 className="block w-full py-3 text-center border-2 border-primary-600 text-primary-600 font-bold rounded-xl hover:bg-primary-50 transition"
               >
                 Assinar Agora
