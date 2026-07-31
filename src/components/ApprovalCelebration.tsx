@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { CheckCircle, Sparkles, PartyPopper } from 'lucide-react';
+import { CheckCircle, Sparkles, PartyPopper, X } from 'lucide-react';
 
 interface ApprovalCelebrationProps {
   show: boolean;
@@ -15,9 +15,8 @@ function randomBetween(a: number, b: number) {
 }
 
 const COLORS = [
-  '#6366f1', '#8b5cf6', '#ec4899', '#f59e0b',
-  '#10b981', '#3b82f6', '#f43f5e', '#facc15',
-  '#34d399', '#60a5fa',
+  '#10b981', '#059669', '#3b82f6', '#f59e0b',
+  '#ec4899', '#8b5cf6', '#34d399', '#60a5fa',
 ];
 
 function Confetti() {
@@ -38,14 +37,14 @@ function Confetti() {
       shape: 'rect' | 'circle';
     }[] = [];
 
-    for (let i = 0; i < 180; i++) {
+    for (let i = 0; i < 140; i++) {
       particles.push({
-        x: randomBetween(canvas.width * 0.3, canvas.width * 0.7),
-        y: randomBetween(canvas.height * 0.25, canvas.height * 0.45),
-        vx: randomBetween(-8, 8),
-        vy: randomBetween(-18, -4),
+        x: randomBetween(canvas.width * 0.35, canvas.width * 0.65),
+        y: randomBetween(canvas.height * 0.3, canvas.height * 0.5),
+        vx: randomBetween(-7, 7),
+        vy: randomBetween(-14, -3),
         color: COLORS[Math.floor(Math.random() * COLORS.length)],
-        size: randomBetween(6, 14),
+        size: randomBetween(6, 12),
         rotation: randomBetween(0, Math.PI * 2),
         rotSpeed: randomBetween(-0.15, 0.15),
         shape: Math.random() > 0.5 ? 'rect' : 'circle',
@@ -57,14 +56,14 @@ function Confetti() {
 
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      particles.forEach((p, i) => {
-        p.vy += 0.45; // gravity
+      particles.forEach((p) => {
+        p.vy += 0.4;
         p.vx *= 0.99;
         p.x += p.vx;
         p.y += p.vy;
         p.rotation += p.rotSpeed;
 
-        const alpha = Math.max(0, 1 - tick / 120);
+        const alpha = Math.max(0, 1 - tick / 80);
         ctx.save();
         ctx.globalAlpha = alpha;
         ctx.translate(p.x, p.y);
@@ -82,7 +81,7 @@ function Confetti() {
       });
 
       tick++;
-      if (tick < 150) {
+      if (tick < 90) {
         animId = requestAnimationFrame(draw);
       } else {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -96,7 +95,7 @@ function Confetti() {
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 pointer-events-none z-[9999]"
+      className="fixed inset-0 pointer-events-none z-[10001]"
     />
   );
 }
@@ -104,7 +103,8 @@ function Confetti() {
 export default function ApprovalCelebration({ show, type, name, onDone }: ApprovalCelebrationProps) {
   useEffect(() => {
     if (show) {
-      const t = setTimeout(onDone, 4500);
+      // Sumir rapidamente após 2.5 segundos
+      const t = setTimeout(onDone, 2500);
       return () => clearTimeout(t);
     }
   }, [show, onDone]);
@@ -115,37 +115,56 @@ export default function ApprovalCelebration({ show, type, name, onDone }: Approv
     <>
       <Confetti />
 
-      {/* Toast de celebração */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[10000] animate-bounce-in">
+      {/* Backdrop transparente no centro */}
+      <div 
+        className="fixed inset-0 bg-slate-950/40 backdrop-blur-xs z-[10000] transition-opacity duration-200" 
+        onClick={onDone}
+      />
+
+      {/* Card Tema Branco — Centralizado na Tela com Animação Rápida */}
+      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[10002] w-full max-w-sm px-4">
         <div
-          className="flex items-center gap-4 px-6 py-4 rounded-2xl shadow-2xl border border-white/20 text-white"
+          className="relative bg-white rounded-2xl p-6 shadow-2xl border border-gray-100 text-slate-900 overflow-hidden"
           style={{
-            background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%)',
-            boxShadow: '0 20px 60px rgba(99,102,241,0.5)',
-            animation: 'celebrationPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
+            animation: 'centerPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
           }}
         >
-          <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
-            <PartyPopper className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2 font-bold text-lg">
-              <CheckCircle className="w-5 h-5 text-emerald-300" />
-              {type === 'email' ? 'E-mail Aprovado!' : 'Domínio Aprovado!'}
-              <Sparkles className="w-4 h-4 text-yellow-300 animate-spin" />
+          {/* Linha Decorativa no topo */}
+          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500" />
+
+          {/* Botão de Fechar Rápido */}
+          <button
+            onClick={onDone}
+            className="absolute top-3 right-3 p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition"
+            title="Fechar"
+          >
+            <X className="w-4 h-4" />
+          </button>
+
+          <div className="flex items-start space-x-4">
+            <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm border border-emerald-200">
+              <PartyPopper className="w-6 h-6" />
             </div>
-            <p className="text-white/90 text-sm mt-0.5 max-w-xs truncate">
-              <span className="font-semibold">{name}</span> está agora{' '}
-              <span className="text-emerald-300 font-bold">ativo</span> e pronto a usar! 🎉
-            </p>
+
+            <div className="flex-1 pr-4">
+              <div className="flex items-center gap-2 font-extrabold text-base text-gray-900">
+                <CheckCircle className="w-5 h-5 text-emerald-500 flex-shrink-0" />
+                <span>{type === 'email' ? 'E-mail Aprovado!' : 'Domínio Aprovado!'}</span>
+                <Sparkles className="w-4 h-4 text-amber-500 animate-pulse flex-shrink-0" />
+              </div>
+
+              <p className="text-gray-600 text-xs mt-1.5 leading-relaxed">
+                <span className="font-bold text-gray-900">{name}</span> foi ativado pelo administrador e já está pronto a usar! 🎉
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
       <style jsx global>{`
-        @keyframes celebrationPop {
-          0% { opacity: 0; transform: translateX(-50%) translateY(30px) scale(0.8); }
-          100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+        @keyframes centerPop {
+          0% { opacity: 0; transform: scale(0.85); }
+          100% { opacity: 1; transform: scale(1); }
         }
       `}</style>
     </>
