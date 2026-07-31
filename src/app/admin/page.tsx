@@ -74,6 +74,15 @@ export default function AdminPage() {
   const [orders, setOrders] = useState<ServiceOrder[]>([]);
   const [securityLogs, setSecurityLogs] = useState<SecurityLog[]>([]);
   const [domainLogs, setDomainLogs] = useState<Array<{ id: string; domain: string; extension: string; isAvailable: boolean; timestamp: string; searchCount?: number }>>([]);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = () => {
+    setIsLoggingOut(true);
+    setTimeout(() => {
+      auth.logout();
+      router.push('/');
+    }, 400);
+  };
   // Planos pendentes de guardar (chave: userId, valor: novo plano)
   const [pendingPlanChanges, setPendingPlanChanges] = useState<Record<string, 'basic' | 'pro' | 'enterprise'>>({});
 
@@ -335,11 +344,6 @@ export default function AdminPage() {
     }
   };
 
-  const handleLogout = () => {
-    auth.logout();
-    router.push('/');
-  };
-
   const handleSavePlanChange = (userId: string, userName: string, userEmail: string) => {
     const newPlanId = pendingPlanChanges[userId];
     if (!newPlanId) return;
@@ -466,6 +470,7 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
+      {isLoggingOut && <PageLoader text="A encerrar a sua sessão com segurança... Até breve!" />}
       {/* Header */}
       <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

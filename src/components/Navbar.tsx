@@ -5,12 +5,14 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Menu, X, LayoutDashboard, LogOut, User as UserIcon } from 'lucide-react';
 import BrandLogo from '@/components/BrandLogo';
+import PageLoader from '@/components/PageLoader';
 import { auth, User } from '@/lib/auth';
 
 export default function Navbar() {
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   useEffect(() => {
     setUser(auth.getCurrentUser());
@@ -21,14 +23,18 @@ export default function Navbar() {
   };
 
   const handleLogout = () => {
-    auth.logout();
-    setUser(null);
-    closeMobileMenu();
-    router.push('/');
+    setIsLoggingOut(true);
+    setTimeout(() => {
+      auth.logout();
+      setUser(null);
+      closeMobileMenu();
+      router.push('/');
+    }, 400);
   };
 
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm transition-all">
+      {isLoggingOut && <PageLoader text="A encerrar a sua sessão com segurança..." />}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-3.5 md:py-4">
           

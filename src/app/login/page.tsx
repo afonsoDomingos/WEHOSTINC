@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Server, Lock, Mail, Eye, EyeOff, ArrowRight, ShieldCheck } from 'lucide-react';
 import { auth } from '@/lib/auth';
 import BrandLogo from '@/components/BrandLogo';
+import PageLoader from '@/components/PageLoader';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -47,6 +48,7 @@ export default function LoginPage() {
     <div
       className="min-h-screen flex items-center justify-center px-4 py-10 relative bg-slate-950"
     >
+      {loading && <PageLoader text="A autenticar a sua conta com segurança..." />}
       {/* Fundo Datacenter */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-30"

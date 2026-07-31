@@ -48,9 +48,14 @@ export default function DashboardPage() {
     setLoading(false);
   }, [router]);
 
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
   const handleLogout = () => {
-    auth.logout();
-    router.push('/');
+    setIsLoggingOut(true);
+    setTimeout(() => {
+      auth.logout();
+      router.push('/');
+    }, 400);
   };
 
   if (loading) {
