@@ -2,106 +2,95 @@ import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import SiteModel from '@/lib/models/Site';
 
-// GET: Lista todos os sites
-export async function GET() {
-  try {
-    await connectDB();
-    const sites = await SiteModel.find({}).lean();
-    return NextResponse.json({ sites });
-  } catch (error) {
-    console.error('Erro ao buscar sites:', error);
-    return NextResponse.json({ sites: [] }, { status: 500 });
-  }
+let FALLBACK_SITES: any[] = [];
+let mongoAvailable: boolean | null = null;
+
+async function tryMongo() {
+  if (mongoAvailable === false) return false;
+  try { await connectDB(); mongoAvailable = true; return true; }
+  catch { mongoAvailable = false; return false; }
 }
 
-// POST: Adicionar, atualizar status, sincronizar ou eliminar sites
+export async function GET() {
+  try {
+    if (await tryMongo()) {
+      const sites = await SiteModel.find({}).lean();
+      return NextResponse.json({ sites });
+    }
+  } catch (e) { console.error('MongoDB indisponível (sites):', e); }
+  return NextResponse.json({ sites: FALLBACK_SITES });
+}
+
 export async function POST(req: Request) {
   try {
-    await connectDB();
     const body = await req.json();
     const { action, site, siteId, status, domain, sites } = body;
+    const useMongo = await tryMongo();
 
     if (action === 'sync_all' && Array.isArray(sites)) {
-      for (const s of sites) {
-        const key = (s.domain || s.id || '').toLowerCase();
-        if (!key) continue;
-        await SiteModel.findOneAndUpdate(
-          { $or: [{ domain: key }, { id: s.id }] },
-          s,
-          { upsert: true, new: true }
-        );
+      if (useMongo) {
+        for (const s of sites) {
+          const key = (s.domain || s.id || '').toLowerCase();
+          if (!key) continue;
+          await SiteModel.findOneAndUpdate({ $or: [{ domain: key }, { id: s.id }] }, s, { upsert: true, new: true });
+        }
+        return NextResponse.json({ success: true, sites: await SiteModel.find({}).lean() });
       }
-      const allSites = await SiteModel.find({}).lean();
-      return NextResponse.json({ success: true, sites: allSites });
+      const map = new Map<string, any>();
+      FALLBACK_SITES.forEach(s => map.set(s.domain?.toLowerCase(), s));
+      sites.forEach((s: any) => map.set((s.domain || s.id || '').toLowerCase(), { ...map.get((s.domain||s.id||'').toLowerCase()), ...s }));
+      FALLBACK_SITES = Array.from(map.values());
+      return NextResponse.json({ success: true, sites: FALLBACK_SITES });
     }
 
     if (action === 'delete') {
       const tId = (siteId || '').toLowerCase();
       const tDomain = (domain || '').toLowerCase();
-      await SiteModel.deleteOne({
-        $or: [
-          ...(tId ? [{ id: tId }, { domain: tId }] : []),
-          ...(tDomain ? [{ id: tDomain }, { domain: tDomain }] : [])
-        ]
+      if (useMongo) {
+        await SiteModel.deleteOne({ $or: [...(tId ? [{ id: tId }, { domain: tId }] : []), ...(tDomain ? [{ id: tDomain }, { domain: tDomain }] : [])] });
+        return NextResponse.json({ success: true, sites: await SiteModel.find({}).lean() });
+      }
+      FALLBACK_SITES = FALLBACK_SITES.filter(s => {
+        if (tId && (s.id?.toLowerCase() === tId || s.domain?.toLowerCase() === tId)) return false;
+        if (tDomain && (s.id?.toLowerCase() === tDomain || s.domain?.toLowerCase() === tDomain)) return false;
+        return true;
       });
-      const allSites = await SiteModel.find({}).lean();
-      return NextResponse.json({ success: true, sites: allSites });
+      return NextResponse.json({ success: true, sites: FALLBACK_SITES });
     }
 
     if (action === 'update_status') {
       const target = (siteId || domain || '').toLowerCase();
       const updateUserEmail = body.userEmail;
-      const update: Record<string, unknown> = { status };
+      const update: any = { status };
       if (updateUserEmail) update.userEmail = updateUserEmail;
-
-      const result = await SiteModel.findOneAndUpdate(
-        { $or: [{ id: target }, { domain: target }] },
-        update,
-        { new: true }
-      );
-
-      if (!result && (domain || siteId)) {
-        const newDomain = domain || siteId;
-        await SiteModel.create({
-          id: siteId || Date.now().toString(),
-          name: newDomain,
-          domain: newDomain,
-          status: status || 'active',
-          userEmail: updateUserEmail,
-          createdAt: new Date().toISOString(),
-          storage: 10,
-          bandwidth: 100
-        });
+      if (useMongo) {
+        const result = await SiteModel.findOneAndUpdate({ $or: [{ id: target }, { domain: target }] }, update, { new: true });
+        if (!result && (domain || siteId)) {
+          const newDomain = domain || siteId;
+          await SiteModel.create({ id: siteId || Date.now().toString(), name: newDomain, domain: newDomain, status: status || 'active', userEmail: updateUserEmail, createdAt: new Date().toISOString(), storage: 10, bandwidth: 100 });
+        }
+        return NextResponse.json({ success: true, sites: await SiteModel.find({}).lean() });
       }
-
-      const allSites = await SiteModel.find({}).lean();
-      return NextResponse.json({ success: true, sites: allSites });
+      let found = false;
+      FALLBACK_SITES = FALLBACK_SITES.map(s => {
+        if (s.id?.toLowerCase() === target || s.domain?.toLowerCase() === target) { found = true; return { ...s, status, ...(updateUserEmail ? { userEmail: updateUserEmail } : {}) }; }
+        return s;
+      });
+      if (!found && (domain || siteId)) FALLBACK_SITES.unshift({ id: siteId || Date.now().toString(), name: domain || siteId, domain: domain || siteId, status: status || 'active', userEmail: updateUserEmail, createdAt: new Date().toISOString() });
+      return NextResponse.json({ success: true, sites: FALLBACK_SITES });
     }
 
-    // Adicionar ou atualizar site individual
-    const siteData = site ? {
-      ...site,
-      userEmail: site.userEmail || body.userEmail
-    } : {
-      id: body.id || Date.now().toString(),
-      name: body.name || body.domain,
-      domain: body.domain,
-      status: body.status || 'pending',
-      userEmail: body.userEmail,
-      createdAt: body.createdAt || new Date().toISOString(),
-      storage: body.storage || 10,
-      bandwidth: body.bandwidth || 100
-    };
-
+    const siteData = site ? { ...site, userEmail: site.userEmail || body.userEmail } : { id: body.id || Date.now().toString(), name: body.name || body.domain, domain: body.domain, status: body.status || 'pending', userEmail: body.userEmail, createdAt: body.createdAt || new Date().toISOString(), storage: body.storage || 10, bandwidth: body.bandwidth || 100 };
     const targetKey = (siteData.domain || '').toLowerCase();
-    await SiteModel.findOneAndUpdate(
-      { $or: [{ id: siteData.id }, { domain: targetKey }] },
-      siteData,
-      { upsert: true, new: true }
-    );
 
-    const allSites = await SiteModel.find({}).lean();
-    return NextResponse.json({ success: true, site: siteData, sites: allSites });
+    if (useMongo) {
+      await SiteModel.findOneAndUpdate({ $or: [{ id: siteData.id }, { domain: targetKey }] }, siteData, { upsert: true, new: true });
+      return NextResponse.json({ success: true, site: siteData, sites: await SiteModel.find({}).lean() });
+    }
+    const idx = FALLBACK_SITES.findIndex(s => s.id === siteData.id || s.domain?.toLowerCase() === targetKey);
+    if (idx >= 0) FALLBACK_SITES[idx] = { ...FALLBACK_SITES[idx], ...siteData };
+    else FALLBACK_SITES.unshift(siteData);
+    return NextResponse.json({ success: true, site: siteData, sites: FALLBACK_SITES });
   } catch (error) {
     console.error('Erro na API de Sites:', error);
     return NextResponse.json({ error: 'Erro ao processar sites' }, { status: 500 });
