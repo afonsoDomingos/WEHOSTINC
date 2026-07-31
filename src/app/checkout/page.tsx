@@ -122,17 +122,29 @@ function CheckoutContent() {
     return () => clearInterval(timer);
   }, [pushModal, countdown]);
 
+  const [checkoutAccountStatus, setCheckoutAccountStatus] = useState<'logged_in' | 'account_exists' | 'no_account'>('logged_in');
+
   const finalizeOrder = () => {
     try {
-      const user = auth.getCurrentUser();
-      if (user) {
+      const currentUser = auth.getCurrentUser();
+      let accountStatus: 'logged_in' | 'account_exists' | 'no_account' = 'logged_in';
+
+      if (currentUser) {
         if (selectedPlan && selectedPlan.id !== 'website_creation') {
-          auth.updatePlan(user.id, selectedPlan.id as 'basic' | 'pro' | 'enterprise');
+          auth.updatePlan(currentUser.id, selectedPlan.id as 'basic' | 'pro' | 'enterprise');
         }
+        accountStatus = 'logged_in';
       } else {
-        const newUser = auth.register(name, email, '@Admin123@', (selectedPlan && selectedPlan.id === 'website_creation') ? 'pro' : (selectedPlan ? selectedPlan.id as 'basic' | 'pro' | 'enterprise' : 'basic'), 'active', 29);
-        auth.login(newUser.email, '@Admin123@');
+        const allUsers = auth.getUsers();
+        const existingUser = allUsers.find(u => u.email.toLowerCase() === email.trim().toLowerCase());
+        if (existingUser) {
+          accountStatus = 'account_exists';
+        } else {
+          accountStatus = 'no_account';
+        }
       }
+
+      setCheckoutAccountStatus(accountStatus);
 
       const isWebsite = selectedPlan?.id === 'website_creation';
       const siteLabel = isWebsite && siteTypeName ? ` — ${siteTypeName}` : '';
@@ -156,14 +168,15 @@ function CheckoutContent() {
         status: (paymentMethod === 'bank_transfer' || (selectedPlan && selectedPlan.id === 'website_creation')) ? 'in_progress' : 'completed'
       });
 
-      // Cadastra o domínio na lista de sites do cliente com status 'pending' (Pendente / Em Processamento)
+      // Cadastra o domínio na lista de sites do cliente associado ao e-mail com status 'pending'
       if (domainParam) {
         dataManager.addSite({
           name: domainParam,
           domain: domainParam,
           status: 'pending',
           storage: selectedPlan ? selectedPlan.features.storage : 10,
-          bandwidth: 100
+          bandwidth: 100,
+          userEmail: email.trim().toLowerCase()
         });
       }
 
@@ -226,40 +239,86 @@ function CheckoutContent() {
   if (success) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center border border-gray-100">
-          <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
+        <div className="max-w-md w-full bg-white rounded-3xl shadow-2xl p-6 sm:p-8 text-center border border-gray-100 animate-in fade-in zoom-in duration-200">
+          <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
             <CheckCircle2 className="h-10 w-10" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Pagamento Confirmado!</h2>
-          <p className="text-gray-600 mb-6">
-            Parabéns! Seu pedido de <span className="font-semibold text-gray-900">{selectedPlan ? selectedPlan.name : (domainParam ? `Registo do Domínio ${domainParam}` : 'Serviço')}</span> foi ativado com sucesso.
+          <h2 className="text-2xl font-extrabold text-gray-900 mb-1">Pagamento Confirmado!</h2>
+          <p className="text-gray-600 text-xs sm:text-sm mb-5">
+            O seu pedido de <span className="font-semibold text-gray-900">{selectedPlan ? selectedPlan.name : (domainParam ? `Registo do Domínio ${domainParam}` : 'Serviço')}</span> foi registado com sucesso.
           </p>
 
-          <div className="bg-gray-50 rounded-xl p-4 mb-6 text-left border border-gray-200 space-y-2 text-sm text-gray-700">
+          <div className="bg-gray-50 rounded-2xl p-4 mb-5 text-left border border-gray-200 space-y-2 text-xs text-gray-700">
             <div className="flex justify-between">
-              <span className="text-gray-500">Cliente:</span>
-              <span className="font-semibold text-gray-900">{name}</span>
+              <span className="text-gray-500 font-medium">Cliente:</span>
+              <span className="font-bold text-gray-900">{name}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">E-mail:</span>
-              <span className="font-medium text-gray-900">{email}</span>
+              <span className="text-gray-500 font-medium">E-mail:</span>
+              <span className="font-semibold text-gray-900 font-mono">{email}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">Método:</span>
-              <span className="font-semibold text-gray-900 uppercase">{paymentMethod}</span>
+              <span className="text-gray-500 font-medium">Método:</span>
+              <span className="font-bold text-gray-900 uppercase">{paymentMethod}</span>
             </div>
-            <div className="flex justify-between border-t border-gray-200 pt-2 font-bold text-base">
+            <div className="flex justify-between border-t border-gray-200 pt-2 font-extrabold text-sm">
               <span>Total Pago:</span>
-              <span className="text-emerald-600">{grandTotal.toLocaleString('pt-MZ')} MT</span>
+              <span className="text-emerald-600 font-black text-base">{grandTotal.toLocaleString('pt-MZ')} MT</span>
             </div>
           </div>
 
-          <button
-            onClick={() => router.push('/dashboard')}
-            className="w-full py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition flex items-center justify-center space-x-2"
-          >
-            <span>Ir para meu Painel</span>
-          </button>
+          {/* FLUXO DE MENSAGEM SEGUNDO O E-MAIL DO CLIENTE */}
+          {checkoutAccountStatus === 'logged_in' && (
+            <button
+              type="button"
+              onClick={() => router.push('/dashboard')}
+              className="w-full py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-2xl shadow-lg transition flex items-center justify-center space-x-2 cursor-pointer text-sm"
+            >
+              <span>Ir para o meu Painel</span>
+            </button>
+          )}
+
+          {checkoutAccountStatus === 'account_exists' && (
+            <div className="space-y-3 bg-blue-50/80 border border-blue-200 p-4 rounded-2xl text-left">
+              <div className="flex items-start space-x-2.5">
+                <Lock className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
+                <div>
+                  <strong className="block text-xs font-extrabold text-blue-900 uppercase tracking-wider">Já possui uma conta cadastrada!</strong>
+                  <p className="text-xs text-blue-800 mt-1">
+                    Identificámos que o e-mail <strong className="font-mono text-blue-950">{email}</strong> já tem uma conta na WEHOSTHERE. Faça login para aceder ao seu painel e visualizar os seus serviços sincronizados.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => router.push(`/login?email=${encodeURIComponent(email)}`)}
+                className="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl shadow transition text-xs sm:text-sm flex items-center justify-center space-x-2 cursor-pointer"
+              >
+                <span>Fazer Login para Sincronizar</span>
+              </button>
+            </div>
+          )}
+
+          {checkoutAccountStatus === 'no_account' && (
+            <div className="space-y-3 bg-amber-50/80 border border-amber-200 p-4 rounded-2xl text-left">
+              <div className="flex items-start space-x-2.5">
+                <AlertCircle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                <div>
+                  <strong className="block text-xs font-extrabold text-amber-950 uppercase tracking-wider">Criar Conta para Aceder ao Painel</strong>
+                  <p className="text-xs text-amber-900 mt-1">
+                    Registámos a compra para o e-mail <strong className="font-mono text-amber-950">{email}</strong>. Crie agora a sua conta usando este <strong>mesmo e-mail</strong> para que os seus domínios e serviços fiquem sincronizados no seu painel.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => router.push(`/register?email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}`)}
+                className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow transition text-xs sm:text-sm flex items-center justify-center space-x-2 cursor-pointer"
+              >
+                <span>Criar Conta Agora com este E-mail</span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
     );

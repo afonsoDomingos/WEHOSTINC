@@ -9,6 +9,7 @@ export interface Site {
   createdAt: string;
   storage: number;
   bandwidth: number;
+  userEmail?: string;
 }
 
 export interface EmailAccount {
@@ -17,6 +18,7 @@ export interface EmailAccount {
   status: 'active' | 'pending' | 'suspended';
   createdAt: string;
   storage: number;
+  userEmail?: string;
 }
 
 export interface HostingPlan {
@@ -331,10 +333,14 @@ const EMAILS_KEY = 'wehosthere_emails';
 
 export const dataManager = {
   // Sites
-  getSites: (): Site[] => {
+  getSites: (userEmail?: string): Site[] => {
     if (typeof window === 'undefined') return [];
     const data = localStorage.getItem(SITES_KEY);
-    return data ? JSON.parse(data) : [];
+    const sites: Site[] = data ? JSON.parse(data) : [];
+    if (userEmail) {
+      return sites.filter(s => !s.userEmail || s.userEmail.toLowerCase() === userEmail.toLowerCase());
+    }
+    return sites;
   },
 
   fetchSitesAsync: async (): Promise<Site[]> => {
@@ -410,10 +416,14 @@ export const dataManager = {
   },
 
   // Emails
-  getEmails: (): EmailAccount[] => {
+  getEmails: (userEmail?: string): EmailAccount[] => {
     if (typeof window === 'undefined') return [];
     const data = localStorage.getItem(EMAILS_KEY);
-    return data ? JSON.parse(data) : [];
+    const emails: EmailAccount[] = data ? JSON.parse(data) : [];
+    if (userEmail) {
+      return emails.filter(e => !e.userEmail || e.userEmail.toLowerCase() === userEmail.toLowerCase());
+    }
+    return emails;
   },
 
   fetchEmailsAsync: async (): Promise<EmailAccount[]> => {
@@ -489,10 +499,14 @@ export const dataManager = {
   },
 
   // Pedidos de Serviços
-  getOrders: (): ServiceOrder[] => {
+  getOrders: (clientEmail?: string): ServiceOrder[] => {
     if (typeof window === 'undefined') return DEFAULT_ORDERS;
     const data = localStorage.getItem('wehosthere_orders');
-    return data ? JSON.parse(data) : DEFAULT_ORDERS;
+    const orders: ServiceOrder[] = data ? JSON.parse(data) : DEFAULT_ORDERS;
+    if (clientEmail) {
+      return orders.filter(o => !o.clientEmail || o.clientEmail.toLowerCase() === clientEmail.toLowerCase());
+    }
+    return orders;
   },
 
   fetchOrdersAsync: async (): Promise<ServiceOrder[]> => {
