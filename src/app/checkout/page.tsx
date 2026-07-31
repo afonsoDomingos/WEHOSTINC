@@ -11,6 +11,8 @@ import {
 import { hostingPlans, HostingPlan, dataManager } from '@/lib/data';
 import { auth } from '@/lib/auth';
 import { getDomainPrice, sanitizeDomainName } from '@/lib/domains';
+import BrandLogo from '@/components/BrandLogo';
+import PageLoader from '@/components/PageLoader';
 
 function CheckoutContent() {
   const router = useRouter();
@@ -381,12 +383,9 @@ function CheckoutContent() {
       <div className="h-1.5 bg-red-600 w-full" />
 
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 py-4">
+      <header className="bg-white border-b border-gray-200 py-3.5">
         <div className="max-w-4xl mx-auto px-4 flex justify-between items-center">
-          <Link href="/" className="flex items-center space-x-2">
-            <Server className="h-7 w-7 text-primary-600" />
-            <span className="text-2xl font-bold tracking-tight text-gray-900">WEHOSTHERE</span>
-          </Link>
+          <BrandLogo />
           <div className="hidden sm:flex items-center space-x-2 text-xs font-semibold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200">
             <ShieldCheck className="h-4 w-4 text-emerald-600" />
             <span>Ambiente 100% Seguro</span>
@@ -834,11 +833,7 @@ function CheckoutContent() {
 
 export default function CheckoutPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600"></div>
-      </div>
-    }>
+    <Suspense fallback={<PageLoader text="A carregar checkout seguro..." />}>
       <CheckoutContent />
     </Suspense>
   );

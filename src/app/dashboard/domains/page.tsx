@@ -11,6 +11,7 @@ import {
 import { auth, User } from '@/lib/auth';
 import { dataManager, Site } from '@/lib/data';
 import DashboardNav from '@/components/DashboardNav';
+import PageLoader from '@/components/PageLoader';
 
 const NS1 = 'ns1.wehosthere.com';
 const NS2 = 'ns2.wehosthere.com';
@@ -61,11 +62,7 @@ export default function DomainsPage() {
     }
   };
 
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600" />
-    </div>
-  );
+  if (loading) return <PageLoader text="A carregar os seus domínios..." />;
 
   if (!user) return null;
 

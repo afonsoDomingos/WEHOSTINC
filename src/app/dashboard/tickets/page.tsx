@@ -8,6 +8,7 @@ import {
   Paperclip, FileText, Image as ImageIcon, Download, ExternalLink, File, Trash2, Loader2
 } from 'lucide-react';
 import DashboardNav from '@/components/DashboardNav';
+import PageLoader from '@/components/PageLoader';
 import { auth, User } from '@/lib/auth';
 import { dataManager, SupportTicket, TicketMessage, TicketAttachment } from '@/lib/data';
 
@@ -278,11 +279,7 @@ export default function ClientTicketsPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600"></div>
-      </div>
-    );
+    return <PageLoader text="A carregar os seus tickets de suporte..." />;
   }
 
   return (

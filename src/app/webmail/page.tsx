@@ -11,6 +11,8 @@ import {
 import { auth, User as AuthUser } from '@/lib/auth';
 import { dataManager, EmailAccount } from '@/lib/data';
 import { webmailManager, WebmailMessage } from '@/lib/webmail';
+import BrandLogo from '@/components/BrandLogo';
+import PageLoader from '@/components/PageLoader';
 
 function WebmailContent() {
   const router = useRouter();
@@ -231,10 +233,8 @@ function WebmailContent() {
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <div className="flex items-center space-x-2">
-            <div className="p-1.5 bg-primary-600 rounded-lg">
-              <Mail className="h-5 w-5 text-white" />
-            </div>
-            <span className="font-extrabold text-base tracking-tight text-gray-900">WEHOSTHERE <span className="text-primary-500 font-normal text-xs uppercase tracking-wider">Webmail Client</span></span>
+            <BrandLogo />
+            <span className="text-primary-500 font-bold text-xs uppercase tracking-wider bg-primary-50 px-2 py-0.5 rounded-full border border-primary-100">Webmail</span>
           </div>
         </div>
 
@@ -609,11 +609,7 @@ function WebmailContent() {
 
 export default function WebmailPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center text-white font-bold">
-        <div className="animate-spin h-8 w-8 border-4 border-primary-500 border-t-transparent rounded-full" />
-      </div>
-    }>
+    <Suspense fallback={<PageLoader text="A carregar Webmail Client..." />}>
       <WebmailContent />
     </Suspense>
   );

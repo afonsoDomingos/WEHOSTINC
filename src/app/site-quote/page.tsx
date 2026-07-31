@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Server, ArrowLeft, ArrowRight, CheckCircle2, Clock, Search, SlidersHorizontal, X } from 'lucide-react';
 import { websiteTypes, WebsiteType } from '@/lib/data';
 import Navbar from '@/components/Navbar';
+import PageLoader from '@/components/PageLoader';
 
 const complexityLabels: Record<string, { label: string; color: string; active: string }> = {
   simple: { label: 'Simples', color: 'text-emerald-700 bg-emerald-50 border-emerald-200', active: 'bg-emerald-600 text-white border-emerald-600' },
@@ -341,11 +342,7 @@ function SiteQuoteContent() {
 
 export default function SiteQuotePage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex items-center justify-center">
-        <div className="animate-spin h-8 w-8 border-4 border-primary-600 border-t-transparent rounded-full" />
-      </div>
-    }>
+    <Suspense fallback={<PageLoader text="A carregar tipos de sites..." />}>
       <SiteQuoteContent />
     </Suspense>
   );

@@ -8,6 +8,7 @@ import {
   ArrowRight, ArrowLeft, CheckCircle2, Building2, Phone
 } from 'lucide-react';
 import { auth } from '@/lib/auth';
+import BrandLogo from '@/components/BrandLogo';
 
 const STEPS = [
   { id: 1, label: 'Conta', icon: User },
@@ -105,12 +106,7 @@ export default function RegisterPage() {
 
         {/* Logo */}
         <div className="text-center mb-6">
-          <Link href="/" className="inline-flex items-center space-x-2">
-            <div className="bg-primary-600/20 border border-primary-500/40 p-2.5 rounded-xl">
-              <Server className="h-6 w-6 text-primary-400" />
-            </div>
-            <span className="text-xl font-extrabold text-white tracking-tight">WEHOSTHERE</span>
-          </Link>
+          <BrandLogo logoHeightClass="h-8" />
           <h1 className="text-lg font-bold text-white mt-3">Criar conta gratuita</h1>
           <p className="text-slate-400 text-xs mt-1">Comece hoje a sua presença online</p>
         </div>

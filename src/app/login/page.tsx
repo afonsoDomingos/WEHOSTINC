@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Server, Lock, Mail, Eye, EyeOff, ArrowRight, ShieldCheck } from 'lucide-react';
 import { auth } from '@/lib/auth';
+import BrandLogo from '@/components/BrandLogo';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -54,12 +55,7 @@ export default function LoginPage() {
       <div className="relative z-10 w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-7">
-          <Link href="/" className="inline-flex items-center space-x-2 group">
-            <div className="bg-primary-600/20 border border-primary-500/40 p-2.5 rounded-xl">
-              <Server className="h-7 w-7 text-primary-400" />
-            </div>
-            <span className="text-2xl font-extrabold text-white tracking-tight">WEHOSTHERE</span>
-          </Link>
+          <BrandLogo logoHeightClass="h-8" />
           <h1 className="text-xl font-bold text-white mt-4">Bem-vindo de volta</h1>
           <p className="text-slate-400 text-sm mt-1">Acesse o seu painel de controlo</p>
         </div>

@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 import DashboardNav from '@/components/DashboardNav';
+import PageLoader from '@/components/PageLoader';
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -95,11 +96,7 @@ export default function SettingsPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-      </div>
-    );
+    return <PageLoader text="A carregar as suas configurações..." />;
   }
 
   if (!user) return null;

@@ -11,6 +11,8 @@ import {
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 import { dataManager, ServiceOrder, SupportTicket, TicketMessage, TicketAttachment } from '@/lib/data';
+import BrandLogo from '@/components/BrandLogo';
+import PageLoader from '@/components/PageLoader';
 
 const ADMIN_CANNED_RESPONSES = [
   {
@@ -358,6 +360,10 @@ export default function AdminPage() {
     }
   };
 
+  if (loading) {
+    return <PageLoader text="A carregar painel de administração..." />;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
       {/* Header */}
@@ -365,10 +371,7 @@ export default function AdminPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-4">
-              <Link href="/" className="flex items-center space-x-2">
-                <Server className="h-8 w-8 text-primary-600" />
-                <span className="text-2xl font-bold text-gray-900">WEHOSTHERE</span>
-              </Link>
+              <BrandLogo />
               <span className="bg-purple-100 text-purple-700 text-xs font-bold px-3 py-1 rounded-full border border-purple-200">
                 ADMIN
               </span>

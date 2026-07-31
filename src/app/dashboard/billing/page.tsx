@@ -10,6 +10,7 @@ import {
 import { auth, User } from '@/lib/auth';
 import { hostingPlans, dataManager, ServiceOrder } from '@/lib/data';
 import DashboardNav from '@/components/DashboardNav';
+import PageLoader from '@/components/PageLoader';
 import { Clock, XCircle, FileText } from 'lucide-react';
 
 export default function BillingPage() {
@@ -81,11 +82,7 @@ export default function BillingPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-      </div>
-    );
+    return <PageLoader text="A carregar os seus dados de faturamento..." />;
   }
 
   if (!user) return null;

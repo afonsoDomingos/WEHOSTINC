@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Server, Menu, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
+import BrandLogo from '@/components/BrandLogo';
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -17,14 +18,7 @@ export default function Navbar() {
         <div className="flex justify-between items-center py-3.5 md:py-4">
           
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2.5 group" onClick={closeMobileMenu}>
-            <div className="p-2 bg-primary-50 rounded-xl group-hover:bg-primary-100 transition">
-              <Server className="h-6 w-6 text-primary-600" />
-            </div>
-            <span className="text-xl md:text-2xl font-extrabold text-gray-900 tracking-tight">
-              WEHOSTHERE
-            </span>
-          </Link>
+          <BrandLogo onClick={closeMobileMenu} />
 
           {/* Desktop Navigation Links */}
           <nav className="hidden md:flex items-center space-x-8">

@@ -10,6 +10,7 @@ import {
 import { auth, User } from '@/lib/auth';
 import { dataManager, Site } from '@/lib/data';
 import DashboardNav from '@/components/DashboardNav';
+import PageLoader from '@/components/PageLoader';
 
 export default function SitesPage() {
   const router = useRouter();
@@ -93,11 +94,7 @@ export default function SitesPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-      </div>
-    );
+    return <PageLoader text="A carregar os seus sites..." />;
   }
 
   if (!user) return null;

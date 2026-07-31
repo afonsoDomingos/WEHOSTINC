@@ -8,6 +8,8 @@ import {
   Database, Settings as SettingsIcon, LogOut, Menu, X, User, LifeBuoy, Sparkles, Link2
 } from 'lucide-react';
 
+import BrandLogo from '@/components/BrandLogo';
+
 interface DashboardNavProps {
   userName?: string;
   onLogout: () => void;
@@ -37,14 +39,7 @@ export default function DashboardNav({ userName, onLogout }: DashboardNavProps) 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-3.5">
             {/* Logo */}
-            <Link href="/" className="flex items-center space-x-2.5">
-              <div className="p-2 bg-primary-50 rounded-xl">
-                <Server className="h-6 w-6 text-primary-600" />
-              </div>
-              <span className="text-xl font-extrabold text-gray-900 tracking-tight">
-                WEHOSTHERE
-              </span>
-            </Link>
+            <BrandLogo />
 
             {/* Desktop User Info & Logout */}
             <div className="hidden md:flex items-center space-x-5">
