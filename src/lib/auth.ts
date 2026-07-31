@@ -176,6 +176,10 @@ export const auth = {
       throw new Error('Senha incorreta');
     }
 
+    if (userData.status === 'suspended') {
+      throw new Error('Sua conta encontra-se suspensa por questões de faturação ou incumprimento dos termos. Por favor, entre em contacto com o suporte WEHOSTHERE (+258 84 438 4702).');
+    }
+
     // Salvar sessão
     const session = { user: userData };
     if (typeof window !== 'undefined') {
@@ -205,6 +209,10 @@ export const auth = {
 
     if (userData.password && userData.password !== password) {
       throw new Error('Senha incorreta');
+    }
+
+    if (userData.status === 'suspended') {
+      throw new Error('Sua conta encontra-se suspensa por questões de faturação ou incumprimento dos termos. Por favor, entre em contacto com o suporte WEHOSTHERE (+258 84 438 4702).');
     }
 
     // Salvar sessão
