@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import {
   Globe, Plus, Copy, CheckCircle, Clock, XCircle,
   ExternalLink, ShieldCheck, AlertTriangle, RefreshCw,
-  Server, ArrowRight, Info, Trash2
+  Server, ArrowRight, Info, Trash2, Search, Sparkles
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 import { dataManager, Site } from '@/lib/data';
@@ -16,6 +16,7 @@ import StatusBadge from '@/components/StatusBadge';
 import ApprovalCelebration from '@/components/ApprovalCelebration';
 import ConfirmModal from '@/components/ConfirmModal';
 import Toast from '@/components/Toast';
+import DomainSearch from '@/components/DomainSearch';
 
 const NS1 = 'ns1.wehosthere.com';
 const NS2 = 'ns2.wehosthere.com';
@@ -143,17 +144,39 @@ export default function DomainsPage() {
           <div className="hidden lg:block lg:col-span-1" />
 
           {/* Main Content */}
-          <div className="lg:col-span-3 space-y-5">
+          <div className="lg:col-span-3 space-y-6">
 
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            {/* Módulo Oficial de Pesquisa e Compra de Domínio (idêntico à Landing Page) */}
+            <div className="bg-slate-900 rounded-3xl shadow-2xl p-5 sm:p-8 text-white relative overflow-hidden border border-slate-800">
+              <div className="relative z-10 space-y-4">
+                <div className="inline-flex items-center space-x-2 bg-primary-500/20 text-primary-300 border border-primary-500/30 px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  <span>Pesquisador Oficial de Domínios WEHOSTHERE</span>
+                </div>
+                <div>
+                  <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight">
+                    Pesquisar &amp; Registar Novo Domínio
+                  </h1>
+                  <p className="text-slate-300 text-xs sm:text-sm mt-1 max-w-xl">
+                    Verifique em tempo real a disponibilidade de extensões (.co.mz, .com, .org, .net...) e registe o seu domínio com ativação imediata.
+                  </p>
+                </div>
+
+                <div className="pt-2">
+                  <DomainSearch />
+                </div>
+              </div>
+            </div>
+
+            {/* Cabeçalho da Lista de Domínios Registados */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
               <div>
-                <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900 flex items-center space-x-2">
-                  <Globe className="h-6 w-6 text-primary-600" />
-                  <span>Meus Domínios</span>
-                </h1>
+                <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center space-x-2">
+                  <Globe className="h-5 w-5 text-primary-600" />
+                  <span>Meus Domínios Configurados</span>
+                </h2>
                 <p className="text-xs text-gray-500 mt-0.5">
-                  Domínios associados à sua conta — configure DNS e apontamentos
+                  Lista de domínios activos, NameServers e estado de aprovação
                 </p>
               </div>
               <Link
@@ -161,7 +184,7 @@ export default function DomainsPage() {
                 className="inline-flex items-center space-x-2 bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition shadow-sm"
               >
                 <Plus className="h-4 w-4" />
-                <span>Adicionar Domínio/Site</span>
+                <span>+ Apontar Domínio Existente</span>
               </Link>
             </div>
 
