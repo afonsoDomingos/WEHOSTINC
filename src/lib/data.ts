@@ -452,8 +452,9 @@ export const dataManager = {
         body: JSON.stringify({ action: 'delete', siteId: id, domain: targetDomain })
       }).catch(err => console.error('Erro de exclusão de site no servidor:', err));
 
-      // Auto-delete any associated emails for this domain
+      // Auto-delete any associated emails for this domain locally and on server
       if (targetDomain) {
+        // 1. Local cascade delete
         const emails = dataManager.getEmails();
         const emailsToDelete = emails.filter(e => {
           const domainOfEmail = e.email.includes('@') ? e.email.split('@')[1].toLowerCase() : '';
@@ -462,9 +463,17 @@ export const dataManager = {
         emailsToDelete.forEach(e => {
           dataManager.deleteEmail(e.id, e.userEmail, e.email);
         });
+
+        // 2. Server API cascade delete for all emails of this domain
+        fetch('/api/emails', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'delete', domain: targetDomain })
+        }).catch(err => console.error('Erro de exclusão de emails do domínio no servidor:', err));
       }
     }
   },
+
 
   updateSiteStatus: (id: string, status: Site['status']): void => {
     const sites = dataManager.getSites().map(s => 

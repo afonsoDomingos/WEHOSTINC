@@ -130,8 +130,7 @@ export default function EmailPage() {
       ? newEmailPrefix.trim()
       : `${newEmailPrefix.trim()}@${selectedDomain}`;
 
-    const domainSite = sites.find(s => s.domain === selectedDomain);
-    const initialStatus: EmailAccount['status'] = domainSite?.status === 'pending' ? 'pending' : 'active';
+    const initialStatus: EmailAccount['status'] = 'pending';
 
     const newEmailAccount = dataManager.addEmail({
       email: fullEmail,
@@ -144,6 +143,11 @@ export default function EmailPage() {
     setShowCreateModal(false);
     setNewEmailPrefix('');
     setNewPassword('');
+    setToastMsg({
+      type: 'warning',
+      title: 'Conta de E-mail Solicitada',
+      message: `A conta ${fullEmail} foi criada e está em processamento. Ela será ativada assim que o administrador aprovar.`
+    });
   };
 
   const handleOpenEditModal = (email: EmailAccount) => {
@@ -186,7 +190,7 @@ export default function EmailPage() {
 
   // State de confirmação de exclusão de email
   const [deleteEmailConfirm, setDeleteEmailConfirm] = useState<{ isOpen: boolean; id: string; emailStr?: string } | null>(null);
-  const [toastMsg, setToastMsg] = useState<{ title?: string; message: string; type: 'success' | 'error' } | null>(null);
+  const [toastMsg, setToastMsg] = useState<{ title?: string; message: string; type: 'success' | 'error' | 'warning' | 'info' } | null>(null);
 
   const confirmDeleteEmail = () => {
     if (!deleteEmailConfirm) return;

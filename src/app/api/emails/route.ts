@@ -34,7 +34,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { action, email, emailId, status, emailStr, emails } = body;
+    const { action, email, emailId, status, emailStr, emails, domain } = body;
 
     if (action === 'sync_all' && Array.isArray(emails)) {
       const map = new Map<string, ServerEmailAccount>();
@@ -53,15 +53,20 @@ export async function POST(req: Request) {
     if (action === 'delete') {
       const tId = (emailId || '').toLowerCase();
       const tEmail = (emailStr || '').toLowerCase();
+      const tDomain = (domain || '').toLowerCase();
       GLOBAL_EMAILS = GLOBAL_EMAILS.filter(e => {
         const eId = e.id.toLowerCase();
         const eAddr = e.email.toLowerCase();
+        const eDomain = (e.domain || (e.email.includes('@') ? e.email.split('@')[1] : '')).toLowerCase();
+
         if (tId && (eId === tId || eAddr === tId)) return false;
         if (tEmail && (eId === tEmail || eAddr === tEmail)) return false;
+        if (tDomain && (eDomain === tDomain || eAddr.endsWith(`@${tDomain}`))) return false;
         return true;
       });
       return NextResponse.json({ success: true, emails: GLOBAL_EMAILS });
     }
+
 
 
     if (action === 'update_status') {
