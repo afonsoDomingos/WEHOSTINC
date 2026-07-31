@@ -31,6 +31,10 @@ export default function SettingsPage() {
       router.push('/login');
       return;
     }
+    if (currentUser.role === 'admin' || currentUser.email.toLowerCase() === 'admin@wehosthere.com') {
+      router.push('/admin');
+      return;
+    }
     setUser(currentUser);
     setName(currentUser.name);
     setEmail(currentUser.email);

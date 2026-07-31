@@ -30,6 +30,10 @@ export default function SitesPage() {
       router.push('/login');
       return;
     }
+    if (currentUser.role === 'admin' || currentUser.email.toLowerCase() === 'admin@wehosthere.com') {
+      router.push('/admin');
+      return;
+    }
     setUser(currentUser);
     setSites(dataManager.getSites(currentUser.email));
     setLoading(false);

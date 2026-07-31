@@ -29,6 +29,10 @@ export default function BillingPage() {
       router.push('/login');
       return;
     }
+    if (currentUser.role === 'admin' || currentUser.email.toLowerCase() === 'admin@wehosthere.com') {
+      router.push('/admin');
+      return;
+    }
     setUser(currentUser);
 
     const refreshOrders = (fetchedOrders?: ServiceOrder[]) => {

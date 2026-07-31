@@ -238,17 +238,22 @@ export const auth = {
   // Obter usuário atual
   getCurrentUser: (): User | null => {
     if (typeof window === 'undefined') return null;
-    seedDefaultUsers();
     const session = localStorage.getItem(STORAGE_KEY);
     if (!session) return null;
-
     try {
-      const { user } = JSON.parse(session);
-      return user;
+      const parsed = JSON.parse(session);
+      return parsed.user || null;
     } catch (e) {
       return null;
     }
   },
+
+  // Helper para verificar se usuário é Admin
+  isAdminUser: (user: User | null): boolean => {
+    if (!user) return false;
+    return user.role === 'admin' || user.email.toLowerCase() === 'admin@wehosthere.com';
+  },
+
 
   // Verificar se está autenticado
   isAuthenticated: (): boolean => {

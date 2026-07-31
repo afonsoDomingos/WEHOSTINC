@@ -149,6 +149,11 @@ export default function AdminPage() {
       return;
     }
 
+    if (currentUser.role !== 'admin' && currentUser.email.toLowerCase() !== 'admin@wehosthere.com') {
+      router.push('/dashboard');
+      return;
+    }
+
     // Carregar dados
     setUsers(auth.getUsers());
     setSites(dataManager.getSites());

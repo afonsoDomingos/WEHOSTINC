@@ -28,6 +28,10 @@ export default function DashboardPage() {
       router.push('/login');
       return;
     }
+    if (currentUser.role === 'admin' || currentUser.email.toLowerCase() === 'admin@wehosthere.com') {
+      router.push('/admin');
+      return;
+    }
     setUser(currentUser);
     // Carregar contadores reais - filtrados pelo utilizador
     const userEmail = currentUser.email;

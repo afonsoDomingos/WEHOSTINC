@@ -37,6 +37,10 @@ export default function DomainsPage() {
       router.push('/login');
       return;
     }
+    if (currentUser.role === 'admin' || currentUser.email.toLowerCase() === 'admin@wehosthere.com') {
+      router.push('/admin');
+      return;
+    }
     setUser(currentUser);
 
     const refreshSites = (newSites?: Site[]) => {

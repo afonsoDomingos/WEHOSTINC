@@ -68,11 +68,11 @@ export default function Navbar() {
             {user ? (
               <>
                 <Link
-                  href="/dashboard"
+                  href={user.role === 'admin' || user.email.toLowerCase() === 'admin@wehosthere.com' ? '/admin' : '/dashboard'}
                   className="px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-bold text-sm rounded-xl shadow-sm hover:shadow transition flex items-center space-x-2"
                 >
                   <LayoutDashboard className="h-4 w-4" />
-                  <span>Meu Painel</span>
+                  <span>{user.role === 'admin' || user.email.toLowerCase() === 'admin@wehosthere.com' ? 'Painel Admin' : 'Meu Painel'}</span>
                 </Link>
                 <button
                   type="button"
