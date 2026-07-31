@@ -865,9 +865,9 @@ export const dataManager = {
 
   // Pedidos de Serviços
   getOrders: (clientEmail?: string): ServiceOrder[] => {
-    if (typeof window === 'undefined') return DEFAULT_ORDERS;
+    if (typeof window === 'undefined') return [];
     const data = localStorage.getItem('wehosthere_orders');
-    const orders: ServiceOrder[] = data ? JSON.parse(data) : DEFAULT_ORDERS;
+    const orders: ServiceOrder[] = data ? JSON.parse(data) : [];
     if (clientEmail) {
       return orders.filter(o => !o.clientEmail || o.clientEmail.toLowerCase() === clientEmail.toLowerCase());
     }
@@ -1182,79 +1182,6 @@ export interface SupportTicket {
   messages: TicketMessage[];
 }
 
-const DEFAULT_ORDERS: ServiceOrder[] = [
-  {
-    id: 'ORD-98214',
-    clientName: 'MSServices',
-    clientEmail: 'info@msservices.co.mz',
-    clientPhone: '+258 84 123 4567',
-    serviceName: 'Criação de Site Profissional',
-    amount: 25000,
-    paymentMethod: 'mpesa',
-    status: 'in_progress',
-    createdAt: new Date().toISOString()
-  },
-  {
-    id: 'ORD-97410',
-    clientName: 'Afonso Domingos',
-    clientEmail: 'afonso@wehostinc.co.mz',
-    clientPhone: '+258 85 987 6543',
-    serviceName: 'Plano Hospedagem Profissional',
-    amount: 3000,
-    paymentMethod: 'mpesa',
-    status: 'completed',
-    createdAt: new Date(Date.now() - 86400000 * 2).toISOString()
-  }
-];
-
-export const DEFAULT_TICKETS: SupportTicket[] = [
-  {
-    id: 'TCK-1001',
-    userId: '1',
-    userName: 'Afonso Domingos',
-    userEmail: 'afonso@wehostinc.co.mz',
-    subject: 'Apontamento de DNS para Servidor VPS',
-    category: 'technical',
-    priority: 'high',
-    status: 'answered',
-    createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
-    updatedAt: new Date(Date.now() - 86400000).toISOString(),
-    messages: [
-      {
-        id: 'msg-1',
-        sender: 'client',
-        senderName: 'Afonso Domingos',
-        message: 'Olá, configurei meu domínio wehosthere.co.mz mas preciso de confirmação sobre os IPs dos servidores de nome primários.',
-        timestamp: new Date(Date.now() - 86400000 * 2).toISOString()
-      },
-      {
-        id: 'msg-2',
-        sender: 'support',
-        senderName: 'Equipa de Suporte WeHostHere',
-        message: 'Olá Afonso! Os NameServers ativos para a sua conta são ns1.wehosthere.com e ns2.wehosthere.com. A propagação leva até 24h.',
-        timestamp: new Date(Date.now() - 86400000).toISOString()
-      }
-    ]
-  },
-  {
-    id: 'TCK-1002',
-    userId: '2',
-    userName: 'MSServices',
-    userEmail: 'info@msservices.co.mz',
-    subject: 'Dúvida sobre upgrade para hospedagem Empresarial',
-    category: 'billing',
-    priority: 'medium',
-    status: 'open',
-    createdAt: new Date(Date.now() - 3600000 * 4).toISOString(),
-    updatedAt: new Date(Date.now() - 3600000 * 4).toISOString(),
-    messages: [
-      {
-        id: 'msg-1',
-        sender: 'client',
-        senderName: 'MSServices',
-        message: 'Gostaria de saber se ao fazer upgrade do plano Básico para Empresarial o valor restante do plano atual é descontado.',
-        timestamp: new Date(Date.now() - 3600000 * 4).toISOString()
-      }
-    ]
-  }
-];
+// Sem dados padrão — todos os dados são carregados do MongoDB Atlas
+const DEFAULT_ORDERS: ServiceOrder[] = [];
+export const DEFAULT_TICKETS: SupportTicket[] = [];
