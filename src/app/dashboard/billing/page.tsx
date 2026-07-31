@@ -35,7 +35,7 @@ export default function BillingPage() {
         o => o.clientEmail.toLowerCase() === currentUser.email.toLowerCase() ||
              o.clientName.toLowerCase() === currentUser.name.toLowerCase()
       );
-      setUserOrders(myOrders.length > 0 ? myOrders : allOrders);
+      setUserOrders(myOrders);
     };
 
     refreshOrders();

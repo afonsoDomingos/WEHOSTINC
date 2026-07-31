@@ -29,18 +29,18 @@ export default function SitesPage() {
       return;
     }
     setUser(currentUser);
-    setSites(dataManager.getSites());
+    setSites(dataManager.getSites(currentUser.email));
     setLoading(false);
 
     // Busca assíncrona inicial dos dados do servidor
-    dataManager.fetchSitesAsync().then(() => {
-      setSites(dataManager.getSites());
+    dataManager.fetchSitesAsync(currentUser.email).then((fetched) => {
+      setSites(fetched);
     });
 
     // Polling a cada 3s para sincronizar alterações de status do Admin em tempo real
     const interval = setInterval(() => {
-      dataManager.fetchSitesAsync().then(() => {
-        setSites(dataManager.getSites());
+      dataManager.fetchSitesAsync(currentUser.email).then((fetched) => {
+        setSites(fetched);
       });
     }, 3000);
 
@@ -56,7 +56,8 @@ export default function SitesPage() {
       domain: newSiteDomain,
       status: 'pending',
       storage: 0,
-      bandwidth: 0
+      bandwidth: 0,
+      userEmail: user?.email
     });
 
     setSites([...sites, newSite]);

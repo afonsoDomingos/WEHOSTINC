@@ -384,27 +384,21 @@ export const dataManager = {
           const serverSites: Site[] = data.sites;
           const localSites = dataManager.getSites();
 
-          // Sync server status to local sites
-          const serverSiteMap = new Map<string, Site>();
-          serverSites.forEach(s => {
+          const localSiteMap = new Map<string, Site>();
+          localSites.forEach(s => {
             const key = (s.domain || s.id).toLowerCase();
-            serverSiteMap.set(key, s);
+            localSiteMap.set(key, s);
           });
 
-          // Keep local sites that match server sites, updating their status
-          const updatedSites: Site[] = [];
-          localSites.forEach(local => {
-            const key = (local.domain || local.id).toLowerCase();
-            const serverMatch = serverSiteMap.get(key);
-            if (serverMatch) {
-              updatedSites.push({ ...local, status: serverMatch.status || local.status });
-              serverSiteMap.delete(key); // Marked as processed
+          // Build updated list strictly from serverSites (server is source of truth)
+          // plus local sites created locally that haven't synced yet
+          const updatedSites: Site[] = serverSites.map(serverSite => {
+            const key = (serverSite.domain || serverSite.id).toLowerCase();
+            const localMatch = localSiteMap.get(key);
+            if (localMatch) {
+              return { ...localMatch, ...serverSite, status: serverSite.status || localMatch.status };
             }
-          });
-
-          // Add any new server sites not in local storage
-          serverSiteMap.forEach(serverSite => {
-            updatedSites.push(serverSite);
+            return serverSite;
           });
 
           if (typeof window !== 'undefined') {
@@ -422,6 +416,7 @@ export const dataManager = {
     }
     return currentUserEmail ? dataManager.getSites(currentUserEmail) : dataManager.getSites();
   },
+
 
   addSite: (site: Omit<Site, 'id' | 'createdAt'>): Site => {
     const sites = dataManager.getSites();
@@ -599,26 +594,45 @@ export const dataManager = {
   },
 
   deleteEmail: (id: string, ownerEmail?: string, emailStr?: string): void => {
-    const targetEmailStr = (emailStr || id).toLowerCase();
+    const targetEmailStr = (emailStr || '').toLowerCase();
     
     if (typeof window !== 'undefined') {
-      // 1. Delete from user specific storage
+      // 1. Delete from user-specific storage (if ownerEmail is known)
       if (ownerEmail) {
         const userKey = getEmailsKey(ownerEmail);
         const userEmails: EmailAccount[] = JSON.parse(localStorage.getItem(userKey) || '[]');
-        const filteredUser = userEmails.filter(e => e.id !== id && e.email.toLowerCase() !== targetEmailStr);
+        const filteredUser = userEmails.filter(e => e.id !== id && (!targetEmailStr || e.email.toLowerCase() !== targetEmailStr));
         localStorage.setItem(userKey, JSON.stringify(filteredUser));
       }
 
-      // 2. Delete from shared storage (admin)
+      // 2. Scan ALL localStorage keys for user-specific email stores and purge from each
+      // This ensures deletion propagates even if ownerEmail is unknown
+      const keysToCheck: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('wehosthere_emails_')) {
+          keysToCheck.push(key);
+        }
+      }
+      keysToCheck.forEach(key => {
+        try {
+          const stored: EmailAccount[] = JSON.parse(localStorage.getItem(key) || '[]');
+          const filtered = stored.filter(e => e.id !== id && (!targetEmailStr || e.email.toLowerCase() !== targetEmailStr));
+          if (filtered.length !== stored.length) {
+            localStorage.setItem(key, JSON.stringify(filtered));
+          }
+        } catch { /* ignore */ }
+      });
+
+      // 3. Delete from shared storage (admin key)
       const sharedData = localStorage.getItem(EMAILS_KEY);
       if (sharedData) {
         const sharedEmails: EmailAccount[] = JSON.parse(sharedData);
-        const filteredShared = sharedEmails.filter(e => e.id !== id && e.email.toLowerCase() !== targetEmailStr);
+        const filteredShared = sharedEmails.filter(e => e.id !== id && (!targetEmailStr || e.email.toLowerCase() !== targetEmailStr));
         localStorage.setItem(EMAILS_KEY, JSON.stringify(filteredShared));
       }
 
-      // 3. Delete from Server API
+      // 4. Delete from Server API
       fetch('/api/emails', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -626,6 +640,7 @@ export const dataManager = {
       }).catch(err => console.error('Erro de exclusão de e-mail no servidor:', err));
     }
   },
+
 
   updateEmail: (id: string, updates: Partial<EmailAccount>): EmailAccount | null => {
     const emails = dataManager.getEmails();
@@ -647,14 +662,34 @@ export const dataManager = {
   },
 
   updateEmailStatus: (id: string, status: EmailAccount['status']): void => {
-    const emails = dataManager.getEmails().map(e => 
+    const sharedEmails = dataManager.getEmails().map(e => 
       (e.id === id || (e.email && e.email.toLowerCase() === id.toLowerCase())) ? { ...e, status } : e
     );
-    const targetEmail = emails.find(e => e.id === id || (e.email && e.email.toLowerCase() === id.toLowerCase()));
+    const targetEmail = sharedEmails.find(e => e.id === id || (e.email && e.email.toLowerCase() === id.toLowerCase()));
 
     if (typeof window !== 'undefined') {
-      localStorage.setItem(EMAILS_KEY, JSON.stringify(emails));
+      // 1. Update shared admin key
+      localStorage.setItem(EMAILS_KEY, JSON.stringify(sharedEmails));
 
+      // 2. Also update per-user keys so client sees change immediately
+      const keysToUpdate: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('wehosthere_emails_')) {
+          keysToUpdate.push(key);
+        }
+      }
+      keysToUpdate.forEach(key => {
+        try {
+          const stored: EmailAccount[] = JSON.parse(localStorage.getItem(key) || '[]');
+          const updated = stored.map(e =>
+            (e.id === id || (e.email && e.email.toLowerCase() === id.toLowerCase())) ? { ...e, status } : e
+          );
+          localStorage.setItem(key, JSON.stringify(updated));
+        } catch { /* ignore */ }
+      });
+
+      // 3. Sync to server
       fetch('/api/emails', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -663,11 +698,12 @@ export const dataManager = {
           emailId: id, 
           emailStr: targetEmail?.email || id, 
           status,
-          emails 
+          emails: sharedEmails 
         })
       }).catch(err => console.error('Erro de sync de status de email:', err));
     }
   },
+
 
   // Pedidos de Serviços
   getOrders: (clientEmail?: string): ServiceOrder[] => {

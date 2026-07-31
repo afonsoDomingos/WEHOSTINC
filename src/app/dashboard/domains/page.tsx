@@ -38,7 +38,9 @@ export default function DomainsPage() {
     setUser(currentUser);
 
     const refreshSites = (newSites?: Site[]) => {
-      const loaded = newSites || dataManager.getSites();
+      const loaded = (newSites || dataManager.getSites(currentUser.email)).filter(
+        s => !s.userEmail || s.userEmail.toLowerCase() === currentUser.email.toLowerCase()
+      );
       // Detect pending → active transitions to trigger celebration
       loaded.forEach(site => {
         const prevStatus = prevSiteStatusRef.current[site.id || site.domain];
@@ -50,13 +52,13 @@ export default function DomainsPage() {
       setSites(loaded);
     };
 
-    refreshSites(dataManager.getSites());
+    refreshSites(dataManager.getSites(currentUser.email));
     setLoading(false);
 
-    dataManager.fetchSitesAsync().then(sites => refreshSites(sites));
+    dataManager.fetchSitesAsync(currentUser.email).then(sites => refreshSites(sites));
 
     const interval = setInterval(() => {
-      dataManager.fetchSitesAsync().then(sites => refreshSites(sites));
+      dataManager.fetchSitesAsync(currentUser.email).then(sites => refreshSites(sites));
     }, 3000);
 
     return () => clearInterval(interval);

@@ -29,9 +29,10 @@ export default function DashboardPage() {
       return;
     }
     setUser(currentUser);
-    // Carregar contadores reais
-    const sites = dataManager.getSites();
-    const emails = dataManager.getEmails();
+    // Carregar contadores reais - filtrados pelo utilizador
+    const userEmail = currentUser.email;
+    const sites = dataManager.getSites(userEmail);
+    const emails = dataManager.getEmails(userEmail);
     setSiteCount(sites.length);
     setEmailCount(emails.length);
     const usedStorage = sites.reduce((sum, s) => sum + (s.storage || 0), 0)

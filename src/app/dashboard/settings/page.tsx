@@ -320,14 +320,26 @@ export default function SettingsPage() {
                 </div>
               </div>
               <div className="space-y-4">
-                <button className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-semibold">
-                  Excluir Conta
+                <button
+                  onClick={() => {
+                    if (confirm('Tem certeza que deseja ELIMINAR permanentemente a sua conta? Todos os seus dados (sites, emails, faturas) serão removidos e esta ação NÃO pode ser desfeita.')) {
+                      if (user) {
+                        auth.deleteUser(user.id);
+                        auth.logout();
+                        router.push('/');
+                      }
+                    }
+                  }}
+                  className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-semibold cursor-pointer"
+                >
+                  Excluir Conta Permanentemente
                 </button>
                 <p className="text-sm text-red-700">
                   Esta ação não pode ser desfeita. Todos os seus dados serão permanentemente removidos.
                 </p>
               </div>
             </div>
+
           </div>
         </div>
       </div>

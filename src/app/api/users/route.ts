@@ -46,6 +46,17 @@ let GLOBAL_USERS: ServerUser[] = [
     dueDate: 29,
     role: 'user',
     createdAt: new Date().toISOString()
+  },
+  {
+    id: 'client_amvibe',
+    name: 'Am Vibe',
+    email: 'amvibe258@gmail.com',
+    password: '@Admin123@',
+    plan: 'basic',
+    status: 'active',
+    dueDate: 29,
+    role: 'user',
+    createdAt: new Date().toISOString()
   }
 ];
 

@@ -204,14 +204,38 @@ export const auth = {
           
           const userMap = new Map<string, User>();
           localUsers.forEach(u => userMap.set(u.id, u));
-          serverUsers.forEach(u => userMap.set(u.id, u));
+          serverUsers.forEach(serverUser => {
+            const existing = userMap.get(serverUser.id);
+            if (existing) {
+              userMap.set(serverUser.id, {
+                ...existing,
+                ...serverUser,
+                status: serverUser.status || existing.status || 'active',
+                plan: serverUser.plan || existing.plan || 'basic'
+              });
+            } else {
+              userMap.set(serverUser.id, {
+                ...serverUser,
+                status: serverUser.status || 'active'
+              });
+            }
+          });
 
           const merged = Array.from(userMap.values());
           if (typeof window !== 'undefined') {
             localStorage.setItem('wehosthere_all_users', JSON.stringify(merged));
             merged.forEach(u => {
-              if (!localStorage.getItem(`user_${u.id}`)) {
-                localStorage.setItem(`user_${u.id}`, JSON.stringify(u));
+              const localKey = `user_${u.id}`;
+              const stored = localStorage.getItem(localKey);
+              if (stored) {
+                try {
+                  const parsed = JSON.parse(stored);
+                  localStorage.setItem(localKey, JSON.stringify({ ...parsed, ...u }));
+                } catch {
+                  localStorage.setItem(localKey, JSON.stringify(u));
+                }
+              } else {
+                localStorage.setItem(localKey, JSON.stringify(u));
               }
             });
           }

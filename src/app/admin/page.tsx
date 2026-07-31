@@ -330,10 +330,10 @@ export default function AdminPage() {
     setEmails(dataManager.getEmails());
   };
 
-  const handleDeleteEmail = (emailId: string, emailAddr: string) => {
-    if (confirm(`Tem certeza que deseja eliminar a conta de e-mail "${emailAddr}"?`)) {
-      dataManager.deleteEmail(emailId);
-      setEmails(dataManager.getEmails());
+  const handleDeleteEmail = (emailId: string, emailAddr: string, ownerEmail?: string) => {
+    if (confirm(`Tem certeza que deseja ELIMINAR permanentemente a conta de e-mail "${emailAddr}"?`)) {
+      dataManager.deleteEmail(emailId, ownerEmail, emailAddr);
+      setEmails(prev => prev.filter(e => e.id !== emailId && e.email !== emailAddr));
     }
   };
 
@@ -668,15 +668,16 @@ export default function AdminPage() {
                       </td>
                       <td className="py-3.5 px-4">
                         <select
-                          value={getUserStatus(user)}
+                          value={user.status || 'active'}
                           onChange={(e) => {
-                            auth.updateUserStatus(user.id, e.target.value as any);
-                            setUsers(auth.getUsers());
+                            const newSt = e.target.value as 'active' | 'pending' | 'suspended';
+                            auth.updateUserStatus(user.id, newSt);
+                            setUsers(prev => prev.map(u => u.id === user.id ? { ...u, status: newSt } : u));
                           }}
                           className={`px-2.5 py-1 rounded-lg text-xs font-bold outline-none border cursor-pointer ${
-                            getUserStatus(user) === 'active'
+                            (user.status || 'active') === 'active'
                               ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
-                              : getUserStatus(user) === 'pending'
+                              : (user.status || 'active') === 'pending'
                               ? 'bg-amber-50 text-amber-700 border-amber-300'
                               : 'bg-red-50 text-red-700 border-red-300'
                           }`}
@@ -693,17 +694,18 @@ export default function AdminPage() {
                         <div className="flex items-center space-x-1.5">
                           <button
                             onClick={() => {
-                              const newStatus = getUserStatus(user) === 'suspended' ? 'active' : 'suspended';
+                              const currentSt = user.status || 'active';
+                              const newStatus = currentSt === 'suspended' ? 'active' : 'suspended';
                               auth.updateUserStatus(user.id, newStatus);
-                              setUsers(auth.getUsers());
+                              setUsers(prev => prev.map(u => u.id === user.id ? { ...u, status: newStatus } : u));
                             }}
                             className={`px-2.5 py-1 rounded-md text-xs font-semibold transition ${
-                              getUserStatus(user) === 'suspended'
+                              (user.status || 'active') === 'suspended'
                                 ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
                                 : 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200'
                             }`}
                           >
-                            {getUserStatus(user) === 'suspended' ? 'Reativar' : 'Suspender'}
+                            {(user.status || 'active') === 'suspended' ? 'Reativar' : 'Suspender'}
                           </button>
 
                           <button
@@ -952,9 +954,9 @@ export default function AdminPage() {
                             )}
 
                             <button
-                              onClick={() => handleDeleteEmail(emailAcc.id, emailAcc.email)}
+                              onClick={() => handleDeleteEmail(emailAcc.id, emailAcc.email, emailAcc.userEmail)}
                               className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
-                              title="Excluir Conta"
+                              title="Eliminar Conta de E-mail"
                             >
                               <Trash2 className="h-4 w-4" />
                             </button>

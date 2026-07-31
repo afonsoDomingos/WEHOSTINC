@@ -134,7 +134,8 @@ export default function EmailPage() {
     const newEmailAccount = dataManager.addEmail({
       email: fullEmail,
       status: initialStatus,
-      storage: newStorage
+      storage: newStorage,
+      userEmail: user?.email
     });
 
     setEmails([...emails, newEmailAccount]);

@@ -19,7 +19,7 @@ let GLOBAL_SITES: ServerSite[] = [
   {
     id: '1',
     name: 'MSServices',
-    domain: 'mssservices.co.mz',
+    domain: 'msservices.co.mz',
     status: 'pending',
     createdAt: '2026-07-29T10:00:00.000Z',
     storage: 10,
@@ -72,10 +72,18 @@ export async function POST(req: Request) {
     }
 
     if (action === 'delete') {
-      const target = (siteId || domain || '').toLowerCase();
-      GLOBAL_SITES = GLOBAL_SITES.filter(s => s.id.toLowerCase() !== target && s.domain.toLowerCase() !== target);
+      const tId = (siteId || '').toLowerCase();
+      const tDomain = (domain || '').toLowerCase();
+      GLOBAL_SITES = GLOBAL_SITES.filter(s => {
+        const sId = s.id.toLowerCase();
+        const sDomain = s.domain.toLowerCase();
+        if (tId && (sId === tId || sDomain === tId)) return false;
+        if (tDomain && (sId === tDomain || sDomain === tDomain)) return false;
+        return true;
+      });
       return NextResponse.json({ success: true, sites: GLOBAL_SITES });
     }
+
 
     if (action === 'update_status') {
       const target = (siteId || domain || '').toLowerCase();
