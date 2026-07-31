@@ -438,6 +438,11 @@ export default function Home() {
                   <Phone className="h-3.5 w-3.5 text-emerald-400" />
                   <span>+258 84 438 4702</span>
                 </li>
+                <li className="hover:text-primary-300 transition">
+                  <a href="mailto:info@wehosthere.com" className="flex items-center space-x-1.5 text-primary-300 hover:text-primary-200 font-semibold">
+                    <span>info@wehosthere.com</span>
+                  </a>
+                </li>
                 <li className="hover:text-primary-300 transition cursor-pointer">Central de Ajuda</li>
                 <li className="hover:text-primary-300 transition cursor-pointer">Tutoriais & Documentação</li>
                 <li className="hover:text-primary-300 transition cursor-pointer">Status do Sistema</li>

@@ -110,7 +110,7 @@ export async function sendInvoiceEmail(toEmail: string, userName: string, invoic
           <div style="text-align:center;margin:24px 0;">
             <a href="https://wehosthere.com/dashboard/billing" style="background:#2563eb;color:white;font-weight:700;padding:14px 32px;border-radius:10px;text-decoration:none;font-size:15px;">Ver Faturamento →</a>
           </div>
-          <p style="color:#94a3b8;font-size:12px;margin:0;">WEHOSTHERE — suporte@wehosthere.com</p>
+          <p style="color:#94a3b8;font-size:12px;margin:0;">WEHOSTHERE — info@wehosthere.com</p>
         </div>
       </div>`,
   });
@@ -160,7 +160,7 @@ export async function sendSupportTicketEmail(toEmail: string, userName: string, 
           <div style="text-align:center;margin:24px 0;">
             <a href="https://wehosthere.com/dashboard/tickets" style="background:#7c3aed;color:white;font-weight:700;padding:14px 32px;border-radius:10px;text-decoration:none;font-size:15px;">Ver Ticket →</a>
           </div>
-          <p style="color:#94a3b8;font-size:12px;margin:0;">WEHOSTHERE — suporte@wehosthere.com</p>
+          <p style="color:#94a3b8;font-size:12px;margin:0;">WEHOSTHERE — info@wehosthere.com</p>
         </div>
       </div>`,
   });
