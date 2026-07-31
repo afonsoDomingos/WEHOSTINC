@@ -545,35 +545,50 @@ export default function EmailPage() {
                   </div>
                 </div>
               ) : (
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1">
-                    Nome da Conta (Prefixo)
-                  </label>
-                  <div className="flex items-center space-x-2">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1">
+                      Nome da Conta (Prefixo)
+                    </label>
                     <input
                       type="text"
                       value={newEmailPrefix}
                       onChange={(e) => setNewEmailPrefix(e.target.value)}
-                      className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm text-gray-900 outline-none focus:ring-2 focus:ring-primary-500 font-semibold"
-                      placeholder="ex: contacto, geral, vendas"
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm text-gray-900 outline-none focus:ring-2 focus:ring-primary-500 font-semibold"
+                      placeholder="ex: contacto, geral, vendas, suporte"
                       required
                     />
-                    <span className="text-gray-400 font-bold">@</span>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1">
+                      Domínio do E-mail
+                    </label>
                     <select
                       value={selectedDomain}
                       onChange={(e) => setSelectedDomain(e.target.value)}
-                      className="px-3 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-xs text-gray-900 outline-none focus:ring-2 focus:ring-primary-500 font-bold"
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-bold text-gray-900 outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer"
                     >
                       {userDomains.map(domain => {
                         const isPending = sites.find(s => s.domain === domain)?.status === 'pending';
                         return (
                           <option key={domain} value={domain}>
-                            {domain} {isPending ? '⏳ (Em Processamento)' : ''}
+                            @{domain} {isPending ? '⏳ (Em Processamento pelo Admin)' : '✓ (Ativo)'}
                           </option>
                         );
                       })}
                     </select>
                   </div>
+
+                  {/* Pré-visualização do E-mail Completo */}
+                  {newEmailPrefix.trim() && (
+                    <div className="p-3 bg-primary-50 border border-primary-200/80 rounded-2xl text-xs text-primary-950 flex items-center justify-between">
+                      <span className="font-semibold text-primary-900">Endereço final:</span>
+                      <strong className="font-mono text-xs sm:text-sm text-primary-700 font-black truncate ml-2">
+                        {newEmailPrefix.trim().toLowerCase()}@{selectedDomain}
+                      </strong>
+                    </div>
+                  )}
 
                   {sites.find(s => s.domain === selectedDomain)?.status === 'pending' && (
                     <div className="mt-2 p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-start space-x-2">
