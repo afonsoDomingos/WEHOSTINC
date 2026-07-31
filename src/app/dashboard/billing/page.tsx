@@ -193,7 +193,16 @@ export default function BillingPage() {
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h3 className="text-xl font-bold text-gray-900">Histórico de Pagamentos & Faturas</h3>
-                  <p className="text-xs text-gray-500">Sincronizado em tempo real com o estado dos seus pedidos</p>
+                  <p className="text-xs text-gray-400">
+                    <a href="mailto:info@wehosthere.com" className="hover:underline">info@wehosthere.com</a>
+                    {' • '}
+                    <a
+                      href="https://wa.me/258844384702"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-emerald-600 hover:underline"
+                    >+258 84 438 4702</a>
+                  </p>
                 </div>
                 <span className="bg-primary-50 text-primary-700 text-xs font-bold px-3 py-1 rounded-full border border-primary-200">
                   {userOrders.length} {userOrders.length === 1 ? 'Fatura' : 'Faturas'}
@@ -387,7 +396,12 @@ export default function BillingPage() {
                 </div>
                 <div className="p-2.5 bg-white rounded-lg border border-gray-200">
                   <strong className="text-gray-900 block font-sans font-bold text-sm">M-Pesa Manual</strong>
-                  +258 84 438 4702
+                  <a
+                    href="https://wa.me/258844384702?text=Olá%2C%20quero%20confirmar%20o%20meu%20pagamento%20via%20M-Pesa"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-emerald-600 hover:text-emerald-700 font-bold transition"
+                  >+258 84 438 4702</a>
                 </div>
                 <div className="p-2.5 bg-white rounded-lg border border-gray-200">
                   <strong className="text-gray-900 block font-sans font-bold text-sm">E-Mola Manual</strong>

@@ -434,9 +434,16 @@ export default function Home() {
             <div>
               <h4 className="font-bold text-white mb-4 uppercase tracking-wider text-xs">Suporte & Contacto</h4>
               <ul className="space-y-2 text-slate-400 text-sm">
-                <li className="hover:text-primary-300 transition flex items-center space-x-1.5 font-bold text-slate-200">
-                  <Phone className="h-3.5 w-3.5 text-emerald-400" />
-                  <span>+258 84 438 4702</span>
+                <li className="transition flex items-center space-x-1.5 font-bold text-slate-200">
+                  <a
+                    href="https://wa.me/258844384702?text=Olá%2C%20gostaria%20de%20saber%20mais%20sobre%20os%20serviços%20WEHOSTHERE"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center space-x-1.5 hover:text-emerald-400 transition"
+                  >
+                    <Phone className="h-3.5 w-3.5 text-emerald-400" />
+                    <span>+258 84 438 4702</span>
+                  </a>
                 </li>
                 <li className="hover:text-primary-300 transition">
                   <a href="mailto:info@wehosthere.com" className="flex items-center space-x-1.5 text-primary-300 hover:text-primary-200 font-semibold">

@@ -657,7 +657,12 @@ function CheckoutContent() {
                       </div>
                       <div>
                         <strong className="text-gray-900">M-Pesa Manual:</strong><br />
-                        +258 84 438 4702 (WEHOSTHERE)
+                        <a
+                          href="https://wa.me/258844384702?text=Olá%2C%20quero%20confirmar%20o%20meu%20pagamento%20via%20M-Pesa"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-emerald-600 hover:text-emerald-700 font-bold transition"
+                        >+258 84 438 4702 (WEHOSTHERE)</a>
                       </div>
                       <div>
                         <strong className="text-gray-900">E-Mola Manual:</strong><br />
