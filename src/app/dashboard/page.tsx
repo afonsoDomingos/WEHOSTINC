@@ -149,16 +149,18 @@ export default function DashboardPage() {
 
               <div className="mt-8 pt-6 border-t">
                 <div className="mb-4">
-                  <p className="text-sm text-gray-600 mb-1">Plano Atual</p>
-                  <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${planInfo.color}`}>
-                    {planInfo.name}
+                  <p className="text-sm text-gray-600 mb-1">Status da Conta</p>
+                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${
+                    user.status === 'active' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                  }`}>
+                    {user.status === 'active' ? '✓ Conta Ativa' : '⏰ Sem Assinatura'}
                   </span>
                 </div>
                 <Link
-                  href="/dashboard/billing"
-                  className="block w-full py-2 text-center bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition text-sm"
+                  href="/checkout"
+                  className="block w-full py-2 text-center bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition text-sm font-semibold shadow-xs"
                 >
-                  Fazer Upgrade
+                  Contratar Serviço / Checkout →
                 </Link>
               </div>
             </div>
@@ -172,17 +174,17 @@ export default function DashboardPage() {
                 <div className="flex items-start gap-3">
                   <span className="text-2xl">⏳</span>
                   <div>
-                    <h3 className="font-bold text-amber-950 text-base">Conta em Fase de Ativação (Aguardando Pagamento)</h3>
+                    <h3 className="font-bold text-amber-950 text-base">Conta Registada (Aguardando Escolha de Plano)</h3>
                     <p className="text-xs sm:text-sm text-amber-800 mt-0.5">
-                      O seu registo foi concluído com sucesso! Para ativar o seu plano de hospedagem ou serviço, selecione o plano e conclua o pagamento.
+                      O seu registo foi concluído com sucesso! Para ativar a sua hospedagem ou registar domínios, aceda ao checkout e conclua o pagamento.
                     </p>
                   </div>
                 </div>
                 <Link
-                  href="/dashboard/billing"
+                  href="/checkout"
                   className="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold whitespace-nowrap shadow transition"
                 >
-                  Efetuar Pagamento →
+                  Ir para Checkout / Pagamento →
                 </Link>
               </div>
             )}

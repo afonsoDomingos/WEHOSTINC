@@ -57,34 +57,7 @@ export default function BillingPage() {
   }, [router]);
 
   const handleUpgrade = (planId: string) => {
-    if (!user) return;
-
-    const newPlan = hostingPlans.find(p => p.id === planId);
-    if (!newPlan) return;
-
-    // Atualiza o plano do utilizador no auth
-    auth.updatePlan(user.id, planId as 'basic' | 'pro' | 'enterprise');
-    setUser({ ...user, plan: planId as 'basic' | 'pro' | 'enterprise' });
-
-    // Cria um ServiceOrder real com o valor e plano novo
-    const newOrder = dataManager.addOrder({
-      clientName: user.name,
-      clientEmail: user.email,
-      clientPhone: '',
-      serviceName: `Upgrade de Plano → ${newPlan.name}`,
-      amount: newPlan.price,
-      paymentMethod: 'bank_transfer',
-      status: 'pending',
-    });
-
-    // Atualiza a lista de faturas imediatamente na UI
-    setUserOrders(prev => [newOrder, ...prev]);
-
-    setToastMsg({
-      type: 'success',
-      title: `Plano atualizado para ${newPlan.name}!`,
-      message: `Fatura ${newOrder.id} gerada (${newPlan.price.toLocaleString('pt-MZ')} MT/mês). Estado: Pagamento Pendente — envie o comprovativo para ativação.`
-    });
+    router.push(`/checkout?plan=${planId}`);
   };
 
   const getCurrentPlan = () => {
@@ -194,6 +167,35 @@ export default function BillingPage() {
                   <CreditCard className="h-6 w-6 mb-2 text-purple-300" />
                   <p className="font-semibold text-lg">{userOrders.filter(o => o.status === 'completed').length} Pago(s)</p>
                   <p className="text-sm text-blue-100">Faturas Liquidadas</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Banner de Ação Rápida no Faturamento */}
+            <div className="bg-white rounded-2xl p-6 border-2 border-emerald-500 shadow-md">
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 flex items-center space-x-2">
+                    <CreditCard className="w-5 h-5 text-emerald-600" />
+                    <span>Deseja Contratar um Plano de Hospedagem ou Pagar a sua Conta?</span>
+                  </h3>
+                  <p className="text-xs text-gray-600 mt-1">
+                    Escolha um dos planos abaixo ou aceda diretamente ao checkout para efetuar o pagamento via M-Pesa, E-Mola ou Transferência Bancária.
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2 shrink-0">
+                  <Link
+                    href="/checkout"
+                    className="px-5 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-xs sm:text-sm rounded-xl shadow transition flex items-center space-x-2"
+                  >
+                    <span>🛒 Ir para o Checkout / Pagamento →</span>
+                  </Link>
+                  <Link
+                    href="/site-quote"
+                    className="px-4 py-3 bg-amber-400 hover:bg-amber-300 text-gray-950 font-bold text-xs sm:text-sm rounded-xl transition flex items-center space-x-1.5"
+                  >
+                    <span>✨ Criar Website</span>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -334,21 +336,12 @@ export default function BillingPage() {
                         </li>
                       )}
                     </ul>
-                    {plan.id !== user.plan ? (
-                      <button
-                        onClick={() => handleUpgrade(plan.id)}
-                        className="w-full py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition font-semibold"
-                      >
-                        Fazer Upgrade
-                      </button>
-                    ) : (
-                      <button
-                        disabled
-                        className="w-full py-3 bg-gray-300 text-gray-700 rounded-lg cursor-not-allowed font-semibold"
-                      >
-                        Plano Atual
-                      </button>
-                    )}
+                    <button
+                      onClick={() => handleUpgrade(plan.id)}
+                      className="w-full py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition font-semibold flex items-center justify-center space-x-2 cursor-pointer shadow-sm"
+                    >
+                      <span>Contratar {plan.name}</span>
+                    </button>
                   </div>
                 ))}
               </div>
