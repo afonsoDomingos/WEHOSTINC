@@ -691,7 +691,14 @@ export const dataManager = {
 
           const orderMap = new Map<string, ServiceOrder>();
           localOrders.forEach(o => orderMap.set(o.id, o));
-          serverOrders.forEach(o => orderMap.set(o.id, o));
+          serverOrders.forEach(serverOrder => {
+            const existing = orderMap.get(serverOrder.id);
+            if (existing) {
+              orderMap.set(serverOrder.id, { ...existing, ...serverOrder, status: serverOrder.status || existing.status });
+            } else {
+              orderMap.set(serverOrder.id, serverOrder);
+            }
+          });
 
           const merged = Array.from(orderMap.values());
           if (typeof window !== 'undefined') {

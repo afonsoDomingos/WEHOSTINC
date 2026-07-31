@@ -29,26 +29,25 @@ export default function BillingPage() {
     }
     setUser(currentUser);
 
-    // Carregar pedidos do cliente logado
-    const allOrders = dataManager.getOrders();
-    const myOrders = allOrders.filter(
-      o => o.clientEmail.toLowerCase() === currentUser.email.toLowerCase() ||
-           o.clientName.toLowerCase() === currentUser.name.toLowerCase()
-    );
-    // Se for conta de demonstração/inicial sem pedidos filtrados, exibir todos para visualização rica
-    setUserOrders(myOrders.length > 0 ? myOrders : allOrders);
+    const refreshOrders = (fetchedOrders?: ServiceOrder[]) => {
+      const allOrders = fetchedOrders || dataManager.getOrders();
+      const myOrders = allOrders.filter(
+        o => o.clientEmail.toLowerCase() === currentUser.email.toLowerCase() ||
+             o.clientName.toLowerCase() === currentUser.name.toLowerCase()
+      );
+      setUserOrders(myOrders.length > 0 ? myOrders : allOrders);
+    };
 
-    dataManager.fetchOrdersAsync().then((fetched) => {
-      if (fetched && fetched.length > 0) {
-        const updated = fetched.filter(
-          o => o.clientEmail.toLowerCase() === currentUser.email.toLowerCase() ||
-               o.clientName.toLowerCase() === currentUser.name.toLowerCase()
-        );
-        setUserOrders(updated.length > 0 ? updated : fetched);
-      }
-    });
-
+    refreshOrders();
     setLoading(false);
+
+    dataManager.fetchOrdersAsync().then((fetched) => refreshOrders(fetched));
+
+    const interval = setInterval(() => {
+      dataManager.fetchOrdersAsync().then((fetched) => refreshOrders(fetched));
+    }, 3000);
+
+    return () => clearInterval(interval);
   }, [router]);
 
   const handleUpgrade = (planId: string) => {
