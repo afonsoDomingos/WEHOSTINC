@@ -34,14 +34,16 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { userEmail, userName, currentPage, sessionId } = body;
 
-    if (!userEmail) {
-      return NextResponse.json({ error: 'userEmail é obrigatório' }, { status: 400 });
+    // Se for visitante anónimo sem email, responde com sucesso silencioso sem gerar erro 400
+    if (!userEmail || !userEmail.trim()) {
+      return NextResponse.json({ success: true, guest: true });
     }
 
+    const cleanEmail = userEmail.toLowerCase().trim();
     const now = new Date().toISOString();
     const presenceData = {
-      userEmail: userEmail.toLowerCase().trim(),
-      userName: userName || userEmail,
+      userEmail: cleanEmail,
+      userName: userName || cleanEmail,
       lastSeen: now,
       currentPage: currentPage || '/',
       sessionId: sessionId || '',
@@ -49,16 +51,20 @@ export async function POST(req: NextRequest) {
     };
 
     if (await tryMongo()) {
-      await UserPresenceModel.findOneAndUpdate(
-        { userEmail: presenceData.userEmail },
-        presenceData,
-        { upsert: true, new: true }
-      );
-      return NextResponse.json({ success: true });
+      try {
+        await UserPresenceModel.findOneAndUpdate(
+          { userEmail: cleanEmail },
+          presenceData,
+          { upsert: true, new: true }
+        );
+        return NextResponse.json({ success: true });
+      } catch (err) {
+        console.warn('Presence MongoDB update warning:', err);
+      }
     }
 
-    // Fallback
-    const idx = FALLBACK_PRESENCE.findIndex(p => p.userEmail === presenceData.userEmail);
+    // Fallback em memória
+    const idx = FALLBACK_PRESENCE.findIndex(p => p.userEmail === cleanEmail);
     if (idx >= 0) {
       FALLBACK_PRESENCE[idx] = presenceData;
     } else {
@@ -67,6 +73,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true });
 
   } catch (e) {
-    return NextResponse.json({ error: 'Erro ao actualizar presença' }, { status: 500 });
+    return NextResponse.json({ success: true, fallback: true });
   }
 }

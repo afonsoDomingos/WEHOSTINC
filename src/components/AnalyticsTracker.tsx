@@ -51,7 +51,7 @@ export default function AnalyticsTracker() {
 
     const updatePresence = () => {
       const currentUser = auth.getCurrentUser();
-      if (!currentUser || currentUser.role === 'admin') return;
+      if (!currentUser || !currentUser.email || currentUser.role === 'admin') return;
 
       const sessionId = getSessionId();
       fetch(apiEndpoint('/api/analytics/presence'), {
