@@ -182,6 +182,7 @@ export default function AdminPage() {
 
   const handleRefreshAdminData = async () => {
     setIsRefreshingAdmin(true);
+    setIsSyncingData(true);
     try {
       const [u, o, s, e, t, sec] = await Promise.all([
         auth.fetchUsersAsync(),
@@ -189,7 +190,8 @@ export default function AdminPage() {
         dataManager.fetchSitesAsync(),
         dataManager.fetchEmailsAsync(),
         dataManager.fetchTicketsAsync(),
-        dataManager.fetchSecurityLogsAsync()
+        dataManager.fetchSecurityLogsAsync(),
+        new Promise(resolve => setTimeout(resolve, 600))
       ]);
       if (u) setUsers(u);
       if (o) setOrders(o);
@@ -202,7 +204,8 @@ export default function AdminPage() {
     } catch (err) {
       setToastMsg({ title: 'Erro de Sincronização', message: 'Não foi possível atualizar os dados do servidor.', type: 'error' });
     } finally {
-      setTimeout(() => setIsRefreshingAdmin(false), 800);
+      setIsRefreshingAdmin(false);
+      setIsSyncingData(false);
     }
   };
 
@@ -683,7 +686,14 @@ export default function AdminPage() {
                   <Eye className="h-4 w-4 text-primary-600" />
                   <span className="text-xs text-primary-600 font-semibold uppercase tracking-wider">Visualizações</span>
                 </div>
-                <p className="text-3xl font-extrabold text-primary-700">{visitStats.total.toLocaleString('pt-MZ')}</p>
+                {isSyncingData ? (
+                  <div className="flex items-center space-x-2 text-primary-600 py-1">
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                    <span className="text-xs text-primary-500 font-semibold">Atualizando...</span>
+                  </div>
+                ) : (
+                  <p className="text-3xl font-extrabold text-primary-700">{visitStats.total.toLocaleString('pt-MZ')}</p>
+                )}
                 <p className="text-xs text-primary-500 mt-0.5">páginas vistas</p>
               </div>
               <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-100">
@@ -691,7 +701,14 @@ export default function AdminPage() {
                   <Users className="h-4 w-4 text-emerald-600" />
                   <span className="text-xs text-emerald-600 font-semibold uppercase tracking-wider">Visitantes Únicos</span>
                 </div>
-                <p className="text-3xl font-extrabold text-emerald-700">{visitStats.uniqueVisitors.toLocaleString('pt-MZ')}</p>
+                {isSyncingData ? (
+                  <div className="flex items-center space-x-2 text-emerald-600 py-1">
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                    <span className="text-xs text-emerald-500 font-semibold">Atualizando...</span>
+                  </div>
+                ) : (
+                  <p className="text-3xl font-extrabold text-emerald-700">{visitStats.uniqueVisitors.toLocaleString('pt-MZ')}</p>
+                )}
                 <p className="text-xs text-emerald-500 mt-0.5">sessões distintas</p>
               </div>
             </div>
@@ -699,7 +716,13 @@ export default function AdminPage() {
             {/* Top Páginas */}
             <div className="p-5">
               <p className="text-xs uppercase tracking-wider text-gray-400 font-semibold mb-3">Top Páginas</p>
-              {visitStats.topPages.length === 0 ? (
+              {isSyncingData ? (
+                <div className="space-y-3 py-2">
+                  <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4" />
+                  <div className="h-4 bg-gray-200 rounded animate-pulse w-1/2" />
+                  <div className="h-4 bg-gray-200 rounded animate-pulse w-2/3" />
+                </div>
+              ) : visitStats.topPages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-6 text-gray-400">
                   <Globe className="h-7 w-7 mb-2 opacity-40" />
                   <p className="text-sm">Sem dados de visitas ainda</p>
@@ -718,8 +741,8 @@ export default function AdminPage() {
                             <span className="text-xs font-medium text-gray-700 truncate max-w-[200px]">{pg.page}</span>
                             <span className="text-xs text-gray-500 font-semibold ml-2">{pg.count}</span>
                           </div>
-                          <div className="w-full bg-gray-100 rounded-full h-1.5">
-                            <div className="bg-primary-500 h-1.5 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+                          <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                            <div className="bg-primary-500 h-1.5 rounded-full transition-all duration-700 animate-pulse" style={{ width: `${pct}%` }} />
                           </div>
                         </div>
                       </div>
@@ -817,16 +840,30 @@ export default function AdminPage() {
             {/* Ticket Médio */}
             <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
               <span className="text-xs font-bold text-gray-500 uppercase tracking-wider block">Ticket Médio por Cliente</span>
-              <span className="text-2xl font-black text-gray-900 block mt-1">{averageTicket.toLocaleString('pt-MZ')} MT</span>
+              {isSyncingData ? (
+                <div className="flex items-center space-x-2 text-gray-600 mt-1 py-0.5">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <span className="text-xs font-semibold text-gray-500">A processar...</span>
+                </div>
+              ) : (
+                <span className="text-2xl font-black text-gray-900 block mt-1">{averageTicket.toLocaleString('pt-MZ')} MT</span>
+              )}
               <span className="text-xs text-gray-500 mt-1 block">Média de gasto por contratação na plataforma</span>
             </div>
 
             {/* Faturamento M-Pesa */}
             <div className="p-4 bg-red-50/70 border border-red-200 rounded-xl">
               <span className="text-xs font-bold text-red-900 uppercase tracking-wider block">Faturamento via M-Pesa (Vodacom)</span>
-              <span className="text-2xl font-black text-red-700 block mt-1">{mpesaRevenue.toLocaleString('pt-MZ')} MT</span>
-              <div className="w-full bg-red-200 h-2 rounded-full mt-2">
-                <div className="bg-red-600 h-2 rounded-full" style={{ width: `${Math.round((mpesaRevenue / validOrdersTotal) * 100)}%` }}></div>
+              {isSyncingData ? (
+                <div className="flex items-center space-x-2 text-red-600 mt-1 py-0.5">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <span className="text-xs font-semibold text-red-600">A processar...</span>
+                </div>
+              ) : (
+                <span className="text-2xl font-black text-red-700 block mt-1">{mpesaRevenue.toLocaleString('pt-MZ')} MT</span>
+              )}
+              <div className="w-full bg-red-200 h-2 rounded-full mt-2 overflow-hidden">
+                <div className="bg-red-600 h-2 rounded-full transition-all duration-700 animate-pulse" style={{ width: `${Math.round((mpesaRevenue / validOrdersTotal) * 100)}%` }}></div>
               </div>
               <span className="text-[11px] font-semibold text-red-700 mt-1 block">{Math.round((mpesaRevenue / validOrdersTotal) * 100)}% do volume de vendas</span>
             </div>
@@ -834,9 +871,16 @@ export default function AdminPage() {
             {/* Faturamento eMola / Cartão */}
             <div className="p-4 bg-orange-50/70 border border-orange-200 rounded-xl">
               <span className="text-xs font-bold text-orange-900 uppercase tracking-wider block">eMola (Movitel) & Cartão</span>
-              <span className="text-2xl font-black text-orange-700 block mt-1">{(emolaRevenue + cardRevenue).toLocaleString('pt-MZ')} MT</span>
-              <div className="w-full bg-orange-200 h-2 rounded-full mt-2">
-                <div className="bg-orange-600 h-2 rounded-full" style={{ width: `${Math.round(((emolaRevenue + cardRevenue) / validOrdersTotal) * 100)}%` }}></div>
+              {isSyncingData ? (
+                <div className="flex items-center space-x-2 text-orange-600 mt-1 py-0.5">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <span className="text-xs font-semibold text-orange-600">A processar...</span>
+                </div>
+              ) : (
+                <span className="text-2xl font-black text-orange-700 block mt-1">{(emolaRevenue + cardRevenue).toLocaleString('pt-MZ')} MT</span>
+              )}
+              <div className="w-full bg-orange-200 h-2 rounded-full mt-2 overflow-hidden">
+                <div className="bg-orange-600 h-2 rounded-full transition-all duration-700 animate-pulse" style={{ width: `${Math.round(((emolaRevenue + cardRevenue) / validOrdersTotal) * 100)}%` }}></div>
               </div>
               <span className="text-[11px] font-semibold text-orange-700 mt-1 block">{Math.round(((emolaRevenue + cardRevenue) / validOrdersTotal) * 100)}% do volume de vendas</span>
             </div>
