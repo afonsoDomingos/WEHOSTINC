@@ -8,7 +8,7 @@ interface PageLoaderProps {
 
 export default function PageLoader({ text = 'A carregar os seus dados...' }: PageLoaderProps) {
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 z-50 bg-white flex flex-col items-center justify-center p-4">
       <div className="flex flex-col items-center space-y-6 animate-in fade-in zoom-in-95 duration-300">
         
         {/* Logo no Centro em Fundo Branco com Aura de Processamento */}
