@@ -157,10 +157,10 @@ export default function DashboardPage() {
                   </span>
                 </div>
                 <Link
-                  href="/checkout"
+                  href="/dashboard/billing"
                   className="block w-full py-2 text-center bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition text-sm font-semibold shadow-xs"
                 >
-                  Contratar Serviço / Checkout →
+                  Ver Faturamento & Planos →
                 </Link>
               </div>
             </div>
@@ -176,15 +176,15 @@ export default function DashboardPage() {
                   <div>
                     <h3 className="font-bold text-amber-950 text-base">Conta Registada (Aguardando Escolha de Plano)</h3>
                     <p className="text-xs sm:text-sm text-amber-800 mt-0.5">
-                      O seu registo foi concluído com sucesso! Para ativar a sua hospedagem ou registar domínios, aceda ao checkout e conclua o pagamento.
+                      O seu registo foi concluído com sucesso! Para escolher o seu plano de hospedagem e serviços, aceda à área de Faturamento.
                     </p>
                   </div>
                 </div>
                 <Link
-                  href="/checkout"
+                  href="/dashboard/billing"
                   className="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold whitespace-nowrap shadow transition"
                 >
-                  Ir para Checkout / Pagamento →
+                  Escolher Plano em Faturamento →
                 </Link>
               </div>
             )}
