@@ -354,7 +354,18 @@ export const dataManager = {
 
           const siteMap = new Map<string, Site>();
           localSites.forEach(s => siteMap.set(s.id, s));
-          serverSites.forEach(s => siteMap.set(s.id, s));
+          serverSites.forEach(serverSite => {
+            const existingKey = Array.from(siteMap.keys()).find(k => {
+              const item = siteMap.get(k);
+              return item && (item.id === serverSite.id || item.domain.toLowerCase() === serverSite.domain.toLowerCase());
+            });
+            if (existingKey) {
+              const existing = siteMap.get(existingKey)!;
+              siteMap.set(existingKey, { ...existing, ...serverSite, status: serverSite.status || existing.status });
+            } else {
+              siteMap.set(serverSite.id, serverSite);
+            }
+          });
 
           const merged = Array.from(siteMap.values());
           if (typeof window !== 'undefined') {
@@ -403,7 +414,7 @@ export const dataManager = {
   },
 
   updateSiteStatus: (id: string, status: Site['status']): void => {
-    const sites = dataManager.getSites().map(s => s.id === id ? { ...s, status } : s);
+    const sites = dataManager.getSites().map(s => (s.id === id || s.domain.toLowerCase() === id.toLowerCase()) ? { ...s, status } : s);
     if (typeof window !== 'undefined') {
       localStorage.setItem(SITES_KEY, JSON.stringify(sites));
 

@@ -231,16 +231,28 @@ export default function AdminPage() {
   const handleUpdateSiteStatus = (id: string, newStatus: 'active' | 'pending' | 'suspended') => {
     dataManager.updateSiteStatus(id, newStatus);
     const targetSite = sites.find(s => s.id === id);
-    if (newStatus === 'active' && targetSite) {
-      fetch('/api/vps/provision', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          domain: targetSite.domain,
-          clientEmail: 'cliente@wehosthere.co.mz',
-          planId: 'pro'
-        })
-      }).catch(err => console.error('Erro de provisionamento VPS:', err));
+    if (targetSite) {
+      // Auto-atualizar e-mails associados a este domínio
+      const domainEmails = emails.filter(e => 
+        (e.domain || '').toLowerCase() === targetSite.domain.toLowerCase() || 
+        e.email.toLowerCase().endsWith(`@${targetSite.domain.toLowerCase()}`)
+      );
+      domainEmails.forEach(e => {
+        dataManager.updateEmailStatus(e.id, newStatus);
+      });
+      setEmails(dataManager.getEmails());
+
+      if (newStatus === 'active') {
+        fetch('/api/vps/provision', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            domain: targetSite.domain,
+            clientEmail: 'cliente@wehosthere.co.mz',
+            planId: 'pro'
+          })
+        }).catch(err => console.error('Erro de provisionamento VPS:', err));
+      }
     }
     setSites(dataManager.getSites());
   };

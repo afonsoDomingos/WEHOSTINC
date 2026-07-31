@@ -26,10 +26,25 @@ export default function DomainsPage() {
 
   useEffect(() => {
     const currentUser = auth.getCurrentUser();
-    if (!currentUser) { router.push('/login'); return; }
+    if (!currentUser) {
+      router.push('/login');
+      return;
+    }
     setUser(currentUser);
     setSites(dataManager.getSites());
     setLoading(false);
+
+    dataManager.fetchSitesAsync().then(() => {
+      setSites(dataManager.getSites());
+    });
+
+    const interval = setInterval(() => {
+      dataManager.fetchSitesAsync().then(() => {
+        setSites(dataManager.getSites());
+      });
+    }, 3000);
+
+    return () => clearInterval(interval);
   }, [router]);
 
   const handleLogout = () => { auth.logout(); router.push('/'); };

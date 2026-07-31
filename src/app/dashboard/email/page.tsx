@@ -51,17 +51,32 @@ export default function EmailPage() {
       return;
     }
     setUser(currentUser);
-    const loadedEmails = dataManager.getEmails();
-    setEmails(loadedEmails);
 
-    // Carregar domínios reais dos sites do utilizador
-    const loadedSites = dataManager.getSites();
-    setSites(loadedSites);
-    const domains = loadedSites.map(s => s.domain).filter(Boolean);
-    setUserDomains(domains);
-    if (domains.length > 0) setSelectedDomain(domains[0]);
+    const refreshData = () => {
+      const loadedEmails = dataManager.getEmails();
+      setEmails(loadedEmails);
+      const loadedSites = dataManager.getSites();
+      setSites(loadedSites);
+      const domains = loadedSites.map(s => s.domain).filter(Boolean);
+      setUserDomains(domains);
+    };
 
+    refreshData();
+    const initialSites = dataManager.getSites();
+    if (initialSites.length > 0 && initialSites[0].domain) {
+      setSelectedDomain(initialSites[0].domain);
+    }
     setLoading(false);
+
+    dataManager.fetchEmailsAsync().then(refreshData);
+    dataManager.fetchSitesAsync().then(refreshData);
+
+    const interval = setInterval(() => {
+      dataManager.fetchEmailsAsync().then(refreshData);
+      dataManager.fetchSitesAsync().then(refreshData);
+    }, 3000);
+
+    return () => clearInterval(interval);
   }, [router]);
 
   const copyToClipboard = (text: string) => {

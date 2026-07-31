@@ -31,6 +31,20 @@ export default function SitesPage() {
     setUser(currentUser);
     setSites(dataManager.getSites());
     setLoading(false);
+
+    // Busca assíncrona inicial dos dados do servidor
+    dataManager.fetchSitesAsync().then(() => {
+      setSites(dataManager.getSites());
+    });
+
+    // Polling a cada 3s para sincronizar alterações de status do Admin em tempo real
+    const interval = setInterval(() => {
+      dataManager.fetchSitesAsync().then(() => {
+        setSites(dataManager.getSites());
+      });
+    }, 3000);
+
+    return () => clearInterval(interval);
   }, [router]);
 
   const handleAddSite = (e: React.FormEvent) => {
