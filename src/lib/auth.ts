@@ -305,44 +305,44 @@ export const auth = {
           const serverUsers: User[] = data.users;
           const localUsers = auth.getUsers();
           
-          const userMap = new Map<string, User>();
-          localUsers.forEach(u => userMap.set(u.id, u));
-          serverUsers.forEach(serverUser => {
-            const existing = userMap.get(serverUser.id);
-            if (existing) {
-              userMap.set(serverUser.id, {
-                ...existing,
+          const localMap = new Map<string, User>();
+          localUsers.forEach(u => localMap.set(u.id, u));
+
+          const serverKeySet = new Set(serverUsers.map(u => u.id));
+
+          // 1. Atualizar lista com usuários do servidor (fonte de verdade)
+          const updatedUsers: User[] = serverUsers.map(serverUser => {
+            const localMatch = localMap.get(serverUser.id);
+            if (localMatch) {
+              return {
+                ...localMatch,
                 ...serverUser,
-                status: serverUser.status || existing.status || 'active',
-                plan: serverUser.plan || existing.plan || 'basic'
-              });
-            } else {
-              userMap.set(serverUser.id, {
-                ...serverUser,
-                status: serverUser.status || 'active'
-              });
+                status: serverUser.status || localMatch.status || 'active',
+                plan: serverUser.plan || localMatch.plan || 'basic'
+              };
+            }
+            return {
+              ...serverUser,
+              status: serverUser.status || 'active'
+            };
+          });
+
+          // 2. Preservar logins recentes locais e purgar deletados no servidor
+          localUsers.forEach(localUser => {
+            if (!serverKeySet.has(localUser.id)) {
+              const isRecent = Date.now() - (new Date(localUser.createdAt || 0).getTime() || Date.now()) < 60000;
+              if (isRecent) {
+                updatedUsers.push(localUser);
+              } else {
+                localStorage.removeItem(`user_${localUser.id}`);
+              }
             }
           });
 
-          const merged = Array.from(userMap.values());
           if (typeof window !== 'undefined') {
-            localStorage.setItem('wehosthere_all_users', JSON.stringify(merged));
-            merged.forEach(u => {
-              const localKey = `user_${u.id}`;
-              const stored = localStorage.getItem(localKey);
-              if (stored) {
-                try {
-                  const parsed = JSON.parse(stored);
-                  localStorage.setItem(localKey, JSON.stringify({ ...parsed, ...u }));
-                } catch {
-                  localStorage.setItem(localKey, JSON.stringify(u));
-                }
-              } else {
-                localStorage.setItem(localKey, JSON.stringify(u));
-              }
-            });
+            localStorage.setItem('wehosthere_all_users', JSON.stringify(updatedUsers));
           }
-          return merged;
+          return updatedUsers;
         }
       }
     } catch (e) {
