@@ -55,6 +55,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true, orders: GLOBAL_ORDERS });
     }
 
+    if (action === 'delete') {
+      const targetId = (orderId || body.id || '').toLowerCase();
+      GLOBAL_ORDERS = GLOBAL_ORDERS.filter(o => o.id.toLowerCase() !== targetId);
+      return NextResponse.json({ success: true, orders: GLOBAL_ORDERS });
+    }
+
     const newOrder: ServerServiceOrder = order || {
       id: body.id || `ORD-${Date.now().toString().slice(-5)}`,
       clientName: body.clientName,

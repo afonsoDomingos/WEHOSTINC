@@ -328,6 +328,26 @@ export default function AdminPage() {
     });
   };
 
+  const handleAdminDeleteOrder = (orderId: string) => {
+    setConfirmModalData({
+      isOpen: true,
+      title: 'Eliminar Pedido de Serviço',
+      message: `Tem certeza que deseja ELIMINAR permanentemente o pedido "${orderId}"? Esta ação removerá a fatura do sistema.`,
+      variant: 'danger',
+      onConfirm: () => {
+        try {
+          dataManager.deleteOrder(orderId);
+          setOrders(prev => prev.filter(o => o.id !== orderId));
+          setConfirmModalData(null);
+          setToastMsg({ title: 'Pedido Removido', message: `O pedido ${orderId} foi totalmente eliminado.`, type: 'success' });
+        } catch (err) {
+          console.error('Erro ao eliminar pedido no admin:', err);
+          setToastMsg({ title: 'Erro de Eliminação', message: `Não foi possível eliminar o pedido ${orderId}.`, type: 'error' });
+        }
+      }
+    });
+  };
+
   const handleCreateClient = async (e: React.FormEvent) => {
     e.preventDefault();
     setCreateError('');
@@ -995,6 +1015,14 @@ export default function AdminPage() {
                           >
                             <MessageSquare className="h-4 w-4" />
                           </a>
+
+                          <button
+                            onClick={() => handleAdminDeleteOrder(order.id)}
+                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition cursor-pointer"
+                            title="Eliminar Pedido / Fatura"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
                         </div>
                       </td>
                     </tr>

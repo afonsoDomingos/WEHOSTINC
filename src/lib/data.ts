@@ -836,7 +836,15 @@ export const dataManager = {
           serverOrders.forEach(serverOrder => {
             const existing = orderMap.get(serverOrder.id);
             if (existing) {
-              orderMap.set(serverOrder.id, { ...existing, ...serverOrder, status: serverOrder.status || existing.status });
+              const effectiveStatus = existing.status || serverOrder.status || 'pending';
+              if (serverOrder.status !== effectiveStatus) {
+                fetch('/api/orders', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ action: 'update_status', orderId: serverOrder.id, status: effectiveStatus })
+                }).catch(() => {});
+              }
+              orderMap.set(serverOrder.id, { ...serverOrder, ...existing, status: effectiveStatus });
             } else {
               orderMap.set(serverOrder.id, serverOrder);
             }
@@ -873,6 +881,19 @@ export const dataManager = {
       }).catch(err => console.error('Erro de sync de pedido no servidor:', err));
     }
     return newOrder;
+  },
+
+  deleteOrder: (id: string): void => {
+    const orders = dataManager.getOrders().filter(o => o.id !== id);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('wehosthere_orders', JSON.stringify(orders));
+
+      fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete', orderId: id })
+      }).catch(err => console.error('Erro de exclusão de pedido no servidor:', err));
+    }
   },
 
   updateOrderStatus: (id: string, status: ServiceOrder['status']): void => {
