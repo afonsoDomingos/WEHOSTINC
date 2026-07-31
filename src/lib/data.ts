@@ -406,18 +406,42 @@ export const dataManager = {
 
           const serverKeySet = new Set(serverSites.map(s => (s.domain || s.id).toLowerCase()));
 
-          // Build updated list — SERVER STATUS has priority (so admin approvals reflect immediately)
           const updatedSites: Site[] = serverSites.map(serverSite => {
             const key = (serverSite.domain || serverSite.id).toLowerCase();
             const localMatch = localSiteMap.get(key);
             if (localMatch) {
-              // Server status always wins — this ensures admin approvals are propagated instantly
-              return {
-                ...localMatch,
-                ...serverSite,
-                status: serverSite.status || localMatch.status || 'pending',
-                userEmail: serverSite.userEmail || localMatch.userEmail || currentUserEmail
-              };
+              if (currentUserEmail) {
+                // CLIENT: servidor tem prioridade — aprovações do admin propagam-se instantaneamente
+                return {
+                  ...localMatch,
+                  ...serverSite,
+                  status: serverSite.status || localMatch.status || 'pending',
+                  userEmail: serverSite.userEmail || localMatch.userEmail || currentUserEmail
+                };
+              } else {
+                // ADMIN: localStorage local tem prioridade — mudanças manuais do admin persistem mesmo após restart do servidor
+                const effectiveStatus = localMatch.status || serverSite.status || 'pending';
+                // Ressincronizar com o servidor se houver discordância
+                if (serverSite.status !== effectiveStatus) {
+                  fetch('/api/sites', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      action: 'update_status',
+                      siteId: serverSite.id,
+                      domain: serverSite.domain,
+                      status: effectiveStatus,
+                      userEmail: localMatch.userEmail || serverSite.userEmail
+                    })
+                  }).catch(() => {});
+                }
+                return {
+                  ...serverSite,
+                  ...localMatch,
+                  status: effectiveStatus,
+                  userEmail: serverSite.userEmail || localMatch.userEmail
+                };
+              }
             }
             return {
               ...serverSite,
@@ -641,9 +665,44 @@ export const dataManager = {
             return updated;
           }
 
-          // Admin use: Sync shared EMAILS_KEY with serverEmails
+          // Admin use: merge server emails with local — local status has priority (admin decisions persist)
           if (typeof window !== 'undefined') {
-            localStorage.setItem(EMAILS_KEY, JSON.stringify(serverEmails));
+            const localAdminEmails: EmailAccount[] = JSON.parse(localStorage.getItem(EMAILS_KEY) || '[]');
+            const localAdminMap = new Map<string, EmailAccount>();
+            localAdminEmails.forEach(e => localAdminMap.set(e.email.toLowerCase(), e));
+
+            const merged: EmailAccount[] = serverEmails.map(serverEmail => {
+              const key = serverEmail.email.toLowerCase();
+              const localMatch = localAdminMap.get(key);
+              if (localMatch) {
+                const effectiveStatus = localMatch.status || serverEmail.status || 'pending';
+                // Re-sync server if admin had a different status stored locally
+                if (serverEmail.status !== effectiveStatus) {
+                  fetch('/api/emails', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'update_status', emailId: serverEmail.id, emailStr: serverEmail.email, status: effectiveStatus })
+                  }).catch(() => {});
+                }
+                return { ...serverEmail, ...localMatch, status: effectiveStatus };
+              }
+              return serverEmail;
+            });
+
+            // Preserve local emails not in server yet
+            localAdminEmails.forEach(local => {
+              if (!serverEmails.find(s => s.email.toLowerCase() === local.email.toLowerCase())) {
+                merged.push(local);
+                fetch('/api/emails', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ email: local })
+                }).catch(() => {});
+              }
+            });
+
+            localStorage.setItem(EMAILS_KEY, JSON.stringify(merged));
+            return merged;
           }
           return serverEmails;
         }
