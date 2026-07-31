@@ -85,7 +85,7 @@ export default function ReceiptModal({ receipt, onClose }: ReceiptModalProps) {
               <BrandLogo href="" logoHeightClass="h-8" />
               <p className="text-xs text-gray-500 mt-2 font-medium">WEHOSTHERE Infraestruturas & Cloud Moçambique</p>
               <p className="text-xs text-gray-400">Maputo, Moçambique</p>
-              <p className="text-xs text-gray-400">faturacao@wehosthere.com • +258 84 787 7405</p>
+              <p className="text-xs text-gray-400">faturacao@wehosthere.com • +258 84 438 4702</p>
             </div>
 
             <div className="text-left sm:text-right">

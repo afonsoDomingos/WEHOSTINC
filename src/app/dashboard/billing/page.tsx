@@ -383,11 +383,11 @@ export default function BillingPage() {
                 </div>
                 <div className="p-2.5 bg-white rounded-lg border border-gray-200">
                   <strong className="text-gray-900 block font-sans font-bold text-sm">M-Pesa Manual</strong>
-                  +258 847877405
+                  +258 84 438 4702
                 </div>
                 <div className="p-2.5 bg-white rounded-lg border border-gray-200">
                   <strong className="text-gray-900 block font-sans font-bold text-sm">E-Mola Manual</strong>
-                  879642412
+                  <span className="text-gray-400 italic font-sans">Indisponível de momento</span>
                 </div>
               </div>
 

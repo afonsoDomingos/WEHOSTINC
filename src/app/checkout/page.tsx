@@ -657,11 +657,11 @@ function CheckoutContent() {
                       </div>
                       <div>
                         <strong className="text-gray-900">M-Pesa Manual:</strong><br />
-                        +258 847877405 (WEHOSTHERE)
+                        +258 84 438 4702 (WEHOSTHERE)
                       </div>
                       <div>
                         <strong className="text-gray-900">E-Mola Manual:</strong><br />
-                        879642412 (WEHOSTHERE)
+                        <span className="text-gray-400 italic font-sans">Indisponível de momento</span>
                       </div>
                     </div>
                   </div>

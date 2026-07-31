@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from "next/link";
-import { Server, Mail, Shield, Zap, Globe, Users, Search, Sparkles, CheckCircle, Facebook } from "lucide-react";
+import { Server, Mail, Shield, Zap, Globe, Users, Search, Sparkles, CheckCircle, Facebook, Phone } from "lucide-react";
 import { websiteTypes } from '@/lib/data';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 
@@ -432,12 +432,15 @@ export default function Home() {
               </ul>
             </div>
             <div>
-              <h4 className="font-bold text-white mb-4 uppercase tracking-wider text-xs">Suporte</h4>
+              <h4 className="font-bold text-white mb-4 uppercase tracking-wider text-xs">Suporte & Contacto</h4>
               <ul className="space-y-2 text-slate-400 text-sm">
+                <li className="hover:text-primary-300 transition flex items-center space-x-1.5 font-bold text-slate-200">
+                  <Phone className="h-3.5 w-3.5 text-emerald-400" />
+                  <span>+258 84 438 4702</span>
+                </li>
                 <li className="hover:text-primary-300 transition cursor-pointer">Central de Ajuda</li>
                 <li className="hover:text-primary-300 transition cursor-pointer">Tutoriais & Documentação</li>
                 <li className="hover:text-primary-300 transition cursor-pointer">Status do Sistema</li>
-                <li className="hover:text-primary-300 transition cursor-pointer">Contacto Direto</li>
               </ul>
             </div>
             <div>
