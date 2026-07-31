@@ -9,7 +9,7 @@ import {
   LogOut, Settings, Home, CheckCircle, Clock, XCircle, Search,
   ShoppingBag, MessageSquare, ExternalLink, Trash2, LifeBuoy, Send, ShieldCheck, CheckCircle2, AlertCircle,
   Paperclip, FileText, Image as ImageIcon, Download, File, X, Loader2, Tag, Shield, AlertTriangle,
-  Activity, Eye, Globe, Wifi, WifiOff, BarChart2
+  Activity, Eye, Globe, Wifi, WifiOff, BarChart2, RefreshCw
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 import { dataManager, ServiceOrder, SupportTicket, TicketMessage, TicketAttachment, SecurityLog } from '@/lib/data';
@@ -175,6 +175,34 @@ export default function AdminPage() {
         setVisitStats({ total: data.total || 0, uniqueVisitors: data.uniqueVisitors || 0, topPages: data.topPages || [] });
       }
     } catch (e) {}
+  };
+
+  const [isRefreshingAdmin, setIsRefreshingAdmin] = useState(false);
+
+  const handleRefreshAdminData = async () => {
+    setIsRefreshingAdmin(true);
+    try {
+      const [u, o, s, e, t, sec] = await Promise.all([
+        auth.fetchUsersAsync(),
+        dataManager.fetchOrdersAsync(),
+        dataManager.fetchSitesAsync(),
+        dataManager.fetchEmailsAsync(),
+        dataManager.fetchTicketsAsync(),
+        dataManager.fetchSecurityLogsAsync()
+      ]);
+      if (u) setUsers(u);
+      if (o) setOrders(o);
+      if (s) setSites(s);
+      if (e) setEmails(e);
+      if (t) setTickets(t);
+      if (sec) setSecurityLogs(sec);
+      await Promise.all([fetchDomainLogs(), fetchAnalytics()]);
+      setToastMsg({ title: 'Dados Atualizados', message: 'Os dados do servidor MongoDB foram sincronizados com sucesso.', type: 'success' });
+    } catch (err) {
+      setToastMsg({ title: 'Erro de Sincronização', message: 'Não foi possível atualizar os dados do servidor.', type: 'error' });
+    } finally {
+      setTimeout(() => setIsRefreshingAdmin(false), 800);
+    }
   };
 
   useEffect(() => {
@@ -529,19 +557,30 @@ export default function AdminPage() {
                 ADMIN
               </span>
             </div>
-            <div className="flex items-center space-x-6">
+            <div className="flex items-center space-x-3 sm:space-x-4">
+              <button
+                type="button"
+                onClick={handleRefreshAdminData}
+                disabled={isRefreshingAdmin}
+                className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200/80 rounded-lg transition shadow-sm cursor-pointer disabled:opacity-50"
+                title="Sincronizar dados em tempo real com o MongoDB Atlas"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 text-purple-600 ${isRefreshingAdmin ? 'animate-spin' : ''}`} />
+                <span>{isRefreshingAdmin ? 'A atualizar...' : 'Atualizar Dados'}</span>
+              </button>
+
               <Link
                 href="/"
-                className="flex items-center space-x-2 text-gray-600 hover:text-primary-600 font-medium transition"
+                className="flex items-center space-x-2 text-gray-600 hover:text-primary-600 font-medium transition text-xs sm:text-sm"
               >
-                <Home className="h-5 w-5" />
+                <Home className="h-4 w-4 text-gray-500" />
                 <span>Ver Site</span>
               </Link>
               <button
                 onClick={handleLogout}
-                className="flex items-center space-x-2 text-gray-600 hover:text-red-600 font-medium transition"
+                className="flex items-center space-x-2 text-gray-600 hover:text-red-600 font-medium transition text-xs sm:text-sm"
               >
-                <LogOut className="h-5 w-5" />
+                <LogOut className="h-4 w-4" />
                 <span>Sair</span>
               </button>
             </div>

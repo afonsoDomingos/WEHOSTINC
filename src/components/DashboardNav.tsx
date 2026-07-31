@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
   Server, LayoutDashboard, Globe, Mail, 
-  Database, Settings as SettingsIcon, LogOut, Menu, X, User, LifeBuoy, Sparkles, Link2
+  Database, Settings as SettingsIcon, LogOut, Menu, X, User, LifeBuoy, Sparkles, Link2, RefreshCw
 } from 'lucide-react';
 
 import BrandLogo from '@/components/BrandLogo';
@@ -13,11 +13,23 @@ import BrandLogo from '@/components/BrandLogo';
 interface DashboardNavProps {
   userName?: string;
   onLogout: () => void;
+  onRefresh?: () => void;
 }
 
-export default function DashboardNav({ userName, onLogout }: DashboardNavProps) {
+export default function DashboardNav({ userName, onLogout, onRefresh }: DashboardNavProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const pathname = usePathname();
+
+  const handleRefreshClick = () => {
+    setIsRefreshing(true);
+    if (onRefresh) {
+      onRefresh();
+    } else if (typeof window !== 'undefined') {
+      window.location.reload();
+    }
+    setTimeout(() => setIsRefreshing(false), 1200);
+  };
 
   const navItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -41,8 +53,19 @@ export default function DashboardNav({ userName, onLogout }: DashboardNavProps) 
             {/* Logo */}
             <BrandLogo />
 
-            {/* Desktop User Info & Logout */}
-            <div className="hidden md:flex items-center space-x-5">
+            {/* Desktop User Info, Refresh & Logout */}
+            <div className="hidden md:flex items-center space-x-3.5">
+              <button
+                type="button"
+                onClick={handleRefreshClick}
+                disabled={isRefreshing}
+                className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold text-primary-700 bg-primary-50 hover:bg-primary-100 border border-primary-200/80 rounded-lg transition shadow-sm cursor-pointer disabled:opacity-50"
+                title="Atualizar dados do servidor"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 text-primary-600 ${isRefreshing ? 'animate-spin' : ''}`} />
+                <span>{isRefreshing ? 'A atualizar...' : 'Atualizar Dados'}</span>
+              </button>
+
               {userName && (
                 <div className="flex items-center space-x-2 text-sm text-gray-700 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200/60">
                   <User className="h-4 w-4 text-primary-600" />
