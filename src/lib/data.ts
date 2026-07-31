@@ -369,7 +369,9 @@ export const dataManager = {
     const data = localStorage.getItem(SITES_KEY);
     const sites: Site[] = data ? JSON.parse(data) : [];
     if (userEmail) {
-      return sites.filter(s => !s.userEmail || s.userEmail.toLowerCase() === userEmail.toLowerCase());
+      const cleanEmail = userEmail.trim().toLowerCase();
+      // ISOLAMENTO ESTRITO: Apenas sites pertencentes ao e-mail deste cliente
+      return sites.filter(s => s.userEmail && s.userEmail.trim().toLowerCase() === cleanEmail);
     }
     return sites;
   },
@@ -425,8 +427,9 @@ export const dataManager = {
           }
 
           if (currentUserEmail) {
-            const cleanUserEmail = currentUserEmail.toLowerCase();
-            return updatedSites.filter(s => !s.userEmail || s.userEmail.toLowerCase() === cleanUserEmail);
+            const cleanUserEmail = currentUserEmail.trim().toLowerCase();
+            // ISOLAMENTO ESTRITO: Retorna apenas sites pertencentes a este cliente
+            return updatedSites.filter(s => s.userEmail && s.userEmail.trim().toLowerCase() === cleanUserEmail);
           }
           return updatedSites;
         }
