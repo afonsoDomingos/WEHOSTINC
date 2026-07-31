@@ -157,33 +157,43 @@ export default function BillingPage() {
 
           {/* Main Content */}
           <div className="lg:col-span-3 space-y-6">
-            {/* Current Plan */}
+            {/* Serviços & Assinaturas Contratadas */}
             <div className="bg-gradient-to-r from-primary-600 to-primary-700 rounded-xl shadow-lg p-4 sm:p-8 text-white">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 gap-2">
                 <div>
-                  <h2 className="text-xl sm:text-2xl font-bold mb-1">Plano Atual</h2>
-                  <p className="text-blue-100 text-sm">Gerencie sua assinatura</p>
+                  <h2 className="text-xl sm:text-2xl font-bold mb-1">
+                    {userOrders.filter(o => o.status === 'completed' || o.status === 'in_progress').length > 0
+                      ? 'Serviços & Assinaturas Contratadas'
+                      : 'Sem Assinatura Ativa'}
+                  </h2>
+                  <p className="text-blue-100 text-sm">
+                    {userOrders.filter(o => o.status === 'completed' || o.status === 'in_progress').length > 0
+                      ? 'Consulte os serviços e produtos ativos na sua conta'
+                      : 'Adquira um plano de hospedagem ou solicite a criação de um website'}
+                  </p>
                 </div>
                 <div className="sm:text-right">
-                  <p className="text-3xl sm:text-4xl font-bold">{currentPlan?.price ? currentPlan.price.toLocaleString('pt-MZ') : '0'} MT</p>
-                  <p className="text-blue-100 text-sm">/mês</p>
+                  <p className="text-3xl sm:text-4xl font-bold">
+                    {userOrders.filter(o => o.status === 'completed' || o.status === 'in_progress').reduce((acc, o) => acc + o.amount, 0).toLocaleString('pt-MZ')} MT
+                  </p>
+                  <p className="text-blue-100 text-sm">Total Contratado</p>
                 </div>
               </div>
               <div className="grid md:grid-cols-3 gap-4">
                 <div className="bg-white/10 rounded-lg p-4">
-                  <Globe className="h-6 w-6 mb-2" />
-                  <p className="font-semibold">{currentPlan?.features.sites === -1 ? 'Ilimitados' : currentPlan?.features.sites}</p>
-                  <p className="text-sm text-blue-100">Sites</p>
+                  <Globe className="h-6 w-6 mb-2 text-emerald-300" />
+                  <p className="font-semibold text-lg">{dataManager.getSites(user.email).length} Domínio(s)</p>
+                  <p className="text-sm text-blue-100">Sites Registados</p>
                 </div>
                 <div className="bg-white/10 rounded-lg p-4">
-                  <Mail className="h-6 w-6 mb-2" />
-                  <p className="font-semibold">{currentPlan?.features.emails === -1 ? 'Ilimitados' : currentPlan?.features.emails}</p>
-                  <p className="text-sm text-blue-100">Emails</p>
+                  <Mail className="h-6 w-6 mb-2 text-blue-300" />
+                  <p className="font-semibold text-lg">{dataManager.getEmails(user.email).length} Caixa(s)</p>
+                  <p className="text-sm text-blue-100">E-mails Corporativos</p>
                 </div>
                 <div className="bg-white/10 rounded-lg p-4">
-                  <Database className="h-6 w-6 mb-2" />
-                  <p className="font-semibold">{currentPlan?.features.storage} GB</p>
-                  <p className="text-sm text-blue-100">Armazenamento</p>
+                  <CreditCard className="h-6 w-6 mb-2 text-purple-300" />
+                  <p className="font-semibold text-lg">{userOrders.filter(o => o.status === 'completed').length} Pago(s)</p>
+                  <p className="text-sm text-blue-100">Faturas Liquidadas</p>
                 </div>
               </div>
             </div>

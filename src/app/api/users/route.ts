@@ -123,7 +123,7 @@ export async function POST(req: Request) {
       name: body.name,
       email: body.email,
       password: body.password || '@Admin123@',
-      plan: body.plan || 'basic',
+      plan: body.plan || 'none',
       status: body.status || 'pending',
       dueDate: body.dueDate || 29,
       role: body.role || 'user',

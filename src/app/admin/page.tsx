@@ -999,7 +999,7 @@ export default function AdminPage() {
                   <tr className="border-b border-gray-200 bg-gray-50/50">
                     <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Nome</th>
                     <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Email</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Plano</th>
+                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Serviços Contratados</th>
                     <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Vencimento</th>
                     <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Status</th>
                     <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Cadastro</th>
@@ -1007,7 +1007,11 @@ export default function AdminPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {filteredUsers.map((user) => (
+                  {filteredUsers.map((user) => {
+                    const userClientOrders = orders.filter(o => o.clientEmail.toLowerCase() === user.email.toLowerCase() || o.clientName.toLowerCase() === user.name.toLowerCase());
+                    const userClientSites = sites.filter(s => (s.userEmail || '').toLowerCase() === user.email.toLowerCase());
+
+                    return (
                     <tr key={user.id} className="hover:bg-gray-50/80 transition">
                       <td className="py-3.5 px-4">
                         <span className="font-semibold text-gray-900">{user.name}</span>
@@ -1016,45 +1020,27 @@ export default function AdminPage() {
                       <td className="py-3.5 px-4">
                         {user.role === 'admin' || user.email.toLowerCase() === 'admin@wehosthere.com' ? (
                           <span className="inline-block px-2.5 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-700 border border-purple-200">
-                            👑 Administrador
+                            👑 Conta de Sistema
                           </span>
                         ) : (
-                          <>
-                            <select
-                              value={pendingPlanChanges[user.id] ?? user.plan}
-                              onChange={(e) => {
-                                const newVal = e.target.value as 'basic' | 'pro' | 'enterprise';
-                                if (newVal === user.plan) {
-                                  // Voltou ao original — remove alteração pendente
-                                  setPendingPlanChanges(prev => {
-                                    const next = { ...prev };
-                                    delete next[user.id];
-                                    return next;
-                                  });
-                                } else {
-                                  setPendingPlanChanges(prev => ({ ...prev, [user.id]: newVal }));
-                                }
-                              }}
-                              className={`px-2.5 py-1 rounded-lg text-xs font-bold outline-none border cursor-pointer ${
-                                (pendingPlanChanges[user.id] ?? user.plan) === 'basic' ? 'bg-gray-100 text-gray-800 border-gray-300' :
-                                (pendingPlanChanges[user.id] ?? user.plan) === 'pro' ? 'bg-blue-50 text-blue-800 border-blue-300' :
-                                'bg-purple-50 text-purple-800 border-purple-300'
-                              }`}
-                            >
-                              <option value="basic">Básico (550 MT/mês)</option>
-                              <option value="pro">Profissional (2.500 MT/mês)</option>
-                              <option value="enterprise">Empresarial (6.200 MT/mês)</option>
-                            </select>
-                            {pendingPlanChanges[user.id] && (
-                              <button
-                                type="button"
-                                onClick={() => handleSavePlanChange(user.id, user.name, user.email)}
-                                className="mt-1 w-full px-2 py-0.5 bg-primary-600 hover:bg-primary-700 text-white text-[10px] font-extrabold rounded-md transition cursor-pointer"
-                              >
-                                💾 Guardar
-                              </button>
+                          <div>
+                            {userClientOrders.length > 0 || userClientSites.length > 0 ? (
+                              <div className="space-y-1">
+                                {userClientOrders.slice(0, 2).map((ord) => (
+                                  <span key={ord.id} className="inline-block px-2 py-0.5 rounded text-[11px] font-bold bg-blue-50 text-blue-800 border border-blue-200 mr-1">
+                                    📦 {ord.serviceName} ({ord.amount.toLocaleString('pt-MZ')} MT)
+                                  </span>
+                                ))}
+                                {userClientOrders.length > 2 && (
+                                  <span className="text-[10px] text-gray-500 font-bold block">+ {userClientOrders.length - 2} outro(s) serviço(s)</span>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="inline-block px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 border border-gray-200">
+                                Sem Serviço Contratado
+                              </span>
                             )}
-                          </>
+                          </div>
                         )}
                       </td>
                       <td className="py-3.5 px-4 text-gray-600 text-sm font-medium">
@@ -1131,7 +1117,8 @@ export default function AdminPage() {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
