@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { 
   Mail, Inbox, Send, Star, Trash2, Edit3, Search, RefreshCw, 
   ArrowLeft, CheckCircle2, ShieldCheck, User, Paperclip, Reply, Forward,
-  FileText, LogOut, ChevronRight, X, AlertCircle, Sparkles
+  FileText, LogOut, ChevronRight, X, AlertCircle, Sparkles, Clock
 } from 'lucide-react';
 import { auth, User as AuthUser } from '@/lib/auth';
 import { dataManager, EmailAccount } from '@/lib/data';
@@ -222,6 +222,9 @@ function WebmailContent() {
     return matchesFolder && matchesSearch;
   });
 
+  const currentAccountObj = accounts.find(a => a.email.toLowerCase() === selectedAccountEmail.toLowerCase());
+  const isAccountPending = currentAccountObj ? (currentAccountObj.status === 'pending' || !currentAccountObj.status) : false;
+
   const unreadInboxCount = messages.filter(m => m.folder === 'inbox' && !m.isRead).length;
 
   return (
@@ -248,11 +251,14 @@ function WebmailContent() {
                 onChange={(e) => setSelectedAccountEmail(e.target.value)}
                 className="bg-transparent text-xs font-bold text-gray-700 outline-none cursor-pointer truncate w-full"
               >
-                {accounts.map(acc => (
-                  <option key={acc.id} value={acc.email} className="bg-white text-gray-900">
-                    {acc.email}
-                  </option>
-                ))}
+                {accounts.map(acc => {
+                  const pending = acc.status === 'pending' || !acc.status;
+                  return (
+                    <option key={acc.id} value={acc.email} className="bg-white text-gray-900">
+                      {acc.email} {pending ? '⏳ (Em Processamento)' : '✓ (Ativo)'}
+                    </option>
+                  );
+                })}
               </select>
             </div>
           ) : (
@@ -279,6 +285,21 @@ function WebmailContent() {
           </button>
         </div>
       </header>
+
+      {/* Banner Informativo de Aprovação Pendente (Se a conta estiver a processar) */}
+      {isAccountPending && (
+        <div className="bg-amber-50 border-b border-amber-200 px-3.5 sm:px-4 py-2.5 text-amber-950 flex flex-wrap items-center justify-between gap-2 text-xs shadow-2xs animate-in fade-in duration-200">
+          <div className="flex items-center space-x-2.5">
+            <Clock className="h-4 w-4 text-amber-600 animate-pulse shrink-0" />
+            <span>
+              A conta <strong className="font-mono text-amber-900">{selectedAccountEmail}</strong> está <strong>em processamento de ativação</strong> pelo administrador (Prazo estimado de aprovação: <strong>em até 24 horas</strong>).
+            </span>
+          </div>
+          <span className="text-[11px] font-extrabold bg-amber-200/80 text-amber-900 px-2.5 py-0.5 rounded-full border border-amber-300 shrink-0">
+            ⏳ Aguardando Validação
+          </span>
+        </div>
+      )}
 
       {/* Mobile Folder Selector Tabs (Visível em Telas Pequenas) */}
       <div className="md:hidden bg-white border-b border-gray-200 px-2 py-2 flex items-center space-x-1 overflow-x-auto text-xs shrink-0">
@@ -562,6 +583,16 @@ function WebmailContent() {
                 </div>
               </div>
             </div>
+          ) : isAccountPending ? (
+            <div className="flex-1 flex flex-col items-center justify-center text-center p-8 text-amber-950">
+              <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mb-4 border border-amber-200 shadow-2xs">
+                <Clock className="h-8 w-8 text-amber-600 animate-pulse" />
+              </div>
+              <h3 className="font-extrabold text-gray-900 text-lg mb-1">Conta de E-mail em Ativação (Aguarde Aprovação)</h3>
+              <p className="text-xs sm:text-sm text-gray-600 max-w-md leading-relaxed">
+                O provisionamento do endereço <strong className="font-mono text-primary-700">{selectedAccountEmail}</strong> está em andamento. O envio, receção e ferramentas completas do Webmail estarão disponíveis assim que o administrador validar a solicitação (prazo estipulado: <strong>em até 24 horas</strong>).
+              </p>
+            </div>
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center text-center p-8 text-gray-400">
               <Mail className="h-16 w-16 mb-3 text-gray-300 opacity-60" />
@@ -576,19 +607,42 @@ function WebmailContent() {
       {showCompose && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-3xl shadow-2xl p-6 max-w-xl w-full border border-gray-100 animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between pb-3 border-b border-gray-100 mb-4">
-              <div className="flex items-center space-x-2">
-                <Edit3 className="h-5 w-5 text-primary-600" />
-                <h2 className="text-lg font-extrabold text-gray-900">Novo E-mail</h2>
+            {isAccountPending ? (
+              <div className="text-center py-6 space-y-4">
+                <div className="w-14 h-14 bg-amber-100 rounded-full flex items-center justify-center mx-auto text-amber-600 border border-amber-200 shadow-2xs">
+                  <Clock className="h-7 w-7 animate-pulse" />
+                </div>
+                <h3 className="text-lg font-extrabold text-gray-900">Aprovação em Processamento</h3>
+                <p className="text-xs sm:text-sm text-gray-600 leading-relaxed max-w-md mx-auto">
+                  A conta <strong className="font-mono text-primary-700">{selectedAccountEmail}</strong> foi criada e está a ser provisionada nos servidores pela equipa técnica/administrador.
+                  <br /><br />
+                  <strong>Aviso de Envio:</strong> Poderá escrever e enviar e-mails normalmente assim que a conta for aprovada pelo administrador (o processo é concluído em <strong>até 24 horas</strong>).
+                </p>
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowCompose(false)}
+                    className="w-full sm:w-auto px-8 py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl shadow-md transition cursor-pointer"
+                  >
+                    Entendido, Vou Aguardar a Ativação (24h)
+                  </button>
+                </div>
               </div>
-              <button
-                type="button"
-                onClick={() => setShowCompose(false)}
-                className="p-1 text-gray-400 hover:text-gray-700 rounded-lg cursor-pointer"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between pb-3 border-b border-gray-100 mb-4">
+                  <div className="flex items-center space-x-2">
+                    <Edit3 className="h-5 w-5 text-primary-600" />
+                    <h2 className="text-lg font-extrabold text-gray-900">Novo E-mail</h2>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowCompose(false)}
+                    className="p-1 text-gray-400 hover:text-gray-700 rounded-lg cursor-pointer"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
 
             {sentSuccessMsg ? (
               <div className="py-8 text-center space-y-3">
@@ -669,10 +723,12 @@ function WebmailContent() {
                 </div>
               </form>
             )}
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </div>
     </div>
+  )}
+</div>
   );
 }
 
