@@ -56,6 +56,7 @@ export default function AdminPage() {
   const [sites, setSites] = useState<any[]>([]);
   const [emails, setEmails] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isSyncingData, setIsSyncingData] = useState(true);
 
   // Search and Filter State
   const [searchTerm, setSearchTerm] = useState('');
@@ -175,24 +176,14 @@ export default function AdminPage() {
     setLoading(false);
 
     // Buscar dados atualizados do servidor via API
-    auth.fetchUsersAsync().then((fetched) => {
-      if (fetched && fetched.length > 0) setUsers(fetched);
-    });
-
-    dataManager.fetchOrdersAsync().then((fetched) => {
-      if (fetched && fetched.length > 0) setOrders(fetched);
-    });
-
-    dataManager.fetchSitesAsync().then((fetched) => {
-      if (fetched && fetched.length > 0) setSites(fetched);
-    });
-
-    dataManager.fetchEmailsAsync().then((fetched) => {
-      if (fetched && fetched.length > 0) setEmails(fetched);
-    });
-
-    dataManager.fetchTicketsAsync().then((fetched) => {
-      if (fetched && fetched.length > 0) setTickets(fetched);
+    Promise.all([
+      auth.fetchUsersAsync().then(u => { if (u) setUsers(u); }),
+      dataManager.fetchOrdersAsync().then(o => { if (o) setOrders(o); }),
+      dataManager.fetchSitesAsync().then(s => { if (s) setSites(s); }),
+      dataManager.fetchEmailsAsync().then(e => { if (e) setEmails(e); }),
+      dataManager.fetchTicketsAsync().then(t => { if (t) setTickets(t); })
+    ]).finally(() => {
+      setIsSyncingData(false);
     });
 
     // Polling a cada 5s para sincronizar usuários, pedidos, sites, e-mails, tickets e pesquisas em tempo real
@@ -533,7 +524,14 @@ export default function AdminPage() {
               <Users className="h-8 w-8 text-primary-600" />
               <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">Total</span>
             </div>
-            <p className="text-3xl font-bold text-gray-900">{users.length}</p>
+            {isSyncingData ? (
+              <div className="flex items-center space-x-2 text-primary-600 my-1 font-semibold">
+                <Loader2 className="h-6 w-6 animate-spin" />
+                <span className="text-sm text-gray-500">A processar...</span>
+              </div>
+            ) : (
+              <p className="text-3xl font-bold text-gray-900">{users.length}</p>
+            )}
             <p className="text-gray-500 text-sm mt-1">Usuários cadastrados</p>
           </div>
 
@@ -542,7 +540,14 @@ export default function AdminPage() {
               <Server className="h-8 w-8 text-primary-600" />
               <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">Total</span>
             </div>
-            <p className="text-3xl font-bold text-gray-900">{sites.length}</p>
+            {isSyncingData ? (
+              <div className="flex items-center space-x-2 text-primary-600 my-1 font-semibold">
+                <Loader2 className="h-6 w-6 animate-spin" />
+                <span className="text-sm text-gray-500">A processar...</span>
+              </div>
+            ) : (
+              <p className="text-3xl font-bold text-gray-900">{sites.length}</p>
+            )}
             <p className="text-gray-500 text-sm mt-1">Sites ativos</p>
           </div>
 
@@ -551,7 +556,14 @@ export default function AdminPage() {
               <DollarSign className="h-8 w-8 text-emerald-600" />
               <span className="text-xs font-semibold uppercase tracking-wider text-emerald-700">Faturamento</span>
             </div>
-            <p className="text-3xl font-bold text-emerald-600">{totalRevenue.toLocaleString('pt-MZ')} MT</p>
+            {isSyncingData ? (
+              <div className="flex items-center space-x-2 text-emerald-600 my-1 font-semibold">
+                <Loader2 className="h-6 w-6 animate-spin" />
+                <span className="text-sm text-gray-500">A processar...</span>
+              </div>
+            ) : (
+              <p className="text-3xl font-bold text-emerald-600">{totalRevenue.toLocaleString('pt-MZ')} MT</p>
+            )}
             <p className="text-gray-500 text-sm mt-1">Receita total acumulada</p>
           </div>
 
@@ -560,7 +572,14 @@ export default function AdminPage() {
               <TrendingUp className="h-8 w-8 text-purple-600" />
               <span className="text-xs font-semibold uppercase tracking-wider text-purple-700">MRR Mensal</span>
             </div>
-            <p className="text-3xl font-bold text-purple-700">{mrr.toLocaleString('pt-MZ')} MT</p>
+            {isSyncingData ? (
+              <div className="flex items-center space-x-2 text-purple-600 my-1 font-semibold">
+                <Loader2 className="h-6 w-6 animate-spin" />
+                <span className="text-sm text-gray-500">A processar...</span>
+              </div>
+            ) : (
+              <p className="text-3xl font-bold text-purple-700">{mrr.toLocaleString('pt-MZ')} MT</p>
+            )}
             <p className="text-gray-500 text-sm mt-1">Receita recorrente garantida</p>
           </div>
         </div>

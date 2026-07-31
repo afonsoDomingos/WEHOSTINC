@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
   Server, Mail, LayoutDashboard, Settings, LogOut, 
-  Plus, Globe, Database, TrendingUp, Users, CheckCircle, Sparkles, ArrowRight, Link2
+  Plus, Globe, Database, TrendingUp, Users, CheckCircle, Sparkles, ArrowRight, Link2, Loader2
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 import { dataManager } from '@/lib/data';
@@ -17,6 +17,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isSyncingCounts, setIsSyncingCounts] = useState(true);
   const [siteCount, setSiteCount] = useState(0);
   const [emailCount, setEmailCount] = useState(0);
   const [storageUsed, setStorageUsed] = useState(0);
@@ -33,7 +34,7 @@ export default function DashboardPage() {
       return;
     }
     setUser(currentUser);
-    // Carregar contadores reais - filtrados pelo utilizador
+    // Carregar contadores iniciais
     const userEmail = currentUser.email;
     const sites = dataManager.getSites(userEmail);
     const emails = dataManager.getEmails(userEmail);
@@ -42,10 +43,24 @@ export default function DashboardPage() {
     const usedStorage = sites.reduce((sum, s) => sum + (s.storage || 0), 0)
       + emails.reduce((sum, e) => sum + (e.storage || 0), 0);
     setStorageUsed(usedStorage);
-    // limite de armazenamento consoante plano
     const planLimits: Record<string, number> = { basic: 10, pro: 50, enterprise: 200 };
     setStorageTotal(planLimits[currentUser.plan] || 10);
     setLoading(false);
+
+    // Sincronizar assincronamente os contadores via API MongoDB
+    Promise.all([
+      dataManager.fetchSitesAsync(userEmail),
+      dataManager.fetchEmailsAsync(userEmail)
+    ]).then(([fetchedSites, fetchedEmails]) => {
+      setSiteCount(fetchedSites.length);
+      setEmailCount(fetchedEmails.length);
+      const used = fetchedSites.reduce((sum, s) => sum + (s.storage || 0), 0)
+        + fetchedEmails.reduce((sum, e) => sum + (e.storage || 0), 0);
+      setStorageUsed(used);
+      setIsSyncingCounts(false);
+    }).catch(() => {
+      setIsSyncingCounts(false);
+    });
   }, [router]);
 
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -197,10 +212,19 @@ export default function DashboardPage() {
                   <Globe className="h-8 w-8 text-primary-600 group-hover:scale-110 transition-transform" />
                   <span className="text-sm text-gray-500">Sites</span>
                 </div>
-                <p className="text-3xl font-bold text-gray-900">{siteCount}</p>
-                <p className="text-sm text-gray-600 mt-1">
-                  {siteCount === 0 ? 'Nenhum site configurado' : `${siteCount} site${siteCount > 1 ? 's' : ''} activo${siteCount > 1 ? 's' : ''}`}
-                </p>
+                {isSyncingCounts ? (
+                  <div className="flex items-center space-x-2 text-primary-600 my-1 font-semibold">
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                    <span className="text-sm text-gray-600">A processar...</span>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-3xl font-bold text-gray-900">{siteCount}</p>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {siteCount === 0 ? 'Nenhum site configurado' : `${siteCount} site${siteCount > 1 ? 's' : ''} activo${siteCount > 1 ? 's' : ''}`}
+                    </p>
+                  </>
+                )}
               </Link>
 
               <Link href="/dashboard/email" className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition cursor-pointer group">
@@ -208,10 +232,19 @@ export default function DashboardPage() {
                   <Mail className="h-8 w-8 text-primary-600 group-hover:scale-110 transition-transform" />
                   <span className="text-sm text-gray-500">Emails</span>
                 </div>
-                <p className="text-3xl font-bold text-gray-900">{emailCount}</p>
-                <p className="text-sm text-gray-600 mt-1">
-                  {emailCount === 0 ? 'Nenhuma conta configurada' : `${emailCount} conta${emailCount > 1 ? 's' : ''} activa${emailCount > 1 ? 's' : ''}`}
-                </p>
+                {isSyncingCounts ? (
+                  <div className="flex items-center space-x-2 text-primary-600 my-1 font-semibold">
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                    <span className="text-sm text-gray-600">A processar...</span>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-3xl font-bold text-gray-900">{emailCount}</p>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {emailCount === 0 ? 'Nenhuma conta configurada' : `${emailCount} conta${emailCount > 1 ? 's' : ''} activa${emailCount > 1 ? 's' : ''}`}
+                    </p>
+                  </>
+                )}
               </Link>
 
               <Link href="/dashboard/domains" className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition cursor-pointer group">
@@ -219,8 +252,17 @@ export default function DashboardPage() {
                   <Database className="h-8 w-8 text-primary-600 group-hover:scale-110 transition-transform" />
                   <span className="text-sm text-gray-500">Armazenamento</span>
                 </div>
-                <p className="text-3xl font-bold text-gray-900">{storageUsed} GB</p>
-                <p className="text-sm text-gray-600 mt-1">de {storageTotal} GB utilizados</p>
+                {isSyncingCounts ? (
+                  <div className="flex items-center space-x-2 text-primary-600 my-1 font-semibold">
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                    <span className="text-sm text-gray-600">A processar...</span>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-3xl font-bold text-gray-900">{storageUsed} GB</p>
+                    <p className="text-sm text-gray-600 mt-1">de {storageTotal} GB utilizados</p>
+                  </>
+                )}
               </Link>
             </div>
 
