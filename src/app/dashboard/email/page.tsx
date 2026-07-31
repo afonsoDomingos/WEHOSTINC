@@ -722,9 +722,10 @@ export default function EmailPage() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold text-sm rounded-2xl transition cursor-pointer shadow-md"
+                  disabled={userDomains.length === 0}
+                  className="flex-1 py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold text-sm rounded-2xl transition cursor-pointer shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Criar Conta
+                  Criar Conta de E-mail
                 </button>
               </div>
             </form>
