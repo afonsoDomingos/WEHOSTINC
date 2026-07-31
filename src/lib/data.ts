@@ -327,6 +327,15 @@ export const websiteTypes: WebsiteType[] = [
 ];
 
 // Simulação de armazenamento em localStorage
+export interface SecurityLog {
+  id: string;
+  email: string;
+  type: 'failed_login' | 'account_locked' | 'suspended_attempt';
+  message: string;
+  createdAt: string;
+}
+
+const SECURITY_LOGS_KEY = 'wehosthere_security_logs';
 const SITES_KEY = 'wehosthere_sites';
 const EMAILS_KEY = 'wehosthere_emails';
 
@@ -943,6 +952,35 @@ export const dataManager = {
         body: JSON.stringify({ action: 'update_status', ticketId, status, priority })
       }).catch(err => console.error('Erro de sync de status de ticket:', err));
     }
+  },
+
+  // Security Audit Logs
+  getSecurityLogs: (): SecurityLog[] => {
+    if (typeof window === 'undefined') return [];
+    const data = localStorage.getItem(SECURITY_LOGS_KEY);
+    return data ? JSON.parse(data) : [];
+  },
+
+  addSecurityLog: (email: string, type: 'failed_login' | 'account_locked' | 'suspended_attempt', message: string): SecurityLog => {
+    const logs = dataManager.getSecurityLogs();
+    const newLog: SecurityLog = {
+      id: Date.now().toString(),
+      email: email.trim().toLowerCase(),
+      type,
+      message,
+      createdAt: new Date().toISOString()
+    };
+    const updated = [newLog, ...logs].slice(0, 50);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(SECURITY_LOGS_KEY, JSON.stringify(updated));
+
+      fetch('/api/security/logs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ log: newLog })
+      }).catch(() => {});
+    }
+    return newLog;
   }
 };
 

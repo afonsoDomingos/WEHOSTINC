@@ -8,10 +8,10 @@ import {
   Users, Server, Mail, Database, TrendingUp, DollarSign,
   LogOut, Settings, Home, CheckCircle, Clock, XCircle, Search,
   ShoppingBag, MessageSquare, ExternalLink, Trash2, LifeBuoy, Send, ShieldCheck, CheckCircle2, AlertCircle,
-  Paperclip, FileText, Image as ImageIcon, Download, File, X, Loader2, Tag
+  Paperclip, FileText, Image as ImageIcon, Download, File, X, Loader2, Tag, Shield, AlertTriangle
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
-import { dataManager, ServiceOrder, SupportTicket, TicketMessage, TicketAttachment } from '@/lib/data';
+import { dataManager, ServiceOrder, SupportTicket, TicketMessage, TicketAttachment, SecurityLog } from '@/lib/data';
 import BrandLogo from '@/components/BrandLogo';
 import PageLoader from '@/components/PageLoader';
 import ConfirmModal from '@/components/ConfirmModal';
@@ -72,6 +72,7 @@ export default function AdminPage() {
   const [createError, setCreateError] = useState('');
 
   const [orders, setOrders] = useState<ServiceOrder[]>([]);
+  const [securityLogs, setSecurityLogs] = useState<SecurityLog[]>([]);
   const [domainLogs, setDomainLogs] = useState<Array<{ id: string; domain: string; extension: string; isAvailable: boolean; timestamp: string; searchCount?: number }>>([]);
   // Planos pendentes de guardar (chave: userId, valor: novo plano)
   const [pendingPlanChanges, setPendingPlanChanges] = useState<Record<string, 'basic' | 'pro' | 'enterprise'>>({});
@@ -160,6 +161,7 @@ export default function AdminPage() {
     setEmails(dataManager.getEmails());
     setOrders(dataManager.getOrders());
     setTickets(dataManager.getTickets());
+    setSecurityLogs(dataManager.getSecurityLogs());
     fetchDomainLogs();
     setLoading(false);
 
@@ -205,6 +207,7 @@ export default function AdminPage() {
         }
       });
       fetchDomainLogs();
+      setSecurityLogs(dataManager.getSecurityLogs());
     }, 5000);
 
     return () => clearInterval(interval);
@@ -576,6 +579,71 @@ export default function AdminPage() {
               <span className="text-[11px] font-semibold text-orange-700 mt-1 block">{Math.round(((emolaRevenue + cardRevenue) / validOrdersTotal) * 100)}% do volume de vendas</span>
             </div>
           </div>
+        </div>
+
+        {/* Módulo de Alertas Críticos & Auditoria de Segurança */}
+        <div className="bg-white border border-red-200 rounded-xl p-6 shadow-sm mb-8">
+          <div className="flex justify-between items-center mb-4">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900 flex items-center space-x-2">
+                <Shield className="h-6 w-6 text-red-600" />
+                <span>Central de Alertas Críticos & Auditoria de Segurança</span>
+              </h2>
+              <p className="text-gray-500 text-sm mt-0.5">Registo em tempo real de tentativas maliciosas de login, bloqueios por força bruta e alertas da plataforma</p>
+            </div>
+            <span className="bg-red-100 text-red-800 text-xs font-extrabold px-3 py-1.5 rounded-full border border-red-300 flex items-center space-x-1.5">
+              <AlertTriangle className="h-3.5 w-3.5 text-red-600" />
+              <span>{securityLogs.filter(l => l.type === 'account_locked').length} Bloqueios Críticos</span>
+            </span>
+          </div>
+
+          {securityLogs.length === 0 ? (
+            <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center space-x-2">
+              <CheckCircle className="h-4 w-4 text-emerald-600" />
+              <span>Nenhum alerta crítico de invasão ou tentativa incorreta de login detetado recentemente. O sistema está seguro.</span>
+            </div>
+          ) : (
+            <div className="overflow-x-auto max-h-64 overflow-y-auto border border-gray-100 rounded-lg">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-gray-50 text-gray-500 font-bold uppercase border-b border-gray-200">
+                  <tr>
+                    <th className="py-2.5 px-3">E-mail Alvo</th>
+                    <th className="py-2.5 px-3">Evento / Tipo</th>
+                    <th className="py-2.5 px-3">Descrição do Alerta</th>
+                    <th className="py-2.5 px-3 text-right">Data & Hora</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {securityLogs.slice(0, 15).map((log) => (
+                    <tr key={log.id} className="hover:bg-red-50/40 transition">
+                      <td className="py-2.5 px-3 font-mono font-bold text-gray-900">{log.email}</td>
+                      <td className="py-2.5 px-3">
+                        {log.type === 'account_locked' && (
+                          <span className="bg-red-600 text-white font-extrabold px-2 py-0.5 rounded text-[10px] tracking-wide uppercase">
+                            🔒 Conta Bloqueada (15m)
+                          </span>
+                        )}
+                        {log.type === 'failed_login' && (
+                          <span className="bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded text-[10px]">
+                            ⚠️ Senha Incorreta
+                          </span>
+                        )}
+                        {log.type === 'suspended_attempt' && (
+                          <span className="bg-purple-100 text-purple-800 font-bold px-2 py-0.5 rounded text-[10px]">
+                            ⛔ Tentativa Conta Suspensa
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-2.5 px-3 text-gray-700">{log.message}</td>
+                      <td className="py-2.5 px-3 text-right text-gray-500 font-mono">
+                        {new Date(log.createdAt).toLocaleString('pt-MZ')}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
         {/* Users Table */}

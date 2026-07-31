@@ -1,3 +1,5 @@
+import { dataManager } from './data';
+
 export interface User {
   id: string;
   name: string;
@@ -78,8 +80,14 @@ const recordFailedAttempt = (email: string) => {
   if (count >= MAX_LOGIN_ATTEMPTS) {
     const lockUntil = Date.now() + LOCK_TIME_MS;
     localStorage.setItem(key, JSON.stringify({ count, lockUntil }));
+    try {
+      dataManager.addSecurityLog(email, 'account_locked', 'Muitas tentativas incorretas de login. Conta bloqueada temporariamente por 15 minutos.');
+    } catch {}
   } else {
     localStorage.setItem(key, JSON.stringify({ count }));
+    try {
+      dataManager.addSecurityLog(email, 'failed_login', `Tentativa de login incorreta (${count}/${MAX_LOGIN_ATTEMPTS}).`);
+    } catch {}
   }
 };
 
