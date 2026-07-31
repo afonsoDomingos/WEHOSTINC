@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from "next/link";
 import { Server, Mail, Shield, Zap, Globe, Users, Search, Sparkles, CheckCircle } from "lucide-react";
 import { websiteTypes } from '@/lib/data';
+import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 
 import Navbar from '@/components/Navbar';
 
@@ -27,6 +28,12 @@ export default function Home() {
     }, 2500);
     return () => clearInterval(interval);
   }, [tickerTypes.length]);
+
+  // Refs de animação de scroll do Hero (callback refs)
+  const badgeRef = useScrollAnimation<HTMLDivElement>();
+  const titleRef = useScrollAnimation<HTMLHeadingElement>();
+  const subtitleRef = useScrollAnimation<HTMLParagraphElement>();
+  const searchRef = useScrollAnimation<HTMLDivElement>();
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       {/* Navbar Responsivo */}
@@ -43,21 +50,37 @@ export default function Home() {
 
         {/* Conteúdo que cresce para baixo — o fundo não mexe */}
         <div className="relative z-10 w-full max-w-7xl mx-auto text-center pt-24 pb-10">
-          {/* Badge Datacenter */}
-          <div className="inline-flex items-center space-x-2 bg-primary-600/30 border border-primary-400/50 text-primary-200 px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold mb-6 backdrop-blur-md shadow-lg">
+
+          {/* Badge — entra vindo de cima */}
+          <div
+            ref={badgeRef}
+            className="anim-fade-down inline-flex items-center space-x-2 bg-primary-600/30 border border-primary-400/50 text-primary-200 px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold mb-6 backdrop-blur-md shadow-lg"
+          >
             <Sparkles className="h-4 w-4 text-primary-300" />
             <span>Infraestrutura Datacenter de Última Geração</span>
           </div>
 
-          <h1 className="text-4xl sm:text-6xl font-extrabold text-white mb-4 tracking-tight leading-tight drop-shadow-lg">
-            Domínio, Hospedagem, Email <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 via-blue-300 to-indigo-400">e Site</span>
+          {/* Título principal — efeito typewriter + shimmer, com delay */}
+          <h1
+            ref={titleRef}
+            className="anim-typewriter anim-delay-200 text-4xl sm:text-6xl font-extrabold text-white mb-4 tracking-tight leading-tight drop-shadow-lg"
+          >
+            Domínio, Hospedagem, Email{' '}
+            <span className="hero-title-shimmer">e Site</span>
           </h1>
-          <p className="text-base sm:text-xl text-slate-200 mb-8 max-w-2xl mx-auto font-semibold drop-shadow">
+
+          {/* Subtítulo — sobe do baixo */}
+          <p
+            ref={subtitleRef}
+            className="anim-fade-up anim-delay-300 text-base sm:text-xl text-slate-200 mb-8 max-w-2xl mx-auto font-semibold drop-shadow"
+          >
             Tudo o que a sua empresa precisa para ter uma presença online de alta performance em Moçambique com servidores ultrarrápidos e seguros.
           </p>
 
-          {/* Domain Search — expande para baixo sem mover o fundo */}
-          <DomainSearch />
+          {/* Domain Search — entra com zoom ligeiro */}
+          <div ref={searchRef} className="anim-zoom-in anim-delay-400">
+            <DomainSearch />
+          </div>
         </div>
       </section>
 
