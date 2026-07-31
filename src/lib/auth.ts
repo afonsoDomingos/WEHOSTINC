@@ -299,7 +299,7 @@ export const auth = {
 
           const serverKeySet = new Set(serverUsers.map(u => u.id));
 
-          // 1. Atualizar lista com usuários do servidor (fonte de verdade)
+          // 1. Atualizar lista com usuários do servidor
           const updatedUsers: User[] = serverUsers.map(serverUser => {
             const localMatch = localMap.get(serverUser.id);
             if (localMatch) {
@@ -316,15 +316,17 @@ export const auth = {
             };
           });
 
-          // 2. Preservar logins recentes locais e purgar deletados no servidor
+          // 2. Preservar TODOS os usuários criados localmente e ressincronizar com o servidor se necessário
           localUsers.forEach(localUser => {
             if (!serverKeySet.has(localUser.id)) {
-              const isRecent = Date.now() - (new Date(localUser.createdAt || 0).getTime() || Date.now()) < 60000;
-              if (isRecent) {
-                updatedUsers.push(localUser);
-              } else {
-                localStorage.removeItem(`user_${localUser.id}`);
-              }
+              updatedUsers.push(localUser);
+
+              // Auto-sync de volta para a API do servidor
+              fetch('/api/users', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'register', user: localUser })
+              }).catch(() => {});
             }
           });
 
