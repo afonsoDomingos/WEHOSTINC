@@ -131,27 +131,47 @@ export default function EmailPage() {
     if (!newEmailPrefix || !newPassword) return;
 
     const fullEmail = newEmailPrefix.includes('@')
-      ? newEmailPrefix.trim()
-      : `${newEmailPrefix.trim()}@${selectedDomain}`;
+      ? newEmailPrefix.trim().toLowerCase()
+      : `${newEmailPrefix.trim().toLowerCase()}@${selectedDomain.toLowerCase()}`;
+
+    // Verificação de duplicados
+    const existing = emails.find(e => e.email.trim().toLowerCase() === fullEmail);
+    if (existing) {
+      setToastMsg({
+        type: 'error',
+        title: 'E-mail Já Existente',
+        message: `A conta de e-mail "${fullEmail}" já se encontra registada no sistema. Escolha outro prefixo.`
+      });
+      return;
+    }
 
     const initialStatus: EmailAccount['status'] = 'pending';
 
-    const newEmailAccount = dataManager.addEmail({
-      email: fullEmail,
-      status: initialStatus,
-      storage: newStorage,
-      userEmail: user?.email
-    });
+    try {
+      const newEmailAccount = dataManager.addEmail({
+        email: fullEmail,
+        domain: selectedDomain,
+        status: initialStatus,
+        storage: newStorage,
+        userEmail: user?.email
+      });
 
-    setEmails([...emails, newEmailAccount]);
-    setShowCreateModal(false);
-    setNewEmailPrefix('');
-    setNewPassword('');
-    setToastMsg({
-      type: 'warning',
-      title: 'Conta de E-mail Solicitada',
-      message: `A conta ${fullEmail} foi criada e está em processamento. Ela será ativada assim que o administrador aprovar.`
-    });
+      setEmails([...emails, newEmailAccount]);
+      setShowCreateModal(false);
+      setNewEmailPrefix('');
+      setNewPassword('');
+      setToastMsg({
+        type: 'warning',
+        title: 'Conta de E-mail Solicitada',
+        message: `A conta ${fullEmail} foi criada e está em processamento. Ela será ativada assim que o administrador aprovar.`
+      });
+    } catch (err: any) {
+      setToastMsg({
+        type: 'error',
+        title: 'E-mail Já Existente',
+        message: err?.message || `A conta de e-mail "${fullEmail}" já existe na plataforma.`
+      });
+    }
   };
 
   const handleOpenEditModal = (email: EmailAccount) => {

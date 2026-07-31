@@ -14,6 +14,7 @@ export interface Site {
 export interface EmailAccount {
   id: string;
   email: string;
+  domain?: string;
   status: 'active' | 'pending' | 'suspended';
   createdAt: string;
   storage: number;
@@ -451,10 +452,20 @@ export const dataManager = {
 
 
   addSite: (site: Omit<Site, 'id' | 'createdAt'>): Site => {
+    const cleanDomain = site.domain.trim().toLowerCase();
+    
+    // Trava de unicidade global de domínio
+    const allSites = dataManager.getSites();
+    const existing = allSites.find(s => s.domain.trim().toLowerCase() === cleanDomain);
+    if (existing) {
+      throw new Error(`O domínio "${site.domain}" já se encontra registado na plataforma por outro cliente. Se este domínio pertence à sua organização, entre em contacto com o suporte.`);
+    }
+
     const currentUser = typeof window !== 'undefined' ? auth.getCurrentUser() : null;
     const sites = dataManager.getSites();
     const newSite: Site = {
       ...site,
+      domain: cleanDomain,
       userEmail: site.userEmail || currentUser?.email,
       id: Date.now().toString(),
       createdAt: new Date().toISOString()
@@ -607,6 +618,13 @@ export const dataManager = {
 
   addEmail: (email: Omit<EmailAccount, 'id' | 'createdAt'>): EmailAccount => {
     const userEmailOwner = email.userEmail;
+    const targetAddress = email.email.trim().toLowerCase();
+    const allEmails = dataManager.getEmails();
+    const exists = allEmails.find(e => e.email.trim().toLowerCase() === targetAddress);
+    if (exists) {
+      throw new Error(`A conta de e-mail "${email.email}" já se encontra registada no sistema. Por favor, escolha outro prefixo ou endereço.`);
+    }
+
     const emails = userEmailOwner ? dataManager.getEmails(userEmailOwner) : dataManager.getEmails();
     const newEmail: EmailAccount = {
       ...email,

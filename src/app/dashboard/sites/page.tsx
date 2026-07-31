@@ -57,19 +57,32 @@ export default function SitesPage() {
     e.preventDefault();
     if (!newSiteName || !newSiteDomain) return;
 
-    const newSite = dataManager.addSite({
-      name: newSiteName,
-      domain: newSiteDomain,
-      status: 'pending',
-      storage: 0,
-      bandwidth: 0,
-      userEmail: user?.email
-    });
+    try {
+      const newSite = dataManager.addSite({
+        name: newSiteName,
+        domain: newSiteDomain,
+        status: 'pending',
+        storage: 0,
+        bandwidth: 0,
+        userEmail: user?.email
+      });
 
-    setSites([...sites, newSite]);
-    setShowModal(false);
-    setNewSiteName('');
-    setNewSiteDomain('');
+      setSites([...sites, newSite]);
+      setShowModal(false);
+      setNewSiteName('');
+      setNewSiteDomain('');
+      setToastMsg({
+        title: 'Solicitação de Domínio Enviada',
+        message: `O domínio ${newSiteDomain} foi adicionado e encontra-se em processamento pela equipa WEHOSTHERE.`,
+        type: 'success'
+      });
+    } catch (err: any) {
+      setToastMsg({
+        title: 'Domínio Já Registado',
+        message: err?.message || `O domínio "${newSiteDomain}" já se encontra registado na plataforma por outro cliente.`,
+        type: 'error'
+      });
+    }
   };
 
   // State de confirmação de exclusão customizado
