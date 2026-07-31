@@ -67,14 +67,29 @@ export const mpesa = {
     try {
       console.log(`[M-PESA C2B CALL] URL: ${c2bUrl} | Phone: ${msisdn} | Amount: ${data.amount} MT | ProviderCode: ${serviceProviderCode}`);
 
-      const response = await fetch(c2bUrl, {
+      let response = await fetch(c2bUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Origin': '*',
+          'Origin': 'developer.mpesa.vm.co.mz',
           'Authorization': `Bearer ${bearerToken}`
         },
         body: JSON.stringify(payload)
+      }).catch(async () => {
+        if (c2bUrl.includes(':18352')) {
+          const altUrl = c2bUrl.replace(':18352', '');
+          console.log(`[M-PESA RETRYING PORT 443] URL: ${altUrl}`);
+          return fetch(altUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Origin': 'developer.mpesa.vm.co.mz',
+              'Authorization': `Bearer ${bearerToken}`
+            },
+            body: JSON.stringify(payload)
+          });
+        }
+        throw new Error('Falha de conexão com os servidores M-Pesa Vodacom');
       });
 
       const resText = await response.text();
