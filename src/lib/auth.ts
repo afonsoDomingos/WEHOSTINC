@@ -41,6 +41,54 @@ const seedDefaultUsers = () => {
   });
 };
 
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCK_TIME_MS = 15 * 60 * 1000; // 15 minutos
+
+const checkRateLimit = (email: string) => {
+  if (typeof window === 'undefined') return;
+  const key = `login_attempts_${email.trim().toLowerCase()}`;
+  const data = localStorage.getItem(key);
+  if (data) {
+    try {
+      const parsed = JSON.parse(data);
+      if (parsed.lockUntil && Date.now() < parsed.lockUntil) {
+        const minutesLeft = Math.ceil((parsed.lockUntil - Date.now()) / 60000);
+        throw new Error(`Muitas tentativas incorretas de login. Por motivos de segurança, o acesso a esta conta foi bloqueado temporariamente por ${minutesLeft} minuto(s).`);
+      }
+      if (parsed.lockUntil && Date.now() >= parsed.lockUntil) {
+        localStorage.removeItem(key);
+      }
+    } catch (e) {
+      if (e instanceof Error && e.message.includes('bloqueado')) throw e;
+    }
+  }
+};
+
+const recordFailedAttempt = (email: string) => {
+  if (typeof window === 'undefined') return;
+  const key = `login_attempts_${email.trim().toLowerCase()}`;
+  const data = localStorage.getItem(key);
+  let count = 1;
+  if (data) {
+    try {
+      const parsed = JSON.parse(data);
+      count = (parsed.count || 0) + 1;
+    } catch (e) {}
+  }
+  if (count >= MAX_LOGIN_ATTEMPTS) {
+    const lockUntil = Date.now() + LOCK_TIME_MS;
+    localStorage.setItem(key, JSON.stringify({ count, lockUntil }));
+  } else {
+    localStorage.setItem(key, JSON.stringify({ count }));
+  }
+};
+
+const clearFailedAttempts = (email: string) => {
+  if (typeof window === 'undefined') return;
+  const key = `login_attempts_${email.trim().toLowerCase()}`;
+  localStorage.removeItem(key);
+};
+
 export const auth = {
   // Inicialização de dados padrão
   initDefaults: (): void => {
@@ -142,9 +190,10 @@ export const auth = {
   },
 
 
-  // Login assíncrono (resiliente a limpeza de cookies/localStorage)
+  // Login assíncrono (resiliente a limpeza de cookies/localStorage + rate limiting)
   loginAsync: async (email: string, password: string): Promise<User> => {
     seedDefaultUsers();
+    checkRateLimit(email);
     
     // Tenta primeiro no storage local
     let users = auth.getUsers();
@@ -157,6 +206,8 @@ export const auth = {
     }
 
     if (!user) {
+      recordFailedAttempt(email);
+      checkRateLimit(email);
       throw new Error('Usuário não encontrado');
     }
 
@@ -173,12 +224,16 @@ export const auth = {
     }
 
     if (userData.password && userData.password !== password) {
+      recordFailedAttempt(email);
+      checkRateLimit(email);
       throw new Error('Senha incorreta');
     }
 
     if (userData.status === 'suspended') {
       throw new Error('Sua conta encontra-se suspensa por questões de faturação ou incumprimento dos termos. Por favor, entre em contacto com o suporte WEHOSTHERE (+258 84 438 4702).');
     }
+
+    clearFailedAttempts(email);
 
     // Salvar sessão
     const session = { user: userData };
@@ -192,10 +247,13 @@ export const auth = {
   // Login síncrono (fallback)
   login: (email: string, password: string): User => {
     seedDefaultUsers();
+    checkRateLimit(email);
     const users = auth.getUsers();
     const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
 
     if (!user) {
+      recordFailedAttempt(email);
+      checkRateLimit(email);
       throw new Error('Usuário não encontrado');
     }
 
@@ -208,12 +266,16 @@ export const auth = {
     }
 
     if (userData.password && userData.password !== password) {
+      recordFailedAttempt(email);
+      checkRateLimit(email);
       throw new Error('Senha incorreta');
     }
 
     if (userData.status === 'suspended') {
       throw new Error('Sua conta encontra-se suspensa por questões de faturação ou incumprimento dos termos. Por favor, entre em contacto com o suporte WEHOSTHERE (+258 84 438 4702).');
     }
+
+    clearFailedAttempts(email);
 
     // Salvar sessão
     const session = { user: userData };
