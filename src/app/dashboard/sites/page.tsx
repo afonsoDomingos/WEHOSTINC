@@ -112,7 +112,7 @@ export default function SitesPage() {
       {/* Header Responsivo */}
       <DashboardNav userName={user.name} onLogout={handleLogout} />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6">
         <div className="grid lg:grid-cols-4 gap-8">
           {/* Sidebar (Desktop) */}
           <div className="hidden lg:block lg:col-span-1">
@@ -166,32 +166,32 @@ export default function SitesPage() {
 
           {/* Main Content */}
           <div className="lg:col-span-3 space-y-6">
-            {/* Banner de Promoção do Serviço de Criação de Sites */}
-            <div className="bg-gradient-to-r from-amber-500 via-amber-600 to-orange-600 rounded-xl shadow-md p-6 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="space-y-1">
+            {/* Banner de Promoção */}
+            <div className="bg-gradient-to-r from-amber-500 via-amber-600 to-orange-600 rounded-xl shadow-md p-4 sm:p-6 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div className="space-y-1 min-w-0">
                 <div className="inline-flex items-center space-x-1.5 bg-amber-900/30 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider text-amber-100">
-                  <Sparkles className="h-3.5 w-3.5" />
+                  <Sparkles className="h-3.5 w-3.5 shrink-0" />
                   <span>Criação de Sites Chave na Mão</span>
                 </div>
-                <h2 className="text-xl sm:text-2xl font-extrabold text-white">Precisa de um site profissional para o seu negócio?</h2>
+                <h2 className="text-lg sm:text-2xl font-extrabold text-white leading-tight">Precisa de um site profissional para o seu negócio?</h2>
                 <p className="text-amber-100 text-xs sm:text-sm">Escolha entre 18 categorias (Landing Page, Loja Virtual, ERP, SaaS, etc.) a partir de 12.000 MT.</p>
               </div>
               <Link
                 href="/site-quote"
-                className="flex items-center space-x-2 bg-white text-gray-900 hover:bg-gray-100 font-extrabold text-xs sm:text-sm px-5 py-3 rounded-xl shadow transition whitespace-nowrap cursor-pointer shrink-0"
+                className="flex items-center space-x-2 bg-white text-gray-900 hover:bg-gray-100 font-extrabold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow transition whitespace-nowrap cursor-pointer shrink-0 self-start sm:self-auto"
               >
-                <span>Consultar & Solicitar</span>
+                <span>Consultar &amp; Solicitar</span>
                 <ArrowRight className="h-4 w-4 text-amber-600" />
               </Link>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">Meus Sites</h1>
+                  <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Meus Sites</h1>
                   <p className="text-xs text-gray-500 mt-0.5">Sites e domínios associados à sua conta de hospedagem</p>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 flex-wrap gap-2">
                   <Link
                     href="/site-quote"
                     className="flex items-center space-x-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold text-xs px-3.5 py-2 rounded-lg transition"

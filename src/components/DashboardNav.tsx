@@ -132,26 +132,28 @@ export default function DashboardNav({ userName, onLogout }: DashboardNavProps) 
           </div>
         )}
 
-        {/* Mobile Horizontal Quick Tab Bar (Always accessible below header on mobile) */}
-        <div className="lg:hidden bg-gray-50 border-t border-gray-200 px-2 py-2 overflow-x-auto no-scrollbar scrollbar-none flex items-center space-x-1.5">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center space-x-1.5 px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition flex-shrink-0 ${
-                  isActive
-                    ? 'bg-primary-600 text-white shadow-sm'
-                    : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200/80'
-                }`}
-              >
-                <Icon className={`h-3.5 w-3.5 ${isActive ? 'text-white' : 'text-gray-500'}`} />
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
+        {/* Mobile Horizontal Quick Tab Bar */}
+        <div className="lg:hidden bg-gray-50 border-t border-gray-200 overflow-x-auto">
+          <div className="flex items-center space-x-1.5 px-4 py-2 w-max min-w-full">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center space-x-1.5 px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition flex-shrink-0 ${
+                    isActive
+                      ? 'bg-primary-600 text-white shadow-sm'
+                      : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200/80'
+                  }`}
+                >
+                  <Icon className={`h-3.5 w-3.5 ${isActive ? 'text-white' : 'text-gray-500'}`} />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+          </div>
         </div>
       </header>
     </>
