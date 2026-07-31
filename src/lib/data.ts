@@ -572,34 +572,65 @@ export const dataManager = {
           const serverEmails: EmailAccount[] = data.emails;
 
           if (currentUserEmail) {
+            const cleanUserEmail = currentUserEmail.trim().toLowerCase();
             // STRICT ISOLATION: Only process emails that strictly belong to this user
             const myServerEmails = serverEmails.filter(
-              e => e.userEmail && e.userEmail.toLowerCase() === currentUserEmail.toLowerCase()
+              e => e.userEmail && e.userEmail.trim().toLowerCase() === cleanUserEmail
             );
 
             const userKey = getEmailsKey(currentUserEmail);
             const localData = localStorage.getItem(userKey);
             const localEmails: EmailAccount[] = localData ? JSON.parse(localData) : [];
 
-            // Purge deleted emails: Only keep local emails that still exist on server (or newly added)
             const updated: EmailAccount[] = [];
+            const processedKeys = new Set<string>();
+
+            // 1. Preservar TODOS os e-mails locais criados (incluindo 'pending') e atualizar com dados do servidor
             localEmails.forEach(local => {
+              const key = local.email.toLowerCase();
+              processedKeys.add(key);
+
               const serverMatch = myServerEmails.find(
-                s => s.email.toLowerCase() === local.email.toLowerCase() || s.id === local.id
+                s => s.email.toLowerCase() === key || s.id === local.id
               );
+
               if (serverMatch) {
-                updated.push({ ...local, status: serverMatch.status || local.status });
+                updated.push({
+                  ...local,
+                  ...serverMatch,
+                  status: serverMatch.status || local.status,
+                  userEmail: serverMatch.userEmail || local.userEmail || currentUserEmail
+                });
+              } else {
+                // Preservar e-mail local pendente/criado e ressincronizar com a API do servidor
+                updated.push(local);
+
+                fetch('/api/emails', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ email: local })
+                }).catch(() => {});
               }
             });
 
-            // Add any server emails for this user not yet in local storage
+            // 2. Adicionar e-mails do servidor que ainda não constam no localStorage local
             myServerEmails.forEach(serverEmail => {
-              if (!updated.find(u => u.email.toLowerCase() === serverEmail.email.toLowerCase())) {
+              const key = serverEmail.email.toLowerCase();
+              if (!processedKeys.has(key)) {
                 updated.push(serverEmail);
               }
             });
 
             localStorage.setItem(userKey, JSON.stringify(updated));
+
+            // Sincronizar também no storage global do Admin para visibilidade imediata
+            const sharedData = localStorage.getItem(EMAILS_KEY);
+            const sharedEmails: EmailAccount[] = sharedData ? JSON.parse(sharedData) : [];
+            const sharedMap = new Map<string, EmailAccount>();
+            sharedEmails.forEach(e => sharedMap.set(e.email.toLowerCase(), e));
+            updated.forEach(e => sharedMap.set(e.email.toLowerCase(), e));
+            localStorage.setItem(EMAILS_KEY, JSON.stringify(Array.from(sharedMap.values())));
+
             return updated;
           }
 
