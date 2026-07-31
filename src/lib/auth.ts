@@ -27,17 +27,6 @@ const DEFAULT_USERS: Array<User & { password?: string }> = [
     status: 'active',
     role: 'admin',
     createdAt: new Date().toISOString()
-  },
-  {
-    id: 'client_msservices',
-    name: 'MSServices',
-    email: 'info@msservices.co.mz',
-    password: '@Admin123@',
-    plan: 'pro',
-    status: 'active',
-    dueDate: 29,
-    role: 'user',
-    createdAt: new Date().toISOString()
   }
 ];
 

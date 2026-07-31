@@ -24,39 +24,6 @@ let GLOBAL_USERS: ServerUser[] = [
     role: 'admin',
     dueDate: 29,
     createdAt: new Date().toISOString()
-  },
-  {
-    id: 'client_msservices',
-    name: 'MSServices',
-    email: 'info@msservices.co.mz',
-    password: '@Admin123@',
-    plan: 'pro',
-    status: 'active',
-    dueDate: 29,
-    role: 'user',
-    createdAt: new Date().toISOString()
-  },
-  {
-    id: 'client_hinguili',
-    name: 'Hinguili Artes',
-    email: 'info@hinguiliartes.com',
-    password: '@Admin123@',
-    plan: 'basic',
-    status: 'active',
-    dueDate: 29,
-    role: 'user',
-    createdAt: new Date().toISOString()
-  },
-  {
-    id: 'client_amvibe',
-    name: 'Am Vibe',
-    email: 'amvibe258@gmail.com',
-    password: '@Admin123@',
-    plan: 'basic',
-    status: 'active',
-    dueDate: 29,
-    role: 'user',
-    createdAt: new Date().toISOString()
   }
 ];
 
