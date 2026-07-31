@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { SITE_URL } from '@/lib/siteConfig';
 
 export const metadata: Metadata = {
   title: 'Solicitar Criação de Site Profissional',
@@ -12,12 +13,12 @@ export const metadata: Metadata = {
     'desenvolvimento web Moçambique',
     'agência web Maputo',
   ],
-  alternates: { canonical: 'https://wehosthere.com/site-quote' },
+  alternates: { canonical: `${SITE_URL}/site-quote` },
   openGraph: {
     title: 'Solicitar Criação de Site | WEHOSTHERE',
     description:
       'Criação de sites profissionais em Moçambique. Landing pages, e-commerce, sistemas web. Orçamento gratuito.',
-    url: 'https://wehosthere.com/site-quote',
+    url: `${SITE_URL}/site-quote`,
   },
 };
 

@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import { SITE_URL } from '@/lib/siteConfig';
 
 // Instância do cliente Resend
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -81,7 +82,7 @@ export async function sendWelcomeEmail(toEmail: string, userName: string, plan: 
           <h2 style="color:#1e3a8a;font-size:22px;margin-top:0;">👋 Bem-vindo, ${userName}!</h2>
           <p style="color:#475569;line-height:1.7;">A sua conta foi criada com sucesso. Plano: <strong>${planNames[plan] || plan}</strong>.</p>
           <div style="text-align:center;margin:24px 0;">
-            <a href="https://wehosthere.com/dashboard" style="background:#2563eb;color:white;font-weight:700;padding:14px 32px;border-radius:10px;text-decoration:none;font-size:15px;">Aceder ao Painel →</a>
+            <a href="${SITE_URL}/dashboard" style="background:#2563eb;color:white;font-weight:700;padding:14px 32px;border-radius:10px;text-decoration:none;font-size:15px;">Aceder ao Painel →</a>
           </div>
           <p style="color:#94a3b8;font-size:12px;margin:0;">Equipa WEHOSTHERE — Hospedagem Profissional em Moçambique</p>
         </div>
@@ -108,7 +109,7 @@ export async function sendInvoiceEmail(toEmail: string, userName: string, invoic
             <tr style="background:#eff6ff;"><td style="padding:12px;font-weight:700;color:#1e3a8a;">Referência</td><td style="padding:12px;">${invoiceRef}</td></tr>
           </table>
           <div style="text-align:center;margin:24px 0;">
-            <a href="https://wehosthere.com/dashboard/billing" style="background:#2563eb;color:white;font-weight:700;padding:14px 32px;border-radius:10px;text-decoration:none;font-size:15px;">Ver Faturamento →</a>
+            <a href="${SITE_URL}/dashboard/billing" style="background:#2563eb;color:white;font-weight:700;padding:14px 32px;border-radius:10px;text-decoration:none;font-size:15px;">Ver Faturamento →</a>
           </div>
           <p style="color:#94a3b8;font-size:12px;margin:0;">WEHOSTHERE — info@wehosthere.com</p>
         </div>
@@ -135,7 +136,7 @@ export async function sendWebmailMessage(fromEmail: string, toEmail: string, sub
           <div style="white-space:pre-line;line-height:1.8;color:#1e293b;font-size:15px;">${body}</div>
         </div>
         <div style="background:#f1f5f9;padding:14px 24px;font-size:11px;color:#94a3b8;">
-          Enviado via WEHOSTHERE Webmail Corporativo — wehosthere.com
+          Enviado via WEHOSTHERE Webmail Corporativo — ${SITE_URL.replace('https://', '')}
         </div>
       </div>`,
   });
@@ -158,7 +159,7 @@ export async function sendSupportTicketEmail(toEmail: string, userName: string, 
             <p style="margin:0;font-weight:700;color:#5b21b6;">${subject}</p>
           </div>
           <div style="text-align:center;margin:24px 0;">
-            <a href="https://wehosthere.com/dashboard/tickets" style="background:#7c3aed;color:white;font-weight:700;padding:14px 32px;border-radius:10px;text-decoration:none;font-size:15px;">Ver Ticket →</a>
+            <a href="${SITE_URL}/dashboard/tickets" style="background:#7c3aed;color:white;font-weight:700;padding:14px 32px;border-radius:10px;text-decoration:none;font-size:15px;">Ver Ticket →</a>
           </div>
           <p style="color:#94a3b8;font-size:12px;margin:0;">WEHOSTHERE — info@wehosthere.com</p>
         </div>

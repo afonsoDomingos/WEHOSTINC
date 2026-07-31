@@ -3,10 +3,11 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import ScrollToTop from "@/components/ScrollToTop";
 import AnalyticsTracker from "@/components/AnalyticsTracker";
+import { SITE_URL } from "@/lib/siteConfig";
 
 const inter = Inter({ subsets: ["latin"] });
 
-const BASE_URL = 'https://wehosthere.com';
+const BASE_URL = SITE_URL;
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
