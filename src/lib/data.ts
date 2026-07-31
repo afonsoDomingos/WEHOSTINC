@@ -411,10 +411,18 @@ export const dataManager = {
             const key = (serverSite.domain || serverSite.id).toLowerCase();
             const localMatch = localSiteMap.get(key);
             if (localMatch) {
+              const effectiveStatus = localMatch.status || serverSite.status || 'active';
+              if (serverSite.status !== effectiveStatus) {
+                fetch('/api/sites', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ action: 'update_status', siteId: serverSite.id, domain: serverSite.domain, status: effectiveStatus })
+                }).catch(() => {});
+              }
               return { 
-                ...localMatch, 
                 ...serverSite, 
-                status: serverSite.status || localMatch.status,
+                ...localMatch, 
+                status: effectiveStatus,
                 userEmail: serverSite.userEmail || localMatch.userEmail || currentUserEmail
               };
             }
