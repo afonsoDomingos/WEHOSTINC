@@ -51,10 +51,18 @@ export async function POST(req: Request) {
     }
 
     if (action === 'delete') {
-      const target = (emailId || emailStr || '').toLowerCase();
-      GLOBAL_EMAILS = GLOBAL_EMAILS.filter(e => e.id.toLowerCase() !== target && e.email.toLowerCase() !== target);
+      const tId = (emailId || '').toLowerCase();
+      const tEmail = (emailStr || '').toLowerCase();
+      GLOBAL_EMAILS = GLOBAL_EMAILS.filter(e => {
+        const eId = e.id.toLowerCase();
+        const eAddr = e.email.toLowerCase();
+        if (tId && (eId === tId || eAddr === tId)) return false;
+        if (tEmail && (eId === tEmail || eAddr === tEmail)) return false;
+        return true;
+      });
       return NextResponse.json({ success: true, emails: GLOBAL_EMAILS });
     }
+
 
     if (action === 'update_status') {
       const target = (emailId || emailStr || '').toLowerCase();
