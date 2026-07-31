@@ -84,7 +84,7 @@ export default function SitesPage() {
       case 'active':
         return 'Ativo';
       case 'pending':
-        return 'Pendente';
+        return 'Em Processamento';
       case 'suspended':
         return 'Suspenso';
       default:

@@ -557,11 +557,25 @@ export default function EmailPage() {
                       onChange={(e) => setSelectedDomain(e.target.value)}
                       className="px-3 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-xs text-gray-900 outline-none focus:ring-2 focus:ring-primary-500 font-bold"
                     >
-                      {userDomains.map(domain => (
-                        <option key={domain} value={domain}>{domain}</option>
-                      ))}
+                      {userDomains.map(domain => {
+                        const isPending = sites.find(s => s.domain === domain)?.status === 'pending';
+                        return (
+                          <option key={domain} value={domain}>
+                            {domain} {isPending ? '⏳ (Em Processamento)' : ''}
+                          </option>
+                        );
+                      })}
                     </select>
                   </div>
+
+                  {sites.find(s => s.domain === selectedDomain)?.status === 'pending' && (
+                    <div className="mt-2 p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-start space-x-2">
+                      <Clock className="h-4 w-4 text-amber-600 shrink-0 mt-0.5 animate-pulse" />
+                      <span>
+                        O domínio <strong>{selectedDomain}</strong> está <strong>em processamento de aprovação</strong> pelo administrador. A conta de email será ativada automaticamente assim que o domínio for aprovado.
+                      </span>
+                    </div>
+                  )}
                 </div>
               )}
 

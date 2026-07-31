@@ -48,8 +48,8 @@ export default function DomainsPage() {
         );
       case 'pending':
         return (
-          <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200">
-            <Clock className="h-3 w-3" /><span>Pendente</span>
+          <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
+            <Clock className="h-3 w-3 text-amber-600 animate-pulse" /><span>Em Processamento</span>
           </span>
         );
       case 'suspended':
@@ -151,6 +151,17 @@ export default function DomainsPage() {
                         </Link>
                       </div>
                     </div>
+
+                    {/* Aviso se o domínio estiver em processamento / aguardando aprovação */}
+                    {site.status === 'pending' && (
+                      <div className="mx-4 sm:mx-5 mt-3 p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-start space-x-2.5">
+                        <Clock className="h-4 w-4 text-amber-600 shrink-0 mt-0.5 animate-pulse" />
+                        <div>
+                          <strong className="block font-bold text-amber-950">Domínio em Processamento (Aguardando Aprovação do Administrador):</strong>
+                          <span>A nossa equipa técnica está a validar os registos e apontamentos deste domínio. Assim que for aprovado pelo administrador, o estado mudará para Ativo e os serviços ficarão totalmente operacionais.</span>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Nameservers */}
                     <div className="p-4 sm:p-5 bg-slate-50/60">
