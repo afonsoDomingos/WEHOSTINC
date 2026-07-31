@@ -15,6 +15,8 @@ import DashboardNav from '@/components/DashboardNav';
 import PageLoader from '@/components/PageLoader';
 import StatusBadge from '@/components/StatusBadge';
 import ApprovalCelebration from '@/components/ApprovalCelebration';
+import ConfirmModal from '@/components/ConfirmModal';
+import Toast from '@/components/Toast';
 
 export default function EmailPage() {
   const router = useRouter();
@@ -182,12 +184,18 @@ export default function EmailPage() {
     }, 1800);
   };
 
-  const handleDeleteEmail = (id: string, emailStr?: string) => {
-    if (confirm(`Tem certeza que deseja excluir a conta de e-mail "${emailStr || id}"?`)) {
-      const userEmailFilter = user?.email;
-      dataManager.deleteEmail(id, userEmailFilter, emailStr);
-      setEmails(emails.filter(e => e.id !== id && e.email !== emailStr));
-    }
+  // State de confirmação de exclusão de email
+  const [deleteEmailConfirm, setDeleteEmailConfirm] = useState<{ isOpen: boolean; id: string; emailStr?: string } | null>(null);
+  const [toastMsg, setToastMsg] = useState<{ title?: string; message: string; type: 'success' | 'error' } | null>(null);
+
+  const confirmDeleteEmail = () => {
+    if (!deleteEmailConfirm) return;
+    const { id, emailStr } = deleteEmailConfirm;
+    const userEmailFilter = user?.email;
+    dataManager.deleteEmail(id, userEmailFilter, emailStr);
+    setEmails(prev => prev.filter(e => e.id !== id && e.email !== emailStr));
+    setDeleteEmailConfirm(null);
+    setToastMsg({ title: 'E-mail Removido', message: `A conta de e-mail ${emailStr || ''} foi eliminada com sucesso.`, type: 'success' });
   };
 
   const getStatusIcon = (status: string) => {
@@ -366,7 +374,7 @@ export default function EmailPage() {
                           {/* Botão Excluir */}
                           <button
                             type="button"
-                            onClick={() => handleDeleteEmail(email.id, email.email)}
+                            onClick={() => setDeleteEmailConfirm({ isOpen: true, id: email.id, emailStr: email.email })}
                             className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-xl transition cursor-pointer border border-gray-200"
                             title="Excluir Conta"
                           >
@@ -709,6 +717,28 @@ export default function EmailPage() {
             </form>
           </div>
         </div>
+      )}
+
+      {/* Custom Confirm Modal */}
+      <ConfirmModal
+        isOpen={!!deleteEmailConfirm?.isOpen}
+        title="Eliminar Conta de E-mail"
+        message={`Tem certeza que deseja ELIMINAR permanentemente a caixa de correio "${deleteEmailConfirm?.emailStr}"?`}
+        confirmText="Sim, Eliminar E-mail"
+        cancelText="Cancelar"
+        variant="danger"
+        onConfirm={confirmDeleteEmail}
+        onCancel={() => setDeleteEmailConfirm(null)}
+      />
+
+      {/* Toast Notification */}
+      {toastMsg && (
+        <Toast
+          type={toastMsg.type}
+          title={toastMsg.title}
+          message={toastMsg.message}
+          onClose={() => setToastMsg(null)}
+        />
       )}
     </div>
   );

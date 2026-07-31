@@ -14,6 +14,8 @@ import DashboardNav from '@/components/DashboardNav';
 import PageLoader from '@/components/PageLoader';
 import StatusBadge from '@/components/StatusBadge';
 import ApprovalCelebration from '@/components/ApprovalCelebration';
+import ConfirmModal from '@/components/ConfirmModal';
+import Toast from '@/components/Toast';
 
 const NS1 = 'ns1.wehosthere.com';
 const NS2 = 'ns2.wehosthere.com';
@@ -66,11 +68,17 @@ export default function DomainsPage() {
 
   const handleLogout = () => { auth.logout(); router.push('/'); };
 
-  const handleDeleteDomain = (id: string, domain: string) => {
-    if (confirm(`Tem certeza que deseja ELIMINAR permanentemente o domínio "${domain}"? Todos os e-mails associados também serão removidos.`)) {
-      dataManager.deleteSite(id, domain);
-      setSites(prev => prev.filter(s => s.id !== id && s.domain !== domain));
-    }
+  // Modal de eliminação de domínio
+  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; id: string; domain: string } | null>(null);
+  const [toastMsg, setToastMsg] = useState<{ title?: string; message: string; type: 'success' | 'error' } | null>(null);
+
+  const confirmDeleteDomain = () => {
+    if (!deleteConfirm) return;
+    const { id, domain } = deleteConfirm;
+    dataManager.deleteSite(id, domain);
+    setSites(prev => prev.filter(s => s.id !== id && s.domain !== domain));
+    setDeleteConfirm(null);
+    setToastMsg({ title: 'Domínio Removido', message: `O domínio ${domain} foi permanentemente eliminado.`, type: 'success' });
   };
 
   const copyToClipboard = (text: string) => {
@@ -198,7 +206,7 @@ export default function DomainsPage() {
                         </Link>
                         <button
                           type="button"
-                          onClick={() => handleDeleteDomain(site.id, site.domain)}
+                          onClick={() => setDeleteConfirm({ isOpen: true, id: site.id, domain: site.domain })}
                           className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition border border-gray-200 cursor-pointer"
                           title="Eliminar Domínio"
                         >
@@ -295,6 +303,28 @@ export default function DomainsPage() {
           </div>
         </div>
       </div>
+
+      {/* Custom Confirm Modal */}
+      <ConfirmModal
+        isOpen={!!deleteConfirm?.isOpen}
+        title="Eliminar Domínio"
+        message={`Tem certeza que deseja ELIMINAR permanentemente o domínio "${deleteConfirm?.domain}"? Todos os serviços associados serão interrompidos.`}
+        confirmText="Sim, Eliminar Domínio"
+        cancelText="Cancelar"
+        variant="danger"
+        onConfirm={confirmDeleteDomain}
+        onCancel={() => setDeleteConfirm(null)}
+      />
+
+      {/* Toast Notification */}
+      {toastMsg && (
+        <Toast
+          type={toastMsg.type}
+          title={toastMsg.title}
+          message={toastMsg.message}
+          onClose={() => setToastMsg(null)}
+        />
+      )}
     </div>
   );
 }

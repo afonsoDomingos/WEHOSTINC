@@ -10,6 +10,7 @@ import {
 import { auth, User } from '@/lib/auth';
 import DashboardNav from '@/components/DashboardNav';
 import PageLoader from '@/components/PageLoader';
+import ConfirmModal from '@/components/ConfirmModal';
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -22,6 +23,7 @@ export default function SettingsPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
+  const [deleteAccountConfirm, setDeleteAccountConfirm] = useState(false);
 
   useEffect(() => {
     const currentUser = auth.getCurrentUser();
@@ -321,15 +323,7 @@ export default function SettingsPage() {
               </div>
               <div className="space-y-4">
                 <button
-                  onClick={() => {
-                    if (confirm('Tem certeza que deseja ELIMINAR permanentemente a sua conta? Todos os seus dados (sites, emails, faturas) serão removidos e esta ação NÃO pode ser desfeita.')) {
-                      if (user) {
-                        auth.deleteUser(user.id);
-                        auth.logout();
-                        router.push('/');
-                      }
-                    }
-                  }}
+                  onClick={() => setDeleteAccountConfirm(true)}
                   className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-semibold cursor-pointer"
                 >
                   Excluir Conta Permanentemente
@@ -343,6 +337,24 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
+
+      {/* Confirm Modal Excluir Conta */}
+      <ConfirmModal
+        isOpen={deleteAccountConfirm}
+        title="Excluir Conta Permanentemente"
+        message="Tem certeza que deseja ELIMINAR permanentemente a sua conta? Todos os seus dados (sites, emails, faturas) serão removidos e esta ação NÃO pode ser desfeita."
+        confirmText="Sim, Eliminar Minha Conta"
+        cancelText="Cancelar"
+        variant="danger"
+        onConfirm={() => {
+          if (user) {
+            auth.deleteUser(user.id);
+            auth.logout();
+            router.push('/');
+          }
+        }}
+        onCancel={() => setDeleteAccountConfirm(false)}
+      />
     </div>
   );
 }

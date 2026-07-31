@@ -14,6 +14,8 @@ import { auth, User } from '@/lib/auth';
 import { dataManager, ServiceOrder, SupportTicket, TicketMessage, TicketAttachment } from '@/lib/data';
 import BrandLogo from '@/components/BrandLogo';
 import PageLoader from '@/components/PageLoader';
+import ConfirmModal from '@/components/ConfirmModal';
+import Toast from '@/components/Toast';
 
 const ADMIN_CANNED_RESPONSES = [
   {
@@ -84,6 +86,16 @@ export default function AdminPage() {
   // Anexos Admin
   const [adminReplyAttachments, setAdminReplyAttachments] = useState<TicketAttachment[]>([]);
   const [adminUploading, setAdminUploading] = useState(false);
+
+  // States para Alertas e Modais de Confirmação Customizados
+  const [toastMsg, setToastMsg] = useState<{ title?: string; message: string; type: 'success' | 'error' | 'info' | 'warning' } | null>(null);
+  const [confirmModalData, setConfirmModalData] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    variant?: 'danger' | 'warning' | 'info' | 'success';
+  } | null>(null);
 
   const handleAdminFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -258,19 +270,35 @@ export default function AdminPage() {
   };
 
   const handleAdminDeleteSite = (id: string, domain: string) => {
-    if (confirm(`Tem certeza que deseja ELIMINAR permanentemente o domínio "${domain}"? Todos os e-mails associados também serão removidos.`)) {
-      dataManager.deleteSite(id, domain);
-      setSites(prev => prev.filter(s => s.id !== id && s.domain !== domain));
-      setEmails(prev => prev.filter(e => (e.domain || '').toLowerCase() !== domain.toLowerCase() && !e.email.toLowerCase().endsWith(`@${domain.toLowerCase()}`)));
-    }
+    setConfirmModalData({
+      isOpen: true,
+      title: 'Eliminar Domínio & Site',
+      message: `Tem certeza que deseja ELIMINAR permanentemente o domínio "${domain}"? Todos os e-mails associados também serão removidos.`,
+      variant: 'danger',
+      onConfirm: () => {
+        dataManager.deleteSite(id, domain);
+        setSites(prev => prev.filter(s => s.id !== id && s.domain !== domain));
+        setEmails(prev => prev.filter(e => (e.domain || '').toLowerCase() !== domain.toLowerCase() && !e.email.toLowerCase().endsWith(`@${domain.toLowerCase()}`)));
+        setConfirmModalData(null);
+        setToastMsg({ title: 'Domínio Removido', message: `O domínio ${domain} foi totalmente eliminado.`, type: 'success' });
+      }
+    });
   };
 
   const handleAdminDeleteEmail = (id: string, userEmail?: string, emailStr?: string) => {
     const displayEmail = emailStr || id;
-    if (confirm(`Tem certeza que deseja ELIMINAR a conta de e-mail "${displayEmail}"?`)) {
-      dataManager.deleteEmail(id, userEmail, emailStr);
-      setEmails(prev => prev.filter(e => e.id !== id && e.email !== displayEmail));
-    }
+    setConfirmModalData({
+      isOpen: true,
+      title: 'Eliminar Conta de E-mail',
+      message: `Tem certeza que deseja ELIMINAR a conta de e-mail "${displayEmail}"?`,
+      variant: 'danger',
+      onConfirm: () => {
+        dataManager.deleteEmail(id, userEmail, emailStr);
+        setEmails(prev => prev.filter(e => e.id !== id && e.email !== displayEmail));
+        setConfirmModalData(null);
+        setToastMsg({ title: 'E-mail Removido', message: `A conta ${displayEmail} foi eliminada com sucesso.`, type: 'success' });
+      }
+    });
   };
 
   const handleCreateClient = (e: React.FormEvent) => {
@@ -322,7 +350,11 @@ export default function AdminPage() {
       return next;
     });
 
-    alert(`✅ Plano de "${userName}" alterado para ${planNames[newPlanId]}!\nFatura de ${planPrices[newPlanId].toLocaleString('pt-MZ')} MT gerada e aguarda pagamento.`);
+    setToastMsg({
+      title: 'Plano Alterado com Sucesso',
+      message: `Plano de "${userName}" alterado para ${planNames[newPlanId]}!\nFatura de ${planPrices[newPlanId].toLocaleString('pt-MZ')} MT gerada.`,
+      type: 'success'
+    });
   };
 
   const handleUpdateEmailStatus = (emailId: string, status: 'active' | 'pending' | 'suspended') => {
@@ -331,10 +363,18 @@ export default function AdminPage() {
   };
 
   const handleDeleteEmail = (emailId: string, emailAddr: string, ownerEmail?: string) => {
-    if (confirm(`Tem certeza que deseja ELIMINAR permanentemente a conta de e-mail "${emailAddr}"?`)) {
-      dataManager.deleteEmail(emailId, ownerEmail, emailAddr);
-      setEmails(prev => prev.filter(e => e.id !== emailId && e.email !== emailAddr));
-    }
+    setConfirmModalData({
+      isOpen: true,
+      title: 'Eliminar Conta de E-mail',
+      message: `Tem certeza que deseja ELIMINAR permanentemente a conta de e-mail "${emailAddr}"?`,
+      variant: 'danger',
+      onConfirm: () => {
+        dataManager.deleteEmail(emailId, ownerEmail, emailAddr);
+        setEmails(prev => prev.filter(e => e.id !== emailId && e.email !== emailAddr));
+        setConfirmModalData(null);
+        setToastMsg({ title: 'E-mail Removido', message: `Conta ${emailAddr} eliminada com sucesso.`, type: 'success' });
+      }
+    });
   };
 
   if (loading) {
@@ -710,12 +750,20 @@ export default function AdminPage() {
 
                           <button
                             onClick={() => {
-                              if (confirm(`Tem certeza que deseja eliminar permanentemente o cliente "${user.name}" (${user.email})?`)) {
-                                auth.deleteUser(user.id);
-                                setUsers(auth.getUsers());
-                              }
+                              setConfirmModalData({
+                                isOpen: true,
+                                title: 'Eliminar Cliente',
+                                message: `Tem certeza que deseja eliminar permanentemente o cliente "${user.name}" (${user.email})?`,
+                                variant: 'danger',
+                                onConfirm: () => {
+                                  auth.deleteUser(user.id);
+                                  setUsers(auth.getUsers());
+                                  setConfirmModalData(null);
+                                  setToastMsg({ title: 'Cliente Eliminado', message: `O cliente ${user.name} foi removido da plataforma.`, type: 'success' });
+                                }
+                              });
                             }}
-                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition"
+                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition cursor-pointer"
                             title="Eliminar cliente"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -1823,6 +1871,29 @@ export default function AdminPage() {
             </div>
           </div>
         </div>
+      )}
+      {/* Custom Confirm Modal */}
+      {confirmModalData && (
+        <ConfirmModal
+          isOpen={confirmModalData.isOpen}
+          title={confirmModalData.title}
+          message={confirmModalData.message}
+          confirmText="Sim, Confirmar"
+          cancelText="Cancelar"
+          variant={confirmModalData.variant || 'danger'}
+          onConfirm={confirmModalData.onConfirm}
+          onCancel={() => setConfirmModalData(null)}
+        />
+      )}
+
+      {/* Toast Notification */}
+      {toastMsg && (
+        <Toast
+          type={toastMsg.type}
+          title={toastMsg.title}
+          message={toastMsg.message}
+          onClose={() => setToastMsg(null)}
+        />
       )}
     </div>
   );

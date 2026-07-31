@@ -12,6 +12,8 @@ import { dataManager, Site } from '@/lib/data';
 import DashboardNav from '@/components/DashboardNav';
 import PageLoader from '@/components/PageLoader';
 import StatusBadge from '@/components/StatusBadge';
+import ConfirmModal from '@/components/ConfirmModal';
+import Toast from '@/components/Toast';
 
 export default function SitesPage() {
   const router = useRouter();
@@ -66,11 +68,17 @@ export default function SitesPage() {
     setNewSiteDomain('');
   };
 
-  const handleDeleteSite = (id: string, domain?: string) => {
-    if (confirm('Tem certeza que deseja excluir este site e domínio? Todos os e-mails associados também serão removidos.')) {
-      dataManager.deleteSite(id, domain);
-      setSites(sites.filter(s => s.id !== id && s.domain !== domain));
-    }
+  // State de confirmação de exclusão customizado
+  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; id: string; domain?: string } | null>(null);
+  const [toastMsg, setToastMsg] = useState<{ title?: string; message: string; type: 'success' | 'error' } | null>(null);
+
+  const confirmDeleteSite = () => {
+    if (!deleteConfirm) return;
+    const { id, domain } = deleteConfirm;
+    dataManager.deleteSite(id, domain);
+    setSites(prev => prev.filter(s => s.id !== id && s.domain !== domain));
+    setDeleteConfirm(null);
+    setToastMsg({ title: 'Site Removido', message: `O site ${domain || ''} foi permanentemente eliminado.`, type: 'success' });
   };
 
   const [copiedNS, setCopiedNS] = useState<string | null>(null);
@@ -266,7 +274,7 @@ export default function SitesPage() {
                               <Settings className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
                             </button>
                             <button
-                              onClick={() => handleDeleteSite(site.id, site.domain)}
+                              onClick={() => setDeleteConfirm({ isOpen: true, id: site.id, domain: site.domain })}
                               className="p-2 text-gray-500 hover:text-red-600 transition hover:bg-red-50 rounded-lg cursor-pointer"
                               title="Eliminar Site e Domínio"
                             >
@@ -388,6 +396,28 @@ export default function SitesPage() {
             </form>
           </div>
         </div>
+      )}
+
+      {/* Custom Confirm Modal */}
+      <ConfirmModal
+        isOpen={!!deleteConfirm?.isOpen}
+        title="Eliminar Site e Domínio"
+        message={`Tem certeza que deseja ELIMINAR permanentemente o site "${deleteConfirm?.domain}"? Todos os e-mails e ficheiros associados serão removidos.`}
+        confirmText="Sim, Eliminar Site"
+        cancelText="Cancelar"
+        variant="danger"
+        onConfirm={confirmDeleteSite}
+        onCancel={() => setDeleteConfirm(null)}
+      />
+
+      {/* Toast Notification */}
+      {toastMsg && (
+        <Toast
+          type={toastMsg.type}
+          title={toastMsg.title}
+          message={toastMsg.message}
+          onClose={() => setToastMsg(null)}
+        />
       )}
     </div>
   );

@@ -12,6 +12,7 @@ import { hostingPlans, dataManager, ServiceOrder } from '@/lib/data';
 import DashboardNav from '@/components/DashboardNav';
 import PageLoader from '@/components/PageLoader';
 import ReceiptModal, { ReceiptData } from '@/components/ReceiptModal';
+import Toast from '@/components/Toast';
 import { Clock, XCircle, FileText } from 'lucide-react';
 
 export default function BillingPage() {
@@ -20,6 +21,7 @@ export default function BillingPage() {
   const [loading, setLoading] = useState(true);
   const [selectedReceipt, setSelectedReceipt] = useState<ReceiptData | null>(null);
   const [userOrders, setUserOrders] = useState<ServiceOrder[]>([]);
+  const [toastMsg, setToastMsg] = useState<{ type: 'success' | 'error' | 'info'; title?: string; message: string } | null>(null);
 
   useEffect(() => {
     const currentUser = auth.getCurrentUser();
@@ -74,7 +76,11 @@ export default function BillingPage() {
     // Atualiza a lista de faturas imediatamente na UI
     setUserOrders(prev => [newOrder, ...prev]);
 
-    alert(`Plano atualizado para ${newPlan.name} (${newPlan.price.toLocaleString('pt-MZ')} MT/mês)!\nFatura gerada: ${newOrder.id}\nStatus: Pagamento Pendente — envie o comprovativo para activação.`);
+    setToastMsg({
+      type: 'success',
+      title: `Plano atualizado para ${newPlan.name}!`,
+      message: `Fatura ${newOrder.id} gerada (${newPlan.price.toLocaleString('pt-MZ')} MT/mês). Estado: Pagamento Pendente — envie o comprovativo para ativação.`
+    });
   };
 
   const getCurrentPlan = () => {
@@ -408,6 +414,16 @@ export default function BillingPage() {
         receipt={selectedReceipt}
         onClose={() => setSelectedReceipt(null)}
       />
+
+      {/* Toast Notification */}
+      {toastMsg && (
+        <Toast
+          type={toastMsg.type}
+          title={toastMsg.title}
+          message={toastMsg.message}
+          onClose={() => setToastMsg(null)}
+        />
+      )}
     </div>
   );
 }
