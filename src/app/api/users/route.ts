@@ -82,9 +82,18 @@ export async function POST(req: Request) {
     }
 
     if (action === 'delete') {
-      GLOBAL_USERS = GLOBAL_USERS.filter(u => u.id !== userId);
+      const targetId = (userId || '').toLowerCase();
+      const targetEmail = (body.email || body.userEmail || '').toLowerCase();
+      GLOBAL_USERS = GLOBAL_USERS.filter(u => {
+        const uId = u.id.toLowerCase();
+        const uEmail = u.email.toLowerCase();
+        if (targetId && (uId === targetId || uEmail === targetId)) return false;
+        if (targetEmail && (uId === targetEmail || uEmail === targetEmail)) return false;
+        return true;
+      });
       return NextResponse.json({ success: true, users: GLOBAL_USERS });
     }
+
 
     // Registrar ou adicionar usuário
     const existingIndex = GLOBAL_USERS.findIndex(

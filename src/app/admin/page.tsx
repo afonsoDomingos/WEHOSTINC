@@ -756,7 +756,7 @@ export default function AdminPage() {
                                 message: `Tem certeza que deseja eliminar permanentemente o cliente "${user.name}" (${user.email})?`,
                                 variant: 'danger',
                                 onConfirm: () => {
-                                  auth.deleteUser(user.id);
+                                  auth.deleteUser(user.id, user.email);
                                   setUsers(auth.getUsers());
                                   setConfirmModalData(null);
                                   setToastMsg({ title: 'Cliente Eliminado', message: `O cliente ${user.name} foi removido da plataforma.`, type: 'success' });

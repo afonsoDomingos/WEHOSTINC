@@ -348,7 +348,7 @@ export default function SettingsPage() {
         variant="danger"
         onConfirm={() => {
           if (user) {
-            auth.deleteUser(user.id);
+            auth.deleteUser(user.id, user.email);
             auth.logout();
             router.push('/');
           }
