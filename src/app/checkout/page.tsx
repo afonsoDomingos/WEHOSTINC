@@ -13,6 +13,7 @@ import { auth } from '@/lib/auth';
 import { getDomainPrice, sanitizeDomainName } from '@/lib/domains';
 import BrandLogo from '@/components/BrandLogo';
 import PageLoader from '@/components/PageLoader';
+import ReceiptModal, { ReceiptData } from '@/components/ReceiptModal';
 
 function CheckoutContent() {
   const router = useRouter();
@@ -126,6 +127,8 @@ function CheckoutContent() {
   }, [pushModal, countdown]);
 
   const [checkoutAccountStatus, setCheckoutAccountStatus] = useState<'logged_in' | 'account_exists' | 'no_account'>('logged_in');
+  const [selectedReceipt, setSelectedReceipt] = useState<ReceiptData | null>(null);
+  const [currentOrderData, setCurrentOrderData] = useState<ReceiptData | null>(null);
 
   const finalizeOrder = () => {
     try {
@@ -158,6 +161,9 @@ function CheckoutContent() {
             : `${selectedPlan.name}${siteLabel}${cycleLabel}`)
         : `Registo de Domínio: ${domainParam || 'Domínio Avulso'}`;
 
+      const orderId = `ORD-${Date.now().toString().slice(-5)}`;
+      const orderStatus = (paymentMethod === 'bank_transfer' || (selectedPlan && selectedPlan.id === 'website_creation')) ? 'in_progress' : 'completed';
+
       // Registra pedido de serviço para gestão no Admin
       dataManager.addOrder({
         clientName: name,
@@ -168,7 +174,19 @@ function CheckoutContent() {
         paymentMethod: paymentMethod,
         proofUrl: proofUrl || undefined,
         proofName: proofName || undefined,
-        status: (paymentMethod === 'bank_transfer' || (selectedPlan && selectedPlan.id === 'website_creation')) ? 'in_progress' : 'completed'
+        status: orderStatus
+      });
+
+      setCurrentOrderData({
+        id: orderId,
+        clientName: name,
+        clientEmail: email,
+        clientPhone: `${ddi} ${phonePayment || whatsapp}`,
+        serviceName,
+        amount: grandTotal,
+        paymentMethod: paymentMethod,
+        status: orderStatus,
+        createdAt: new Date().toISOString()
       });
 
       // Cadastra o domínio na lista de sites do cliente associado ao e-mail com status 'pending'
@@ -269,6 +287,18 @@ function CheckoutContent() {
               <span className="text-emerald-600 font-black text-base">{grandTotal.toLocaleString('pt-MZ')} MT</span>
             </div>
           </div>
+
+          {/* Botão para Baixar/Ver Recibo Oficial em PDF */}
+          {currentOrderData && (
+            <button
+              type="button"
+              onClick={() => setSelectedReceipt(currentOrderData)}
+              className="w-full mb-4 py-3 bg-white border-2 border-emerald-500 hover:bg-emerald-50 text-emerald-700 font-bold rounded-2xl transition flex items-center justify-center space-x-2 text-xs sm:text-sm shadow-xs cursor-pointer"
+            >
+              <FileText className="h-4 w-4 text-emerald-600" />
+              <span>Baixar / Imprimir Recibo Oficial (PDF)</span>
+            </button>
+          )}
 
           {/* FLUXO DE MENSAGEM SEGUNDO O E-MAIL DO CLIENTE */}
           {checkoutAccountStatus === 'logged_in' && (
@@ -828,6 +858,12 @@ function CheckoutContent() {
           </form>
         </div>
       </main>
+
+      {/* Modal de Recibo PDF */}
+      <ReceiptModal
+        receipt={selectedReceipt}
+        onClose={() => setSelectedReceipt(null)}
+      />
     </div>
   );
 }

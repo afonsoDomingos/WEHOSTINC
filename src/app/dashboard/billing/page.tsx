@@ -11,12 +11,14 @@ import { auth, User } from '@/lib/auth';
 import { hostingPlans, dataManager, ServiceOrder } from '@/lib/data';
 import DashboardNav from '@/components/DashboardNav';
 import PageLoader from '@/components/PageLoader';
+import ReceiptModal, { ReceiptData } from '@/components/ReceiptModal';
 import { Clock, XCircle, FileText } from 'lucide-react';
 
 export default function BillingPage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedReceipt, setSelectedReceipt] = useState<ReceiptData | null>(null);
   const [userOrders, setUserOrders] = useState<ServiceOrder[]>([]);
 
   useEffect(() => {
@@ -236,12 +238,12 @@ export default function BillingPage() {
                           </div>
                           <button
                             type="button"
-                            onClick={() => window.print()}
-                            className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs rounded-xl transition flex items-center space-x-1.5 cursor-pointer border border-gray-200 shrink-0"
-                            title="Imprimir Fatura"
+                            onClick={() => setSelectedReceipt(order)}
+                            className="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs rounded-xl transition flex items-center space-x-1.5 cursor-pointer border border-emerald-200 shrink-0 shadow-2xs"
+                            title="Ver e Imprimir Recibo Oficial (PDF)"
                           >
-                            <Printer className="h-4 w-4 text-gray-600" />
-                            <span>Fatura (PDF)</span>
+                            <FileText className="h-4 w-4 text-emerald-600" />
+                            <span>Recibo (PDF)</span>
                           </button>
                         </div>
                       </div>
@@ -401,6 +403,12 @@ export default function BillingPage() {
           </div>
         </div>
       </div>
+
+      {/* Modal de Recibo Oficial PDF */}
+      <ReceiptModal
+        receipt={selectedReceipt}
+        onClose={() => setSelectedReceipt(null)}
+      />
     </div>
   );
 }
