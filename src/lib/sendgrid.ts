@@ -1,12 +1,20 @@
 import { Resend } from 'resend';
 import { SITE_URL } from '@/lib/siteConfig';
 
-// Instância do cliente Resend
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 // Remetente padrão da plataforma
 export const DEFAULT_FROM = process.env.EMAIL_USER || 'karinganastudio23@gmail.com';
 export const DEFAULT_FROM_NAME = 'WEHOSTHERE';
+
+const getResendClient = () => {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return null;
+  try {
+    return new Resend(apiKey);
+  } catch (err) {
+    console.warn('[Resend] Erro ao instanciar cliente:', err);
+    return null;
+  }
+};
 
 export interface SendEmailOptions {
   to: string;
@@ -22,8 +30,9 @@ export interface SendEmailOptions {
  * Requer RESEND_API_KEY no .env.local.
  */
 export async function sendEmail(opts: SendEmailOptions): Promise<{ success: boolean; error?: string }> {
-  if (!process.env.RESEND_API_KEY) {
-    console.warn('[Resend] RESEND_API_KEY não configurado. E-mail não enviado.');
+  const resend = getResendClient();
+  if (!resend) {
+    console.warn('[Resend] RESEND_API_KEY não configurado ou inválido. E-mail não enviado.');
     return { success: false, error: 'RESEND_API_KEY não configurado no servidor.' };
   }
 

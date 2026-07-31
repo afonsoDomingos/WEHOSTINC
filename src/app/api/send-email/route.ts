@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { sendEmail, sendWebmailMessage } from '@/lib/sendgrid';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
