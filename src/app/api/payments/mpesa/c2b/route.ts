@@ -20,6 +20,8 @@ export async function POST(req: Request) {
       thirdPartyReference: thirdPartyReference || `ORDER_${Date.now()}`
     });
 
+    console.log('[M-PESA C2B RESPONSE]:', result);
+
     return NextResponse.json(result);
   } catch (error) {
     console.error('Erro na rota API M-Pesa C2B:', error);

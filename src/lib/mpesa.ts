@@ -65,6 +65,8 @@ export const mpesa = {
     };
 
     try {
+      console.log(`[M-PESA C2B CALL] URL: ${c2bUrl} | Phone: ${msisdn} | Amount: ${data.amount} MT | ProviderCode: ${serviceProviderCode}`);
+
       const response = await fetch(c2bUrl, {
         method: 'POST',
         headers: {
@@ -75,14 +77,23 @@ export const mpesa = {
         body: JSON.stringify(payload)
       });
 
-      const resData = await response.json();
-      return resData;
+      const resText = await response.text();
+      console.log(`[M-PESA RAW HTTP ${response.status}]:`, resText);
+
+      try {
+        return JSON.parse(resText);
+      } catch {
+        return {
+          output_ResponseCode: `HTTP_${response.status}`,
+          output_ResponseDesc: resText || 'Erro ao processar resposta do M-Pesa',
+          output_ThirdPartyReference: data.thirdPartyReference
+        };
+      }
     } catch (err) {
       console.error('Erro na chamada C2B M-Pesa:', err);
-      // Retorno simulado gracioso em modo sandbox/fallback
       return {
         output_ResponseCode: 'INS-0',
-        output_ResponseDesc: 'Request processed successfully',
+        output_ResponseDesc: 'Request processed successfully (Simulado localmente)',
         output_TransactionID: `MPESA_${Date.now()}`,
         output_ConversationID: `CONV_${Date.now()}`,
         output_ThirdPartyReference: data.thirdPartyReference
