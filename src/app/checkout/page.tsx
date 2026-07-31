@@ -94,9 +94,7 @@ function CheckoutContent() {
   }, []);
 
   const cycleParam = searchParams.get('billingCycle');
-  const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>(
-    cycleParam === 'annual' ? 'annual' : 'monthly'
-  );
+  const [durationMonths, setDurationMonths] = useState<number>(cycleParam === 'annual' ? 12 : 1);
 
   useEffect(() => {
     if (planIdParam) {
@@ -104,12 +102,22 @@ function CheckoutContent() {
     }
   }, [planIdParam]);
 
-  const basePrice = selectedPlan
-    ? (selectedPlan.id === 'website_creation' 
-        ? (siteTypePrice ? Number(siteTypePrice) : selectedPlan.price)
-        : (billingCycle === 'annual' ? selectedPlan.priceAnnual : selectedPlan.price))
-    : 0;
+  const calculatePlanCost = () => {
+    if (!selectedPlan) return 0;
+    if (selectedPlan.id === 'website_creation') {
+      return siteTypePrice ? Number(siteTypePrice) : selectedPlan.price;
+    }
+    if (durationMonths === 12) {
+      return selectedPlan.priceAnnual;
+    } else if (durationMonths === 6) {
+      return Math.round(selectedPlan.price * 6 * 0.90);
+    } else if (durationMonths === 3) {
+      return Math.round(selectedPlan.price * 3 * 0.95);
+    }
+    return selectedPlan.price * durationMonths;
+  };
 
+  const basePrice = calculatePlanCost();
   const grandTotal = basePrice + domainCost;
 
   const [pushModal, setPushModal] = useState(false);
@@ -155,7 +163,7 @@ function CheckoutContent() {
 
       const isWebsite = selectedPlan?.id === 'website_creation';
       const siteLabel = isWebsite && siteTypeName ? ` — ${siteTypeName}` : '';
-      const cycleLabel = isWebsite ? '' : ` (${billingCycle === 'annual' ? 'Anual' : 'Mensal'})`;
+      const cycleLabel = isWebsite ? '' : ` (${durationMonths} ${durationMonths === 1 ? 'Mês' : 'Meses'})`;
       const serviceName = selectedPlan
         ? (domainParam 
             ? `${selectedPlan.name}${siteLabel}${cycleLabel} + Domínio (${domainParam})` 
@@ -719,13 +727,13 @@ function CheckoutContent() {
               )}
             </div>
 
-            {/* Ciclo de Pagamento ou Banner Apenas Domínio */}
+            {/* Seleção de Duração / Período da Hospedagem */}
             {selectedPlan ? (
               selectedPlan.id !== 'website_creation' && (
                 <div className="pt-2">
                   <div className="flex items-center justify-between mb-2">
-                    <label className="block text-sm font-semibold text-gray-800">
-                      Ciclo de Pagamento da Hospedagem
+                    <label className="block text-sm font-bold text-gray-800">
+                      Período de Contratação (Duração da Assinatura)
                     </label>
                     {domainParam && (
                       <button
@@ -733,42 +741,87 @@ function CheckoutContent() {
                         onClick={() => setSelectedPlanId('none')}
                         className="text-xs text-red-600 hover:text-red-700 font-medium underline cursor-pointer"
                       >
-                        Remover Hospedagem (Comprar apenas o domínio)
+                        Remover Hospedagem (Comprar apenas domínio)
                       </button>
                     )}
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    {/* 1 Mês */}
                     <button
                       type="button"
-                      onClick={() => setBillingCycle('monthly')}
-                      className={`p-3.5 border-2 rounded-xl text-left transition cursor-pointer ${
-                        billingCycle === 'monthly'
+                      onClick={() => setDurationMonths(1)}
+                      className={`p-3 border-2 rounded-xl text-left transition cursor-pointer relative ${
+                        durationMonths === 1
                           ? 'border-primary-600 bg-primary-50/50 ring-2 ring-primary-500/20'
                           : 'border-gray-200 bg-white hover:border-gray-300'
                       }`}
                     >
-                      <span className="text-xs font-bold text-gray-500 block uppercase">Cobrança Mensal</span>
-                      <span className="text-base font-bold text-gray-900 block mt-0.5">
-                        {selectedPlan.price.toLocaleString('pt-MZ')} MT <span className="text-xs font-normal text-gray-500">/mês</span>
+                      <span className="text-[10px] font-bold text-gray-500 block uppercase">1 Mês</span>
+                      <span className="text-sm font-bold text-gray-900 block mt-0.5">
+                        {selectedPlan.price.toLocaleString('pt-MZ')} MT
                       </span>
+                      <span className="text-[10px] text-gray-400 block font-normal">Mensal regular</span>
                     </button>
 
+                    {/* 3 Meses */}
                     <button
                       type="button"
-                      onClick={() => setBillingCycle('annual')}
-                      className={`p-3.5 border-2 rounded-xl text-left transition relative cursor-pointer ${
-                        billingCycle === 'annual'
+                      onClick={() => setDurationMonths(3)}
+                      className={`p-3 border-2 rounded-xl text-left transition cursor-pointer relative ${
+                        durationMonths === 3
                           ? 'border-primary-600 bg-primary-50/50 ring-2 ring-primary-500/20'
                           : 'border-gray-200 bg-white hover:border-gray-300'
                       }`}
                     >
-                      <span className="absolute -top-2.5 right-3 bg-amber-400 text-gray-900 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
-                        2 Meses Grátis
+                      <span className="absolute -top-2 right-2 bg-blue-600 text-white text-[9px] font-extrabold px-1.5 py-0.2 rounded-full uppercase">
+                        -5% OFF
                       </span>
-                      <span className="text-xs font-bold text-gray-500 block uppercase">Cobrança Anual</span>
-                      <span className="text-base font-bold text-gray-900 block mt-0.5">
-                        {selectedPlan.priceAnnual.toLocaleString('pt-MZ')} MT <span className="text-xs font-normal text-gray-500">/ano</span>
+                      <span className="text-[10px] font-bold text-gray-500 block uppercase">3 Meses</span>
+                      <span className="text-sm font-bold text-gray-900 block mt-0.5">
+                        {Math.round(selectedPlan.price * 3 * 0.95).toLocaleString('pt-MZ')} MT
                       </span>
+                      <span className="text-[10px] text-emerald-700 block font-bold">5% Desconto</span>
+                    </button>
+
+                    {/* 6 Meses */}
+                    <button
+                      type="button"
+                      onClick={() => setDurationMonths(6)}
+                      className={`p-3 border-2 rounded-xl text-left transition cursor-pointer relative ${
+                        durationMonths === 6
+                          ? 'border-primary-600 bg-primary-50/50 ring-2 ring-primary-500/20'
+                          : 'border-gray-200 bg-white hover:border-gray-300'
+                      }`}
+                    >
+                      <span className="absolute -top-2 right-2 bg-purple-600 text-white text-[9px] font-extrabold px-1.5 py-0.2 rounded-full uppercase">
+                        -10% OFF
+                      </span>
+                      <span className="text-[10px] font-bold text-gray-500 block uppercase">6 Meses</span>
+                      <span className="text-sm font-bold text-gray-900 block mt-0.5">
+                        {Math.round(selectedPlan.price * 6 * 0.90).toLocaleString('pt-MZ')} MT
+                      </span>
+                      <span className="text-[10px] text-purple-700 block font-bold">10% Desconto</span>
+                    </button>
+
+                    {/* 12 Meses / 1 Ano */}
+                    <button
+                      type="button"
+                      onClick={() => setDurationMonths(12)}
+                      className={`p-3 border-2 rounded-xl text-left transition cursor-pointer relative ${
+                        durationMonths === 12
+                          ? 'border-emerald-600 bg-emerald-50/60 ring-2 ring-emerald-500/20'
+                          : 'border-gray-200 bg-white hover:border-gray-300'
+                      }`}
+                    >
+                      <span className="absolute -top-2 right-2 bg-amber-400 text-gray-950 text-[9px] font-black px-1.5 py-0.2 rounded-full uppercase">
+                        2 Mês Grátis
+                      </span>
+                      <span className="text-[10px] font-bold text-emerald-800 block uppercase">1 Ano (12M)</span>
+                      <span className="text-sm font-bold text-gray-900 block mt-0.5">
+                        {selectedPlan.priceAnnual.toLocaleString('pt-MZ')} MT
+                      </span>
+                      <span className="text-[10px] text-amber-700 block font-bold">2 Meses OFF</span>
                     </button>
                   </div>
                 </div>
@@ -800,7 +853,7 @@ function CheckoutContent() {
                       <span className="font-semibold text-gray-900">
                         {selectedPlan.id === 'website_creation'
                           ? (siteTypeName ? siteTypeName : 'Criação de Site Profissional')
-                          : `Plano ${selectedPlan.name} (${billingCycle === 'annual' ? 'Anual' : 'Mensal'})`}
+                          : `Plano ${selectedPlan.name} (${durationMonths === 1 ? '1 Mês' : `${durationMonths} Meses`})`}
                       </span>
                       <span className="font-bold text-gray-900">{basePrice.toLocaleString('pt-MZ')} MT</span>
                     </div>
@@ -826,9 +879,16 @@ function CheckoutContent() {
                   </div>
                 )}
 
-                {selectedPlan && billingCycle === 'annual' && selectedPlan.id !== 'website_creation' && (
-                  <div className="bg-emerald-50 text-emerald-700 p-2 rounded-lg text-xs font-semibold border border-emerald-200 mt-2">
-                    🎉 Economia de 2 meses grátis ({(selectedPlan.price * 2).toLocaleString('pt-MZ')} MT economizados)!
+                {selectedPlan && selectedPlan.id !== 'website_creation' && durationMonths > 1 && (
+                  <div className="bg-emerald-50 text-emerald-800 p-2.5 rounded-lg text-xs font-semibold border border-emerald-200 mt-2 flex items-center justify-between">
+                    <span>🎉 Desconto Especial para {durationMonths} Meses Aplicado!</span>
+                    <span className="font-bold text-emerald-700">
+                      {durationMonths === 12
+                        ? `Economia de ${(selectedPlan.price * 2).toLocaleString('pt-MZ')} MT`
+                        : (durationMonths === 6
+                            ? `Economia de ${Math.round(selectedPlan.price * 6 * 0.10).toLocaleString('pt-MZ')} MT`
+                            : `Economia de ${Math.round(selectedPlan.price * 3 * 0.05).toLocaleString('pt-MZ')} MT`)}
+                    </span>
                   </div>
                 )}
                 
