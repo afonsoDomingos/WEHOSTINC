@@ -1016,39 +1016,47 @@ export default function AdminPage() {
                       </td>
                       <td className="py-3.5 px-4 text-gray-600 font-mono text-sm">{user.email}</td>
                       <td className="py-3.5 px-4">
-                        <select
-                          value={pendingPlanChanges[user.id] ?? user.plan}
-                          onChange={(e) => {
-                            const newVal = e.target.value as 'basic' | 'pro' | 'enterprise';
-                            if (newVal === user.plan) {
-                              // Voltou ao original — remove alteração pendente
-                              setPendingPlanChanges(prev => {
-                                const next = { ...prev };
-                                delete next[user.id];
-                                return next;
-                              });
-                            } else {
-                              setPendingPlanChanges(prev => ({ ...prev, [user.id]: newVal }));
-                            }
-                          }}
-                          className={`px-2.5 py-1 rounded-lg text-xs font-bold outline-none border cursor-pointer ${
-                            (pendingPlanChanges[user.id] ?? user.plan) === 'basic' ? 'bg-gray-100 text-gray-800 border-gray-300' :
-                            (pendingPlanChanges[user.id] ?? user.plan) === 'pro' ? 'bg-blue-50 text-blue-800 border-blue-300' :
-                            'bg-purple-50 text-purple-800 border-purple-300'
-                          }`}
-                        >
-                          <option value="basic">Básico (550 MT/mês)</option>
-                          <option value="pro">Profissional (2.500 MT/mês)</option>
-                          <option value="enterprise">Empresarial (6.200 MT/mês)</option>
-                        </select>
-                        {pendingPlanChanges[user.id] && (
-                          <button
-                            type="button"
-                            onClick={() => handleSavePlanChange(user.id, user.name, user.email)}
-                            className="mt-1 w-full px-2 py-0.5 bg-primary-600 hover:bg-primary-700 text-white text-[10px] font-extrabold rounded-md transition cursor-pointer"
-                          >
-                            💾 Guardar
-                          </button>
+                        {user.role === 'admin' || user.email.toLowerCase() === 'admin@wehosthere.com' ? (
+                          <span className="inline-block px-2.5 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-700 border border-purple-200">
+                            👑 Administrador
+                          </span>
+                        ) : (
+                          <>
+                            <select
+                              value={pendingPlanChanges[user.id] ?? user.plan}
+                              onChange={(e) => {
+                                const newVal = e.target.value as 'basic' | 'pro' | 'enterprise';
+                                if (newVal === user.plan) {
+                                  // Voltou ao original — remove alteração pendente
+                                  setPendingPlanChanges(prev => {
+                                    const next = { ...prev };
+                                    delete next[user.id];
+                                    return next;
+                                  });
+                                } else {
+                                  setPendingPlanChanges(prev => ({ ...prev, [user.id]: newVal }));
+                                }
+                              }}
+                              className={`px-2.5 py-1 rounded-lg text-xs font-bold outline-none border cursor-pointer ${
+                                (pendingPlanChanges[user.id] ?? user.plan) === 'basic' ? 'bg-gray-100 text-gray-800 border-gray-300' :
+                                (pendingPlanChanges[user.id] ?? user.plan) === 'pro' ? 'bg-blue-50 text-blue-800 border-blue-300' :
+                                'bg-purple-50 text-purple-800 border-purple-300'
+                              }`}
+                            >
+                              <option value="basic">Básico (550 MT/mês)</option>
+                              <option value="pro">Profissional (2.500 MT/mês)</option>
+                              <option value="enterprise">Empresarial (6.200 MT/mês)</option>
+                            </select>
+                            {pendingPlanChanges[user.id] && (
+                              <button
+                                type="button"
+                                onClick={() => handleSavePlanChange(user.id, user.name, user.email)}
+                                className="mt-1 w-full px-2 py-0.5 bg-primary-600 hover:bg-primary-700 text-white text-[10px] font-extrabold rounded-md transition cursor-pointer"
+                              >
+                                💾 Guardar
+                              </button>
+                            )}
+                          </>
                         )}
                       </td>
                       <td className="py-3.5 px-4 text-gray-600 text-sm font-medium">
