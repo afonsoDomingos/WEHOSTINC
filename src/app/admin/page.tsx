@@ -297,6 +297,18 @@ export default function AdminPage() {
     alert(`✅ Plano de "${userName}" alterado para ${planNames[newPlanId]}!\nFatura de ${planPrices[newPlanId].toLocaleString('pt-MZ')} MT gerada e aguarda pagamento.`);
   };
 
+  const handleUpdateEmailStatus = (emailId: string, status: 'active' | 'pending' | 'suspended') => {
+    dataManager.updateEmailStatus(emailId, status);
+    setEmails(dataManager.getEmails());
+  };
+
+  const handleDeleteEmail = (emailId: string, emailAddr: string) => {
+    if (confirm(`Tem certeza que deseja eliminar a conta de e-mail "${emailAddr}"?`)) {
+      dataManager.deleteEmail(emailId);
+      setEmails(dataManager.getEmails());
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -818,6 +830,111 @@ export default function AdminPage() {
                       </td>
                     </tr>
                   ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {/* Gestão e Aprovação de Contas de E-mail Corporativo */}
+        <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900 flex items-center space-x-2">
+                <Mail className="h-6 w-6 text-primary-600" />
+                <span>Aprovação & Gestão de E-mails Corporativos</span>
+              </h2>
+              <p className="text-sm text-gray-500 mt-1">Aprove ou suspenda solicitações de caixas de e-mail corporativo criadas pelos clientes</p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1.5 rounded-full border border-amber-300">
+                {emails.filter(e => e.status === 'pending' || !e.status).length} Pendente(s)
+              </span>
+              <span className="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1.5 rounded-full border border-blue-300">
+                {emails.length} Totais
+              </span>
+            </div>
+          </div>
+
+          {emails.length === 0 ? (
+            <div className="text-center py-12">
+              <Mail className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-800 mb-1">Nenhuma conta de email criada</h3>
+              <p className="text-gray-500">As contas criadas pelos clientes no painel aparecerão aqui para aprovação</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-200 bg-gray-50/50">
+                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">E-mail Corporativo</th>
+                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Cliente / Utilizador</th>
+                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Armazenamento</th>
+                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Data de Criação</th>
+                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Estado / Aprovação</th>
+                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Ações</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {emails.map((emailAcc) => {
+                    const isPending = emailAcc.status === 'pending' || !emailAcc.status;
+                    return (
+                      <tr key={emailAcc.id} className="hover:bg-gray-50/80 transition">
+                        <td className="py-3.5 px-4">
+                          <span className="font-mono font-bold text-gray-900 text-sm block">{emailAcc.email}</span>
+                          <span className="text-xs text-primary-600 font-semibold">@{emailAcc.domain || emailAcc.email.split('@')[1]}</span>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span className="font-semibold text-gray-900 text-sm block">{emailAcc.userEmail || 'Cliente Plataforma'}</span>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span className="font-bold text-gray-700 text-xs">{emailAcc.quotaGB || 5} GB</span>
+                        </td>
+                        <td className="py-3.5 px-4 text-xs text-gray-500">
+                          {emailAcc.createdAt ? new Date(emailAcc.createdAt).toLocaleDateString('pt-BR') : 'Hoje'}
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <select
+                            value={emailAcc.status || 'pending'}
+                            onChange={(e) => handleUpdateEmailStatus(emailAcc.id, e.target.value as any)}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold outline-none border cursor-pointer ${
+                              emailAcc.status === 'active'
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                                : emailAcc.status === 'suspended'
+                                ? 'bg-red-50 text-red-700 border-red-300'
+                                : 'bg-amber-50 text-amber-700 border-amber-300'
+                            }`}
+                          >
+                            <option value="pending">Em Processamento (⏰)</option>
+                            <option value="active">Ativo (✓)</option>
+                            <option value="suspended">Suspenso (🛑)</option>
+                          </select>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <div className="flex items-center space-x-2">
+                            {isPending && (
+                              <button
+                                onClick={() => handleUpdateEmailStatus(emailAcc.id, 'active')}
+                                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-2xs transition flex items-center space-x-1.5 cursor-pointer"
+                                title="Aprovar e Ativar Conta de Email"
+                              >
+                                <CheckCircle className="h-3.5 w-3.5" />
+                                <span>Aprovar Conta</span>
+                              </button>
+                            )}
+
+                            <button
+                              onClick={() => handleDeleteEmail(emailAcc.id, emailAcc.email)}
+                              className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
+                              title="Excluir Conta"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

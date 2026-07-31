@@ -492,10 +492,29 @@ export const dataManager = {
       emails[index] = { ...emails[index], ...updates };
       if (typeof window !== 'undefined') {
         localStorage.setItem(EMAILS_KEY, JSON.stringify(emails));
+
+        fetch('/api/emails', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: emails[index] })
+        }).catch(err => console.error('Erro de sync de e-mail:', err));
       }
       return emails[index];
     }
     return null;
+  },
+
+  updateEmailStatus: (id: string, status: EmailAccount['status']): void => {
+    const emails = dataManager.getEmails().map(e => e.id === id ? { ...e, status } : e);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(EMAILS_KEY, JSON.stringify(emails));
+
+      fetch('/api/emails', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update_status', emailId: id, status })
+      }).catch(err => console.error('Erro de sync de status de email:', err));
+    }
   },
 
   // Pedidos de Serviços

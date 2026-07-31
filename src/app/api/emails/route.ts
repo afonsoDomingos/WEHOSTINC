@@ -26,6 +26,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true, emails: GLOBAL_EMAILS });
     }
 
+    if (action === 'update_status') {
+      const idx = GLOBAL_EMAILS.findIndex(e => e.id === emailId);
+      if (idx >= 0) {
+        (GLOBAL_EMAILS[idx] as any).status = body.status;
+      }
+      return NextResponse.json({ success: true, emails: GLOBAL_EMAILS });
+    }
+
     const newEmail: ServerEmailAccount = email || {
       id: body.id || Date.now().toString(),
       email: body.email,
