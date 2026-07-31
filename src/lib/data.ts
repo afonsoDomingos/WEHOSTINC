@@ -1097,6 +1097,24 @@ export const dataManager = {
     return data ? JSON.parse(data) : [];
   },
 
+  fetchSecurityLogsAsync: async (): Promise<SecurityLog[]> => {
+    try {
+      const res = await fetch('/api/security/logs');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.logs && Array.isArray(data.logs)) {
+          if (typeof window !== 'undefined') {
+            localStorage.setItem(SECURITY_LOGS_KEY, JSON.stringify(data.logs));
+          }
+          return data.logs;
+        }
+      }
+    } catch (e) {
+      console.error('Falha ao buscar logs de segurança:', e);
+    }
+    return dataManager.getSecurityLogs();
+  },
+
   addSecurityLog: (email: string, type: 'failed_login' | 'account_locked' | 'suspended_attempt', message: string): SecurityLog => {
     const logs = dataManager.getSecurityLogs();
     const newLog: SecurityLog = {

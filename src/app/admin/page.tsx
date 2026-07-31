@@ -216,7 +216,9 @@ export default function AdminPage() {
         }
       });
       fetchDomainLogs();
-      setSecurityLogs(dataManager.getSecurityLogs());
+      dataManager.fetchSecurityLogsAsync().then((fetched) => {
+        if (fetched) setSecurityLogs(fetched);
+      });
     }, 5000);
 
     return () => clearInterval(interval);
