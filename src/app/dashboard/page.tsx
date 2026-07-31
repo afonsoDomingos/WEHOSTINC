@@ -5,9 +5,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
   Server, Mail, LayoutDashboard, Settings, LogOut, 
-  Plus, Globe, Database, TrendingUp, Users, CheckCircle, Sparkles, ArrowRight
+  Plus, Globe, Database, TrendingUp, Users, CheckCircle, Sparkles, ArrowRight, Link2
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
+import { dataManager } from '@/lib/data';
 
 import DashboardNav from '@/components/DashboardNav';
 
@@ -15,6 +16,10 @@ export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [siteCount, setSiteCount] = useState(0);
+  const [emailCount, setEmailCount] = useState(0);
+  const [storageUsed, setStorageUsed] = useState(0);
+  const [storageTotal, setStorageTotal] = useState(10);
 
   useEffect(() => {
     const currentUser = auth.getCurrentUser();
@@ -23,6 +28,17 @@ export default function DashboardPage() {
       return;
     }
     setUser(currentUser);
+    // Carregar contadores reais
+    const sites = dataManager.getSites();
+    const emails = dataManager.getEmails();
+    setSiteCount(sites.length);
+    setEmailCount(emails.length);
+    const usedStorage = sites.reduce((sum, s) => sum + (s.storage || 0), 0)
+      + emails.reduce((sum, e) => sum + (e.storage || 0), 0);
+    setStorageUsed(usedStorage);
+    // limite de armazenamento consoante plano
+    const planLimits: Record<string, number> = { basic: 10, pro: 50, enterprise: 200 };
+    setStorageTotal(planLimits[currentUser.plan] || 10);
     setLoading(false);
   }, [router]);
 
@@ -169,32 +185,36 @@ export default function DashboardPage() {
 
             {/* Stats */}
             <div className="grid md:grid-cols-3 gap-6">
-              <div className="bg-white rounded-xl shadow-sm p-6">
+              <Link href="/dashboard/sites" className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition cursor-pointer group">
                 <div className="flex items-center justify-between mb-4">
-                  <Globe className="h-8 w-8 text-primary-600" />
+                  <Globe className="h-8 w-8 text-primary-600 group-hover:scale-110 transition-transform" />
                   <span className="text-sm text-gray-500">Sites</span>
                 </div>
-                <p className="text-3xl font-bold text-gray-900">0</p>
-                <p className="text-sm text-gray-600 mt-1">Nenhum site configurado</p>
-              </div>
+                <p className="text-3xl font-bold text-gray-900">{siteCount}</p>
+                <p className="text-sm text-gray-600 mt-1">
+                  {siteCount === 0 ? 'Nenhum site configurado' : `${siteCount} site${siteCount > 1 ? 's' : ''} activo${siteCount > 1 ? 's' : ''}`}
+                </p>
+              </Link>
 
-              <div className="bg-white rounded-xl shadow-sm p-6">
+              <Link href="/dashboard/email" className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition cursor-pointer group">
                 <div className="flex items-center justify-between mb-4">
-                  <Mail className="h-8 w-8 text-primary-600" />
+                  <Mail className="h-8 w-8 text-primary-600 group-hover:scale-110 transition-transform" />
                   <span className="text-sm text-gray-500">Emails</span>
                 </div>
-                <p className="text-3xl font-bold text-gray-900">0</p>
-                <p className="text-sm text-gray-600 mt-1">Nenhuma conta configurada</p>
-              </div>
+                <p className="text-3xl font-bold text-gray-900">{emailCount}</p>
+                <p className="text-sm text-gray-600 mt-1">
+                  {emailCount === 0 ? 'Nenhuma conta configurada' : `${emailCount} conta${emailCount > 1 ? 's' : ''} activa${emailCount > 1 ? 's' : ''}`}
+                </p>
+              </Link>
 
-              <div className="bg-white rounded-xl shadow-sm p-6">
+              <Link href="/dashboard/domains" className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition cursor-pointer group">
                 <div className="flex items-center justify-between mb-4">
-                  <Database className="h-8 w-8 text-primary-600" />
+                  <Database className="h-8 w-8 text-primary-600 group-hover:scale-110 transition-transform" />
                   <span className="text-sm text-gray-500">Armazenamento</span>
                 </div>
-                <p className="text-3xl font-bold text-gray-900">0 GB</p>
-                <p className="text-sm text-gray-600 mt-1">de 10 GB utilizados</p>
-              </div>
+                <p className="text-3xl font-bold text-gray-900">{storageUsed} GB</p>
+                <p className="text-sm text-gray-600 mt-1">de {storageTotal} GB utilizados</p>
+              </Link>
             </div>
 
             {/* Quick Actions */}

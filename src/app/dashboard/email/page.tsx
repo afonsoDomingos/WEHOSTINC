@@ -9,7 +9,7 @@ import {
   Key, ShieldCheck, Copy, Sparkles, AlertCircle, X, Check, Lock
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
-import { dataManager, EmailAccount } from '@/lib/data';
+import { dataManager, EmailAccount, Site } from '@/lib/data';
 
 import DashboardNav from '@/components/DashboardNav';
 
@@ -17,12 +17,14 @@ export default function EmailPage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [emails, setEmails] = useState<EmailAccount[]>([]);
+  const [sites, setSites] = useState<Site[]>([]);
+  const [userDomains, setUserDomains] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Modal para Criar Nova Conta
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newEmailPrefix, setNewEmailPrefix] = useState('');
-  const [selectedDomain, setSelectedDomain] = useState('msservices.co.mz');
+  const [selectedDomain, setSelectedDomain] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newStorage, setNewStorage] = useState(5);
 
@@ -49,6 +51,14 @@ export default function EmailPage() {
     setUser(currentUser);
     const loadedEmails = dataManager.getEmails();
     setEmails(loadedEmails);
+
+    // Carregar domínios reais dos sites do utilizador
+    const loadedSites = dataManager.getSites();
+    setSites(loadedSites);
+    const domains = loadedSites.map(s => s.domain).filter(Boolean);
+    setUserDomains(domains);
+    if (domains.length > 0) setSelectedDomain(domains[0]);
+
     setLoading(false);
   }, [router]);
 
@@ -518,30 +528,42 @@ export default function EmailPage() {
             </div>
 
             <form onSubmit={handleAddEmail} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1">
-                  Nome da Conta (Prefixo)
-                </label>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="text"
-                    value={newEmailPrefix}
-                    onChange={(e) => setNewEmailPrefix(e.target.value)}
-                    className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm text-gray-900 outline-none focus:ring-2 focus:ring-primary-500 font-semibold"
-                    placeholder="ex: contacto, geral, vendas"
-                    required
-                  />
-                  <span className="text-gray-400 font-bold">@</span>
-                  <select
-                    value={selectedDomain}
-                    onChange={(e) => setSelectedDomain(e.target.value)}
-                    className="px-3 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-xs text-gray-900 outline-none focus:ring-2 focus:ring-primary-500 font-bold"
-                  >
-                    <option value="msservices.co.mz">msservices.co.mz</option>
-                    <option value="suaempresa.co.mz">suaempresa.co.mz</option>
-                  </select>
+              {/* Se não há domínios, aviso */}
+              {userDomains.length === 0 ? (
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-start space-x-3">
+                  <AlertCircle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-bold text-amber-800">Nenhum domínio registado</p>
+                    <p className="text-xs text-amber-700 mt-0.5">Adicione um site/domínio primeiro em <Link href="/dashboard/sites" className="underline font-bold">Meus Sites</Link> para poder criar contas de email.</p>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1">
+                    Nome da Conta (Prefixo)
+                  </label>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="text"
+                      value={newEmailPrefix}
+                      onChange={(e) => setNewEmailPrefix(e.target.value)}
+                      className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm text-gray-900 outline-none focus:ring-2 focus:ring-primary-500 font-semibold"
+                      placeholder="ex: contacto, geral, vendas"
+                      required
+                    />
+                    <span className="text-gray-400 font-bold">@</span>
+                    <select
+                      value={selectedDomain}
+                      onChange={(e) => setSelectedDomain(e.target.value)}
+                      className="px-3 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-xs text-gray-900 outline-none focus:ring-2 focus:ring-primary-500 font-bold"
+                    >
+                      {userDomains.map(domain => (
+                        <option key={domain} value={domain}>{domain}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              )}
 
               <div>
                 <div className="flex items-center justify-between mb-1">
