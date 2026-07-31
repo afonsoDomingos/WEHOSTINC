@@ -257,6 +257,22 @@ export default function AdminPage() {
     setSites(dataManager.getSites());
   };
 
+  const handleAdminDeleteSite = (id: string, domain: string) => {
+    if (confirm(`Tem certeza que deseja ELIMINAR permanentemente o domínio "${domain}"? Todos os e-mails associados também serão removidos.`)) {
+      dataManager.deleteSite(id, domain);
+      setSites(prev => prev.filter(s => s.id !== id && s.domain !== domain));
+      setEmails(prev => prev.filter(e => (e.domain || '').toLowerCase() !== domain.toLowerCase() && !e.email.toLowerCase().endsWith(`@${domain.toLowerCase()}`)));
+    }
+  };
+
+  const handleAdminDeleteEmail = (id: string, userEmail?: string, emailStr?: string) => {
+    const displayEmail = emailStr || id;
+    if (confirm(`Tem certeza que deseja ELIMINAR a conta de e-mail "${displayEmail}"?`)) {
+      dataManager.deleteEmail(id, userEmail, emailStr);
+      setEmails(prev => prev.filter(e => e.id !== id && e.email !== displayEmail));
+    }
+  };
+
   const handleCreateClient = (e: React.FormEvent) => {
     e.preventDefault();
     setCreateError('');
@@ -1200,6 +1216,90 @@ export default function AdminPage() {
                               <option value="suspended">🔴 Suspenso</option>
                             </select>
                           )}
+                          <button
+                            onClick={() => handleAdminDeleteSite(site.id, site.domain)}
+                            title="Eliminar Domínio"
+                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {/* Gestão Global de Contas de E-mail Corporativo */}
+        <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm mb-8">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900 flex items-center space-x-2">
+                <Mail className="h-5 w-5 text-primary-600" />
+                <span>Gestão Global de Contas de E-mail Corporativo</span>
+              </h2>
+              <p className="text-gray-500 text-sm">Visualize, altere status e elimine qualquer conta de e-mail criada por clientes</p>
+            </div>
+            <span className="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1.5 rounded-full border border-blue-300">
+              {emails.length} Conta(s) Registrada(s)
+            </span>
+          </div>
+
+          {emails.length === 0 ? (
+            <div className="text-center py-8 text-gray-500 text-sm">
+              Nenhuma conta de e-mail corporativo cadastrada.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-200 bg-gray-50/50">
+                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">E-mail Corporativo</th>
+                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Cliente Proprietário</th>
+                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Status</th>
+                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Ações</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {emails.map((item) => (
+                    <tr key={item.id} className="hover:bg-gray-50/80 transition">
+                      <td className="py-3.5 px-4 font-mono font-bold text-gray-900 text-sm">
+                        {item.email}
+                      </td>
+                      <td className="py-3.5 px-4 text-xs text-gray-600">
+                        {item.userEmail || 'Desconhecido'}
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <span className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-bold border ${
+                          item.status === 'active' ? 'bg-emerald-50 text-emerald-800 border-emerald-300' : 'bg-amber-50 text-amber-800 border-amber-300'
+                        }`}>
+                          <span>{item.status === 'active' ? '🟢 Ativo' : '🟡 Pendente (Processando)'}</span>
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() => {
+                              const newStatus = item.status === 'active' ? 'pending' : 'active';
+                              dataManager.updateEmailStatus(item.id, newStatus);
+                              setEmails(dataManager.getEmails());
+                            }}
+                            className={`px-2.5 py-1 text-xs font-bold rounded-lg border transition cursor-pointer ${
+                              item.status === 'active' ? 'bg-amber-50 text-amber-700 border-amber-300 hover:bg-amber-100' : 'bg-emerald-600 text-white hover:bg-emerald-700'
+                            }`}
+                          >
+                            {item.status === 'active' ? 'Suspender/Pendente' : 'Aprovar E-mail'}
+                          </button>
+                          <button
+                            onClick={() => handleAdminDeleteEmail(item.id, item.userEmail, item.email)}
+                            title="Eliminar E-mail Permanentemente"
+                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
                         </div>
                       </td>
                     </tr>

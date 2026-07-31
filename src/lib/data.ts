@@ -375,7 +375,7 @@ export const dataManager = {
     return sites;
   },
 
-  fetchSitesAsync: async (): Promise<Site[]> => {
+  fetchSitesAsync: async (currentUserEmail?: string): Promise<Site[]> => {
     try {
       const res = await fetch('/api/sites');
       if (res.ok) {
@@ -384,39 +384,43 @@ export const dataManager = {
           const serverSites: Site[] = data.sites;
           const localSites = dataManager.getSites();
 
-          const siteMap = new Map<string, Site>();
-          localSites.forEach(s => {
+          // Sync server status to local sites
+          const serverSiteMap = new Map<string, Site>();
+          serverSites.forEach(s => {
             const key = (s.domain || s.id).toLowerCase();
-            siteMap.set(key, s);
+            serverSiteMap.set(key, s);
           });
 
-          serverSites.forEach(serverSite => {
-            const key = (serverSite.domain || serverSite.id).toLowerCase();
-            const existing = siteMap.get(key);
-            if (existing) {
-              siteMap.set(key, { ...existing, ...serverSite, status: serverSite.status || existing.status });
-            } else {
-              siteMap.set(key, serverSite);
+          // Keep local sites that match server sites, updating their status
+          const updatedSites: Site[] = [];
+          localSites.forEach(local => {
+            const key = (local.domain || local.id).toLowerCase();
+            const serverMatch = serverSiteMap.get(key);
+            if (serverMatch) {
+              updatedSites.push({ ...local, status: serverMatch.status || local.status });
+              serverSiteMap.delete(key); // Marked as processed
             }
           });
 
-          const merged = Array.from(siteMap.values());
-          if (typeof window !== 'undefined') {
-            localStorage.setItem(SITES_KEY, JSON.stringify(merged));
+          // Add any new server sites not in local storage
+          serverSiteMap.forEach(serverSite => {
+            updatedSites.push(serverSite);
+          });
 
-            fetch('/api/sites', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ action: 'sync_all', sites: merged })
-            }).catch(e => console.error(e));
+          if (typeof window !== 'undefined') {
+            localStorage.setItem(SITES_KEY, JSON.stringify(updatedSites));
           }
-          return merged;
+
+          if (currentUserEmail) {
+            return updatedSites.filter(s => !s.userEmail || s.userEmail.toLowerCase() === currentUserEmail.toLowerCase());
+          }
+          return updatedSites;
         }
       }
     } catch (e) {
       console.error('Falha ao buscar sites da API:', e);
     }
-    return dataManager.getSites();
+    return currentUserEmail ? dataManager.getSites(currentUserEmail) : dataManager.getSites();
   },
 
   addSite: (site: Omit<Site, 'id' | 'createdAt'>): Site => {
@@ -439,16 +443,31 @@ export const dataManager = {
     return newSite;
   },
 
-  deleteSite: (id: string): void => {
-    const sites = dataManager.getSites().filter(s => s.id !== id && s.domain !== id);
+  deleteSite: (id: string, domain?: string): void => {
+    const targetDomain = (domain || id).toLowerCase();
+    const sites = dataManager.getSites().filter(
+      s => s.id !== id && (s.domain || '').toLowerCase() !== targetDomain
+    );
     if (typeof window !== 'undefined') {
       localStorage.setItem(SITES_KEY, JSON.stringify(sites));
 
       fetch('/api/sites', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'delete', siteId: id })
+        body: JSON.stringify({ action: 'delete', siteId: id, domain: targetDomain })
       }).catch(err => console.error('Erro de exclusão de site no servidor:', err));
+
+      // Auto-delete any associated emails for this domain
+      if (targetDomain) {
+        const emails = dataManager.getEmails();
+        const emailsToDelete = emails.filter(e => {
+          const domainOfEmail = e.email.includes('@') ? e.email.split('@')[1].toLowerCase() : '';
+          return domainOfEmail === targetDomain || e.email.toLowerCase().endsWith(`@${targetDomain}`);
+        });
+        emailsToDelete.forEach(e => {
+          dataManager.deleteEmail(e.id, e.userEmail, e.email);
+        });
+      }
     }
   },
 
@@ -513,15 +532,18 @@ export const dataManager = {
             const localData = localStorage.getItem(userKey);
             const localEmails: EmailAccount[] = localData ? JSON.parse(localData) : [];
 
-            // Update status of local emails from server
-            const updated = localEmails.map(local => {
+            // Purge deleted emails: Only keep local emails that still exist on server (or newly added)
+            const updated: EmailAccount[] = [];
+            localEmails.forEach(local => {
               const serverMatch = myServerEmails.find(
-                s => s.email.toLowerCase() === local.email.toLowerCase()
+                s => s.email.toLowerCase() === local.email.toLowerCase() || s.id === local.id
               );
-              return serverMatch ? { ...local, status: serverMatch.status || local.status } : local;
+              if (serverMatch) {
+                updated.push({ ...local, status: serverMatch.status || local.status });
+              }
             });
 
-            // Add any new server emails not yet in local storage
+            // Add any server emails for this user not yet in local storage
             myServerEmails.forEach(serverEmail => {
               if (!updated.find(u => u.email.toLowerCase() === serverEmail.email.toLowerCase())) {
                 updated.push(serverEmail);
@@ -532,7 +554,10 @@ export const dataManager = {
             return updated;
           }
 
-          // No user filter: admin fallback
+          // Admin use: Sync shared EMAILS_KEY with serverEmails
+          if (typeof window !== 'undefined') {
+            localStorage.setItem(EMAILS_KEY, JSON.stringify(serverEmails));
+          }
           return serverEmails;
         }
       }
@@ -556,6 +581,14 @@ export const dataManager = {
       const storageKey = userEmailOwner ? getEmailsKey(userEmailOwner) : EMAILS_KEY;
       localStorage.setItem(storageKey, JSON.stringify(emails));
 
+      // Also add to shared EMAILS_KEY for admin visibility
+      const sharedData = localStorage.getItem(EMAILS_KEY);
+      const sharedEmails: EmailAccount[] = sharedData ? JSON.parse(sharedData) : [];
+      if (!sharedEmails.find(e => e.email.toLowerCase() === newEmail.email.toLowerCase())) {
+        sharedEmails.push(newEmail);
+        localStorage.setItem(EMAILS_KEY, JSON.stringify(sharedEmails));
+      }
+
       fetch('/api/emails', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -565,17 +598,31 @@ export const dataManager = {
     return newEmail;
   },
 
-  deleteEmail: (id: string, ownerEmail?: string): void => {
-    const sourceEmails = ownerEmail ? dataManager.getEmails(ownerEmail) : dataManager.getEmails();
-    const filtered = sourceEmails.filter(e => e.id !== id && e.email !== id);
+  deleteEmail: (id: string, ownerEmail?: string, emailStr?: string): void => {
+    const targetEmailStr = (emailStr || id).toLowerCase();
+    
     if (typeof window !== 'undefined') {
-      const storageKey = ownerEmail ? getEmailsKey(ownerEmail) : EMAILS_KEY;
-      localStorage.setItem(storageKey, JSON.stringify(filtered));
+      // 1. Delete from user specific storage
+      if (ownerEmail) {
+        const userKey = getEmailsKey(ownerEmail);
+        const userEmails: EmailAccount[] = JSON.parse(localStorage.getItem(userKey) || '[]');
+        const filteredUser = userEmails.filter(e => e.id !== id && e.email.toLowerCase() !== targetEmailStr);
+        localStorage.setItem(userKey, JSON.stringify(filteredUser));
+      }
 
+      // 2. Delete from shared storage (admin)
+      const sharedData = localStorage.getItem(EMAILS_KEY);
+      if (sharedData) {
+        const sharedEmails: EmailAccount[] = JSON.parse(sharedData);
+        const filteredShared = sharedEmails.filter(e => e.id !== id && e.email.toLowerCase() !== targetEmailStr);
+        localStorage.setItem(EMAILS_KEY, JSON.stringify(filteredShared));
+      }
+
+      // 3. Delete from Server API
       fetch('/api/emails', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'delete', emailId: id })
+        body: JSON.stringify({ action: 'delete', emailId: id, emailStr: targetEmailStr })
       }).catch(err => console.error('Erro de exclusão de e-mail no servidor:', err));
     }
   },

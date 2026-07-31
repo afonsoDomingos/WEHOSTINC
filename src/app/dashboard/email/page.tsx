@@ -181,10 +181,11 @@ export default function EmailPage() {
     }, 1800);
   };
 
-  const handleDeleteEmail = (id: string) => {
-    if (confirm('Tem certeza que deseja excluir esta conta de email?')) {
-      dataManager.deleteEmail(id);
-      setEmails(emails.filter(e => e.id !== id));
+  const handleDeleteEmail = (id: string, emailStr?: string) => {
+    if (confirm(`Tem certeza que deseja excluir a conta de e-mail "${emailStr || id}"?`)) {
+      const userEmailFilter = user?.email;
+      dataManager.deleteEmail(id, userEmailFilter, emailStr);
+      setEmails(emails.filter(e => e.id !== id && e.email !== emailStr));
     }
   };
 
@@ -364,7 +365,7 @@ export default function EmailPage() {
                           {/* Botão Excluir */}
                           <button
                             type="button"
-                            onClick={() => handleDeleteEmail(email.id)}
+                            onClick={() => handleDeleteEmail(email.id, email.email)}
                             className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-xl transition cursor-pointer border border-gray-200"
                             title="Excluir Conta"
                           >

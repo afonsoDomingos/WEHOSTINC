@@ -65,10 +65,10 @@ export default function SitesPage() {
     setNewSiteDomain('');
   };
 
-  const handleDeleteSite = (id: string) => {
-    if (confirm('Tem certeza que deseja excluir este site?')) {
-      dataManager.deleteSite(id);
-      setSites(sites.filter(s => s.id !== id));
+  const handleDeleteSite = (id: string, domain?: string) => {
+    if (confirm('Tem certeza que deseja excluir este site e domínio? Todos os e-mails associados também serão removidos.')) {
+      dataManager.deleteSite(id, domain);
+      setSites(sites.filter(s => s.id !== id && s.domain !== domain));
     }
   };
 
@@ -265,8 +265,9 @@ export default function SitesPage() {
                               <Settings className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
                             </button>
                             <button
-                              onClick={() => handleDeleteSite(site.id)}
+                              onClick={() => handleDeleteSite(site.id, site.domain)}
                               className="p-2 text-gray-500 hover:text-red-600 transition hover:bg-red-50 rounded-lg cursor-pointer"
+                              title="Eliminar Site e Domínio"
                             >
                               <Trash2 className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
                             </button>

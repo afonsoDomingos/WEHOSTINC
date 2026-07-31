@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import {
   Globe, Plus, Copy, CheckCircle, Clock, XCircle,
   ExternalLink, ShieldCheck, AlertTriangle, RefreshCw,
-  Server, ArrowRight, Info
+  Server, ArrowRight, Info, Trash2
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 import { dataManager, Site } from '@/lib/data';
@@ -63,6 +63,13 @@ export default function DomainsPage() {
   }, [router]);
 
   const handleLogout = () => { auth.logout(); router.push('/'); };
+
+  const handleDeleteDomain = (id: string, domain: string) => {
+    if (confirm(`Tem certeza que deseja ELIMINAR permanentemente o domínio "${domain}"? Todos os e-mails associados também serão removidos.`)) {
+      dataManager.deleteSite(id, domain);
+      setSites(prev => prev.filter(s => s.id !== id && s.domain !== domain));
+    }
+  };
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -187,6 +194,14 @@ export default function DomainsPage() {
                           <span>Email</span>
                           <ArrowRight className="h-3 w-3" />
                         </Link>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteDomain(site.id, site.domain)}
+                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition border border-gray-200 cursor-pointer"
+                          title="Eliminar Domínio"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
                       </div>
                     </div>
 
