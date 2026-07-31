@@ -21,6 +21,8 @@ export default function LoginPage() {
       const emailParam = params.get('email');
       if (emailParam) setEmail(emailParam);
     }
+    // Sincroniza do servidor caso o utilizador tenha limpo os cookies/cache do navegador
+    auth.fetchUsersAsync().catch(() => {});
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -28,7 +30,7 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
     try {
-      const user = auth.login(email, password);
+      const user = await auth.loginAsync(email, password);
       if (user.role === 'admin' || user.email === 'admin@wehosthere.com') {
         router.push('/admin');
       } else {

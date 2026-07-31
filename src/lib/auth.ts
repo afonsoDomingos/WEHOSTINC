@@ -58,6 +58,51 @@ export const auth = {
     seedDefaultUsers();
   },
 
+  // Registrar novo usuário assincronamente (com confirmação de salvamento no servidor)
+  registerAsync: async (name: string, email: string, password: string, plan: 'basic' | 'pro' | 'enterprise' = 'basic', status: 'active' | 'pending' | 'suspended' = 'active', dueDate: number = 29): Promise<User> => {
+    seedDefaultUsers();
+    const users = auth.getUsers();
+    
+    // Verificar se email já existe
+    const existing = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+    if (existing) {
+      return existing;
+    }
+
+    const newUser: User = {
+      id: Date.now().toString(),
+      name,
+      email,
+      plan,
+      status,
+      dueDate,
+      role: 'user',
+      createdAt: new Date().toISOString()
+    };
+
+    const userWithPassword = { ...newUser, password };
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(`user_${newUser.id}`, JSON.stringify(userWithPassword));
+      const currentList = auth.getUsers();
+      const updatedList = [...currentList.filter(u => u.id !== newUser.id), newUser];
+      localStorage.setItem('wehosthere_all_users', JSON.stringify(updatedList));
+
+      // Sincronizar com a API do Servidor (persistência no banco do servidor)
+      try {
+        await fetch('/api/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user: userWithPassword })
+        });
+      } catch (err) {
+        console.error('Erro de sync de registro no servidor:', err);
+      }
+    }
+
+    return newUser;
+  },
+
   // Registrar novo usuário
   register: (name: string, email: string, password: string, plan: 'basic' | 'pro' | 'enterprise' = 'basic', status: 'active' | 'pending' | 'suspended' = 'active', dueDate: number = 29): User => {
     seedDefaultUsers();
@@ -99,7 +144,51 @@ export const auth = {
     return newUser;
   },
 
-  // Login
+
+  // Login assíncrono (resiliente a limpeza de cookies/localStorage)
+  loginAsync: async (email: string, password: string): Promise<User> => {
+    seedDefaultUsers();
+    
+    // Tenta primeiro no storage local
+    let users = auth.getUsers();
+    let user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+
+    // Se o utilizador limpou a cache/cookies do navegador, busca no servidor via API para restaurar a conta
+    if (!user) {
+      const fetchedUsers = await auth.fetchUsersAsync();
+      user = fetchedUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
+    }
+
+    if (!user) {
+      throw new Error('Usuário não encontrado');
+    }
+
+    let userData: any = user;
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem(`user_${user.id}`);
+      if (stored) {
+        try {
+          userData = JSON.parse(stored);
+        } catch {
+          userData = user;
+        }
+      }
+    }
+
+    if (userData.password && userData.password !== password) {
+      throw new Error('Senha incorreta');
+    }
+
+    // Salvar sessão
+    const session = { user: userData };
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+    }
+
+    return userData;
+  },
+
+  // Login síncrono (fallback)
   login: (email: string, password: string): User => {
     seedDefaultUsers();
     const users = auth.getUsers();
@@ -129,6 +218,7 @@ export const auth = {
 
     return userData;
   },
+
 
   // Logout
   logout: (): void => {

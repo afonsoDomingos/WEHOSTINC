@@ -69,8 +69,8 @@ export default function RegisterPage() {
     if (!agreed) return setError('Aceite os Termos de Serviço para continuar.');
     setLoading(true);
     try {
-      auth.register(name, email, password);
-      auth.login(email, password);
+      await auth.registerAsync(name, email, password);
+      await auth.loginAsync(email, password);
       router.push('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao criar conta.');
