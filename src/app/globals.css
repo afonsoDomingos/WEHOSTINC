@@ -112,3 +112,23 @@ body {
   animation: shimmer-text 3s linear infinite;
 }
 
+/* ─── Override de Autofill do Browser (Chrome/Edge/Safari) ─── */
+/* Impede que o browser force fundo branco/azul nos inputs com autofill */
+.autofill-dark:-webkit-autofill,
+.autofill-dark:-webkit-autofill:hover,
+.autofill-dark:-webkit-autofill:focus,
+.autofill-dark:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 40px #1e293b inset !important; /* slate-800 */
+  -webkit-text-fill-color: #ffffff !important;
+  caret-color: #ffffff;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+/* Firefox autofill */
+.autofill-dark:autofill {
+  background-color: #1e293b !important;
+  color: #ffffff !important;
+}
+
+
+

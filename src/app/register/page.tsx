@@ -151,7 +151,7 @@ export default function RegisterPage() {
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                   <input
                     type="text" value={name} onChange={e => setName(e.target.value)}
-                    className="w-full pl-9 pr-4 py-2.5 bg-white/8 border border-white/15 rounded-xl text-white placeholder-slate-500 focus:ring-2 focus:ring-primary-500/60 focus:border-primary-500/60 outline-none text-sm transition"
+                    className="w-full pl-9 pr-4 py-2.5 bg-slate-800 border border-slate-600 rounded-xl text-white placeholder-slate-500 focus:ring-2 focus:ring-primary-500/60 focus:border-primary-500/60 outline-none text-sm transition autofill-dark"
                     placeholder="João Silva" autoFocus
                   />
                 </div>
@@ -162,7 +162,7 @@ export default function RegisterPage() {
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                   <input
                     type="email" value={email} onChange={e => setEmail(e.target.value)}
-                    className="w-full pl-9 pr-4 py-2.5 bg-white/8 border border-white/15 rounded-xl text-white placeholder-slate-500 focus:ring-2 focus:ring-primary-500/60 focus:border-primary-500/60 outline-none text-sm transition"
+                    className="w-full pl-9 pr-4 py-2.5 bg-slate-800 border border-slate-600 rounded-xl text-white placeholder-slate-500 focus:ring-2 focus:ring-primary-500/60 focus:border-primary-500/60 outline-none text-sm transition autofill-dark"
                     placeholder="seu@email.com"
                   />
                 </div>
@@ -173,7 +173,7 @@ export default function RegisterPage() {
                   <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                   <input
                     type="text" value={company} onChange={e => setCompany(e.target.value)}
-                    className="w-full pl-9 pr-4 py-2.5 bg-white/8 border border-white/15 rounded-xl text-white placeholder-slate-500 focus:ring-2 focus:ring-primary-500/60 focus:border-primary-500/60 outline-none text-sm transition"
+                    className="w-full pl-9 pr-4 py-2.5 bg-slate-800 border border-slate-600 rounded-xl text-white placeholder-slate-500 focus:ring-2 focus:ring-primary-500/60 focus:border-primary-500/60 outline-none text-sm transition autofill-dark"
                     placeholder="Nome da sua empresa"
                   />
                 </div>
@@ -196,7 +196,7 @@ export default function RegisterPage() {
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                   <input
                     type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)}
-                    className="w-full pl-9 pr-10 py-2.5 bg-white/8 border border-white/15 rounded-xl text-white placeholder-slate-500 focus:ring-2 focus:ring-primary-500/60 focus:border-primary-500/60 outline-none text-sm transition"
+                    className="w-full pl-9 pr-10 py-2.5 bg-slate-800 border border-slate-600 rounded-xl text-white placeholder-slate-500 focus:ring-2 focus:ring-primary-500/60 focus:border-primary-500/60 outline-none text-sm transition autofill-dark"
                     placeholder="Mínimo 6 caracteres" autoFocus
                   />
                   <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200">
@@ -221,8 +221,8 @@ export default function RegisterPage() {
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                   <input
                     type={showConfirm ? 'text' : 'password'} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
-                    className={`w-full pl-9 pr-10 py-2.5 bg-white/8 border rounded-xl text-white placeholder-slate-500 focus:ring-2 focus:ring-primary-500/60 outline-none text-sm transition ${
-                      confirmPassword && confirmPassword !== password ? 'border-red-500/60' : 'border-white/15 focus:border-primary-500/60'
+                    className={`w-full pl-9 pr-10 py-2.5 bg-slate-800 border rounded-xl text-white placeholder-slate-500 focus:ring-2 focus:ring-primary-500/60 outline-none text-sm transition autofill-dark ${
+                      confirmPassword && confirmPassword !== password ? 'border-red-500/60' : 'border-slate-600 focus:border-primary-500/60'
                     }`}
                     placeholder="Repita a senha"
                   />
