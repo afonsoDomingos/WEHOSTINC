@@ -234,20 +234,21 @@ export default function SitesPage() {
                   <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Meus Domínios &amp; Sites Hospedados</h1>
                   <p className="text-xs text-gray-500 mt-0.5">Gerencie os domínios da sua empresa, aponte NameServers ou solicite um novo site profissional</p>
                 </div>
-                <div className="flex items-center gap-2 w-full sm:w-auto">
+                <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full sm:w-auto">
                   <Link
                     href="/site-quote"
-                    className="flex-1 sm:flex-none flex items-center justify-center space-x-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold text-xs px-3.5 py-2 rounded-xl transition"
+                    className="flex-1 sm:flex-none inline-flex items-center justify-center space-x-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold text-xs px-3 sm:px-3.5 py-2.5 rounded-xl transition whitespace-nowrap"
                   >
                     <Sparkles className="h-4 w-4 text-amber-600 shrink-0" />
-                    <span>Solicitar Criação de Site</span>
+                    <span>Solicitar Criação</span>
                   </Link>
                   <button
                     onClick={() => setShowModal(true)}
-                    className="flex-1 sm:flex-none flex items-center justify-center space-x-1.5 bg-primary-600 text-white font-bold text-xs px-4 py-2 rounded-xl hover:bg-primary-700 transition cursor-pointer shadow-xs"
+                    className="flex-1 sm:flex-none inline-flex items-center justify-center space-x-1.5 bg-primary-600 text-white font-bold text-xs px-3 sm:px-4 py-2.5 rounded-xl hover:bg-primary-700 transition cursor-pointer shadow-xs whitespace-nowrap"
                   >
                     <Plus className="h-4 w-4 shrink-0" />
-                    <span>+ Registar / Apontar Domínio</span>
+                    <span className="hidden sm:inline">+ Registar / Apontar Domínio</span>
+                    <span className="inline sm:hidden">+ Apontar Domínio</span>
                   </button>
                 </div>
               </div>

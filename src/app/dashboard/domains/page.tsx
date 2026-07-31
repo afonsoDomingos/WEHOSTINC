@@ -181,10 +181,11 @@ export default function DomainsPage() {
               </div>
               <Link
                 href="/dashboard/sites"
-                className="inline-flex items-center space-x-2 bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition shadow-sm"
+                className="inline-flex items-center justify-center space-x-1.5 bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs px-3 sm:px-4 py-2.5 rounded-xl transition shadow-sm whitespace-nowrap"
               >
-                <Plus className="h-4 w-4" />
-                <span>+ Apontar Domínio Existente</span>
+                <Plus className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline">+ Apontar Domínio Existente</span>
+                <span className="inline sm:hidden">+ Apontar Domínio</span>
               </Link>
             </div>
 
