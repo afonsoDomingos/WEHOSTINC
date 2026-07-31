@@ -276,11 +276,16 @@ export default function AdminPage() {
       message: `Tem certeza que deseja ELIMINAR permanentemente o domínio "${domain}"? Todos os e-mails associados também serão removidos.`,
       variant: 'danger',
       onConfirm: () => {
-        dataManager.deleteSite(id, domain);
-        setSites(prev => prev.filter(s => s.id !== id && s.domain !== domain));
-        setEmails(prev => prev.filter(e => (e.domain || '').toLowerCase() !== domain.toLowerCase() && !e.email.toLowerCase().endsWith(`@${domain.toLowerCase()}`)));
-        setConfirmModalData(null);
-        setToastMsg({ title: 'Domínio Removido', message: `O domínio ${domain} foi totalmente eliminado.`, type: 'success' });
+        try {
+          dataManager.deleteSite(id, domain);
+          setSites(prev => prev.filter(s => s.id !== id && s.domain !== domain));
+          setEmails(prev => prev.filter(e => (e.domain || '').toLowerCase() !== domain.toLowerCase() && !e.email.toLowerCase().endsWith(`@${domain.toLowerCase()}`)));
+          setConfirmModalData(null);
+          setToastMsg({ title: 'Domínio Removido', message: `O domínio ${domain} foi totalmente eliminado.`, type: 'success' });
+        } catch (err) {
+          console.error('Erro ao eliminar site no admin:', err);
+          setToastMsg({ title: 'Erro de Eliminação', message: `Não foi possível eliminar o domínio ${domain}.`, type: 'error' });
+        }
       }
     });
   };
@@ -293,24 +298,30 @@ export default function AdminPage() {
       message: `Tem certeza que deseja ELIMINAR a conta de e-mail "${displayEmail}"?`,
       variant: 'danger',
       onConfirm: () => {
-        dataManager.deleteEmail(id, userEmail, emailStr);
-        setEmails(prev => prev.filter(e => e.id !== id && e.email !== displayEmail));
-        setConfirmModalData(null);
-        setToastMsg({ title: 'E-mail Removido', message: `A conta ${displayEmail} foi eliminada com sucesso.`, type: 'success' });
+        try {
+          dataManager.deleteEmail(id, userEmail, emailStr);
+          setEmails(prev => prev.filter(e => e.id !== id && e.email !== displayEmail));
+          setConfirmModalData(null);
+          setToastMsg({ title: 'E-mail Removido', message: `A conta ${displayEmail} foi eliminada com sucesso.`, type: 'success' });
+        } catch (err) {
+          console.error('Erro ao eliminar e-mail no admin:', err);
+          setToastMsg({ title: 'Erro de Eliminação', message: `Não foi possível eliminar a conta ${displayEmail}.`, type: 'error' });
+        }
       }
     });
   };
 
-  const handleCreateClient = (e: React.FormEvent) => {
+  const handleCreateClient = async (e: React.FormEvent) => {
     e.preventDefault();
     setCreateError('');
 
     try {
-      auth.register(newName, newEmail, newPassword, newPlan, newStatus, newDueDate);
+      await auth.registerAsync(newName, newEmail, newPassword, newPlan, newStatus, newDueDate);
       setUsers(auth.getUsers());
       setShowAddModal(false);
       setNewName('');
       setNewEmail('');
+      setToastMsg({ title: 'Cliente Cadastrado', message: `O cliente ${newName} (${newEmail}) foi cadastrado com sucesso.`, type: 'success' });
     } catch (err) {
       setCreateError(err instanceof Error ? err.message : 'Erro ao cadastrar cliente.');
     }

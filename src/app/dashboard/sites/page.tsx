@@ -74,11 +74,16 @@ export default function SitesPage() {
 
   const confirmDeleteSite = () => {
     if (!deleteConfirm) return;
-    const { id, domain } = deleteConfirm;
-    dataManager.deleteSite(id, domain);
-    setSites(prev => prev.filter(s => s.id !== id && s.domain !== domain));
-    setDeleteConfirm(null);
-    setToastMsg({ title: 'Site Removido', message: `O site ${domain || ''} foi permanentemente eliminado.`, type: 'success' });
+    try {
+      const { id, domain } = deleteConfirm;
+      dataManager.deleteSite(id, domain);
+      setSites(prev => prev.filter(s => s.id !== id && s.domain !== domain));
+      setDeleteConfirm(null);
+      setToastMsg({ title: 'Site Removido', message: `O site ${domain || ''} foi permanentemente eliminado.`, type: 'success' });
+    } catch (err) {
+      console.error('Erro ao eliminar site:', err);
+      setToastMsg({ title: 'Erro ao Eliminar', message: 'Ocorreu uma falha ao tentar eliminar o site. Tente novamente.', type: 'error' });
+    }
   };
 
   const [copiedNS, setCopiedNS] = useState<string | null>(null);

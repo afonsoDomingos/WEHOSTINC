@@ -61,18 +61,21 @@ export const auth = {
   // Registrar novo usuário assincronamente (com confirmação de salvamento no servidor)
   registerAsync: async (name: string, email: string, password: string, plan: 'basic' | 'pro' | 'enterprise' = 'basic', status: 'active' | 'pending' | 'suspended' = 'active', dueDate: number = 29): Promise<User> => {
     seedDefaultUsers();
-    const users = auth.getUsers();
     
-    // Verificar se email já existe
-    const existing = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+    // 1. Sincronizar usuários atualizados do servidor para garantir validação global
+    const users = await auth.fetchUsersAsync();
+    
+    // 2. Verificar se email já existe
+    const targetEmail = email.trim().toLowerCase();
+    const existing = users.find(u => u.email.trim().toLowerCase() === targetEmail);
     if (existing) {
-      return existing;
+      throw new Error('Este endereço de e-mail já está registado na plataforma. Por favor, faça login ou use outro e-mail.');
     }
 
     const newUser: User = {
       id: Date.now().toString(),
       name,
-      email,
+      email: email.trim(),
       plan,
       status,
       dueDate,
@@ -90,12 +93,17 @@ export const auth = {
 
       // Sincronizar com a API do Servidor (persistência no banco do servidor)
       try {
-        await fetch('/api/users', {
+        const res = await fetch('/api/users', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user: userWithPassword })
+          body: JSON.stringify({ action: 'register', user: userWithPassword })
         });
+        if (!res.ok) {
+          const resData = await res.json();
+          if (resData.error) throw new Error(resData.error);
+        }
       } catch (err) {
+        if (err instanceof Error && err.message.includes('registado')) throw err;
         console.error('Erro de sync de registro no servidor:', err);
       }
     }
@@ -108,16 +116,16 @@ export const auth = {
     seedDefaultUsers();
     const users = auth.getUsers();
     
-    // Verificar se email já existe
-    const existing = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+    const targetEmail = email.trim().toLowerCase();
+    const existing = users.find(u => u.email.trim().toLowerCase() === targetEmail);
     if (existing) {
-      return existing;
+      throw new Error('Este endereço de e-mail já está registado na plataforma. Por favor, faça login ou use outro e-mail.');
     }
 
     const newUser: User = {
       id: Date.now().toString(),
       name,
-      email,
+      email: email.trim(),
       plan,
       status,
       dueDate,

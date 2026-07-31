@@ -96,9 +96,14 @@ export async function POST(req: Request) {
 
 
     // Registrar ou adicionar usuário
+    const reqEmail = (user?.email || body.email || '').trim().toLowerCase();
     const existingIndex = GLOBAL_USERS.findIndex(
-      u => u.email.toLowerCase() === (user?.email || body.email || '').toLowerCase()
+      u => u.email.trim().toLowerCase() === reqEmail
     );
+
+    if (action === 'register' && existingIndex >= 0) {
+      return NextResponse.json({ error: 'Este e-mail já está registado na plataforma.' }, { status: 400 });
+    }
 
     const newUser: ServerUser = user || {
       id: body.id || Date.now().toString(),

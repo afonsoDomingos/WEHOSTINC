@@ -194,12 +194,17 @@ export default function EmailPage() {
 
   const confirmDeleteEmail = () => {
     if (!deleteEmailConfirm) return;
-    const { id, emailStr } = deleteEmailConfirm;
-    const userEmailFilter = user?.email;
-    dataManager.deleteEmail(id, userEmailFilter, emailStr);
-    setEmails(prev => prev.filter(e => e.id !== id && e.email !== emailStr));
-    setDeleteEmailConfirm(null);
-    setToastMsg({ title: 'E-mail Removido', message: `A conta de e-mail ${emailStr || ''} foi eliminada com sucesso.`, type: 'success' });
+    try {
+      const { id, emailStr } = deleteEmailConfirm;
+      const userEmailFilter = user?.email;
+      dataManager.deleteEmail(id, userEmailFilter, emailStr);
+      setEmails(prev => prev.filter(e => e.id !== id && e.email !== emailStr));
+      setDeleteEmailConfirm(null);
+      setToastMsg({ title: 'E-mail Removido', message: `A conta de e-mail ${emailStr || ''} foi eliminada com sucesso.`, type: 'success' });
+    } catch (err) {
+      console.error('Erro ao eliminar e-mail:', err);
+      setToastMsg({ title: 'Erro ao Eliminar', message: 'Não foi possível eliminar o e-mail. Tente novamente.', type: 'error' });
+    }
   };
 
   const getStatusIcon = (status: string) => {

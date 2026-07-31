@@ -47,11 +47,25 @@ export default function RegisterPage() {
   }, []);
 
   // Step 1 validation
-  const handleNext1 = () => {
+  const handleNext1 = async () => {
     setError('');
+    const cleanEmail = email.trim().toLowerCase();
     if (!name.trim()) return setError('Por favor, insira o seu nome completo.');
-    if (!email.trim() || !email.includes('@')) return setError('Insira um email válido.');
-    setStep(2);
+    if (!cleanEmail || !cleanEmail.includes('@')) return setError('Insira um email válido.');
+
+    try {
+      setLoading(true);
+      const users = await auth.fetchUsersAsync();
+      const existing = users.find(u => u.email.trim().toLowerCase() === cleanEmail);
+      if (existing) {
+        return setError('Este endereço de e-mail já se encontra registado na plataforma WEHOSTHERE. Por favor, faça login.');
+      }
+      setStep(2);
+    } catch {
+      setStep(2);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Step 2 validation
