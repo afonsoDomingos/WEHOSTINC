@@ -12,6 +12,7 @@ import { auth, User } from '@/lib/auth';
 import { dataManager, Site } from '@/lib/data';
 import DashboardNav from '@/components/DashboardNav';
 import PageLoader from '@/components/PageLoader';
+import StatusBadge from '@/components/StatusBadge';
 
 const NS1 = 'ns1.wehosthere.com';
 const NS2 = 'ns2.wehosthere.com';
@@ -124,7 +125,7 @@ export default function DomainsPage() {
                         <div className="min-w-0">
                           <div className="flex items-center space-x-2 flex-wrap gap-1">
                             <span className="font-extrabold text-gray-900 text-sm sm:text-base truncate">{site.domain}</span>
-                            {getStatusBadge(site.status)}
+                            <StatusBadge status={site.status} />
                           </div>
                           <p className="text-xs text-gray-400 truncate">{site.name}</p>
                         </div>

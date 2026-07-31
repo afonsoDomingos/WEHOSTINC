@@ -11,6 +11,7 @@ import { auth, User } from '@/lib/auth';
 import { dataManager, Site } from '@/lib/data';
 import DashboardNav from '@/components/DashboardNav';
 import PageLoader from '@/components/PageLoader';
+import StatusBadge from '@/components/StatusBadge';
 
 export default function SitesPage() {
   const router = useRouter();
@@ -188,19 +189,19 @@ export default function SitesPage() {
                   <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Meus Sites</h1>
                   <p className="text-xs text-gray-500 mt-0.5">Sites e domínios associados à sua conta de hospedagem</p>
                 </div>
-                <div className="flex items-center space-x-2 flex-wrap gap-2">
+                <div className="flex items-center gap-2 w-full sm:w-auto">
                   <Link
                     href="/site-quote"
-                    className="flex items-center space-x-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold text-xs px-3.5 py-2 rounded-lg transition"
+                    className="flex-1 sm:flex-none flex items-center justify-center space-x-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold text-xs px-3.5 py-2 rounded-xl transition"
                   >
-                    <Sparkles className="h-4 w-4 text-amber-600" />
+                    <Sparkles className="h-4 w-4 text-amber-600 shrink-0" />
                     <span>Solicitar Criação</span>
                   </Link>
                   <button
                     onClick={() => setShowModal(true)}
-                    className="flex items-center space-x-1.5 bg-primary-600 text-white font-bold text-xs px-4 py-2 rounded-lg hover:bg-primary-700 transition"
+                    className="flex-1 sm:flex-none flex items-center justify-center space-x-1.5 bg-primary-600 text-white font-bold text-xs px-4 py-2 rounded-xl hover:bg-primary-700 transition cursor-pointer shadow-xs"
                   >
-                    <Plus className="h-4 w-4" />
+                    <Plus className="h-4 w-4 shrink-0" />
                     <span>Adicionar Site</span>
                   </button>
                 </div>
@@ -231,31 +232,29 @@ export default function SitesPage() {
               ) : (
                 <div className="space-y-4">
                   {sites.map((site) => (
-                    <div key={site.id} className="border rounded-lg p-4 hover:bg-gray-50 transition">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                          <div className="bg-primary-100 p-3 rounded-lg">
-                            <Globe className="h-6 w-6 text-primary-600" />
+                    <div key={site.id} className="border border-gray-200 rounded-2xl p-4 sm:p-5 hover:bg-gray-50/50 transition bg-white shadow-xs">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex items-center space-x-3.5 min-w-0">
+                          <div className="bg-primary-50 border border-primary-100 p-2.5 sm:p-3 rounded-xl shrink-0">
+                            <Globe className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600" />
                           </div>
-                          <div>
-                            <h3 className="font-semibold text-gray-900">{site.name}</h3>
-                            <p className="text-sm text-gray-600">{site.domain}</p>
+                          <div className="min-w-0">
+                            <h3 className="font-extrabold text-gray-900 text-sm sm:text-base truncate">{site.name}</h3>
+                            <p className="text-xs sm:text-sm text-gray-500 font-mono truncate">{site.domain}</p>
                           </div>
                         </div>
-                        <div className="flex items-center space-x-4">
-                          <div className="flex items-center space-x-2">
-                            {getStatusIcon(site.status)}
-                            <span className="text-sm text-gray-600">{getStatusText(site.status)}</span>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <button className="p-2 text-gray-600 hover:text-primary-600 transition">
-                              <Settings className="h-5 w-5" />
+
+                        <div className="flex items-center justify-between sm:justify-end space-x-3 w-full sm:w-auto pt-2.5 sm:pt-0 border-t sm:border-t-0 border-gray-100 shrink-0">
+                          <StatusBadge status={site.status} />
+                          <div className="flex items-center space-x-1 shrink-0">
+                            <button className="p-2 text-gray-500 hover:text-primary-600 transition hover:bg-gray-100 rounded-lg cursor-pointer">
+                              <Settings className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
                             </button>
                             <button
                               onClick={() => handleDeleteSite(site.id)}
-                              className="p-2 text-gray-600 hover:text-red-600 transition"
+                              className="p-2 text-gray-500 hover:text-red-600 transition hover:bg-red-50 rounded-lg cursor-pointer"
                             >
-                              <Trash2 className="h-5 w-5" />
+                              <Trash2 className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
                             </button>
                           </div>
                         </div>

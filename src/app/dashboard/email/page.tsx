@@ -13,6 +13,7 @@ import { dataManager, EmailAccount, Site } from '@/lib/data';
 
 import DashboardNav from '@/components/DashboardNav';
 import PageLoader from '@/components/PageLoader';
+import StatusBadge from '@/components/StatusBadge';
 
 export default function EmailPage() {
   const router = useRouter();
@@ -290,10 +291,7 @@ export default function EmailPage() {
                         </div>
 
                         <div className="flex flex-wrap items-center gap-2">
-                          <div className="flex items-center space-x-1.5 bg-gray-50 px-2.5 py-1 rounded-full border border-gray-200 text-xs font-semibold text-gray-700 mr-1">
-                            {getStatusIcon(email.status)}
-                            <span>{getStatusText(email.status)}</span>
-                          </div>
+                          <StatusBadge status={email.status} />
 
                           {/* Botão Acessar Webmail Integrado */}
                           <Link
