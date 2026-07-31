@@ -1,5 +1,6 @@
 import { auth } from './auth';
 import { apiEndpoint } from './siteConfig';
+import { sanitizeDomainName } from './domains';
 
 export interface Site {
   id: string;
@@ -486,17 +487,50 @@ export const dataManager = {
   },
 
 
-  addSite: (site: Omit<Site, 'id' | 'createdAt'>): Site => {
+  addSiteAsync: async (site: Omit<Site, 'id' | 'createdAt'>): Promise<Site> => {
     const cleanDomain = site.domain.trim().toLowerCase();
-    
-    // Trava de unicidade global de domínio
-    const allSites = dataManager.getSites();
-    const existing = allSites.find(s => s.domain.trim().toLowerCase() === cleanDomain);
-    if (existing) {
-      throw new Error(`O domínio "${site.domain}" já se encontra registado na plataforma por outro cliente. Se este domínio pertence à sua organização, entre em contacto com o suporte.`);
+    if (!cleanDomain) {
+      throw new Error('Por favor, insira um nome de domínio válido.');
+    }
+    const currentUser = auth.getCurrentUser();
+    const newSite: Site = {
+      ...site,
+      domain: cleanDomain,
+      userEmail: site.userEmail || currentUser?.email,
+      id: Date.now().toString(),
+      createdAt: new Date().toISOString()
+    };
+
+    // Database-First: Enviar primeiro ao MongoDB Atlas
+    try {
+      const res = await fetch(apiEndpoint('/api/sites'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ site: newSite })
+      });
+      const resData = await res.json();
+      if (!res.ok || resData.error) {
+        throw new Error(resData.error || 'Erro ao gravar domínio no banco de dados.');
+      }
+    } catch (err) {
+      if (err instanceof Error) throw err;
+      throw new Error('Falha de ligação ao servidor ao registar domínio.');
     }
 
-    const currentUser = typeof window !== 'undefined' ? auth.getCurrentUser() : null;
+    const sites = dataManager.getSites();
+    sites.push(newSite);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(SITES_KEY, JSON.stringify(sites));
+    }
+    return newSite;
+  },
+
+  addSite: (site: Omit<Site, 'id' | 'createdAt'>): Site => {
+    const cleanDomain = site.domain.trim().toLowerCase();
+    if (!cleanDomain) {
+      throw new Error('Por favor, insira um nome de domínio válido.');
+    }
+    const currentUser = auth.getCurrentUser();
     const sites = dataManager.getSites();
     const newSite: Site = {
       ...site,
@@ -755,6 +789,54 @@ export const dataManager = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: newEmail })
       }).catch(err => console.error('Erro de sync de e-mail no servidor:', err));
+    }
+    return newEmail;
+  },
+
+  addEmailAsync: async (email: Omit<EmailAccount, 'id' | 'createdAt'>, userEmailOwner?: string): Promise<EmailAccount> => {
+    // 1. Trava de unicidade de e-mail no servidor antes de criar
+    const allEmails = await dataManager.fetchEmailsAsync();
+    const targetEmailStr = email.email.trim().toLowerCase();
+    const existing = allEmails.find(e => e.email.trim().toLowerCase() === targetEmailStr);
+    if (existing) {
+      throw new Error(`A conta de e-mail "${email.email}" já se encontra registada no sistema. Por favor, escolha outro prefixo ou endereço.`);
+    }
+
+    const newEmail: EmailAccount = {
+      ...email,
+      id: Date.now().toString(),
+      createdAt: new Date().toISOString()
+    };
+
+    // 2. Database-First: Enviar primeiro ao MongoDB Atlas
+    try {
+      const res = await fetch(apiEndpoint('/api/emails'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: newEmail })
+      });
+      const resData = await res.json();
+      if (!res.ok || resData.error) {
+        throw new Error(resData.error || 'Erro ao criar conta de e-mail no banco de dados do servidor.');
+      }
+    } catch (err) {
+      if (err instanceof Error) throw err;
+      throw new Error('Falha de ligação ao servidor ao criar conta de e-mail.');
+    }
+
+    // 3. Gravar na cache local após confirmação do servidor
+    const emails = userEmailOwner ? dataManager.getEmails(userEmailOwner) : dataManager.getEmails();
+    emails.push(newEmail);
+    if (typeof window !== 'undefined') {
+      const storageKey = userEmailOwner ? getEmailsKey(userEmailOwner) : EMAILS_KEY;
+      localStorage.setItem(storageKey, JSON.stringify(emails));
+
+      const sharedData = localStorage.getItem(EMAILS_KEY);
+      const sharedEmails: EmailAccount[] = sharedData ? JSON.parse(sharedData) : [];
+      if (!sharedEmails.find(e => e.email.toLowerCase() === newEmail.email.toLowerCase())) {
+        sharedEmails.push(newEmail);
+        localStorage.setItem(EMAILS_KEY, JSON.stringify(sharedEmails));
+      }
     }
     return newEmail;
   },

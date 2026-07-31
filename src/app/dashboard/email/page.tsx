@@ -126,7 +126,7 @@ export default function EmailPage() {
     return pass;
   };
 
-  const handleAddEmail = (e: React.FormEvent) => {
+  const handleAddEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newEmailPrefix || !newPassword) return;
 
@@ -148,7 +148,7 @@ export default function EmailPage() {
     const initialStatus: EmailAccount['status'] = 'pending';
 
     try {
-      const newEmailAccount = dataManager.addEmail({
+      const newEmailAccount = await dataManager.addEmailAsync({
         email: fullEmail,
         domain: selectedDomain,
         status: initialStatus,
@@ -163,13 +163,13 @@ export default function EmailPage() {
       setToastMsg({
         type: 'warning',
         title: 'Conta de E-mail Solicitada',
-        message: `A conta ${fullEmail} foi criada e está em processamento. Ela será ativada assim que o administrador aprovar.`
+        message: `A conta ${fullEmail} foi gravada com sucesso e está em processamento de ativação.`
       });
     } catch (err: any) {
       setToastMsg({
         type: 'error',
-        title: 'E-mail Já Existente',
-        message: err?.message || `A conta de e-mail "${fullEmail}" já existe na plataforma.`
+        title: 'Erro ao Criar E-mail',
+        message: err?.message || `Não foi possível criar a conta de e-mail "${fullEmail}".`
       });
     }
   };

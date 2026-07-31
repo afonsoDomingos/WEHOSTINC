@@ -130,7 +130,7 @@ function CheckoutContent() {
   const [selectedReceipt, setSelectedReceipt] = useState<ReceiptData | null>(null);
   const [currentOrderData, setCurrentOrderData] = useState<ReceiptData | null>(null);
 
-  const finalizeOrder = () => {
+  const finalizeOrder = async () => {
     try {
       const currentUser = auth.getCurrentUser();
       let accountStatus: 'logged_in' | 'account_exists' | 'no_account' = 'logged_in';
@@ -191,7 +191,7 @@ function CheckoutContent() {
 
       // Cadastra o domínio na lista de sites do cliente associado ao e-mail com status 'pending'
       if (domainParam) {
-        dataManager.addSite({
+        await dataManager.addSiteAsync({
           name: domainParam,
           domain: domainParam,
           status: 'pending',
