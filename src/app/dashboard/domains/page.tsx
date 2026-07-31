@@ -229,7 +229,7 @@ export default function DomainsPage() {
               </div>
               <ol className="space-y-1.5 text-xs text-blue-800 list-decimal list-inside">
                 <li>Aceda ao painel do seu registador de domínio (ex: GoDaddy, Namecheap, Joker.com)</li>
-                <li>Vá a <strong>DNS / Nameservers</strong> e escolha <strong>"Usar nameservers personalizados"</strong></li>
+                <li>Vá a <strong>DNS / Nameservers</strong> e escolha <strong>&quot;Usar nameservers personalizados&quot;</strong></li>
                 <li>Substitua pelos nossos: <code className="bg-blue-100 px-1 rounded font-mono">ns1.wehosthere.com</code> e <code className="bg-blue-100 px-1 rounded font-mono">ns2.wehosthere.com</code></li>
                 <li>Guarde e aguarde até <strong>48 horas</strong> para a propagação completa</li>
               </ol>

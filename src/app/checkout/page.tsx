@@ -122,6 +122,7 @@ function CheckoutContent() {
       finalizeOrder();
     }
     return () => clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pushModal, countdown]);
 
   const [checkoutAccountStatus, setCheckoutAccountStatus] = useState<'logged_in' | 'account_exists' | 'no_account'>('logged_in');
