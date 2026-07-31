@@ -102,7 +102,7 @@ export default function BillingPage() {
       {/* Header Responsivo */}
       <DashboardNav userName={user.name} onLogout={handleLogout} />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6">
         <div className="grid lg:grid-cols-4 gap-8">
           {/* Sidebar (Desktop) */}
           <div className="hidden lg:block lg:col-span-1">
@@ -150,15 +150,15 @@ export default function BillingPage() {
           {/* Main Content */}
           <div className="lg:col-span-3 space-y-6">
             {/* Current Plan */}
-            <div className="bg-gradient-to-r from-primary-600 to-primary-700 rounded-xl shadow-lg p-8 text-white">
-              <div className="flex items-center justify-between mb-6">
+            <div className="bg-gradient-to-r from-primary-600 to-primary-700 rounded-xl shadow-lg p-4 sm:p-8 text-white">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 gap-2">
                 <div>
-                  <h2 className="text-2xl font-bold mb-2">Plano Atual</h2>
-                  <p className="text-blue-100">Gerencie sua assinatura</p>
+                  <h2 className="text-xl sm:text-2xl font-bold mb-1">Plano Atual</h2>
+                  <p className="text-blue-100 text-sm">Gerencie sua assinatura</p>
                 </div>
-                <div className="text-right">
-                  <p className="text-4xl font-bold">{currentPlan?.price ? currentPlan.price.toLocaleString('pt-MZ') : '0'} MT</p>
-                  <p className="text-blue-100">/mês</p>
+                <div className="sm:text-right">
+                  <p className="text-3xl sm:text-4xl font-bold">{currentPlan?.price ? currentPlan.price.toLocaleString('pt-MZ') : '0'} MT</p>
+                  <p className="text-blue-100 text-sm">/mês</p>
                 </div>
               </div>
               <div className="grid md:grid-cols-3 gap-4">

@@ -180,7 +180,7 @@ export default function EmailPage() {
       {/* Header Responsivo */}
       <DashboardNav userName={user.name} onLogout={handleLogout} />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6">
         <div className="grid lg:grid-cols-4 gap-8">
           {/* Sidebar (Desktop) */}
           <div className="hidden lg:block lg:col-span-1">
