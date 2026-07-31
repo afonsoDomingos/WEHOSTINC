@@ -1,4 +1,5 @@
 import { auth } from './auth';
+import { apiEndpoint } from './siteConfig';
 
 export interface Site {
   id: string;
@@ -388,7 +389,7 @@ export const dataManager = {
 
   fetchSitesAsync: async (currentUserEmail?: string): Promise<Site[]> => {
     try {
-      const res = await fetch('/api/sites');
+      const res = await fetch(apiEndpoint('/api/sites'));
       if (res.ok) {
         const data = await res.json();
         if (data.sites && Array.isArray(data.sites)) {
@@ -423,7 +424,7 @@ export const dataManager = {
                 const effectiveStatus = localMatch.status || serverSite.status || 'pending';
                 // Ressincronizar com o servidor se houver discordância
                 if (serverSite.status !== effectiveStatus) {
-                  fetch('/api/sites', {
+                  fetch(apiEndpoint('/api/sites'), {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -457,7 +458,7 @@ export const dataManager = {
               const isJustCreated = !isNaN(createdAtTime) && (Date.now() - createdAtTime < 15000);
               if (isJustCreated) {
                 updatedSites.push(localSite);
-                fetch('/api/sites', {
+                fetch(apiEndpoint('/api/sites'), {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ site: localSite })
@@ -508,7 +509,7 @@ export const dataManager = {
     if (typeof window !== 'undefined') {
       localStorage.setItem(SITES_KEY, JSON.stringify(sites));
 
-      fetch('/api/sites', {
+      fetch(apiEndpoint('/api/sites'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ site: newSite })
@@ -525,7 +526,7 @@ export const dataManager = {
     if (typeof window !== 'undefined') {
       localStorage.setItem(SITES_KEY, JSON.stringify(sites));
 
-      fetch('/api/sites', {
+      fetch(apiEndpoint('/api/sites'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'delete', siteId: id, domain: targetDomain })
@@ -544,7 +545,7 @@ export const dataManager = {
         });
 
         // 2. Server API cascade delete for all emails of this domain
-        fetch('/api/emails', {
+        fetch(apiEndpoint('/api/emails'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ action: 'delete', domain: targetDomain })
@@ -563,7 +564,7 @@ export const dataManager = {
     if (typeof window !== 'undefined') {
       localStorage.setItem(SITES_KEY, JSON.stringify(sites));
 
-      fetch('/api/sites', {
+      fetch(apiEndpoint('/api/sites'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -599,7 +600,7 @@ export const dataManager = {
 
   fetchEmailsAsync: async (currentUserEmail?: string): Promise<EmailAccount[]> => {
     try {
-      const res = await fetch('/api/emails');
+      const res = await fetch(apiEndpoint('/api/emails'));
       if (res.ok) {
         const data = await res.json();
         if (data.emails && Array.isArray(data.emails)) {
@@ -642,7 +643,7 @@ export const dataManager = {
                 if (isJustCreated) {
                   updated.push(local);
 
-                  fetch('/api/emails', {
+                  fetch(apiEndpoint('/api/emails'), {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email: local })
@@ -685,7 +686,7 @@ export const dataManager = {
                 const effectiveStatus = localMatch.status || serverEmail.status || 'pending';
                 // Re-sync server if admin had a different status stored locally
                 if (serverEmail.status !== effectiveStatus) {
-                  fetch('/api/emails', {
+                  fetch(apiEndpoint('/api/emails'), {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action: 'update_status', emailId: serverEmail.id, emailStr: serverEmail.email, status: effectiveStatus })
@@ -700,7 +701,7 @@ export const dataManager = {
             localAdminEmails.forEach(local => {
               if (!serverEmails.find(s => s.email.toLowerCase() === local.email.toLowerCase())) {
                 merged.push(local);
-                fetch('/api/emails', {
+                fetch(apiEndpoint('/api/emails'), {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ email: local })
@@ -749,7 +750,7 @@ export const dataManager = {
         localStorage.setItem(EMAILS_KEY, JSON.stringify(sharedEmails));
       }
 
-      fetch('/api/emails', {
+      fetch(apiEndpoint('/api/emails'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: newEmail })
@@ -798,7 +799,7 @@ export const dataManager = {
       }
 
       // 4. Delete from Server API
-      fetch('/api/emails', {
+      fetch(apiEndpoint('/api/emails'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'delete', emailId: id, emailStr: targetEmailStr })
@@ -815,7 +816,7 @@ export const dataManager = {
       if (typeof window !== 'undefined') {
         localStorage.setItem(EMAILS_KEY, JSON.stringify(emails));
 
-        fetch('/api/emails', {
+        fetch(apiEndpoint('/api/emails'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: emails[index] })
@@ -855,7 +856,7 @@ export const dataManager = {
       });
 
       // 3. Sync to server
-      fetch('/api/emails', {
+      fetch(apiEndpoint('/api/emails'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -883,7 +884,7 @@ export const dataManager = {
 
   fetchOrdersAsync: async (): Promise<ServiceOrder[]> => {
     try {
-      const res = await fetch('/api/orders');
+      const res = await fetch(apiEndpoint('/api/orders'));
       if (res.ok) {
         const data = await res.json();
         if (data.orders && Array.isArray(data.orders)) {
@@ -927,7 +928,7 @@ export const dataManager = {
     if (typeof window !== 'undefined') {
       localStorage.setItem('wehosthere_orders', JSON.stringify(orders));
 
-      fetch('/api/orders', {
+      fetch(apiEndpoint('/api/orders'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ order: newOrder })
@@ -941,7 +942,7 @@ export const dataManager = {
     if (typeof window !== 'undefined') {
       localStorage.setItem('wehosthere_orders', JSON.stringify(orders));
 
-      fetch('/api/orders', {
+      fetch(apiEndpoint('/api/orders'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'delete', orderId: id })
@@ -954,7 +955,7 @@ export const dataManager = {
     if (typeof window !== 'undefined') {
       localStorage.setItem('wehosthere_orders', JSON.stringify(orders));
 
-      fetch('/api/orders', {
+      fetch(apiEndpoint('/api/orders'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'update_status', orderId: id, status })
@@ -970,7 +971,7 @@ export const dataManager = {
 
   fetchTicketsAsync: async (): Promise<SupportTicket[]> => {
     try {
-      const res = await fetch('/api/tickets');
+      const res = await fetch(apiEndpoint('/api/tickets'));
       if (res.ok) {
         const data = await res.json();
         if (data.tickets && Array.isArray(data.tickets)) {
@@ -1032,7 +1033,7 @@ export const dataManager = {
     if (typeof window !== 'undefined') {
       localStorage.setItem('wehosthere_tickets', JSON.stringify(tickets));
 
-      fetch('/api/tickets', {
+      fetch(apiEndpoint('/api/tickets'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'create', ticket: newTicket })
@@ -1067,7 +1068,7 @@ export const dataManager = {
     if (typeof window !== 'undefined') {
       localStorage.setItem('wehosthere_tickets', JSON.stringify(tickets));
 
-      fetch('/api/tickets', {
+      fetch(apiEndpoint('/api/tickets'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'reply', ticketId, message: newMessage, newStatus: updatedTicket.status })
@@ -1091,7 +1092,7 @@ export const dataManager = {
     if (typeof window !== 'undefined') {
       localStorage.setItem('wehosthere_tickets', JSON.stringify(tickets));
 
-      fetch('/api/tickets', {
+      fetch(apiEndpoint('/api/tickets'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'update_status', ticketId, status, priority })
@@ -1108,7 +1109,7 @@ export const dataManager = {
 
   fetchSecurityLogsAsync: async (): Promise<SecurityLog[]> => {
     try {
-      const res = await fetch('/api/security/logs');
+      const res = await fetch(apiEndpoint('/api/security/logs'));
       if (res.ok) {
         const data = await res.json();
         if (data.logs && Array.isArray(data.logs)) {
@@ -1137,7 +1138,7 @@ export const dataManager = {
     if (typeof window !== 'undefined') {
       localStorage.setItem(SECURITY_LOGS_KEY, JSON.stringify(updated));
 
-      fetch('/api/security/logs', {
+      fetch(apiEndpoint('/api/security/logs'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ log: newLog })
