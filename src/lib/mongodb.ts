@@ -1,4 +1,12 @@
 import mongoose from 'mongoose';
+import dns from 'dns';
+
+// Resolver consultas DNS SRV no Windows/Node local
+try {
+  dns.setServers(['8.8.8.8', '8.8.4.4']);
+} catch {
+  /* ignore on environments without setServers */
+}
 
 // Usar cache global para evitar múltiplas ligações em desenvolvimento (hot-reload)
 declare global {
