@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from "next/link";
-import { Server, Mail, Shield, Zap, Globe, Users, Search, Sparkles, CheckCircle } from "lucide-react";
+import { Server, Mail, Shield, Zap, Globe, Users, Search, Sparkles, CheckCircle, Facebook } from "lucide-react";
 import { websiteTypes } from '@/lib/data';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 
@@ -406,10 +406,22 @@ export default function Home() {
                 <Server className="h-8 w-8 text-primary-400" />
                 <span className="text-2xl font-bold tracking-tight">WEHOSTHERE</span>
               </div>
-              <p className="text-slate-400 text-sm leading-relaxed">
+              <p className="text-slate-400 text-sm leading-relaxed mb-4">
                 Sua solução completa em hospedagem de sites, e-mail corporativo e servidores em Moçambique.
               </p>
+              
+              {/* Link Oficial do Facebook */}
+              <a
+                href="https://www.facebook.com/profile.php?id=61592497206566&locale=pt_BR"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition shadow-md group"
+              >
+                <Facebook className="h-4 w-4 fill-current group-hover:scale-110 transition-transform" />
+                <span>Página Oficial Facebook</span>
+              </a>
             </div>
+
             <div>
               <h4 className="font-bold text-white mb-4 uppercase tracking-wider text-xs">Produtos</h4>
               <ul className="space-y-2 text-slate-400 text-sm">
