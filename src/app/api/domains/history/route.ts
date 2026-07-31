@@ -1,32 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { DomainSearchLog } from '@/lib/domains';
+import { connectDB } from '@/lib/mongodb';
+import DomainSearchLogModel from '@/lib/models/DomainSearchLog';
 
-// Store global persistente em memória (shared across requests in same instance)
-// Em produção com múltiplas instâncias, usar Redis/DB. Para MVP funciona bem.
-let DOMAIN_LOG_STORE: DomainSearchLog[] = [
-  {
-    id: 'log-demo-1',
-    domain: 'empresaexemplo.co.mz',
-    extension: '.co.mz',
-    isAvailable: true,
-    searchCount: 1,
-    timestamp: new Date(Date.now() - 300000).toISOString()
-  },
-  {
-    id: 'log-demo-2',
-    domain: 'mcel.co.mz',
-    extension: '.co.mz',
-    isAvailable: false,
-    searchCount: 1,
-    timestamp: new Date(Date.now() - 900000).toISOString()
-  }
-];
+let FALLBACK_LOGS: any[] = [];
+
+async function tryMongo() {
+  try { await connectDB(); return true; }
+  catch { return false; }
+}
 
 export async function GET() {
+  try {
+    if (await tryMongo()) {
+      const logs = await DomainSearchLogModel.find({}).sort({ timestamp: -1 }).limit(100).lean();
+      return NextResponse.json({
+        totalSearches: logs.length,
+        availableSearches: logs.filter(l => l.isAvailable).length,
+        logs
+      });
+    }
+  } catch (e) { console.error('MongoDB indisponível (domain history):', e); }
+
   return NextResponse.json({
-    totalSearches: DOMAIN_LOG_STORE.length,
-    availableSearches: DOMAIN_LOG_STORE.filter(l => l.isAvailable).length,
-    logs: DOMAIN_LOG_STORE
+    totalSearches: FALLBACK_LOGS.length,
+    availableSearches: FALLBACK_LOGS.filter(l => l.isAvailable).length,
+    logs: FALLBACK_LOGS
   });
 }
 
@@ -40,36 +38,57 @@ export async function POST(req: NextRequest) {
     }
 
     const cleanDomain = (domain as string).toLowerCase().trim();
-    const existingIndex = DOMAIN_LOG_STORE.findIndex(
-      l => l.domain.toLowerCase().trim() === cleanDomain
-    );
+    const now = new Date().toISOString();
 
+    if (await tryMongo()) {
+      const existing = await DomainSearchLogModel.findOne({ domain: cleanDomain });
+      let currentCount = 1;
+
+      if (existing) {
+        existing.timestamp = now;
+        existing.isAvailable = isAvailable;
+        existing.searchCount = (existing.searchCount || 1) + 1;
+        currentCount = existing.searchCount;
+        await existing.save();
+      } else {
+        await DomainSearchLogModel.create({
+          id: Date.now().toString() + Math.random().toString(36).substring(2, 6),
+          domain: cleanDomain,
+          extension,
+          isAvailable,
+          searchCount: 1,
+          timestamp: now
+        });
+      }
+
+      const logs = await DomainSearchLogModel.find({}).sort({ timestamp: -1 }).limit(100).lean();
+      return NextResponse.json({ success: true, searchCount: currentCount, logs });
+    }
+
+    // Fallback in-memory
+    const existingIndex = FALLBACK_LOGS.findIndex(l => l.domain.toLowerCase() === cleanDomain);
     let currentCount = 1;
     if (existingIndex >= 0) {
-      const existing = DOMAIN_LOG_STORE[existingIndex];
-      existing.timestamp = new Date().toISOString();
+      const existing = FALLBACK_LOGS[existingIndex];
+      existing.timestamp = now;
       existing.isAvailable = isAvailable;
       existing.searchCount = (existing.searchCount || 1) + 1;
       currentCount = existing.searchCount;
-      DOMAIN_LOG_STORE.splice(existingIndex, 1);
-      DOMAIN_LOG_STORE.unshift(existing);
+      FALLBACK_LOGS.splice(existingIndex, 1);
+      FALLBACK_LOGS.unshift(existing);
     } else {
-      const newLog: DomainSearchLog = {
-        id: Date.now().toString() + Math.random().toString(36).substring(2, 6),
+      FALLBACK_LOGS.unshift({
+        id: Date.now().toString(),
         domain: cleanDomain,
         extension,
         isAvailable,
         searchCount: 1,
-        timestamp: new Date().toISOString()
-      };
-      DOMAIN_LOG_STORE.unshift(newLog);
+        timestamp: now
+      });
+      if (FALLBACK_LOGS.length > 100) FALLBACK_LOGS.pop();
     }
 
-    if (DOMAIN_LOG_STORE.length > 100) {
-      DOMAIN_LOG_STORE.pop();
-    }
-
-    return NextResponse.json({ success: true, searchCount: currentCount, logs: DOMAIN_LOG_STORE });
+    return NextResponse.json({ success: true, searchCount: currentCount, logs: FALLBACK_LOGS });
   } catch (e) {
     return NextResponse.json({ error: 'Erro ao registar pesquisa' }, { status: 500 });
   }
