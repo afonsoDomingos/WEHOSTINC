@@ -59,12 +59,13 @@ export async function POST(req: Request) {
 
     if (action === 'update_status') {
       const target = (siteId || domain || '').toLowerCase();
+      const updateUserEmail = body.userEmail;
       let updated = false;
 
       GLOBAL_SITES = GLOBAL_SITES.map(s => {
         if (s.id.toLowerCase() === target || s.domain.toLowerCase() === target) {
           updated = true;
-          return { ...s, status };
+          return { ...s, status, ...(updateUserEmail ? { userEmail: updateUserEmail } : {}) };
         }
         return s;
       });
@@ -76,6 +77,7 @@ export async function POST(req: Request) {
           name: newDomain,
           domain: newDomain,
           status: status || 'active',
+          userEmail: updateUserEmail,
           createdAt: new Date().toISOString(),
           storage: 10,
           bandwidth: 100

@@ -406,23 +406,16 @@ export const dataManager = {
 
           const serverKeySet = new Set(serverSites.map(s => (s.domain || s.id).toLowerCase()));
 
-          // Build updated list preserving both server data and local creations
+          // Build updated list — SERVER STATUS has priority (so admin approvals reflect immediately)
           const updatedSites: Site[] = serverSites.map(serverSite => {
             const key = (serverSite.domain || serverSite.id).toLowerCase();
             const localMatch = localSiteMap.get(key);
             if (localMatch) {
-              const effectiveStatus = localMatch.status || serverSite.status || 'active';
-              if (serverSite.status !== effectiveStatus) {
-                fetch('/api/sites', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ action: 'update_status', siteId: serverSite.id, domain: serverSite.domain, status: effectiveStatus })
-                }).catch(() => {});
-              }
-              return { 
-                ...serverSite, 
-                ...localMatch, 
-                status: effectiveStatus,
+              // Server status always wins — this ensures admin approvals are propagated instantly
+              return {
+                ...localMatch,
+                ...serverSite,
+                status: serverSite.status || localMatch.status || 'pending',
                 userEmail: serverSite.userEmail || localMatch.userEmail || currentUserEmail
               };
             }
@@ -551,7 +544,7 @@ export const dataManager = {
           siteId: id, 
           domain: targetSite?.domain || id, 
           status,
-          sites 
+          userEmail: targetSite?.userEmail
         })
       }).catch(err => console.error('Erro de sync de status de site:', err));
     }
