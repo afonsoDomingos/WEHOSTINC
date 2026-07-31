@@ -353,23 +353,30 @@ export const dataManager = {
           const localSites = dataManager.getSites();
 
           const siteMap = new Map<string, Site>();
-          localSites.forEach(s => siteMap.set(s.id, s));
+          localSites.forEach(s => {
+            const key = (s.domain || s.id).toLowerCase();
+            siteMap.set(key, s);
+          });
+
           serverSites.forEach(serverSite => {
-            const existingKey = Array.from(siteMap.keys()).find(k => {
-              const item = siteMap.get(k);
-              return item && (item.id === serverSite.id || item.domain.toLowerCase() === serverSite.domain.toLowerCase());
-            });
-            if (existingKey) {
-              const existing = siteMap.get(existingKey)!;
-              siteMap.set(existingKey, { ...existing, ...serverSite, status: serverSite.status || existing.status });
+            const key = (serverSite.domain || serverSite.id).toLowerCase();
+            const existing = siteMap.get(key);
+            if (existing) {
+              siteMap.set(key, { ...existing, ...serverSite, status: serverSite.status || existing.status });
             } else {
-              siteMap.set(serverSite.id, serverSite);
+              siteMap.set(key, serverSite);
             }
           });
 
           const merged = Array.from(siteMap.values());
           if (typeof window !== 'undefined') {
             localStorage.setItem(SITES_KEY, JSON.stringify(merged));
+
+            fetch('/api/sites', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'sync_all', sites: merged })
+            }).catch(e => console.error(e));
           }
           return merged;
         }
@@ -401,7 +408,7 @@ export const dataManager = {
   },
 
   deleteSite: (id: string): void => {
-    const sites = dataManager.getSites().filter(s => s.id !== id);
+    const sites = dataManager.getSites().filter(s => s.id !== id && s.domain !== id);
     if (typeof window !== 'undefined') {
       localStorage.setItem(SITES_KEY, JSON.stringify(sites));
 
@@ -414,14 +421,24 @@ export const dataManager = {
   },
 
   updateSiteStatus: (id: string, status: Site['status']): void => {
-    const sites = dataManager.getSites().map(s => (s.id === id || s.domain.toLowerCase() === id.toLowerCase()) ? { ...s, status } : s);
+    const sites = dataManager.getSites().map(s => 
+      (s.id === id || (s.domain && s.domain.toLowerCase() === id.toLowerCase())) ? { ...s, status } : s
+    );
+    const targetSite = sites.find(s => s.id === id || (s.domain && s.domain.toLowerCase() === id.toLowerCase()));
+
     if (typeof window !== 'undefined') {
       localStorage.setItem(SITES_KEY, JSON.stringify(sites));
 
       fetch('/api/sites', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'update_status', siteId: id, status })
+        body: JSON.stringify({ 
+          action: 'update_status', 
+          siteId: id, 
+          domain: targetSite?.domain || id, 
+          status,
+          sites 
+        })
       }).catch(err => console.error('Erro de sync de status de site:', err));
     }
   },
@@ -447,12 +464,30 @@ export const dataManager = {
           const localEmails = dataManager.getEmails();
 
           const emailMap = new Map<string, EmailAccount>();
-          localEmails.forEach(e => emailMap.set(e.id, e));
-          serverEmails.forEach(e => emailMap.set(e.id, e));
+          localEmails.forEach(e => {
+            const key = (e.email || e.id).toLowerCase();
+            emailMap.set(key, e);
+          });
+
+          serverEmails.forEach(serverEmail => {
+            const key = (serverEmail.email || serverEmail.id).toLowerCase();
+            const existing = emailMap.get(key);
+            if (existing) {
+              emailMap.set(key, { ...existing, ...serverEmail, status: serverEmail.status || existing.status });
+            } else {
+              emailMap.set(key, serverEmail);
+            }
+          });
 
           const merged = Array.from(emailMap.values());
           if (typeof window !== 'undefined') {
             localStorage.setItem(EMAILS_KEY, JSON.stringify(merged));
+
+            fetch('/api/emails', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'sync_all', emails: merged })
+            }).catch(e => console.error(e));
           }
           return merged;
         }
@@ -484,7 +519,7 @@ export const dataManager = {
   },
 
   deleteEmail: (id: string): void => {
-    const emails = dataManager.getEmails().filter(e => e.id !== id);
+    const emails = dataManager.getEmails().filter(e => e.id !== id && e.email !== id);
     if (typeof window !== 'undefined') {
       localStorage.setItem(EMAILS_KEY, JSON.stringify(emails));
 
@@ -498,7 +533,7 @@ export const dataManager = {
 
   updateEmail: (id: string, updates: Partial<EmailAccount>): EmailAccount | null => {
     const emails = dataManager.getEmails();
-    const index = emails.findIndex(e => e.id === id);
+    const index = emails.findIndex(e => e.id === id || e.email === id);
     if (index !== -1) {
       emails[index] = { ...emails[index], ...updates };
       if (typeof window !== 'undefined') {
@@ -516,14 +551,24 @@ export const dataManager = {
   },
 
   updateEmailStatus: (id: string, status: EmailAccount['status']): void => {
-    const emails = dataManager.getEmails().map(e => e.id === id ? { ...e, status } : e);
+    const emails = dataManager.getEmails().map(e => 
+      (e.id === id || (e.email && e.email.toLowerCase() === id.toLowerCase())) ? { ...e, status } : e
+    );
+    const targetEmail = emails.find(e => e.id === id || (e.email && e.email.toLowerCase() === id.toLowerCase()));
+
     if (typeof window !== 'undefined') {
       localStorage.setItem(EMAILS_KEY, JSON.stringify(emails));
 
       fetch('/api/emails', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'update_status', emailId: id, status })
+        body: JSON.stringify({ 
+          action: 'update_status', 
+          emailId: id, 
+          emailStr: targetEmail?.email || id, 
+          status,
+          emails 
+        })
       }).catch(err => console.error('Erro de sync de status de email:', err));
     }
   },
