@@ -131,11 +131,27 @@ export async function POST(req: Request) {
     };
 
     if (useMongo) {
-      const saved = await UserModel.findOneAndUpdate(
-        { email: reqEmail },
-        userData,
-        { upsert: true, new: true, setDefaultsOnInsert: true }
-      ).lean();
+      // Garantir email limpo em minúsculas
+      const cleanEmail = reqEmail || (userData.email || '').trim().toLowerCase();
+      if (!cleanEmail) {
+        return NextResponse.json({ error: 'E-mail é obrigatório para registo.' }, { status: 400 });
+      }
+
+      userData.email = cleanEmail;
+      if (!userData.id) userData.id = Date.now().toString();
+
+      let saved;
+      const existingDoc = await UserModel.findOne({ email: cleanEmail });
+      if (existingDoc) {
+        saved = await UserModel.findOneAndUpdate(
+          { email: cleanEmail },
+          { $set: userData },
+          { new: true }
+        ).lean();
+      } else {
+        saved = await UserModel.create(userData);
+      }
+
       const users = await UserModel.find({}).lean();
       return NextResponse.json({ success: true, user: saved, users });
     }
@@ -145,8 +161,8 @@ export async function POST(req: Request) {
     else FALLBACK_USERS.push(userData);
     return NextResponse.json({ success: true, user: userData, users: FALLBACK_USERS });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Erro na API de Utilizadores:', error);
-    return NextResponse.json({ error: 'Erro ao processar utilizadores' }, { status: 500 });
+    return NextResponse.json({ error: error?.message || 'Erro ao processar utilizadores' }, { status: 500 });
   }
 }
