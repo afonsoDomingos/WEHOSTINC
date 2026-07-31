@@ -449,17 +449,20 @@ export const dataManager = {
             };
           });
 
-          // Preserve locally created sites that have not synced to server yet and auto-sync them
+          // Preserve only newly created local sites that haven't synced to server yet (< 15 seconds old)
           localSites.forEach(localSite => {
             const key = (localSite.domain || localSite.id).toLowerCase();
             if (!serverKeySet.has(key)) {
-              updatedSites.push(localSite);
-
-              fetch('/api/sites', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ site: localSite })
-              }).catch(() => {});
+              const createdAtTime = new Date(localSite.createdAt).getTime();
+              const isJustCreated = !isNaN(createdAtTime) && (Date.now() - createdAtTime < 15000);
+              if (isJustCreated) {
+                updatedSites.push(localSite);
+                fetch('/api/sites', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ site: localSite })
+                }).catch(() => {});
+              }
             }
           });
 
@@ -633,14 +636,18 @@ export const dataManager = {
                   userEmail: serverMatch.userEmail || local.userEmail || currentUserEmail
                 });
               } else {
-                // Preservar e-mail local pendente/criado e ressincronizar com a API do servidor
-                updated.push(local);
+                // Preservar apenas e-mails criados muito recentemente (< 15s) que ainda não chegaram ao servidor
+                const createdAtTime = new Date(local.createdAt || '').getTime();
+                const isJustCreated = !isNaN(createdAtTime) && (Date.now() - createdAtTime < 15000);
+                if (isJustCreated) {
+                  updated.push(local);
 
-                fetch('/api/emails', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ email: local })
-                }).catch(() => {});
+                  fetch('/api/emails', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: local })
+                  }).catch(() => {});
+                }
               }
             });
 

@@ -47,10 +47,21 @@ export async function POST(req: Request) {
     }
 
     if (action === 'delete') {
-      const tId = (siteId || '').toLowerCase();
-      const tDomain = (domain || '').toLowerCase();
+      const tId = (siteId || '').toLowerCase().trim();
+      const tDomain = (domain || '').toLowerCase().trim();
       if (useMongo) {
-        await SiteModel.deleteOne({ $or: [...(tId ? [{ id: tId }, { domain: tId }] : []), ...(tDomain ? [{ id: tDomain }, { domain: tDomain }] : [])] });
+        const deleteConditions: any[] = [];
+        if (tId) {
+          deleteConditions.push({ id: tId });
+          deleteConditions.push({ domain: new RegExp(`^${tId}$`, 'i') });
+        }
+        if (tDomain) {
+          deleteConditions.push({ id: tDomain });
+          deleteConditions.push({ domain: new RegExp(`^${tDomain}$`, 'i') });
+        }
+        if (deleteConditions.length > 0) {
+          await SiteModel.deleteMany({ $or: deleteConditions });
+        }
         return NextResponse.json({ success: true, sites: await SiteModel.find({}).lean() });
       }
       FALLBACK_SITES = FALLBACK_SITES.filter(s => {
