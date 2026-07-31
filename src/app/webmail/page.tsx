@@ -48,16 +48,35 @@ function WebmailContent() {
     }
     setUser(currentUser);
 
-    const userEmails = dataManager.getEmails();
-    setAccounts(userEmails);
+    const refreshAccounts = (emailList: EmailAccount[]) => {
+      setAccounts(emailList);
+      if (!initialUserParam && emailList.length > 0) {
+        setSelectedAccountEmail(prev => prev || emailList[0].email);
+      } else if (initialUserParam) {
+        setSelectedAccountEmail(initialUserParam);
+      }
+    };
 
-    if (initialUserParam) {
-      setSelectedAccountEmail(initialUserParam);
-    } else if (userEmails.length > 0) {
-      setSelectedAccountEmail(userEmails[0].email);
-    } else {
+    const localEmails = dataManager.getEmails();
+    refreshAccounts(localEmails);
+
+    if (!initialUserParam && localEmails.length === 0) {
       setSelectedAccountEmail('ericaguelume@msservices.co.mz');
     }
+
+    // Sync inicial com servidor
+    dataManager.fetchEmailsAsync().then(emails => {
+      refreshAccounts(emails);
+    });
+
+    // Polling a cada 3s para sincronizar status (pending → active) quando Admin aprova
+    const interval = setInterval(() => {
+      dataManager.fetchEmailsAsync().then(emails => {
+        setAccounts(emails);
+      });
+    }, 3000);
+
+    return () => clearInterval(interval);
   }, [router, initialUserParam]);
 
   useEffect(() => {
