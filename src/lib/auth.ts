@@ -1,4 +1,5 @@
 import { dataManager } from './data';
+import { apiEndpoint } from './siteConfig';
 
 export interface User {
   id: string;
@@ -103,14 +104,14 @@ export const auth = {
     seedDefaultUsers();
   },
 
-  // Registrar novo usuário assincronamente (com confirmação de salvamento no servidor)
+  // Registrar novo usuário assincronamente (com confirmação garantida no banco de dados do servidor)
   registerAsync: async (name: string, email: string, password: string, plan: 'basic' | 'pro' | 'enterprise' = 'basic', status: 'active' | 'pending' | 'suspended' = 'pending', dueDate: number = 29): Promise<User> => {
     seedDefaultUsers();
     
     // 1. Sincronizar usuários atualizados do servidor para garantir validação global
     const users = await auth.fetchUsersAsync();
     
-    // 2. Verificar se email já existe
+    // 2. Verificar se email já existe local ou globalmente
     const targetEmail = email.trim().toLowerCase();
     const existing = users.find(u => u.email.trim().toLowerCase() === targetEmail);
     if (existing) {
@@ -130,27 +131,31 @@ export const auth = {
 
     const userWithPassword = { ...newUser, password };
 
+    // 3. ENVIAR PRIMEIRO PARA O BANCO DE DADOS MONGODB ATLAS (DATABASE-FIRST)
+    let savedOnServer = false;
+    try {
+      const res = await fetch(apiEndpoint('/api/users'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'register', user: userWithPassword })
+      });
+      
+      const resData = await res.json();
+      if (!res.ok || resData.error) {
+        throw new Error(resData.error || 'Erro ao gravar dados no servidor.');
+      }
+      savedOnServer = true;
+    } catch (err) {
+      if (err instanceof Error) throw err;
+      throw new Error('Não foi possível conectar ao servidor para registar a conta. Por favor, verifique a sua ligação.');
+    }
+
+    // 4. Gravar na cache do navegador somente após confirmação do servidor MongoDB
     if (typeof window !== 'undefined') {
       localStorage.setItem(`user_${newUser.id}`, JSON.stringify(userWithPassword));
       const currentList = auth.getUsers();
       const updatedList = [...currentList.filter(u => u.id !== newUser.id), newUser];
       localStorage.setItem('wehosthere_all_users', JSON.stringify(updatedList));
-
-      // Sincronizar com a API do Servidor (persistência no banco do servidor)
-      try {
-        const res = await fetch('/api/users', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'register', user: userWithPassword })
-        });
-        if (!res.ok) {
-          const resData = await res.json();
-          if (resData.error) throw new Error(resData.error);
-        }
-      } catch (err) {
-        if (err instanceof Error && err.message.includes('registado')) throw err;
-        console.error('Erro de sync de registro no servidor:', err);
-      }
     }
 
     return newUser;
