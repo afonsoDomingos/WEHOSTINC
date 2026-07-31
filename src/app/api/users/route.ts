@@ -17,16 +17,12 @@ let FALLBACK_USERS: any[] = [
   }
 ];
 
-let mongoAvailable: boolean | null = null;
-
 async function tryMongo() {
-  if (mongoAvailable === false) return false;
   try {
     await connectDB();
-    mongoAvailable = true;
     return true;
-  } catch {
-    mongoAvailable = false;
+  } catch (err) {
+    console.warn('MongoDB connection issue:', err);
     return false;
   }
 }

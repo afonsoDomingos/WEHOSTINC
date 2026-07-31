@@ -3,12 +3,15 @@ import { connectDB } from '@/lib/mongodb';
 import OrderModel from '@/lib/models/Order';
 
 let FALLBACK_ORDERS: any[] = [];
-let mongoAvailable: boolean | null = null;
 
 async function tryMongo() {
-  if (mongoAvailable === false) return false;
-  try { await connectDB(); mongoAvailable = true; return true; }
-  catch { mongoAvailable = false; return false; }
+  try {
+    await connectDB();
+    return true;
+  } catch (err) {
+    console.warn('MongoDB connection issue (orders):', err);
+    return false;
+  }
 }
 
 export async function GET() {
