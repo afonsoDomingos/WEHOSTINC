@@ -226,27 +226,27 @@ function WebmailContent() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
-      {/* Webmail Header Bar */}
-      <header className="bg-white text-gray-800 px-4 py-3 border-b border-gray-200 flex items-center justify-between shadow-sm">
-        <div className="flex items-center space-x-3">
-          <Link href="/dashboard/email" className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-500 transition" title="Voltar ao Painel">
+      {/* Webmail Header Bar - Mobile First */}
+      <header className="bg-white text-gray-800 px-3 sm:px-4 py-2.5 sm:py-3 border-b border-gray-200 flex flex-wrap items-center justify-between gap-2 shadow-xs">
+        <div className="flex items-center space-x-2.5 min-w-0">
+          <Link href="/dashboard/email" className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-500 transition shrink-0" title="Voltar ao Painel">
             <ArrowLeft className="h-5 w-5" />
           </Link>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 shrink-0">
             <BrandLogo />
-            <span className="text-primary-500 font-bold text-xs uppercase tracking-wider bg-primary-50 px-2 py-0.5 rounded-full border border-primary-100">Webmail</span>
+            <span className="hidden sm:inline-block text-primary-600 font-bold text-xs uppercase tracking-wider bg-primary-50 px-2 py-0.5 rounded-full border border-primary-100">Webmail</span>
           </div>
         </div>
 
-        {/* Account Switcher */}
-        <div className="flex items-center space-x-3">
+        {/* Account Switcher & Refresh */}
+        <div className="flex items-center space-x-2 shrink-0">
           {accounts.length > 0 ? (
-            <div className="flex items-center space-x-2 bg-gray-100 px-3 py-1.5 rounded-xl border border-gray-200">
-              <User className="h-3.5 w-3.5 text-primary-500" />
+            <div className="flex items-center space-x-1.5 bg-gray-100 px-2.5 sm:px-3 py-1.5 rounded-xl border border-gray-200 max-w-[200px] sm:max-w-xs">
+              <User className="h-3.5 w-3.5 text-primary-500 shrink-0" />
               <select
                 value={selectedAccountEmail}
                 onChange={(e) => setSelectedAccountEmail(e.target.value)}
-                className="bg-transparent text-xs font-bold text-gray-700 outline-none cursor-pointer"
+                className="bg-transparent text-xs font-bold text-gray-700 outline-none cursor-pointer truncate w-full"
               >
                 {accounts.map(acc => (
                   <option key={acc.id} value={acc.email} className="bg-white text-gray-900">
@@ -256,25 +256,82 @@ function WebmailContent() {
               </select>
             </div>
           ) : (
-            <span className="text-xs text-gray-600 font-mono font-bold bg-gray-100 px-3 py-1.5 rounded-xl border border-gray-200">
+            <span className="text-xs text-gray-600 font-mono font-bold bg-gray-100 px-2.5 py-1.5 rounded-xl border border-gray-200 truncate max-w-[180px]">
               {selectedAccountEmail}
             </span>
           )}
 
           <button
             onClick={refreshMessages}
-            className="p-2 hover:bg-gray-100 rounded-xl text-gray-500 transition cursor-pointer"
+            className="p-2 hover:bg-gray-100 rounded-xl text-gray-500 transition cursor-pointer shrink-0"
             title="Atualizar"
           >
             <RefreshCw className="h-4 w-4" />
           </button>
+
+          <button
+            type="button"
+            onClick={() => setShowCompose(true)}
+            className="md:hidden p-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl shadow-xs transition cursor-pointer shrink-0"
+            title="Escrever E-mail"
+          >
+            <Edit3 className="h-4 w-4" />
+          </button>
         </div>
       </header>
 
+      {/* Mobile Folder Selector Tabs (Visível em Telas Pequenas) */}
+      <div className="md:hidden bg-white border-b border-gray-200 px-2 py-2 flex items-center space-x-1 overflow-x-auto text-xs shrink-0">
+        <button
+          onClick={() => { setCurrentFolder('inbox'); setSelectedMessage(null); }}
+          className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap font-bold transition shrink-0 ${
+            currentFolder === 'inbox' ? 'bg-primary-600 text-white shadow-2xs' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          <Inbox className="h-3.5 w-3.5" />
+          <span>Entrada</span>
+          {unreadInboxCount > 0 && (
+            <span className="bg-white text-primary-600 text-[10px] px-1.5 py-0.2 rounded-full font-black ml-1">
+              {unreadInboxCount}
+            </span>
+          )}
+        </button>
+
+        <button
+          onClick={() => { setCurrentFolder('starred'); setSelectedMessage(null); }}
+          className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap font-bold transition shrink-0 ${
+            currentFolder === 'starred' ? 'bg-amber-500 text-white shadow-2xs' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          <Star className="h-3.5 w-3.5" />
+          <span>Com Estrela</span>
+        </button>
+
+        <button
+          onClick={() => { setCurrentFolder('sent'); setSelectedMessage(null); }}
+          className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap font-bold transition shrink-0 ${
+            currentFolder === 'sent' ? 'bg-emerald-600 text-white shadow-2xs' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          <Send className="h-3.5 w-3.5" />
+          <span>Enviados</span>
+        </button>
+
+        <button
+          onClick={() => { setCurrentFolder('trash'); setSelectedMessage(null); }}
+          className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap font-bold transition shrink-0 ${
+            currentFolder === 'trash' ? 'bg-rose-600 text-white shadow-2xs' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+          <span>Lixeira</span>
+        </button>
+      </div>
+
       {/* Main Layout Grid */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Sidebar Nav */}
-        <aside className="w-56 bg-white text-gray-600 flex flex-col p-3 border-r border-gray-200 space-y-4 shrink-0">
+        {/* Desktop Sidebar Nav */}
+        <aside className="hidden md:flex w-56 bg-white text-gray-600 flex-col p-3 border-r border-gray-200 space-y-4 shrink-0">
           <button
             type="button"
             onClick={() => setShowCompose(true)}
@@ -345,8 +402,8 @@ function WebmailContent() {
           </div>
         </aside>
 
-        {/* Message List Column */}
-        <section className="w-80 sm:w-96 bg-white border-r border-gray-200 flex flex-col shrink-0">
+        {/* Message List Column - Mobile First */}
+        <section className={`w-full md:w-80 lg:w-96 bg-white border-r border-gray-200 flex flex-col shrink-0 ${selectedMessage ? 'hidden md:flex' : 'flex'}`}>
           {/* Search Input */}
           <div className="p-3 border-b border-gray-100">
             <div className="relative">
@@ -414,10 +471,22 @@ function WebmailContent() {
           </div>
         </section>
 
-        {/* Message Viewer Pane */}
-        <main className="flex-1 bg-gray-50 flex flex-col overflow-y-auto">
+        {/* Message Viewer Pane - Mobile First */}
+        <main className={`w-full flex-1 bg-gray-50 flex flex-col overflow-y-auto ${selectedMessage ? 'flex' : 'hidden md:flex'}`}>
           {selectedMessage ? (
-            <div className="p-6 max-w-4xl mx-auto w-full flex-1 flex flex-col space-y-6">
+            <div className="p-4 sm:p-6 max-w-4xl mx-auto w-full flex-1 flex flex-col space-y-4 sm:space-y-6">
+              
+              {/* Mobile Back Button */}
+              <div className="md:hidden">
+                <button
+                  type="button"
+                  onClick={() => setSelectedMessage(null)}
+                  className="inline-flex items-center space-x-2 text-xs font-bold text-gray-700 bg-white border border-gray-200 px-3.5 py-2 rounded-xl shadow-2xs hover:bg-gray-50 transition cursor-pointer"
+                >
+                  <ArrowLeft className="h-4 w-4 text-primary-600" />
+                  <span>Voltar às Mensagens</span>
+                </button>
+              </div>
               {/* Header card */}
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 space-y-4">
                 <div className="flex items-start justify-between">
