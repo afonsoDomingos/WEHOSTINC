@@ -149,7 +149,8 @@ export async function POST(req: Request) {
           { new: true }
         ).lean();
       } else {
-        saved = await UserModel.create(userData);
+        const createdDoc = await UserModel.create(userData);
+        saved = createdDoc.toObject ? createdDoc.toObject() : createdDoc;
       }
 
       const users = await UserModel.find({}).lean();
