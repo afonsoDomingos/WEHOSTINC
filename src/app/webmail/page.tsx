@@ -49,22 +49,20 @@ function WebmailContent() {
     setUser(currentUser);
     const userEmailFilter = currentUser.email;
 
+    // Clean up stale shared localStorage data and migrate to per-user key
+    dataManager.initUserEmails(userEmailFilter);
+
     const refreshAccounts = (emailList: EmailAccount[]) => {
-      // CRITICAL: Only show emails belonging to the currently logged-in user
-      const ownEmails = emailList.filter(e =>
-        !e.userEmail || e.userEmail.toLowerCase() === userEmailFilter.toLowerCase()
-      );
-      setAccounts(ownEmails);
-      if (!initialUserParam && ownEmails.length > 0) {
-        setSelectedAccountEmail(prev => prev || ownEmails[0].email);
+      setAccounts(emailList);
+      if (!initialUserParam && emailList.length > 0) {
+        setSelectedAccountEmail(prev => prev || emailList[0].email);
       } else if (initialUserParam) {
         setSelectedAccountEmail(initialUserParam);
       }
     };
 
-    const localEmails = dataManager.getEmails().filter(e =>
-      !e.userEmail || e.userEmail.toLowerCase() === userEmailFilter.toLowerCase()
-    );
+    // Load strictly from user-specific key
+    const localEmails = dataManager.getEmails(userEmailFilter);
     refreshAccounts(localEmails);
 
     // Sync inicial com servidor (filtrado por utilizador)
@@ -75,10 +73,7 @@ function WebmailContent() {
     // Polling a cada 3s para sincronizar status (pending → active) quando Admin aprova
     const interval = setInterval(() => {
       dataManager.fetchEmailsAsync(userEmailFilter).then(emails => {
-        const ownEmails = emails.filter(e =>
-          !e.userEmail || e.userEmail.toLowerCase() === userEmailFilter.toLowerCase()
-        );
-        setAccounts(ownEmails);
+        setAccounts(emails);
       });
     }, 3000);
 

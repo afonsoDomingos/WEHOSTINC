@@ -331,6 +331,38 @@ export const websiteTypes: WebsiteType[] = [
 const SITES_KEY = 'wehosthere_sites';
 const EMAILS_KEY = 'wehosthere_emails';
 
+// Returns a user-specific email storage key to strictly isolate accounts per user
+const getEmailsKey = (userEmail?: string): string => {
+  if (userEmail) return `wehosthere_emails_${userEmail.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+  return EMAILS_KEY;
+};
+
+// Clears email data that doesn't belong to the current user from shared localStorage
+const cleanupStaleEmails = (currentUserEmail: string): void => {
+  if (typeof window === 'undefined') return;
+  // Remove old shared key data that may contain other users' emails
+  const sharedData = localStorage.getItem(EMAILS_KEY);
+  if (sharedData) {
+    try {
+      const all: EmailAccount[] = JSON.parse(sharedData);
+      // Keep only emails that strictly belong to current user
+      const mine = all.filter(e => e.userEmail && e.userEmail.toLowerCase() === currentUserEmail.toLowerCase());
+      // Move them to user-specific key
+      const userKey = getEmailsKey(currentUserEmail);
+      const existing = localStorage.getItem(userKey);
+      const existingEmails: EmailAccount[] = existing ? JSON.parse(existing) : [];
+      // Merge without duplicates
+      const merged = [...existingEmails];
+      mine.forEach(m => {
+        if (!merged.find(e => e.email.toLowerCase() === m.email.toLowerCase())) {
+          merged.push(m);
+        }
+      });
+      localStorage.setItem(userKey, JSON.stringify(merged));
+    } catch { /* ignore */ }
+  }
+};
+
 export const dataManager = {
   // Sites
   getSites: (userEmail?: string): Site[] => {
@@ -443,15 +475,24 @@ export const dataManager = {
     }
   },
 
-  // Emails
+  // Emails - uses per-user key for strict isolation
   getEmails: (userEmail?: string): EmailAccount[] => {
     if (typeof window === 'undefined') return [];
-    const data = localStorage.getItem(EMAILS_KEY);
-    const emails: EmailAccount[] = data ? JSON.parse(data) : [];
     if (userEmail) {
-      return emails.filter(e => !e.userEmail || e.userEmail.toLowerCase() === userEmail.toLowerCase());
+      // Use user-specific key for strict isolation
+      const userKey = getEmailsKey(userEmail);
+      const data = localStorage.getItem(userKey);
+      return data ? JSON.parse(data) : [];
     }
-    return emails;
+    // Fallback: read from shared key (admin use)
+    const data = localStorage.getItem(EMAILS_KEY);
+    return data ? JSON.parse(data) : [];
+  },
+
+  // Initialize email storage for a user (call on login)
+  initUserEmails: (userEmail: string): void => {
+    if (typeof window === 'undefined') return;
+    cleanupStaleEmails(userEmail);
   },
 
   fetchEmailsAsync: async (currentUserEmail?: string): Promise<EmailAccount[]> => {
@@ -461,51 +502,49 @@ export const dataManager = {
         const data = await res.json();
         if (data.emails && Array.isArray(data.emails)) {
           const serverEmails: EmailAccount[] = data.emails;
-          // Only merge server emails that belong to the current user
-          const relevantServerEmails = currentUserEmail
-            ? serverEmails.filter(e => !e.userEmail || e.userEmail.toLowerCase() === currentUserEmail.toLowerCase())
-            : serverEmails;
 
-          const localEmails = dataManager.getEmails();
+          if (currentUserEmail) {
+            // STRICT ISOLATION: Only process emails that strictly belong to this user
+            const myServerEmails = serverEmails.filter(
+              e => e.userEmail && e.userEmail.toLowerCase() === currentUserEmail.toLowerCase()
+            );
 
-          const emailMap = new Map<string, EmailAccount>();
-          localEmails.forEach(e => {
-            const key = (e.email || e.id).toLowerCase();
-            emailMap.set(key, e);
-          });
+            const userKey = getEmailsKey(currentUserEmail);
+            const localData = localStorage.getItem(userKey);
+            const localEmails: EmailAccount[] = localData ? JSON.parse(localData) : [];
 
-          relevantServerEmails.forEach(serverEmail => {
-            const key = (serverEmail.email || serverEmail.id).toLowerCase();
-            const existing = emailMap.get(key);
-            if (existing) {
-              // Only update status from server, preserve local user data
-              emailMap.set(key, { ...existing, status: serverEmail.status || existing.status });
-            } else if (currentUserEmail && serverEmail.userEmail && serverEmail.userEmail.toLowerCase() === currentUserEmail.toLowerCase()) {
-              emailMap.set(key, serverEmail);
-            }
-          });
+            // Update status of local emails from server
+            const updated = localEmails.map(local => {
+              const serverMatch = myServerEmails.find(
+                s => s.email.toLowerCase() === local.email.toLowerCase()
+              );
+              return serverMatch ? { ...local, status: serverMatch.status || local.status } : local;
+            });
 
-          const merged = Array.from(emailMap.values());
-          if (typeof window !== 'undefined') {
-            localStorage.setItem(EMAILS_KEY, JSON.stringify(merged));
+            // Add any new server emails not yet in local storage
+            myServerEmails.forEach(serverEmail => {
+              if (!updated.find(u => u.email.toLowerCase() === serverEmail.email.toLowerCase())) {
+                updated.push(serverEmail);
+              }
+            });
+
+            localStorage.setItem(userKey, JSON.stringify(updated));
+            return updated;
           }
 
-          // Return only emails belonging to current user
-          return currentUserEmail
-            ? merged.filter(e => !e.userEmail || e.userEmail.toLowerCase() === currentUserEmail.toLowerCase())
-            : merged;
+          // No user filter: admin fallback
+          return serverEmails;
         }
       }
     } catch (e) {
       console.error('Falha ao buscar e-mails da API:', e);
     }
-    return currentUserEmail
-      ? dataManager.getEmails().filter(e => !e.userEmail || e.userEmail.toLowerCase() === currentUserEmail.toLowerCase())
-      : dataManager.getEmails();
+    return currentUserEmail ? dataManager.getEmails(currentUserEmail) : dataManager.getEmails();
   },
 
   addEmail: (email: Omit<EmailAccount, 'id' | 'createdAt'>): EmailAccount => {
-    const emails = dataManager.getEmails();
+    const userEmailOwner = email.userEmail;
+    const emails = userEmailOwner ? dataManager.getEmails(userEmailOwner) : dataManager.getEmails();
     const newEmail: EmailAccount = {
       ...email,
       id: Date.now().toString(),
@@ -513,7 +552,9 @@ export const dataManager = {
     };
     emails.push(newEmail);
     if (typeof window !== 'undefined') {
-      localStorage.setItem(EMAILS_KEY, JSON.stringify(emails));
+      // Save to user-specific key if we know the owner
+      const storageKey = userEmailOwner ? getEmailsKey(userEmailOwner) : EMAILS_KEY;
+      localStorage.setItem(storageKey, JSON.stringify(emails));
 
       fetch('/api/emails', {
         method: 'POST',
@@ -524,10 +565,12 @@ export const dataManager = {
     return newEmail;
   },
 
-  deleteEmail: (id: string): void => {
-    const emails = dataManager.getEmails().filter(e => e.id !== id && e.email !== id);
+  deleteEmail: (id: string, ownerEmail?: string): void => {
+    const sourceEmails = ownerEmail ? dataManager.getEmails(ownerEmail) : dataManager.getEmails();
+    const filtered = sourceEmails.filter(e => e.id !== id && e.email !== id);
     if (typeof window !== 'undefined') {
-      localStorage.setItem(EMAILS_KEY, JSON.stringify(emails));
+      const storageKey = ownerEmail ? getEmailsKey(ownerEmail) : EMAILS_KEY;
+      localStorage.setItem(storageKey, JSON.stringify(filtered));
 
       fetch('/api/emails', {
         method: 'POST',

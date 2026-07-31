@@ -53,11 +53,12 @@ export default function EmailPage() {
     setUser(currentUser);
     const userEmailFilter = currentUser.email;
 
+    // Clean up stale shared localStorage data and migrate to per-user key
+    dataManager.initUserEmails(userEmailFilter);
+
     const refreshData = () => {
-      // CRITICAL: Always filter by the logged-in user's email to prevent cross-client data leaks
-      const loadedEmails = dataManager.getEmails().filter(e =>
-        !e.userEmail || e.userEmail.toLowerCase() === userEmailFilter.toLowerCase()
-      );
+      // Use user-specific key - strictly isolated per user
+      const loadedEmails = dataManager.getEmails(userEmailFilter);
       setEmails(loadedEmails);
       const loadedSites = dataManager.getSites().filter(s =>
         !s.userEmail || s.userEmail.toLowerCase() === userEmailFilter.toLowerCase()
