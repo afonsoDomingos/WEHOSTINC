@@ -417,17 +417,20 @@ export const auth = {
             };
           });
 
-          // 2. Preservar TODOS os usuários criados localmente e ressincronizar com o servidor se necessário
+          // 2. Preservar apenas usuários criados muito recentemente (< 15s) que ainda não chegaram ao servidor
           localUsers.forEach(localUser => {
-            if (!serverKeySet.has(localUser.id)) {
-              updatedUsers.push(localUser);
+            if (!serverKeySet.has(localUser.id) && !serverKeySet.has(localUser.email.toLowerCase())) {
+              const createdAtTime = new Date(localUser.createdAt || '').getTime();
+              const isJustCreated = !isNaN(createdAtTime) && (Date.now() - createdAtTime < 15000);
+              if (isJustCreated) {
+                updatedUsers.push(localUser);
 
-              // Auto-sync de volta para a API do servidor
-              fetch('/api/users', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'register', user: localUser })
-              }).catch(() => {});
+                fetch('/api/users', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ action: 'register', user: localUser })
+                }).catch(() => {});
+              }
             }
           });
 

@@ -60,11 +60,14 @@ export async function POST(req: Request) {
     }
 
     if (action === 'delete') {
+      const targetId = (ticketId || body.id || '').toLowerCase().trim();
       if (useMongo) {
-        await TicketModel.deleteOne({ id: ticketId || body.id });
+        if (targetId) {
+          await TicketModel.deleteMany({ id: { $regex: new RegExp(`^${targetId}$`, 'i') } });
+        }
         return NextResponse.json({ success: true, tickets: await TicketModel.find({}).sort({ updatedAt: -1 }).lean() });
       }
-      FALLBACK_TICKETS = FALLBACK_TICKETS.filter(t => t.id !== (ticketId || body.id));
+      FALLBACK_TICKETS = FALLBACK_TICKETS.filter(t => t.id?.toLowerCase() !== targetId);
       return NextResponse.json({ success: true, tickets: FALLBACK_TICKETS });
     }
 

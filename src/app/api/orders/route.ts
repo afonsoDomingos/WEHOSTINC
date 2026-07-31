@@ -40,9 +40,11 @@ export async function POST(req: Request) {
     }
 
     if (action === 'delete') {
-      const targetId = (orderId || body.id || '').toLowerCase();
+      const targetId = (orderId || body.id || '').toLowerCase().trim();
       if (useMongo) {
-        await OrderModel.deleteOne({ id: { $regex: new RegExp(`^${targetId}$`, 'i') } });
+        if (targetId) {
+          await OrderModel.deleteMany({ id: { $regex: new RegExp(`^${targetId}$`, 'i') } });
+        }
         return NextResponse.json({ success: true, orders: await OrderModel.find({}).sort({ createdAt: -1 }).lean() });
       }
       FALLBACK_ORDERS = FALLBACK_ORDERS.filter(o => o.id?.toLowerCase() !== targetId);

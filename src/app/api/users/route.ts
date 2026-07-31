@@ -82,21 +82,26 @@ export async function POST(req: Request) {
     }
 
     if (action === 'delete') {
-      const targetId = (userId || '').toLowerCase();
-      const targetEmail = (body.email || body.userEmail || '').toLowerCase();
+      const targetId = (userId || body.userId || '').toLowerCase().trim();
+      const targetEmail = (body.email || body.userEmail || '').toLowerCase().trim();
       if (useMongo) {
-        await UserModel.deleteOne({
-          $or: [
-            ...(targetId ? [{ id: targetId }] : []),
-            ...(targetEmail ? [{ email: targetEmail }] : [])
-          ]
-        });
+        // Protect root admin from deletion
+        const isRootAdmin = targetEmail === 'admin@wehosthere.com' || targetId === 'admin_root';
+        if (!isRootAdmin) {
+          const deleteConditions: any[] = [];
+          if (targetId) deleteConditions.push({ id: targetId });
+          if (targetEmail) deleteConditions.push({ email: new RegExp(`^${targetEmail}$`, 'i') });
+          if (deleteConditions.length > 0) {
+            await UserModel.deleteMany({ $or: deleteConditions });
+          }
+        }
         const users = await UserModel.find({}).lean();
         return NextResponse.json({ success: true, users });
       }
       FALLBACK_USERS = FALLBACK_USERS.filter(u =>
-        !(targetId && (u.id.toLowerCase() === targetId || u.email.toLowerCase() === targetId)) &&
-        !(targetEmail && (u.id.toLowerCase() === targetEmail || u.email.toLowerCase() === targetEmail))
+        u.email.toLowerCase() === 'admin@wehosthere.com' ||
+        (!(targetId && (u.id.toLowerCase() === targetId || u.email.toLowerCase() === targetId)) &&
+         !(targetEmail && (u.id.toLowerCase() === targetEmail || u.email.toLowerCase() === targetEmail)))
       );
       return NextResponse.json({ success: true, users: FALLBACK_USERS });
     }

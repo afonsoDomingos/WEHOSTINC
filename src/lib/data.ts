@@ -889,27 +889,21 @@ export const dataManager = {
         if (data.orders && Array.isArray(data.orders)) {
           const serverOrders: ServiceOrder[] = data.orders;
           const localOrders = dataManager.getOrders();
+          const serverKeySet = new Set(serverOrders.map(o => o.id));
 
-          const orderMap = new Map<string, ServiceOrder>();
-          localOrders.forEach(o => orderMap.set(o.id, o));
-          serverOrders.forEach(serverOrder => {
-            const existing = orderMap.get(serverOrder.id);
-            if (existing) {
-              const effectiveStatus = existing.status || serverOrder.status || 'pending';
-              if (serverOrder.status !== effectiveStatus) {
-                fetch('/api/orders', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ action: 'update_status', orderId: serverOrder.id, status: effectiveStatus })
-                }).catch(() => {});
+          const merged: ServiceOrder[] = [...serverOrders];
+
+          // Preserve only newly created local orders (< 15s old) not yet on server
+          localOrders.forEach(local => {
+            if (!serverKeySet.has(local.id)) {
+              const createdAtTime = new Date(local.createdAt || '').getTime();
+              const isJustCreated = !isNaN(createdAtTime) && (Date.now() - createdAtTime < 15000);
+              if (isJustCreated) {
+                merged.push(local);
               }
-              orderMap.set(serverOrder.id, { ...serverOrder, ...existing, status: effectiveStatus });
-            } else {
-              orderMap.set(serverOrder.id, serverOrder);
             }
           });
 
-          const merged = Array.from(orderMap.values());
           if (typeof window !== 'undefined') {
             localStorage.setItem('wehosthere_orders', JSON.stringify(merged));
           }
@@ -968,11 +962,10 @@ export const dataManager = {
     }
   },
 
-  // Tickets de Suporte
   getTickets: (): SupportTicket[] => {
-    if (typeof window === 'undefined') return DEFAULT_TICKETS;
+    if (typeof window === 'undefined') return [];
     const data = localStorage.getItem('wehosthere_tickets');
-    return data ? JSON.parse(data) : DEFAULT_TICKETS;
+    return data ? JSON.parse(data) : [];
   },
 
   fetchTicketsAsync: async (): Promise<SupportTicket[]> => {
@@ -983,12 +976,21 @@ export const dataManager = {
         if (data.tickets && Array.isArray(data.tickets)) {
           const serverTickets: SupportTicket[] = data.tickets;
           const localTickets = dataManager.getTickets();
+          const serverKeySet = new Set(serverTickets.map(t => t.id));
 
-          const ticketMap = new Map<string, SupportTicket>();
-          localTickets.forEach(t => ticketMap.set(t.id, t));
-          serverTickets.forEach(t => ticketMap.set(t.id, t));
+          const merged: SupportTicket[] = [...serverTickets];
 
-          const merged = Array.from(ticketMap.values());
+          // Preserve only newly created local tickets (< 15s old) not yet on server
+          localTickets.forEach(local => {
+            if (!serverKeySet.has(local.id)) {
+              const createdAtTime = new Date(local.createdAt || '').getTime();
+              const isJustCreated = !isNaN(createdAtTime) && (Date.now() - createdAtTime < 15000);
+              if (isJustCreated) {
+                merged.push(local);
+              }
+            }
+          });
+
           if (typeof window !== 'undefined') {
             localStorage.setItem('wehosthere_tickets', JSON.stringify(merged));
           }

@@ -47,16 +47,35 @@ export async function POST(req: Request) {
     }
 
     if (action === 'delete') {
-      const tId = (emailId || '').toLowerCase();
-      const tEmail = (emailStr || '').toLowerCase();
-      const tDomain = (domain || '').toLowerCase();
+      const tId = (emailId || '').toLowerCase().trim();
+      const tEmail = (emailStr || '').toLowerCase().trim();
+      const tDomain = (domain || '').toLowerCase().trim();
       if (useMongo) {
-        if (tDomain) await EmailAccountModel.deleteMany({ $or: [{ domain: tDomain }, { email: { $regex: `@${tDomain}$`, $options: 'i' } }] });
-        else await EmailAccountModel.deleteOne({ $or: [...(tId ? [{ id: tId }, { email: tId }] : []), ...(tEmail ? [{ id: tEmail }, { email: tEmail }] : [])] });
+        if (tDomain) {
+          await EmailAccountModel.deleteMany({
+            $or: [
+              { domain: new RegExp(`^${tDomain}$`, 'i') },
+              { email: { $regex: `@${tDomain}$`, $options: 'i' } }
+            ]
+          });
+        } else {
+          const conditions: any[] = [];
+          if (tId) {
+            conditions.push({ id: tId });
+            conditions.push({ email: new RegExp(`^${tId}$`, 'i') });
+          }
+          if (tEmail) {
+            conditions.push({ id: tEmail });
+            conditions.push({ email: new RegExp(`^${tEmail}$`, 'i') });
+          }
+          if (conditions.length > 0) {
+            await EmailAccountModel.deleteMany({ $or: conditions });
+          }
+        }
         return NextResponse.json({ success: true, emails: await EmailAccountModel.find({}).lean() });
       }
       FALLBACK_EMAILS = FALLBACK_EMAILS.filter(e => {
-        if (tDomain && (e.domain === tDomain || e.email?.endsWith(`@${tDomain}`))) return false;
+        if (tDomain && (e.domain?.toLowerCase() === tDomain || e.email?.toLowerCase().endsWith(`@${tDomain}`))) return false;
         if (tId && (e.id?.toLowerCase() === tId || e.email?.toLowerCase() === tId)) return false;
         if (tEmail && (e.id?.toLowerCase() === tEmail || e.email?.toLowerCase() === tEmail)) return false;
         return true;
