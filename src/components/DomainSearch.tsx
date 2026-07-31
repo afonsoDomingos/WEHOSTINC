@@ -325,9 +325,10 @@ export default function DomainSearch() {
                     <button
                       type="button"
                       onClick={() => handleRegisterOnly(result.fullDomain, result.price)}
-                      className="w-full py-2.5 px-3 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold text-xs rounded-xl transition flex items-center justify-center space-x-1.5 cursor-pointer"
+                      className="w-full py-3 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md transition flex items-center justify-center space-x-1.5 cursor-pointer hover:scale-[1.01]"
                     >
-                      <span>Apenas Domínio ({result.price.toLocaleString('pt-MZ')} MT)</span>
+                      <span>Garanta Agora ({result.price.toLocaleString('pt-MZ')} MT)</span>
+                      <ArrowRight className="h-4 w-4" />
                     </button>
                   </div>
                 </div>
@@ -411,12 +412,11 @@ export default function DomainSearch() {
                     <button
                       type="button"
                       onClick={() => handleRegisterWithHosting(result.fullDomain, result.price, selectedHostingPlan, hostingCycle)}
-                      className="w-full py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center space-x-1.5 cursor-pointer"
+                      className="w-full py-3.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-lg hover:shadow-xl transition flex items-center justify-center space-x-2 cursor-pointer hover:scale-[1.02]"
                     >
-                      <Sparkles className="h-4 w-4" />
-                      <span>
-                        Domínio + Hospedagem {hostingCycle === 'annual' ? 'Anual' : 'Mensal'} ({(result.price + hostingPrice).toLocaleString('pt-MZ')} MT)
-                      </span>
+                      <Sparkles className="h-4 w-4 shrink-0" />
+                      <span>Garanta Agora ({(result.price + hostingPrice).toLocaleString('pt-MZ')} MT)</span>
+                      <ArrowRight className="h-4 w-4 shrink-0" />
                     </button>
                   </div>
                 </div>
@@ -451,10 +451,11 @@ export default function DomainSearch() {
                     <button
                       type="button"
                       onClick={() => handleRegisterWithWebsite(result.fullDomain, result.price)}
-                      className="w-full py-2.5 px-3 bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-700 hover:to-indigo-700 text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center space-x-1.5 cursor-pointer"
+                      className="w-full py-3 px-3 bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-700 hover:to-indigo-700 text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-md transition flex items-center justify-center space-x-1.5 cursor-pointer hover:scale-[1.01]"
                     >
-                      <Rocket className="h-4 w-4 text-amber-300" />
-                      <span>Domínio + Criação de Site ({(result.price + 25000).toLocaleString('pt-MZ')} MT)</span>
+                      <Rocket className="h-4 w-4 text-amber-300 shrink-0" />
+                      <span>Garanta Agora &amp; Escolher Site</span>
+                      <ArrowRight className="h-4 w-4 shrink-0" />
                     </button>
                   </div>
                 </div>
