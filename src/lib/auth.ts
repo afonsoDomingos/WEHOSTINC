@@ -456,6 +456,10 @@ export const auth = {
     userData.status = status;
     localStorage.setItem(`user_${userId}`, JSON.stringify(userData));
 
+    if (userData.email) {
+      clearFailedAttempts(userData.email);
+    }
+
     const currentList = auth.getUsers();
     const updatedList = currentList.map(u => u.id === userId ? { ...u, status } : u);
     localStorage.setItem('wehosthere_all_users', JSON.stringify(updatedList));

@@ -425,20 +425,22 @@ export default function AdminPage() {
   const validOrdersTotal = (mpesaRevenue + emolaRevenue + cardRevenue) || 1;
 
   const getUserStatus = (user: User) => {
+    // Respeitar decisão explícita do Administrador
+    if (user.status === 'active') return 'active';
     if (user.status === 'suspended') return 'suspended';
+    if (user.status === 'pending') return 'pending';
 
     const today = new Date();
     const currentDay = today.getDate();
     const dueDay = user.dueDate || 29;
 
-    // Tolerância de 3 dias para pagamento: pendente entre dia 29 e +3 dias, suspenso após +5 dias
     if (currentDay > dueDay + 5) {
       return 'suspended';
     } else if (currentDay > dueDay) {
       return 'pending';
     }
 
-    return user.status || 'active';
+    return 'active';
   };
 
   const filteredUsers = users.filter((user) => {
