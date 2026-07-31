@@ -15,35 +15,7 @@ export interface ServerSite {
   userEmail?: string;
 }
 
-let GLOBAL_SITES: ServerSite[] = [
-  {
-    id: '1',
-    name: 'MSServices',
-    domain: 'msservices.co.mz',
-    status: 'pending',
-    createdAt: '2026-07-29T10:00:00.000Z',
-    storage: 10,
-    bandwidth: 100
-  },
-  {
-    id: '2',
-    name: 'tattabas3.com',
-    domain: 'tattabas3.com',
-    status: 'pending',
-    createdAt: '2026-07-31T09:00:00.000Z',
-    storage: 10,
-    bandwidth: 100
-  },
-  {
-    id: '3',
-    name: 'amvibe258.com',
-    domain: 'amvibe258.com',
-    status: 'active',
-    createdAt: '2026-07-31T09:00:00.000Z',
-    storage: 10,
-    bandwidth: 100
-  }
-];
+let GLOBAL_SITES: ServerSite[] = [];
 
 // GET: Lista todos os sites hospedados no servidor
 export async function GET() {

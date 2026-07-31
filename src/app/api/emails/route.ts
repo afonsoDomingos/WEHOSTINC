@@ -12,18 +12,7 @@ export interface ServerEmailAccount {
   userEmail?: string;
 }
 
-let GLOBAL_EMAILS: ServerEmailAccount[] = [
-  {
-    id: 'e1',
-    email: 'comercial@amvibe258.com',
-    domain: 'amvibe258.com',
-    status: 'active',
-    quotaGB: 5,
-    usedGB: 0.1,
-    storage: 5,
-    createdAt: '2026-07-31T09:00:00.000Z'
-  }
-];
+let GLOBAL_EMAILS: ServerEmailAccount[] = [];
 
 // GET: Lista todas as contas de e-mail no servidor
 export async function GET() {
