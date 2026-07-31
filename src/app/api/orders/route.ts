@@ -1,82 +1,64 @@
 import { NextResponse } from 'next/server';
+import { connectDB } from '@/lib/mongodb';
+import OrderModel from '@/lib/models/Order';
 
-export interface ServerServiceOrder {
-  id: string;
-  clientName: string;
-  clientEmail: string;
-  clientPhone: string;
-  serviceName: string;
-  amount: number;
-  paymentMethod: 'mpesa' | 'emola' | 'card' | 'bank_transfer';
-  proofUrl?: string;
-  proofName?: string;
-  status: 'pending' | 'in_progress' | 'completed' | 'cancelled' | 'suspended';
-  createdAt: string;
-}
-
-let GLOBAL_ORDERS: ServerServiceOrder[] = [
-  {
-    id: 'ORD-98214',
-    clientName: 'MSServices',
-    clientEmail: 'info@msservices.co.mz',
-    clientPhone: '+258 84 123 4567',
-    serviceName: 'Criação de Site Profissional',
-    amount: 25000,
-    paymentMethod: 'mpesa',
-    status: 'in_progress',
-    createdAt: new Date().toISOString()
-  },
-  {
-    id: 'ORD-97410',
-    clientName: 'Afonso Domingos',
-    clientEmail: 'afonso@wehostinc.co.mz',
-    clientPhone: '+258 85 987 6543',
-    serviceName: 'Plano Hospedagem Profissional',
-    amount: 3000,
-    paymentMethod: 'mpesa',
-    status: 'completed',
-    createdAt: new Date().toISOString()
-  }
-];
-
-// GET: Retorna lista de todos os pedidos
+// GET: Retorna todos os pedidos
 export async function GET() {
-  return NextResponse.json({ orders: GLOBAL_ORDERS });
+  try {
+    await connectDB();
+    const orders = await OrderModel.find({}).sort({ createdAt: -1 }).lean();
+    return NextResponse.json({ orders });
+  } catch (error) {
+    console.error('Erro ao buscar pedidos:', error);
+    return NextResponse.json({ orders: [] }, { status: 500 });
+  }
 }
 
-// POST: Criar novo pedido ou atualizar status
+// POST: Criar, atualizar status ou eliminar pedido
 export async function POST(req: Request) {
   try {
+    await connectDB();
     const body = await req.json();
     const { action, order, orderId, status } = body;
 
     if (action === 'update_status') {
-      GLOBAL_ORDERS = GLOBAL_ORDERS.map(o => o.id === orderId ? { ...o, status } : o);
-      return NextResponse.json({ success: true, orders: GLOBAL_ORDERS });
+      await OrderModel.findOneAndUpdate({ id: orderId }, { status });
+      const orders = await OrderModel.find({}).sort({ createdAt: -1 }).lean();
+      return NextResponse.json({ success: true, orders });
     }
 
     if (action === 'delete') {
       const targetId = (orderId || body.id || '').toLowerCase();
-      GLOBAL_ORDERS = GLOBAL_ORDERS.filter(o => o.id.toLowerCase() !== targetId);
-      return NextResponse.json({ success: true, orders: GLOBAL_ORDERS });
+      await OrderModel.deleteOne({ id: { $regex: new RegExp(`^${targetId}$`, 'i') } });
+      const orders = await OrderModel.find({}).sort({ createdAt: -1 }).lean();
+      return NextResponse.json({ success: true, orders });
     }
 
-    const newOrder: ServerServiceOrder = order || {
+    // Criar ou atualizar pedido
+    const orderData = order || {
       id: body.id || `ORD-${Date.now().toString().slice(-5)}`,
       clientName: body.clientName,
       clientEmail: body.clientEmail,
-      clientPhone: body.clientPhone,
+      clientPhone: body.clientPhone || '',
       serviceName: body.serviceName,
       amount: body.amount,
-      paymentMethod: body.paymentMethod || 'mpesa',
+      paymentMethod: body.paymentMethod || 'bank_transfer',
+      proofUrl: body.proofUrl,
+      proofName: body.proofName,
       status: body.status || 'pending',
       createdAt: body.createdAt || new Date().toISOString()
     };
 
-    GLOBAL_ORDERS.unshift(newOrder);
-    return NextResponse.json({ success: true, order: newOrder, orders: GLOBAL_ORDERS });
+    await OrderModel.findOneAndUpdate(
+      { id: orderData.id },
+      orderData,
+      { upsert: true, new: true }
+    );
+
+    const orders = await OrderModel.find({}).sort({ createdAt: -1 }).lean();
+    return NextResponse.json({ success: true, order: orderData, orders });
   } catch (error) {
     console.error('Erro na API de Pedidos:', error);
-    return NextResponse.json({ error: 'Erro ao processar pedido' }, { status: 500 });
+    return NextResponse.json({ error: 'Erro ao processar pedidos' }, { status: 500 });
   }
 }

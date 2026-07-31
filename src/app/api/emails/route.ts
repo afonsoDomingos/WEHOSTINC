@@ -1,118 +1,102 @@
 import { NextResponse } from 'next/server';
+import { connectDB } from '@/lib/mongodb';
+import EmailAccountModel from '@/lib/models/EmailAccount';
 
-export interface ServerEmailAccount {
-  id: string;
-  email: string;
-  domain?: string;
-  status?: 'active' | 'pending' | 'suspended';
-  quotaGB?: number;
-  usedGB?: number;
-  storage?: number;
-  createdAt?: string;
-  userEmail?: string;
-}
-
-let GLOBAL_EMAILS: ServerEmailAccount[] = [];
-
-// GET: Lista todas as contas de e-mail no servidor
+// GET: Lista todas as contas de e-mail
 export async function GET() {
-  return NextResponse.json({ emails: GLOBAL_EMAILS });
+  try {
+    await connectDB();
+    const emails = await EmailAccountModel.find({}).lean();
+    return NextResponse.json({ emails });
+  } catch (error) {
+    console.error('Erro ao buscar e-mails:', error);
+    return NextResponse.json({ emails: [] }, { status: 500 });
+  }
 }
 
-// POST: Criar, atualizar status ou sincronizar e-mails
+// POST: Criar, atualizar status, sincronizar ou eliminar e-mails
 export async function POST(req: Request) {
   try {
+    await connectDB();
     const body = await req.json();
     const { action, email, emailId, status, emailStr, emails, domain } = body;
 
     if (action === 'sync_all' && Array.isArray(emails)) {
-      const map = new Map<string, ServerEmailAccount>();
-      GLOBAL_EMAILS.forEach(e => map.set(e.email.toLowerCase(), e));
-      emails.forEach((e: ServerEmailAccount) => {
+      for (const e of emails) {
         const key = (e.email || e.id || '').toLowerCase();
-        if (key) {
-          const existing = map.get(key);
-          map.set(key, { ...existing, ...e });
-        }
-      });
-      GLOBAL_EMAILS = Array.from(map.values());
-      return NextResponse.json({ success: true, emails: GLOBAL_EMAILS });
+        if (!key) continue;
+        await EmailAccountModel.findOneAndUpdate(
+          { $or: [{ email: key }, { id: e.id }] },
+          e,
+          { upsert: true, new: true }
+        );
+      }
+      const allEmails = await EmailAccountModel.find({}).lean();
+      return NextResponse.json({ success: true, emails: allEmails });
     }
 
     if (action === 'delete') {
       const tId = (emailId || '').toLowerCase();
       const tEmail = (emailStr || '').toLowerCase();
       const tDomain = (domain || '').toLowerCase();
-      GLOBAL_EMAILS = GLOBAL_EMAILS.filter(e => {
-        const eId = e.id.toLowerCase();
-        const eAddr = e.email.toLowerCase();
-        const eDomain = (e.domain || (e.email.includes('@') ? e.email.split('@')[1] : '')).toLowerCase();
 
-        if (tId && (eId === tId || eAddr === tId)) return false;
-        if (tEmail && (eId === tEmail || eAddr === tEmail)) return false;
-        if (tDomain && (eDomain === tDomain || eAddr.endsWith(`@${tDomain}`))) return false;
-        return true;
-      });
-      return NextResponse.json({ success: true, emails: GLOBAL_EMAILS });
-    }
-
-
-
-    if (action === 'update_status') {
-      const target = (emailId || emailStr || '').toLowerCase();
-      let updated = false;
-
-      GLOBAL_EMAILS = GLOBAL_EMAILS.map(e => {
-        if (e.id.toLowerCase() === target || e.email.toLowerCase() === target) {
-          updated = true;
-          return { ...e, status };
-        }
-        return e;
-      });
-
-      if (!updated && (emailStr || emailId)) {
-        const newEmailStr = emailStr || emailId;
-        GLOBAL_EMAILS.unshift({
-          id: emailId || Date.now().toString(),
-          email: newEmailStr,
-          domain: newEmailStr.split('@')[1] || '',
-          status: status || 'active',
-          quotaGB: 5,
-          usedGB: 0.1,
-          storage: 5,
-          createdAt: new Date().toISOString()
+      if (tDomain) {
+        // Eliminar todos os emails de um domínio
+        await EmailAccountModel.deleteMany({
+          $or: [
+            { domain: tDomain },
+            { email: { $regex: `@${tDomain}$`, $options: 'i' } }
+          ]
+        });
+      } else {
+        await EmailAccountModel.deleteOne({
+          $or: [
+            ...(tId ? [{ id: tId }, { email: tId }] : []),
+            ...(tEmail ? [{ id: tEmail }, { email: tEmail }] : [])
+          ]
         });
       }
 
-      return NextResponse.json({ success: true, emails: GLOBAL_EMAILS });
+      const allEmails = await EmailAccountModel.find({}).lean();
+      return NextResponse.json({ success: true, emails: allEmails });
     }
 
-    const newEmail: ServerEmailAccount = email ? {
+    if (action === 'update_status') {
+      const target = (emailId || emailStr || '').toLowerCase();
+      await EmailAccountModel.findOneAndUpdate(
+        { $or: [{ id: target }, { email: target }] },
+        { status }
+      );
+
+      const allEmails = await EmailAccountModel.find({}).lean();
+      return NextResponse.json({ success: true, emails: allEmails });
+    }
+
+    // Adicionar ou atualizar e-mail
+    const emailData = email ? {
       ...email,
       userEmail: email.userEmail || body.userEmail
     } : {
       id: body.id || Date.now().toString(),
       email: body.email,
-      domain: body.domain || body.email?.split('@')[1] || '',
+      domain: body.domain || (body.email?.split('@')[1] || ''),
       status: body.status || 'pending',
-      userEmail: body.userEmail,
       quotaGB: body.quotaGB || 5,
-      usedGB: body.usedGB || 0.1,
-      storage: body.storage || 5,
+      userEmail: body.userEmail,
       createdAt: body.createdAt || new Date().toISOString()
     };
 
-    const targetKey = newEmail.email.toLowerCase();
-    const index = GLOBAL_EMAILS.findIndex(e => e.id === newEmail.id || e.email.toLowerCase() === targetKey);
-    if (index >= 0) {
-      GLOBAL_EMAILS[index] = { ...GLOBAL_EMAILS[index], ...newEmail };
-    } else {
-      GLOBAL_EMAILS.unshift(newEmail);
-    }
+    const targetKey = (emailData.email || '').toLowerCase();
+    await EmailAccountModel.findOneAndUpdate(
+      { $or: [{ id: emailData.id }, { email: targetKey }] },
+      emailData,
+      { upsert: true, new: true }
+    );
 
-    return NextResponse.json({ success: true, email: newEmail, emails: GLOBAL_EMAILS });
+    const allEmails = await EmailAccountModel.find({}).lean();
+    return NextResponse.json({ success: true, email: emailData, emails: allEmails });
   } catch (error) {
-    console.error('Erro na API de Emails:', error);
-    return NextResponse.json({ error: 'Erro ao processar emails' }, { status: 500 });
+    console.error('Erro na API de E-mails:', error);
+    return NextResponse.json({ error: 'Erro ao processar e-mails' }, { status: 500 });
   }
 }

@@ -1,87 +1,87 @@
 import { NextResponse } from 'next/server';
+import { connectDB } from '@/lib/mongodb';
+import UserModel from '@/lib/models/User';
 
-export interface ServerUser {
-  id: string;
-  name: string;
-  email: string;
-  password?: string;
-  plan: 'basic' | 'pro' | 'enterprise';
-  status?: 'active' | 'pending' | 'suspended';
-  dueDate?: number;
-  role?: 'admin' | 'user';
-  createdAt: string;
-}
+const ADMIN_SEED = {
+  id: 'admin_root',
+  name: 'Administrador WEHOSTHERE',
+  email: 'admin@wehosthere.com',
+  password: '@Admin123@',
+  plan: 'enterprise' as const,
+  status: 'active' as const,
+  role: 'admin' as const,
+  dueDate: 29,
+  createdAt: new Date().toISOString()
+};
 
-// Em memória no servidor (persiste durante a execução na Vercel e dev)
-let GLOBAL_USERS: ServerUser[] = [
-  {
-    id: 'admin_root',
-    name: 'Administrador WEHOSTHERE',
-    email: 'admin@wehosthere.com',
-    password: '@Admin123@',
-    plan: 'enterprise',
-    status: 'active',
-    role: 'admin',
-    dueDate: 29,
-    createdAt: new Date().toISOString()
+async function ensureAdmin() {
+  const exists = await UserModel.findOne({ email: 'admin@wehosthere.com' });
+  if (!exists) {
+    await UserModel.create(ADMIN_SEED);
   }
-];
-
-// GET: Retorna a lista global de todos os usuários
-export async function GET() {
-  return NextResponse.json({ users: GLOBAL_USERS });
 }
 
-// POST: Registrar novo usuário ou atualizar existente
+// GET: Retorna todos os utilizadores
+export async function GET() {
+  try {
+    await connectDB();
+    await ensureAdmin();
+    const users = await UserModel.find({}).lean();
+    return NextResponse.json({ users });
+  } catch (error) {
+    console.error('Erro ao buscar utilizadores:', error);
+    return NextResponse.json({ users: [] }, { status: 500 });
+  }
+}
+
+// POST: Registar, atualizar ou eliminar utilizador
 export async function POST(req: Request) {
   try {
+    await connectDB();
     const body = await req.json();
     const { action, user, userId, plan, status } = body;
 
     if (action === 'update_plan') {
-      GLOBAL_USERS = GLOBAL_USERS.map(u => u.id === userId ? { ...u, plan } : u);
-      return NextResponse.json({ success: true, users: GLOBAL_USERS });
+      await UserModel.findOneAndUpdate({ id: userId }, { plan });
+      const users = await UserModel.find({}).lean();
+      return NextResponse.json({ success: true, users });
     }
 
     if (action === 'update_status') {
       const targetId = (userId || body.id || '').toLowerCase();
       const targetEmail = (body.email || body.userEmail || '').trim().toLowerCase();
-      GLOBAL_USERS = GLOBAL_USERS.map(u => {
-        const uId = u.id.toLowerCase();
-        const uEmail = u.email.toLowerCase();
-        if ((targetId && uId === targetId) || (targetEmail && uEmail === targetEmail)) {
-          return { ...u, status };
-        }
-        return u;
-      });
-      return NextResponse.json({ success: true, users: GLOBAL_USERS });
+      const filter = targetEmail
+        ? { $or: [{ id: targetId }, { email: targetEmail }] }
+        : { id: targetId };
+      await UserModel.updateMany(filter, { status });
+      const users = await UserModel.find({}).lean();
+      return NextResponse.json({ success: true, users });
     }
 
     if (action === 'delete') {
       const targetId = (userId || '').toLowerCase();
       const targetEmail = (body.email || body.userEmail || '').toLowerCase();
-      GLOBAL_USERS = GLOBAL_USERS.filter(u => {
-        const uId = u.id.toLowerCase();
-        const uEmail = u.email.toLowerCase();
-        if (targetId && (uId === targetId || uEmail === targetId)) return false;
-        if (targetEmail && (uId === targetEmail || uEmail === targetEmail)) return false;
-        return true;
+      await UserModel.deleteOne({
+        $or: [
+          ...(targetId ? [{ id: targetId }] : []),
+          ...(targetEmail ? [{ email: targetEmail }] : [])
+        ]
       });
-      return NextResponse.json({ success: true, users: GLOBAL_USERS });
+      const users = await UserModel.find({}).lean();
+      return NextResponse.json({ success: true, users });
     }
 
-
-    // Registrar ou adicionar usuário
+    // Registar ou atualizar utilizador
     const reqEmail = (user?.email || body.email || '').trim().toLowerCase();
-    const existingIndex = GLOBAL_USERS.findIndex(
-      u => u.email.trim().toLowerCase() === reqEmail
-    );
 
-    if (action === 'register' && existingIndex >= 0) {
-      return NextResponse.json({ error: 'Este e-mail já está registado na plataforma.' }, { status: 400 });
+    if (action === 'register') {
+      const exists = await UserModel.findOne({ email: reqEmail });
+      if (exists) {
+        return NextResponse.json({ error: 'Este e-mail já está registado na plataforma.' }, { status: 400 });
+      }
     }
 
-    const newUser: ServerUser = user || {
+    const userData = user || {
       id: body.id || Date.now().toString(),
       name: body.name,
       email: body.email,
@@ -93,15 +93,16 @@ export async function POST(req: Request) {
       createdAt: body.createdAt || new Date().toISOString()
     };
 
-    if (existingIndex >= 0) {
-      GLOBAL_USERS[existingIndex] = { ...GLOBAL_USERS[existingIndex], ...newUser };
-    } else {
-      GLOBAL_USERS.push(newUser);
-    }
+    const saved = await UserModel.findOneAndUpdate(
+      { email: reqEmail },
+      userData,
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    ).lean();
 
-    return NextResponse.json({ success: true, user: newUser, users: GLOBAL_USERS });
+    const users = await UserModel.find({}).lean();
+    return NextResponse.json({ success: true, user: saved, users });
   } catch (error) {
-    console.error('Erro na API de Usuários:', error);
-    return NextResponse.json({ error: 'Erro ao processar usuários' }, { status: 500 });
+    console.error('Erro na API de Utilizadores:', error);
+    return NextResponse.json({ error: 'Erro ao processar utilizadores' }, { status: 500 });
   }
 }

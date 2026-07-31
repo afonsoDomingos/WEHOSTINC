@@ -1,64 +1,67 @@
 import { NextResponse } from 'next/server';
-import { SupportTicket, TicketMessage, DEFAULT_TICKETS } from '@/lib/data';
+import { connectDB } from '@/lib/mongodb';
+import TicketModel from '@/lib/models/Ticket';
 
-let GLOBAL_TICKETS: SupportTicket[] = [...DEFAULT_TICKETS];
-
-// GET: Retorna lista de tickets
+// GET: Retorna todos os tickets (ou filtrado por userId)
 export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const userId = searchParams.get('userId');
+  try {
+    await connectDB();
+    const { searchParams } = new URL(req.url);
+    const userId = searchParams.get('userId');
 
-  if (userId) {
-    const userTickets = GLOBAL_TICKETS.filter(t => t.userId === userId);
-    return NextResponse.json({ tickets: userTickets });
+    const query = userId ? { userId } : {};
+    const tickets = await TicketModel.find(query).sort({ updatedAt: -1 }).lean();
+    return NextResponse.json({ tickets });
+  } catch (error) {
+    console.error('Erro ao buscar tickets:', error);
+    return NextResponse.json({ tickets: [] }, { status: 500 });
   }
-
-  return NextResponse.json({ tickets: GLOBAL_TICKETS });
 }
 
 // POST: Criar ticket, responder mensagem ou atualizar status
 export async function POST(req: Request) {
   try {
+    await connectDB();
     const body = await req.json();
     const { action, ticket, ticketId, message, status, priority, newStatus } = body;
 
     if (action === 'reply') {
-      const index = GLOBAL_TICKETS.findIndex(t => t.id === ticketId);
-      if (index !== -1) {
-        const now = new Date().toISOString();
-        const updatedMessages = [...GLOBAL_TICKETS[index].messages, message];
-        const finalStatus = newStatus || (message.sender === 'client' ? 'open' : 'answered');
-        
-        GLOBAL_TICKETS[index] = {
-          ...GLOBAL_TICKETS[index],
-          updatedAt: now,
-          status: finalStatus,
-          messages: updatedMessages
-        };
+      const now = new Date().toISOString();
+      const finalStatus = newStatus || (message.sender === 'client' ? 'open' : 'answered');
 
-        return NextResponse.json({ success: true, ticket: GLOBAL_TICKETS[index] });
+      const updated = await TicketModel.findOneAndUpdate(
+        { id: ticketId },
+        {
+          $push: { messages: message },
+          $set: { updatedAt: now, status: finalStatus }
+        },
+        { new: true }
+      ).lean();
+
+      if (!updated) {
+        return NextResponse.json({ error: 'Ticket não encontrado' }, { status: 404 });
       }
-      return NextResponse.json({ error: 'Ticket não encontrado' }, { status: 404 });
+      return NextResponse.json({ success: true, ticket: updated });
     }
 
     if (action === 'update_status') {
-      GLOBAL_TICKETS = GLOBAL_TICKETS.map(t => {
-        if (t.id === ticketId) {
-          return {
-            ...t,
-            status,
-            priority: priority || t.priority,
-            updatedAt: new Date().toISOString()
-          };
-        }
-        return t;
-      });
-      return NextResponse.json({ success: true, tickets: GLOBAL_TICKETS });
+      await TicketModel.findOneAndUpdate(
+        { id: ticketId },
+        { status, ...(priority ? { priority } : {}), updatedAt: new Date().toISOString() }
+      );
+      const tickets = await TicketModel.find({}).sort({ updatedAt: -1 }).lean();
+      return NextResponse.json({ success: true, tickets });
+    }
+
+    if (action === 'delete') {
+      await TicketModel.deleteOne({ id: ticketId || body.id });
+      const tickets = await TicketModel.find({}).sort({ updatedAt: -1 }).lean();
+      return NextResponse.json({ success: true, tickets });
     }
 
     // Criar novo ticket
     if (action === 'create' || ticket) {
-      const newTicket: SupportTicket = ticket || {
+      const newTicket = ticket || {
         id: `TCK-${Math.floor(1000 + Math.random() * 9000)}`,
         userId: body.userId,
         userName: body.userName,
@@ -72,8 +75,13 @@ export async function POST(req: Request) {
         messages: body.messages || []
       };
 
-      GLOBAL_TICKETS.unshift(newTicket);
-      return NextResponse.json({ success: true, ticket: newTicket, tickets: GLOBAL_TICKETS });
+      await TicketModel.findOneAndUpdate(
+        { id: newTicket.id },
+        newTicket,
+        { upsert: true, new: true }
+      );
+      const tickets = await TicketModel.find({}).sort({ updatedAt: -1 }).lean();
+      return NextResponse.json({ success: true, ticket: newTicket, tickets });
     }
 
     return NextResponse.json({ error: 'Ação inválida' }, { status: 400 });

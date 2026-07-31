@@ -1,78 +1,68 @@
 import { NextResponse } from 'next/server';
+import { connectDB } from '@/lib/mongodb';
+import SiteModel from '@/lib/models/Site';
 
-export interface ServerSite {
-  id: string;
-  name?: string;
-  domain: string;
-  status: 'active' | 'pending' | 'suspended';
-  plan?: string;
-  createdAt?: string;
-  ssl?: boolean;
-  phpVersion?: string;
-  storageUsed?: number;
-  storage?: number;
-  bandwidth?: number;
-  userEmail?: string;
-}
-
-let GLOBAL_SITES: ServerSite[] = [];
-
-// GET: Lista todos os sites hospedados no servidor
+// GET: Lista todos os sites
 export async function GET() {
-  return NextResponse.json({ sites: GLOBAL_SITES });
+  try {
+    await connectDB();
+    const sites = await SiteModel.find({}).lean();
+    return NextResponse.json({ sites });
+  } catch (error) {
+    console.error('Erro ao buscar sites:', error);
+    return NextResponse.json({ sites: [] }, { status: 500 });
+  }
 }
 
-// POST: Adicionar, atualizar status ou sincronizar sites
+// POST: Adicionar, atualizar status, sincronizar ou eliminar sites
 export async function POST(req: Request) {
   try {
+    await connectDB();
     const body = await req.json();
     const { action, site, siteId, status, domain, sites } = body;
 
     if (action === 'sync_all' && Array.isArray(sites)) {
-      // Merge sites array smoothly
-      const map = new Map<string, ServerSite>();
-      GLOBAL_SITES.forEach(s => map.set(s.domain.toLowerCase(), s));
-      sites.forEach((s: ServerSite) => {
+      for (const s of sites) {
         const key = (s.domain || s.id || '').toLowerCase();
-        if (key) {
-          const existing = map.get(key);
-          map.set(key, { ...existing, ...s });
-        }
-      });
-      GLOBAL_SITES = Array.from(map.values());
-      return NextResponse.json({ success: true, sites: GLOBAL_SITES });
+        if (!key) continue;
+        await SiteModel.findOneAndUpdate(
+          { $or: [{ domain: key }, { id: s.id }] },
+          s,
+          { upsert: true, new: true }
+        );
+      }
+      const allSites = await SiteModel.find({}).lean();
+      return NextResponse.json({ success: true, sites: allSites });
     }
 
     if (action === 'delete') {
       const tId = (siteId || '').toLowerCase();
       const tDomain = (domain || '').toLowerCase();
-      GLOBAL_SITES = GLOBAL_SITES.filter(s => {
-        const sId = s.id.toLowerCase();
-        const sDomain = s.domain.toLowerCase();
-        if (tId && (sId === tId || sDomain === tId)) return false;
-        if (tDomain && (sId === tDomain || sDomain === tDomain)) return false;
-        return true;
+      await SiteModel.deleteOne({
+        $or: [
+          ...(tId ? [{ id: tId }, { domain: tId }] : []),
+          ...(tDomain ? [{ id: tDomain }, { domain: tDomain }] : [])
+        ]
       });
-      return NextResponse.json({ success: true, sites: GLOBAL_SITES });
+      const allSites = await SiteModel.find({}).lean();
+      return NextResponse.json({ success: true, sites: allSites });
     }
-
 
     if (action === 'update_status') {
       const target = (siteId || domain || '').toLowerCase();
       const updateUserEmail = body.userEmail;
-      let updated = false;
+      const update: Record<string, unknown> = { status };
+      if (updateUserEmail) update.userEmail = updateUserEmail;
 
-      GLOBAL_SITES = GLOBAL_SITES.map(s => {
-        if (s.id.toLowerCase() === target || s.domain.toLowerCase() === target) {
-          updated = true;
-          return { ...s, status, ...(updateUserEmail ? { userEmail: updateUserEmail } : {}) };
-        }
-        return s;
-      });
+      const result = await SiteModel.findOneAndUpdate(
+        { $or: [{ id: target }, { domain: target }] },
+        update,
+        { new: true }
+      );
 
-      if (!updated && (domain || siteId)) {
+      if (!result && (domain || siteId)) {
         const newDomain = domain || siteId;
-        GLOBAL_SITES.unshift({
+        await SiteModel.create({
           id: siteId || Date.now().toString(),
           name: newDomain,
           domain: newDomain,
@@ -84,11 +74,12 @@ export async function POST(req: Request) {
         });
       }
 
-      return NextResponse.json({ success: true, sites: GLOBAL_SITES });
+      const allSites = await SiteModel.find({}).lean();
+      return NextResponse.json({ success: true, sites: allSites });
     }
 
-    // Adicionar site individual
-    const newSite: ServerSite = site ? {
+    // Adicionar ou atualizar site individual
+    const siteData = site ? {
       ...site,
       userEmail: site.userEmail || body.userEmail
     } : {
@@ -102,15 +93,15 @@ export async function POST(req: Request) {
       bandwidth: body.bandwidth || 100
     };
 
-    const targetKey = newSite.domain.toLowerCase();
-    const index = GLOBAL_SITES.findIndex(s => s.id === newSite.id || s.domain.toLowerCase() === targetKey);
-    if (index >= 0) {
-      GLOBAL_SITES[index] = { ...GLOBAL_SITES[index], ...newSite };
-    } else {
-      GLOBAL_SITES.unshift(newSite);
-    }
+    const targetKey = (siteData.domain || '').toLowerCase();
+    await SiteModel.findOneAndUpdate(
+      { $or: [{ id: siteData.id }, { domain: targetKey }] },
+      siteData,
+      { upsert: true, new: true }
+    );
 
-    return NextResponse.json({ success: true, site: newSite, sites: GLOBAL_SITES });
+    const allSites = await SiteModel.find({}).lean();
+    return NextResponse.json({ success: true, site: siteData, sites: allSites });
   } catch (error) {
     console.error('Erro na API de Sites:', error);
     return NextResponse.json({ error: 'Erro ao processar sites' }, { status: 500 });
