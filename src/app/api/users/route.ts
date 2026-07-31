@@ -44,7 +44,16 @@ export async function POST(req: Request) {
     }
 
     if (action === 'update_status') {
-      GLOBAL_USERS = GLOBAL_USERS.map(u => u.id === userId ? { ...u, status } : u);
+      const targetId = (userId || body.id || '').toLowerCase();
+      const targetEmail = (body.email || body.userEmail || '').trim().toLowerCase();
+      GLOBAL_USERS = GLOBAL_USERS.map(u => {
+        const uId = u.id.toLowerCase();
+        const uEmail = u.email.toLowerCase();
+        if ((targetId && uId === targetId) || (targetEmail && uEmail === targetEmail)) {
+          return { ...u, status };
+        }
+        return u;
+      });
       return NextResponse.json({ success: true, users: GLOBAL_USERS });
     }
 

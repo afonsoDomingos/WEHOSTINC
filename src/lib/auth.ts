@@ -377,15 +377,27 @@ export const auth = {
 
           const serverKeySet = new Set(serverUsers.map(u => u.id));
 
-          // 1. Atualizar lista com usuários do servidor
+          // 1. Atualizar lista com usuários do servidor, priorizando a alteração recente do Admin local
           const updatedUsers: User[] = serverUsers.map(serverUser => {
-            const localMatch = localMap.get(serverUser.id);
+            const localMatch = localMap.get(serverUser.id) || Array.from(localMap.values()).find(l => l.email.trim().toLowerCase() === serverUser.email.trim().toLowerCase());
             if (localMatch) {
+              const effectiveStatus = localMatch.status || serverUser.status || 'active';
+              const effectivePlan = localMatch.plan || serverUser.plan || 'basic';
+
+              // Se o status local difere do servidor, avisar o servidor
+              if (serverUser.status !== effectiveStatus) {
+                fetch('/api/users', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ action: 'update_status', userId: serverUser.id, email: serverUser.email, status: effectiveStatus })
+                }).catch(() => {});
+              }
+
               return {
-                ...localMatch,
                 ...serverUser,
-                status: serverUser.status || localMatch.status || 'active',
-                plan: serverUser.plan || localMatch.plan || 'basic'
+                ...localMatch,
+                status: effectiveStatus,
+                plan: effectivePlan
               };
             }
             return {
@@ -467,7 +479,7 @@ export const auth = {
     fetch('/api/users', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'update_status', userId, status })
+      body: JSON.stringify({ action: 'update_status', userId, email: userData.email, status })
     }).catch(err => console.error('Erro de sync de status:', err));
 
     const session = localStorage.getItem(STORAGE_KEY);
