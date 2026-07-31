@@ -454,13 +454,18 @@ export const dataManager = {
     return emails;
   },
 
-  fetchEmailsAsync: async (): Promise<EmailAccount[]> => {
+  fetchEmailsAsync: async (currentUserEmail?: string): Promise<EmailAccount[]> => {
     try {
       const res = await fetch('/api/emails');
       if (res.ok) {
         const data = await res.json();
         if (data.emails && Array.isArray(data.emails)) {
           const serverEmails: EmailAccount[] = data.emails;
+          // Only merge server emails that belong to the current user
+          const relevantServerEmails = currentUserEmail
+            ? serverEmails.filter(e => !e.userEmail || e.userEmail.toLowerCase() === currentUserEmail.toLowerCase())
+            : serverEmails;
+
           const localEmails = dataManager.getEmails();
 
           const emailMap = new Map<string, EmailAccount>();
@@ -469,12 +474,13 @@ export const dataManager = {
             emailMap.set(key, e);
           });
 
-          serverEmails.forEach(serverEmail => {
+          relevantServerEmails.forEach(serverEmail => {
             const key = (serverEmail.email || serverEmail.id).toLowerCase();
             const existing = emailMap.get(key);
             if (existing) {
-              emailMap.set(key, { ...existing, ...serverEmail, status: serverEmail.status || existing.status });
-            } else {
+              // Only update status from server, preserve local user data
+              emailMap.set(key, { ...existing, status: serverEmail.status || existing.status });
+            } else if (currentUserEmail && serverEmail.userEmail && serverEmail.userEmail.toLowerCase() === currentUserEmail.toLowerCase()) {
               emailMap.set(key, serverEmail);
             }
           });
@@ -482,20 +488,20 @@ export const dataManager = {
           const merged = Array.from(emailMap.values());
           if (typeof window !== 'undefined') {
             localStorage.setItem(EMAILS_KEY, JSON.stringify(merged));
-
-            fetch('/api/emails', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ action: 'sync_all', emails: merged })
-            }).catch(e => console.error(e));
           }
-          return merged;
+
+          // Return only emails belonging to current user
+          return currentUserEmail
+            ? merged.filter(e => !e.userEmail || e.userEmail.toLowerCase() === currentUserEmail.toLowerCase())
+            : merged;
         }
       }
     } catch (e) {
       console.error('Falha ao buscar e-mails da API:', e);
     }
-    return dataManager.getEmails();
+    return currentUserEmail
+      ? dataManager.getEmails().filter(e => !e.userEmail || e.userEmail.toLowerCase() === currentUserEmail.toLowerCase())
+      : dataManager.getEmails();
   },
 
   addEmail: (email: Omit<EmailAccount, 'id' | 'createdAt'>): EmailAccount => {

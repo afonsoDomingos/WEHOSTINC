@@ -51,28 +51,36 @@ export default function EmailPage() {
       return;
     }
     setUser(currentUser);
+    const userEmailFilter = currentUser.email;
 
     const refreshData = () => {
-      const loadedEmails = dataManager.getEmails();
+      // CRITICAL: Always filter by the logged-in user's email to prevent cross-client data leaks
+      const loadedEmails = dataManager.getEmails().filter(e =>
+        !e.userEmail || e.userEmail.toLowerCase() === userEmailFilter.toLowerCase()
+      );
       setEmails(loadedEmails);
-      const loadedSites = dataManager.getSites();
+      const loadedSites = dataManager.getSites().filter(s =>
+        !s.userEmail || s.userEmail.toLowerCase() === userEmailFilter.toLowerCase()
+      );
       setSites(loadedSites);
       const domains = loadedSites.map(s => s.domain).filter(Boolean);
       setUserDomains(domains);
     };
 
     refreshData();
-    const initialSites = dataManager.getSites();
+    const initialSites = dataManager.getSites().filter(s =>
+      !s.userEmail || s.userEmail.toLowerCase() === userEmailFilter.toLowerCase()
+    );
     if (initialSites.length > 0 && initialSites[0].domain) {
       setSelectedDomain(initialSites[0].domain);
     }
     setLoading(false);
 
-    dataManager.fetchEmailsAsync().then(refreshData);
+    dataManager.fetchEmailsAsync(userEmailFilter).then(refreshData);
     dataManager.fetchSitesAsync().then(refreshData);
 
     const interval = setInterval(() => {
-      dataManager.fetchEmailsAsync().then(refreshData);
+      dataManager.fetchEmailsAsync(userEmailFilter).then(refreshData);
       dataManager.fetchSitesAsync().then(refreshData);
     }, 3000);
 

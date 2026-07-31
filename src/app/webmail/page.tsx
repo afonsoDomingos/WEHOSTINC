@@ -47,32 +47,38 @@ function WebmailContent() {
       return;
     }
     setUser(currentUser);
+    const userEmailFilter = currentUser.email;
 
     const refreshAccounts = (emailList: EmailAccount[]) => {
-      setAccounts(emailList);
-      if (!initialUserParam && emailList.length > 0) {
-        setSelectedAccountEmail(prev => prev || emailList[0].email);
+      // CRITICAL: Only show emails belonging to the currently logged-in user
+      const ownEmails = emailList.filter(e =>
+        !e.userEmail || e.userEmail.toLowerCase() === userEmailFilter.toLowerCase()
+      );
+      setAccounts(ownEmails);
+      if (!initialUserParam && ownEmails.length > 0) {
+        setSelectedAccountEmail(prev => prev || ownEmails[0].email);
       } else if (initialUserParam) {
         setSelectedAccountEmail(initialUserParam);
       }
     };
 
-    const localEmails = dataManager.getEmails();
+    const localEmails = dataManager.getEmails().filter(e =>
+      !e.userEmail || e.userEmail.toLowerCase() === userEmailFilter.toLowerCase()
+    );
     refreshAccounts(localEmails);
 
-    if (!initialUserParam && localEmails.length === 0) {
-      setSelectedAccountEmail('ericaguelume@msservices.co.mz');
-    }
-
-    // Sync inicial com servidor
-    dataManager.fetchEmailsAsync().then(emails => {
+    // Sync inicial com servidor (filtrado por utilizador)
+    dataManager.fetchEmailsAsync(userEmailFilter).then(emails => {
       refreshAccounts(emails);
     });
 
     // Polling a cada 3s para sincronizar status (pending → active) quando Admin aprova
     const interval = setInterval(() => {
-      dataManager.fetchEmailsAsync().then(emails => {
-        setAccounts(emails);
+      dataManager.fetchEmailsAsync(userEmailFilter).then(emails => {
+        const ownEmails = emails.filter(e =>
+          !e.userEmail || e.userEmail.toLowerCase() === userEmailFilter.toLowerCase()
+        );
+        setAccounts(ownEmails);
       });
     }, 3000);
 
