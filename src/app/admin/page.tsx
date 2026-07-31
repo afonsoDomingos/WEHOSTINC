@@ -8,7 +8,8 @@ import {
   Users, Server, Mail, Database, TrendingUp, DollarSign,
   LogOut, Settings, Home, CheckCircle, Clock, XCircle, Search,
   ShoppingBag, MessageSquare, ExternalLink, Trash2, LifeBuoy, Send, ShieldCheck, CheckCircle2, AlertCircle,
-  Paperclip, FileText, Image as ImageIcon, Download, File, X, Loader2, Tag, Shield, AlertTriangle
+  Paperclip, FileText, Image as ImageIcon, Download, File, X, Loader2, Tag, Shield, AlertTriangle,
+  Activity, Eye, Globe, Wifi, WifiOff, BarChart2
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 import { dataManager, ServiceOrder, SupportTicket, TicketMessage, TicketAttachment, SecurityLog } from '@/lib/data';
@@ -76,6 +77,12 @@ export default function AdminPage() {
   const [securityLogs, setSecurityLogs] = useState<SecurityLog[]>([]);
   const [domainLogs, setDomainLogs] = useState<Array<{ id: string; domain: string; extension: string; isAvailable: boolean; timestamp: string; searchCount?: number }>>([]);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  // Analytics State
+  const [onlineUsers, setOnlineUsers] = useState<Array<{ userEmail: string; userName: string; lastSeen: string; currentPage: string; isOnline: boolean }>>([]);
+  const [recentPresence, setRecentPresence] = useState<Array<{ userEmail: string; userName: string; lastSeen: string; currentPage: string; isOnline: boolean }>>([]);
+  const [visitStats, setVisitStats] = useState<{ total: number; uniqueVisitors: number; topPages: Array<{ page: string; count: number }> }>({ total: 0, uniqueVisitors: 0, topPages: [] });
+  const [visitStatsPeriod, setVisitStatsPeriod] = useState<'today' | 'week' | 'month'>('today');
 
   const handleLogout = () => {
     setIsLoggingOut(true);
@@ -152,6 +159,24 @@ export default function AdminPage() {
     } catch (e) {}
   };
 
+  const fetchAnalytics = async (period: 'today' | 'week' | 'month' = 'today') => {
+    try {
+      const [presenceRes, visitsRes] = await Promise.all([
+        fetch('/api/analytics/presence'),
+        fetch(`/api/analytics/visits?period=${period}`),
+      ]);
+      if (presenceRes.ok) {
+        const data = await presenceRes.json();
+        setOnlineUsers(data.online || []);
+        setRecentPresence(data.recent || []);
+      }
+      if (visitsRes.ok) {
+        const data = await visitsRes.json();
+        setVisitStats({ total: data.total || 0, uniqueVisitors: data.uniqueVisitors || 0, topPages: data.topPages || [] });
+      }
+    } catch (e) {}
+  };
+
   useEffect(() => {
     // Simulação de admin check
     const currentUser = auth.getCurrentUser();
@@ -173,6 +198,7 @@ export default function AdminPage() {
     setTickets(dataManager.getTickets());
     setSecurityLogs(dataManager.getSecurityLogs());
     fetchDomainLogs();
+    fetchAnalytics();
     setLoading(false);
 
     // Buscar dados atualizados do servidor via API
@@ -207,6 +233,7 @@ export default function AdminPage() {
         }
       });
       fetchDomainLogs();
+      fetchAnalytics();
       dataManager.fetchSecurityLogsAsync().then((fetched) => {
         if (fetched) setSecurityLogs(fetched);
       });
@@ -214,6 +241,12 @@ export default function AdminPage() {
 
     return () => clearInterval(interval);
   }, [router]);
+
+  // Refresh analytics when period changes
+  useEffect(() => {
+    fetchAnalytics(visitStatsPeriod);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visitStatsPeriod]);
 
   const handleAdminSendReply = (e: React.FormEvent) => {
     e.preventDefault();
@@ -517,6 +550,150 @@ export default function AdminPage() {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* ───── ANALYTICS — Quem está Online & Visitantes ───── */}
+        <div className="grid lg:grid-cols-3 gap-6 mb-8">
+
+          {/* Painel: Utilizadores Online Agora */}
+          <div className="lg:col-span-1 bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gray-50">
+              <div className="flex items-center space-x-2">
+                <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse" />
+                <h3 className="font-bold text-gray-900 text-sm">Online Agora</h3>
+              </div>
+              <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${onlineUsers.length > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}>
+                {onlineUsers.length} utilizador{onlineUsers.length !== 1 ? 'es' : ''}
+              </span>
+            </div>
+
+            <div className="divide-y divide-gray-50 max-h-72 overflow-y-auto">
+              {onlineUsers.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-8 text-gray-400">
+                  <WifiOff className="h-8 w-8 mb-2 opacity-40" />
+                  <p className="text-sm">Nenhum utilizador online</p>
+                </div>
+              ) : (
+                onlineUsers.map(u => (
+                  <div key={u.userEmail} className="flex items-center space-x-3 px-5 py-3 hover:bg-gray-50 transition">
+                    <div className="relative">
+                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                        {u.userName?.charAt(0)?.toUpperCase() || '?'}
+                      </div>
+                      <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-gray-900 truncate">{u.userName}</p>
+                      <p className="text-xs text-gray-500 truncate">{u.currentPage}</p>
+                    </div>
+                    <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-1.5 py-0.5 rounded-full whitespace-nowrap">ONLINE</span>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Histórico Recente de Presença */}
+            {recentPresence.filter(p => !onlineUsers.find(o => o.userEmail === p.userEmail)).length > 0 && (
+              <div className="border-t border-gray-100">
+                <p className="px-5 py-2 text-[10px] uppercase tracking-wider text-gray-400 font-semibold bg-gray-50">Vistos recentemente</p>
+                <div className="divide-y divide-gray-50 max-h-40 overflow-y-auto">
+                  {recentPresence
+                    .filter(p => !onlineUsers.find(o => o.userEmail === p.userEmail))
+                    .slice(0, 5)
+                    .map(u => {
+                      const lastSeenDate = new Date(u.lastSeen);
+                      const diffMin = Math.floor((Date.now() - lastSeenDate.getTime()) / 60000);
+                      const timeLabel = diffMin < 60 ? `${diffMin}m atrás` : `${Math.floor(diffMin / 60)}h atrás`;
+                      return (
+                        <div key={u.userEmail} className="flex items-center space-x-3 px-5 py-2.5 hover:bg-gray-50 transition">
+                          <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-bold text-xs flex-shrink-0">
+                            {u.userName?.charAt(0)?.toUpperCase() || '?'}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-semibold text-gray-700 truncate">{u.userName}</p>
+                            <p className="text-[10px] text-gray-400 truncate">{u.currentPage}</p>
+                          </div>
+                          <span className="text-[10px] text-gray-400 whitespace-nowrap">{timeLabel}</span>
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Painel: Visitantes do Site */}
+          <div className="lg:col-span-2 bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gray-50">
+              <div className="flex items-center space-x-2">
+                <BarChart2 className="h-5 w-5 text-primary-600" />
+                <h3 className="font-bold text-gray-900 text-sm">Visitantes do Site</h3>
+              </div>
+              <div className="flex rounded-lg border border-gray-200 overflow-hidden text-xs font-semibold">
+                {(['today', 'week', 'month'] as const).map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => setVisitStatsPeriod(p)}
+                    className={`px-3 py-1.5 transition ${visitStatsPeriod === p ? 'bg-primary-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+                  >
+                    {p === 'today' ? 'Hoje' : p === 'week' ? '7 dias' : '30 dias'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="p-5 grid grid-cols-2 gap-4 border-b border-gray-100">
+              <div className="bg-primary-50 rounded-xl p-4 border border-primary-100">
+                <div className="flex items-center space-x-2 mb-1">
+                  <Eye className="h-4 w-4 text-primary-600" />
+                  <span className="text-xs text-primary-600 font-semibold uppercase tracking-wider">Visualizações</span>
+                </div>
+                <p className="text-3xl font-extrabold text-primary-700">{visitStats.total.toLocaleString('pt-MZ')}</p>
+                <p className="text-xs text-primary-500 mt-0.5">páginas vistas</p>
+              </div>
+              <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-100">
+                <div className="flex items-center space-x-2 mb-1">
+                  <Users className="h-4 w-4 text-emerald-600" />
+                  <span className="text-xs text-emerald-600 font-semibold uppercase tracking-wider">Visitantes Únicos</span>
+                </div>
+                <p className="text-3xl font-extrabold text-emerald-700">{visitStats.uniqueVisitors.toLocaleString('pt-MZ')}</p>
+                <p className="text-xs text-emerald-500 mt-0.5">sessões distintas</p>
+              </div>
+            </div>
+
+            {/* Top Páginas */}
+            <div className="p-5">
+              <p className="text-xs uppercase tracking-wider text-gray-400 font-semibold mb-3">Top Páginas</p>
+              {visitStats.topPages.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-6 text-gray-400">
+                  <Globe className="h-7 w-7 mb-2 opacity-40" />
+                  <p className="text-sm">Sem dados de visitas ainda</p>
+                  <p className="text-xs text-gray-400 mt-1">As visitas aparecerão aqui em tempo real</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {visitStats.topPages.map((pg, i) => {
+                    const maxCount = visitStats.topPages[0]?.count || 1;
+                    const pct = Math.round((pg.count / maxCount) * 100);
+                    return (
+                      <div key={pg.page} className="flex items-center space-x-3">
+                        <span className="text-xs text-gray-400 w-4 text-right font-bold">{i + 1}</span>
+                        <div className="flex-1">
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="text-xs font-medium text-gray-700 truncate max-w-[200px]">{pg.page}</span>
+                            <span className="text-xs text-gray-500 font-semibold ml-2">{pg.count}</span>
+                          </div>
+                          <div className="w-full bg-gray-100 rounded-full h-1.5">
+                            <div className="bg-primary-500 h-1.5 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
         {/* Top KPIs */}
         <div className="grid md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition">
