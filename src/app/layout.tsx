@@ -71,6 +71,9 @@ export const metadata: Metadata = {
   alternates: {
     canonical: BASE_URL,
   },
+  verification: {
+    google: 'google72d5b94a44233f0c',
+  },
   category: 'technology',
 };
 
