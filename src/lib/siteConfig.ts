@@ -8,4 +8,12 @@ export function getSiteUrl(): string {
   return 'https://wehosthere.vercel.app';
 }
 
+export function getApiUrl(): string {
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '');
+  }
+  return '';
+}
+
 export const SITE_URL = getSiteUrl();
+export const API_URL = getApiUrl();

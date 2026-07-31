@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: wehosthere-backend
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false
+      - key: MPESA_API_KEY
+        sync: false
+      - key: MPESA_C2B_URL
+        sync: false
+      - key: MPESA_CALLBACK_URL
+        sync: false
+      - key: MPESA_ENV
+        sync: false
+      - key: MPESA_PUBLIC_KEY
+        sync: false
+      - key: MPESA_SERVICE_PROVIDER_CODE
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_USER
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
