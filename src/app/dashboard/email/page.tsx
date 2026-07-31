@@ -87,9 +87,12 @@ export default function EmailPage() {
       ? newEmailPrefix.trim()
       : `${newEmailPrefix.trim()}@${selectedDomain}`;
 
+    const domainSite = sites.find(s => s.domain === selectedDomain);
+    const initialStatus: EmailAccount['status'] = domainSite?.status === 'pending' ? 'pending' : 'active';
+
     const newEmailAccount = dataManager.addEmail({
       email: fullEmail,
-      status: 'active',
+      status: initialStatus,
       storage: newStorage
     });
 
@@ -162,7 +165,7 @@ export default function EmailPage() {
       case 'active':
         return 'Ativo';
       case 'pending':
-        return 'Pendente';
+        return 'Em Processamento';
       case 'suspended':
         return 'Suspenso';
       default:
@@ -325,6 +328,15 @@ export default function EmailPage() {
                           </button>
                         </div>
                       </div>
+
+                      {email.status === 'pending' && (
+                        <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-center space-x-2">
+                          <Clock className="h-4 w-4 text-amber-600 shrink-0 animate-pulse" />
+                          <span>
+                            <strong>Conta de Email em Processamento:</strong> Esta conta está a ser ativada e provisionada nos servidores pela equipa técnica/administrador.
+                          </span>
+                        </div>
+                      )}
 
                       <div className="mt-4 pt-3 border-t border-gray-100 grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs text-gray-600">
                         <div>
