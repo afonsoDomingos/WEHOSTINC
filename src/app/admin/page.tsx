@@ -486,15 +486,16 @@ export default function AdminPage() {
   const actualOrdersRevenue = orders.reduce((acc, order) => acc + (order.status !== 'cancelled' ? order.amount : 0), 0);
 
   const clientUsers = users.filter(u => u.role !== 'admin' && u.email.toLowerCase() !== 'admin@wehosthere.com');
+  const activeClients = clientUsers.filter(u => u.status === 'active');
 
-  const mrr = clientUsers.reduce((acc, user) => {
+  const mrr = activeClients.reduce((acc, user) => {
     const planPrices = { basic: 1200, pro: 3000, enterprise: 6200 };
     return acc + (planPrices[user.plan as keyof typeof planPrices] || 0);
   }, 0);
 
   const totalRevenue = actualOrdersRevenue > 0 ? actualOrdersRevenue : mrr;
 
-  const averageTicket = orders.length > 0 ? Math.round(totalRevenue / orders.length) : (clientUsers.length > 0 ? Math.round(mrr / clientUsers.length) : 0);
+  const averageTicket = orders.length > 0 ? Math.round(totalRevenue / orders.length) : (activeClients.length > 0 ? Math.round(mrr / activeClients.length) : 0);
 
   const mpesaRevenue = orders.filter(o => o.paymentMethod === 'mpesa' && o.status !== 'cancelled').reduce((acc, o) => acc + o.amount, 0);
   const emolaRevenue = orders.filter(o => o.paymentMethod === 'emola' && o.status !== 'cancelled').reduce((acc, o) => acc + o.amount, 0);
@@ -511,13 +512,7 @@ export default function AdminPage() {
     const currentDay = today.getDate();
     const dueDay = user.dueDate || 29;
 
-    if (currentDay > dueDay + 5) {
-      return 'suspended';
-    } else if (currentDay > dueDay) {
-      return 'pending';
-    }
-
-    return 'active';
+    return user.role === 'admin' ? 'active' : 'pending';
   };
 
   const filteredUsers = users.filter((user) => {
@@ -1066,25 +1061,31 @@ export default function AdminPage() {
                         {user.dueDate ? `Dia ${user.dueDate}` : 'Dia 29'}
                       </td>
                       <td className="py-3.5 px-4">
-                        <select
-                          value={user.status || 'active'}
-                          onChange={(e) => {
-                            const newSt = e.target.value as 'active' | 'pending' | 'suspended';
-                            auth.updateUserStatus(user.id, newSt);
-                            setUsers(prev => prev.map(u => u.id === user.id ? { ...u, status: newSt } : u));
-                          }}
-                          className={`px-2.5 py-1 rounded-lg text-xs font-bold outline-none border cursor-pointer ${
-                            (user.status || 'active') === 'active'
-                              ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
-                              : (user.status || 'active') === 'pending'
-                              ? 'bg-amber-50 text-amber-700 border-amber-300'
-                              : 'bg-red-50 text-red-700 border-red-300'
-                          }`}
-                        >
-                          <option value="active">Ativo (✓)</option>
-                          <option value="pending">Pendente (⏰)</option>
-                          <option value="suspended">Suspenso (✗)</option>
-                        </select>
+                        {user.role === 'admin' || user.email.toLowerCase() === 'admin@wehosthere.com' ? (
+                          <span className="inline-block px-2.5 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-700 border border-purple-200">
+                            👑 Sistema (Sem Cobrança)
+                          </span>
+                        ) : (
+                          <select
+                            value={user.status || 'pending'}
+                            onChange={(e) => {
+                              const newSt = e.target.value as 'active' | 'pending' | 'suspended';
+                              auth.updateUserStatus(user.id, newSt);
+                              setUsers(prev => prev.map(u => u.id === user.id ? { ...u, status: newSt } : u));
+                            }}
+                            className={`px-2.5 py-1 rounded-lg text-xs font-bold outline-none border cursor-pointer ${
+                              (user.status || 'pending') === 'active'
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                                : (user.status || 'pending') === 'pending'
+                                ? 'bg-amber-50 text-amber-700 border-amber-300'
+                                : 'bg-red-50 text-red-700 border-red-300'
+                            }`}
+                          >
+                            <option value="pending">Sem Assinatura (⏰)</option>
+                            <option value="active">Assinatura Ativa (✓)</option>
+                            <option value="suspended">Suspenso (✗)</option>
+                          </select>
+                        )}
                       </td>
                       <td className="py-3.5 px-4 text-gray-500 text-sm">
                         {new Date(user.createdAt).toLocaleDateString('pt-BR')}
@@ -1853,17 +1854,17 @@ export default function AdminPage() {
             <div className="space-y-4">
               <div>
                 <div className="flex justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-600">Básico</span>
+                  <span className="text-sm font-medium text-gray-600">Básico (Ativo)</span>
                   <span className="text-sm font-bold text-gray-900">
-                    {users.filter(u => u.plan === 'basic').length}
+                    {clientUsers.filter(u => u.plan === 'basic' && u.status === 'active').length}
                   </span>
                 </div>
                 <div className="w-full bg-gray-100 rounded-full h-2">
                   <div
                     className="bg-gray-400 h-2 rounded-full"
                     style={{
-                      width: users.length > 0
-                        ? `${(users.filter(u => u.plan === 'basic').length / users.length) * 100}%`
+                      width: clientUsers.length > 0
+                        ? `${(clientUsers.filter(u => u.plan === 'basic' && u.status === 'active').length / clientUsers.length) * 100}%`
                         : '0%'
                     }}
                   ></div>
@@ -1871,17 +1872,17 @@ export default function AdminPage() {
               </div>
               <div>
                 <div className="flex justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-600">Profissional</span>
+                  <span className="text-sm font-medium text-gray-600">Profissional (Ativo)</span>
                   <span className="text-sm font-bold text-gray-900">
-                    {users.filter(u => u.plan === 'pro').length}
+                    {clientUsers.filter(u => u.plan === 'pro' && u.status === 'active').length}
                   </span>
                 </div>
                 <div className="w-full bg-gray-100 rounded-full h-2">
                   <div
                     className="bg-blue-600 h-2 rounded-full"
                     style={{
-                      width: users.length > 0
-                        ? `${(users.filter(u => u.plan === 'pro').length / users.length) * 100}%`
+                      width: clientUsers.length > 0
+                        ? `${(clientUsers.filter(u => u.plan === 'pro' && u.status === 'active').length / clientUsers.length) * 100}%`
                         : '0%'
                     }}
                   ></div>
@@ -1889,17 +1890,35 @@ export default function AdminPage() {
               </div>
               <div>
                 <div className="flex justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-600">Empresarial</span>
+                  <span className="text-sm font-medium text-gray-600">Empresarial (Ativo)</span>
                   <span className="text-sm font-bold text-gray-900">
-                    {users.filter(u => u.plan === 'enterprise').length}
+                    {clientUsers.filter(u => u.plan === 'enterprise' && u.status === 'active').length}
                   </span>
                 </div>
                 <div className="w-full bg-gray-100 rounded-full h-2">
                   <div
                     className="bg-purple-600 h-2 rounded-full"
                     style={{
-                      width: users.length > 0
-                        ? `${(users.filter(u => u.plan === 'enterprise').length / users.length) * 100}%`
+                      width: clientUsers.length > 0
+                        ? `${(clientUsers.filter(u => u.plan === 'enterprise' && u.status === 'active').length / clientUsers.length) * 100}%`
+                        : '0%'
+                    }}
+                  ></div>
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between mb-1">
+                  <span className="text-sm font-medium text-amber-600">Sem Assinatura (Pendentes)</span>
+                  <span className="text-sm font-bold text-amber-700">
+                    {clientUsers.filter(u => u.status === 'pending').length}
+                  </span>
+                </div>
+                <div className="w-full bg-gray-100 rounded-full h-2">
+                  <div
+                    className="bg-amber-400 h-2 rounded-full"
+                    style={{
+                      width: clientUsers.length > 0
+                        ? `${(clientUsers.filter(u => u.status === 'pending').length / clientUsers.length) * 100}%`
                         : '0%'
                     }}
                   ></div>
