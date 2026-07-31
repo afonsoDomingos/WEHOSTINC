@@ -432,11 +432,17 @@ export const dataManager = {
             };
           });
 
-          // Preserve locally created sites that have not synced to server yet
+          // Preserve locally created sites that have not synced to server yet and auto-sync them
           localSites.forEach(localSite => {
             const key = (localSite.domain || localSite.id).toLowerCase();
             if (!serverKeySet.has(key)) {
               updatedSites.push(localSite);
+
+              fetch('/api/sites', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ site: localSite })
+              }).catch(() => {});
             }
           });
 

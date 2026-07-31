@@ -86,11 +86,15 @@ export async function POST(req: Request) {
     }
 
     // Adicionar site individual
-    const newSite: ServerSite = site || {
+    const newSite: ServerSite = site ? {
+      ...site,
+      userEmail: site.userEmail || body.userEmail
+    } : {
       id: body.id || Date.now().toString(),
       name: body.name || body.domain,
       domain: body.domain,
       status: body.status || 'pending',
+      userEmail: body.userEmail,
       createdAt: body.createdAt || new Date().toISOString(),
       storage: body.storage || 10,
       bandwidth: body.bandwidth || 100
