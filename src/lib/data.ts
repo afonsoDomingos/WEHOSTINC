@@ -1,5 +1,4 @@
-// Simulação de dados para MVP
-// Em produção, usar banco de dados real
+import { auth } from './auth';
 
 export interface Site {
   id: string;
@@ -387,18 +386,38 @@ export const dataManager = {
           const localSiteMap = new Map<string, Site>();
           localSites.forEach(s => {
             const key = (s.domain || s.id).toLowerCase();
+            if (!s.userEmail && currentUserEmail) {
+              s.userEmail = currentUserEmail;
+            }
             localSiteMap.set(key, s);
           });
 
-          // Build updated list strictly from serverSites (server is source of truth)
-          // plus local sites created locally that haven't synced yet
+          const serverKeySet = new Set(serverSites.map(s => (s.domain || s.id).toLowerCase()));
+
+          // Build updated list preserving both server data and local creations
           const updatedSites: Site[] = serverSites.map(serverSite => {
             const key = (serverSite.domain || serverSite.id).toLowerCase();
             const localMatch = localSiteMap.get(key);
             if (localMatch) {
-              return { ...localMatch, ...serverSite, status: serverSite.status || localMatch.status };
+              return { 
+                ...localMatch, 
+                ...serverSite, 
+                status: serverSite.status || localMatch.status,
+                userEmail: serverSite.userEmail || localMatch.userEmail || currentUserEmail
+              };
             }
-            return serverSite;
+            return {
+              ...serverSite,
+              userEmail: serverSite.userEmail || currentUserEmail
+            };
+          });
+
+          // Preserve locally created sites that have not synced to server yet
+          localSites.forEach(localSite => {
+            const key = (localSite.domain || localSite.id).toLowerCase();
+            if (!serverKeySet.has(key)) {
+              updatedSites.push(localSite);
+            }
           });
 
           if (typeof window !== 'undefined') {
@@ -406,7 +425,8 @@ export const dataManager = {
           }
 
           if (currentUserEmail) {
-            return updatedSites.filter(s => !s.userEmail || s.userEmail.toLowerCase() === currentUserEmail.toLowerCase());
+            const cleanUserEmail = currentUserEmail.toLowerCase();
+            return updatedSites.filter(s => !s.userEmail || s.userEmail.toLowerCase() === cleanUserEmail);
           }
           return updatedSites;
         }
@@ -419,9 +439,11 @@ export const dataManager = {
 
 
   addSite: (site: Omit<Site, 'id' | 'createdAt'>): Site => {
+    const currentUser = typeof window !== 'undefined' ? auth.getCurrentUser() : null;
     const sites = dataManager.getSites();
     const newSite: Site = {
       ...site,
+      userEmail: site.userEmail || currentUser?.email,
       id: Date.now().toString(),
       createdAt: new Date().toISOString()
     };
