@@ -14,6 +14,7 @@ import { getDomainPrice, sanitizeDomainName } from '@/lib/domains';
 import BrandLogo from '@/components/BrandLogo';
 import PageLoader from '@/components/PageLoader';
 import ReceiptModal, { ReceiptData } from '@/components/ReceiptModal';
+import { apiEndpoint } from '@/lib/siteConfig';
 
 function CheckoutContent() {
   const router = useRouter();
@@ -62,7 +63,7 @@ function CheckoutContent() {
     formData.append('file', file);
 
     try {
-      const res = await fetch('/api/upload', {
+      const res = await fetch(apiEndpoint('/api/upload'), {
         method: 'POST',
         body: formData
       });
@@ -233,7 +234,7 @@ function CheckoutContent() {
     try {
       if (paymentMethod === 'mpesa' || paymentMethod === 'emola') {
         const phone = phonePayment || whatsapp;
-        fetch('/api/payments/mpesa/c2b', {
+        fetch(apiEndpoint('/api/payments/mpesa/c2b'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

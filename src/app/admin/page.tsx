@@ -17,6 +17,7 @@ import BrandLogo from '@/components/BrandLogo';
 import PageLoader from '@/components/PageLoader';
 import ConfirmModal from '@/components/ConfirmModal';
 import Toast from '@/components/Toast';
+import { API_URL, apiEndpoint } from '@/lib/siteConfig';
 
 const ADMIN_CANNED_RESPONSES = [
   {
@@ -125,7 +126,7 @@ export default function AdminPage() {
     formData.append('file', file);
 
     try {
-      const res = await fetch('/api/upload', {
+      const res = await fetch(apiEndpoint('/api/upload'), {
         method: 'POST',
         body: formData
       });
@@ -151,7 +152,7 @@ export default function AdminPage() {
 
   const fetchDomainLogs = async () => {
     try {
-      const res = await fetch('/api/domains/history');
+      const res = await fetch(apiEndpoint('/api/domains/history'));
       if (res.ok) {
         const data = await res.json();
         if (data.logs) setDomainLogs(data.logs);
@@ -162,8 +163,8 @@ export default function AdminPage() {
   const fetchAnalytics = async (period: 'today' | 'week' | 'month' = 'today') => {
     try {
       const [presenceRes, visitsRes] = await Promise.all([
-        fetch('/api/analytics/presence'),
-        fetch(`/api/analytics/visits?period=${period}`),
+        fetch(apiEndpoint('/api/analytics/presence')),
+        fetch(apiEndpoint(`/api/analytics/visits?period=${period}`)),
       ]);
       if (presenceRes.ok) {
         const data = await presenceRes.json();
@@ -326,7 +327,7 @@ export default function AdminPage() {
       setEmails(dataManager.getEmails());
 
       if (newStatus === 'active') {
-        fetch('/api/vps/provision', {
+        fetch(apiEndpoint('/api/vps/provision'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

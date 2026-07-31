@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { auth } from '@/lib/auth';
+import { apiEndpoint } from '@/lib/siteConfig';
 
 // Gera ou reutiliza um sessionId persistido em sessionStorage
 function getSessionId(): string {
@@ -32,7 +33,7 @@ export default function AnalyticsTracker() {
     const sessionId = getSessionId();
     const currentUser = auth.getCurrentUser();
 
-    fetch('/api/analytics/visits', {
+    fetch(apiEndpoint('/api/analytics/visits'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -53,7 +54,7 @@ export default function AnalyticsTracker() {
       if (!currentUser || currentUser.role === 'admin') return;
 
       const sessionId = getSessionId();
-      fetch('/api/analytics/presence', {
+      fetch(apiEndpoint('/api/analytics/presence'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

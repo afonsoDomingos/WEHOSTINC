@@ -12,6 +12,7 @@ import DashboardNav from '@/components/DashboardNav';
 import PageLoader from '@/components/PageLoader';
 import { auth, User } from '@/lib/auth';
 import { dataManager, SupportTicket, TicketMessage, TicketAttachment } from '@/lib/data';
+import { apiEndpoint } from '@/lib/siteConfig';
 
 const CLIENT_TICKET_TEMPLATES = [
   {
@@ -90,7 +91,7 @@ export default function ClientTicketsPage() {
     formData.append('file', file);
 
     try {
-      const res = await fetch('/api/upload', {
+      const res = await fetch(apiEndpoint('/api/upload'), {
         method: 'POST',
         body: formData
       });

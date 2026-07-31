@@ -192,7 +192,7 @@ export const auth = {
       localStorage.setItem('wehosthere_all_users', JSON.stringify(updatedList));
 
       // Sincronizar com a API do Servidor para aparecer no Admin em qualquer navegador/dispositivo
-      fetch('/api/users', {
+      fetch(apiEndpoint('/api/users'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user: userWithPassword })
@@ -381,7 +381,7 @@ export const auth = {
   // Buscar usuários do servidor via API e atualizar LocalStorage
   fetchUsersAsync: async (): Promise<User[]> => {
     try {
-      const res = await fetch('/api/users');
+      const res = await fetch(apiEndpoint('/api/users'));
       if (res.ok) {
         const data = await res.json();
         if (data.users && Array.isArray(data.users)) {
@@ -402,7 +402,7 @@ export const auth = {
 
               // Se o status local difere do servidor, avisar o servidor
               if (serverUser.status !== effectiveStatus) {
-                fetch('/api/users', {
+                fetch(apiEndpoint('/api/users'), {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ action: 'update_status', userId: serverUser.id, email: serverUser.email, status: effectiveStatus })
@@ -430,7 +430,7 @@ export const auth = {
               if (isJustCreated) {
                 updatedUsers.push(localUser);
 
-                fetch('/api/users', {
+                fetch(apiEndpoint('/api/users'), {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ action: 'register', user: localUser })
@@ -462,7 +462,7 @@ export const auth = {
     const updatedList = currentList.map(u => u.id === userId ? { ...u, plan } : u);
     localStorage.setItem('wehosthere_all_users', JSON.stringify(updatedList));
 
-    fetch('/api/users', {
+    fetch(apiEndpoint('/api/users'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'update_plan', userId, plan })
@@ -495,7 +495,7 @@ export const auth = {
     const updatedList = currentList.map(u => u.id === userId ? { ...u, status } : u);
     localStorage.setItem('wehosthere_all_users', JSON.stringify(updatedList));
 
-    fetch('/api/users', {
+    fetch(apiEndpoint('/api/users'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'update_status', userId, email: userData.email, status })
@@ -525,7 +525,7 @@ export const auth = {
     );
     localStorage.setItem('wehosthere_all_users', JSON.stringify(updatedList));
 
-    fetch('/api/users', {
+    fetch(apiEndpoint('/api/users'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'delete', userId, userEmail: targetEmail })

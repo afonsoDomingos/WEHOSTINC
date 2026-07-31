@@ -13,6 +13,7 @@ import { dataManager, EmailAccount } from '@/lib/data';
 import { webmailManager, WebmailMessage } from '@/lib/webmail';
 import BrandLogo from '@/components/BrandLogo';
 import PageLoader from '@/components/PageLoader';
+import { apiEndpoint } from '@/lib/siteConfig';
 
 function WebmailContent() {
   const router = useRouter();
@@ -136,7 +137,7 @@ function WebmailContent() {
 
     try {
       // 1. Chamar a API real do SendGrid
-      const res = await fetch('/api/send-email', {
+      const res = await fetch(apiEndpoint('/api/send-email'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -191,7 +192,7 @@ function WebmailContent() {
     setQuickReplySending(true);
 
     try {
-      const res = await fetch('/api/send-email', {
+      const res = await fetch(apiEndpoint('/api/send-email'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
