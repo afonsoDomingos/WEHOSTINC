@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -13,6 +13,7 @@ import { dataManager, Site } from '@/lib/data';
 import DashboardNav from '@/components/DashboardNav';
 import PageLoader from '@/components/PageLoader';
 import StatusBadge from '@/components/StatusBadge';
+import ApprovalCelebration from '@/components/ApprovalCelebration';
 
 const NS1 = 'ns1.wehosthere.com';
 const NS2 = 'ns2.wehosthere.com';
@@ -24,6 +25,10 @@ export default function DomainsPage() {
   const [loading, setLoading] = useState(true);
   const [copiedText, setCopiedText] = useState<string | null>(null);
 
+  // Celebration state (when admin approves domain/site)
+  const [celebration, setCelebration] = useState<{ show: boolean; name: string } | null>(null);
+  const prevSiteStatusRef = useRef<Record<string, string>>({});
+
   useEffect(() => {
     const currentUser = auth.getCurrentUser();
     if (!currentUser) {
@@ -31,17 +36,27 @@ export default function DomainsPage() {
       return;
     }
     setUser(currentUser);
-    setSites(dataManager.getSites());
+
+    const refreshSites = (newSites?: Site[]) => {
+      const loaded = newSites || dataManager.getSites();
+      // Detect pending → active transitions to trigger celebration
+      loaded.forEach(site => {
+        const prevStatus = prevSiteStatusRef.current[site.id || site.domain];
+        if (prevStatus === 'pending' && site.status === 'active') {
+          setCelebration({ show: true, name: site.domain });
+        }
+        prevSiteStatusRef.current[site.id || site.domain] = site.status;
+      });
+      setSites(loaded);
+    };
+
+    refreshSites(dataManager.getSites());
     setLoading(false);
 
-    dataManager.fetchSitesAsync().then(() => {
-      setSites(dataManager.getSites());
-    });
+    dataManager.fetchSitesAsync().then(sites => refreshSites(sites));
 
     const interval = setInterval(() => {
-      dataManager.fetchSitesAsync().then(() => {
-        setSites(dataManager.getSites());
-      });
+      dataManager.fetchSitesAsync().then(sites => refreshSites(sites));
     }, 3000);
 
     return () => clearInterval(interval);
@@ -84,6 +99,16 @@ export default function DomainsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Celebration effect when domain gets approved */}
+      {celebration && (
+        <ApprovalCelebration
+          show={celebration.show}
+          type="domain"
+          name={celebration.name}
+          onDone={() => setCelebration(null)}
+        />
+      )}
+
       <DashboardNav userName={user.name} onLogout={handleLogout} />
 
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6">

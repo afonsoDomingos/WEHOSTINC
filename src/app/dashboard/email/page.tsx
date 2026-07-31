@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
@@ -14,6 +14,7 @@ import { dataManager, EmailAccount, Site } from '@/lib/data';
 import DashboardNav from '@/components/DashboardNav';
 import PageLoader from '@/components/PageLoader';
 import StatusBadge from '@/components/StatusBadge';
+import ApprovalCelebration from '@/components/ApprovalCelebration';
 
 export default function EmailPage() {
   const router = useRouter();
@@ -44,6 +45,10 @@ export default function EmailPage() {
   // Feedback de cópia de texto
   const [copiedText, setCopiedText] = useState<string | null>(null);
 
+  // Celebration state (when admin approves email)
+  const [celebration, setCelebration] = useState<{ show: boolean; name: string } | null>(null);
+  const prevEmailStatusRef = useRef<Record<string, string>>({});
+
   useEffect(() => {
     const currentUser = auth.getCurrentUser();
     if (!currentUser) {
@@ -56,9 +61,19 @@ export default function EmailPage() {
     // Clean up stale shared localStorage data and migrate to per-user key
     dataManager.initUserEmails(userEmailFilter);
 
-    const refreshData = () => {
+    const refreshData = (newEmails?: EmailAccount[]) => {
       // Use user-specific key - strictly isolated per user
-      const loadedEmails = dataManager.getEmails(userEmailFilter);
+      const loadedEmails = newEmails || dataManager.getEmails(userEmailFilter);
+      
+      // Detect pending → active transitions to trigger celebration
+      loadedEmails.forEach(email => {
+        const prevStatus = prevEmailStatusRef.current[email.email];
+        if (prevStatus === 'pending' && email.status === 'active') {
+          setCelebration({ show: true, name: email.email });
+        }
+        prevEmailStatusRef.current[email.email] = email.status;
+      });
+
       setEmails(loadedEmails);
       const loadedSites = dataManager.getSites().filter(s =>
         !s.userEmail || s.userEmail.toLowerCase() === userEmailFilter.toLowerCase()
@@ -77,12 +92,12 @@ export default function EmailPage() {
     }
     setLoading(false);
 
-    dataManager.fetchEmailsAsync(userEmailFilter).then(refreshData);
-    dataManager.fetchSitesAsync().then(refreshData);
+    dataManager.fetchEmailsAsync(userEmailFilter).then(emails => refreshData(emails));
+    dataManager.fetchSitesAsync().then(() => refreshData());
 
     const interval = setInterval(() => {
-      dataManager.fetchEmailsAsync(userEmailFilter).then(refreshData);
-      dataManager.fetchSitesAsync().then(refreshData);
+      dataManager.fetchEmailsAsync(userEmailFilter).then(emails => refreshData(emails));
+      dataManager.fetchSitesAsync().then(() => refreshData());
     }, 3000);
 
     return () => clearInterval(interval);
@@ -212,6 +227,16 @@ export default function EmailPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Celebration effect when email gets approved */}
+      {celebration && (
+        <ApprovalCelebration
+          show={celebration.show}
+          type="email"
+          name={celebration.name}
+          onDone={() => setCelebration(null)}
+        />
+      )}
+
       {/* Header Responsivo */}
       <DashboardNav userName={user.name} onLogout={handleLogout} />
 
