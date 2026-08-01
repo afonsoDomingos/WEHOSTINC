@@ -9,6 +9,7 @@ import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 import Navbar from '@/components/Navbar';
 
 import DomainSearch from '@/components/DomainSearch';
+import VirtualAssistant from '@/components/VirtualAssistant';
 
 export default function Home() {
   const [durationMonths, setDurationMonths] = useState<number>(1);
@@ -528,6 +529,9 @@ export default function Home() {
           </div>
         </div>
       </footer>
+
+      {/* Virtual Assistant */}
+      <VirtualAssistant />
     </div>
   );
 }
