@@ -335,12 +335,17 @@ export default function AdminPage() {
 
   const fetchDomainLogs = async () => {
     try {
+      console.log('[Admin] Buscando logs de domínio...');
       const res = await fetch(apiEndpoint('/api/domains/history'));
+      console.log(`[Admin] Resposta do history API: ${res.status}`);
       if (res.ok) {
         const data = await res.json();
+        console.log(`[Admin] Dados recebidos:`, data);
         if (data.logs) {
           console.log(`[Admin] Carregados ${data.logs.length} logs de domínio (source: ${data.source || 'unknown'})`);
           setDomainLogs(data.logs);
+        } else {
+          console.warn('[Admin] Resposta não tem logs:', data);
         }
       } else {
         console.warn('[Admin] Erro ao buscar logs de domínio:', res.status);

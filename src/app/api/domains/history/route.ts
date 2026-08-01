@@ -17,20 +17,24 @@ export async function GET() {
   try {
     if (await tryMongo()) {
       const logs = await DomainSearchLogModel.find({}).sort({ timestamp: -1 }).limit(100).lean();
+      console.log(`[Domain History GET] Retornando ${logs.length} logs do MongoDB`);
       return NextResponse.json({
         totalSearches: logs.length,
         availableSearches: logs.filter(l => l.isAvailable).length,
-        logs
+        logs,
+        source: 'mongodb'
       });
     }
   } catch (e) { 
     console.error('MongoDB indisponível (domain history):', e); 
   }
 
+  console.log(`[Domain History GET] Retornando ${FALLBACK_LOGS.length} logs do fallback`);
   return NextResponse.json({
     totalSearches: FALLBACK_LOGS.length,
     availableSearches: FALLBACK_LOGS.filter(l => l.isAvailable).length,
-    logs: FALLBACK_LOGS
+    logs: FALLBACK_LOGS,
+    source: 'fallback'
   });
 }
 
@@ -39,7 +43,10 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { domain, extension, isAvailable } = body;
 
+    console.log(`[Domain History POST] Recebido: domain=${domain}, extension=${extension}, isAvailable=${isAvailable}`);
+
     if (!domain || !extension) {
+      console.error('[Domain History POST] Parâmetros faltando');
       return NextResponse.json({ error: 'domain e extension são obrigatórios' }, { status: 400 });
     }
 
@@ -49,16 +56,19 @@ export async function POST(req: NextRequest) {
     // Tentar salvar no MongoDB primeiro
     if (await tryMongo()) {
       try {
+        console.log(`[Domain History POST] Tentando salvar no MongoDB: ${cleanDomain}`);
         const existing = await DomainSearchLogModel.findOne({ domain: cleanDomain });
         let currentCount = 1;
 
         if (existing) {
+          console.log(`[Domain History POST] Domínio já existe, atualizando: ${cleanDomain}`);
           existing.timestamp = now;
           existing.isAvailable = isAvailable;
           existing.searchCount = (existing.searchCount || 1) + 1;
           currentCount = existing.searchCount;
           await existing.save();
         } else {
+          console.log(`[Domain History POST] Novo domínio, criando: ${cleanDomain}`);
           await DomainSearchLogModel.create({
             id: Date.now().toString() + Math.random().toString(36).substring(2, 6),
             domain: cleanDomain,
@@ -70,11 +80,14 @@ export async function POST(req: NextRequest) {
         }
 
         const logs = await DomainSearchLogModel.find({}).sort({ timestamp: -1 }).limit(100).lean();
+        console.log(`[Domain History POST] Salvo no MongoDB com sucesso. Total logs: ${logs.length}, searchCount: ${currentCount}`);
         return NextResponse.json({ success: true, searchCount: currentCount, logs, source: 'mongodb' });
       } catch (mongoError) {
-        console.error('Erro ao salvar no MongoDB, usando fallback:', mongoError);
+        console.error('[Domain History POST] Erro ao salvar no MongoDB, usando fallback:', mongoError);
         // Continua para fallback
       }
+    } else {
+      console.log('[Domain History POST] MongoDB indisponível, usando fallback');
     }
 
     // Fallback in-memory (sempre funciona)
@@ -100,10 +113,10 @@ export async function POST(req: NextRequest) {
       if (FALLBACK_LOGS.length > 100) FALLBACK_LOGS.pop();
     }
 
-    console.log(`[Domain History] Salvo no fallback: ${cleanDomain} (count: ${currentCount})`);
+    console.log(`[Domain History POST] Salvo no fallback: ${cleanDomain} (count: ${currentCount}, total logs: ${FALLBACK_LOGS.length})`);
     return NextResponse.json({ success: true, searchCount: currentCount, logs: FALLBACK_LOGS, source: 'fallback' });
   } catch (e) {
-    console.error('Erro ao registar pesquisa de domínio:', e);
+    console.error('[Domain History POST] Erro ao registar pesquisa de domínio:', e);
     return NextResponse.json({ error: 'Erro ao registar pesquisa' }, { status: 500 });
   }
 }
