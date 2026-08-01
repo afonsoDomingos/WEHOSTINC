@@ -83,7 +83,7 @@ export default function AdminPage() {
   const [onlineUsers, setOnlineUsers] = useState<Array<{ userEmail: string; userName: string; lastSeen: string; currentPage: string; isOnline: boolean }>>([]);
   const [recentPresence, setRecentPresence] = useState<Array<{ userEmail: string; userName: string; lastSeen: string; currentPage: string; isOnline: boolean }>>([]);
   const [visitStats, setVisitStats] = useState<{ total: number; uniqueVisitors: number; topPages: Array<{ page: string; count: number }> }>({ total: 0, uniqueVisitors: 0, topPages: [] });
-  const [visitStatsPeriod, setVisitStatsPeriod] = useState<'today' | 'week' | 'month'>('today');
+  const [visitStatsPeriod, setVisitStatsPeriod] = useState<'today' | 'week' | 'month' | 'all'>('all');
 
   const handleLogout = () => {
     setIsLoggingOut(true);
@@ -160,7 +160,7 @@ export default function AdminPage() {
     } catch (e) {}
   };
 
-  const fetchAnalytics = async (period: 'today' | 'week' | 'month' = 'today') => {
+  const fetchAnalytics = async (period: 'today' | 'week' | 'month' | 'all' = visitStatsPeriod) => {
     try {
       const [presenceRes, visitsRes] = await Promise.all([
         fetch(apiEndpoint('/api/analytics/presence')),
@@ -440,6 +440,8 @@ export default function AdminPage() {
       clientPhone: '',
       serviceName: `Alteração de Plano → ${planNames[newPlanId] || newPlanId}`,
       amount: planPrices[newPlanId] || 0,
+      valorFaturado: 0,
+      valorPorFaturar: planPrices[newPlanId] || 0,
       paymentMethod: 'bank_transfer',
       status: 'pending',
     });
@@ -461,6 +463,48 @@ export default function AdminPage() {
   const handleUpdateEmailStatus = (emailId: string, status: 'active' | 'pending' | 'suspended') => {
     dataManager.updateEmailStatus(emailId, status);
     setEmails(dataManager.getEmails());
+  };
+
+  const handleApprovePayment = (orderId: string) => {
+    const order = orders.find(o => o.id === orderId);
+    if (!order) return;
+
+    // Mover valor de por faturar para faturado
+    const updatedOrder = {
+      ...order,
+      valorFaturado: order.valorPorFaturar,
+      valorPorFaturar: 0,
+      status: 'completed' as const
+    };
+
+    // Atualizar no localStorage e no servidor
+    const allOrders = dataManager.getOrders();
+    const index = allOrders.findIndex(o => o.id === orderId);
+    if (index !== -1) {
+      allOrders[index] = updatedOrder;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('wehosthere_orders', JSON.stringify(allOrders));
+      }
+    }
+
+    // Sincronizar com servidor
+    fetch(apiEndpoint('/api/orders'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        action: 'update_status', 
+        orderId, 
+        status: 'completed',
+        order: updatedOrder
+      })
+    }).catch(err => console.error('Erro ao aprovar pagamento:', err));
+
+    setOrders(allOrders);
+    setToastMsg({
+      title: 'Pagamento Aprovado',
+      message: `O pagamento do pedido ${orderId} foi aprovado. Valor faturado: ${updatedOrder.valorFaturado.toLocaleString('pt-MZ')} MT`,
+      type: 'success'
+    });
   };
 
   const handleDeleteEmail = (emailId: string, emailAddr: string, ownerEmail?: string) => {
@@ -486,7 +530,7 @@ export default function AdminPage() {
     );
   }
 
-  const actualOrdersRevenue = orders.reduce((acc, order) => acc + (order.status !== 'cancelled' ? order.amount : 0), 0);
+  const actualOrdersRevenue = orders.reduce((acc, order) => acc + (order.status !== 'cancelled' ? order.valorFaturado : 0), 0);
 
   const clientUsers = users.filter(u => u.role !== 'admin' && u.email.toLowerCase() !== 'admin@wehosthere.com');
   const activeClients = clientUsers.filter(u => u.status === 'active');
@@ -500,9 +544,9 @@ export default function AdminPage() {
 
   const averageTicket = orders.length > 0 ? Math.round(totalRevenue / orders.length) : (activeClients.length > 0 ? Math.round(mrr / activeClients.length) : 0);
 
-  const mpesaRevenue = orders.filter(o => o.paymentMethod === 'mpesa' && o.status !== 'cancelled').reduce((acc, o) => acc + o.amount, 0);
-  const emolaRevenue = orders.filter(o => o.paymentMethod === 'emola' && o.status !== 'cancelled').reduce((acc, o) => acc + o.amount, 0);
-  const cardRevenue = orders.filter(o => o.paymentMethod === 'card' && o.status !== 'cancelled').reduce((acc, o) => acc + o.amount, 0);
+  const mpesaRevenue = orders.filter(o => o.paymentMethod === 'mpesa' && o.status !== 'cancelled').reduce((acc, o) => acc + o.valorFaturado, 0);
+  const emolaRevenue = orders.filter(o => o.paymentMethod === 'emola' && o.status !== 'cancelled').reduce((acc, o) => acc + o.valorFaturado, 0);
+  const cardRevenue = orders.filter(o => o.paymentMethod === 'card' && o.status !== 'cancelled').reduce((acc, o) => acc + o.valorFaturado, 0);
   const validOrdersTotal = (mpesaRevenue + emolaRevenue + cardRevenue) || 1;
 
   const getUserStatus = (user: User) => {
@@ -668,13 +712,16 @@ export default function AdminPage() {
                 <h3 className="font-bold text-gray-900 text-sm">Visitantes do Site</h3>
               </div>
               <div className="flex rounded-lg border border-gray-200 overflow-hidden text-xs font-semibold">
-                {(['today', 'week', 'month'] as const).map((p) => (
+                {(['today', 'week', 'month', 'all'] as const).map((p) => (
                   <button
                     key={p}
-                    onClick={() => setVisitStatsPeriod(p)}
-                    className={`px-3 py-1.5 transition ${visitStatsPeriod === p ? 'bg-primary-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+                    onClick={() => {
+                      setVisitStatsPeriod(p);
+                      fetchAnalytics(p);
+                    }}
+                    className={`px-3 py-1.5 transition cursor-pointer ${visitStatsPeriod === p ? 'bg-primary-600 text-white font-bold' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
                   >
-                    {p === 'today' ? 'Hoje' : p === 'week' ? '7 dias' : '30 dias'}
+                    {p === 'today' ? 'Hoje' : p === 'week' ? '7 dias' : p === 'month' ? '30 dias' : 'Todo Histórico'}
                   </button>
                 ))}
               </div>
@@ -1072,7 +1119,7 @@ export default function AdminPage() {
                               <div className="space-y-1">
                                 {userClientOrders.slice(0, 2).map((ord) => (
                                   <span key={ord.id} className="inline-block px-2 py-0.5 rounded text-[11px] font-bold bg-blue-50 text-blue-800 border border-blue-200 mr-1">
-                                    📦 {ord.serviceName} ({ord.amount.toLocaleString('pt-MZ')} MT)
+                                    📦 {ord.serviceName} ({ord.valorPorFaturar > 0 ? `${ord.valorPorFaturar.toLocaleString('pt-MZ')} MT (por faturar)` : `${ord.valorFaturado.toLocaleString('pt-MZ')} MT (faturado)`})
                                   </span>
                                 ))}
                                 {userClientOrders.length > 2 && (
@@ -1219,7 +1266,12 @@ export default function AdminPage() {
                         <span className="font-semibold text-gray-900 text-sm">{order.serviceName}</span>
                       </td>
                       <td className="py-3.5 px-4">
-                        <span className="font-bold text-emerald-600 block">{order.amount.toLocaleString('pt-MZ')} MT</span>
+                        <span className="font-bold text-emerald-600 block">
+                          {order.valorPorFaturar > 0 
+                            ? `${order.valorPorFaturar.toLocaleString('pt-MZ')} MT (por faturar)` 
+                            : `${order.valorFaturado.toLocaleString('pt-MZ')} MT (faturado)`
+                          }
+                        </span>
                         <span className="text-xs font-semibold uppercase text-gray-500">
                           {order.paymentMethod === 'bank_transfer' ? 'Transferência' : order.paymentMethod}
                         </span>
@@ -1261,14 +1313,14 @@ export default function AdminPage() {
                       </td>
                       <td className="py-3.5 px-4">
                         <div className="flex items-center space-x-2">
-                          {order.proofUrl && order.status !== 'completed' && (
+                          {order.valorPorFaturar > 0 && order.status !== 'completed' && (
                             <button
-                              onClick={() => handleUpdateOrderStatus(order.id, 'completed')}
+                              onClick={() => handleApprovePayment(order.id)}
                               className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-md shadow transition flex items-center space-x-1 cursor-pointer"
-                              title="Aprovar Comprovativo de Pagamento"
+                              title="Aprovar Pagamento e Faturar"
                             >
                               <CheckCircle className="h-3.5 w-3.5" />
-                              <span>Aprovar</span>
+                              <span>Aprovar Pagamento</span>
                             </button>
                           )}
 

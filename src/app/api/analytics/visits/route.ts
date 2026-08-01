@@ -12,7 +12,7 @@ async function tryMongo() {
 // GET /api/analytics/visits — para o admin ver estatísticas
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const period = searchParams.get('period') || 'today'; // today | week | month | all
+  const period = searchParams.get('period') || 'month'; // today | week | month | all
 
   try {
     if (await tryMongo()) {
@@ -26,9 +26,13 @@ export async function GET(req: NextRequest) {
       } else if (period === 'month') {
         since = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
       }
+      // If period === 'all', since is null (fetch all history from MongoDB)
 
       const query = since ? { timestamp: { $gte: since.toISOString() } } : {};
-      const visits = await AnalyticsVisitModel.find(query).sort({ timestamp: -1 }).limit(500).lean();
+      
+      // Contagem exata total no MongoDB Atlas
+      const totalCount = await AnalyticsVisitModel.countDocuments(query);
+      const visits = await AnalyticsVisitModel.find(query).sort({ timestamp: -1 }).limit(1000).lean();
 
       // Sessões únicas
       const uniqueSessions = new Set(visits.map((v: any) => v.sessionId)).size;
@@ -38,7 +42,7 @@ export async function GET(req: NextRequest) {
       }, {});
 
       return NextResponse.json({
-        total: visits.length,
+        total: totalCount || visits.length,
         uniqueVisitors: uniqueSessions,
         visits: visits.slice(0, 100),
         topPages: Object.entries(uniquePages)
@@ -86,14 +90,16 @@ export async function POST(req: NextRequest) {
       timestamp: now,
     };
 
-    if (await tryMongo()) {
+    try {
+      await connectDB();
       await AnalyticsVisitModel.create(visitData);
       return NextResponse.json({ success: true });
+    } catch (dbErr) {
+      console.error('Erro ao guardar visita no Mongo, guardando em fallback:', dbErr);
+      FALLBACK_VISITS.unshift(visitData);
+      if (FALLBACK_VISITS.length > 500) FALLBACK_VISITS = FALLBACK_VISITS.slice(0, 500);
+      return NextResponse.json({ success: true });
     }
-
-    FALLBACK_VISITS.unshift(visitData);
-    if (FALLBACK_VISITS.length > 500) FALLBACK_VISITS = FALLBACK_VISITS.slice(0, 500);
-    return NextResponse.json({ success: true });
 
   } catch (e) {
     return NextResponse.json({ error: 'Erro ao registar visita' }, { status: 500 });

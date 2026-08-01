@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
   Globe, Plus, Trash2, Settings, CheckCircle, Clock, XCircle,
-  LayoutDashboard, Mail, Database, Settings as SettingsIcon, LogOut, Server, Sparkles, ArrowRight, Search, X
+  LayoutDashboard, Mail, Database, Settings as SettingsIcon, LogOut, Server, Sparkles, ArrowRight, Search, X, ShoppingBag
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 import { dataManager, Site } from '@/lib/data';
@@ -174,6 +174,13 @@ export default function SitesPage() {
                 >
                   <Globe className="h-5 w-5" />
                   <span>Meus Sites</span>
+                </Link>
+                <Link
+                  href="/dashboard/orders"
+                  className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg font-medium"
+                >
+                  <ShoppingBag className="h-5 w-5" />
+                  <span>Meus Pedidos</span>
                 </Link>
                 <Link
                   href="/site-quote"

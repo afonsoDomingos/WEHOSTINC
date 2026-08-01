@@ -1237,6 +1237,8 @@ export interface ServiceOrder {
   clientPhone: string;
   serviceName: string;
   amount: number;
+  valorFaturado: number;
+  valorPorFaturar: number;
   paymentMethod: 'mpesa' | 'emola' | 'card' | 'bank_transfer';
   proofUrl?: string;
   proofName?: string;

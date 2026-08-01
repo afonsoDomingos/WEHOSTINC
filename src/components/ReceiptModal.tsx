@@ -10,6 +10,8 @@ export interface ReceiptData {
   clientPhone?: string;
   serviceName: string;
   amount: number;
+  valorFaturado?: number;
+  valorPorFaturar?: number;
   paymentMethod: string;
   status: string;
   createdAt: string;

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
   Server, Mail, LayoutDashboard, Settings, LogOut, 
-  Plus, Globe, Database, TrendingUp, Users, CheckCircle, Sparkles, ArrowRight, Link2, Loader2
+  Plus, Globe, Database, TrendingUp, Users, CheckCircle, Sparkles, ArrowRight, Link2, Loader2, ShoppingBag
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 import { dataManager } from '@/lib/data';
@@ -92,6 +92,26 @@ export default function DashboardPage() {
 
   const planInfo = getPlanInfo(user.plan);
 
+  // Calcular dias até expiração do plano
+  const getDaysUntilExpiry = () => {
+    if (!user.dueDate || user.status !== 'active') return null;
+    const today = new Date();
+    const currentDay = today.getDate();
+    const dueDay = user.dueDate;
+    
+    if (dueDay >= currentDay) {
+      return dueDay - currentDay;
+    } else {
+      // Se o dia de vencimento já passou neste mês, calcula para o próximo mês
+      const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, dueDay);
+      const diffTime = nextMonth.getTime() - today.getTime();
+      return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    }
+  };
+
+  const daysUntilExpiry = getDaysUntilExpiry();
+  const isExpiringSoon = daysUntilExpiry !== null && daysUntilExpiry <= 7 && daysUntilExpiry > 0;
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header Responsivo do Dashboard */}
@@ -112,10 +132,17 @@ export default function DashboardPage() {
                 </Link>
                 <Link
                   href="/dashboard/sites"
-                  className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition font-medium"
+                  className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg font-medium"
                 >
                   <Globe className="h-5 w-5" />
                   <span>Meus Sites</span>
+                </Link>
+                <Link
+                  href="/dashboard/orders"
+                  className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg font-medium"
+                >
+                  <ShoppingBag className="h-5 w-5" />
+                  <span>Meus Pedidos</span>
                 </Link>
                 <Link
                   href="/site-quote"
@@ -168,8 +195,8 @@ export default function DashboardPage() {
 
           {/* Main Content */}
           <div className="lg:col-span-3 space-y-6">
-            {/* Banner de Status Pendente */}
-            {user.status === 'pending' && (
+            {/* Banner de Status Pendente - Só mostra se não tiver plano ativo */}
+            {user.status === 'pending' && user.plan === 'none' && (
               <div className="bg-amber-50 border-2 border-amber-300 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-amber-900 shadow-sm">
                 <div className="flex items-start gap-3">
                   <span className="text-2xl">⏳</span>
@@ -185,6 +212,27 @@ export default function DashboardPage() {
                   className="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold whitespace-nowrap shadow transition"
                 >
                   Escolher Plano em Faturamento →
+                </Link>
+              </div>
+            )}
+
+            {/* Banner de Aviso de Expiração */}
+            {isExpiringSoon && (
+              <div className="bg-orange-50 border-2 border-orange-300 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-orange-900 shadow-sm">
+                <div className="flex items-start gap-3">
+                  <span className="text-2xl">⚠️</span>
+                  <div>
+                    <h3 className="font-bold text-orange-950 text-base">Plano Próximo da Expiração</h3>
+                    <p className="text-xs sm:text-sm text-orange-800 mt-0.5">
+                      O seu plano {planInfo.name} expira em <strong>{daysUntilExpiry} dia{daysUntilExpiry === 1 ? '' : 's'}</strong>. Renove agora para evitar interrupções no serviço.
+                    </p>
+                  </div>
+                </div>
+                <Link
+                  href="/dashboard/billing"
+                  className="px-4 py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-xs font-bold whitespace-nowrap shadow transition"
+                >
+                  Renovar Plano →
                 </Link>
               </div>
             )}

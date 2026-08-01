@@ -51,7 +51,21 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true, orders: FALLBACK_ORDERS });
     }
 
-    const orderData = order || { id: body.id || `ORD-${Date.now().toString().slice(-5)}`, clientName: body.clientName, clientEmail: body.clientEmail, clientPhone: body.clientPhone || '', serviceName: body.serviceName, amount: body.amount, paymentMethod: body.paymentMethod || 'bank_transfer', proofUrl: body.proofUrl, proofName: body.proofName, status: body.status || 'pending', createdAt: body.createdAt || new Date().toISOString() };
+    const orderData = order || { 
+      id: body.id || `ORD-${Date.now().toString().slice(-5)}`, 
+      clientName: body.clientName, 
+      clientEmail: body.clientEmail, 
+      clientPhone: body.clientPhone || '', 
+      serviceName: body.serviceName, 
+      amount: body.amount,
+      valorFaturado: body.valorFaturado || 0,
+      valorPorFaturar: body.valorPorFaturar || body.amount || 0,
+      paymentMethod: body.paymentMethod || 'bank_transfer', 
+      proofUrl: body.proofUrl, 
+      proofName: body.proofName, 
+      status: body.status || 'pending', 
+      createdAt: body.createdAt || new Date().toISOString() 
+    };
 
     if (useMongo) {
       await OrderModel.findOneAndUpdate({ id: orderData.id }, orderData, { upsert: true, new: true });

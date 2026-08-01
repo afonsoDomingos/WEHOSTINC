@@ -174,12 +174,15 @@ function CheckoutContent() {
       const orderStatus = (paymentMethod === 'bank_transfer' || (selectedPlan && selectedPlan.id === 'website_creation')) ? 'in_progress' : 'completed';
 
       // Registra pedido de serviço para gestão no Admin
+      // Quando o pedido é criado, o valor fica "por faturar" até o admin aprovar
       dataManager.addOrder({
         clientName: name,
         clientEmail: email,
         clientPhone: `${ddi} ${phonePayment || whatsapp}`,
         serviceName,
         amount: grandTotal,
+        valorFaturado: 0,
+        valorPorFaturar: grandTotal,
         paymentMethod: paymentMethod,
         proofUrl: proofUrl || undefined,
         proofName: proofName || undefined,
@@ -193,6 +196,8 @@ function CheckoutContent() {
         clientPhone: `${ddi} ${phonePayment || whatsapp}`,
         serviceName,
         amount: grandTotal,
+        valorFaturado: 0,
+        valorPorFaturar: grandTotal,
         paymentMethod: paymentMethod,
         status: orderStatus,
         createdAt: new Date().toISOString()
@@ -235,6 +240,19 @@ function CheckoutContent() {
     if (!whatsapp.trim()) {
       setError('Por favor, informe seu número do WhatsApp.');
       return;
+    }
+
+    // Validar limite de sites por plano
+    const currentUser = auth.getCurrentUser();
+    if (currentUser && selectedPlan && selectedPlan.id !== 'website_creation') {
+      const currentSites = dataManager.getSites(currentUser.email);
+      const planLimits: Record<string, number> = { basic: 1, pro: 5, enterprise: -1 };
+      const maxSites = planLimits[selectedPlan.id] || 1;
+      
+      if (maxSites !== -1 && currentSites.length >= maxSites) {
+        setError(`O seu plano ${selectedPlan.name} permite apenas ${maxSites} site${maxSites > 1 ? 's' : ''}. Você já tem ${currentSites.length} site${currentSites.length > 1 ? 's' : ''} ativo${currentSites.length > 1 ? 's' : ''}. Faça upgrade para adicionar mais sites.`);
+        return;
+      }
     }
 
     setLoading(true);
