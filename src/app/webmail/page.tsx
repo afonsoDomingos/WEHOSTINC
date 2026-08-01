@@ -52,6 +52,11 @@ function WebmailContent() {
   const [templateLanguage, setTemplateLanguage] = useState<'pt' | 'en'>('pt');
   const [isComposeExpanded, setIsComposeExpanded] = useState(true);
 
+  // Collapse states
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isStorageCollapsed, setIsStorageCollapsed] = useState(false);
+  const [isFiltersCollapsed, setIsFiltersCollapsed] = useState(false);
+
   // Reply inline
   const [replyText, setReplyText] = useState('');
 
@@ -629,17 +634,27 @@ function WebmailContent() {
       {/* Main Layout Grid */}
       <div className="flex-1 flex overflow-hidden">
         {/* Desktop Sidebar Nav */}
-        <aside className="hidden md:flex w-56 bg-white text-gray-600 flex-col p-3 border-r border-gray-200 space-y-4 shrink-0">
+        <aside className={`hidden md:flex bg-white text-gray-600 flex-col p-3 border-r border-gray-200 space-y-4 shrink-0 transition-all duration-300 ${isSidebarCollapsed ? 'w-16' : 'w-56'}`}>
           <button
             type="button"
             onClick={() => setShowCompose(true)}
-            className="w-full py-3 bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-500 hover:to-indigo-500 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md transition flex items-center justify-center space-x-2 cursor-pointer"
+            className={`w-full py-3 bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-500 hover:to-indigo-500 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md transition flex items-center justify-center space-x-2 cursor-pointer ${isSidebarCollapsed ? 'px-2' : ''}`}
           >
-            <Edit3 className="h-4 w-4" />
-            <span>Escrever E-mail</span>
+            <Edit3 className="h-4 w-4 shrink-0" />
+            {!isSidebarCollapsed && <span>Escrever E-mail</span>}
           </button>
 
-          <nav className="space-y-1 text-xs font-semibold">
+          {/* Collapse Toggle Button */}
+          <button
+            type="button"
+            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            className="w-full flex items-center justify-center px-2 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl transition cursor-pointer"
+            title={isSidebarCollapsed ? "Expandir Sidebar" : "Recolher Sidebar"}
+          >
+            {isSidebarCollapsed ? <ChevronRight className="h-4 w-4 text-gray-600" /> : <ChevronRight className="h-4 w-4 text-gray-600 rotate-180" />}
+          </button>
+
+          <nav className={`space-y-1 text-xs font-semibold ${isSidebarCollapsed ? 'hidden' : ''}`}>
             <button
               onClick={() => setCurrentFolder('inbox')}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition cursor-pointer ${
@@ -705,32 +720,44 @@ function WebmailContent() {
             </button>
           </nav>
 
-          <div className="mt-auto pt-4 border-t border-gray-200 text-[11px] text-gray-400 space-y-2">
-            <div className="flex items-center justify-between">
+          <div className={`mt-auto pt-4 border-t border-gray-200 text-[11px] text-gray-400 space-y-2 ${isSidebarCollapsed ? 'hidden' : ''}`}>
+            <button
+              type="button"
+              onClick={() => setIsStorageCollapsed(!isStorageCollapsed)}
+              className="w-full flex items-center justify-between font-bold text-gray-600 cursor-pointer hover:text-gray-800 transition"
+            >
               <span>Cota de Armazenamento</span>
-              <span className="font-bold text-gray-600">
-                {storageInfo.isUnlimited 
-                  ? `${storageInfo.used.toFixed(1)} / ∞ GB` 
-                  : `${storageInfo.used.toFixed(1)} / ${storageInfo.limit} GB`
-                }
-              </span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
-              <div 
-                className={`h-full transition-all ${
-                  storageInfo.percentage > 90 ? 'bg-red-500' :
-                  storageInfo.percentage > 70 ? 'bg-amber-500' :
-                  'bg-primary-500'
-                }`}
-                style={{ width: `${storageInfo.isUnlimited ? Math.min(storageInfo.percentage, 100) : storageInfo.percentage}%` }}
-              />
-            </div>
-            <p className="text-[10px] text-gray-400 text-center">
-              {storageInfo.isUnlimited 
-                ? 'Plano Empresarial - Armazenamento Ilimitado' 
-                : `${storageInfo.remaining.toFixed(1)} GB disponíveis`
-              }
-            </p>
+              <ChevronRight className={`h-3 w-3 transition-transform ${isStorageCollapsed ? '' : 'rotate-180'}`} />
+            </button>
+            
+            {!isStorageCollapsed && (
+              <>
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-gray-600">
+                    {storageInfo.isUnlimited 
+                      ? `${storageInfo.used.toFixed(1)} / ∞ GB` 
+                      : `${storageInfo.used.toFixed(1)} / ${storageInfo.limit} GB`
+                    }
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                  <div 
+                    className={`h-full transition-all ${
+                      storageInfo.percentage > 90 ? 'bg-red-500' :
+                      storageInfo.percentage > 70 ? 'bg-amber-500' :
+                      'bg-primary-500'
+                    }`}
+                    style={{ width: `${storageInfo.isUnlimited ? Math.min(storageInfo.percentage, 100) : storageInfo.percentage}%` }}
+                  />
+                </div>
+                <p className="text-[10px] text-gray-400 text-center">
+                  {storageInfo.isUnlimited 
+                    ? 'Plano Empresarial - Armazenamento Ilimitado' 
+                    : `${storageInfo.remaining.toFixed(1)} GB disponíveis`
+                  }
+                </p>
+              </>
+            )}
           </div>
         </aside>
 
@@ -750,45 +777,59 @@ function WebmailContent() {
             </div>
 
             {/* Filter Pills */}
-            <div className="flex items-center space-x-1 text-[11px] font-semibold overflow-x-auto pb-1">
+            <div className="space-y-2">
               <button
                 type="button"
-                onClick={() => setFilterType('all')}
-                className={`px-2.5 py-1 rounded-full whitespace-nowrap transition cursor-pointer ${
-                  filterType === 'all' ? 'bg-primary-600 text-white font-bold' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
+                onClick={() => setIsFiltersCollapsed(!isFiltersCollapsed)}
+                className="flex items-center space-x-1.5 text-[11px] font-semibold text-gray-600 hover:text-gray-800 transition cursor-pointer"
               >
-                Todas
+                <Filter className="h-3.5 w-3.5" />
+                <span>Filtros</span>
+                <ChevronRight className={`h-3 w-3 transition-transform ${isFiltersCollapsed ? '' : 'rotate-180'}`} />
               </button>
-              <button
-                type="button"
-                onClick={() => setFilterType('unread')}
-                className={`px-2.5 py-1 rounded-full whitespace-nowrap transition cursor-pointer ${
-                  filterType === 'unread' ? 'bg-primary-600 text-white font-bold' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                Não lidas
-              </button>
-              <button
-                type="button"
-                onClick={() => setFilterType('attachments')}
-                className={`px-2.5 py-1 rounded-full whitespace-nowrap transition cursor-pointer flex items-center space-x-1 ${
-                  filterType === 'attachments' ? 'bg-primary-600 text-white font-bold' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                <Paperclip className="w-3 h-3" />
-                <span>Anexos</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setFilterType('starred')}
-                className={`px-2.5 py-1 rounded-full whitespace-nowrap transition cursor-pointer flex items-center space-x-1 ${
-                  filterType === 'starred' ? 'bg-amber-500 text-white font-bold' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                <Star className="w-3 h-3" />
-                <span>Estrela</span>
-              </button>
+              
+              {!isFiltersCollapsed && (
+                <div className="flex items-center space-x-1 text-[11px] font-semibold overflow-x-auto pb-1">
+                  <button
+                    type="button"
+                    onClick={() => setFilterType('all')}
+                    className={`px-2.5 py-1 rounded-full whitespace-nowrap transition cursor-pointer ${
+                      filterType === 'all' ? 'bg-primary-600 text-white font-bold' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    Todas
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFilterType('unread')}
+                    className={`px-2.5 py-1 rounded-full whitespace-nowrap transition cursor-pointer ${
+                      filterType === 'unread' ? 'bg-primary-600 text-white font-bold' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    Não lidas
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFilterType('attachments')}
+                    className={`px-2.5 py-1 rounded-full whitespace-nowrap transition cursor-pointer flex items-center space-x-1 ${
+                      filterType === 'attachments' ? 'bg-primary-600 text-white font-bold' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    <Paperclip className="w-3 h-3" />
+                    <span>Anexos</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFilterType('starred')}
+                    className={`px-2.5 py-1 rounded-full whitespace-nowrap transition cursor-pointer flex items-center space-x-1 ${
+                      filterType === 'starred' ? 'bg-amber-500 text-white font-bold' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    <Star className="w-3 h-3" />
+                    <span>Estrela</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
