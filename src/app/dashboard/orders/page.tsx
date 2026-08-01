@@ -283,7 +283,7 @@ export default function OrdersPage() {
                         <div className="mt-3 p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-xs text-emerald-800 flex items-center space-x-2">
                           <CheckCircle className="h-4 w-4 text-emerald-600 flex-shrink-0" />
                           <span>
-                            <strong>Concluído:</strong> O seu pedido foi concluído com sucesso! Verifique a secção "Meus Sites" para aceder ao seu projeto.
+                            <strong>Concluído:</strong> O seu pedido foi concluído com sucesso! Verifique a secção &quot;Meus Sites&quot; para aceder ao seu projeto.
                           </span>
                         </div>
                       )}

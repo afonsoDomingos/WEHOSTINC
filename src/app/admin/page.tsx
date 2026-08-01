@@ -272,7 +272,7 @@ export default function AdminPage() {
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [router]);
+  }, [router, fetchAnalytics]);
 
   // Refresh analytics when period changes
   useEffect(() => {
