@@ -998,7 +998,7 @@ function WebmailContent() {
       {/* MODAL: Escrever E-mail (Compose) */}
       {showCompose && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl shadow-2xl p-6 max-w-xl w-full border border-gray-100 animate-in fade-in zoom-in-95 duration-150">
+          <div className="bg-white rounded-3xl shadow-2xl p-6 max-w-4xl w-full border border-gray-100 animate-in fade-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto">
             {isAccountPending ? (
               <div className="text-center py-6 space-y-4">
                 <div className="w-14 h-14 bg-amber-100 rounded-full flex items-center justify-center mx-auto text-amber-600 border border-amber-200 shadow-2xs">
