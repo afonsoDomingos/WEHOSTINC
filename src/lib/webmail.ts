@@ -21,6 +21,11 @@ export interface WebmailMessage {
   attachments?: WebmailAttachment[];
 }
 
+// Limites de anexos
+export const ATTACHMENT_MAX_SIZE = 10 * 1024 * 1024; // 10MB em bytes
+export const ATTACHMENT_MAX_COUNT = 5; // Máximo de 5 anexos por email
+export const ATTACHMENT_TOTAL_MAX_SIZE = 25 * 1024 * 1024; // 25MB total por email
+
 const WEBMAIL_STORAGE_KEY = 'wehosthere_webmail_messages';
 
 export const INITIAL_WEBMAIL_MESSAGES: WebmailMessage[] = [

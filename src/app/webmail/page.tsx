@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { auth, User as AuthUser } from '@/lib/auth';
 import { dataManager, EmailAccount } from '@/lib/data';
-import { webmailManager, WebmailMessage, WebmailAttachment } from '@/lib/webmail';
+import { webmailManager, WebmailMessage, WebmailAttachment, ATTACHMENT_MAX_SIZE, ATTACHMENT_MAX_COUNT, ATTACHMENT_TOTAL_MAX_SIZE } from '@/lib/webmail';
 import { emailTemplates, templateCategories, templateCategoriesEN, EmailTemplate } from '@/lib/emailTemplates';
 import BrandLogo from '@/components/BrandLogo';
 import PageLoader from '@/components/PageLoader';
@@ -72,6 +72,9 @@ function WebmailContent() {
   const [passwordError, setPasswordError] = useState('');
   const [passwordSuccess, setPasswordSuccess] = useState('');
 
+  // Attachment error state
+  const [attachmentError, setAttachmentError] = useState('');
+
   // Reply inline
   const [replyText, setReplyText] = useState('');
 
@@ -109,15 +112,27 @@ function WebmailContent() {
   }, [showCompose, composeTo, composeSubject, composeBody, composeAttachments, selectedAccountEmail]);
 
   const handleComposeFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    const file = files[0];
-    
-    // Validação de tamanho (máximo 10MB)
-    const MAX_SIZE = 10 * 1024 * 1024; // 10MB
-    if (file.size > MAX_SIZE) {
-      alert('O ficheiro é muito grande! O tamanho máximo permitido é 10MB.');
+    setAttachmentError('');
+
+    // Validação de número máximo de anexos
+    if (composeAttachments.length >= ATTACHMENT_MAX_COUNT) {
+      setAttachmentError(`Máximo de ${ATTACHMENT_MAX_COUNT} anexos permitidos por email.`);
+      return;
+    }
+
+    // Validação de tamanho individual (máximo 10MB)
+    if (file.size > ATTACHMENT_MAX_SIZE) {
+      setAttachmentError(`O ficheiro é muito grande! O tamanho máximo permitido é ${ATTACHMENT_MAX_SIZE / (1024 * 1024)}MB.`);
+      return;
+    }
+
+    // Validação de tamanho total
+    const currentTotalSize = composeAttachments.reduce((sum, att) => sum + (att.size || 0), 0);
+    if (currentTotalSize + file.size > ATTACHMENT_TOTAL_MAX_SIZE) {
+      setAttachmentError(`O tamanho total dos anexos excede o limite de ${ATTACHMENT_TOTAL_MAX_SIZE / (1024 * 1024)}MB.`);
       return;
     }
 
@@ -136,7 +151,7 @@ function WebmailContent() {
     ];
     
     if (!allowedTypes.includes(file.type) && !file.type.startsWith('image/')) {
-      alert('Tipo de ficheiro não permitido. Formatos aceitos: PDF, Imagens, Word, Excel, Texto, ZIP.');
+      setAttachmentError('Tipo de ficheiro não permitido. Formatos aceitos: PDF, Imagens, Word, Excel, Texto, ZIP.');
       return;
     }
 
@@ -163,11 +178,11 @@ function WebmailContent() {
           ]);
         }
       } else {
-        alert('Erro ao fazer upload do ficheiro. Tente novamente.');
+        setAttachmentError('Erro ao fazer upload do ficheiro. Tente novamente.');
       }
     } catch (err) {
       console.error('Erro no upload de anexo do webmail:', err);
-      alert('Erro de conexão ao fazer upload. Verifique sua internet.');
+      setAttachmentError('Erro de conexão ao fazer upload. Verifique sua internet.');
     } finally {
       setUploadingAttachment(false);
       e.target.value = '';
@@ -1444,22 +1459,53 @@ function WebmailContent() {
                     <span className="text-[10px] text-gray-400">PDF, Imagens, Documentos</span>
                   </div>
 
-                  {composeAttachments.length > 0 && (
-                    <div className="flex flex-wrap gap-2 pt-1">
-                      {composeAttachments.map((att, idx) => (
-                        <div key={idx} className="flex items-center space-x-1.5 px-2.5 py-1 bg-gray-100 border border-gray-200 rounded-lg text-xs">
-                          <FileText className="w-3.5 h-3.5 text-primary-600 shrink-0" />
-                          <span className="font-bold text-gray-800 truncate max-w-[150px]">{att.name}</span>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveComposeAttachment(idx)}
-                            className="text-gray-400 hover:text-red-600 transition p-0.5"
-                          >
-                            <X className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      ))}
+                  {attachmentError && (
+                    <div className="p-2 bg-rose-50 border border-rose-200 rounded-xl">
+                      <p className="text-xs font-bold text-rose-700 flex items-center space-x-1.5">
+                        <AlertCircle className="w-3.5 h-3.5" />
+                        <span>{attachmentError}</span>
+                      </p>
                     </div>
+                  )}
+
+                  {composeAttachments.length > 0 && (
+                    <>
+                      <div className="flex items-center justify-between text-[10px] text-gray-500 pt-1">
+                        <span className="font-semibold">
+                          {composeAttachments.length}/{ATTACHMENT_MAX_COUNT} anexos
+                        </span>
+                        <span className="font-semibold">
+                          {(composeAttachments.reduce((sum, att) => sum + (att.size || 0), 0) / (1024 * 1024)).toFixed(2)} / {ATTACHMENT_TOTAL_MAX_SIZE / (1024 * 1024)}MB
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                        <div 
+                          className={`h-full transition-all ${
+                            (composeAttachments.reduce((sum, att) => sum + (att.size || 0), 0) / ATTACHMENT_TOTAL_MAX_SIZE) > 0.9 
+                              ? 'bg-red-500' 
+                              : (composeAttachments.reduce((sum, att) => sum + (att.size || 0), 0) / ATTACHMENT_TOTAL_MAX_SIZE) > 0.7 
+                                ? 'bg-amber-500' 
+                                : 'bg-primary-500'
+                          }`}
+                          style={{ width: `${Math.min((composeAttachments.reduce((sum, att) => sum + (att.size || 0), 0) / ATTACHMENT_TOTAL_MAX_SIZE) * 100, 100)}%` }}
+                        />
+                      </div>
+                      <div className="flex flex-wrap gap-2 pt-1">
+                        {composeAttachments.map((att, idx) => (
+                          <div key={idx} className="flex items-center space-x-1.5 px-2.5 py-1 bg-gray-100 border border-gray-200 rounded-lg text-xs">
+                            <FileText className="w-3.5 h-3.5 text-primary-600 shrink-0" />
+                            <span className="font-bold text-gray-800 truncate max-w-[150px]">{att.name}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveComposeAttachment(idx)}
+                              className="text-gray-400 hover:text-red-600 transition p-0.5"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </>
                   )}
                 </div>
 
