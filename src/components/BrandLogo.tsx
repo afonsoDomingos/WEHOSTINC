@@ -23,26 +23,35 @@ export default function BrandLogo({
   className = '',
   dark = false
 }: BrandLogoProps) {
-  const logoContent = (
-    <div className={`inline-flex items-center space-x-1.5 sm:space-x-2.5 group cursor-pointer ${className}`}>
-      <div className={`p-1.5 sm:p-2 rounded-lg sm:rounded-xl transition shrink-0 ${dark ? 'bg-primary-600/20 border border-primary-500/40' : iconBgClass}`}>
-        <Server className={`h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 ${dark ? 'text-primary-400' : iconColorClass}`} />
+  try {
+    const logoContent = (
+      <div className={`inline-flex items-center space-x-1.5 sm:space-x-2.5 group cursor-pointer ${className}`}>
+        <div className={`p-1.5 sm:p-2 rounded-lg sm:rounded-xl transition shrink-0 ${dark ? 'bg-primary-600/20 border border-primary-500/40' : iconBgClass}`}>
+          <Server className={`h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 ${dark ? 'text-primary-400' : iconColorClass}`} />
+        </div>
+        <img
+          src="/logo.png"
+          alt="WEHOSTHERE"
+          className={`${logoHeightClass} w-auto object-contain shrink-0`}
+          onError={(e) => {
+            console.error('Erro ao carregar logo:', e);
+            (e.target as HTMLImageElement).style.display = 'none';
+          }}
+        />
       </div>
-      <img
-        src="/logo.png"
-        alt="WEHOSTHERE"
-        className={`${logoHeightClass} w-auto object-contain shrink-0`}
-      />
-    </div>
-  );
-
-  if (href) {
-    return (
-      <Link href={href} onClick={onClick}>
-        {logoContent}
-      </Link>
     );
-  }
 
-  return logoContent;
+    if (href) {
+      return (
+        <Link href={href} onClick={onClick}>
+          {logoContent}
+        </Link>
+      );
+    }
+
+    return logoContent;
+  } catch (err) {
+    console.error('Erro no BrandLogo:', err);
+    return null;
+  }
 }

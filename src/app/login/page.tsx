@@ -17,13 +17,19 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      const emailParam = params.get('email');
-      if (emailParam) setEmail(emailParam);
+    try {
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search);
+        const emailParam = params.get('email');
+        if (emailParam) setEmail(emailParam);
+      }
+      // Sincroniza do servidor caso o utilizador tenha limpo os cookies/cache do navegador
+      auth.fetchUsersAsync().catch((err) => {
+        console.error('Erro ao buscar usuários:', err);
+      });
+    } catch (err) {
+      console.error('Erro no useEffect:', err);
     }
-    // Sincroniza do servidor caso o utilizador tenha limpo os cookies/cache do navegador
-    auth.fetchUsersAsync().catch(() => {});
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -38,6 +44,7 @@ export default function LoginPage() {
         router.push('/dashboard');
       }
     } catch (err) {
+      console.error('Erro de login:', err);
       setError(err instanceof Error ? err.message : 'Credenciais inválidas. Tente novamente.');
     } finally {
       setLoading(false);
