@@ -11,6 +11,7 @@ import {
 import { auth, User as AuthUser } from '@/lib/auth';
 import { dataManager, EmailAccount } from '@/lib/data';
 import { webmailManager, WebmailMessage, WebmailAttachment } from '@/lib/webmail';
+import { emailTemplates, templateCategories, EmailTemplate } from '@/lib/emailTemplates';
 import BrandLogo from '@/components/BrandLogo';
 import PageLoader from '@/components/PageLoader';
 import { apiEndpoint } from '@/lib/siteConfig';
@@ -44,6 +45,10 @@ function WebmailContent() {
   const [sendingMsg, setSendingMsg] = useState(false);
   const [sentSuccessMsg, setSentSuccessMsg] = useState('');
   const [editingDraftId, setEditingDraftId] = useState<string | null>(null);
+
+  // Template state
+  const [showTemplateSelector, setShowTemplateSelector] = useState(false);
+  const [selectedTemplateCategory, setSelectedTemplateCategory] = useState<string>('Todas');
 
   // Reply inline
   const [replyText, setReplyText] = useState('');
@@ -181,6 +186,19 @@ function WebmailContent() {
   const handleInsertSignature = () => {
     const sig = `\n\n--\nCumprimentos,\n${user?.name || 'Equipa'}\n${selectedAccountEmail}\nWEHOSTHERE Platform`;
     setComposeBody(prev => prev + sig);
+  };
+
+  const handleSelectTemplate = (template: EmailTemplate) => {
+    setComposeSubject(template.subject);
+    setComposeBody(template.body);
+    setShowTemplateSelector(false);
+  };
+
+  const getFilteredTemplates = () => {
+    if (selectedTemplateCategory === 'Todas') {
+      return emailTemplates;
+    }
+    return emailTemplates.filter(t => t.category === selectedTemplateCategory);
   };
 
   useEffect(() => {
@@ -1009,14 +1027,88 @@ function WebmailContent() {
                     <Edit3 className="h-5 w-5 text-primary-600" />
                     <h2 className="text-lg font-extrabold text-gray-900">Novo E-mail</h2>
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleCloseCompose}
-                    className="p-1 text-gray-400 hover:text-gray-700 rounded-lg cursor-pointer"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowTemplateSelector(!showTemplateSelector)}
+                      className="p-2 hover:bg-primary-50 text-primary-600 rounded-xl transition cursor-pointer"
+                      title="Usar Template"
+                    >
+                      <Sparkles className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCloseCompose}
+                      className="p-1 text-gray-400 hover:text-gray-700 rounded-lg cursor-pointer"
+                    >
+                      <X className="h-5 w-5" />
+                    </button>
+                  </div>
                 </div>
+
+                {/* Template Selector */}
+                {showTemplateSelector && (
+                  <div className="mb-4 p-4 bg-gradient-to-r from-primary-50 to-indigo-50 rounded-2xl border border-primary-200">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-sm font-bold text-gray-800 flex items-center space-x-2">
+                        <Sparkles className="h-4 w-4 text-primary-600" />
+                        <span>Templates de Email</span>
+                      </h3>
+                      <button
+                        type="button"
+                        onClick={() => setShowTemplateSelector(false)}
+                        className="text-gray-400 hover:text-gray-600"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                    
+                    {/* Category Filter */}
+                    <div className="flex items-center space-x-2 mb-3 overflow-x-auto pb-1">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedTemplateCategory('Todas')}
+                        className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition ${
+                          selectedTemplateCategory === 'Todas'
+                            ? 'bg-primary-600 text-white'
+                            : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+                        }`}
+                      >
+                        Todas
+                      </button>
+                      {templateCategories.map(cat => (
+                        <button
+                          key={cat}
+                          type="button"
+                          onClick={() => setSelectedTemplateCategory(cat)}
+                          className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition ${
+                            selectedTemplateCategory === cat
+                              ? 'bg-primary-600 text-white'
+                              : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+                          }`}
+                        >
+                          {cat}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Template Grid */}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto">
+                      {getFilteredTemplates().map(template => (
+                        <button
+                          key={template.id}
+                          type="button"
+                          onClick={() => handleSelectTemplate(template)}
+                          className="p-3 bg-white rounded-xl border border-gray-200 hover:border-primary-300 hover:shadow-sm transition text-left"
+                        >
+                          <div className="text-lg mb-1">{template.icon}</div>
+                          <div className="text-xs font-bold text-gray-800 truncate">{template.name}</div>
+                          <div className="text-[10px] text-gray-500 truncate">{template.category}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
             {sentSuccessMsg ? (
               <div className="py-8 text-center space-y-3">
