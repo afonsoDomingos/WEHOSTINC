@@ -80,6 +80,9 @@ function WebmailContent() {
   // Attachment error state
   const [attachmentError, setAttachmentError] = useState('');
 
+  // Message editor expansion state
+  const [isMessageEditorExpanded, setIsMessageEditorExpanded] = useState(false);
+
   // Reply inline
   const [replyText, setReplyText] = useState('');
 
@@ -1461,9 +1464,21 @@ function WebmailContent() {
                         <Type className="w-3 h-3" />
                         <span>Aa</span>
                       </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsMessageEditorExpanded(!isMessageEditorExpanded)}
+                        className="text-[11px] font-bold text-gray-600 hover:text-gray-800 bg-gray-100 hover:bg-gray-200 px-2.5 py-1 rounded-lg border border-gray-300 transition cursor-pointer flex items-center space-x-1"
+                        title={isMessageEditorExpanded ? "Minimizar Editor" : "Expandir Editor"}
+                      >
+                        {isMessageEditorExpanded ? (
+                          <Minimize2 className="w-3 h-3" />
+                        ) : (
+                          <Maximize2 className="w-3 h-3" />
+                        )}
+                      </button>
                     </div>
                   </div>
-                  <div className="bg-gray-50 border border-gray-200 rounded-2xl overflow-hidden">
+                  <div className={`bg-gray-50 border border-gray-200 rounded-2xl overflow-hidden transition-all duration-300 ${isMessageEditorExpanded ? 'fixed inset-4 z-50 rounded-3xl shadow-2xl' : ''}`}>
                     {typeof window !== 'undefined' && (
                       <ReactQuill
                         theme="snow"
@@ -1479,8 +1494,18 @@ function WebmailContent() {
                           ]
                         }}
                         className="text-xs"
-                        style={{ minHeight: '150px' }}
+                        style={{ minHeight: isMessageEditorExpanded ? 'calc(100vh - 200px)' : '150px' }}
                       />
+                    )}
+                    {isMessageEditorExpanded && (
+                      <button
+                        type="button"
+                        onClick={() => setIsMessageEditorExpanded(false)}
+                        className="absolute top-4 right-4 p-2 bg-white hover:bg-gray-100 rounded-full shadow-lg border border-gray-200 transition cursor-pointer"
+                        title="Minimizar"
+                      >
+                        <X className="w-5 h-5 text-gray-600" />
+                      </button>
                     )}
                   </div>
                 </div>
