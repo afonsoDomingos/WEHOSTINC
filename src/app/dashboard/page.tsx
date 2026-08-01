@@ -98,7 +98,9 @@ export default function DashboardPage() {
     const today = new Date();
     const currentDay = today.getDate();
     const dueDay = user.dueDate;
-    
+
+    if (typeof dueDay !== 'number') return null;
+
     if (dueDay >= currentDay) {
       return dueDay - currentDay;
     } else {

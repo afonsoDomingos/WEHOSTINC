@@ -13,7 +13,10 @@ export function getApiUrl(): string {
     return process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '');
   }
   if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
-    return 'https://wehostinc.onrender.com';
+    return ''; // Use relative URLs for same-origin requests
+  }
+  if (typeof window !== 'undefined' && window.location.hostname.includes('localhost')) {
+    return ''; // Use relative URLs for local development
   }
   return '';
 }
