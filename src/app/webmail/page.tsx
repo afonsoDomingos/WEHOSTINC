@@ -64,9 +64,12 @@ function WebmailContent() {
   const [replyText, setReplyText] = useState('');
 
   // Current date/time
-  const [currentDateTime, setCurrentDateTime] = useState(new Date());
+  const [currentDateTime, setCurrentDateTime] = useState<Date | null>(null);
 
   useEffect(() => {
+    // Initialize date only on client to avoid hydration mismatch
+    setCurrentDateTime(new Date());
+    
     const timer = setInterval(() => {
       setCurrentDateTime(new Date());
     }, 60000); // Update every minute
@@ -540,15 +543,17 @@ function WebmailContent() {
           </button>
 
           {/* Current Date/Time */}
-          <div className="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 bg-gradient-to-r from-primary-50 to-indigo-50 rounded-xl border border-primary-200 shrink-0">
-            <Clock className="h-3.5 w-3.5 text-primary-600" />
-            <span className="text-xs font-bold text-gray-700">
-              {currentDateTime.toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}
-            </span>
-            <span className="text-[10px] text-gray-500">
-              {currentDateTime.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
-            </span>
-          </div>
+          {currentDateTime && (
+            <div className="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 bg-gradient-to-r from-primary-50 to-indigo-50 rounded-xl border border-primary-200 shrink-0">
+              <Clock className="h-3.5 w-3.5 text-primary-600" />
+              <span className="text-xs font-bold text-gray-700">
+                {currentDateTime.toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}
+              </span>
+              <span className="text-[10px] text-gray-500">
+                {currentDateTime.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
+              </span>
+            </div>
+          )}
 
           <button
             type="button"
