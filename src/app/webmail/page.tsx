@@ -57,6 +57,9 @@ function WebmailContent() {
   const [isStorageCollapsed, setIsStorageCollapsed] = useState(false);
   const [isFiltersCollapsed, setIsFiltersCollapsed] = useState(false);
 
+  // Attachment preview state
+  const [previewAttachment, setPreviewAttachment] = useState<WebmailAttachment | null>(null);
+
   // Reply inline
   const [replyText, setReplyText] = useState('');
 
@@ -996,19 +999,23 @@ function WebmailContent() {
                     </span>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {selectedMessage.attachments.map((att, idx) => (
-                        <a
+                        <button
                           key={idx}
-                          href={att.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-2.5 bg-gray-50 hover:bg-primary-50/50 rounded-xl border border-gray-200 flex items-center justify-between transition group"
+                          type="button"
+                          onClick={() => setPreviewAttachment(att)}
+                          className="p-2.5 bg-gray-50 hover:bg-primary-50/50 rounded-xl border border-gray-200 flex items-center justify-between transition group cursor-pointer"
                         >
                           <div className="flex items-center space-x-2 truncate">
                             <FileText className="h-4 w-4 text-primary-600 shrink-0" />
                             <span className="text-xs font-bold text-gray-800 truncate group-hover:text-primary-700">{att.name}</span>
                           </div>
-                          <Download className="h-3.5 w-3.5 text-gray-400 group-hover:text-primary-600 shrink-0 ml-2" />
-                        </a>
+                          <div className="flex items-center space-x-1">
+                            {att.type?.startsWith('image/') && (
+                              <span className="text-[10px] text-gray-400">📷</span>
+                            )}
+                            <Download className="h-3.5 w-3.5 text-gray-400 group-hover:text-primary-600 shrink-0" />
+                          </div>
+                        </button>
                       ))}
                     </div>
                   </div>
@@ -1345,6 +1352,68 @@ function WebmailContent() {
           </>
         )}
       </div>
+
+      {/* MODAL: Attachment Preview */}
+      {previewAttachment && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <div className="flex items-center space-x-2 truncate">
+                <FileText className="h-5 w-5 text-primary-600 shrink-0" />
+                <span className="text-sm font-bold text-gray-900 truncate">{previewAttachment.name}</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <a
+                  href={previewAttachment.url}
+                  download={previewAttachment.name}
+                  className="p-2 hover:bg-gray-100 text-gray-600 rounded-xl transition cursor-pointer"
+                  title="Download"
+                >
+                  <Download className="h-4 w-4" />
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setPreviewAttachment(null)}
+                  className="p-2 hover:bg-gray-100 text-gray-600 rounded-xl transition cursor-pointer"
+                  title="Fechar"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-auto p-4 bg-gray-50">
+              {previewAttachment.type?.startsWith('image/') ? (
+                <img
+                  src={previewAttachment.url}
+                  alt={previewAttachment.name}
+                  className="max-w-full max-h-[70vh] mx-auto rounded-lg shadow-md"
+                />
+              ) : previewAttachment.type === 'application/pdf' ? (
+                <iframe
+                  src={previewAttachment.url}
+                  className="w-full h-[70vh] rounded-lg border border-gray-200"
+                  title={previewAttachment.name}
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full space-y-4 text-gray-500">
+                  <FileText className="h-16 w-16 text-gray-300" />
+                  <p className="text-sm">Pré-visualização não disponível para este tipo de ficheiro.</p>
+                  <a
+                    href={previewAttachment.url}
+                    download={previewAttachment.name}
+                    className="px-4 py-2 bg-primary-600 text-white text-sm font-bold rounded-xl hover:bg-primary-700 transition cursor-pointer"
+                  >
+                    Download Ficheiro
+                  </a>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )}
 </div>
