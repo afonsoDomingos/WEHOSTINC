@@ -11,7 +11,7 @@ import {
 import { auth, User as AuthUser } from '@/lib/auth';
 import { dataManager, EmailAccount } from '@/lib/data';
 import { webmailManager, WebmailMessage, WebmailAttachment } from '@/lib/webmail';
-import { emailTemplates, templateCategories, EmailTemplate } from '@/lib/emailTemplates';
+import { emailTemplates, templateCategories, templateCategoriesEN, EmailTemplate } from '@/lib/emailTemplates';
 import BrandLogo from '@/components/BrandLogo';
 import PageLoader from '@/components/PageLoader';
 import { apiEndpoint } from '@/lib/siteConfig';
@@ -49,6 +49,7 @@ function WebmailContent() {
   // Template state
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   const [selectedTemplateCategory, setSelectedTemplateCategory] = useState<string>('Todas');
+  const [templateLanguage, setTemplateLanguage] = useState<'pt' | 'en'>('pt');
 
   // Reply inline
   const [replyText, setReplyText] = useState('');
@@ -189,8 +190,8 @@ function WebmailContent() {
   };
 
   const handleSelectTemplate = (template: EmailTemplate) => {
-    setComposeSubject(template.subject);
-    setComposeBody(template.body);
+    setComposeSubject(templateLanguage === 'pt' ? template.subject : template.subjectEN);
+    setComposeBody(templateLanguage === 'pt' ? template.body : template.bodyEN);
     setShowTemplateSelector(false);
   };
 
@@ -198,7 +199,13 @@ function WebmailContent() {
     if (selectedTemplateCategory === 'Todas') {
       return emailTemplates;
     }
-    return emailTemplates.filter(t => t.category === selectedTemplateCategory);
+    return emailTemplates.filter(t => 
+      templateLanguage === 'pt' ? t.category === selectedTemplateCategory : t.categoryEN === selectedTemplateCategory
+    );
+  };
+
+  const getDisplayCategories = () => {
+    return templateLanguage === 'pt' ? templateCategories : templateCategoriesEN;
   };
 
   useEffect(() => {
@@ -1054,13 +1061,26 @@ function WebmailContent() {
                         <Sparkles className="h-4 w-4 text-primary-600" />
                         <span>Templates de Email</span>
                       </h3>
-                      <button
-                        type="button"
-                        onClick={() => setShowTemplateSelector(false)}
-                        className="text-gray-400 hover:text-gray-600"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
+                      <div className="flex items-center space-x-2">
+                        {/* Language Toggle */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setTemplateLanguage(templateLanguage === 'pt' ? 'en' : 'pt');
+                            setSelectedTemplateCategory('Todas');
+                          }}
+                          className="px-2 py-1 rounded-lg text-xs font-bold transition cursor-pointer border border-gray-200 hover:border-primary-300"
+                        >
+                          {templateLanguage === 'pt' ? '🇵🇹 PT' : '🇬🇧 EN'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setShowTemplateSelector(false)}
+                          className="text-gray-400 hover:text-gray-600"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
                     </div>
                     
                     {/* Category Filter */}
@@ -1074,9 +1094,9 @@ function WebmailContent() {
                             : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
                         }`}
                       >
-                        Todas
+                        {templateLanguage === 'pt' ? 'Todas' : 'All'}
                       </button>
-                      {templateCategories.map(cat => (
+                      {getDisplayCategories().map(cat => (
                         <button
                           key={cat}
                           type="button"
@@ -1102,8 +1122,12 @@ function WebmailContent() {
                           className="p-3 bg-white rounded-xl border border-gray-200 hover:border-primary-300 hover:shadow-sm transition text-left"
                         >
                           <div className="text-lg mb-1">{template.icon}</div>
-                          <div className="text-xs font-bold text-gray-800 truncate">{template.name}</div>
-                          <div className="text-[10px] text-gray-500 truncate">{template.category}</div>
+                          <div className="text-xs font-bold text-gray-800 truncate">
+                            {templateLanguage === 'pt' ? template.name : template.nameEN}
+                          </div>
+                          <div className="text-[10px] text-gray-500 truncate">
+                            {templateLanguage === 'pt' ? template.category : template.categoryEN}
+                          </div>
                         </button>
                       ))}
                     </div>
