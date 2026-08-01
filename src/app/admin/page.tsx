@@ -155,9 +155,16 @@ export default function AdminPage() {
       const res = await fetch(apiEndpoint('/api/domains/history'));
       if (res.ok) {
         const data = await res.json();
-        if (data.logs) setDomainLogs(data.logs);
+        if (data.logs) {
+          console.log(`[Admin] Carregados ${data.logs.length} logs de domínio (source: ${data.source || 'unknown'})`);
+          setDomainLogs(data.logs);
+        }
+      } else {
+        console.warn('[Admin] Erro ao buscar logs de domínio:', res.status);
       }
-    } catch (e) {}
+    } catch (e) {
+      console.error('[Admin] Erro ao buscar logs de domínio:', e);
+    }
   };
 
   const fetchAnalytics = useCallback(async (period: 'today' | 'week' | 'month' | 'all' = visitStatsPeriod) => {
