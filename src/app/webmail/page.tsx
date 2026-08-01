@@ -64,6 +64,14 @@ function WebmailContent() {
   const [showPlaceholderWarning, setShowPlaceholderWarning] = useState(false);
   const [unfilledPlaceholders, setUnfilledPlaceholders] = useState<string[]>([]);
 
+  // Change password state
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [passwordSuccess, setPasswordSuccess] = useState('');
+
   // Reply inline
   const [replyText, setReplyText] = useState('');
 
@@ -240,6 +248,58 @@ function WebmailContent() {
     const placeholderRegex = /\{([^}]+)\}/g;
     const matches = text.match(placeholderRegex);
     return matches || [];
+  };
+
+  // Function to handle password change
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError('');
+    setPasswordSuccess('');
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      setPasswordError('Por favor, preencha todos os campos.');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPasswordError('A nova senha e a confirmação não coincidem.');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setPasswordError('A nova senha deve ter pelo menos 6 caracteres.');
+      return;
+    }
+
+    try {
+      const currentUser = auth.getCurrentUser();
+      if (!currentUser) {
+        setPasswordError('Usuário não autenticado.');
+        return;
+      }
+
+      // Verify current password
+      const loginResult = auth.login(currentUser.email, currentPassword);
+      if (!loginResult) {
+        setPasswordError('A senha atual está incorreta.');
+        return;
+      }
+
+      // Update password
+      auth.updatePassword(currentUser.email, newPassword);
+      
+      setPasswordSuccess('Senha alterada com sucesso!');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+
+      setTimeout(() => {
+        setShowChangePasswordModal(false);
+        setPasswordSuccess('');
+      }, 2000);
+    } catch (err) {
+      setPasswordError('Erro ao alterar senha. Tente novamente.');
+    }
   };
 
   useEffect(() => {
@@ -589,6 +649,27 @@ function WebmailContent() {
             title="Escrever E-mail"
           >
             <Edit3 className="h-4 w-4" />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setShowChangePasswordModal(true)}
+            className="p-2 hover:bg-primary-50 text-primary-600 rounded-xl transition cursor-pointer shrink-0"
+            title="Alterar Senha"
+          >
+            <ShieldCheck className="h-4 w-4" />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              auth.logout();
+              router.push('/login');
+            }}
+            className="p-2 hover:bg-rose-50 text-rose-600 rounded-xl transition cursor-pointer shrink-0"
+            title="Sair"
+          >
+            <LogOut className="h-4 w-4" />
           </button>
         </div>
       </header>
@@ -1524,6 +1605,110 @@ function WebmailContent() {
                 Enviar Mesmo Assim
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Change Password */}
+      {showChangePasswordModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center shrink-0">
+                  <ShieldCheck className="h-6 w-6 text-primary-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-gray-900">Alterar Senha</h3>
+                  <p className="text-sm text-gray-600">Atualize a sua senha de acesso</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowChangePasswordModal(false);
+                  setCurrentPassword('');
+                  setNewPassword('');
+                  setConfirmPassword('');
+                  setPasswordError('');
+                  setPasswordSuccess('');
+                }}
+                className="p-2 hover:bg-gray-100 text-gray-400 hover:text-gray-600 rounded-xl transition cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleChangePassword} className="space-y-4">
+              {passwordError && (
+                <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl">
+                  <p className="text-xs font-bold text-rose-700">{passwordError}</p>
+                </div>
+              )}
+
+              {passwordSuccess && (
+                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl">
+                  <p className="text-xs font-bold text-emerald-700">{passwordSuccess}</p>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">Senha Atual</label>
+                <input
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 outline-none focus:ring-2 focus:ring-primary-500 font-medium"
+                  placeholder="Digite sua senha atual"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">Nova Senha</label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 outline-none focus:ring-2 focus:ring-primary-500 font-medium"
+                  placeholder="Mínimo 6 caracteres"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">Confirmar Nova Senha</label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 outline-none focus:ring-2 focus:ring-primary-500 font-medium"
+                  placeholder="Digite novamente a nova senha"
+                />
+              </div>
+
+              <div className="flex items-center space-x-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowChangePasswordModal(false);
+                    setCurrentPassword('');
+                    setNewPassword('');
+                    setConfirmPassword('');
+                    setPasswordError('');
+                    setPasswordSuccess('');
+                  }}
+                  className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-black text-sm rounded-xl transition cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={!currentPassword || !newPassword || !confirmPassword}
+                  className="flex-1 py-3 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-sm rounded-xl transition cursor-pointer shadow-md"
+                >
+                  Alterar Senha
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

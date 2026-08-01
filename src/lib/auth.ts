@@ -540,6 +540,31 @@ export const auth = {
         }
       } catch (e) {}
     }
+  },
+
+  // Atualizar senha do usuário
+  updatePassword: (email: string, newPassword: string): void => {
+    if (typeof window === 'undefined') return;
+    const users = auth.getUsers();
+    const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+    
+    if (!user) {
+      throw new Error('Usuário não encontrado');
+    }
+
+    const userData: any = JSON.parse(localStorage.getItem(`user_${user.id}`) || '{}');
+    userData.password = newPassword;
+    localStorage.setItem(`user_${user.id}`, JSON.stringify(userData));
+
+    const updatedList = users.map(u => u.id === user.id ? { ...u, password: newPassword } : u);
+    localStorage.setItem('wehosthere_all_users', JSON.stringify(updatedList));
+
+    // Sync with server
+    fetch(apiEndpoint('/api/users'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'update_password', userId: user.id, email: user.email, password: newPassword })
+    }).catch(err => console.error('Erro ao sincronizar senha com servidor:', err));
   }
 
 };
