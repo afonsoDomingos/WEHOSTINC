@@ -147,7 +147,7 @@ export default function BillingPage() {
                 </div>
                 <div className="sm:text-right">
                   <p className="text-3xl sm:text-4xl font-bold">
-                    {userOrders.filter(o => o.status === 'completed' || o.status === 'in_progress').reduce((acc, o) => acc + o.amount, 0).toLocaleString('pt-MZ')} MT
+                    {userOrders.filter(o => o.status === 'completed' || o.status === 'in_progress').reduce((acc, o) => acc + (o.amount || 0), 0).toLocaleString('pt-MZ')} MT
                   </p>
                   <p className="text-blue-100 text-sm">Total Contratado</p>
                 </div>
@@ -261,9 +261,9 @@ export default function BillingPage() {
 
                         <div className="flex items-center justify-between sm:justify-end space-x-4 border-t sm:border-t-0 pt-3 sm:pt-0 border-gray-100">
                           <div className="text-left sm:text-right">
-                            <p className="font-black text-gray-900 text-base">{order.amount.toLocaleString('pt-MZ')} MT</p>
+                            <p className="font-black text-gray-900 text-base">{(order.amount || 0).toLocaleString('pt-MZ')} MT</p>
                             <p className="text-[11px] text-gray-400">
-                              {new Date(order.createdAt).toLocaleDateString('pt-MZ', { day: '2-digit', month: 'short', year: 'numeric' })}
+                              {order.createdAt ? new Date(order.createdAt).toLocaleDateString('pt-MZ', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Data não disponível'}
                             </p>
                           </div>
                           <button

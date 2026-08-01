@@ -1119,7 +1119,7 @@ export default function AdminPage() {
                               <div className="space-y-1">
                                 {userClientOrders.slice(0, 2).map((ord) => (
                                   <span key={ord.id} className="inline-block px-2 py-0.5 rounded text-[11px] font-bold bg-blue-50 text-blue-800 border border-blue-200 mr-1">
-                                    📦 {ord.serviceName} ({ord.valorPorFaturar > 0 ? `${ord.valorPorFaturar.toLocaleString('pt-MZ')} MT (por faturar)` : `${ord.valorFaturado.toLocaleString('pt-MZ')} MT (faturado)`})
+                                    📦 {ord.serviceName} ({(ord.valorPorFaturar || 0) > 0 ? `${(ord.valorPorFaturar || 0).toLocaleString('pt-MZ')} MT (por faturar)` : `${(ord.valorFaturado || 0).toLocaleString('pt-MZ')} MT (faturado)`})
                                   </span>
                                 ))}
                                 {userClientOrders.length > 2 && (
@@ -1165,7 +1165,7 @@ export default function AdminPage() {
                         )}
                       </td>
                       <td className="py-3.5 px-4 text-gray-500 text-sm">
-                        {new Date(user.createdAt).toLocaleDateString('pt-BR')}
+                        {user.createdAt ? new Date(user.createdAt).toLocaleDateString('pt-BR') : 'Data não disponível'}
                       </td>
                       <td className="py-3.5 px-4">
                         <div className="flex items-center space-x-1.5">
@@ -1255,7 +1255,7 @@ export default function AdminPage() {
                     <tr key={order.id} className="hover:bg-gray-50/80 transition">
                       <td className="py-3.5 px-4">
                         <span className="font-mono font-bold text-gray-900 text-sm block">{order.id}</span>
-                        <span className="text-xs text-gray-400">{new Date(order.createdAt).toLocaleDateString('pt-BR')}</span>
+                        <span className="text-xs text-gray-400">{order.createdAt ? new Date(order.createdAt).toLocaleDateString('pt-BR') : 'Data não disponível'}</span>
                       </td>
                       <td className="py-3.5 px-4">
                         <span className="font-semibold text-gray-900 block">{order.clientName}</span>
@@ -1267,9 +1267,9 @@ export default function AdminPage() {
                       </td>
                       <td className="py-3.5 px-4">
                         <span className="font-bold text-emerald-600 block">
-                          {order.valorPorFaturar > 0 
-                            ? `${order.valorPorFaturar.toLocaleString('pt-MZ')} MT (por faturar)` 
-                            : `${order.valorFaturado.toLocaleString('pt-MZ')} MT (faturado)`
+                          {(order.valorPorFaturar || 0) > 0 
+                            ? `${(order.valorPorFaturar || 0).toLocaleString('pt-MZ')} MT (por faturar)` 
+                            : `${(order.valorFaturado || 0).toLocaleString('pt-MZ')} MT (faturado)`
                           }
                         </span>
                         <span className="text-xs font-semibold uppercase text-gray-500">
@@ -1576,7 +1576,7 @@ export default function AdminPage() {
                       <tr key={ticket.id} className="hover:bg-gray-50/80 transition">
                         <td className="py-3.5 px-4">
                           <span className="font-mono font-bold text-gray-900 text-sm block">{ticket.id}</span>
-                          <span className="text-xs text-gray-400">{new Date(ticket.createdAt).toLocaleDateString('pt-MZ')}</span>
+                          <span className="text-xs text-gray-400">{ticket.createdAt ? new Date(ticket.createdAt).toLocaleDateString('pt-MZ') : 'Data não disponível'}</span>
                         </td>
                         <td className="py-3.5 px-4">
                           <span className="font-semibold text-gray-900 block">{ticket.userName}</span>
@@ -1694,7 +1694,7 @@ export default function AdminPage() {
                         </span>
                       </td>
                       <td className="py-3.5 px-4 text-xs text-gray-500 font-mono">
-                        {new Date(site.createdAt).toLocaleDateString('pt-MZ')}
+                        {site.createdAt ? new Date(site.createdAt).toLocaleDateString('pt-MZ') : 'Data não disponível'}
                       </td>
                       <td className="py-3.5 px-4">
                         <div className="flex items-center space-x-2">
