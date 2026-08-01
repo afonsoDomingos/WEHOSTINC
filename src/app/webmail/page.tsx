@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { 
   Mail, Inbox, Send, Star, Trash2, Edit3, Search, RefreshCw, 
   ArrowLeft, CheckCircle2, ShieldCheck, User, Paperclip, Reply, Forward,
-  FileText, LogOut, ChevronRight, X, AlertCircle, Sparkles, Clock, Printer, Download, Loader2, Filter, Maximize2, Minimize2
+  FileText, LogOut, ChevronRight, X, AlertCircle, Sparkles, Clock, Printer, Download, Loader2, Filter, Maximize2, Minimize2, Bold, Italic, Underline, Type
 } from 'lucide-react';
 import { auth, User as AuthUser } from '@/lib/auth';
 import { dataManager, EmailAccount } from '@/lib/data';
@@ -15,6 +15,11 @@ import { emailTemplates, templateCategories, templateCategoriesEN, EmailTemplate
 import BrandLogo from '@/components/BrandLogo';
 import PageLoader from '@/components/PageLoader';
 import { apiEndpoint } from '@/lib/siteConfig';
+import dynamic from 'next/dynamic';
+
+// Dynamic import for React Quill to avoid SSR issues
+const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
+import 'react-quill/dist/quill.snow.css';
 
 function WebmailContent() {
   const router = useRouter();
@@ -237,6 +242,24 @@ function WebmailContent() {
   const handleInsertSignature = () => {
     const sig = `\n\n--\nCumprimentos,\n${user?.name || 'Equipa'}\n${selectedAccountEmail}\nWEHOSTHERE Platform`;
     setComposeBody(prev => prev + sig);
+  };
+
+  const handleToggleUppercase = () => {
+    // Toggle uppercase/lowercase for selected text or entire content
+    setComposeBody(prev => {
+      // Check if content is mostly uppercase
+      const isMostlyUppercase = prev.length > 0 && 
+        prev.replace(/[^a-zA-Z]/g, '').length > 0 &&
+        (prev.match(/[A-Z]/g) || []).length > (prev.match(/[a-z]/g) || []).length;
+      
+      if (isMostlyUppercase) {
+        // Convert to lowercase
+        return prev.toLowerCase();
+      } else {
+        // Convert to uppercase
+        return prev.toUpperCase();
+      }
+    });
   };
 
   const handleSelectTemplate = (template: EmailTemplate) => {
@@ -1421,22 +1444,45 @@ function WebmailContent() {
                     <label className="block text-xs font-bold uppercase tracking-wider text-gray-700">
                       Mensagem
                     </label>
-                    <button
-                      type="button"
-                      onClick={handleInsertSignature}
-                      className="text-[11px] font-bold text-primary-600 hover:text-primary-800 bg-primary-50 hover:bg-primary-100 px-2.5 py-1 rounded-lg border border-primary-200 transition cursor-pointer flex items-center space-x-1"
-                    >
-                      <span>✍️ Inserir Assinatura</span>
-                    </button>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        type="button"
+                        onClick={handleInsertSignature}
+                        className="text-[11px] font-bold text-primary-600 hover:text-primary-800 bg-primary-50 hover:bg-primary-100 px-2.5 py-1 rounded-lg border border-primary-200 transition cursor-pointer flex items-center space-x-1"
+                      >
+                        <span>✍️ Assinatura</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleToggleUppercase}
+                        className="text-[11px] font-bold text-gray-600 hover:text-gray-800 bg-gray-100 hover:bg-gray-200 px-2.5 py-1 rounded-lg border border-gray-300 transition cursor-pointer flex items-center space-x-1"
+                        title="Alternar Uppercase/Lowercase"
+                      >
+                        <Type className="w-3 h-3" />
+                        <span>Aa</span>
+                      </button>
+                    </div>
                   </div>
-                  <textarea
-                    rows={5}
-                    value={composeBody}
-                    onChange={(e) => setComposeBody(e.target.value)}
-                    placeholder="Escreva a sua mensagem aqui..."
-                    className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl text-xs text-gray-900 outline-none focus:ring-2 focus:ring-primary-500 font-sans leading-relaxed"
-                    required
-                  />
+                  <div className="bg-gray-50 border border-gray-200 rounded-2xl overflow-hidden">
+                    {typeof window !== 'undefined' && (
+                      <ReactQuill
+                        theme="snow"
+                        value={composeBody}
+                        onChange={setComposeBody}
+                        placeholder="Escreva a sua mensagem aqui..."
+                        modules={{
+                          toolbar: [
+                            [{ 'header': [1, 2, 3, false] }],
+                            ['bold', 'italic', 'underline'],
+                            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                            ['clean']
+                          ]
+                        }}
+                        className="text-xs"
+                        style={{ minHeight: '150px' }}
+                      />
+                    )}
+                  </div>
                 </div>
 
                 {/* Upload de Anexos no Compose */}
