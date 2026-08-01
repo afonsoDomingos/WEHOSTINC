@@ -34,6 +34,11 @@ export default function Home() {
   const titleRef = useScrollAnimation<HTMLHeadingElement>();
   const subtitleRef = useScrollAnimation<HTMLParagraphElement>();
   const searchRef = useScrollAnimation<HTMLDivElement>();
+
+  // Refs para scroll reveal das outras seções
+  const featuresRef = useScrollAnimation<HTMLDivElement>();
+  const pricingRef = useScrollAnimation<HTMLDivElement>();
+  const siteCreationRef = useScrollAnimation<HTMLDivElement>();
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       {/* Navbar Responsivo */}
@@ -85,33 +90,33 @@ export default function Home() {
       </section>
 
       {/* Features - 1 Única Linha no Mobile */}
-      <section id="recursos" className="py-8 sm:py-14 px-3 sm:px-6 bg-white">
+      <section id="recursos" ref={featuresRef} className="anim-fade-up py-8 sm:py-14 px-3 sm:px-6 bg-white">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-xl sm:text-3xl font-extrabold text-center text-gray-900 mb-6 sm:mb-10">
             Por que escolher a WEHOSTHERE?
           </h2>
           <div className="grid grid-cols-3 gap-2 sm:gap-6">
-            <div className="text-center p-2.5 sm:p-5 bg-gray-50/80 rounded-2xl border border-gray-100">
+            <div className="text-center p-2.5 sm:p-5 bg-gray-50/80 rounded-2xl border border-gray-100 hover:shadow-lg hover:scale-105 hover:bg-gradient-to-br hover:from-primary-50 hover:to-blue-50 transition-all duration-300 cursor-pointer group">
               <div className="flex justify-center mb-1.5">
-                <Zap className="h-6 w-6 sm:h-10 sm:w-10 text-primary-600" />
+                <Zap className="h-6 w-6 sm:h-10 sm:w-10 text-primary-600 group-hover:scale-110 group-hover:text-primary-700 transition-transform duration-300" />
               </div>
-              <h3 className="text-xs sm:text-lg font-bold text-gray-900 mb-0.5">Ultra Rápido</h3>
+              <h3 className="text-xs sm:text-lg font-bold text-gray-900 mb-0.5 group-hover:text-primary-700 transition-colors">Ultra Rápido</h3>
               <p className="text-[10px] sm:text-sm text-gray-500 leading-tight">Servidores de máxima performance</p>
             </div>
 
-            <div className="text-center p-2.5 sm:p-5 bg-gray-50/80 rounded-2xl border border-gray-100">
+            <div className="text-center p-2.5 sm:p-5 bg-gray-50/80 rounded-2xl border border-gray-100 hover:shadow-lg hover:scale-105 hover:bg-gradient-to-br hover:from-emerald-50 hover:to-green-50 transition-all duration-300 cursor-pointer group">
               <div className="flex justify-center mb-1.5">
-                <Shield className="h-6 w-6 sm:h-10 sm:w-10 text-primary-600" />
+                <Shield className="h-6 w-6 sm:h-10 sm:w-10 text-primary-600 group-hover:scale-110 group-hover:text-emerald-600 transition-transform duration-300" />
               </div>
-              <h3 className="text-xs sm:text-lg font-bold text-gray-900 mb-0.5">100% Seguro</h3>
+              <h3 className="text-xs sm:text-lg font-bold text-gray-900 mb-0.5 group-hover:text-emerald-700 transition-colors">100% Seguro</h3>
               <p className="text-[10px] sm:text-sm text-gray-500 leading-tight">Backup diário &amp; proteção total</p>
             </div>
 
-            <div className="text-center p-2.5 sm:p-5 bg-gray-50/80 rounded-2xl border border-gray-100">
+            <div className="text-center p-2.5 sm:p-5 bg-gray-50/80 rounded-2xl border border-gray-100 hover:shadow-lg hover:scale-105 hover:bg-gradient-to-br hover:from-purple-50 hover:to-indigo-50 transition-all duration-300 cursor-pointer group">
               <div className="flex justify-center mb-1.5">
-                <Users className="h-6 w-6 sm:h-10 sm:w-10 text-primary-600" />
+                <Users className="h-6 w-6 sm:h-10 sm:w-10 text-primary-600 group-hover:scale-110 group-hover:text-purple-600 transition-transform duration-300" />
               </div>
-              <h3 className="text-xs sm:text-lg font-bold text-gray-900 mb-0.5">Suporte 24/7</h3>
+              <h3 className="text-xs sm:text-lg font-bold text-gray-900 mb-0.5 group-hover:text-purple-700 transition-colors">Suporte 24/7</h3>
               <p className="text-[10px] sm:text-sm text-gray-500 leading-tight">Equipa técnica sempre disponível</p>
             </div>
           </div>
@@ -119,7 +124,7 @@ export default function Home() {
       </section>
 
       {/* Pricing */}
-      <section id="planos" className="py-20 px-4 bg-blue-50">
+      <section id="planos" ref={pricingRef} className="anim-fade-up py-20 px-4 bg-blue-50">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-10">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
@@ -134,7 +139,7 @@ export default function Home() {
               <button
                 type="button"
                 onClick={() => setDurationMonths(1)}
-                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer ${
+                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer hover:scale-105 active:scale-95 ${
                   durationMonths === 1 ? 'bg-white text-gray-900 shadow-md' : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
@@ -143,7 +148,7 @@ export default function Home() {
               <button
                 type="button"
                 onClick={() => setDurationMonths(3)}
-                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center space-x-1 cursor-pointer ${
+                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center space-x-1 cursor-pointer hover:scale-105 active:scale-95 ${
                   durationMonths === 3 ? 'bg-blue-600 text-white shadow-md' : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
@@ -155,7 +160,7 @@ export default function Home() {
               <button
                 type="button"
                 onClick={() => setDurationMonths(6)}
-                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center space-x-1 cursor-pointer ${
+                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center space-x-1 cursor-pointer hover:scale-105 active:scale-95 ${
                   durationMonths === 6 ? 'bg-purple-600 text-white shadow-md' : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
@@ -167,7 +172,7 @@ export default function Home() {
               <button
                 type="button"
                 onClick={() => setDurationMonths(12)}
-                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center space-x-1.5 cursor-pointer ${
+                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center space-x-1.5 cursor-pointer hover:scale-105 active:scale-95 ${
                   durationMonths === 12 ? 'bg-primary-600 text-white shadow-md' : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
@@ -181,12 +186,12 @@ export default function Home() {
 
           <div className="grid md:grid-cols-3 gap-8 items-stretch">
             {/* Basic Plan */}
-            <div className="bg-white rounded-xl shadow-lg p-8 flex flex-col justify-between border border-gray-100">
+            <div className="bg-white rounded-xl shadow-lg p-8 flex flex-col justify-between border border-gray-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group">
               <div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">Básico</h3>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2 group-hover:text-primary-600 transition-colors">Básico</h3>
                 <p className="text-gray-600 mb-4">Ideal para iniciantes</p>
                 <div className="mb-6">
-                  <span className="text-4xl font-bold text-gray-900">
+                  <span className="text-4xl font-bold text-gray-900 group-hover:text-primary-600 transition-colors">
                     {durationMonths === 12
                       ? '5.500 MT'
                       : durationMonths === 6
@@ -209,42 +214,42 @@ export default function Home() {
                   )}
                 </div>
                 <ul className="space-y-3 mb-8">
-                  <li className="flex items-center text-gray-700">
-                    <Server className="h-5 w-5 text-primary-600 mr-2 flex-shrink-0" />
+                  <li className="flex items-center text-gray-700 group-hover:text-gray-900 transition-colors">
+                    <Server className="h-5 w-5 text-primary-600 mr-2 flex-shrink-0 group-hover:scale-110 transition-transform" />
                     1 Site
                   </li>
-                  <li className="flex items-center text-gray-700">
-                    <Mail className="h-5 w-5 text-primary-600 mr-2 flex-shrink-0" />
+                  <li className="flex items-center text-gray-700 group-hover:text-gray-900 transition-colors">
+                    <Mail className="h-5 w-5 text-primary-600 mr-2 flex-shrink-0 group-hover:scale-110 transition-transform" />
                     5 Contas de Email
                   </li>
-                  <li className="flex items-center text-gray-700">
-                    <Globe className="h-5 w-5 text-primary-600 mr-2 flex-shrink-0" />
+                  <li className="flex items-center text-gray-700 group-hover:text-gray-900 transition-colors">
+                    <Globe className="h-5 w-5 text-primary-600 mr-2 flex-shrink-0 group-hover:scale-110 transition-transform" />
                     10 GB Armazenamento
                   </li>
-                  <li className="flex items-center text-gray-700">
-                    <Zap className="h-5 w-5 text-primary-600 mr-2 flex-shrink-0" />
+                  <li className="flex items-center text-gray-700 group-hover:text-gray-900 transition-colors">
+                    <Zap className="h-5 w-5 text-primary-600 mr-2 flex-shrink-0 group-hover:scale-110 transition-transform" />
                     Tráfego Ilimitado
                   </li>
                 </ul>
               </div>
               <Link
                 href={`/checkout?plan=basic&billingCycle=${durationMonths === 12 ? 'annual' : 'monthly'}`}
-                className="block w-full py-3 text-center border-2 border-primary-600 text-primary-600 font-bold rounded-xl hover:bg-primary-50 transition"
+                className="block w-full py-3 text-center border-2 border-primary-600 text-primary-600 font-bold rounded-xl hover:bg-primary-50 hover:scale-105 active:scale-95 transition-all duration-300"
               >
                 Assinar Agora
               </Link>
             </div>
 
             {/* Pro Plan */}
-            <div className="bg-primary-600 rounded-xl shadow-xl p-8 text-white flex flex-col justify-between relative transform lg:-translate-y-2 border border-primary-500">
-              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-amber-400 text-gray-900 text-xs font-black px-4 py-1 rounded-full uppercase tracking-wider shadow">
+            <div className="bg-primary-600 rounded-xl shadow-xl p-8 text-white flex flex-col justify-between relative transform lg:-translate-y-2 border border-primary-500 hover:shadow-2xl hover:-translate-y-4 transition-all duration-300 group">
+              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-amber-400 text-gray-900 text-xs font-black px-4 py-1 rounded-full uppercase tracking-wider shadow group-hover:scale-110 transition-transform">
                 MAIS POPULAR
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-white mb-2 pt-2">Profissional</h3>
+                <h3 className="text-2xl font-bold text-white mb-2 pt-2 group-hover:text-blue-100 transition-colors">Profissional</h3>
                 <p className="text-blue-100 mb-4">Para negócios em crescimento</p>
                 <div className="mb-6">
-                  <span className="text-4xl font-bold text-white">
+                  <span className="text-4xl font-bold text-white group-hover:text-blue-100 transition-colors">
                     {durationMonths === 12
                       ? '25.000 MT'
                       : durationMonths === 6
@@ -267,43 +272,43 @@ export default function Home() {
                   )}
                 </div>
                 <ul className="space-y-3 mb-8">
-                  <li className="flex items-center text-white">
-                    <Server className="h-5 w-5 text-blue-200 mr-2 flex-shrink-0" />
+                  <li className="flex items-center text-white group-hover:text-blue-100 transition-colors">
+                    <Server className="h-5 w-5 text-blue-200 mr-2 flex-shrink-0 group-hover:scale-110 transition-transform" />
                     5 Sites
                   </li>
-                  <li className="flex items-center text-white">
-                    <Mail className="h-5 w-5 text-blue-200 mr-2 flex-shrink-0" />
+                  <li className="flex items-center text-white group-hover:text-blue-100 transition-colors">
+                    <Mail className="h-5 w-5 text-blue-200 mr-2 flex-shrink-0 group-hover:scale-110 transition-transform" />
                     20 Contas de Email
                   </li>
-                  <li className="flex items-center text-white">
-                    <Globe className="h-5 w-5 text-blue-200 mr-2 flex-shrink-0" />
+                  <li className="flex items-center text-white group-hover:text-blue-100 transition-colors">
+                    <Globe className="h-5 w-5 text-blue-200 mr-2 flex-shrink-0 group-hover:scale-110 transition-transform" />
                     50 GB Armazenamento
                   </li>
-                  <li className="flex items-center text-white">
-                    <Zap className="h-5 w-5 text-blue-200 mr-2 flex-shrink-0" />
+                  <li className="flex items-center text-white group-hover:text-blue-100 transition-colors">
+                    <Zap className="h-5 w-5 text-blue-200 mr-2 flex-shrink-0 group-hover:scale-110 transition-transform" />
                     Tráfego Ilimitado
                   </li>
-                  <li className="flex items-center text-white">
-                    <Shield className="h-5 w-5 text-blue-200 mr-2 flex-shrink-0" />
+                  <li className="flex items-center text-white group-hover:text-blue-100 transition-colors">
+                    <Shield className="h-5 w-5 text-blue-200 mr-2 flex-shrink-0 group-hover:scale-110 transition-transform" />
                     SSL Grátis
                   </li>
                 </ul>
               </div>
               <Link
                 href={`/checkout?plan=pro&billingCycle=${durationMonths === 12 ? 'annual' : 'monthly'}`}
-                className="block w-full py-3.5 text-center bg-white text-primary-700 rounded-xl hover:bg-gray-100 transition font-bold shadow-md"
+                className="block w-full py-3.5 text-center bg-white text-primary-700 rounded-xl hover:bg-gray-100 hover:scale-105 active:scale-95 transition-all duration-300 font-bold shadow-md"
               >
                 Assinar Agora
               </Link>
             </div>
 
             {/* Enterprise Plan */}
-            <div className="bg-white rounded-xl shadow-lg p-8 flex flex-col justify-between border border-gray-100">
+            <div className="bg-white rounded-xl shadow-lg p-8 flex flex-col justify-between border border-gray-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group">
               <div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">Empresarial</h3>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2 group-hover:text-primary-600 transition-colors">Empresarial</h3>
                 <p className="text-gray-600 mb-4">Para grandes operações</p>
                 <div className="mb-6">
-                  <span className="text-4xl font-bold text-gray-900">
+                  <span className="text-4xl font-bold text-gray-900 group-hover:text-primary-600 transition-colors">
                     {durationMonths === 12
                       ? '62.000 MT'
                       : durationMonths === 6
@@ -326,31 +331,31 @@ export default function Home() {
                   )}
                 </div>
                 <ul className="space-y-3 mb-8">
-                  <li className="flex items-center text-gray-700">
-                    <Server className="h-5 w-5 text-primary-600 mr-2 flex-shrink-0" />
+                  <li className="flex items-center text-gray-700 group-hover:text-gray-900 transition-colors">
+                    <Server className="h-5 w-5 text-primary-600 mr-2 flex-shrink-0 group-hover:scale-110 transition-transform" />
                     Sites Ilimitados
                   </li>
-                  <li className="flex items-center text-gray-700">
-                    <Mail className="h-5 w-5 text-primary-600 mr-2 flex-shrink-0" />
+                  <li className="flex items-center text-gray-700 group-hover:text-gray-900 transition-colors">
+                    <Mail className="h-5 w-5 text-primary-600 mr-2 flex-shrink-0 group-hover:scale-110 transition-transform" />
                     Email Ilimitado
                   </li>
-                  <li className="flex items-center text-gray-700">
-                    <Globe className="h-5 w-5 text-primary-600 mr-2 flex-shrink-0" />
+                  <li className="flex items-center text-gray-700 group-hover:text-gray-900 transition-colors">
+                    <Globe className="h-5 w-5 text-primary-600 mr-2 flex-shrink-0 group-hover:scale-110 transition-transform" />
                     200 GB Armazenamento
                   </li>
-                  <li className="flex items-center text-gray-700">
-                    <Zap className="h-5 w-5 text-primary-600 mr-2 flex-shrink-0" />
+                  <li className="flex items-center text-gray-700 group-hover:text-gray-900 transition-colors">
+                    <Zap className="h-5 w-5 text-primary-600 mr-2 flex-shrink-0 group-hover:scale-110 transition-transform" />
                     Tráfego Ilimitado
                   </li>
-                  <li className="flex items-center text-gray-700">
-                    <Shield className="h-5 w-5 text-primary-600 mr-2 flex-shrink-0" />
+                  <li className="flex items-center text-gray-700 group-hover:text-gray-900 transition-colors">
+                    <Shield className="h-5 w-5 text-primary-600 mr-2 flex-shrink-0 group-hover:scale-110 transition-transform" />
                     SSL + CDN Grátis
                   </li>
                 </ul>
               </div>
               <Link
                 href={`/checkout?plan=enterprise&billingCycle=${durationMonths === 12 ? 'annual' : 'monthly'}`}
-                className="block w-full py-3 text-center border-2 border-primary-600 text-primary-600 font-bold rounded-xl hover:bg-primary-50 transition"
+                className="block w-full py-3 text-center border-2 border-primary-600 text-primary-600 font-bold rounded-xl hover:bg-primary-50 hover:scale-105 active:scale-95 transition-all duration-300"
               >
                 Assinar Agora
               </Link>
@@ -358,14 +363,14 @@ export default function Home() {
           </div>
 
           {/* Website Creation Service Banner (25.000 MT - Light Theme & Compact) */}
-          <div id="criacao-sites" className="mt-10 bg-white rounded-3xl p-5 sm:p-8 shadow-xl border border-gray-200 relative overflow-hidden">
+          <div id="criacao-sites" ref={siteCreationRef} className="anim-fade-up mt-10 bg-white rounded-3xl p-5 sm:p-8 shadow-xl border border-gray-200 relative overflow-hidden hover:shadow-2xl transition-shadow duration-300">
             <div className="flex flex-col lg:flex-row items-center justify-between gap-6 relative z-10">
               <div className="flex-1">
-                <div className="inline-flex items-center space-x-1.5 bg-primary-50 text-primary-800 border border-primary-200 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider mb-2.5">
-                  <Sparkles className="h-3.5 w-3.5 text-primary-600" />
+                <div className="inline-flex items-center space-x-1.5 bg-primary-50 text-primary-800 border border-primary-200 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider mb-2.5 hover:bg-primary-100 transition-colors cursor-default">
+                  <Sparkles className="h-3.5 w-3.5 text-primary-600 group-hover:scale-110 transition-transform" />
                   <span>Serviço Premium de Desenvolvimento</span>
                 </div>
-                <h3 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-2">
+                <h3 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-2 group-hover:text-primary-600 transition-colors">
                   Criação de Sites Profissionais
                 </h3>
                 <p className="text-gray-600 text-xs sm:text-sm mb-4 leading-relaxed max-w-2xl">
@@ -373,26 +378,26 @@ export default function Home() {
                 </p>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-gray-700">
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="h-4 w-4 text-emerald-600 flex-shrink-0" />
-                    <span>Design Responsivo (Mobile & Desktop)</span>
+                  <div className="flex items-center space-x-2 group cursor-default">
+                    <CheckCircle className="h-4 w-4 text-emerald-600 flex-shrink-0 group-hover:scale-110 transition-transform" />
+                    <span className="group-hover:text-emerald-700 transition-colors">Design Responsivo (Mobile & Desktop)</span>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="h-4 w-4 text-emerald-600 flex-shrink-0" />
-                    <span>Domínio .co.mz + 1 Ano Hospedagem Grátis</span>
+                  <div className="flex items-center space-x-2 group cursor-default">
+                    <CheckCircle className="h-4 w-4 text-emerald-600 flex-shrink-0 group-hover:scale-110 transition-transform" />
+                    <span className="group-hover:text-emerald-700 transition-colors">Domínio .co.mz + 1 Ano Hospedagem Grátis</span>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="h-4 w-4 text-emerald-600 flex-shrink-0" />
-                    <span>Integração WhatsApp & Redes Sociais</span>
+                  <div className="flex items-center space-x-2 group cursor-default">
+                    <CheckCircle className="h-4 w-4 text-emerald-600 flex-shrink-0 group-hover:scale-110 transition-transform" />
+                    <span className="group-hover:text-emerald-700 transition-colors">Integração WhatsApp & Redes Sociais</span>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="h-4 w-4 text-emerald-600 flex-shrink-0" />
-                    <span>E-mails Corporativos Ilimitados</span>
+                  <div className="flex items-center space-x-2 group cursor-default">
+                    <CheckCircle className="h-4 w-4 text-emerald-600 flex-shrink-0 group-hover:scale-110 transition-transform" />
+                    <span className="group-hover:text-emerald-700 transition-colors">E-mails Corporativos Ilimitados</span>
                   </div>
                 </div>
               </div>
 
-              <div className="w-full lg:w-72 bg-gradient-to-b from-gray-50 to-primary-50/40 rounded-2xl p-5 border border-gray-200 text-center flex flex-col justify-between shrink-0 shadow-sm overflow-hidden">
+              <div className="w-full lg:w-72 bg-gradient-to-b from-gray-50 to-primary-50/40 rounded-2xl p-5 border border-gray-200 text-center flex flex-col justify-between shrink-0 shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300">
                 <div>
                   <span className="text-[11px] uppercase font-bold text-gray-500 tracking-wider block mb-2">Investimento Único</span>
 
@@ -424,7 +429,7 @@ export default function Home() {
                         key={i}
                         type="button"
                         onClick={() => { setTickerVisible(false); setTimeout(() => { setTickerIndex(i); setTickerVisible(true); }, 300); }}
-                        className={`rounded-full transition-all duration-300 cursor-pointer ${i === tickerIndex ? 'w-4 h-1.5 bg-primary-600' : 'w-1.5 h-1.5 bg-gray-300'}`}
+                        className={`rounded-full transition-all duration-300 cursor-pointer hover:scale-125 ${i === tickerIndex ? 'w-4 h-1.5 bg-primary-600' : 'w-1.5 h-1.5 bg-gray-300'}`}
                       />
                     ))}
                   </div>
@@ -434,7 +439,7 @@ export default function Home() {
 
                 <Link
                   href="/site-quote"
-                  className="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow transition duration-200 block text-center"
+                  className="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow transition duration-200 block text-center hover:scale-105 active:scale-95 transition-transform"
                 >
                   Ver Todos os Tipos de Site →
                 </Link>
@@ -456,9 +461,9 @@ export default function Home() {
         <div className="relative z-10 max-w-7xl mx-auto">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <Server className="h-8 w-8 text-primary-400" />
-                <span className="text-2xl font-bold tracking-tight">WEHOSTHERE</span>
+              <div className="flex items-center space-x-2 mb-4 group cursor-default">
+                <Server className="h-8 w-8 text-primary-400 group-hover:scale-110 group-hover:text-primary-300 transition-all duration-300" />
+                <span className="text-2xl font-bold tracking-tight group-hover:text-primary-300 transition-colors">WEHOSTHERE</span>
               </div>
               <p className="text-slate-400 text-sm leading-relaxed mb-4">
                 Sua solução completa em hospedagem de sites, e-mail corporativo e servidores em Moçambique.
@@ -469,7 +474,7 @@ export default function Home() {
                 href="https://www.facebook.com/profile.php?id=61592497206566&locale=pt_BR"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition shadow-md group"
+                className="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition shadow-md group hover:scale-105 active:scale-95 hover:shadow-lg"
               >
                 <Facebook className="h-4 w-4 fill-current group-hover:scale-110 transition-transform" />
                 <span>Página Oficial Facebook</span>
@@ -479,10 +484,10 @@ export default function Home() {
             <div>
               <h4 className="font-bold text-white mb-4 uppercase tracking-wider text-xs">Produtos</h4>
               <ul className="space-y-2 text-slate-400 text-sm">
-                <li className="hover:text-primary-300 transition cursor-pointer">Hospedagem de Sites</li>
-                <li className="hover:text-primary-300 transition cursor-pointer">Email Corporativo</li>
-                <li className="hover:text-primary-300 transition cursor-pointer">Servidores VPS</li>
-                <li className="hover:text-primary-300 transition cursor-pointer">Registo de Domínios</li>
+                <li className="hover:text-primary-300 transition cursor-pointer hover:translate-x-1 hover:translate-y-[-2px] duration-300">Hospedagem de Sites</li>
+                <li className="hover:text-primary-300 transition cursor-pointer hover:translate-x-1 hover:translate-y-[-2px] duration-300">Email Corporativo</li>
+                <li className="hover:text-primary-300 transition cursor-pointer hover:translate-x-1 hover:translate-y-[-2px] duration-300">Servidores VPS</li>
+                <li className="hover:text-primary-300 transition cursor-pointer hover:translate-x-1 hover:translate-y-[-2px] duration-300">Registo de Domínios</li>
               </ul>
             </div>
             <div>
@@ -493,33 +498,33 @@ export default function Home() {
                     href="https://wa.me/258844384702?text=Olá%2C%20gostaria%20de%20saber%20mais%20sobre%20os%20serviços%20WEHOSTHERE"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center space-x-1.5 hover:text-emerald-400 transition"
+                    className="flex items-center space-x-1.5 hover:text-emerald-400 transition group"
                   >
-                    <Phone className="h-3.5 w-3.5 text-emerald-400" />
+                    <Phone className="h-3.5 w-3.5 text-emerald-400 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300" />
                     <span>+258 84 438 4702</span>
                   </a>
                 </li>
                 <li className="hover:text-primary-300 transition">
-                  <a href="mailto:info@wehosthere.com" className="flex items-center space-x-1.5 text-primary-300 hover:text-primary-200 font-semibold">
+                  <a href="mailto:info@wehosthere.com" className="flex items-center space-x-1.5 text-primary-300 hover:text-primary-200 font-semibold group">
                     <span>info@wehosthere.com</span>
                   </a>
                 </li>
-                <li className="hover:text-primary-300 transition cursor-pointer">Central de Ajuda</li>
-                <li className="hover:text-primary-300 transition cursor-pointer">Tutoriais & Documentação</li>
-                <li className="hover:text-primary-300 transition cursor-pointer">Status do Sistema</li>
+                <li className="hover:text-primary-300 transition cursor-pointer hover:translate-x-1 hover:translate-y-[-2px] duration-300">Central de Ajuda</li>
+                <li className="hover:text-primary-300 transition cursor-pointer hover:translate-x-1 hover:translate-y-[-2px] duration-300">Tutoriais & Documentação</li>
+                <li className="hover:text-primary-300 transition cursor-pointer hover:translate-x-1 hover:translate-y-[-2px] duration-300">Status do Sistema</li>
               </ul>
             </div>
             <div>
               <h4 className="font-bold text-white mb-4 uppercase tracking-wider text-xs">Legal & Garantias</h4>
               <ul className="space-y-2 text-slate-400 text-sm">
-                <li className="hover:text-primary-300 transition cursor-pointer">Termos de Serviço</li>
-                <li className="hover:text-primary-300 transition cursor-pointer">Política de Privacidade</li>
-                <li className="hover:text-primary-300 transition cursor-pointer">SLA 99.9% Uptime</li>
+                <li className="hover:text-primary-300 transition cursor-pointer hover:translate-x-1 hover:translate-y-[-2px] duration-300">Termos de Serviço</li>
+                <li className="hover:text-primary-300 transition cursor-pointer hover:translate-x-1 hover:translate-y-[-2px] duration-300">Política de Privacidade</li>
+                <li className="hover:text-primary-300 transition cursor-pointer hover:translate-x-1 hover:translate-y-[-2px] duration-300">SLA 99.9% Uptime</li>
               </ul>
             </div>
           </div>
           <div className="border-t border-slate-800/80 mt-12 pt-8 text-center text-slate-400 text-xs font-medium">
-            <p>&copy; {new Date().getFullYear()} WEHOSTHERE. Todos os direitos reservados. Moçambique.</p>
+            <p className="hover:text-slate-300 transition-colors cursor-default">&copy; {new Date().getFullYear()} WEHOSTHERE. Todos os direitos reservados. Moçambique.</p>
           </div>
         </div>
       </footer>
