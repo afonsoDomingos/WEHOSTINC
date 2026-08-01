@@ -203,25 +203,63 @@ export const auth = {
   },
 
 
-  // Login assíncrono (resiliente a limpeza de cookies/localStorage + rate limiting)
+  // Login assíncrono (database-first - valida sempre no MongoDB Atlas)
   loginAsync: async (email: string, password: string): Promise<User> => {
     seedDefaultUsers();
     checkRateLimit(email);
     
-    // Tenta primeiro no storage local
+    // 1. VALIDAÇÃO NO SERVIDOR (MongoDB Atlas) - OBRIGATÓRIO
+    let serverUser: User | null = null;
+    try {
+      const res = await fetch(apiEndpoint('/api/users'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'login', email, password })
+      });
+      
+      const resData = await res.json();
+      
+      if (!res.ok) {
+        // Erro do servidor (usuário não encontrado, senha incorreta, conta suspensa, etc)
+        recordFailedAttempt(email);
+        checkRateLimit(email);
+        throw new Error(resData.error || 'Erro ao validar credenciais no servidor.');
+      }
+      
+      if (resData.success && resData.user) {
+        serverUser = resData.user;
+      }
+    } catch (err) {
+      if (err instanceof Error && (err.message.includes('Usuário não encontrado') || err.message.includes('Senha incorreta') || err.message.includes('suspensa'))) {
+        throw err;
+      }
+      // Se houver erro de conexão, tentar fallback local
+      console.warn('Erro de conexão ao validar login no servidor, tentando fallback local:', err);
+    }
+
+    // 2. Se validou no servidor com sucesso, usar esses dados
+    if (serverUser) {
+      clearFailedAttempts(email);
+      
+      // Salvar sessão
+      const session = { user: serverUser };
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+        // Atualizar cache local com dados do servidor
+        localStorage.setItem(`user_${serverUser.id}`, JSON.stringify({ ...serverUser, password }));
+      }
+      
+      return serverUser;
+    }
+
+    // 3. FALLBACK LOCAL (apenas se servidor estiver indisponível)
     let users = auth.getUsers();
     let user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
-
-    // Se o utilizador limpou a cache/cookies do navegador, busca no servidor via API para restaurar a conta
-    if (!user) {
-      const fetchedUsers = await auth.fetchUsersAsync();
-      user = fetchedUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
-    }
 
     if (!user) {
       recordFailedAttempt(email);
       checkRateLimit(email);
-      throw new Error('Usuário não encontrado');
+      throw new Error('Usuário não encontrado. O servidor está indisponível e o usuário não foi encontrado na cache local.');
     }
 
     let userData: any = user;
@@ -239,7 +277,7 @@ export const auth = {
     if (userData.password && userData.password !== password) {
       recordFailedAttempt(email);
       checkRateLimit(email);
-      throw new Error('Senha incorreta');
+      throw new Error('Senha incorreta. O servidor está indisponível e a validação local falhou.');
     }
 
     if (userData.status === 'suspended') {

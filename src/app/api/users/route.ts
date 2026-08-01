@@ -50,8 +50,53 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { action, user, userId, plan, status } = body;
+    const { action, user, userId, plan, status, email, password } = body;
     const useMongo = await tryMongo();
+
+    // Endpoint de login - valida credenciais no servidor (database-first)
+    if (action === 'login') {
+      const targetEmail = (email || body.email || '').trim().toLowerCase();
+      const targetPassword = password || body.password;
+
+      if (!targetEmail || !targetPassword) {
+        return NextResponse.json({ error: 'E-mail e senha são obrigatórios.' }, { status: 400 });
+      }
+
+      if (useMongo) {
+        await ensureAdmin();
+        const userDoc = await UserModel.findOne({ email: targetEmail }).lean();
+        
+        if (!userDoc) {
+          return NextResponse.json({ error: 'Usuário não encontrado.' }, { status: 401 });
+        }
+
+        if (userDoc.password !== targetPassword) {
+          return NextResponse.json({ error: 'Senha incorreta.' }, { status: 401 });
+        }
+
+        if (userDoc.status === 'suspended') {
+          return NextResponse.json({ error: 'Sua conta encontra-se suspensa por questões de faturação ou incumprimento dos termos. Por favor, entre em contacto com o suporte WEHOSTHERE (+258 84 438 4702).' }, { status: 403 });
+        }
+
+        return NextResponse.json({ success: true, user: userDoc });
+      } else {
+        const fallbackUser = FALLBACK_USERS.find(u => u.email.toLowerCase() === targetEmail);
+        
+        if (!fallbackUser) {
+          return NextResponse.json({ error: 'Usuário não encontrado.' }, { status: 401 });
+        }
+
+        if (fallbackUser.password !== targetPassword) {
+          return NextResponse.json({ error: 'Senha incorreta.' }, { status: 401 });
+        }
+
+        if (fallbackUser.status === 'suspended') {
+          return NextResponse.json({ error: 'Sua conta encontra-se suspensa por questões de faturação ou incumprimento dos termos. Por favor, entre em contacto com o suporte WEHOSTHERE (+258 84 438 4702).' }, { status: 403 });
+        }
+
+        return NextResponse.json({ success: true, user: fallbackUser });
+      }
+    }
 
     if (action === 'update_plan') {
       if (useMongo) {
