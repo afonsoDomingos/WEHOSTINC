@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
@@ -160,7 +160,7 @@ export default function AdminPage() {
     } catch (e) {}
   };
 
-  const fetchAnalytics = async (period: 'today' | 'week' | 'month' | 'all' = visitStatsPeriod) => {
+  const fetchAnalytics = useCallback(async (period: 'today' | 'week' | 'month' | 'all' = visitStatsPeriod) => {
     try {
       const [presenceRes, visitsRes] = await Promise.all([
         fetch(apiEndpoint('/api/analytics/presence')),
@@ -176,7 +176,7 @@ export default function AdminPage() {
         setVisitStats({ total: data.total || 0, uniqueVisitors: data.uniqueVisitors || 0, topPages: data.topPages || [] });
       }
     } catch (e) {}
-  };
+  }, [visitStatsPeriod]);
 
   const [isRefreshingAdmin, setIsRefreshingAdmin] = useState(false);
 

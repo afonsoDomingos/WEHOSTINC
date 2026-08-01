@@ -91,6 +91,8 @@ export async function registerDomainWithProvider(
     clientPhone: req.clientPhone,
     serviceName: `Registo de Domínio: ${req.domain} (${years} ano)`,
     amount: 3000,
+    valorFaturado: 0,
+    valorPorFaturar: 3000,
     paymentMethod: 'mpesa',
     status: 'in_progress',
   });
