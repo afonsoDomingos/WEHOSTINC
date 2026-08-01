@@ -55,6 +55,17 @@ function WebmailContent() {
   // Reply inline
   const [replyText, setReplyText] = useState('');
 
+  // Current date/time
+  const [currentDateTime, setCurrentDateTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentDateTime(new Date());
+    }, 60000); // Update every minute
+
+    return () => clearInterval(timer);
+  }, []);
+
   // Auto-save draft
   useEffect(() => {
     if (!showCompose) return;
@@ -517,13 +528,24 @@ function WebmailContent() {
             className="p-2 hover:bg-gray-100 rounded-xl text-gray-500 transition cursor-pointer shrink-0"
             title="Atualizar Caixa Postal"
           >
-            <RefreshCw className={`h-4 w-4 ${isRefreshingWebmail ? 'animate-spin text-primary-600' : ''}`} />
+            {isRefreshingWebmail ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
           </button>
+
+          {/* Current Date/Time */}
+          <div className="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 bg-gradient-to-r from-primary-50 to-indigo-50 rounded-xl border border-primary-200 shrink-0">
+            <Clock className="h-3.5 w-3.5 text-primary-600" />
+            <span className="text-xs font-bold text-gray-700">
+              {currentDateTime.toLocaleDateString('pt-MZ', { day: '2-digit', month: 'short', year: 'numeric' })}
+            </span>
+            <span className="text-[10px] text-gray-500">
+              {currentDateTime.toLocaleTimeString('pt-MZ', { hour: '2-digit', minute: '2-digit' })}
+            </span>
+          </div>
 
           <button
             type="button"
             onClick={() => setShowCompose(true)}
-            className="md:hidden p-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl shadow-xs transition cursor-pointer shrink-0"
+            className="p-2 hover:bg-primary-50 text-primary-600 rounded-xl transition cursor-pointer shrink-0"
             title="Escrever E-mail"
           >
             <Edit3 className="h-4 w-4" />
