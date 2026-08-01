@@ -76,7 +76,9 @@ export default function DomainSearch() {
     }, SLOW_CONNECTION_TIMEOUT);
 
     try {
+      console.log(`[DomainSearch] Iniciando pesquisa: ${fullQuery}`);
       const searchResult = await checkDomainRealAsync(fullQuery);
+      console.log(`[DomainSearch] Resultado:`, searchResult);
       setResult(searchResult);
       setIsSlowConnection(false);
       setNetworkError(null);

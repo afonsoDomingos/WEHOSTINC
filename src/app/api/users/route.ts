@@ -57,6 +57,8 @@ export async function POST(req: Request) {
     if (action === 'login') {
       const targetEmail = (email || body.email || '').trim().toLowerCase();
       const targetPassword = password || body.password;
+      const clientIpAddress = body.ipAddress || '';
+      const clientCountry = body.country || '';
 
       if (!targetEmail || !targetPassword) {
         return NextResponse.json({ error: 'E-mail e senha são obrigatórios.' }, { status: 400 });
@@ -67,14 +69,59 @@ export async function POST(req: Request) {
         const userDoc = await UserModel.findOne({ email: targetEmail }).lean();
         
         if (!userDoc) {
+          // Registrar tentativa falha com IP e país
+          try {
+            const SecurityLogModel = (await import('@/lib/models/SecurityLog')).default;
+            await SecurityLogModel.create({
+              id: Date.now().toString(),
+              email: targetEmail,
+              type: 'failed_login',
+              message: 'Usuário não encontrado',
+              ipAddress: clientIpAddress,
+              country: clientCountry,
+              createdAt: new Date().toISOString()
+            });
+          } catch (e) {
+            console.error('Erro ao registrar log de segurança:', e);
+          }
           return NextResponse.json({ error: 'Usuário não encontrado.' }, { status: 401 });
         }
 
         if (userDoc.password !== targetPassword) {
+          // Registrar tentativa falha com IP e país
+          try {
+            const SecurityLogModel = (await import('@/lib/models/SecurityLog')).default;
+            await SecurityLogModel.create({
+              id: Date.now().toString(),
+              email: targetEmail,
+              type: 'failed_login',
+              message: 'Senha incorreta',
+              ipAddress: clientIpAddress,
+              country: clientCountry,
+              createdAt: new Date().toISOString()
+            });
+          } catch (e) {
+            console.error('Erro ao registrar log de segurança:', e);
+          }
           return NextResponse.json({ error: 'Senha incorreta.' }, { status: 401 });
         }
 
         if (userDoc.status === 'suspended') {
+          // Registrar tentativa de conta suspensa com IP e país
+          try {
+            const SecurityLogModel = (await import('@/lib/models/SecurityLog')).default;
+            await SecurityLogModel.create({
+              id: Date.now().toString(),
+              email: targetEmail,
+              type: 'suspended_attempt',
+              message: 'Tentativa de login em conta suspensa',
+              ipAddress: clientIpAddress,
+              country: clientCountry,
+              createdAt: new Date().toISOString()
+            });
+          } catch (e) {
+            console.error('Erro ao registrar log de segurança:', e);
+          }
           return NextResponse.json({ error: 'Sua conta encontra-se suspensa por questões de faturação ou incumprimento dos termos. Por favor, entre em contacto com o suporte WEHOSTHERE (+258 84 438 4702).' }, { status: 403 });
         }
 

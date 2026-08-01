@@ -67,7 +67,7 @@ const checkRateLimit = (email: string) => {
   }
 };
 
-const recordFailedAttempt = (email: string) => {
+const recordFailedAttempt = (email: string, ipAddress?: string, country?: string) => {
   if (typeof window === 'undefined') return;
   const key = `login_attempts_${email.trim().toLowerCase()}`;
   const data = localStorage.getItem(key);
@@ -82,12 +82,12 @@ const recordFailedAttempt = (email: string) => {
     const lockUntil = Date.now() + LOCK_TIME_MS;
     localStorage.setItem(key, JSON.stringify({ count, lockUntil }));
     try {
-      dataManager.addSecurityLog(email, 'account_locked', 'Muitas tentativas incorretas de login. Conta bloqueada temporariamente por 15 minutos.');
+      dataManager.addSecurityLog(email, 'account_locked', 'Muitas tentativas incorretas de login. Conta bloqueada temporariamente por 15 minutos.', ipAddress, country);
     } catch {}
   } else {
     localStorage.setItem(key, JSON.stringify({ count }));
     try {
-      dataManager.addSecurityLog(email, 'failed_login', `Tentativa de login incorreta (${count}/${MAX_LOGIN_ATTEMPTS}).`);
+      dataManager.addSecurityLog(email, 'failed_login', `Tentativa de login incorreta (${count}/${MAX_LOGIN_ATTEMPTS}).`, ipAddress, country);
     } catch {}
   }
 };
@@ -96,6 +96,23 @@ const clearFailedAttempts = (email: string) => {
   if (typeof window === 'undefined') return;
   const key = `login_attempts_${email.trim().toLowerCase()}`;
   localStorage.removeItem(key);
+};
+
+// Função para obter IP e país do usuário via API de geolocalização
+const getClientLocation = async (): Promise<{ ipAddress: string; country: string }> => {
+  try {
+    const res = await fetch('https://ipapi.co/json/');
+    if (res.ok) {
+      const data = await res.json();
+      return {
+        ipAddress: data.ip || '',
+        country: data.country_name || ''
+      };
+    }
+  } catch (e) {
+    console.warn('Não foi possível obter localização do cliente:', e);
+  }
+  return { ipAddress: '', country: '' };
 };
 
 export const auth = {
@@ -208,20 +225,23 @@ export const auth = {
     seedDefaultUsers();
     checkRateLimit(email);
     
+    // Obter localização do cliente (IP e país)
+    const { ipAddress, country } = await getClientLocation();
+    
     // 1. VALIDAÇÃO NO SERVIDOR (MongoDB Atlas) - OBRIGATÓRIO
     let serverUser: User | null = null;
     try {
       const res = await fetch(apiEndpoint('/api/users'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'login', email, password })
+        body: JSON.stringify({ action: 'login', email, password, ipAddress, country })
       });
       
       const resData = await res.json();
       
       if (!res.ok) {
         // Erro do servidor (usuário não encontrado, senha incorreta, conta suspensa, etc)
-        recordFailedAttempt(email);
+        recordFailedAttempt(email, ipAddress, country);
         checkRateLimit(email);
         throw new Error(resData.error || 'Erro ao validar credenciais no servidor.');
       }
@@ -257,7 +277,7 @@ export const auth = {
     let user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
 
     if (!user) {
-      recordFailedAttempt(email);
+      recordFailedAttempt(email, ipAddress, country);
       checkRateLimit(email);
       throw new Error('Usuário não encontrado. O servidor está indisponível e o usuário não foi encontrado na cache local.');
     }
@@ -275,7 +295,7 @@ export const auth = {
     }
 
     if (userData.password && userData.password !== password) {
-      recordFailedAttempt(email);
+      recordFailedAttempt(email, ipAddress, country);
       checkRateLimit(email);
       throw new Error('Senha incorreta. O servidor está indisponível e a validação local falhou.');
     }

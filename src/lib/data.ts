@@ -1209,13 +1209,15 @@ export const dataManager = {
     return dataManager.getSecurityLogs();
   },
 
-  addSecurityLog: (email: string, type: 'failed_login' | 'account_locked' | 'suspended_attempt', message: string): SecurityLog => {
+  addSecurityLog: (email: string, type: 'failed_login' | 'account_locked' | 'suspended_attempt', message: string, ipAddress?: string, country?: string): SecurityLog => {
     const logs = dataManager.getSecurityLogs();
     const newLog: SecurityLog = {
       id: Date.now().toString(),
       email: email.trim().toLowerCase(),
       type,
       message,
+      ipAddress,
+      country,
       createdAt: new Date().toISOString()
     };
     const updated = [newLog, ...logs].slice(0, 50);
