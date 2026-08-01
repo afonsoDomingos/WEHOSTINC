@@ -156,11 +156,11 @@ export const webmailManager = {
     }
   },
 
-  moveFolder: (id: string, folder: 'inbox' | 'sent' | 'drafts' | 'trash'): void => {
+  moveFolder: (id: string, newFolder: 'inbox' | 'sent' | 'drafts' | 'trash'): void => {
     const messages = webmailManager.getMessages();
     const msg = messages.find(m => m.id === id);
     if (msg) {
-      msg.folder = folder;
+      msg.folder = newFolder;
       if (typeof window !== 'undefined') {
         localStorage.setItem(WEBMAIL_STORAGE_KEY, JSON.stringify(messages));
       }
@@ -168,9 +168,62 @@ export const webmailManager = {
   },
 
   deletePermanently: (id: string): void => {
-    const messages = webmailManager.getMessages().filter(m => m.id !== id);
+    const messages = webmailManager.getMessages();
+    const filtered = messages.filter(m => m.id !== id);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(WEBMAIL_STORAGE_KEY, JSON.stringify(filtered));
+    }
+  },
+
+  saveDraft: (accountEmail: string, toEmail: string, subject: string, body: string, attachments?: WebmailAttachment[]): WebmailMessage => {
+    const messages = webmailManager.getMessages();
+    const existingDraftIndex = messages.findIndex(m => 
+      m.folder === 'drafts' && 
+      m.accountEmail.toLowerCase() === accountEmail.toLowerCase() &&
+      m.toEmail.toLowerCase() === toEmail.toLowerCase() &&
+      m.subject.toLowerCase() === subject.toLowerCase()
+    );
+
+    const draftData = {
+      accountEmail,
+      fromName: accountEmail.split('@')[0],
+      fromEmail: accountEmail,
+      toEmail,
+      subject,
+      body,
+      date: new Date().toISOString(),
+      isRead: true,
+      starred: false,
+      folder: 'drafts' as const,
+      avatarColor: 'bg-gray-500',
+      attachments: attachments && attachments.length > 0 ? attachments : undefined
+    };
+
+    if (existingDraftIndex !== -1) {
+      // Atualiza rascunho existente
+      messages[existingDraftIndex] = {
+        ...messages[existingDraftIndex],
+        ...draftData,
+        id: messages[existingDraftIndex].id
+      };
+    } else {
+      // Cria novo rascunho
+      const newDraft: WebmailMessage = {
+        id: `draft-${Date.now()}`,
+        ...draftData
+      };
+      messages.unshift(newDraft);
+    }
+
     if (typeof window !== 'undefined') {
       localStorage.setItem(WEBMAIL_STORAGE_KEY, JSON.stringify(messages));
     }
+
+    return existingDraftIndex !== -1 ? messages[existingDraftIndex] : messages[0];
+  },
+
+  getDrafts: (accountEmail?: string): WebmailMessage[] => {
+    const messages = webmailManager.getMessages(accountEmail);
+    return messages.filter(m => m.folder === 'drafts');
   }
 };

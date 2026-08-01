@@ -24,7 +24,7 @@ function WebmailContent() {
   const [accounts, setAccounts] = useState<EmailAccount[]>([]);
   const [selectedAccountEmail, setSelectedAccountEmail] = useState<string>('');
 
-  const [currentFolder, setCurrentFolder] = useState<'inbox' | 'sent' | 'starred' | 'trash'>('inbox');
+  const [currentFolder, setCurrentFolder] = useState<'inbox' | 'sent' | 'starred' | 'trash' | 'drafts'>('inbox');
   const [messages, setMessages] = useState<WebmailMessage[]>([]);
   const [selectedMessage, setSelectedMessage] = useState<WebmailMessage | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -42,16 +42,63 @@ function WebmailContent() {
   const [uploadingAttachment, setUploadingAttachment] = useState(false);
   const [sendingMsg, setSendingMsg] = useState(false);
   const [sentSuccessMsg, setSentSuccessMsg] = useState('');
+  const [editingDraftId, setEditingDraftId] = useState<string | null>(null);
 
   // Reply inline
   const [replyText, setReplyText] = useState('');
+
+  // Auto-save draft
+  useEffect(() => {
+    if (!showCompose) return;
+    
+    const autoSaveInterval = setInterval(() => {
+      if (composeTo || composeSubject || composeBody) {
+        webmailManager.saveDraft(
+          selectedAccountEmail,
+          composeTo,
+          composeSubject,
+          composeBody,
+          composeAttachments
+        );
+      }
+    }, 5000); // Auto-save a cada 5 segundos
+
+    return () => clearInterval(autoSaveInterval);
+  }, [showCompose, composeTo, composeSubject, composeBody, composeAttachments, selectedAccountEmail]);
 
   const handleComposeFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    setUploadingAttachment(true);
     const file = files[0];
+    
+    // Validação de tamanho (máximo 10MB)
+    const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+    if (file.size > MAX_SIZE) {
+      alert('O ficheiro é muito grande! O tamanho máximo permitido é 10MB.');
+      return;
+    }
+
+    // Validação de tipo
+    const allowedTypes = [
+      'application/pdf',
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'text/plain',
+      'application/zip'
+    ];
+    
+    if (!allowedTypes.includes(file.type) && !file.type.startsWith('image/')) {
+      alert('Tipo de ficheiro não permitido. Formatos aceitos: PDF, Imagens, Word, Excel, Texto, ZIP.');
+      return;
+    }
+
+    setUploadingAttachment(true);
     const formData = new FormData();
     formData.append('file', file);
 
@@ -73,9 +120,12 @@ function WebmailContent() {
             }
           ]);
         }
+      } else {
+        alert('Erro ao fazer upload do ficheiro. Tente novamente.');
       }
     } catch (err) {
       console.error('Erro no upload de anexo do webmail:', err);
+      alert('Erro de conexão ao fazer upload. Verifique sua internet.');
     } finally {
       setUploadingAttachment(false);
       e.target.value = '';
@@ -84,6 +134,47 @@ function WebmailContent() {
 
   const handleRemoveComposeAttachment = (index: number) => {
     setComposeAttachments(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSaveDraftManually = () => {
+    webmailManager.saveDraft(
+      selectedAccountEmail,
+      composeTo,
+      composeSubject,
+      composeBody,
+      composeAttachments
+    );
+    setEditingDraftId(null);
+    refreshMessages();
+    setSentSuccessMsg('💾 Rascunho guardado com sucesso!');
+    setTimeout(() => {
+      setShowCompose(false);
+      setSentSuccessMsg('');
+      setComposeTo('');
+      setComposeSubject('');
+      setComposeBody('');
+      setComposeAttachments([]);
+    }, 1500);
+  };
+
+  const handleCloseCompose = () => {
+    // Se houver conteúdo, salvar como rascunho
+    if (composeTo || composeSubject || composeBody) {
+      webmailManager.saveDraft(
+        selectedAccountEmail,
+        composeTo,
+        composeSubject,
+        composeBody,
+        composeAttachments
+      );
+      refreshMessages();
+    }
+    setShowCompose(false);
+    setEditingDraftId(null);
+    setComposeTo('');
+    setComposeSubject('');
+    setComposeBody('');
+    setComposeAttachments([]);
   };
 
   const handleInsertSignature = () => {
@@ -156,6 +247,16 @@ function WebmailContent() {
       webmailManager.markAsRead(msg.id, true);
       setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, isRead: true } : m));
     }
+    
+    // Se for um rascunho, abrir no compose modal
+    if (msg.folder === 'drafts') {
+      setComposeTo(msg.toEmail);
+      setComposeSubject(msg.subject);
+      setComposeBody(msg.body);
+      setComposeAttachments(msg.attachments || []);
+      setEditingDraftId(msg.id);
+      setShowCompose(true);
+    }
   };
 
   const handleToggleStar = (msgId: string, e: React.MouseEvent) => {
@@ -208,6 +309,12 @@ function WebmailContent() {
         composeBody,
         composeAttachments
       );
+
+      // 3. Remover rascunho se existir
+      if (editingDraftId) {
+        webmailManager.deletePermanently(editingDraftId);
+        setEditingDraftId(null);
+      }
 
       setSendingMsg(false);
 
@@ -304,6 +411,30 @@ function WebmailContent() {
   const isAccountPending = currentAccountObj ? (currentAccountObj.status === 'pending' || !currentAccountObj.status) : false;
 
   const unreadInboxCount = messages.filter(m => m.folder === 'inbox' && !m.isRead).length;
+  const draftsCount = messages.filter(m => m.folder === 'drafts').length;
+
+  // Calcular armazenamento real baseado no plano do usuário
+  const getStorageInfo = () => {
+    const planLimits: Record<string, number> = {
+      basic: 10,
+      pro: 50,
+      enterprise: 200
+    };
+    
+    const limit = planLimits[user?.plan || 'basic'] || 10;
+    const used = accounts.reduce((total, acc) => total + (acc.storage || 0), 0);
+    const percentage = (used / limit) * 100;
+    
+    return {
+      used,
+      limit,
+      percentage,
+      remaining: Math.max(0, limit - used),
+      isUnlimited: user?.plan === 'enterprise'
+    };
+  };
+
+  const storageInfo = getStorageInfo();
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
@@ -429,6 +560,16 @@ function WebmailContent() {
           <Trash2 className="h-3.5 w-3.5" />
           <span>Lixeira</span>
         </button>
+
+        <button
+          onClick={() => { setCurrentFolder('drafts'); setSelectedMessage(null); }}
+          className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap font-bold transition shrink-0 ${
+            currentFolder === 'drafts' ? 'bg-purple-600 text-white shadow-2xs' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          <FileText className="h-3.5 w-3.5" />
+          <span>Rascunhos</span>
+        </button>
       </div>
 
       {/* Main Layout Grid */}
@@ -491,17 +632,51 @@ function WebmailContent() {
               <Trash2 className="h-4 w-4 text-rose-400" />
               <span>Lixeira</span>
             </button>
+
+            <button
+              onClick={() => setCurrentFolder('drafts')}
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition cursor-pointer ${
+                currentFolder === 'drafts' ? 'bg-purple-50 text-purple-700 border border-purple-200 font-bold' : 'hover:bg-gray-100 text-gray-600'
+              }`}
+            >
+              <div className="flex items-center space-x-2.5">
+                <FileText className="h-4 w-4 text-purple-400" />
+                <span>Rascunhos</span>
+              </div>
+              {draftsCount > 0 && (
+                <span className="bg-purple-600 text-white text-[10px] px-2 py-0.5 rounded-full font-black">
+                  {draftsCount}
+                </span>
+              )}
+            </button>
           </nav>
 
           <div className="mt-auto pt-4 border-t border-gray-200 text-[11px] text-gray-400 space-y-2">
             <div className="flex items-center justify-between">
               <span>Cota de Armazenamento</span>
-              <span className="font-bold text-gray-600">1.2 / 5 GB</span>
+              <span className="font-bold text-gray-600">
+                {storageInfo.isUnlimited 
+                  ? `${storageInfo.used.toFixed(1)} / ∞ GB` 
+                  : `${storageInfo.used.toFixed(1)} / ${storageInfo.limit} GB`
+                }
+              </span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
-              <div className="bg-primary-500 h-full w-[24%]" />
+              <div 
+                className={`h-full transition-all ${
+                  storageInfo.percentage > 90 ? 'bg-red-500' :
+                  storageInfo.percentage > 70 ? 'bg-amber-500' :
+                  'bg-primary-500'
+                }`}
+                style={{ width: `${storageInfo.isUnlimited ? Math.min(storageInfo.percentage, 100) : storageInfo.percentage}%` }}
+              />
             </div>
-            <p className="text-[10px] text-gray-400 text-center">Protegido com SSL WEHOSTHERE</p>
+            <p className="text-[10px] text-gray-400 text-center">
+              {storageInfo.isUnlimited 
+                ? 'Plano Empresarial - Armazenamento Ilimitado' 
+                : `${storageInfo.remaining.toFixed(1)} GB disponíveis`
+              }
+            </p>
           </div>
         </aside>
 
@@ -801,7 +976,7 @@ function WebmailContent() {
                   </div>
                   <button
                     type="button"
-                    onClick={() => setShowCompose(false)}
+                    onClick={handleCloseCompose}
                     className="p-1 text-gray-400 hover:text-gray-700 rounded-lg cursor-pointer"
                   >
                     <X className="h-5 w-5" />
@@ -919,10 +1094,19 @@ function WebmailContent() {
                 <div className="flex gap-3 pt-2">
                   <button
                     type="button"
-                    onClick={() => setShowCompose(false)}
+                    onClick={handleCloseCompose}
                     className="flex-1 py-3 border border-gray-200 text-gray-700 font-bold text-xs rounded-2xl hover:bg-gray-50 transition cursor-pointer"
                   >
                     Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSaveDraftManually}
+                    disabled={sendingMsg || uploadingAttachment}
+                    className="flex-1 py-3 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-bold text-xs rounded-2xl transition cursor-pointer shadow-md flex items-center justify-center space-x-2"
+                  >
+                    <FileText className="h-4 w-4" />
+                    <span>Salvar Rascunho</span>
                   </button>
                   <button
                     type="submit"
