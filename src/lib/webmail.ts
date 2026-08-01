@@ -1,3 +1,10 @@
+export interface WebmailAttachment {
+  url: string;
+  name: string;
+  size?: number;
+  type?: string;
+}
+
 export interface WebmailMessage {
   id: string;
   accountEmail: string;
@@ -11,6 +18,7 @@ export interface WebmailMessage {
   starred: boolean;
   folder: 'inbox' | 'sent' | 'drafts' | 'trash';
   avatarColor?: string;
+  attachments?: WebmailAttachment[];
 }
 
 const WEBMAIL_STORAGE_KEY = 'wehosthere_webmail_messages';
@@ -102,7 +110,7 @@ export const webmailManager = {
     return messages;
   },
 
-  sendMessage: (accountEmail: string, toEmail: string, subject: string, body: string): WebmailMessage => {
+  sendMessage: (accountEmail: string, toEmail: string, subject: string, body: string, attachments?: WebmailAttachment[]): WebmailMessage => {
     const messages = webmailManager.getMessages();
     const newMsg: WebmailMessage = {
       id: `wm-${Date.now()}`,
@@ -116,7 +124,8 @@ export const webmailManager = {
       isRead: true,
       starred: false,
       folder: 'sent',
-      avatarColor: 'bg-primary-600'
+      avatarColor: 'bg-primary-600',
+      attachments: attachments && attachments.length > 0 ? attachments : undefined
     };
     messages.unshift(newMsg);
     if (typeof window !== 'undefined') {

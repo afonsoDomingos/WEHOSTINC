@@ -6,11 +6,11 @@ import Link from 'next/link';
 import { 
   Mail, Inbox, Send, Star, Trash2, Edit3, Search, RefreshCw, 
   ArrowLeft, CheckCircle2, ShieldCheck, User, Paperclip, Reply, Forward,
-  FileText, LogOut, ChevronRight, X, AlertCircle, Sparkles, Clock
+  FileText, LogOut, ChevronRight, X, AlertCircle, Sparkles, Clock, Printer, Download, Loader2, Filter
 } from 'lucide-react';
 import { auth, User as AuthUser } from '@/lib/auth';
 import { dataManager, EmailAccount } from '@/lib/data';
-import { webmailManager, WebmailMessage } from '@/lib/webmail';
+import { webmailManager, WebmailMessage, WebmailAttachment } from '@/lib/webmail';
 import BrandLogo from '@/components/BrandLogo';
 import PageLoader from '@/components/PageLoader';
 import { apiEndpoint } from '@/lib/siteConfig';
@@ -27,19 +27,69 @@ function WebmailContent() {
   const [currentFolder, setCurrentFolder] = useState<'inbox' | 'sent' | 'starred' | 'trash'>('inbox');
   const [messages, setMessages] = useState<WebmailMessage[]>([]);
   const [selectedMessage, setSelectedMessage] = useState<WebmailMessage | null>(null);
-
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Compose Modal State
+  // Filter & Refresh State
+  const [filterType, setFilterType] = useState<'all' | 'unread' | 'attachments' | 'starred'>('all');
+  const [isRefreshingWebmail, setIsRefreshingWebmail] = useState(false);
+
+  // Compose Modal & Attachment State
   const [showCompose, setShowCompose] = useState(false);
   const [composeTo, setComposeTo] = useState('');
   const [composeSubject, setComposeSubject] = useState('');
   const [composeBody, setComposeBody] = useState('');
+  const [composeAttachments, setComposeAttachments] = useState<WebmailAttachment[]>([]);
+  const [uploadingAttachment, setUploadingAttachment] = useState(false);
   const [sendingMsg, setSendingMsg] = useState(false);
   const [sentSuccessMsg, setSentSuccessMsg] = useState('');
 
   // Reply inline
   const [replyText, setReplyText] = useState('');
+
+  const handleComposeFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploadingAttachment(true);
+    const file = files[0];
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res = await fetch(apiEndpoint('/api/upload'), {
+        method: 'POST',
+        body: formData
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.url) {
+          setComposeAttachments(prev => [
+            ...prev,
+            {
+              url: data.url,
+              name: data.name || file.name,
+              size: data.bytes || file.size,
+              type: file.type
+            }
+          ]);
+        }
+      }
+    } catch (err) {
+      console.error('Erro no upload de anexo do webmail:', err);
+    } finally {
+      setUploadingAttachment(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleRemoveComposeAttachment = (index: number) => {
+    setComposeAttachments(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleInsertSignature = () => {
+    const sig = `\n\n--\nCumprimentos,\n${user?.name || 'Equipa'}\n${selectedAccountEmail}\nWEHOSTHERE Platform`;
+    setComposeBody(prev => prev + sig);
+  };
 
   useEffect(() => {
     const currentUser = auth.getCurrentUser();
@@ -155,7 +205,8 @@ function WebmailContent() {
         selectedAccountEmail,
         composeTo,
         composeSubject || '(Sem assunto)',
-        composeBody
+        composeBody,
+        composeAttachments
       );
 
       setSendingMsg(false);
@@ -174,6 +225,7 @@ function WebmailContent() {
         setComposeTo('');
         setComposeSubject('');
         setComposeBody('');
+        setComposeAttachments([]);
         refreshMessages();
       }, 2000);
     } catch (err) {
@@ -224,7 +276,7 @@ function WebmailContent() {
     }
   };
 
-  // Filtragem por Pasta e Pesquisa
+  // Filtragem por Pasta, Filtros e Pesquisa
   const displayMessages = messages.filter(m => {
     let matchesFolder = false;
     if (currentFolder === 'starred') {
@@ -233,6 +285,11 @@ function WebmailContent() {
       matchesFolder = m.folder === currentFolder;
     }
 
+    let matchesFilter = true;
+    if (filterType === 'unread') matchesFilter = !m.isRead;
+    if (filterType === 'attachments') matchesFilter = !!(m.attachments && m.attachments.length > 0);
+    if (filterType === 'starred') matchesFilter = m.starred;
+
     const q = searchQuery.toLowerCase();
     const matchesSearch = q === '' ||
       m.subject.toLowerCase().includes(q) ||
@@ -240,7 +297,7 @@ function WebmailContent() {
       m.fromEmail.toLowerCase().includes(q) ||
       m.body.toLowerCase().includes(q);
 
-    return matchesFolder && matchesSearch;
+    return matchesFolder && matchesFilter && matchesSearch;
   });
 
   const currentAccountObj = accounts.find(a => a.email.toLowerCase() === selectedAccountEmail.toLowerCase());
@@ -289,11 +346,15 @@ function WebmailContent() {
           )}
 
           <button
-            onClick={refreshMessages}
+            onClick={() => {
+              setIsRefreshingWebmail(true);
+              refreshMessages();
+              setTimeout(() => setIsRefreshingWebmail(false), 600);
+            }}
             className="p-2 hover:bg-gray-100 rounded-xl text-gray-500 transition cursor-pointer shrink-0"
-            title="Atualizar"
+            title="Atualizar Caixa Postal"
           >
-            <RefreshCw className="h-4 w-4" />
+            <RefreshCw className={`h-4 w-4 ${isRefreshingWebmail ? 'animate-spin text-primary-600' : ''}`} />
           </button>
 
           <button
@@ -446,8 +507,8 @@ function WebmailContent() {
 
         {/* Message List Column - Mobile First */}
         <section className={`w-full md:w-80 lg:w-96 bg-white border-r border-gray-200 flex flex-col shrink-0 ${selectedMessage ? 'hidden md:flex' : 'flex'}`}>
-          {/* Search Input */}
-          <div className="p-3 border-b border-gray-100">
+          {/* Search Input & Filter Pills */}
+          <div className="p-3 border-b border-gray-100 space-y-2">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
               <input
@@ -455,8 +516,50 @@ function WebmailContent() {
                 placeholder="Pesquisar e-mails..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 outline-none focus:ring-2 focus:ring-primary-500 font-medium"
               />
+            </div>
+
+            {/* Filter Pills */}
+            <div className="flex items-center space-x-1 text-[11px] font-semibold overflow-x-auto pb-1">
+              <button
+                type="button"
+                onClick={() => setFilterType('all')}
+                className={`px-2.5 py-1 rounded-full whitespace-nowrap transition cursor-pointer ${
+                  filterType === 'all' ? 'bg-primary-600 text-white font-bold' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                Todas
+              </button>
+              <button
+                type="button"
+                onClick={() => setFilterType('unread')}
+                className={`px-2.5 py-1 rounded-full whitespace-nowrap transition cursor-pointer ${
+                  filterType === 'unread' ? 'bg-primary-600 text-white font-bold' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                Não lidas
+              </button>
+              <button
+                type="button"
+                onClick={() => setFilterType('attachments')}
+                className={`px-2.5 py-1 rounded-full whitespace-nowrap transition cursor-pointer flex items-center space-x-1 ${
+                  filterType === 'attachments' ? 'bg-primary-600 text-white font-bold' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                <Paperclip className="w-3 h-3" />
+                <span>Anexos</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setFilterType('starred')}
+                className={`px-2.5 py-1 rounded-full whitespace-nowrap transition cursor-pointer flex items-center space-x-1 ${
+                  filterType === 'starred' ? 'bg-amber-500 text-white font-bold' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                <Star className="w-3 h-3" />
+                <span>Estrela</span>
+              </button>
             </div>
           </div>
 
@@ -470,6 +573,7 @@ function WebmailContent() {
             ) : (
               displayMessages.map((msg) => {
                 const isSelected = selectedMessage?.id === msg.id;
+                const hasAtt = msg.attachments && msg.attachments.length > 0;
                 return (
                   <div
                     key={msg.id}
@@ -495,9 +599,12 @@ function WebmailContent() {
                         <span className={`text-xs truncate ${msg.isRead ? 'text-gray-700 font-medium' : 'text-gray-900 font-extrabold'}`}>
                           {msg.fromName}
                         </span>
-                        <span className="text-[10px] text-gray-400 whitespace-nowrap ml-2">
-                          {new Date(msg.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </span>
+                        <div className="flex items-center space-x-1.5 ml-2 shrink-0">
+                          {hasAtt && <Paperclip className="h-3 w-3 text-gray-400" />}
+                          <span className="text-[10px] text-gray-400 whitespace-nowrap">
+                            {new Date(msg.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
                       </div>
                       <h4 className={`text-xs truncate ${msg.isRead ? 'text-gray-800' : 'text-gray-900 font-bold'}`}>
                         {msg.subject}
@@ -537,14 +644,21 @@ function WebmailContent() {
                   </h2>
                   <div className="flex items-center space-x-2">
                     <button
+                      onClick={() => window.print()}
+                      className="p-2 hover:bg-gray-100 text-gray-500 rounded-xl transition cursor-pointer"
+                      title="Imprimir e-mail"
+                    >
+                      <Printer className="h-4 w-4" />
+                    </button>
+                    <button
                       onClick={(e) => handleToggleStar(selectedMessage.id, e)}
-                      className="p-2 hover:bg-gray-100 rounded-xl transition"
+                      className="p-2 hover:bg-gray-100 rounded-xl transition cursor-pointer"
                     >
                       <Star className={`h-4 w-4 ${selectedMessage.starred ? 'fill-amber-400 text-amber-400' : 'text-gray-400'}`} />
                     </button>
                     <button
                       onClick={() => handleDeleteMessage(selectedMessage.id)}
-                      className="p-2 hover:bg-rose-50 text-gray-400 hover:text-rose-600 rounded-xl transition"
+                      className="p-2 hover:bg-rose-50 text-gray-400 hover:text-rose-600 rounded-xl transition cursor-pointer"
                       title="Excluir"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -569,8 +683,37 @@ function WebmailContent() {
               </div>
 
               {/* Body card */}
-              <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-200 flex-1 whitespace-pre-line text-sm text-gray-800 leading-relaxed font-sans">
-                {selectedMessage.body}
+              <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-200 flex-1 space-y-4">
+                <div className="whitespace-pre-line text-sm text-gray-800 leading-relaxed font-sans">
+                  {selectedMessage.body}
+                </div>
+
+                {/* Exibição de Ficheiros Anexados */}
+                {selectedMessage.attachments && selectedMessage.attachments.length > 0 && (
+                  <div className="mt-6 pt-4 border-t border-gray-100 space-y-2">
+                    <span className="text-xs font-bold text-gray-700 flex items-center space-x-1.5">
+                      <Paperclip className="h-4 w-4 text-primary-600" />
+                      <span>{selectedMessage.attachments.length} Ficheiro(s) Anexado(s)</span>
+                    </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {selectedMessage.attachments.map((att, idx) => (
+                        <a
+                          key={idx}
+                          href={att.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-2.5 bg-gray-50 hover:bg-primary-50/50 rounded-xl border border-gray-200 flex items-center justify-between transition group"
+                        >
+                          <div className="flex items-center space-x-2 truncate">
+                            <FileText className="h-4 w-4 text-primary-600 shrink-0" />
+                            <span className="text-xs font-bold text-gray-800 truncate group-hover:text-primary-700">{att.name}</span>
+                          </div>
+                          <Download className="h-3.5 w-3.5 text-gray-400 group-hover:text-primary-600 shrink-0 ml-2" />
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Quick Reply Form */}
@@ -712,17 +855,65 @@ function WebmailContent() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1">
-                    Mensagem
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-700">
+                      Mensagem
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleInsertSignature}
+                      className="text-[11px] font-bold text-primary-600 hover:text-primary-800 bg-primary-50 hover:bg-primary-100 px-2.5 py-1 rounded-lg border border-primary-200 transition cursor-pointer flex items-center space-x-1"
+                    >
+                      <span>✍️ Inserir Assinatura</span>
+                    </button>
+                  </div>
                   <textarea
-                    rows={6}
+                    rows={5}
                     value={composeBody}
                     onChange={(e) => setComposeBody(e.target.value)}
                     placeholder="Escreva a sua mensagem aqui..."
                     className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl text-xs text-gray-900 outline-none focus:ring-2 focus:ring-primary-500 font-sans leading-relaxed"
                     required
                   />
+                </div>
+
+                {/* Upload de Anexos no Compose */}
+                <div className="space-y-2 pt-1 border-t border-gray-100">
+                  <div className="flex items-center justify-between">
+                    <label className="cursor-pointer inline-flex items-center space-x-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold rounded-xl transition border border-emerald-200">
+                      {uploadingAttachment ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-600" />
+                      ) : (
+                        <Paperclip className="w-3.5 h-3.5 text-emerald-600" />
+                      )}
+                      <span>{uploadingAttachment ? 'A carregar anexo...' : '📎 Anexar Ficheiro'}</span>
+                      <input
+                        type="file"
+                        className="hidden"
+                        onChange={handleComposeFileUpload}
+                        disabled={uploadingAttachment}
+                      />
+                    </label>
+                    <span className="text-[10px] text-gray-400">PDF, Imagens, Documentos</span>
+                  </div>
+
+                  {composeAttachments.length > 0 && (
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {composeAttachments.map((att, idx) => (
+                        <div key={idx} className="flex items-center space-x-1.5 px-2.5 py-1 bg-gray-100 border border-gray-200 rounded-lg text-xs">
+                          <FileText className="w-3.5 h-3.5 text-primary-600 shrink-0" />
+                          <span className="font-bold text-gray-800 truncate max-w-[150px]">{att.name}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveComposeAttachment(idx)}
+                            className="text-gray-400 hover:text-red-600 transition p-0.5"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex gap-3 pt-2">
@@ -735,7 +926,7 @@ function WebmailContent() {
                   </button>
                   <button
                     type="submit"
-                    disabled={sendingMsg}
+                    disabled={sendingMsg || uploadingAttachment}
                     className="flex-1 py-3 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white font-bold text-xs rounded-2xl transition cursor-pointer shadow-md flex items-center justify-center space-x-2"
                   >
                     <Send className="h-4 w-4" />
