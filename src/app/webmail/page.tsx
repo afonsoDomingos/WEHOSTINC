@@ -256,6 +256,39 @@ function WebmailContent() {
     setComposeBody(prev => prev + sig);
   };
 
+  const handleReplyMessage = () => {
+    if (!selectedMessage) return;
+    setComposeTo(selectedMessage.fromEmail);
+    setComposeSubject(`Re: ${selectedMessage.subject}`);
+    setComposeBody(`\n\n--- Mensagem Original ---\nDe: ${selectedMessage.fromName} <${selectedMessage.fromEmail}>\nData: ${new Date(selectedMessage.date).toLocaleString()}\n\n${selectedMessage.body}`);
+    setComposeCc('');
+    setComposeBcc('');
+    setComposeAttachments([]);
+    setShowCompose(true);
+  };
+
+  const handleReplyAllMessage = () => {
+    if (!selectedMessage) return;
+    setComposeTo(selectedMessage.fromEmail);
+    setComposeCc(selectedAccountEmail); // Adicionar remetente original em CC
+    setComposeSubject(`Re: ${selectedMessage.subject}`);
+    setComposeBody(`\n\n--- Mensagem Original ---\nDe: ${selectedMessage.fromName} <${selectedMessage.fromEmail}>\nPara: ${selectedMessage.toEmail}\nData: ${new Date(selectedMessage.date).toLocaleString()}\n\n${selectedMessage.body}`);
+    setComposeBcc('');
+    setComposeAttachments([]);
+    setShowCompose(true);
+  };
+
+  const handleForwardMessage = () => {
+    if (!selectedMessage) return;
+    setComposeTo('');
+    setComposeSubject(`Fwd: ${selectedMessage.subject}`);
+    setComposeBody(`\n\n--- Mensagem Encaminhada ---\nDe: ${selectedMessage.fromName} <${selectedMessage.fromEmail}>\nPara: ${selectedMessage.toEmail}\nData: ${new Date(selectedMessage.date).toLocaleString()}\nAssunto: ${selectedMessage.subject}\n\n${selectedMessage.body}`);
+    setComposeCc('');
+    setComposeBcc('');
+    setComposeAttachments(selectedMessage.attachments || []);
+    setShowCompose(true);
+  };
+
   const handleToggleUppercase = () => {
     // Toggle uppercase/lowercase for selected text or entire content
     setComposeBody(prev => {
@@ -1136,6 +1169,27 @@ function WebmailContent() {
                       title="Imprimir e-mail"
                     >
                       <Printer className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => handleReplyMessage()}
+                      className="p-2.5 hover:bg-primary-50 text-gray-400 hover:text-primary-600 rounded-2xl transition cursor-pointer"
+                      title="Responder"
+                    >
+                      <Reply className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => handleReplyAllMessage()}
+                      className="p-2.5 hover:bg-primary-50 text-gray-400 hover:text-primary-600 rounded-2xl transition cursor-pointer"
+                      title="Responder a Todos"
+                    >
+                      <Reply className="h-4 w-4" style={{ transform: 'scaleX(-1)' }} />
+                    </button>
+                    <button
+                      onClick={() => handleForwardMessage()}
+                      className="p-2.5 hover:bg-primary-50 text-gray-400 hover:text-primary-600 rounded-2xl transition cursor-pointer"
+                      title="Encaminhar"
+                    >
+                      <Forward className="h-4 w-4" />
                     </button>
                     <button
                       onClick={(e) => handleToggleStar(selectedMessage.id, e)}
