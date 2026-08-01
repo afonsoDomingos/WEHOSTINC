@@ -32,6 +32,7 @@ function WebmailContent() {
   // Filter & Refresh State
   const [filterType, setFilterType] = useState<'all' | 'unread' | 'attachments' | 'starred'>('all');
   const [isRefreshingWebmail, setIsRefreshingWebmail] = useState(false);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
 
   // Compose Modal & Attachment State
   const [showCompose, setShowCompose] = useState(false);
@@ -224,13 +225,18 @@ function WebmailContent() {
 
   useEffect(() => {
     if (selectedAccountEmail) {
-      const allMsgs = webmailManager.getMessages(selectedAccountEmail);
-      setMessages(allMsgs);
-      if (allMsgs.length > 0) {
-        setSelectedMessage(allMsgs[0]);
-      } else {
-        setSelectedMessage(null);
-      }
+      setIsLoadingMessages(true);
+      // Simulate loading delay for skeleton
+      setTimeout(() => {
+        const allMsgs = webmailManager.getMessages(selectedAccountEmail);
+        setMessages(allMsgs);
+        if (allMsgs.length > 0) {
+          setSelectedMessage(allMsgs[0]);
+        } else {
+          setSelectedMessage(null);
+        }
+        setIsLoadingMessages(false);
+      }, 300);
     }
   }, [selectedAccountEmail]);
 
@@ -740,7 +746,24 @@ function WebmailContent() {
 
           {/* List */}
           <div className="flex-1 overflow-y-auto divide-y divide-gray-100">
-            {displayMessages.length === 0 ? (
+            {isLoadingMessages ? (
+              // Skeleton Loading
+              Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="p-4 mx-2 my-2 animate-pulse">
+                  <div className="flex items-start space-x-3">
+                    <div className="w-4 h-4 bg-gray-200 rounded-full shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="h-4 bg-gray-200 rounded w-1/3" />
+                        <div className="h-3 bg-gray-200 rounded w-16" />
+                      </div>
+                      <div className="h-4 bg-gray-200 rounded w-2/3" />
+                      <div className="h-3 bg-gray-200 rounded w-full" />
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : displayMessages.length === 0 ? (
               <div className="p-8 text-center text-gray-400 text-xs">
                 <Mail className="h-8 w-8 mx-auto mb-2 opacity-50" />
                 <p>Nenhuma mensagem nesta pasta.</p>
@@ -749,44 +772,56 @@ function WebmailContent() {
               displayMessages.map((msg) => {
                 const isSelected = selectedMessage?.id === msg.id;
                 const hasAtt = msg.attachments && msg.attachments.length > 0;
+                const imageAttachment = msg.attachments?.find(att => att.type?.startsWith('image/'));
                 return (
                   <div
                     key={msg.id}
                     onClick={() => handleSelectMessage(msg)}
-                    className={`p-3.5 cursor-pointer transition flex items-start space-x-3 ${
+                    className={`p-4 cursor-pointer transition-all duration-200 flex items-start space-x-3 rounded-2xl mx-2 my-2 ${
                       isSelected
-                        ? 'bg-primary-50/70 border-l-4 border-primary-600'
+                        ? 'bg-gradient-to-r from-primary-50 to-primary-100/50 border-2 border-primary-300 shadow-md'
                         : msg.isRead
-                        ? 'bg-white hover:bg-gray-50'
-                        : 'bg-blue-50/40 hover:bg-blue-50/80 font-bold'
+                        ? 'bg-white hover:bg-gray-50 hover:shadow-sm border border-transparent'
+                        : 'bg-gradient-to-r from-blue-50/60 to-indigo-50/40 hover:from-blue-50/80 hover:to-indigo-50/60 border border-blue-200/50 shadow-sm'
                     }`}
                   >
                     <button
                       type="button"
                       onClick={(e) => handleToggleStar(msg.id, e)}
-                      className="pt-0.5 text-gray-300 hover:text-amber-400 transition"
+                      className="pt-0.5 text-gray-300 hover:text-amber-400 transition shrink-0"
                     >
                       <Star className={`h-4 w-4 ${msg.starred ? 'fill-amber-400 text-amber-400' : ''}`} />
                     </button>
 
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className={`text-xs truncate ${msg.isRead ? 'text-gray-700 font-medium' : 'text-gray-900 font-extrabold'}`}>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className={`text-sm truncate ${msg.isRead ? 'text-gray-700 font-semibold' : 'text-gray-900 font-extrabold'}`}>
                           {msg.fromName}
                         </span>
                         <div className="flex items-center space-x-1.5 ml-2 shrink-0">
-                          {hasAtt && <Paperclip className="h-3 w-3 text-gray-400" />}
-                          <span className="text-[10px] text-gray-400 whitespace-nowrap">
+                          {hasAtt && <Paperclip className="h-3.5 w-3.5 text-gray-400" />}
+                          <span className="text-[11px] text-gray-400 whitespace-nowrap font-medium">
                             {new Date(msg.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </div>
                       </div>
-                      <h4 className={`text-xs truncate ${msg.isRead ? 'text-gray-800' : 'text-gray-900 font-bold'}`}>
+                      <h4 className={`text-sm truncate mb-1 ${msg.isRead ? 'text-gray-800 font-semibold' : 'text-gray-900 font-bold'}`}>
                         {msg.subject}
                       </h4>
-                      <p className="text-[11px] text-gray-400 truncate mt-0.5 leading-relaxed">
+                      <p className="text-xs text-gray-500 truncate mt-0.5 leading-relaxed">
                         {msg.body}
                       </p>
+                      {imageAttachment && (
+                        <div className="mt-2 flex items-center space-x-2">
+                          <img 
+                            src={imageAttachment.url} 
+                            alt="Preview" 
+                            className="h-8 w-8 rounded-lg object-cover border border-gray-200"
+                            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                          />
+                          <span className="text-[10px] text-gray-400">📷 Imagem anexada</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
@@ -812,28 +847,28 @@ function WebmailContent() {
                 </button>
               </div>
               {/* Header card */}
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 space-y-4">
+              <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-200 space-y-4">
                 <div className="flex items-start justify-between">
-                  <h2 className="text-xl font-extrabold text-gray-900 leading-tight">
+                  <h2 className="text-2xl font-extrabold text-gray-900 leading-tight">
                     {selectedMessage.subject}
                   </h2>
                   <div className="flex items-center space-x-2">
                     <button
                       onClick={() => window.print()}
-                      className="p-2 hover:bg-gray-100 text-gray-500 rounded-xl transition cursor-pointer"
+                      className="p-2.5 hover:bg-gray-100 text-gray-500 rounded-2xl transition cursor-pointer"
                       title="Imprimir e-mail"
                     >
                       <Printer className="h-4 w-4" />
                     </button>
                     <button
                       onClick={(e) => handleToggleStar(selectedMessage.id, e)}
-                      className="p-2 hover:bg-gray-100 rounded-xl transition cursor-pointer"
+                      className="p-2.5 hover:bg-gray-100 rounded-2xl transition cursor-pointer"
                     >
                       <Star className={`h-4 w-4 ${selectedMessage.starred ? 'fill-amber-400 text-amber-400' : 'text-gray-400'}`} />
                     </button>
                     <button
                       onClick={() => handleDeleteMessage(selectedMessage.id)}
-                      className="p-2 hover:bg-rose-50 text-gray-400 hover:text-rose-600 rounded-xl transition cursor-pointer"
+                      className="p-2.5 hover:bg-rose-50 text-gray-400 hover:text-rose-600 rounded-2xl transition cursor-pointer"
                       title="Excluir"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -843,7 +878,7 @@ function WebmailContent() {
 
                 <div className="flex items-center justify-between text-xs pt-2 border-t border-gray-100">
                   <div className="flex items-center space-x-3">
-                    <div className={`w-9 h-9 rounded-full ${selectedMessage.avatarColor || 'bg-primary-600'} text-white flex items-center justify-center font-bold text-sm shadow-sm`}>
+                    <div className={`w-10 h-10 rounded-full ${selectedMessage.avatarColor || 'bg-primary-600'} text-white flex items-center justify-center font-bold text-sm shadow-md`}>
                       {selectedMessage.fromName.charAt(0).toUpperCase()}
                     </div>
                     <div>
@@ -858,7 +893,7 @@ function WebmailContent() {
               </div>
 
               {/* Body card */}
-              <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-200 flex-1 space-y-4">
+              <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-200 flex-1 space-y-4">
                 <div className="whitespace-pre-line text-sm text-gray-800 leading-relaxed font-sans">
                   {selectedMessage.body}
                 </div>
