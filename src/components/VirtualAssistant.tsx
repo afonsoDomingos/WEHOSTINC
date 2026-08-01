@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { MessageCircle, X, ChevronRight, Phone, Search, Globe, Mail, Server, Layout } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { MessageCircle, X, ChevronRight, Phone, Search, Globe, Mail, Server, Layout, Loader2, CheckCircle, User, Crown } from 'lucide-react';
 
 interface FAQItem {
   id: string;
@@ -40,18 +40,25 @@ const faqData: FAQItem[] = [
     id: 'hosting-1',
     category: 'Hospedagem',
     question: 'Qual plano devo escolher?',
-    answer: 'Para sites pessoais: Básico. Para pequenas empresas: Profissional. Para grandes operações: Empresarial. Todos incluem SSL gratuito.',
+    answer: 'Básico (550 MT/mês): 1 site, 5 emails, 10GB. Profissional (2.500 MT/mês): 5 sites, 20 emails, 50GB. Empresarial (6.200 MT/mês): sites ilimitados, email ilimitado, 200GB.',
     icon: <Server className="w-5 h-5 text-primary-600" />
   },
   {
     id: 'hosting-2',
+    category: 'Hospedagem',
+    question: 'Quanto custa a hospedagem?',
+    answer: 'Básico: 550 MT/mês ou 5.500 MT/ano. Profissional: 2.500 MT/mês ou 25.000 MT/ano. Empresarial: 6.200 MT/mês ou 62.000 MT/ano. Pagamentos anuais têm 2 meses grátis.',
+    icon: <Server className="w-5 h-5 text-primary-600" />
+  },
+  {
+    id: 'hosting-3',
     category: 'Hospedagem',
     question: 'O que acontece se ultrapassar o limite?',
     answer: 'Enviamos um aviso quando atingir 80% do limite. Pode atualizar o plano a qualquer momento sem interrupção.',
     icon: <Server className="w-5 h-5 text-primary-600" />
   },
   {
-    id: 'hosting-3',
+    id: 'hosting-4',
     category: 'Hospedagem',
     question: 'Têm backup automático?',
     answer: 'Sim, fazemos backup diário automático com retenção de 30 dias. Também oferecemos backup manual sob demanda.',
@@ -63,7 +70,7 @@ const faqData: FAQItem[] = [
     id: 'email-1',
     category: 'Email',
     question: 'Como criar contas de email?',
-    answer: 'Aceda ao painel de controle > Email > Criar Conta. Pode criar até 20 contas no plano Profissional.',
+    answer: 'Aceda ao painel de controle > Email > Criar Conta. Pode criar até 5 contas no Básico, 20 no Profissional e ilimitadas no Empresarial.',
     icon: <Mail className="w-5 h-5 text-primary-600" />
   },
   {
@@ -77,7 +84,7 @@ const faqData: FAQItem[] = [
     id: 'email-3',
     category: 'Email',
     question: 'Qual o limite de armazenamento?',
-    answer: 'Cada conta tem 5GB no plano Básico, 10GB no Profissional e ilimitado no Empresarial.',
+    answer: 'Cada conta tem 10GB no plano Básico, 25GB no Profissional e ilimitado no Empresarial.',
     icon: <Mail className="w-5 h-5 text-primary-600" />
   },
   
@@ -86,7 +93,7 @@ const faqData: FAQItem[] = [
     id: 'site-1',
     category: 'Site',
     question: 'Como funciona a criação de site?',
-    answer: 'Desenvolvemos sites personalizados em 7-14 dias. Inclui design responsivo, SEO básico e integração com redes sociais.',
+    answer: 'Desenvolvemos sites personalizados em 7-14 dias. Inclui design responsivo, SEO básico e integração com redes sociais. Preços variam por tipo de site.',
     icon: <Layout className="w-5 h-5 text-primary-600" />
   },
   {
@@ -112,6 +119,26 @@ export default function VirtualAssistant() {
   const [selectedCategory, setSelectedCategory] = useState('Todas');
   const [selectedFAQ, setSelectedFAQ] = useState<FAQItem | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  const [isScrolling, setIsScrolling] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [userPlan, setUserPlan] = useState<string | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  // Check if user is logged in and get plan info
+  useEffect(() => {
+    const authData = localStorage.getItem('wehosthere_auth');
+    if (authData) {
+      try {
+        const parsed = JSON.parse(authData);
+        setIsLoggedIn(true);
+        setUserPlan(parsed.user?.plan || null);
+      } catch (e) {
+        console.error('Error parsing auth data:', e);
+      }
+    }
+  }, []);
 
   const filteredFAQs = faqData.filter(faq => {
     const matchesCategory = selectedCategory === 'Todas' || faq.category === selectedCategory;
@@ -121,17 +148,79 @@ export default function VirtualAssistant() {
   });
 
   const handleWhatsAppSupport = () => {
-    const message = encodeURIComponent('Olá, gostaria de suporte sobre os serviços WEHOSTHERE.');
-    window.open(`https://wa.me/258844384702?text=${message}`, '_blank');
+    let message = 'Olá, gostaria de suporte sobre os serviços WEHOSTHERE.';
+    
+    if (selectedFAQ) {
+      message = `Olá, tenho uma dúvida sobre: ${selectedFAQ.question}\n\nCategoria: ${selectedFAQ.category}\n\nGostaria de mais informações sobre isto.`;
+    } else if (searchQuery) {
+      message = `Olá, pesquisei sobre: "${searchQuery}" no assistente virtual e gostaria de mais informações.`;
+    } else {
+      const models = [
+        'Quero saber sobre registo de domínio',
+        'Preciso de ajuda com hospedagem',
+        'Tenho dúvidas sobre email corporativo',
+        'Quero informações sobre criação de sites'
+      ];
+      message = `Olá, gostaria de suporte. ${models[Math.floor(Math.random() * models.length)]}.`;
+    }
+    
+    window.open(`https://wa.me/258844384702?text=${encodeURIComponent(message)}`, '_blank');
+  };
+
+  const handleActionClick = (category: string) => {
+    const sectionMap: Record<string, string> = {
+      'Domínio': 'infraestrutura',
+      'Hospedagem': 'planos',
+      'Email': 'planos',
+      'Site': 'criacao-sites'
+    };
+
+    const section = sectionMap[category];
+    if (section) {
+      setIsScrolling(true);
+      const element = document.getElementById(section);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+        setIsOpen(false);
+        
+        // Show toast notification
+        setToastMessage(`Navegando para ${category}`);
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 3000);
+      }
+      setTimeout(() => setIsScrolling(false), 1000);
+    }
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    setIsSearching(true);
+    setTimeout(() => setIsSearching(false), 300);
   };
 
   return (
     <>
+      <style jsx global>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #c1c1c1;
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #a1a1a1;
+        }
+      `}</style>
       {/* Floating Button */}
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 z-50 bg-primary-600 hover:bg-primary-700 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 group"
+          className="fixed bottom-6 left-6 z-50 bg-primary-600 hover:bg-primary-700 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 group"
           title="Assistente Virtual"
         >
           <MessageCircle className="w-6 h-6 group-hover:scale-110 transition-transform" />
@@ -140,54 +229,69 @@ export default function VirtualAssistant() {
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 z-50 w-full max-w-md bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed bottom-6 left-6 z-50 w-full max-w-sm bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
           {/* Header */}
-          <div className="bg-gradient-to-r from-primary-600 to-primary-700 text-white p-4">
+          <div className="bg-gradient-to-r from-primary-600 to-primary-700 text-white p-3">
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                  <MessageCircle className="w-5 h-5" />
+              <div className="flex items-center space-x-2">
+                <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center overflow-hidden p-1 shadow-md">
+                  <img
+                    src="/logo.png"
+                    alt="WEHOSTHERE"
+                    className="w-full h-full object-contain"
+                  />
                 </div>
                 <div>
-                  <h3 className="font-bold text-sm">Assistente Virtual</h3>
-                  <p className="text-xs text-primary-100">Como podemos ajudar?</p>
+                  <h3 className="font-bold text-xs">WEHOSTHERE</h3>
+                  <p className="text-[10px] text-primary-100">Assistente Virtual</p>
                 </div>
               </div>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="p-1 hover:bg-white/20 rounded-lg transition"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center space-x-2">
+                {isLoggedIn && userPlan && (
+                  <div className="flex items-center space-x-1 bg-white/20 px-2 py-1 rounded-lg">
+                    <Crown className="w-3 h-3 text-amber-300" />
+                    <span className="text-[10px] font-semibold">{userPlan}</span>
+                  </div>
+                )}
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="p-1 hover:bg-white/20 rounded-lg transition"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           </div>
 
           {/* Content */}
-          <div className="max-h-[500px] overflow-y-auto">
+          <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
             {!selectedFAQ ? (
               <>
                 {/* Search */}
-                <div className="p-4 border-b border-gray-100">
+                <div className="p-3 border-b border-gray-100">
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
                     <input
                       type="text"
-                      placeholder="Pesquisar perguntas..."
+                      placeholder="Pesquisar..."
                       value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      onChange={(e) => handleSearchChange(e.target.value)}
+                      className="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-primary-500"
                     />
+                    {isSearching && (
+                      <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-primary-600 animate-spin" />
+                    )}
                   </div>
                 </div>
 
                 {/* Categories */}
-                <div className="p-4 border-b border-gray-100">
-                  <div className="flex flex-wrap gap-2">
+                <div className="p-3 border-b border-gray-100">
+                  <div className="flex flex-wrap gap-1.5">
                     {categories.map(category => (
                       <button
                         key={category}
                         onClick={() => setSelectedCategory(category)}
-                        className={`px-3 py-1.5 rounded-full text-xs font-semibold transition ${
+                        className={`px-2.5 py-1 rounded-full text-[10px] font-semibold transition ${
                           selectedCategory === category
                             ? 'bg-primary-600 text-white'
                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -200,9 +304,9 @@ export default function VirtualAssistant() {
                 </div>
 
                 {/* FAQ List */}
-                <div className="p-4 space-y-2">
+                <div className="p-3 space-y-1.5">
                   {filteredFAQs.length === 0 ? (
-                    <p className="text-center text-gray-500 text-sm py-4">
+                    <p className="text-center text-gray-500 text-xs py-4">
                       Nenhuma pergunta encontrada.
                     </p>
                   ) : (
@@ -210,19 +314,19 @@ export default function VirtualAssistant() {
                       <button
                         key={faq.id}
                         onClick={() => setSelectedFAQ(faq)}
-                        className="w-full text-left p-3 bg-gray-50 hover:bg-primary-50 rounded-xl border border-gray-200 hover:border-primary-200 transition-all duration-200 group"
+                        className="w-full text-left p-2.5 bg-gray-50 hover:bg-primary-50 rounded-lg border border-gray-200 hover:border-primary-200 transition-all duration-200 group"
                       >
-                        <div className="flex items-start space-x-3">
+                        <div className="flex items-start space-x-2">
                           <div className="flex-shrink-0 mt-0.5">
                             {faq.icon}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-gray-900 group-hover:text-primary-700 transition-colors">
+                            <p className="text-xs font-semibold text-gray-900 group-hover:text-primary-700 transition-colors line-clamp-2">
                               {faq.question}
                             </p>
-                            <p className="text-xs text-gray-500 mt-1">{faq.category}</p>
+                            <p className="text-[10px] text-gray-500 mt-0.5">{faq.category}</p>
                           </div>
-                          <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-primary-600 transition-colors flex-shrink-0" />
+                          <ChevronRight className="w-3.5 h-3.5 text-gray-400 group-hover:text-primary-600 transition-colors flex-shrink-0" />
                         </div>
                       </button>
                     ))
@@ -230,62 +334,86 @@ export default function VirtualAssistant() {
                 </div>
 
                 {/* WhatsApp Support */}
-                <div className="p-4 border-t border-gray-100">
+                <div className="p-3 border-t border-gray-100">
                   <button
                     onClick={handleWhatsAppSupport}
-                    className="w-full flex items-center justify-center space-x-2 bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded-xl font-semibold text-sm transition-all duration-200 hover:scale-105 shadow-md"
+                    className="w-full flex items-center justify-center space-x-1.5 bg-emerald-500 hover:bg-emerald-600 text-white py-2.5 rounded-lg font-semibold text-xs transition-all duration-200 hover:scale-105 shadow-md"
                   >
-                    <Phone className="w-4 h-4" />
-                    <span>Falar com Suporte no WhatsApp</span>
+                    <Phone className="w-3.5 h-3.5" />
+                    <span>Falar no WhatsApp</span>
                   </button>
                 </div>
               </>
             ) : (
               <>
                 {/* FAQ Detail */}
-                <div className="p-4">
+                <div className="p-3">
                   <button
                     onClick={() => setSelectedFAQ(null)}
-                    className="flex items-center space-x-2 text-sm text-gray-600 hover:text-primary-600 mb-4 transition"
+                    className="flex items-center space-x-1.5 text-xs text-gray-600 hover:text-primary-600 mb-3 transition"
                   >
-                    <ChevronRight className="w-4 h-4 rotate-180" />
+                    <ChevronRight className="w-3.5 h-3.5 rotate-180" />
                     <span>Voltar</span>
                   </button>
                   
-                  <div className="flex items-start space-x-3 mb-4">
+                  <div className="flex items-start space-x-2 mb-3">
                     <div className="flex-shrink-0">
                       {selectedFAQ.icon}
                     </div>
                     <div>
-                      <span className="text-xs font-semibold text-primary-600 uppercase tracking-wider">
+                      <span className="text-[10px] font-semibold text-primary-600 uppercase tracking-wider">
                         {selectedFAQ.category}
                       </span>
-                      <h4 className="text-lg font-bold text-gray-900 mt-1">
+                      <h4 className="text-sm font-bold text-gray-900 mt-1">
                         {selectedFAQ.question}
                       </h4>
                     </div>
                   </div>
                   
-                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                    <p className="text-sm text-gray-700 leading-relaxed">
+                  <div className="bg-gray-50 rounded-lg p-3 border border-gray-200 mb-3">
+                    <p className="text-xs text-gray-700 leading-relaxed">
                       {selectedFAQ.answer}
                     </p>
                   </div>
-                </div>
 
-                {/* WhatsApp Support */}
-                <div className="p-4 border-t border-gray-100">
-                  <button
-                    onClick={handleWhatsAppSupport}
-                    className="w-full flex items-center justify-center space-x-2 bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded-xl font-semibold text-sm transition-all duration-200 hover:scale-105 shadow-md"
-                  >
-                    <Phone className="w-4 h-4" />
-                    <span>Precisa de mais ajuda? Fale no WhatsApp</span>
-                  </button>
+                  {/* Action Buttons */}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleActionClick(selectedFAQ.category)}
+                      disabled={isScrolling}
+                      className="flex-1 bg-primary-600 hover:bg-primary-700 text-white py-2 rounded-lg font-semibold text-xs transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-1"
+                    >
+                      {isScrolling ? (
+                        <>
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                          <span>Navegando...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>Ver {selectedFAQ.category}</span>
+                        </>
+                      )}
+                    </button>
+                    <button
+                      onClick={handleWhatsAppSupport}
+                      className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white py-2 rounded-lg font-semibold text-xs transition-all duration-200 hover:scale-105 flex items-center justify-center space-x-1"
+                    >
+                      <Phone className="w-3.5 h-3.5" />
+                      <span>WhatsApp</span>
+                    </button>
+                  </div>
                 </div>
               </>
             )}
           </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {showToast && (
+        <div className="fixed bottom-6 left-6 z-50 bg-gray-900 text-white px-4 py-3 rounded-lg shadow-lg flex items-center space-x-2 animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <CheckCircle className="w-4 h-4 text-emerald-400" />
+          <span className="text-sm font-medium">{toastMessage}</span>
         </div>
       )}
     </>
