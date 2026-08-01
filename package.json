@@ -2,6 +2,7 @@
   "name": "wehosthere",
   "version": "0.1.0",
   "private": true,
+  "description": "WEHOSTHERE - Plataforma de Hospedagem e Criação de Sites em Moçambique",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
