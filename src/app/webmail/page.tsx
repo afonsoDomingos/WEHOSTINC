@@ -1114,15 +1114,20 @@ function WebmailContent() {
                     <button
                       type="button"
                       onClick={() => setShowTemplateSelector(!showTemplateSelector)}
-                      className="p-2 hover:bg-primary-50 text-primary-600 rounded-xl transition cursor-pointer"
+                      className={`flex items-center space-x-2 px-3 py-2 rounded-xl transition cursor-pointer ${
+                        showTemplateSelector 
+                          ? 'bg-primary-600 text-white' 
+                          : 'bg-primary-50 text-primary-600 hover:bg-primary-100'
+                      }`}
                       title="Usar Template"
                     >
                       <Sparkles className="h-4 w-4" />
+                      <span className="text-xs font-bold">Templates</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => setIsComposeExpanded(!isComposeExpanded)}
-                      className="p-2 hover:bg-primary-50 text-primary-600 rounded-xl transition cursor-pointer"
+                      className="p-2 hover:bg-gray-100 text-gray-600 rounded-xl transition cursor-pointer"
                       title={isComposeExpanded ? "Reduzir" : "Expandir"}
                     >
                       {isComposeExpanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
@@ -1141,10 +1146,13 @@ function WebmailContent() {
                 {showTemplateSelector && (
                   <div className="mb-4 p-4 bg-gradient-to-r from-primary-50 to-indigo-50 rounded-2xl border border-primary-200">
                     <div className="flex items-center justify-between mb-3">
-                      <h3 className="text-sm font-bold text-gray-800 flex items-center space-x-2">
-                        <Sparkles className="h-4 w-4 text-primary-600" />
-                        <span>Templates de Email</span>
-                      </h3>
+                      <div>
+                        <h3 className="text-sm font-bold text-gray-800 flex items-center space-x-2">
+                          <Sparkles className="h-4 w-4 text-primary-600" />
+                          <span>Templates de Email</span>
+                        </h3>
+                        <p className="text-[10px] text-gray-500 mt-1">Selecione um modelo para começar rapidamente</p>
+                      </div>
                       <div className="flex items-center space-x-2">
                         {/* Language Toggle */}
                         <button
@@ -1153,7 +1161,7 @@ function WebmailContent() {
                             setTemplateLanguage(templateLanguage === 'pt' ? 'en' : 'pt');
                             setSelectedTemplateCategory('Todas');
                           }}
-                          className="px-2 py-1 rounded-lg text-xs font-bold transition cursor-pointer border border-gray-200 hover:border-primary-300"
+                          className="px-2 py-1 rounded-lg text-xs font-bold transition cursor-pointer border border-gray-200 hover:border-primary-300 bg-white"
                         >
                           {templateLanguage === 'pt' ? '🇵🇹 PT' : '🇬🇧 EN'}
                         </button>
@@ -1168,26 +1176,26 @@ function WebmailContent() {
                     </div>
                     
                     {/* Category Filter */}
-                    <div className="flex items-center space-x-2 mb-3 overflow-x-auto pb-1">
+                    <div className="flex items-center space-x-2 mb-4 overflow-x-auto pb-1">
                       <button
                         type="button"
                         onClick={() => setSelectedTemplateCategory('Todas')}
-                        className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition ${
+                        className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition ${
                           selectedTemplateCategory === 'Todas'
-                            ? 'bg-primary-600 text-white'
+                            ? 'bg-primary-600 text-white shadow-md'
                             : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
                         }`}
                       >
-                        {templateLanguage === 'pt' ? 'Todas' : 'All'}
+                        {templateLanguage === 'pt' ? '📋 Todas' : '📋 All'}
                       </button>
                       {getDisplayCategories().map(cat => (
                         <button
                           key={cat}
                           type="button"
                           onClick={() => setSelectedTemplateCategory(cat)}
-                          className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition ${
+                          className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition ${
                             selectedTemplateCategory === cat
-                              ? 'bg-primary-600 text-white'
+                              ? 'bg-primary-600 text-white shadow-md'
                               : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
                           }`}
                         >
@@ -1197,20 +1205,23 @@ function WebmailContent() {
                     </div>
 
                     {/* Template Grid */}
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-64 overflow-y-auto">
                       {getFilteredTemplates().map(template => (
                         <button
                           key={template.id}
                           type="button"
                           onClick={() => handleSelectTemplate(template)}
-                          className="p-3 bg-white rounded-xl border border-gray-200 hover:border-primary-300 hover:shadow-sm transition text-left"
+                          className="p-4 bg-white rounded-xl border border-gray-200 hover:border-primary-300 hover:shadow-md transition text-left group"
                         >
-                          <div className="text-lg mb-1">{template.icon}</div>
-                          <div className="text-xs font-bold text-gray-800 truncate">
+                          <div className="text-2xl mb-2">{template.icon}</div>
+                          <div className="text-xs font-bold text-gray-800 truncate mb-1">
                             {templateLanguage === 'pt' ? template.name : template.nameEN}
                           </div>
-                          <div className="text-[10px] text-gray-500 truncate">
+                          <div className="text-[10px] text-gray-500 truncate mb-2">
                             {templateLanguage === 'pt' ? template.category : template.categoryEN}
+                          </div>
+                          <div className="text-[9px] text-gray-400 line-clamp-2">
+                            {templateLanguage === 'pt' ? template.subject : template.subjectEN}
                           </div>
                         </button>
                       ))}
