@@ -535,10 +535,10 @@ function WebmailContent() {
           <div className="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 bg-gradient-to-r from-primary-50 to-indigo-50 rounded-xl border border-primary-200 shrink-0">
             <Clock className="h-3.5 w-3.5 text-primary-600" />
             <span className="text-xs font-bold text-gray-700">
-              {currentDateTime.toLocaleDateString('pt-MZ', { day: '2-digit', month: 'short', year: 'numeric' })}
+              {currentDateTime.toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}
             </span>
             <span className="text-[10px] text-gray-500">
-              {currentDateTime.toLocaleTimeString('pt-MZ', { hour: '2-digit', minute: '2-digit' })}
+              {currentDateTime.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
             </span>
           </div>
 
