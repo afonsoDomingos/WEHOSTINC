@@ -335,6 +335,8 @@ export interface SecurityLog {
   email: string;
   type: 'failed_login' | 'account_locked' | 'suspended_attempt';
   message: string;
+  ipAddress?: string;
+  country?: string;
   createdAt: string;
 }
 
