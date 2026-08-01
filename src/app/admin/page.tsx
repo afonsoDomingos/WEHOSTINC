@@ -336,22 +336,32 @@ export default function AdminPage() {
   const fetchDomainLogs = async () => {
     try {
       console.log('[Admin] Buscando logs de domínio...');
+      console.log('[Admin] Endpoint:', apiEndpoint('/api/domains/history'));
       const res = await fetch(apiEndpoint('/api/domains/history'));
-      console.log(`[Admin] Resposta do history API: ${res.status}`);
-      if (res.ok) {
-        const data = await res.json();
-        console.log(`[Admin] Dados recebidos:`, data);
-        if (data.logs) {
-          console.log(`[Admin] Carregados ${data.logs.length} logs de domínio (source: ${data.source || 'unknown'})`);
-          setDomainLogs(data.logs);
-        } else {
-          console.warn('[Admin] Resposta não tem logs:', data);
-        }
+      console.log(`[Admin] Resposta do history API: ${res.status} ${res.statusText}`);
+      
+      if (!res.ok) {
+        console.error('[Admin] Erro HTTP ao buscar logs:', res.status, res.statusText);
+        const errorText = await res.text();
+        console.error('[Admin] Corpo do erro:', errorText);
+        return;
+      }
+      
+      const data = await res.json();
+      console.log(`[Admin] Dados recebidos:`, data);
+      
+      if (data.logs) {
+        console.log(`[Admin] Carregados ${data.logs.length} logs de domínio (source: ${data.source || 'unknown'})`);
+        console.log('[Admin] Logs detalhados:', data.logs);
+        setDomainLogs(data.logs);
       } else {
-        console.warn('[Admin] Erro ao buscar logs de domínio:', res.status);
+        console.warn('[Admin] Resposta não tem logs:', data);
+        console.warn('[Admin] Chaves disponíveis:', Object.keys(data));
       }
     } catch (e) {
       console.error('[Admin] Erro ao buscar logs de domínio:', e);
+      console.error('[Admin] Detalhes do erro:', e instanceof Error ? e.message : String(e));
+      console.error('[Admin] Stack trace:', e instanceof Error ? e.stack : 'N/A');
     }
   };
 
