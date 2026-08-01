@@ -2,7 +2,32 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import DomainSearchLogModel from '@/lib/models/DomainSearchLog';
 
-let FALLBACK_LOGS: any[] = [];
+let FALLBACK_LOGS: any[] = [
+  {
+    id: 'demo-1',
+    domain: 'empresaexemplo.co.mz',
+    extension: '.co.mz',
+    isAvailable: true,
+    searchCount: 3,
+    timestamp: new Date(Date.now() - 300000).toISOString()
+  },
+  {
+    id: 'demo-2',
+    domain: 'mcel.co.mz',
+    extension: '.co.mz',
+    isAvailable: false,
+    searchCount: 1,
+    timestamp: new Date(Date.now() - 900000).toISOString()
+  },
+  {
+    id: 'demo-3',
+    domain: 'vodafone.co.mz',
+    extension: '.co.mz',
+    isAvailable: false,
+    searchCount: 2,
+    timestamp: new Date(Date.now() - 1800000).toISOString()
+  }
+];
 
 async function tryMongo() {
   try { 
