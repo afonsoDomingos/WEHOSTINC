@@ -43,6 +43,8 @@ function WebmailContent() {
   // Compose Modal & Attachment State
   const [showCompose, setShowCompose] = useState(false);
   const [composeTo, setComposeTo] = useState('');
+  const [composeCc, setComposeCc] = useState('');
+  const [composeBcc, setComposeBcc] = useState('');
   const [composeSubject, setComposeSubject] = useState('');
   const [composeBody, setComposeBody] = useState('');
   const [composeAttachments, setComposeAttachments] = useState<WebmailAttachment[]>([]);
@@ -50,6 +52,9 @@ function WebmailContent() {
   const [sendingMsg, setSendingMsg] = useState(false);
   const [sentSuccessMsg, setSentSuccessMsg] = useState('');
   const [editingDraftId, setEditingDraftId] = useState<string | null>(null);
+
+  // Show CC/BCC fields state
+  const [showCcBcc, setShowCcBcc] = useState(false);
 
   // Template state
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
@@ -216,6 +221,8 @@ function WebmailContent() {
       setShowCompose(false);
       setSentSuccessMsg('');
       setComposeTo('');
+      setComposeCc('');
+      setComposeBcc('');
       setComposeSubject('');
       setComposeBody('');
       setComposeAttachments([]);
@@ -237,6 +244,8 @@ function WebmailContent() {
     setShowCompose(false);
     setEditingDraftId(null);
     setComposeTo('');
+    setComposeCc('');
+    setComposeBcc('');
     setComposeSubject('');
     setComposeBody('');
     setComposeAttachments([]);
@@ -477,6 +486,8 @@ function WebmailContent() {
           type: 'webmail',
           from: selectedAccountEmail,
           to: composeTo,
+          cc: composeCc,
+          bcc: composeBcc,
           subject: composeSubject || '(Sem assunto)',
           body: composeBody,
         }),
@@ -512,6 +523,8 @@ function WebmailContent() {
         setShowCompose(false);
         setSentSuccessMsg('');
         setComposeTo('');
+        setComposeCc('');
+        setComposeBcc('');
         setComposeSubject('');
         setComposeBody('');
         setComposeAttachments([]);
@@ -1423,11 +1436,49 @@ function WebmailContent() {
                     type="email"
                     value={composeTo}
                     onChange={(e) => setComposeTo(e.target.value)}
-                    placeholder="ex: cliente@empresa.co.mz"
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-xs font-semibold text-gray-900 outline-none focus:ring-2 focus:ring-primary-500 font-mono"
+                    placeholder="email@exemplo.com"
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:ring-2 focus:ring-primary-500 font-sans"
                     required
                   />
                 </div>
+
+                {showCcBcc && (
+                  <>
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1">
+                        CC (Cópia)
+                      </label>
+                      <input
+                        type="email"
+                        value={composeCc}
+                        onChange={(e) => setComposeCc(e.target.value)}
+                        placeholder="email@exemplo.com"
+                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:ring-2 focus:ring-primary-500 font-sans"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1">
+                        BCC (Cópia Oculta)
+                      </label>
+                      <input
+                        type="email"
+                        value={composeBcc}
+                        onChange={(e) => setComposeBcc(e.target.value)}
+                        placeholder="email@exemplo.com"
+                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:ring-2 focus:ring-primary-500 font-sans"
+                      />
+                    </div>
+                  </>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setShowCcBcc(!showCcBcc)}
+                  className="text-[11px] font-bold text-primary-600 hover:text-primary-800 bg-primary-50 hover:bg-primary-100 px-3 py-1.5 rounded-lg border border-primary-200 transition cursor-pointer"
+                >
+                  {showCcBcc ? 'Ocultar CC/BCC' : 'Mostrar CC/BCC'}
+                </button>
 
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1">
