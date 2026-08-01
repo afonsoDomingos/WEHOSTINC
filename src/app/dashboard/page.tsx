@@ -183,6 +183,27 @@ export default function DashboardPage() {
                     {user.status === 'active' ? '✓ Conta Ativa' : '⏰ Sem Assinatura'}
                   </span>
                 </div>
+
+                {user.plan !== 'none' && user.status === 'active' && (
+                  <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <p className="text-xs text-gray-600 mb-1">Plano Atual</p>
+                    <p className="text-sm font-bold text-gray-900">{planInfo.name}</p>
+                    {user.dueDate && (
+                      <div className="mt-2">
+                        <p className="text-xs text-gray-600">Vencimento</p>
+                        <p className="text-xs font-semibold text-gray-900">
+                          Dia {user.dueDate} de cada mês
+                          {daysUntilExpiry !== null && (
+                            <span className="text-primary-600 ml-1">
+                              ({daysUntilExpiry} {daysUntilExpiry === 1 ? 'dia' : 'dias'} restantes)
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <Link
                   href="/dashboard/billing"
                   className="block w-full py-2 text-center bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition text-sm font-semibold shadow-xs"
