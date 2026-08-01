@@ -9,6 +9,7 @@ export interface IUser extends Document {
   status: 'active' | 'pending' | 'suspended';
   role: 'admin' | 'user';
   dueDate?: number;
+  avatar?: string;
   createdAt: string;
 }
 
@@ -21,6 +22,7 @@ const UserSchema = new Schema<IUser>({
   status: { type: String, enum: ['active', 'pending', 'suspended'], default: 'active' },
   role: { type: String, enum: ['admin', 'user'], default: 'user' },
   dueDate: { type: Number, default: 29 },
+  avatar: { type: String, default: '' },
   createdAt: { type: String, default: () => new Date().toISOString() },
 }, { timestamps: false, versionKey: false });
 

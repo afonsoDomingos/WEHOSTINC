@@ -12,11 +12,12 @@ import BrandLogo from '@/components/BrandLogo';
 
 interface DashboardNavProps {
   userName?: string;
+  userAvatar?: string;
   onLogout: () => void;
   onRefresh?: () => void;
 }
 
-export default function DashboardNav({ userName, onLogout, onRefresh }: DashboardNavProps) {
+export default function DashboardNav({ userName, userAvatar, onLogout, onRefresh }: DashboardNavProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const pathname = usePathname();
@@ -68,7 +69,15 @@ export default function DashboardNav({ userName, onLogout, onRefresh }: Dashboar
 
               {userName && (
                 <div className="flex items-center space-x-2 text-sm text-gray-700 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200/60">
-                  <User className="h-4 w-4 text-primary-600" />
+                  {userAvatar ? (
+                    <img 
+                      src={userAvatar} 
+                      alt="Avatar" 
+                      className="w-6 h-6 rounded-full object-cover"
+                    />
+                  ) : (
+                    <User className="h-4 w-4 text-primary-600" />
+                  )}
                   <span>Olá, <strong className="text-gray-900">{userName}</strong></span>
                 </div>
               )}
@@ -106,8 +115,16 @@ export default function DashboardNav({ userName, onLogout, onRefresh }: Dashboar
             {userName && (
               <div className="p-3 bg-primary-50/70 border border-primary-100 rounded-xl flex items-center justify-between">
                 <div className="flex items-center space-x-2.5">
-                  <div className="w-8 h-8 rounded-full bg-primary-600 text-white flex items-center justify-center font-bold text-xs">
-                    {userName.charAt(0).toUpperCase()}
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-purple-600 text-white flex items-center justify-center font-bold text-xs overflow-hidden">
+                    {userAvatar ? (
+                      <img 
+                        src={userAvatar} 
+                        alt="Avatar" 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span>{userName.charAt(0).toUpperCase()}</span>
+                    )}
                   </div>
                   <div>
                     <p className="text-xs text-primary-700 font-medium">Usuário Conectado</p>

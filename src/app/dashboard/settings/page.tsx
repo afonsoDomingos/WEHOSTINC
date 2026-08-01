@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
   Settings as SettingsIcon, LayoutDashboard, Globe, Mail, Database, LogOut, Server,
-  User as UserIcon, Lock, Bell, Shield, Key
+  User as UserIcon, Lock, Bell, Shield, Key, Camera, Upload
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 import DashboardNav from '@/components/DashboardNav';
@@ -24,6 +24,7 @@ export default function SettingsPage() {
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
   const [deleteAccountConfirm, setDeleteAccountConfirm] = useState(false);
+  const [avatarUploading, setAvatarUploading] = useState(false);
 
   useEffect(() => {
     const currentUser = auth.getCurrentUser();
@@ -61,6 +62,53 @@ export default function SettingsPage() {
 
       setUser({ ...user, name, email });
       showMessage('Perfil atualizado com sucesso!', 'success');
+    }
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    // Validar tipo de arquivo
+    if (!file.type.startsWith('image/')) {
+      showMessage('Por favor, selecione apenas imagens (JPG, PNG, etc.)', 'error');
+      return;
+    }
+
+    // Validar tamanho (máximo 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      showMessage('A imagem não pode ter mais de 5MB', 'error');
+      return;
+    }
+
+    setAvatarUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.url) {
+          // Atualizar avatar no usuário
+          auth.updateUserAvatar(user.id, data.url);
+          setUser({ ...user, avatar: data.url });
+          showMessage('Foto de perfil atualizada com sucesso!', 'success');
+        }
+      } else {
+        showMessage('Erro ao fazer upload da imagem', 'error');
+      }
+    } catch (err) {
+      console.error('Erro no upload:', err);
+      showMessage('Erro ao fazer upload da imagem', 'error');
+    } finally {
+      setAvatarUploading(false);
+      e.target.value = '';
     }
   };
 
@@ -115,7 +163,7 @@ export default function SettingsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header Responsivo */}
-      <DashboardNav userName={user.name} onLogout={handleLogout} />
+      <DashboardNav userName={user.name} userAvatar={user.avatar} onLogout={handleLogout} />
 
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6">
         <div className="grid lg:grid-cols-4 gap-8">
@@ -183,6 +231,43 @@ export default function SettingsPage() {
                   <p className="text-gray-600">Atualize suas informações pessoais</p>
                 </div>
               </div>
+
+              {/* Avatar Upload Section */}
+              <div className="mb-6 flex items-center space-x-6">
+                <div className="relative">
+                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center text-white text-3xl font-bold overflow-hidden">
+                    {user.avatar ? (
+                      <img 
+                        src={user.avatar} 
+                        alt="Avatar" 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span>{user.name.charAt(0).toUpperCase()}</span>
+                    )}
+                  </div>
+                  {avatarUploading && (
+                    <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
+                      <Upload className="h-6 w-6 text-white animate-spin" />
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <label className="cursor-pointer inline-flex items-center space-x-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition font-semibold">
+                    <Camera className="h-4 w-4" />
+                    <span>Alterar Foto</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAvatarUpload}
+                      className="hidden"
+                      disabled={avatarUploading}
+                    />
+                  </label>
+                  <p className="text-xs text-gray-500 mt-2">JPG, PNG ou GIF. Máximo 5MB</p>
+                </div>
+              </div>
+
               <form onSubmit={handleProfileUpdate} className="space-y-4">
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">

@@ -50,7 +50,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { action, user, userId, plan, status, email, password } = body;
+    const { action, user, userId, plan, status, email, password, avatar } = body;
     const useMongo = await tryMongo();
 
     // Endpoint de login - valida credenciais no servidor (database-first)
@@ -170,6 +170,16 @@ export async function POST(req: Request) {
         (targetId && u.id.toLowerCase() === targetId) || (targetEmail && u.email.toLowerCase() === targetEmail)
           ? { ...u, status } : u
       );
+      return NextResponse.json({ success: true, users: FALLBACK_USERS });
+    }
+
+    if (action === 'update_avatar') {
+      if (useMongo) {
+        await UserModel.findOneAndUpdate({ id: userId }, { avatar });
+        const users = await UserModel.find({}).lean();
+        return NextResponse.json({ success: true, users });
+      }
+      FALLBACK_USERS = FALLBACK_USERS.map(u => u.id === userId ? { ...u, avatar } : u);
       return NextResponse.json({ success: true, users: FALLBACK_USERS });
     }
 

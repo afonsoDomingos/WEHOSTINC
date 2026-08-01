@@ -9,6 +9,7 @@ export interface User {
   status?: 'active' | 'pending' | 'suspended';
   dueDate?: number;
   role?: 'admin' | 'user';
+  avatar?: string;
   createdAt: string;
 }
 
@@ -565,6 +566,35 @@ export const auth = {
         const parsed = JSON.parse(session);
         if (parsed.user.id === userId) {
           parsed.user.status = status;
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+        }
+      } catch (e) {}
+    }
+  },
+
+  // Atualizar avatar do usuário
+  updateUserAvatar: (userId: string, avatarUrl: string): void => {
+    if (typeof window === 'undefined') return;
+    const userData = JSON.parse(localStorage.getItem(`user_${userId}`) || '{}');
+    userData.avatar = avatarUrl;
+    localStorage.setItem(`user_${userId}`, JSON.stringify(userData));
+
+    const currentList = auth.getUsers();
+    const updatedList = currentList.map(u => u.id === userId ? { ...u, avatar: avatarUrl } : u);
+    localStorage.setItem('wehosthere_all_users', JSON.stringify(updatedList));
+
+    fetch(apiEndpoint('/api/users'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'update_avatar', userId, avatar: avatarUrl })
+    }).catch(err => console.error('Erro de sync de avatar:', err));
+
+    const session = localStorage.getItem(STORAGE_KEY);
+    if (session) {
+      try {
+        const parsed = JSON.parse(session);
+        if (parsed.user.id === userId) {
+          parsed.user.avatar = avatarUrl;
           localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
         }
       } catch (e) {}
