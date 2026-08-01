@@ -5,8 +5,12 @@ import DomainSearchLogModel from '@/lib/models/DomainSearchLog';
 let FALLBACK_LOGS: any[] = [];
 
 async function tryMongo() {
-  try { await connectDB(); return true; }
-  catch { return false; }
+  try { 
+    await connectDB(); 
+    return true; 
+  } catch { 
+    return false; 
+  }
 }
 
 export async function GET() {
@@ -19,7 +23,9 @@ export async function GET() {
         logs
       });
     }
-  } catch (e) { console.error('MongoDB indisponível (domain history):', e); }
+  } catch (e) { 
+    console.error('MongoDB indisponível (domain history):', e); 
+  }
 
   return NextResponse.json({
     totalSearches: FALLBACK_LOGS.length,
@@ -40,32 +46,38 @@ export async function POST(req: NextRequest) {
     const cleanDomain = (domain as string).toLowerCase().trim();
     const now = new Date().toISOString();
 
+    // Tentar salvar no MongoDB primeiro
     if (await tryMongo()) {
-      const existing = await DomainSearchLogModel.findOne({ domain: cleanDomain });
-      let currentCount = 1;
+      try {
+        const existing = await DomainSearchLogModel.findOne({ domain: cleanDomain });
+        let currentCount = 1;
 
-      if (existing) {
-        existing.timestamp = now;
-        existing.isAvailable = isAvailable;
-        existing.searchCount = (existing.searchCount || 1) + 1;
-        currentCount = existing.searchCount;
-        await existing.save();
-      } else {
-        await DomainSearchLogModel.create({
-          id: Date.now().toString() + Math.random().toString(36).substring(2, 6),
-          domain: cleanDomain,
-          extension,
-          isAvailable,
-          searchCount: 1,
-          timestamp: now
-        });
+        if (existing) {
+          existing.timestamp = now;
+          existing.isAvailable = isAvailable;
+          existing.searchCount = (existing.searchCount || 1) + 1;
+          currentCount = existing.searchCount;
+          await existing.save();
+        } else {
+          await DomainSearchLogModel.create({
+            id: Date.now().toString() + Math.random().toString(36).substring(2, 6),
+            domain: cleanDomain,
+            extension,
+            isAvailable,
+            searchCount: 1,
+            timestamp: now
+          });
+        }
+
+        const logs = await DomainSearchLogModel.find({}).sort({ timestamp: -1 }).limit(100).lean();
+        return NextResponse.json({ success: true, searchCount: currentCount, logs, source: 'mongodb' });
+      } catch (mongoError) {
+        console.error('Erro ao salvar no MongoDB, usando fallback:', mongoError);
+        // Continua para fallback
       }
-
-      const logs = await DomainSearchLogModel.find({}).sort({ timestamp: -1 }).limit(100).lean();
-      return NextResponse.json({ success: true, searchCount: currentCount, logs });
     }
 
-    // Fallback in-memory
+    // Fallback in-memory (sempre funciona)
     const existingIndex = FALLBACK_LOGS.findIndex(l => l.domain.toLowerCase() === cleanDomain);
     let currentCount = 1;
     if (existingIndex >= 0) {
@@ -88,8 +100,10 @@ export async function POST(req: NextRequest) {
       if (FALLBACK_LOGS.length > 100) FALLBACK_LOGS.pop();
     }
 
-    return NextResponse.json({ success: true, searchCount: currentCount, logs: FALLBACK_LOGS });
+    console.log(`[Domain History] Salvo no fallback: ${cleanDomain} (count: ${currentCount})`);
+    return NextResponse.json({ success: true, searchCount: currentCount, logs: FALLBACK_LOGS, source: 'fallback' });
   } catch (e) {
+    console.error('Erro ao registar pesquisa de domínio:', e);
     return NextResponse.json({ error: 'Erro ao registar pesquisa' }, { status: 500 });
   }
 }
