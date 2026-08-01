@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { 
   Mail, Inbox, Send, Star, Trash2, Edit3, Search, RefreshCw, 
   ArrowLeft, CheckCircle2, ShieldCheck, User, Paperclip, Reply, Forward,
-  FileText, LogOut, ChevronRight, X, AlertCircle, Sparkles, Clock, Printer, Download, Loader2, Filter
+  FileText, LogOut, ChevronRight, X, AlertCircle, Sparkles, Clock, Printer, Download, Loader2, Filter, Maximize2, Minimize2
 } from 'lucide-react';
 import { auth, User as AuthUser } from '@/lib/auth';
 import { dataManager, EmailAccount } from '@/lib/data';
@@ -50,6 +50,7 @@ function WebmailContent() {
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   const [selectedTemplateCategory, setSelectedTemplateCategory] = useState<string>('Todas');
   const [templateLanguage, setTemplateLanguage] = useState<'pt' | 'en'>('pt');
+  const [isComposeExpanded, setIsComposeExpanded] = useState(true);
 
   // Reply inline
   const [replyText, setReplyText] = useState('');
@@ -1005,7 +1006,7 @@ function WebmailContent() {
       {/* MODAL: Escrever E-mail (Compose) */}
       {showCompose && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl shadow-2xl p-6 max-w-4xl w-full border border-gray-100 animate-in fade-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto">
+          <div className={`bg-white rounded-3xl shadow-2xl p-6 ${isComposeExpanded ? 'max-w-4xl' : 'max-w-xl'} w-full border border-gray-100 animate-in fade-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto`}>
             {isAccountPending ? (
               <div className="text-center py-6 space-y-4">
                 <div className="w-14 h-14 bg-amber-100 rounded-full flex items-center justify-center mx-auto text-amber-600 border border-amber-200 shadow-2xs">
@@ -1042,6 +1043,14 @@ function WebmailContent() {
                       title="Usar Template"
                     >
                       <Sparkles className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsComposeExpanded(!isComposeExpanded)}
+                      className="p-2 hover:bg-primary-50 text-primary-600 rounded-xl transition cursor-pointer"
+                      title={isComposeExpanded ? "Reduzir" : "Expandir"}
+                    >
+                      {isComposeExpanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
                     </button>
                     <button
                       type="button"
