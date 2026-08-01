@@ -412,7 +412,7 @@ function WebmailContent() {
     // Check for unfilled placeholders
     const subjectPlaceholders = detectUnfilledPlaceholders(composeSubject);
     const bodyPlaceholders = detectUnfilledPlaceholders(composeBody);
-    const allPlaceholders = [...new Set([...subjectPlaceholders, ...bodyPlaceholders])];
+    const allPlaceholders = Array.from(new Set([...subjectPlaceholders, ...bodyPlaceholders]));
 
     if (allPlaceholders.length > 0) {
       setUnfilledPlaceholders(allPlaceholders);
@@ -1042,9 +1042,7 @@ function WebmailContent() {
                             src={imageAttachment.url} 
                             alt="Preview" 
                             className="h-8 w-8 rounded-lg object-cover border border-gray-200"
-                            onError={(e) => { e.currentTarget.style.display = 'none'; }}
                           />
-                          <span className="text-[10px] text-gray-400">📷 Imagem anexada</span>
                         </div>
                       )}
                     </div>
@@ -1530,6 +1528,7 @@ function WebmailContent() {
             {/* Content */}
             <div className="flex-1 overflow-auto p-4 bg-gray-50">
               {previewAttachment.type?.startsWith('image/') ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
                 <img
                   src={previewAttachment.url}
                   alt={previewAttachment.name}

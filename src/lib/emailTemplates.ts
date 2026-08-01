@@ -674,6 +674,462 @@ Take advantage now! Click here to access.
 Sincerely,
 {your_company}`,
     icon: '🎁'
+  },
+
+  // CATEGORIA: Tabelas
+  {
+    id: 'invoice-table',
+    name: 'Fatura com Tabela',
+    nameEN: 'Invoice with Table',
+    category: 'Tabelas',
+    categoryEN: 'Tables',
+    subject: 'Fatura #{numero} - {cliente}',
+    subjectEN: 'Invoice #{number} - {client}',
+    body: `Caro(a) {nome},
+
+Segue abaixo a fatura detalhada dos serviços prestados.
+
+**Fatura #{numero}**
+- Cliente: {cliente}
+- Data de emissão: {data_emissao}
+- Data de vencimento: {data_vencimento}
+
+<table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+  <thead>
+    <tr style="background-color: #f3f4f6;">
+      <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: left;">Descrição</th>
+      <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">Quantidade</th>
+      <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: right;">Preço Unit.</th>
+      <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: right;">Total</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{item1_descricao}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{item1_qtd}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: right;">{item1_preco} MT</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: right;">{item1_total} MT</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{item2_descricao}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{item2_qtd}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: right;">{item2_preco} MT</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: right;">{item2_total} MT</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{item3_descricao}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{item3_qtd}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: right;">{item3_preco} MT</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: right;">{item3_total} MT</td>
+    </tr>
+  </tbody>
+  <tfoot>
+    <tr style="background-color: #f9fafb; font-weight: bold;">
+      <td colspan="3" style="border: 1px solid #e5e7eb; padding: 12px; text-align: right;">Total:</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: right;">{valor_total} MT</td>
+    </tr>
+  </tfoot>
+</table>
+
+**Informações de Pagamento:**
+- Referência: {referencia}
+- Banco: {banco}
+- IBAN: {iban}
+
+Por favor efetue o pagamento até a data de vencimento.
+
+Atenciosamente,
+{seu_nome}
+{sua_empresa}`,
+    bodyEN: `Dear {name},
+
+Below is the detailed invoice for services rendered.
+
+**Invoice #{number}**
+- Client: {client}
+- Issue date: {issue_date}
+- Due date: {due_date}
+
+<table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+  <thead>
+    <tr style="background-color: #f3f4f6;">
+      <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: left;">Description</th>
+      <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">Quantity</th>
+      <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: right;">Unit Price</th>
+      <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: right;">Total</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{item1_description}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{item1_qty}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: right;">{item1_price} MT</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: right;">{item1_total} MT</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{item2_description}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{item2_qty}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: right;">{item2_price} MT</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: right;">{item2_total} MT</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{item3_description}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{item3_qty}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: right;">{item3_price} MT</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: right;">{item3_total} MT</td>
+    </tr>
+  </tbody>
+  <tfoot>
+    <tr style="background-color: #f9fafb; font-weight: bold;">
+      <td colspan="3" style="border: 1px solid #e5e7eb; padding: 12px; text-align: right;">Total:</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: right;">{total_value} MT</td>
+    </tr>
+  </tfoot>
+</table>
+
+**Payment Information:**
+- Reference: {reference}
+- Bank: {bank}
+- IBAN: {iban}
+
+Please make the payment by the due date.
+
+Sincerely,
+{your_name}
+{your_company}`,
+    icon: '📊'
+  },
+  {
+    id: 'price-list',
+    name: 'Lista de Preços',
+    nameEN: 'Price List',
+    category: 'Tabelas',
+    categoryEN: 'Tables',
+    subject: 'Lista de Preços - {categoria}',
+    subjectEN: 'Price List - {category}',
+    body: `Olá {nome},
+
+Segue a nossa lista de preços atualizada para {categoria}.
+
+**Tabela de Preços**
+
+<table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+  <thead>
+    <tr style="background-color: #f3f4f6;">
+      <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: left;">Serviço</th>
+      <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">Plano Básico</th>
+      <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">Plano Pro</th>
+      <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">Plano Enterprise</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{servico1}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{servico1_basico} MT</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{servico1_pro} MT</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{servico1_enterprise} MT</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{servico2}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{servico2_basico} MT</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{servico2_pro} MT</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{servico2_enterprise} MT</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{servico3}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{servico3_basico} MT</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{servico3_pro} MT</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{servico3_enterprise} MT</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{servico4}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{servico4_basico} MT</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{servico4_pro} MT</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{servico4_enterprise} MT</td>
+    </tr>
+  </tbody>
+</table>
+
+**Observações:**
+{observacoes}
+
+Para mais informações, entre em contacto.
+
+Atenciosamente,
+{seu_nome}
+{sua_empresa}`,
+    bodyEN: `Hello {name},
+
+Below is our updated price list for {category}.
+
+**Price Table**
+
+<table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+  <thead>
+    <tr style="background-color: #f3f4f6;">
+      <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: left;">Service</th>
+      <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">Basic Plan</th>
+      <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">Pro Plan</th>
+      <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">Enterprise Plan</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{service1}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{service1_basic} MT</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{service1_pro} MT</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{service1_enterprise} MT</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{service2}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{service2_basic} MT</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{service2_pro} MT</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{service2_enterprise} MT</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{service3}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{service3_basic} MT</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{service3_pro} MT</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{service3_enterprise} MT</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{service4}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{service4_basic} MT</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{service4_pro} MT</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{service4_enterprise} MT</td>
+    </tr>
+  </tbody>
+</table>
+
+**Notes:**
+{notes}
+
+For more information, please contact us.
+
+Sincerely,
+{your_name}
+{your_company}`,
+    icon: '💲'
+  },
+  {
+    id: 'schedule-table',
+    name: 'Tabela de Horários',
+    nameEN: 'Schedule Table',
+    category: 'Tabelas',
+    categoryEN: 'Tables',
+    subject: 'Horário de {evento}',
+    subjectEN: 'Schedule for {event}',
+    body: `Olá {nome},
+
+Segue a tabela de horários para {evento}.
+
+**Programação**
+
+<table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+  <thead>
+    <tr style="background-color: #f3f4f6;">
+      <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: left;">Horário</th>
+      <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: left;">Atividade</th>
+      <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: left;">Local</th>
+      <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: left;">Responsável</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{horario1}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{atividade1}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{local1}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{responsavel1}</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{horario2}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{atividade2}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{local2}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{responsavel2}</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{horario3}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{atividade3}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{local3}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{responsavel3}</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{horario4}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{atividade4}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{local4}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{responsavel4}</td>
+    </tr>
+  </tbody>
+</table>
+
+**Informações Adicionais:**
+{informacoes_adicionais}
+
+Qualquer dúvida, entre em contacto.
+
+Atenciosamente,
+{seu_nome}`,
+    bodyEN: `Hello {name},
+
+Below is the schedule for {event}.
+
+**Schedule**
+
+<table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+  <thead>
+    <tr style="background-color: #f3f4f6;">
+      <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: left;">Time</th>
+      <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: left;">Activity</th>
+      <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: left;">Location</th>
+      <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: left;">Responsible</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{time1}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{activity1}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{location1}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{responsible1}</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{time2}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{activity2}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{location2}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{responsible2}</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{time3}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{activity3}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{location3}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{responsible3}</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{time4}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{activity4}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{location4}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{responsible4}</td>
+    </tr>
+  </tbody>
+</table>
+
+**Additional Information:**
+{additional_information}
+
+For any questions, please contact us.
+
+Sincerely,
+{your_name}`,
+    icon: '📅'
+  },
+  {
+    id: 'comparison-table',
+    name: 'Tabela de Comparação',
+    nameEN: 'Comparison Table',
+    category: 'Tabelas',
+    categoryEN: 'Tables',
+    subject: 'Comparação: {assunto}',
+    subjectEN: 'Comparison: {subject}',
+    body: `Olá {nome},
+
+Segue uma tabela comparativa para {assunto}.
+
+**Comparação**
+
+<table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+  <thead>
+    <tr style="background-color: #f3f4f6;">
+      <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: left;">Característica</th>
+      <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">Opção A</th>
+      <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">Opção B</th>
+      <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">Opção C</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{caracteristica1}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{opcao1_a}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{opcao1_b}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{opcao1_c}</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{caracteristica2}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{opcao2_a}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{opcao2_b}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{opcao2_c}</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{caracteristica3}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{opcao3_a}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{opcao3_b}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{opcao3_c}</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{caracteristica4}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{opcao4_a}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{opcao4_b}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{opcao4_c}</td>
+    </tr>
+  </tbody>
+</table>
+
+**Recomendação:**
+{recomendacao}
+
+Para mais detalhes, entre em contacto.
+
+Atenciosamente,
+{seu_nome}`,
+    bodyEN: `Hello {name},
+
+Below is a comparison table for {subject}.
+
+**Comparison**
+
+<table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+  <thead>
+    <tr style="background-color: #f3f4f6;">
+      <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: left;">Feature</th>
+      <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">Option A</th>
+      <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">Option B</th>
+      <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">Option C</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{feature1}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{option1_a}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{option1_b}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{option1_c}</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{feature2}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{option2_a}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{option2_b}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{option2_c}</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{feature3}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{option3_a}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{option3_b}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{option3_c}</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #e5e7eb; padding: 12px;">{feature4}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{option4_a}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{option4_b}</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">{option4_c}</td>
+    </tr>
+  </tbody>
+</table>
+
+**Recommendation:**
+{recommendation}
+
+For more details, please contact us.
+
+Sincerely,
+{your_name}`,
+    icon: '📊'
   }
 ];
 
@@ -684,7 +1140,8 @@ export const templateCategories = [
   'Reuniões',
   'Notificações',
   'Pessoal',
-  'Marketing'
+  'Marketing',
+  'Tabelas'
 ];
 
 export const templateCategoriesEN = [
@@ -694,7 +1151,8 @@ export const templateCategoriesEN = [
   'Meetings',
   'Notifications',
   'Personal',
-  'Marketing'
+  'Marketing',
+  'Tables'
 ];
 
 export const getTemplateById = (id: string): EmailTemplate | undefined => {
