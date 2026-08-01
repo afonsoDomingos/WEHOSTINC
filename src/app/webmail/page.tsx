@@ -497,7 +497,7 @@ function WebmailContent() {
           </Link>
           <div className="flex items-center space-x-2 shrink-0">
             <BrandLogo />
-            <span className="hidden sm:inline-block text-primary-600 font-bold text-xs uppercase tracking-wider bg-primary-50 px-2 py-0.5 rounded-full border border-primary-100">Webmail</span>
+            <span className="hidden sm:inline-block text-primary-600 font-bold text-xs uppercase tracking-wider bg-primary-50 px-2 py-0.5 rounded-full border border-primary-100">Email Corporativo</span>
           </div>
         </div>
 
@@ -1422,7 +1422,7 @@ function WebmailContent() {
 
 export default function WebmailPage() {
   return (
-    <Suspense fallback={<PageLoader text="A carregar Webmail Client..." />}>
+    <Suspense fallback={<PageLoader text="A carregar Email Corporativo..." />}>
       <WebmailContent />
     </Suspense>
   );
