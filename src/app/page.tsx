@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from "next/link";
-import { Server, Mail, Shield, Zap, Globe, Users, Search, Sparkles, CheckCircle, Facebook, Phone } from "lucide-react";
+import { Server, Mail, Shield, Zap, Globe, Users, Search, Sparkles, CheckCircle, Facebook, Phone, Linkedin } from "lucide-react";
 import { websiteTypes } from '@/lib/data';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 
@@ -471,16 +471,27 @@ export default function Home() {
                 Sua solução completa em hospedagem de sites, e-mail corporativo e servidores em Moçambique.
               </p>
               
-              {/* Link Oficial do Facebook */}
-              <a
-                href="https://www.facebook.com/profile.php?id=61592497206566&locale=pt_BR"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center space-x-1.5 sm:space-x-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[10px] sm:text-xs px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl transition shadow-md group hover:scale-105 active:scale-95 hover:shadow-lg"
-              >
-                <Facebook className="h-3.5 w-3.5 sm:h-4 sm:w-4 fill-current group-hover:scale-110 transition-transform" />
-                <span>Página Oficial Facebook</span>
-              </a>
+              {/* Links das Redes Sociais */}
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                <a
+                  href="https://www.facebook.com/profile.php?id=61592497206566&locale=pt_BR"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center space-x-1.5 sm:space-x-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[10px] sm:text-xs px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl transition shadow-md group hover:scale-105 active:scale-95 hover:shadow-lg"
+                >
+                  <Facebook className="h-3.5 w-3.5 sm:h-4 sm:w-4 fill-current group-hover:scale-110 transition-transform" />
+                  <span>Facebook</span>
+                </a>
+                <a
+                  href="https://www.linkedin.com/company/wehosthere"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center space-x-1.5 sm:space-x-2 bg-blue-700 hover:bg-blue-800 text-white font-bold text-[10px] sm:text-xs px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl transition shadow-md group hover:scale-105 active:scale-95 hover:shadow-lg"
+                >
+                  <Linkedin className="h-3.5 w-3.5 sm:h-4 sm:w-4 fill-current group-hover:scale-110 transition-transform" />
+                  <span>LinkedIn</span>
+                </a>
+              </div>
             </div>
 
             <div>
