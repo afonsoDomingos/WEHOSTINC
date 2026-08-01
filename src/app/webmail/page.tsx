@@ -60,6 +60,10 @@ function WebmailContent() {
   // Attachment preview state
   const [previewAttachment, setPreviewAttachment] = useState<WebmailAttachment | null>(null);
 
+  // Placeholder warning state
+  const [showPlaceholderWarning, setShowPlaceholderWarning] = useState(false);
+  const [unfilledPlaceholders, setUnfilledPlaceholders] = useState<string[]>([]);
+
   // Reply inline
   const [replyText, setReplyText] = useState('');
 
@@ -231,6 +235,13 @@ function WebmailContent() {
     return templateLanguage === 'pt' ? templateCategories : templateCategoriesEN;
   };
 
+  // Function to detect unfilled placeholders
+  const detectUnfilledPlaceholders = (text: string): string[] => {
+    const placeholderRegex = /\{([^}]+)\}/g;
+    const matches = text.match(placeholderRegex);
+    return matches || [];
+  };
+
   useEffect(() => {
     const currentUser = auth.getCurrentUser();
     if (!currentUser) {
@@ -338,7 +349,23 @@ function WebmailContent() {
     e.preventDefault();
     if (!composeTo || !composeBody) return;
 
+    // Check for unfilled placeholders
+    const subjectPlaceholders = detectUnfilledPlaceholders(composeSubject);
+    const bodyPlaceholders = detectUnfilledPlaceholders(composeBody);
+    const allPlaceholders = [...new Set([...subjectPlaceholders, ...bodyPlaceholders])];
+
+    if (allPlaceholders.length > 0) {
+      setUnfilledPlaceholders(allPlaceholders);
+      setShowPlaceholderWarning(true);
+      return;
+    }
+
+    proceedToSendEmail();
+  };
+
+  const proceedToSendEmail = async () => {
     setSendingMsg(true);
+    setShowPlaceholderWarning(false);
 
     try {
       // 1. Chamar a API real do SendGrid
@@ -585,14 +612,16 @@ function WebmailContent() {
       <div className="md:hidden bg-white border-b border-gray-200 px-2 py-2 flex items-center space-x-1 overflow-x-auto text-xs shrink-0">
         <button
           onClick={() => { setCurrentFolder('inbox'); setSelectedMessage(null); }}
-          className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap font-bold transition shrink-0 ${
-            currentFolder === 'inbox' ? 'bg-primary-600 text-white shadow-2xs' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap font-black transition-all duration-200 shrink-0 border ${
+            currentFolder === 'inbox' 
+              ? 'bg-primary-600 text-white shadow-md border-primary-700' 
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border-gray-200'
           }`}
         >
           <Inbox className="h-3.5 w-3.5" />
           <span>Entrada</span>
           {unreadInboxCount > 0 && (
-            <span className="bg-white text-primary-600 text-[10px] px-1.5 py-0.2 rounded-full font-black ml-1">
+            <span className="bg-white text-primary-600 text-[10px] px-1.5 py-0.2 rounded-full font-black ml-1 shadow-sm">
               {unreadInboxCount}
             </span>
           )}
@@ -600,8 +629,10 @@ function WebmailContent() {
 
         <button
           onClick={() => { setCurrentFolder('starred'); setSelectedMessage(null); }}
-          className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap font-bold transition shrink-0 ${
-            currentFolder === 'starred' ? 'bg-amber-500 text-white shadow-2xs' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap font-black transition-all duration-200 shrink-0 border ${
+            currentFolder === 'starred' 
+              ? 'bg-amber-500 text-white shadow-md border-amber-600' 
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border-gray-200'
           }`}
         >
           <Star className="h-3.5 w-3.5" />
@@ -610,8 +641,10 @@ function WebmailContent() {
 
         <button
           onClick={() => { setCurrentFolder('sent'); setSelectedMessage(null); }}
-          className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap font-bold transition shrink-0 ${
-            currentFolder === 'sent' ? 'bg-emerald-600 text-white shadow-2xs' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap font-black transition-all duration-200 shrink-0 border ${
+            currentFolder === 'sent' 
+              ? 'bg-emerald-600 text-white shadow-md border-emerald-700' 
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border-gray-200'
           }`}
         >
           <Send className="h-3.5 w-3.5" />
@@ -620,8 +653,10 @@ function WebmailContent() {
 
         <button
           onClick={() => { setCurrentFolder('trash'); setSelectedMessage(null); }}
-          className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap font-bold transition shrink-0 ${
-            currentFolder === 'trash' ? 'bg-rose-600 text-white shadow-2xs' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap font-black transition-all duration-200 shrink-0 border ${
+            currentFolder === 'trash' 
+              ? 'bg-rose-600 text-white shadow-md border-rose-700' 
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border-gray-200'
           }`}
         >
           <Trash2 className="h-3.5 w-3.5" />
@@ -630,8 +665,10 @@ function WebmailContent() {
 
         <button
           onClick={() => { setCurrentFolder('drafts'); setSelectedMessage(null); }}
-          className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap font-bold transition shrink-0 ${
-            currentFolder === 'drafts' ? 'bg-purple-600 text-white shadow-2xs' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap font-black transition-all duration-200 shrink-0 border ${
+            currentFolder === 'drafts' 
+              ? 'bg-purple-600 text-white shadow-md border-purple-700' 
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border-gray-200'
           }`}
         >
           <FileText className="h-3.5 w-3.5" />
@@ -646,7 +683,7 @@ function WebmailContent() {
           <button
             type="button"
             onClick={() => setShowCompose(true)}
-            className={`w-full py-3 bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-500 hover:to-indigo-500 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md transition flex items-center justify-center space-x-2 cursor-pointer ${isSidebarCollapsed ? 'px-2' : ''}`}
+            className={`w-full py-3 bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-500 hover:to-indigo-500 text-white font-black text-xs sm:text-sm rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center space-x-2 cursor-pointer border border-primary-700/30 ${isSidebarCollapsed ? 'px-2' : ''}`}
           >
             <Edit3 className="h-4 w-4 shrink-0" />
             {!isSidebarCollapsed && <span>Escrever E-mail</span>}
@@ -665,16 +702,18 @@ function WebmailContent() {
           <nav className={`space-y-1 text-xs font-semibold ${isSidebarCollapsed ? 'hidden' : ''}`}>
             <button
               onClick={() => setCurrentFolder('inbox')}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition cursor-pointer ${
-                currentFolder === 'inbox' ? 'bg-primary-50 text-primary-700 border border-primary-200 font-bold' : 'hover:bg-gray-100 text-gray-600'
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all duration-200 cursor-pointer border ${
+                currentFolder === 'inbox' 
+                  ? 'bg-primary-50 text-primary-700 border-primary-200 font-black shadow-sm' 
+                  : 'hover:bg-gray-100 text-gray-600 border-transparent hover:border-gray-200'
               }`}
             >
               <div className="flex items-center space-x-2.5">
                 <Inbox className="h-4 w-4 text-primary-500" />
-                <span>Entrada</span>
+                <span className="font-bold">Entrada</span>
               </div>
               {unreadInboxCount > 0 && (
-                <span className="bg-primary-600 text-white text-[10px] px-2 py-0.5 rounded-full font-black">
+                <span className="bg-primary-600 text-white text-[10px] px-2 py-0.5 rounded-full font-black shadow-sm">
                   {unreadInboxCount}
                 </span>
               )}
@@ -682,46 +721,54 @@ function WebmailContent() {
 
             <button
               onClick={() => setCurrentFolder('starred')}
-              className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl transition cursor-pointer ${
-                currentFolder === 'starred' ? 'bg-amber-50 text-amber-700 border border-amber-200 font-bold' : 'hover:bg-gray-100 text-gray-600'
+              className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl transition-all duration-200 cursor-pointer border ${
+                currentFolder === 'starred' 
+                  ? 'bg-amber-50 text-amber-700 border-amber-200 font-black shadow-sm' 
+                  : 'hover:bg-gray-100 text-gray-600 border-transparent hover:border-gray-200'
               }`}
             >
               <Star className="h-4 w-4 text-amber-400" />
-              <span>Com Estrela</span>
+              <span className="font-bold">Com Estrela</span>
             </button>
 
             <button
               onClick={() => setCurrentFolder('sent')}
-              className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl transition cursor-pointer ${
-                currentFolder === 'sent' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold' : 'hover:bg-gray-100 text-gray-600'
+              className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl transition-all duration-200 cursor-pointer border ${
+                currentFolder === 'sent' 
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200 font-black shadow-sm' 
+                  : 'hover:bg-gray-100 text-gray-600 border-transparent hover:border-gray-200'
               }`}
             >
               <Send className="h-4 w-4 text-emerald-500" />
-              <span>Enviados</span>
+              <span className="font-bold">Enviados</span>
             </button>
 
             <button
               onClick={() => setCurrentFolder('trash')}
-              className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl transition cursor-pointer ${
-                currentFolder === 'trash' ? 'bg-rose-50 text-rose-700 border border-rose-200 font-bold' : 'hover:bg-gray-100 text-gray-600'
+              className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl transition-all duration-200 cursor-pointer border ${
+                currentFolder === 'trash' 
+                  ? 'bg-rose-50 text-rose-700 border-rose-200 font-black shadow-sm' 
+                  : 'hover:bg-gray-100 text-gray-600 border-transparent hover:border-gray-200'
               }`}
             >
               <Trash2 className="h-4 w-4 text-rose-400" />
-              <span>Lixeira</span>
+              <span className="font-bold">Lixeira</span>
             </button>
 
             <button
               onClick={() => setCurrentFolder('drafts')}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition cursor-pointer ${
-                currentFolder === 'drafts' ? 'bg-purple-50 text-purple-700 border border-purple-200 font-bold' : 'hover:bg-gray-100 text-gray-600'
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all duration-200 cursor-pointer border ${
+                currentFolder === 'drafts' 
+                  ? 'bg-purple-50 text-purple-700 border-purple-200 font-black shadow-sm' 
+                  : 'hover:bg-gray-100 text-gray-600 border-transparent hover:border-gray-200'
               }`}
             >
               <div className="flex items-center space-x-2.5">
                 <FileText className="h-4 w-4 text-purple-400" />
-                <span>Rascunhos</span>
+                <span className="font-bold">Rascunhos</span>
               </div>
               {draftsCount > 0 && (
-                <span className="bg-purple-600 text-white text-[10px] px-2 py-0.5 rounded-full font-black">
+                <span className="bg-purple-600 text-white text-[10px] px-2 py-0.5 rounded-full font-black shadow-sm">
                   {draftsCount}
                 </span>
               )}
@@ -1426,6 +1473,56 @@ function WebmailContent() {
                   </a>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Placeholder Warning */}
+      {showPlaceholderWarning && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center shrink-0">
+                <AlertCircle className="h-6 w-6 text-amber-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-gray-900">Campos Pendentes</h3>
+                <p className="text-sm text-gray-600">O modelo contém placeholders não preenchidos</p>
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <p className="text-sm text-gray-700 mb-3">
+                Os seguintes campos precisam ser preenchidos antes de enviar:
+              </p>
+              <div className="bg-amber-50 rounded-xl p-3 space-y-2">
+                {unfilledPlaceholders.map((placeholder, idx) => (
+                  <div key={idx} className="flex items-center space-x-2">
+                    <span className="w-2 h-2 bg-amber-500 rounded-full shrink-0"></span>
+                    <code className="text-xs font-mono font-bold text-amber-800 bg-amber-100 px-2 py-1 rounded">
+                      {placeholder}
+                    </code>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-3">
+              <button
+                type="button"
+                onClick={() => setShowPlaceholderWarning(false)}
+                className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-black text-sm rounded-xl transition cursor-pointer"
+              >
+                Voltar e Editar
+              </button>
+              <button
+                type="button"
+                onClick={proceedToSendEmail}
+                className="flex-1 py-3 bg-primary-600 hover:bg-primary-700 text-white font-black text-sm rounded-xl transition cursor-pointer shadow-md"
+              >
+                Enviar Mesmo Assim
+              </button>
             </div>
           </div>
         </div>
