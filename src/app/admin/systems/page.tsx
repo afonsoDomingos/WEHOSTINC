@@ -32,6 +32,7 @@ export default function AdminSystemsPage() {
   const [accessUrl, setAccessUrl] = useState('');
   
   const [showAddSystemModal, setShowAddSystemModal] = useState(false);
+  const [editingSystem, setEditingSystem] = useState<SystemForRent | null>(null);
   const [newSystem, setNewSystem] = useState({
     name: '',
     shortDescription: '',
@@ -203,6 +204,60 @@ export default function AdminSystemsPage() {
     });
     setNewFeature('');
     setToastMsg({ title: 'Sistema Adicionado', message: 'O sistema foi adicionado com sucesso.', type: 'success' });
+  };
+
+  const handleEditSystem = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingSystem) return;
+
+    dataManager.updateSystemForRent(editingSystem.id, {
+      name: newSystem.name,
+      shortDescription: newSystem.shortDescription,
+      description: newSystem.description,
+      category: newSystem.category,
+      monthlyPrice: newSystem.monthlyPrice,
+      yearlyPrice: newSystem.yearlyPrice,
+      setupFee: newSystem.setupFee,
+      features: newSystem.features,
+      demoUrl: newSystem.demoUrl,
+      image: newSystem.image
+    });
+    
+    dataManager.fetchSystemsForRentAsync().then(s => setSystems(s));
+    
+    setShowAddSystemModal(false);
+    setEditingSystem(null);
+    setNewSystem({
+      name: '',
+      shortDescription: '',
+      description: '',
+      category: '',
+      monthlyPrice: 0,
+      yearlyPrice: 0,
+      setupFee: 0,
+      features: [],
+      demoUrl: '',
+      image: ''
+    });
+    setNewFeature('');
+    setToastMsg({ title: 'Sistema Atualizado', message: 'O sistema foi atualizado com sucesso.', type: 'success' });
+  };
+
+  const openEditModal = (system: SystemForRent) => {
+    setEditingSystem(system);
+    setNewSystem({
+      name: system.name,
+      shortDescription: system.shortDescription,
+      description: system.description,
+      category: system.category,
+      monthlyPrice: system.monthlyPrice,
+      yearlyPrice: system.yearlyPrice,
+      setupFee: system.setupFee || 0,
+      features: system.features,
+      demoUrl: system.demoUrl || '',
+      image: system.image
+    });
+    setShowAddSystemModal(true);
   };
 
   const handleAddFeature = () => {
@@ -395,6 +450,12 @@ export default function AdminSystemsPage() {
                           </button>
                         </>
                       )}
+                      <button
+                        onClick={() => openEditModal(system)}
+                        className="flex-1 bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 transition text-xs font-medium"
+                      >
+                        Editar
+                      </button>
                       {system.approvalStatus === 'approved' && system.demoUrl && (
                         <Link
                           href={system.demoUrl}
@@ -527,8 +588,10 @@ export default function AdminSystemsPage() {
       {showAddSystemModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
           <div className="bg-white rounded-2xl max-w-2xl w-full p-6 my-8">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Adicionar Novo Sistema</h2>
-            <form onSubmit={handleAddSystem} className="space-y-4">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">
+              {editingSystem ? 'Editar Sistema' : 'Adicionar Novo Sistema'}
+            </h2>
+            <form onSubmit={editingSystem ? handleEditSystem : handleAddSystem} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Nome do Sistema *</label>
@@ -693,7 +756,7 @@ export default function AdminSystemsPage() {
                   type="submit"
                   className="flex-1 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition"
                 >
-                  Adicionar Sistema
+                  {editingSystem ? 'Atualizar Sistema' : 'Adicionar Sistema'}
                 </button>
               </div>
             </form>
