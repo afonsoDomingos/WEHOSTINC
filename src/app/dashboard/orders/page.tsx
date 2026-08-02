@@ -240,9 +240,9 @@ export default function OrdersPage() {
                         <div className="flex items-center space-x-3 w-full sm:w-auto pt-2.5 sm:pt-0 border-t sm:border-t-0 border-gray-100 shrink-0">
                           <div className="text-right">
                             <p className="text-lg font-bold text-gray-900">
-                              {order.valorPorFaturar > 0 
-                                ? `${order.valorPorFaturar.toLocaleString('pt-MZ')} MT (por faturar)` 
-                                : `${order.valorFaturado.toLocaleString('pt-MZ')} MT (faturado)`
+                              {(order.valorPorFaturar || 0) > 0 
+                                ? `${(order.valorPorFaturar || 0).toLocaleString('pt-MZ')} MT (por faturar)` 
+                                : `${(order.valorFaturado || 0).toLocaleString('pt-MZ')} MT (faturado)`
                               }
                             </p>
                             <p className="text-[10px] text-gray-500">{getPaymentMethodText(order.paymentMethod)}</p>
