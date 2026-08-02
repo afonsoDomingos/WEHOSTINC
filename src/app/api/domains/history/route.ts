@@ -43,6 +43,18 @@ export async function GET() {
     if (await tryMongo()) {
       const logs = await DomainSearchLogModel.find({}).sort({ timestamp: -1 }).limit(100).lean();
       console.log(`[Domain History GET] Retornando ${logs.length} logs do MongoDB`);
+      
+      // Se MongoDB estiver vazio, usar fallback
+      if (logs.length === 0 && FALLBACK_LOGS.length > 0) {
+        console.log(`[Domain History GET] MongoDB vazio, usando fallback com ${FALLBACK_LOGS.length} logs`);
+        return NextResponse.json({
+          totalSearches: FALLBACK_LOGS.length,
+          availableSearches: FALLBACK_LOGS.filter(l => l.isAvailable).length,
+          logs: FALLBACK_LOGS,
+          source: 'fallback (mongodb empty)'
+        });
+      }
+      
       return NextResponse.json({
         totalSearches: logs.length,
         availableSearches: logs.filter(l => l.isAvailable).length,
