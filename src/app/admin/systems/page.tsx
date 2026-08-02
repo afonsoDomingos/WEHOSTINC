@@ -95,6 +95,48 @@ export default function AdminSystemsPage() {
     return () => clearInterval(interval);
   }, [router]);
 
+  // Analytics calculations
+  const analyticsData = {
+    totalSystems: systems.length,
+    activeSystems: systems.filter(s => s.isActive).length,
+    pendingRequests: rentalRequests.filter(r => r.status === 'pending').length,
+    activeRentals: systemAccesses.filter(a => a.status === 'active').length,
+    monthlyRevenue: systemAccesses
+      .filter(a => a.status === 'active' && a.billingCycle === 'monthly')
+      .reduce((sum, a) => {
+        const system = systems.find(s => s.id === a.systemId);
+        return sum + (system?.monthlyPrice || 0);
+      }, 0),
+    topRentedSystems: (() => {
+      const systemCounts = systemAccesses.reduce((acc, access) => {
+        acc[access.systemId] = (acc[access.systemId] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+      
+      return Object.entries(systemCounts)
+        .map(([systemId, count]) => ({
+          systemId,
+          count,
+          system: systems.find(s => s.id === systemId)
+        }))
+        .filter(item => item.system)
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 5);
+    })(),
+    revenueBySystem: (() => {
+      return systemAccesses
+        .filter(a => a.status === 'active')
+        .reduce((acc, access) => {
+          const system = systems.find(s => s.id === access.systemId);
+          if (system) {
+            const price = access.billingCycle === 'monthly' ? system.monthlyPrice : system.yearlyPrice;
+            acc[access.systemId] = (acc[access.systemId] || 0) + price;
+          }
+          return acc;
+        }, {} as Record<string, number>);
+    })()
+  };
+
   const handleApproveSystem = (systemId: string) => {
     dataManager.updateSystemForRent(systemId, { approvalStatus: 'approved', isActive: true });
     setSystems(systems.map(s => s.id === systemId ? { ...s, approvalStatus: 'approved', isActive: true } : s));
@@ -130,6 +172,37 @@ export default function AdminSystemsPage() {
     setToastMsg({ title: 'Pedido Rejeitado', message: 'O pedido foi rejeitado.', type: 'warning' });
   };
 
+  // Export to CSV
+  const exportToCSV = (data: any[], filename: string) => {
+    const headers = Object.keys(data[0] || {});
+    const csvContent = [
+      headers.join(','),
+      ...data.map(row => headers.map(header => {
+        const value = row[header];
+        const stringValue = typeof value === 'object' ? JSON.stringify(value) : String(value);
+        return stringValue.includes(',') ? `"${stringValue}"` : stringValue;
+      }).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${filename}.csv`;
+    link.click();
+  };
+
+  const handleExportSystems = () => {
+    exportToCSV(systems, 'sistemas');
+  };
+
+  const handleExportRequests = () => {
+    exportToCSV(rentalRequests, 'pedidos-aluguer');
+  };
+
+  const handleExportAccesses = () => {
+    exportToCSV(systemAccesses, 'acessos-sistemas');
+  };
+
   const handleCreateSystemAccess = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedRequest) return;
@@ -142,13 +215,17 @@ export default function AdminSystemsPage() {
       systemId: selectedRequest.systemId,
       systemName: selectedRequest.systemName,
       clientEmail: selectedRequest.clientEmail,
-      username: accessUsername,
-      password: accessPassword,
-      accessUrl: accessUrl,
+      clientName: selectedRequest.clientName,
+      credentials: {
+        username: accessUsername,
+        password: accessPassword,
+        url: accessUrl
+      },
       status: 'active',
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
-      billingCycle: selectedRequest.billingCycle
+      billingCycle: selectedRequest.billingCycle,
+      updatedAt: new Date().toISOString()
     };
 
     dataManager.addSystemAccess(accessData);
@@ -407,6 +484,130 @@ export default function AdminSystemsPage() {
         </div>
       </div>
 
+      {/* Analytics Section */}
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6">
+          {/* KPI Cards */}
+          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Total de Sistemas</p>
+                <p className="text-2xl sm:text-3xl font-bold text-gray-900">{analyticsData.totalSystems}</p>
+              </div>
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <Star className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Sistemas Ativos</p>
+                <p className="text-2xl sm:text-3xl font-bold text-gray-900">{analyticsData.activeSystems}</p>
+              </div>
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Pedidos Pendentes</p>
+                <p className="text-2xl sm:text-3xl font-bold text-gray-900">{analyticsData.pendingRequests}</p>
+              </div>
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Receita Mensal</p>
+                <p className="text-2xl sm:text-3xl font-bold text-gray-900">
+                  {analyticsData.monthlyRevenue.toLocaleString()} MT
+                </p>
+              </div>
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                <ShoppingBag className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6">
+          {/* Top Rented Systems */}
+          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Sistemas Mais Alugados</h3>
+            {analyticsData.topRentedSystems.length === 0 ? (
+              <p className="text-gray-500 text-sm">Nenhum sistema alugado ainda</p>
+            ) : (
+              <div className="space-y-3">
+                {analyticsData.topRentedSystems.map((item, index) => (
+                  <div key={item.systemId} className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <span className="text-sm font-medium text-gray-700">#{index + 1}</span>
+                      <span className="text-sm text-gray-900">{item.system?.name}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-32 sm:w-40 h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-primary-600 rounded-full"
+                          style={{
+                            width: `${(item.count / Math.max(...analyticsData.topRentedSystems.map(i => i.count))) * 100}%`
+                          }}
+                        />
+                      </div>
+                      <span className="text-sm font-semibold text-gray-700">{item.count}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Revenue by System */}
+          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Receita por Sistema</h3>
+            {Object.keys(analyticsData.revenueBySystem).length === 0 ? (
+              <p className="text-gray-500 text-sm">Nenhuma receita gerada ainda</p>
+            ) : (
+              <div className="space-y-3">
+                {Object.entries(analyticsData.revenueBySystem)
+                  .sort(([, a], [, b]) => b - a)
+                  .slice(0, 5)
+                  .map(([systemId, revenue], index) => {
+                    const system = systems.find(s => s.id === systemId);
+                    const maxRevenue = Math.max(...Object.values(analyticsData.revenueBySystem));
+                    return (
+                      <div key={systemId} className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <span className="text-sm font-medium text-gray-700">#{index + 1}</span>
+                          <span className="text-sm text-gray-900">{system?.name || 'Unknown'}</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <div className="w-32 sm:w-40 h-2 bg-gray-200 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-green-600 rounded-full"
+                              style={{ width: `${(revenue / maxRevenue) * 100}%` }}
+                            />
+                          </div>
+                          <span className="text-sm font-semibold text-gray-700">{revenue.toLocaleString()} MT</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
         {/* Sistemas Tab */}
         {activeTab === 'systems' && (
@@ -434,13 +635,21 @@ export default function AdminSystemsPage() {
                   <option value="rejected">Rejeitados</option>
                 </select>
               </div>
-              <button
-                onClick={() => setShowAddSystemModal(true)}
-                className="inline-flex items-center space-x-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition text-sm font-medium"
-              >
-                <Plus className="h-4 w-4" />
-                <span>Adicionar Sistema</span>
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleExportSystems}
+                  className="inline-flex items-center space-x-2 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition text-sm font-medium"
+                >
+                  <span>Exportar CSV</span>
+                </button>
+                <button
+                  onClick={() => setShowAddSystemModal(true)}
+                  className="inline-flex items-center space-x-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition text-sm font-medium"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span>Adicionar Sistema</span>
+                </button>
+              </div>
             </div>
 
             {filteredSystems.length === 0 ? (
@@ -538,6 +747,14 @@ export default function AdminSystemsPage() {
         {/* Pedidos Tab */}
         {activeTab === 'requests' && (
           <div className="space-y-4">
+            <div className="flex justify-end">
+              <button
+                onClick={handleExportRequests}
+                className="inline-flex items-center space-x-2 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition text-sm font-medium"
+              >
+                <span>Exportar CSV</span>
+              </button>
+            </div>
             {rentalRequests.length === 0 ? (
               <div className="text-center py-12 bg-white rounded-xl shadow-sm">
                 <ShoppingBag className="h-12 w-12 text-gray-300 mx-auto mb-3" />
@@ -598,6 +815,14 @@ export default function AdminSystemsPage() {
         {/* Acessos Tab */}
         {activeTab === 'accesses' && (
           <div className="space-y-4">
+            <div className="flex justify-end">
+              <button
+                onClick={handleExportAccesses}
+                className="inline-flex items-center space-x-2 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition text-sm font-medium"
+              >
+                <span>Exportar CSV</span>
+              </button>
+            </div>
             {systemAccesses.length === 0 ? (
               <div className="text-center py-12 bg-white rounded-xl shadow-sm">
                 <CheckCircle className="h-12 w-12 text-gray-300 mx-auto mb-3" />
@@ -615,9 +840,9 @@ export default function AdminSystemsPage() {
                           {getStatusBadge(access.status)}
                         </div>
                         <p className="text-sm text-gray-600 mb-1">Cliente: {access.clientEmail}</p>
-                        <p className="text-sm text-gray-600 mb-1">Utilizador: {access.username}</p>
-                        <p className="text-sm text-gray-600 mb-1">Senha: {access.password}</p>
-                        <p className="text-sm text-gray-600 mb-1">URL: {access.accessUrl}</p>
+                        <p className="text-sm text-gray-600 mb-1">Utilizador: {access.credentials?.username || 'N/A'}</p>
+                        <p className="text-sm text-gray-600 mb-1">Senha: {access.credentials?.password || 'N/A'}</p>
+                        <p className="text-sm text-gray-600 mb-1">URL: {access.credentials?.url || 'N/A'}</p>
                         <p className="text-xs text-gray-500">Válido até: {new Date(access.endDate).toLocaleDateString('pt-MZ')}</p>
                       </div>
                     </div>
