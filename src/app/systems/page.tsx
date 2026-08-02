@@ -93,19 +93,19 @@ export default function SystemsPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
             {[
-              { step: '1', title: 'Escolha', desc: 'Selecione o sistema ideal para o seu negócio' },
-              { step: '2', title: 'Solicite', desc: 'Faça o pedido de aluguer com o ciclo de pagamento desejado' },
-              { step: '3', title: 'Aprovação', desc: 'Após confirmação do pagamento, aprovamos o acesso' },
-              { step: '4', title: 'Use', desc: 'Receba as credenciais e comece a usar imediatamente' }
+              { step: '1', title: 'Escolha', desc: 'Selecione o sistema ideal' },
+              { step: '2', title: 'Solicite', desc: 'Faça o pedido de aluguer' },
+              { step: '3', title: 'Aprovação', desc: 'Após pagamento, aprovamos' },
+              { step: '4', title: 'Use', desc: 'Receba credenciais e use' }
             ].map((item, index) => (
               <div key={index} className="text-center">
-                <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 bg-gradient-to-br from-primary-500 to-purple-600 rounded-full flex items-center justify-center text-white text-2xl sm:text-3xl font-bold shadow-lg">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-2 sm:mb-4 bg-gradient-to-br from-primary-500 to-purple-600 rounded-full flex items-center justify-center text-white text-lg sm:text-2xl sm:text-3xl font-bold shadow-lg">
                   {item.step}
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">{item.title}</h3>
-                <p className="text-gray-600 text-sm">{item.desc}</p>
+                <h3 className="text-sm sm:text-lg sm:text-xl font-bold text-gray-900 mb-1 sm:mb-2">{item.title}</h3>
+                <p className="text-gray-600 text-[10px] sm:text-xs sm:text-sm">{item.desc}</p>
               </div>
             ))}
           </div>
