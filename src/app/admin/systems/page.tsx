@@ -4,8 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
-  ArrowLeft, Star, CheckCircle, XCircle, Clock, Plus, Edit, Trash2, 
-  ExternalLink, Search, Filter, Check, AlertCircle, ShoppingBag
+  ArrowLeft, Star, Plus, Trash2, ExternalLink, Search, AlertCircle, ShoppingBag, CheckCircle, XCircle, Clock, Loader2, Upload, X 
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 import { dataManager, SystemForRent, RentalRequest, SystemAccess } from '@/lib/data';
@@ -44,9 +43,10 @@ export default function AdminSystemsPage() {
     setupFee: 0,
     features: [] as string[],
     demoUrl: '',
-    image: ''
+    images: [] as string[]
   });
   const [newFeature, setNewFeature] = useState('');
+  const [uploadingImages, setUploadingImages] = useState(false);
   
   const [toastMsg, setToastMsg] = useState<{ title?: string; message: string; type: 'success' | 'error' | 'info' | 'warning' } | null>(null);
   const [confirmModalData, setConfirmModalData] = useState<{
@@ -180,7 +180,7 @@ export default function AdminSystemsPage() {
       setupFee: newSystem.setupFee,
       features: newSystem.features,
       demoUrl: newSystem.demoUrl,
-      image: newSystem.image,
+      image: newSystem.images[0] || '',
       isActive: true,
       approvalStatus: 'approved',
       developerEmail: 'admin@wehosthere.com',
@@ -202,7 +202,7 @@ export default function AdminSystemsPage() {
       setupFee: 0,
       features: [],
       demoUrl: '',
-      image: ''
+      images: []
     });
     setNewFeature('');
     setToastMsg({ title: 'Sistema Adicionado', message: 'O sistema foi adicionado com sucesso.', type: 'success' });
@@ -222,7 +222,7 @@ export default function AdminSystemsPage() {
       setupFee: newSystem.setupFee,
       features: newSystem.features,
       demoUrl: newSystem.demoUrl,
-      image: newSystem.image
+      image: newSystem.images[0] || ''
     });
     
     dataManager.fetchSystemsForRentAsync().then(s => setSystems(s));
@@ -240,7 +240,7 @@ export default function AdminSystemsPage() {
       setupFee: 0,
       features: [],
       demoUrl: '',
-      image: ''
+      images: []
     });
     setNewFeature('');
     setToastMsg({ title: 'Sistema Atualizado', message: 'O sistema foi atualizado com sucesso.', type: 'success' });
@@ -259,7 +259,7 @@ export default function AdminSystemsPage() {
       setupFee: system.setupFee || 0,
       features: system.features,
       demoUrl: system.demoUrl || '',
-      image: system.image
+      images: system.image ? [system.image] : []
     });
     setShowAddSystemModal(true);
   };
@@ -273,6 +273,47 @@ export default function AdminSystemsPage() {
 
   const handleRemoveFeature = (index: number) => {
     setNewSystem(prev => ({ ...prev, features: prev.features.filter((_, i) => i !== index) }));
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploadingImages(true);
+
+    try {
+      const imageUrls: string[] = [];
+      
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.url) {
+            imageUrls.push(data.url);
+          }
+        }
+      }
+
+      setNewSystem(prev => ({ ...prev, images: [...prev.images, ...imageUrls] }));
+      setToastMsg({ title: 'Upload Concluído', message: `${imageUrls.length} imagem(ns) carregada(s) com sucesso.`, type: 'success' });
+    } catch (error) {
+      console.error('Erro ao fazer upload:', error);
+      setToastMsg({ title: 'Erro', message: 'Falha ao fazer upload das imagens.', type: 'error' });
+    } finally {
+      setUploadingImages(false);
+    }
+  };
+
+  const handleRemoveImage = (index: number) => {
+    setNewSystem(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }));
   };
 
   const filteredSystems = systems.filter(s => {
@@ -678,13 +719,56 @@ export default function AdminSystemsPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">URL da Imagem</label>
-                    <input
-                      type="url"
-                      value={newSystem.image}
-                      onChange={(e) => setNewSystem(prev => ({ ...prev, image: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    />
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Imagens</label>
+                    <div className="space-y-3">
+                      <div className="flex gap-2">
+                        <input
+                          type="url"
+                          value={newSystem.images.join(', ')}
+                          placeholder="URL da imagem (ou deixe vazio para upload)"
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                          readOnly
+                        />
+                        <label className="flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition cursor-pointer">
+                          <Upload className="h-4 w-4 mr-2" />
+                          <span>Upload</span>
+                          <input
+                            type="file"
+                            multiple
+                            accept="image/*"
+                            onChange={handleImageUpload}
+                            disabled={uploadingImages}
+                            className="hidden"
+                          />
+                        </label>
+                      </div>
+                      {newSystem.images.length > 0 && (
+                        <div className="grid grid-cols-3 gap-2">
+                          {newSystem.images.map((img, idx) => (
+                            <div key={idx} className="relative group">
+                              <img
+                                src={img}
+                                alt={`Imagem ${idx + 1}`}
+                                className="w-full h-24 object-cover rounded-lg border border-gray-200"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveImage(idx)}
+                                className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {uploadingImages && (
+                        <div className="flex items-center text-sm text-gray-600">
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                          A fazer upload das imagens...
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Funcionalidades</label>
@@ -814,7 +898,7 @@ export default function AdminSystemsPage() {
                       setupFee: 0,
                       features: [],
                       demoUrl: '',
-                      image: ''
+                      images: []
                     });
                     setNewFeature('');
                   }}
