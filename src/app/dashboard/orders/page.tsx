@@ -245,32 +245,32 @@ export default function OrdersPage() {
                         </div>
 
                         <div className="flex items-center space-x-3 w-full sm:w-auto pt-2.5 sm:pt-0 border-t sm:border-t-0 border-gray-100 shrink-0">
-                          <div className="text-right">
-                            <p className="text-lg font-bold text-gray-900">
+                          <div className="text-right w-full sm:w-auto">
+                            <p className="text-base sm:text-lg font-bold text-gray-900">
                               {(order.valorPorFaturar || 0) > 0 
                                 ? `${(order.valorPorFaturar || 0).toLocaleString('pt-MZ')} MT (por faturar)` 
                                 : `${(order.valorFaturado || 0).toLocaleString('pt-MZ')} MT (faturado)`
                               }
                             </p>
-                            <p className="text-[10px] text-gray-500">{getPaymentMethodText(order.paymentMethod)}</p>
+                            <p className="text-[10px] sm:text-xs text-gray-500">{getPaymentMethodText(order.paymentMethod)}</p>
                           </div>
                         </div>
                       </div>
 
-                      <div className="mt-4 pt-4 border-t grid grid-cols-2 gap-4 text-sm">
+                      <div className="mt-4 pt-4 border-t grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm">
                         <div>
-                          <p className="text-gray-600">Cliente</p>
-                          <p className="font-semibold text-gray-900">{order.clientName}</p>
+                          <p className="text-gray-600 text-[10px] sm:text-xs">Cliente</p>
+                          <p className="font-semibold text-gray-900 text-xs sm:text-sm truncate">{order.clientName}</p>
                         </div>
                         <div>
-                          <p className="text-gray-600">Contacto</p>
-                          <p className="font-semibold text-gray-900">{order.clientPhone}</p>
+                          <p className="text-gray-600 text-[10px] sm:text-xs">Contacto</p>
+                          <p className="font-semibold text-gray-900 text-xs sm:text-sm">{order.clientPhone}</p>
                         </div>
                       </div>
 
                       {order.status === 'pending' && (
-                        <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800 flex items-center space-x-2">
-                          <Clock className="h-4 w-4 text-amber-600 flex-shrink-0 animate-pulse" />
+                        <div className="mt-3 p-2.5 sm:p-3 bg-amber-50 border border-amber-200 rounded-lg text-[10px] sm:text-xs text-amber-800 flex items-center space-x-2">
+                          <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-amber-600 flex-shrink-0 animate-pulse" />
                           <span>
                             <strong>Pagamento Pendente:</strong> O seu pedido está aguardando confirmação do pagamento.
                           </span>
@@ -278,8 +278,8 @@ export default function OrdersPage() {
                       )}
 
                       {order.status === 'in_progress' && (
-                        <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-800 flex items-center space-x-2">
-                          <Clock className="h-4 w-4 text-blue-600 flex-shrink-0 animate-pulse" />
+                        <div className="mt-3 p-2.5 sm:p-3 bg-blue-50 border border-blue-200 rounded-lg text-[10px] sm:text-xs text-blue-800 flex items-center space-x-2">
+                          <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600 flex-shrink-0 animate-pulse" />
                           <span>
                             <strong>Em Desenvolvimento:</strong> A equipa WEHOSTHERE está a trabalhar no seu projeto. Você será notificado quando estiver concluído.
                           </span>
@@ -287,8 +287,8 @@ export default function OrdersPage() {
                       )}
 
                       {order.status === 'completed' && (
-                        <div className="mt-3 p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-xs text-emerald-800 flex items-center space-x-2">
-                          <CheckCircle className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+                        <div className="mt-3 p-2.5 sm:p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-[10px] sm:text-xs text-emerald-800 flex items-center space-x-2">
+                          <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-600 flex-shrink-0" />
                           <span>
                             <strong>Concluído:</strong> O seu pedido foi concluído com sucesso! Verifique a secção &quot;Meus Sites&quot; para aceder ao seu projeto.
                           </span>
@@ -297,19 +297,19 @@ export default function OrdersPage() {
 
                       {order.proofUrl && (
                         <div className="mt-3 pt-3 border-t border-gray-100">
-                          <span className="text-[11px] font-bold text-gray-700 uppercase tracking-wider flex items-center space-x-1 mb-2">
-                            <FileText className="h-3.5 w-3.5 text-primary-600" />
+                          <span className="text-[10px] sm:text-[11px] font-bold text-gray-700 uppercase tracking-wider flex items-center space-x-1 mb-2">
+                            <FileText className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-primary-600" />
                             <span>Comprovativo de Pagamento</span>
                           </span>
                           <a
                             href={order.proofUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center space-x-2 px-3 py-2 bg-gray-50 hover:bg-primary-50 rounded-lg border border-gray-200 text-xs font-bold text-gray-700 hover:text-primary-700 transition cursor-pointer"
+                            className="inline-flex items-center space-x-1.5 sm:space-x-2 px-2.5 sm:px-3 py-1.5 sm:py-2 bg-gray-50 hover:bg-primary-50 rounded-lg border border-gray-200 text-[10px] sm:text-xs font-bold text-gray-700 hover:text-primary-700 transition cursor-pointer"
                           >
-                            <Download className="h-3.5 w-3.5" />
-                            <span>{order.proofName || 'Ver comprovativo'}</span>
-                            <ExternalLink className="h-3 w-3" />
+                            <Download className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                            <span className="truncate max-w-[120px] sm:max-w-[200px]">{order.proofName || 'Ver comprovativo'}</span>
+                            <ExternalLink className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                           </a>
                         </div>
                       )}
