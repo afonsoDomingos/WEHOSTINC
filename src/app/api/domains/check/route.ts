@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dns from 'dns/promises';
-import { DOMAIN_PRICES, sanitizeDomainName, getDomainPrice, addDomainSearchLog } from '@/lib/domains';
+import { DOMAIN_PRICES, sanitizeDomainName, getDomainPrice } from '@/lib/domains';
+import { connectDB } from '@/lib/mongodb';
+import DomainSearchLogModel from '@/lib/models/DomainSearchLog';
 
 /**
  * Verifica se um domínio possui registros DNS ativos na internet.
@@ -90,36 +92,35 @@ export async function GET(req: NextRequest) {
 
   const isAvailable = !isTaken;
 
-  // Registar no histórico central via POST (persiste no mesmo store que o admin vê)
-  // Usar URL absoluta para garantir funcionamento em server-side
+  // Registrar diretamente no MongoDB
   let searchCount = 1;
   try {
-    const baseUrl = req.nextUrl.origin;
-    console.log(`[Domain Check] Registrando pesquisa no histórico: ${fullDomain}`);
-    console.log(`[Domain Check] Base URL: ${baseUrl}`);
-    console.log(`[Domain Check] Payload:`, { domain: fullDomain, extension, isAvailable });
+    await connectDB();
+    const cleanDomain = fullDomain.toLowerCase().trim();
+    const now = new Date().toISOString();
     
-    const logRes = await fetch(`${baseUrl}/api/domains/history`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ domain: fullDomain, extension, isAvailable }),
-    });
+    const existing = await DomainSearchLogModel.findOne({ domain: cleanDomain });
     
-    console.log(`[Domain Check] Resposta do history API: ${logRes.status} ${logRes.statusText}`);
-    
-    if (logRes.ok) {
-      const logData = await logRes.json();
-      searchCount = logData.searchCount || 1;
-      console.log(`[Domain Check] searchCount retornado: ${searchCount}, source: ${logData.source}`);
-      console.log(`[Domain Check] Dados completos:`, logData);
+    if (existing) {
+      existing.timestamp = now;
+      existing.isAvailable = isAvailable;
+      existing.searchCount = (existing.searchCount || 1) + 1;
+      searchCount = existing.searchCount;
+      await existing.save();
+      console.log(`[Domain Check] Atualizado no MongoDB: ${cleanDomain} (count: ${searchCount})`);
     } else {
-      const errorText = await logRes.text();
-      console.error(`[Domain Check] Erro ao registrar no history: ${logRes.status}`);
-      console.error(`[Domain Check] Corpo do erro:`, errorText);
+      await DomainSearchLogModel.create({
+        id: Date.now().toString() + Math.random().toString(36).substring(2, 6),
+        domain: cleanDomain,
+        extension,
+        isAvailable,
+        searchCount: 1,
+        timestamp: now
+      });
+      console.log(`[Domain Check] Criado no MongoDB: ${cleanDomain}`);
     }
   } catch (logErr) {
-    console.error('[Domain Check] Erro ao registar pesquisa de domínio no histórico:', logErr);
-    console.error('[Domain Check] Detalhes do erro:', logErr instanceof Error ? logErr.message : String(logErr));
+    console.error('[Domain Check] Erro ao registrar no MongoDB:', logErr);
   }
 
   // Consultar disponibilidade das alternativas em paralelo
