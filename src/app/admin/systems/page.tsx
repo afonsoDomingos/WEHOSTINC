@@ -31,6 +31,21 @@ export default function AdminSystemsPage() {
   const [accessPassword, setAccessPassword] = useState('');
   const [accessUrl, setAccessUrl] = useState('');
   
+  const [showAddSystemModal, setShowAddSystemModal] = useState(false);
+  const [newSystem, setNewSystem] = useState({
+    name: '',
+    shortDescription: '',
+    description: '',
+    category: '',
+    monthlyPrice: 0,
+    yearlyPrice: 0,
+    setupFee: 0,
+    features: [] as string[],
+    demoUrl: '',
+    image: ''
+  });
+  const [newFeature, setNewFeature] = useState('');
+  
   const [toastMsg, setToastMsg] = useState<{ title?: string; message: string; type: 'success' | 'error' | 'info' | 'warning' } | null>(null);
   const [confirmModalData, setConfirmModalData] = useState<{
     isOpen: boolean;
@@ -148,6 +163,57 @@ export default function AdminSystemsPage() {
     setAccessPassword('');
     setAccessUrl('');
     setToastMsg({ title: 'Acesso Criado', message: 'As credenciais foram enviadas ao cliente.', type: 'success' });
+  };
+
+  const handleAddSystem = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const systemData: Omit<SystemForRent, 'id' | 'createdAt' | 'updatedAt'> = {
+      name: newSystem.name,
+      shortDescription: newSystem.shortDescription,
+      description: newSystem.description,
+      category: newSystem.category,
+      monthlyPrice: newSystem.monthlyPrice,
+      yearlyPrice: newSystem.yearlyPrice,
+      setupFee: newSystem.setupFee,
+      features: newSystem.features,
+      demoUrl: newSystem.demoUrl,
+      image: newSystem.image,
+      isActive: true,
+      approvalStatus: 'approved',
+      developerEmail: 'admin@wehosthere.com',
+      developerName: 'WeHostHere'
+    };
+
+    dataManager.addSystemForRent(systemData);
+    dataManager.fetchSystemsForRentAsync().then(s => setSystems(s));
+    
+    setShowAddSystemModal(false);
+    setNewSystem({
+      name: '',
+      shortDescription: '',
+      description: '',
+      category: '',
+      monthlyPrice: 0,
+      yearlyPrice: 0,
+      setupFee: 0,
+      features: [],
+      demoUrl: '',
+      image: ''
+    });
+    setNewFeature('');
+    setToastMsg({ title: 'Sistema Adicionado', message: 'O sistema foi adicionado com sucesso.', type: 'success' });
+  };
+
+  const handleAddFeature = () => {
+    if (newFeature.trim()) {
+      setNewSystem(prev => ({ ...prev, features: [...prev.features, newFeature.trim()] }));
+      setNewFeature('');
+    }
+  };
+
+  const handleRemoveFeature = (index: number) => {
+    setNewSystem(prev => ({ ...prev, features: prev.features.filter((_, i) => i !== index) }));
   };
 
   const filteredSystems = systems.filter(s => {
@@ -268,13 +334,13 @@ export default function AdminSystemsPage() {
                   <option value="rejected">Rejeitados</option>
                 </select>
               </div>
-              <Link
-                href="/dashboard/submit-system"
+              <button
+                onClick={() => setShowAddSystemModal(true)}
                 className="inline-flex items-center space-x-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition text-sm font-medium"
               >
                 <Plus className="h-4 w-4" />
                 <span>Adicionar Sistema</span>
-              </Link>
+              </button>
             </div>
 
             {filteredSystems.length === 0 ? (
@@ -456,6 +522,184 @@ export default function AdminSystemsPage() {
           </div>
         )}
       </div>
+
+      {/* Modal de Adicionar Sistema */}
+      {showAddSystemModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 my-8">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Adicionar Novo Sistema</h2>
+            <form onSubmit={handleAddSystem} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Nome do Sistema *</label>
+                  <input
+                    type="text"
+                    value={newSystem.name}
+                    onChange={(e) => setNewSystem(prev => ({ ...prev, name: e.target.value }))}
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Descrição Curta *</label>
+                  <input
+                    type="text"
+                    value={newSystem.shortDescription}
+                    onChange={(e) => setNewSystem(prev => ({ ...prev, shortDescription: e.target.value }))}
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Descrição Completa *</label>
+                  <textarea
+                    value={newSystem.description}
+                    onChange={(e) => setNewSystem(prev => ({ ...prev, description: e.target.value }))}
+                    required
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Categoria *</label>
+                  <select
+                    value={newSystem.category}
+                    onChange={(e) => setNewSystem(prev => ({ ...prev, category: e.target.value }))}
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  >
+                    <option value="">Selecione...</option>
+                    <option value="ecommerce">E-commerce</option>
+                    <option value="gestao">Gestão</option>
+                    <option value="educacao">Educação</option>
+                    <option value="saude">Saúde</option>
+                    <option value="financeiro">Financeiro</option>
+                    <option value="marketing">Marketing</option>
+                    <option value="rh">Recursos Humanos</option>
+                    <option value="outros">Outros</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">URL da Imagem</label>
+                  <input
+                    type="url"
+                    value={newSystem.image}
+                    onChange={(e) => setNewSystem(prev => ({ ...prev, image: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Preço Mensal (MT) *</label>
+                  <input
+                    type="number"
+                    value={newSystem.monthlyPrice}
+                    onChange={(e) => setNewSystem(prev => ({ ...prev, monthlyPrice: Number(e.target.value) }))}
+                    required
+                    min="0"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Preço Anual (MT) *</label>
+                  <input
+                    type="number"
+                    value={newSystem.yearlyPrice}
+                    onChange={(e) => setNewSystem(prev => ({ ...prev, yearlyPrice: Number(e.target.value) }))}
+                    required
+                    min="0"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Taxa de Setup (MT)</label>
+                  <input
+                    type="number"
+                    value={newSystem.setupFee}
+                    onChange={(e) => setNewSystem(prev => ({ ...prev, setupFee: Number(e.target.value) }))}
+                    min="0"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">URL de Demo</label>
+                  <input
+                    type="url"
+                    value={newSystem.demoUrl}
+                    onChange={(e) => setNewSystem(prev => ({ ...prev, demoUrl: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Funcionalidades</label>
+                  <div className="flex gap-2 mb-2">
+                    <input
+                      type="text"
+                      value={newFeature}
+                      onChange={(e) => setNewFeature(e.target.value)}
+                      placeholder="Adicionar funcionalidade..."
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddFeature}
+                      className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
+                    >
+                      Adicionar
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {newSystem.features.map((feature, index) => (
+                      <span
+                        key={index}
+                        className="inline-flex items-center px-3 py-1 bg-primary-100 text-primary-700 rounded-full text-sm"
+                      >
+                        {feature}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveFeature(index)}
+                          className="ml-2 text-primary-600 hover:text-primary-800"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="flex gap-2 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAddSystemModal(false);
+                    setNewSystem({
+                      name: '',
+                      shortDescription: '',
+                      description: '',
+                      category: '',
+                      monthlyPrice: 0,
+                      yearlyPrice: 0,
+                      setupFee: 0,
+                      features: [],
+                      demoUrl: '',
+                      image: ''
+                    });
+                    setNewFeature('');
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition"
+                >
+                  Adicionar Sistema
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Modal de Credenciais */}
       {showAccessModal && selectedRequest && (
