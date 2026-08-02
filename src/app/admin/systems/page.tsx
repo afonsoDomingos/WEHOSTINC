@@ -870,7 +870,15 @@ export default function AdminSystemsPage() {
                   </button>
                 ) : (
                   <button
-                    type="submit"
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (editingSystem) {
+                        handleEditSystem(e as any);
+                      } else {
+                        handleAddSystem(e as any);
+                      }
+                    }}
                     className="flex-1 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition"
                   >
                     {editingSystem ? 'Atualizar Sistema' : 'Adicionar Sistema'}
