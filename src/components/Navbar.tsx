@@ -73,14 +73,32 @@ export default function Navbar() {
           <div className="hidden md:flex items-center space-x-2 lg:space-x-3">
             {user ? (
               <>
-                <Link
-                  href={user.role === 'admin' || user.email.toLowerCase() === 'admin@wehosthere.com' ? '/admin' : '/dashboard'}
-                  className="px-3 sm:px-4 pyramid-2 sm:py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-sm hover:shadow transition flex items-center space-x-1.5 sm:space-x-2"
-                >
-                  <LayoutDashboard className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                  <span className="hidden sm:inline">{user.role === 'admin' || user.email.toLowerCase() === 'admin@wehosthere.com' ? 'Painel Admin' : 'Meu Painel'}</span>
-                  <span className="sm:hidden">Painel</span>
-                </Link>
+                <div className="flex items-center space-x-2 lg:space-x-3">
+                  {user.avatar ? (
+                    <div className="relative group cursor-pointer">
+                      <img
+                        src={user.avatar}
+                        alt="Avatar"
+                        className="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border-2 border-primary-200 hover:border-primary-400 transition"
+                      />
+                      <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                        <UserIcon className="h-4 w-4 text-white" />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-primary-500 to-purple-600 text-white flex items-center justify-center font-bold text-xs sm:text-sm border-2 border-primary-200">
+                      {user.name.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  <Link
+                    href={user.role === 'admin' || user.email.toLowerCase() === 'admin@wehosthere.com' ? '/admin' : '/dashboard'}
+                    className="px-3 sm:px-4 py-2 sm:py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-sm hover:shadow transition flex items-center space-x-1.5 sm:space-x-2"
+                  >
+                    <LayoutDashboard className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">{user.role === 'admin' || user.email.toLowerCase() === 'admin@wehosthere.com' ? 'Painel Admin' : 'Meu Painel'}</span>
+                    <span className="sm:hidden">Painel</span>
+                  </Link>
+                </div>
                 <button
                   type="button"
                   onClick={handleLogout}
@@ -164,8 +182,23 @@ export default function Navbar() {
           <div className="pt-2 sm:pt-2.5 border-t border-gray-100 flex flex-col space-y-2 sm:space-y-2.5">
             {user ? (
               <>
-                <div className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-50 rounded-xl border border-gray-200 text-[10px] sm:text-xs text-gray-600 font-medium truncate">
-                  Sessão iniciada como: <strong className="text-gray-900 font-bold block">{user.email}</strong>
+                <div className="flex items-center space-x-3 px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-50 rounded-xl border border-gray-200">
+                  {user.avatar ? (
+                    <img
+                      src={user.avatar}
+                      alt="Avatar"
+                      className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-primary-200"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-primary-500 to-purple-600 text-white flex items-center justify-center font-bold text-sm sm:text-base border-2 border-primary-200 shrink-0">
+                      {user.name.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] sm:text-xs text-gray-600 font-medium">Sessão iniciada como:</p>
+                    <p className="text-xs sm:text-sm text-gray-900 font-bold truncate">{user.name}</p>
+                    <p className="text-[9px] sm:text-[10px] text-gray-500 truncate">{user.email}</p>
+                  </div>
                 </div>
                 <Link
                   href="/dashboard"
