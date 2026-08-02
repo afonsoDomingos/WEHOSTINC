@@ -24,55 +24,35 @@ export async function POST(req: Request) {
     cloudinaryFormData.append('timestamp', timestamp);
     cloudinaryFormData.append('signature', signature);
 
-    // Tentar upload direto na API REST do Cloudinary
-    try {
-      const cloudinaryRes = await fetch(
-        `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`,
-        {
-          method: 'POST',
-          body: cloudinaryFormData
-        }
-      );
-
-      if (cloudinaryRes.ok) {
-        const data = await cloudinaryRes.json();
-        const fileType = file.type.startsWith('image/')
-          ? 'image'
-          : file.type === 'application/pdf' || file.name.endsWith('.pdf')
-          ? 'pdf'
-          : 'file';
-
-        return NextResponse.json({
-          success: true,
-          url: data.secure_url || data.url,
-          name: file.name,
-          type: fileType,
-          format: data.format,
-          bytes: data.bytes
-        });
+    // Upload direto na API REST do Cloudinary
+    const cloudinaryRes = await fetch(
+      `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`,
+      {
+        method: 'POST',
+        body: cloudinaryFormData
       }
-    } catch (apiError) {
-      console.warn('Falha no upload direto para Cloudinary, usando fallback:', apiError);
+    );
+
+    if (!cloudinaryRes.ok) {
+      const errorText = await cloudinaryRes.text();
+      console.error('Erro no upload para Cloudinary:', errorText);
+      return NextResponse.json({ error: 'Falha no upload para Cloudinary' }, { status: 500 });
     }
 
-    // Fallback gracioso usando Data URL se a chamada externa falhar
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    const mimeType = file.type || 'application/octet-stream';
-    const base64Url = `data:${mimeType};base64,${buffer.toString('base64')}`;
-
-    const fileType = mimeType.startsWith('image/')
+    const data = await cloudinaryRes.json();
+    const fileType = file.type.startsWith('image/')
       ? 'image'
-      : mimeType === 'application/pdf' || file.name.endsWith('.pdf')
+      : file.type === 'application/pdf' || file.name.endsWith('.pdf')
       ? 'pdf'
       : 'file';
 
     return NextResponse.json({
       success: true,
-      url: base64Url,
+      url: data.secure_url || data.url,
       name: file.name,
       type: fileType,
-      bytes: buffer.length
+      format: data.format,
+      bytes: data.bytes
     });
   } catch (error) {
     console.error('Erro na API de upload:', error);
