@@ -19,7 +19,7 @@ export default function SystemsPage() {
     // Carregar sistemas
     const loadSystems = async () => {
       const fetched = await dataManager.fetchSystemsForRentAsync();
-      setSystems(fetched.filter(s => s.isActive));
+      setSystems(fetched.filter(s => s.isActive && s.approvalStatus === 'approved'));
       setLoading(false);
     };
 

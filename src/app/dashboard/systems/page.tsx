@@ -49,7 +49,7 @@ export default function DashboardSystemsPage() {
         dataManager.fetchSystemAccessesAsync()
       ]);
 
-      const activeSystems = fetchedSystems.filter((s: SystemForRent) => s.isActive);
+      const activeSystems = fetchedSystems.filter((s: SystemForRent) => s.isActive && s.approvalStatus === 'approved');
       setSystems(activeSystems);
       setRequests(fetchedRequests.filter((r: RentalRequest) => 
         r.clientEmail.toLowerCase() === currentUser.email.toLowerCase()
