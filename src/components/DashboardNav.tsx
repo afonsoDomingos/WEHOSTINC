@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
   Server, LayoutDashboard, Globe, Mail, 
-  Database, Settings as SettingsIcon, LogOut, Menu, X, User, LifeBuoy, Sparkles, Link2, RefreshCw, FileText
+  Database, Settings as SettingsIcon, LogOut, Menu, X, User, LifeBuoy, Sparkles, Link2, RefreshCw, FileText, Star
 } from 'lucide-react';
 
 import BrandLogo from '@/components/BrandLogo';
@@ -36,6 +36,7 @@ export default function DashboardNav({ userName, userAvatar, onLogout, onRefresh
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/dashboard/sites', label: 'Meus Domínios & Sites', icon: Globe },
     { href: '/dashboard/orders', label: 'Meus Pedidos', icon: FileText },
+    { href: '/dashboard/systems', label: 'Sistemas', icon: Star },
     { href: '/dashboard/site-quote', label: 'Solicitar Site', icon: Sparkles },
     { href: '/dashboard/domains', label: 'Comprar Domínio', icon: Link2 },
     { href: '/dashboard/email', label: 'Email', icon: Mail },

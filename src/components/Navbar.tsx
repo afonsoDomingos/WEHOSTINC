@@ -56,6 +56,12 @@ export default function Navbar() {
               Criação de Sites (a partir de 12.000 MT)
             </Link>
             <Link 
+              href="/systems" 
+              className="text-xs sm:text-sm font-medium text-gray-700 hover:text-primary-600 transition"
+            >
+              Sistemas Prontos
+            </Link>
+            <Link 
               href="/#recursos" 
               className="text-xs sm:text-sm font-medium text-gray-700 hover:text-primary-600 transition"
             >
@@ -158,6 +164,13 @@ export default function Navbar() {
             >
               <span>Criação de Sites</span>
               <span className="text-[10px] sm:text-xs bg-primary-600 text-white px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full">a partir 12.000 MT</span>
+            </Link>
+            <Link
+              href="/systems"
+              onClick={closeMobileMenu}
+              className="px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-medium text-gray-800 hover:bg-primary-50 hover:text-primary-600 transition"
+            >
+              Sistemas Prontos
             </Link>
             <Link
               href="#recursos"

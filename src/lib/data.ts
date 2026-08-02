@@ -18,6 +18,58 @@ export interface ServiceOrder {
   createdAt: string;
 }
 
+export interface SystemForRent {
+  id: string;
+  name: string;
+  description: string;
+  shortDescription: string;
+  category: string;
+  image: string;
+  demoUrl?: string;
+  features: string[];
+  monthlyPrice: number;
+  yearlyPrice: number;
+  setupFee?: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RentalRequest {
+  id: string;
+  systemId: string;
+  systemName: string;
+  clientName: string;
+  clientEmail: string;
+  clientPhone: string;
+  billingCycle: 'monthly' | 'yearly';
+  amount: number;
+  paymentMethod: 'mpesa' | 'emola' | 'card' | 'bank_transfer';
+  proofUrl?: string;
+  proofName?: string;
+  status: 'pending' | 'approved' | 'rejected' | 'cancelled';
+  createdAt: string;
+  approvedAt?: string;
+  rejectedAt?: string;
+  rejectionReason?: string;
+}
+
+export interface SystemAccess {
+  id: string;
+  systemId: string;
+  systemName: string;
+  clientEmail: string;
+  username: string;
+  password: string;
+  accessUrl: string;
+  status: 'active' | 'expired' | 'suspended';
+  startDate: string;
+  endDate: string;
+  billingCycle: 'monthly' | 'yearly';
+  createdAt: string;
+  lastRenewedAt?: string;
+}
+
 export interface Site {
   id: string;
   name: string;
@@ -1247,6 +1299,218 @@ export const dataManager = {
       }).catch(() => {});
     }
     return newLog;
+  },
+
+  // Systems for Rent
+  getSystemsForRent: (): SystemForRent[] => {
+    if (typeof window === 'undefined') return [];
+    const data = localStorage.getItem('wehosthere_systems');
+    return data ? JSON.parse(data) : [];
+  },
+
+  fetchSystemsForRentAsync: async (): Promise<SystemForRent[]> => {
+    try {
+      const res = await fetch(apiEndpoint('/api/systems'));
+      if (res.ok) {
+        const data = await res.json();
+        if (data.systems && Array.isArray(data.systems)) {
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('wehosthere_systems', JSON.stringify(data.systems));
+          }
+          return data.systems;
+        }
+      }
+    } catch (e) {
+      console.error('Falha ao buscar sistemas:', e);
+    }
+    return dataManager.getSystemsForRent();
+  },
+
+  addSystemForRent: (systemData: Omit<SystemForRent, 'id' | 'createdAt' | 'updatedAt'>): SystemForRent => {
+    const systems = dataManager.getSystemsForRent();
+    const now = new Date().toISOString();
+    const newSystem: SystemForRent = {
+      ...systemData,
+      id: `SYS-${Math.floor(1000 + Math.random() * 9000)}`,
+      createdAt: now,
+      updatedAt: now
+    };
+    systems.unshift(newSystem);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('wehosthere_systems', JSON.stringify(systems));
+
+      fetch(apiEndpoint('/api/systems'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'create', system: newSystem })
+      }).catch(err => console.error('Erro de sync de sistema no servidor:', err));
+    }
+    return newSystem;
+  },
+
+  updateSystemForRent: (systemId: string, updates: Partial<SystemForRent>): void => {
+    const systems = dataManager.getSystemsForRent().map(s => {
+      if (s.id === systemId) {
+        return { ...s, ...updates, updatedAt: new Date().toISOString() };
+      }
+      return s;
+    });
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('wehosthere_systems', JSON.stringify(systems));
+
+      fetch(apiEndpoint('/api/systems'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update', systemId, updates })
+      }).catch(err => console.error('Erro de sync de atualização de sistema:', err));
+    }
+  },
+
+  deleteSystemForRent: (systemId: string): void => {
+    const systems = dataManager.getSystemsForRent().filter(s => s.id !== systemId);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('wehosthere_systems', JSON.stringify(systems));
+
+      fetch(apiEndpoint('/api/systems'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete', systemId })
+      }).catch(err => console.error('Erro de sync de remoção de sistema:', err));
+    }
+  },
+
+  // Rental Requests
+  getRentalRequests: (): RentalRequest[] => {
+    if (typeof window === 'undefined') return [];
+    const data = localStorage.getItem('wehosthere_rental_requests');
+    return data ? JSON.parse(data) : [];
+  },
+
+  fetchRentalRequestsAsync: async (): Promise<RentalRequest[]> => {
+    try {
+      const res = await fetch(apiEndpoint('/api/rental-requests'));
+      if (res.ok) {
+        const data = await res.json();
+        if (data.requests && Array.isArray(data.requests)) {
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('wehosthere_rental_requests', JSON.stringify(data.requests));
+          }
+          return data.requests;
+        }
+      }
+    } catch (e) {
+      console.error('Falha ao buscar pedidos de aluguer:', e);
+    }
+    return dataManager.getRentalRequests();
+  },
+
+  addRentalRequest: (requestData: Omit<RentalRequest, 'id' | 'createdAt'>): RentalRequest => {
+    const requests = dataManager.getRentalRequests();
+    const now = new Date().toISOString();
+    const newRequest: RentalRequest = {
+      ...requestData,
+      id: `RQ-${Math.floor(1000 + Math.random() * 9000)}`,
+      createdAt: now
+    };
+    requests.unshift(newRequest);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('wehosthere_rental_requests', JSON.stringify(requests));
+
+      fetch(apiEndpoint('/api/rental-requests'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'create', request: newRequest })
+      }).catch(err => console.error('Erro de sync de pedido de aluguer no servidor:', err));
+    }
+    return newRequest;
+  },
+
+  updateRentalRequest: (requestId: string, updates: Partial<RentalRequest>): void => {
+    const requests = dataManager.getRentalRequests().map(r => {
+      if (r.id === requestId) {
+        return { ...r, ...updates };
+      }
+      return r;
+    });
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('wehosthere_rental_requests', JSON.stringify(requests));
+
+      fetch(apiEndpoint('/api/rental-requests'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update', requestId, updates })
+      }).catch(err => console.error('Erro de sync de atualização de pedido de aluguer:', err));
+    }
+  },
+
+  // System Access
+  getSystemAccesses: (): SystemAccess[] => {
+    if (typeof window === 'undefined') return [];
+    const data = localStorage.getItem('wehosthere_system_accesses');
+    return data ? JSON.parse(data) : [];
+  },
+
+  fetchSystemAccessesAsync: async (): Promise<SystemAccess[]> => {
+    try {
+      const res = await fetch(apiEndpoint('/api/system-accesses'));
+      if (res.ok) {
+        const data = await res.json();
+        if (data.accesses && Array.isArray(data.accesses)) {
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('wehosthere_system_accesses', JSON.stringify(data.accesses));
+          }
+          return data.accesses;
+        }
+      }
+    } catch (e) {
+      console.error('Falha ao buscar acessos de sistemas:', e);
+    }
+    return dataManager.getSystemAccesses();
+  },
+
+  addSystemAccess: (accessData: Omit<SystemAccess, 'id' | 'createdAt'>): SystemAccess => {
+    const accesses = dataManager.getSystemAccesses();
+    const now = new Date().toISOString();
+    const newAccess: SystemAccess = {
+      ...accessData,
+      id: `ACC-${Math.floor(1000 + Math.random() * 9000)}`,
+      createdAt: now
+    };
+    accesses.unshift(newAccess);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('wehosthere_system_accesses', JSON.stringify(accesses));
+
+      fetch(apiEndpoint('/api/system-accesses'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'create', access: newAccess })
+      }).catch(err => console.error('Erro de sync de acesso de sistema no servidor:', err));
+    }
+    return newAccess;
+  },
+
+  updateSystemAccess: (accessId: string, updates: Partial<SystemAccess>): void => {
+    const accesses = dataManager.getSystemAccesses().map(a => {
+      if (a.id === accessId) {
+        return { ...a, ...updates };
+      }
+      return a;
+    });
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('wehosthere_system_accesses', JSON.stringify(accesses));
+
+      fetch(apiEndpoint('/api/system-accesses'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update', accessId, updates })
+      }).catch(err => console.error('Erro de sync de atualização de acesso de sistema:', err));
+    }
+  },
+
+  getClientSystemAccesses: (clientEmail: string): SystemAccess[] => {
+    return dataManager.getSystemAccesses().filter(a => 
+      a.clientEmail.toLowerCase() === clientEmail.toLowerCase()
+    );
   }
 };
 
