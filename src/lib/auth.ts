@@ -102,7 +102,16 @@ const clearFailedAttempts = (email: string) => {
 // Função para obter IP e país do usuário via API de geolocalização
 const getClientLocation = async (): Promise<{ ipAddress: string; country: string }> => {
   try {
-    const res = await fetch('https://ipapi.co/json/');
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
+    
+    const res = await fetch('https://ipapi.co/json/', { 
+      signal: controller.signal,
+      cache: 'no-cache'
+    });
+    
+    clearTimeout(timeoutId);
+    
     if (res.ok) {
       const data = await res.json();
       return {
@@ -111,7 +120,10 @@ const getClientLocation = async (): Promise<{ ipAddress: string; country: string
       };
     }
   } catch (e) {
-    console.warn('Não foi possível obter localização do cliente:', e);
+    // Silently fail - location is optional
+    if (e instanceof Error && e.name !== 'AbortError') {
+      console.warn('Não foi possível obter localização do cliente:', e);
+    }
   }
   return { ipAddress: '', country: '' };
 };
