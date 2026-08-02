@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ExternalLink, Play, Check, Star, ArrowRight } from 'lucide-react';
+import { ExternalLink, Play, Check, Star, ArrowRight, Search, Filter } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import PageLoader from '@/components/PageLoader';
 import { dataManager, SystemForRent } from '@/lib/data';
@@ -12,23 +12,70 @@ import { auth } from '@/lib/auth';
 export default function SystemsPage() {
   const router = useRouter();
   const [systems, setSystems] = useState<SystemForRent[]>([]);
+  const [filteredSystems, setFilteredSystems] = useState<SystemForRent[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(auth.getCurrentUser() || null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [priceRange, setPriceRange] = useState('all');
+  const [ratings, setRatings] = useState<Record<string, number>>({});
 
   useEffect(() => {
-    // Carregar sistemas
-    const loadSystems = async () => {
+    // Carregar sistemas e avaliações
+    const loadData = async () => {
       const fetched = await dataManager.fetchSystemsForRentAsync();
-      setSystems(fetched.filter(s => s.isActive && s.approvalStatus === 'approved'));
+      const activeSystems = fetched.filter(s => s.isActive && s.approvalStatus === 'approved');
+      setSystems(activeSystems);
+      setFilteredSystems(activeSystems);
+
+      // Carregar avaliações
+      await dataManager.fetchSystemRatingsAsync();
+      const ratingMap: Record<string, number> = {};
+      activeSystems.forEach(system => {
+        ratingMap[system.id] = dataManager.getAverageRating(system.id);
+      });
+      setRatings(ratingMap);
+
       setLoading(false);
     };
 
-    loadSystems();
+    loadData();
 
     // Verificar se usuário está logado
     const currentUser = auth.getCurrentUser();
     setUser(currentUser);
   }, []);
+
+  // Filtrar sistemas
+  useEffect(() => {
+    let filtered = systems;
+
+    // Filtro de busca
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(s =>
+        s.name.toLowerCase().includes(query) ||
+        s.shortDescription.toLowerCase().includes(query) ||
+        s.category.toLowerCase().includes(query)
+      );
+    }
+
+    // Filtro de categoria
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter(s => s.category === selectedCategory);
+    }
+
+    // Filtro de preço
+    if (priceRange === 'low') {
+      filtered = filtered.filter(s => s.monthlyPrice < 5000);
+    } else if (priceRange === 'medium') {
+      filtered = filtered.filter(s => s.monthlyPrice >= 5000 && s.monthlyPrice < 15000);
+    } else if (priceRange === 'high') {
+      filtered = filtered.filter(s => s.monthlyPrice >= 15000);
+    }
+
+    setFilteredSystems(filtered);
+  }, [searchQuery, selectedCategory, priceRange, systems]);
 
   const handleRentSystem = (systemId: string) => {
     if (!user) {
@@ -37,6 +84,18 @@ export default function SystemsPage() {
     }
     router.push(`/dashboard/systems?rent=${systemId}`);
   };
+
+  const categories = [
+    { value: 'all', label: 'Todas' },
+    { value: 'ecommerce', label: 'E-commerce' },
+    { value: 'gestao', label: 'Gestão' },
+    { value: 'educacao', label: 'Educação' },
+    { value: 'saude', label: 'Saúde' },
+    { value: 'financeiro', label: 'Financeiro' },
+    { value: 'marketing', label: 'Marketing' },
+    { value: 'rh', label: 'Recursos Humanos' },
+    { value: 'outros', label: 'Outros' }
+  ];
 
   if (loading) {
     return (
@@ -115,7 +174,7 @@ export default function SystemsPage() {
       {/* Sistemas Disponíveis */}
       <div id="sistemas" className="py-12 sm:py-16 md:py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-          <div className="text-center mb-10 sm:mb-12">
+          <div className="text-center mb-8 sm:mb-10">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">
               Sistemas Disponíveis
             </h2>
@@ -124,19 +183,74 @@ export default function SystemsPage() {
             </p>
           </div>
 
-          {systems.length === 0 ? (
+          {/* Busca e Filtros */}
+          <div className="bg-white rounded-2xl shadow-sm p-4 sm:p-6 mb-6 sm:mb-8">
+            <div className="flex flex-col md:flex-row gap-4">
+              {/* Busca */}
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                  <input
+                    type="text"
+                    placeholder="Buscar sistemas..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+
+              {/* Filtro de Categoria */}
+              <div className="flex-1">
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="w-full px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                >
+                  {categories.map(cat => (
+                    <option key={cat.value} value={cat.value}>{cat.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Filtro de Preço */}
+              <div className="flex-1">
+                <select
+                  value={priceRange}
+                  onChange={(e) => setPriceRange(e.target.value)}
+                  className="w-full px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                >
+                  <option value="all">Todos os Preços</option>
+                  <option value="low">Até 5.000 MT/mês</option>
+                  <option value="medium">5.000 - 15.000 MT/mês</option>
+                  <option value="high">Acima de 15.000 MT/mês</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Resultados */}
+            <div className="mt-4 text-sm text-gray-600">
+              {filteredSystems.length === systems.length ? (
+                <span>Mostrando {systems.length} sistema(s)</span>
+              ) : (
+                <span>Mostrando {filteredSystems.length} de {systems.length} sistema(s)</span>
+              )}
+            </div>
+          </div>
+
+          {filteredSystems.length === 0 ? (
             <div className="text-center py-12 sm:py-16 bg-white rounded-2xl shadow-sm">
               <Star className="h-16 w-16 text-gray-300 mx-auto mb-4" />
               <h3 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-2">
-                Nenhum sistema disponível no momento
+                Nenhum sistema encontrado
               </h3>
               <p className="text-gray-600 text-sm sm:text-base max-w-md mx-auto">
-                Estamos a preparar novos sistemas. Volte em breve!
+                Tente ajustar os filtros ou a busca para encontrar o sistema que procura.
               </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-              {systems.map((system) => (
+              {filteredSystems.map((system) => (
                 <div key={system.id} className="bg-white rounded-2xl shadow-sm hover:shadow-lg transition overflow-hidden border border-gray-100">
                   {/* Imagem */}
                   <div className="relative h-48 sm:h-56 bg-gradient-to-br from-primary-100 to-purple-100 flex items-center justify-center">
@@ -165,9 +279,17 @@ export default function SystemsPage() {
                   {/* Conteúdo */}
                   <div className="p-5 sm:p-6">
                     <div className="mb-3">
-                      <span className="inline-block px-2.5 py-1 bg-primary-50 text-primary-700 text-xs font-semibold rounded-full mb-2">
-                        {system.category}
-                      </span>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="inline-block px-2.5 py-1 bg-primary-50 text-primary-700 text-xs font-semibold rounded-full">
+                          {system.category}
+                        </span>
+                        {ratings[system.id] > 0 && (
+                          <div className="flex items-center space-x-1">
+                            <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
+                            <span className="text-sm font-semibold text-gray-700">{ratings[system.id]}</span>
+                          </div>
+                        )}
+                      </div>
                       <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">
                         {system.name}
                       </h3>

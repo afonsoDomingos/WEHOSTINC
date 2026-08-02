@@ -63,15 +63,32 @@ export interface SystemAccess {
   systemId: string;
   systemName: string;
   clientEmail: string;
-  username: string;
-  password: string;
-  accessUrl: string;
-  status: 'active' | 'expired' | 'suspended';
+  clientName: string;
+  credentials: {
+    username?: string;
+    password?: string;
+    url?: string;
+    apiKey?: string;
+    notes?: string;
+  };
+  status: 'active' | 'expired' | 'suspended' | 'cancelled';
   startDate: string;
   endDate: string;
   billingCycle: 'monthly' | 'yearly';
+  lastPaymentDate?: string;
   createdAt: string;
-  lastRenewedAt?: string;
+  updatedAt: string;
+}
+
+export interface SystemRating {
+  id: string;
+  systemId: string;
+  systemName: string;
+  clientEmail: string;
+  clientName: string;
+  rating: number; // 1-5
+  comment?: string;
+  createdAt: string;
 }
 
 export interface Site {
@@ -1515,6 +1532,63 @@ export const dataManager = {
     return dataManager.getSystemAccesses().filter(a => 
       a.clientEmail.toLowerCase() === clientEmail.toLowerCase()
     );
+  },
+
+  // System Ratings
+  getSystemRatings: (): SystemRating[] => {
+    if (typeof window === 'undefined') return [];
+    const data = localStorage.getItem('wehosthere_system_ratings');
+    return data ? JSON.parse(data) : [];
+  },
+
+  fetchSystemRatingsAsync: async (): Promise<SystemRating[]> => {
+    try {
+      const res = await fetch(apiEndpoint('/api/system-ratings'));
+      if (res.ok) {
+        const data = await res.json();
+        if (data.ratings && Array.isArray(data.ratings)) {
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('wehosthere_system_ratings', JSON.stringify(data.ratings));
+          }
+          return data.ratings;
+        }
+      }
+    } catch (e) {
+      console.error('Falha ao buscar avaliações:', e);
+    }
+    return dataManager.getSystemRatings();
+  },
+
+  addSystemRating: (ratingData: Omit<SystemRating, 'id' | 'createdAt'>): SystemRating => {
+    const ratings = dataManager.getSystemRatings();
+    const now = new Date().toISOString();
+    const newRating: SystemRating = {
+      ...ratingData,
+      id: `RT-${Math.floor(1000 + Math.random() * 9000)}`,
+      createdAt: now
+    };
+    ratings.unshift(newRating);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('wehosthere_system_ratings', JSON.stringify(ratings));
+
+      fetch(apiEndpoint('/api/system-ratings'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'create', rating: newRating })
+      }).catch(err => console.error('Erro de sync de avaliação no servidor:', err));
+    }
+    return newRating;
+  },
+
+  getSystemRatingsBySystemId: (systemId: string): SystemRating[] => {
+    return dataManager.getSystemRatings().filter(r => r.systemId === systemId);
+  },
+
+  getAverageRating: (systemId: string): number => {
+    const ratings = dataManager.getSystemRatingsBySystemId(systemId);
+    if (ratings.length === 0) return 0;
+    const sum = ratings.reduce((acc, r) => acc + r.rating, 0);
+    return Math.round((sum / ratings.length) * 10) / 10;
   }
 };
 
