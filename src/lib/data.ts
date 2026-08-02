@@ -2,6 +2,22 @@ import { auth } from './auth';
 import { apiEndpoint } from './siteConfig';
 import { sanitizeDomainName } from './domains';
 
+export interface ServiceOrder {
+  id: string;
+  clientName: string;
+  clientEmail: string;
+  clientPhone: string;
+  serviceName: string;
+  amount: number;
+  valorFaturado: number;
+  valorPorFaturar: number;
+  paymentMethod: 'mpesa' | 'emola' | 'card' | 'bank_transfer';
+  proofUrl?: string;
+  proofName?: string;
+  status: 'pending' | 'in_progress' | 'completed' | 'cancelled' | 'suspended';
+  createdAt: string;
+}
+
 export interface Site {
   id: string;
   name: string;
@@ -1233,22 +1249,6 @@ export const dataManager = {
     return newLog;
   }
 };
-
-export interface ServiceOrder {
-  id: string;
-  clientName: string;
-  clientEmail: string;
-  clientPhone: string;
-  serviceName: string;
-  amount: number;
-  valorFaturado: number;
-  valorPorFaturar: number;
-  paymentMethod: 'mpesa' | 'emola' | 'card' | 'bank_transfer';
-  proofUrl?: string;
-  proofName?: string;
-  status: 'pending' | 'in_progress' | 'completed' | 'cancelled' | 'suspended';
-  createdAt: string;
-}
 
 export interface TicketAttachment {
   url: string;

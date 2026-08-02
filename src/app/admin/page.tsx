@@ -764,81 +764,81 @@ export default function AdminPage() {
       {isLoggingOut && <PageLoader text="A encerrar a sua sessão com segurança... Até breve!" />}
       {/* Header */}
       <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-4">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-3 sm:py-4">
+            <div className="flex items-center space-x-3 sm:space-x-4">
               <BrandLogo />
-              <span className="bg-purple-100 text-purple-700 text-xs font-bold px-3 py-1 rounded-full border border-purple-200">
+              <span className="bg-purple-100 text-purple-700 text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full border border-purple-200">
                 ADMIN
               </span>
             </div>
-            <div className="flex items-center space-x-3 sm:space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-3 sm:space-x-4">
               <button
                 type="button"
                 onClick={handleRefreshAdminData}
                 disabled={isRefreshingAdmin}
-                className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200/80 rounded-lg transition shadow-sm cursor-pointer disabled:opacity-50"
+                className="flex items-center space-x-1 sm:space-x-1.5 px-2 sm:px-3 py-1.5 text-[10px] sm:text-xs font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200/80 rounded-lg transition shadow-sm cursor-pointer disabled:opacity-50"
                 title="Sincronizar dados em tempo real com o MongoDB Atlas"
               >
-                <RefreshCw className={`h-3.5 w-3.5 text-purple-600 ${isRefreshingAdmin ? 'animate-spin' : ''}`} />
-                <span>{isRefreshingAdmin ? 'A atualizar...' : 'Atualizar Dados'}</span>
+                <RefreshCw className={`h-3 w-3 sm:h-3.5 sm:w-3.5 text-purple-600 ${isRefreshingAdmin ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline">{isRefreshingAdmin ? 'A atualizar...' : 'Atualizar Dados'}</span>
               </button>
 
               <Link
                 href="/"
-                className="flex items-center space-x-2 text-gray-600 hover:text-primary-600 font-medium transition text-xs sm:text-sm"
+                className="flex items-center space-x-1.5 sm:space-x-2 text-gray-600 hover:text-primary-600 font-medium transition text-[10px] sm:text-xs sm:text-sm"
               >
-                <Home className="h-4 w-4 text-gray-500" />
-                <span>Ver Site</span>
+                <Home className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500" />
+                <span className="hidden sm:inline">Ver Site</span>
               </Link>
               <button
                 onClick={handleLogout}
-                className="flex items-center space-x-2 text-gray-600 hover:text-red-600 font-medium transition text-xs sm:text-sm"
+                className="flex items-center space-x-1.5 sm:space-x-2 text-gray-600 hover:text-red-600 font-medium transition text-[10px] sm:text-xs sm:text-sm"
               >
-                <LogOut className="h-4 w-4" />
-                <span>Sair</span>
+                <LogOut className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">Sair</span>
               </button>
             </div>
           </div>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
         {/* ───── ANALYTICS — Quem está Online & Visitantes ───── */}
-        <div className="grid lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
 
           {/* Painel: Utilizadores Online Agora */}
           <div className="lg:col-span-1 bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gray-50">
+            <div className="flex items-center justify-between px-3 sm:px-5 py-3 sm:py-4 border-b border-gray-100 bg-gray-50">
               <div className="flex items-center space-x-2">
-                <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse" />
-                <h3 className="font-bold text-gray-900 text-sm">Online Agora</h3>
+                <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 bg-emerald-500 rounded-full animate-pulse" />
+                <h3 className="font-bold text-gray-900 text-xs sm:text-sm">Online Agora</h3>
               </div>
-              <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${onlineUsers.length > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}>
+              <span className={`text-[10px] sm:text-xs font-bold px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full ${onlineUsers.length > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}>
                 {onlineUsers.length} utilizador{onlineUsers.length !== 1 ? 'es' : ''}
               </span>
             </div>
 
-            <div className="divide-y divide-gray-50 max-h-72 overflow-y-auto">
+            <div className="divide-y divide-gray-50 max-h-60 sm:max-h-72 overflow-y-auto">
               {onlineUsers.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-8 text-gray-400">
-                  <WifiOff className="h-8 w-8 mb-2 opacity-40" />
-                  <p className="text-sm">Nenhum utilizador online</p>
+                <div className="flex flex-col items-center justify-center py-6 sm:py-8 text-gray-400">
+                  <WifiOff className="h-6 w-6 sm:h-8 sm:w-8 mb-2 opacity-40" />
+                  <p className="text-[10px] sm:text-sm">Nenhum utilizador online</p>
                 </div>
               ) : (
                 onlineUsers.map(u => (
-                  <div key={u.userEmail} className="flex items-center space-x-3 px-5 py-3 hover:bg-gray-50 transition">
+                  <div key={u.userEmail} className="flex items-center space-x-2 sm:space-x-3 px-3 sm:px-5 py-2 sm:py-3 hover:bg-gray-50 transition">
                     <div className="relative">
-                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                      <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center text-white font-bold text-[10px] sm:text-sm flex-shrink-0">
                         {u.userName?.charAt(0)?.toUpperCase() || '?'}
                       </div>
-                      <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full" />
+                      <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-white rounded-full" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-gray-900 truncate">{u.userName}</p>
-                      <p className="text-xs text-gray-500 truncate">{u.currentPage}</p>
+                      <p className="text-[10px] sm:text-sm font-semibold text-gray-900 truncate">{u.userName}</p>
+                      <p className="text-[10px] sm:text-xs text-gray-500 truncate">{u.currentPage}</p>
                     </div>
-                    <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-1.5 py-0.5 rounded-full whitespace-nowrap">ONLINE</span>
+                    <span className="text-[9px] sm:text-[10px] text-emerald-600 font-bold bg-emerald-50 px-1 sm:px-1.5 py-0.5 rounded-full whitespace-nowrap">ONLINE</span>
                   </div>
                 ))
               )}
@@ -847,8 +847,8 @@ export default function AdminPage() {
             {/* Histórico Recente de Presença */}
             {recentPresence.filter(p => !onlineUsers.find(o => o.userEmail === p.userEmail)).length > 0 && (
               <div className="border-t border-gray-100">
-                <p className="px-5 py-2 text-[10px] uppercase tracking-wider text-gray-400 font-semibold bg-gray-50">Vistos recentemente</p>
-                <div className="divide-y divide-gray-50 max-h-40 overflow-y-auto">
+                <p className="px-3 sm:px-5 py-1.5 sm:py-2 text-[9px] sm:text-[10px] uppercase tracking-wider text-gray-400 font-semibold bg-gray-50">Vistos recentemente</p>
+                <div className="divide-y divide-gray-50 max-h-32 sm:max-h-40 overflow-y-auto">
                   {recentPresence
                     .filter(p => !onlineUsers.find(o => o.userEmail === p.userEmail))
                     .slice(0, 5)
@@ -857,15 +857,15 @@ export default function AdminPage() {
                       const diffMin = Math.floor((Date.now() - lastSeenDate.getTime()) / 60000);
                       const timeLabel = diffMin < 60 ? `${diffMin}m atrás` : `${Math.floor(diffMin / 60)}h atrás`;
                       return (
-                        <div key={u.userEmail} className="flex items-center space-x-3 px-5 py-2.5 hover:bg-gray-50 transition">
-                          <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-bold text-xs flex-shrink-0">
+                        <div key={u.userEmail} className="flex items-center space-x-2 sm:space-x-3 px-3 sm:px-5 py-2 sm:py-2.5 hover:bg-gray-50 transition">
+                          <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-bold text-[10px] sm:text-xs flex-shrink-0">
                             {u.userName?.charAt(0)?.toUpperCase() || '?'}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-xs font-semibold text-gray-700 truncate">{u.userName}</p>
-                            <p className="text-[10px] text-gray-400 truncate">{u.currentPage}</p>
+                            <p className="text-[10px] sm:text-xs font-semibold text-gray-700 truncate">{u.userName}</p>
+                            <p className="text-[9px] sm:text-[10px] text-gray-400 truncate">{u.currentPage}</p>
                           </div>
-                          <span className="text-[10px] text-gray-400 whitespace-nowrap">{timeLabel}</span>
+                          <span className="text-[9px] sm:text-[10px] text-gray-400 whitespace-nowrap">{timeLabel}</span>
                         </div>
                       );
                     })}
@@ -876,12 +876,12 @@ export default function AdminPage() {
 
           {/* Painel: Visitantes do Site */}
           <div className="lg:col-span-2 bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gray-50">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between px-3 sm:px-5 py-3 sm:py-4 border-b border-gray-100 bg-gray-50 gap-2 sm:gap-0">
               <div className="flex items-center space-x-2">
-                <BarChart2 className="h-5 w-5 text-primary-600" />
-                <h3 className="font-bold text-gray-900 text-sm">Visitantes do Site</h3>
+                <BarChart2 className="h-4 w-4 sm:h-5 sm:w-5 text-primary-600" />
+                <h3 className="font-bold text-gray-900 text-xs sm:text-sm">Visitantes do Site</h3>
               </div>
-              <div className="flex rounded-lg border border-gray-200 overflow-hidden text-xs font-semibold">
+              <div className="flex rounded-lg border border-gray-200 overflow-hidden text-[10px] sm:text-xs font-semibold">
                 {(['today', 'week', 'month', 'all'] as const).map((p) => (
                   <button
                     key={p}
@@ -889,77 +889,77 @@ export default function AdminPage() {
                       setVisitStatsPeriod(p);
                       fetchAnalytics(p);
                     }}
-                    className={`px-3 py-1.5 transition cursor-pointer ${visitStatsPeriod === p ? 'bg-primary-600 text-white font-bold' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+                    className={`px-2 sm:px-3 py-1 sm:py-1.5 transition cursor-pointer ${visitStatsPeriod === p ? 'bg-primary-600 text-white font-bold' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
                   >
-                    {p === 'today' ? 'Hoje' : p === 'week' ? '7 dias' : p === 'month' ? '30 dias' : 'Todo Histórico'}
+                    {p === 'today' ? 'Hoje' : p === 'week' ? '7 dias' : p === 'month' ? '30 dias' : 'Todo'}
                   </button>
                 ))}
               </div>
             </div>
 
-            <div className="p-5 grid grid-cols-2 gap-4 border-b border-gray-100">
-              <div className="bg-primary-50 rounded-xl p-4 border border-primary-100">
-                <div className="flex items-center space-x-2 mb-1">
-                  <Eye className="h-4 w-4 text-primary-600" />
-                  <span className="text-xs text-primary-600 font-semibold uppercase tracking-wider">Visualizações</span>
+            <div className="p-3 sm:p-5 grid grid-cols-2 gap-3 sm:gap-4 border-b border-gray-100">
+              <div className="bg-primary-50 rounded-xl p-3 sm:p-4 border border-primary-100">
+                <div className="flex items-center space-x-1.5 sm:space-x-2 mb-1">
+                  <Eye className="h-3 w-3 sm:h-4 sm:w-4 text-primary-600" />
+                  <span className="text-[10px] sm:text-xs text-primary-600 font-semibold uppercase tracking-wider">Visualizações</span>
                 </div>
                 {isSyncingData ? (
                   <div className="flex items-center space-x-2 text-primary-600 py-1">
-                    <Loader2 className="h-6 w-6 animate-spin" />
-                    <span className="text-xs text-primary-500 font-semibold">Atualizando...</span>
+                    <Loader2 className="h-4 w-4 sm:h-6 sm:w-6 animate-spin" />
+                    <span className="text-[10px] sm:text-xs text-primary-500 font-semibold">Atualizando...</span>
                   </div>
                 ) : (
-                  <p className="text-3xl font-extrabold text-primary-700">{visitStats.total.toLocaleString('pt-MZ')}</p>
+                  <p className="text-2xl sm:text-3xl font-extrabold text-primary-700">{visitStats.total.toLocaleString('pt-MZ')}</p>
                 )}
-                <p className="text-xs text-primary-500 mt-0.5">páginas vistas</p>
+                <p className="text-[10px] sm:text-xs text-primary-500 mt-0.5">páginas vistas</p>
               </div>
-              <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-100">
-                <div className="flex items-center space-x-2 mb-1">
-                  <Users className="h-4 w-4 text-emerald-600" />
-                  <span className="text-xs text-emerald-600 font-semibold uppercase tracking-wider">Visitantes Únicos</span>
+              <div className="bg-emerald-50 rounded-xl p-3 sm:p-4 border border-emerald-100">
+                <div className="flex items-center space-x-1.5 sm:space-x-2 mb-1">
+                  <Users className="h-3 w-3 sm:h-4 sm:w-4 text-emerald-600" />
+                  <span className="text-[10px] sm:text-xs text-emerald-600 font-semibold uppercase tracking-wider">Visitantes Únicos</span>
                 </div>
                 {isSyncingData ? (
                   <div className="flex items-center space-x-2 text-emerald-600 py-1">
-                    <Loader2 className="h-6 w-6 animate-spin" />
-                    <span className="text-xs text-emerald-500 font-semibold">Atualizando...</span>
+                    <Loader2 className="h-4 w-4 sm:h-6 sm:w-6 animate-spin" />
+                    <span className="text-[10px] sm:text-xs text-emerald-500 font-semibold">Atualizando...</span>
                   </div>
                 ) : (
-                  <p className="text-3xl font-extrabold text-emerald-700">{visitStats.uniqueVisitors.toLocaleString('pt-MZ')}</p>
+                  <p className="text-2xl sm:text-3xl font-extrabold text-emerald-700">{visitStats.uniqueVisitors.toLocaleString('pt-MZ')}</p>
                 )}
-                <p className="text-xs text-emerald-500 mt-0.5">sessões distintas</p>
+                <p className="text-[10px] sm:text-xs text-emerald-500 mt-0.5">sessões distintas</p>
               </div>
             </div>
 
             {/* Top Páginas */}
-            <div className="p-5">
-              <p className="text-xs uppercase tracking-wider text-gray-400 font-semibold mb-3">Top Páginas</p>
+            <div className="p-3 sm:p-5">
+              <p className="text-[10px] sm:text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2 sm:mb-3">Top Páginas</p>
               {isSyncingData ? (
-                <div className="space-y-3 py-2">
-                  <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4" />
-                  <div className="h-4 bg-gray-200 rounded animate-pulse w-1/2" />
-                  <div className="h-4 bg-gray-200 rounded animate-pulse w-2/3" />
+                <div className="space-y-2 sm:space-y-3 py-2">
+                  <div className="h-3 sm:h-4 bg-gray-200 rounded animate-pulse w-3/4" />
+                  <div className="h-3 sm:h-4 bg-gray-200 rounded animate-pulse w-1/2" />
+                  <div className="h-3 sm:h-4 bg-gray-200 rounded animate-pulse w-2/3" />
                 </div>
               ) : visitStats.topPages.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-6 text-gray-400">
-                  <Globe className="h-7 w-7 mb-2 opacity-40" />
-                  <p className="text-sm">Sem dados de visitas ainda</p>
-                  <p className="text-xs text-gray-400 mt-1">As visitas aparecerão aqui em tempo real</p>
+                <div className="flex flex-col items-center justify-center py-4 sm:py-6 text-gray-400">
+                  <Globe className="h-5 w-5 sm:h-7 sm:w-7 mb-2 opacity-40" />
+                  <p className="text-[10px] sm:text-sm">Sem dados de visitas ainda</p>
+                  <p className="text-[9px] sm:text-xs text-gray-400 mt-1">As visitas aparecerão aqui em tempo real</p>
                 </div>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-1.5 sm:space-y-2">
                   {visitStats.topPages.map((pg, i) => {
                     const maxCount = visitStats.topPages[0]?.count || 1;
                     const pct = Math.round((pg.count / maxCount) * 100);
                     return (
-                      <div key={pg.page} className="flex items-center space-x-3">
-                        <span className="text-xs text-gray-400 w-4 text-right font-bold">{i + 1}</span>
+                      <div key={pg.page} className="flex items-center space-x-2 sm:space-x-3">
+                        <span className="text-[10px] sm:text-xs text-gray-400 w-3 sm:w-4 text-right font-bold">{i + 1}</span>
                         <div className="flex-1">
-                          <div className="flex justify-between items-center mb-1">
-                            <span className="text-xs font-medium text-gray-700 truncate max-w-[200px]">{pg.page}</span>
-                            <span className="text-xs text-gray-500 font-semibold ml-2">{pg.count}</span>
+                          <div className="flex justify-between items-center mb-0.5 sm:mb-1">
+                            <span className="text-[10px] sm:text-xs font-medium text-gray-700 truncate max-w-[150px] sm:max-w-[200px]">{pg.page}</span>
+                            <span className="text-[10px] sm:text-xs text-gray-500 font-semibold ml-2">{pg.count}</span>
                           </div>
-                          <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
-                            <div className="bg-primary-500 h-1.5 rounded-full transition-all duration-700 animate-pulse" style={{ width: `${pct}%` }} />
+                          <div className="w-full bg-gray-100 rounded-full h-1 sm:h-1.5 overflow-hidden">
+                            <div className="bg-primary-500 h-1 sm:h-1.5 rounded-full transition-all duration-700 animate-pulse" style={{ width: `${pct}%` }} />
                           </div>
                         </div>
                       </div>
@@ -972,204 +972,204 @@ export default function AdminPage() {
         </div>
 
         {/* Top KPIs */}
-        <div className="grid md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition">
-            <div className="flex items-center justify-between mb-4">
-              <Users className="h-8 w-8 text-primary-600" />
-              <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">Total</span>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
+          <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <Users className="h-6 w-6 sm:h-8 sm:w-8 text-primary-600" />
+              <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">Total</span>
             </div>
             {isSyncingData ? (
               <div className="flex items-center space-x-2 text-primary-600 my-1 font-semibold">
-                <Loader2 className="h-6 w-6 animate-spin" />
-                <span className="text-sm text-gray-500">A processar...</span>
+                <Loader2 className="h-4 w-4 sm:h-6 sm:w-6 animate-spin" />
+                <span className="text-[10px] sm:text-sm text-gray-500">A processar...</span>
               </div>
             ) : (
-              <p className="text-3xl font-bold text-gray-900">{users.length}</p>
+              <p className="text-2xl sm:text-3xl font-bold text-gray-900">{users.length}</p>
             )}
-            <p className="text-gray-500 text-sm mt-1">Usuários cadastrados</p>
+            <p className="text-gray-500 text-[10px] sm:text-sm mt-1">Usuários cadastrados</p>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition">
-            <div className="flex items-center justify-between mb-4">
-              <Server className="h-8 w-8 text-primary-600" />
-              <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">Total</span>
+          <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <Server className="h-6 w-6 sm:h-8 sm:w-8 text-primary-600" />
+              <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">Total</span>
             </div>
             {isSyncingData ? (
               <div className="flex items-center space-x-2 text-primary-600 my-1 font-semibold">
-                <Loader2 className="h-6 w-6 animate-spin" />
-                <span className="text-sm text-gray-500">A processar...</span>
+                <Loader2 className="h-4 w-4 sm:h-6 sm:w-6 animate-spin" />
+                <span className="text-[10px] sm:text-sm text-gray-500">A processar...</span>
               </div>
             ) : (
-              <p className="text-3xl font-bold text-gray-900">{sites.length}</p>
+              <p className="text-2xl sm:text-3xl font-bold text-gray-900">{sites.length}</p>
             )}
-            <p className="text-gray-500 text-sm mt-1">Sites ativos</p>
+            <p className="text-gray-500 text-[10px] sm:text-sm mt-1">Sites & Domínios</p>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition">
-            <div className="flex items-center justify-between mb-4">
-              <DollarSign className="h-8 w-8 text-emerald-600" />
-              <span className="text-xs font-semibold uppercase tracking-wider text-emerald-700">Faturamento</span>
+          <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <Mail className="h-6 w-6 sm:h-8 sm:w-8 text-primary-600" />
+              <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">Total</span>
             </div>
             {isSyncingData ? (
-              <div className="flex items-center space-x-2 text-emerald-600 my-1 font-semibold">
-                <Loader2 className="h-6 w-6 animate-spin" />
-                <span className="text-sm text-gray-500">A processar...</span>
+              <div className="flex items-center space-x-2 text-primary-600 my-1 font-semibold">
+                <Loader2 className="h-4 w-4 sm:h-6 sm:w-6 animate-spin" />
+                <span className="text-[10px] sm:text-sm text-gray-500">A processar...</span>
               </div>
             ) : (
-              <p className="text-3xl font-bold text-emerald-600">{totalRevenue.toLocaleString('pt-MZ')} MT</p>
+              <p className="text-2xl sm:text-3xl font-bold text-gray-900">{emails.length}</p>
             )}
-            <p className="text-gray-500 text-sm mt-1">Receita total acumulada</p>
+            <p className="text-gray-500 text-[10px] sm:text-sm mt-1">Contas de Email</p>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition">
-            <div className="flex items-center justify-between mb-4">
-              <TrendingUp className="h-8 w-8 text-purple-600" />
-              <span className="text-xs font-semibold uppercase tracking-wider text-purple-700">MRR Mensal</span>
+          <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <DollarSign className="h-6 w-6 sm:h-8 sm:w-8 text-primary-600" />
+              <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">Total</span>
             </div>
             {isSyncingData ? (
-              <div className="flex items-center space-x-2 text-purple-600 my-1 font-semibold">
-                <Loader2 className="h-6 w-6 animate-spin" />
-                <span className="text-sm text-gray-500">A processar...</span>
+              <div className="flex items-center space-x-2 text-primary-600 my-1 font-semibold">
+                <Loader2 className="h-4 w-4 sm:h-6 sm:w-6 animate-spin" />
+                <span className="text-[10px] sm:text-sm text-gray-500">A processar...</span>
               </div>
             ) : (
-              <p className="text-3xl font-bold text-purple-700">{mrr.toLocaleString('pt-MZ')} MT</p>
+              <p className="text-2xl sm:text-3xl font-bold text-gray-900">{totalRevenue.toLocaleString('pt-MZ')} MT</p>
             )}
-            <p className="text-gray-500 text-sm mt-1">Receita recorrente garantida</p>
+            <p className="text-gray-500 text-[10px] sm:text-sm mt-1">Receita Total</p>
           </div>
         </div>
 
         {/* Módulo de Análise Financeira & Métricas Recorrentes */}
-        <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm mb-8">
-          <div className="flex justify-between items-center mb-6">
+        <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 sm:mb-6">
             <div>
-              <h2 className="text-xl font-bold text-gray-900 flex items-center space-x-2">
-                <DollarSign className="h-6 w-6 text-emerald-600" />
-                <span>Análise Financeira & Desempenho de Vendas (WEHOSTINC)</span>
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center space-x-2">
+                <DollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-600" />
+                <span>Análise Financeira & Desempenho de Vendas</span>
               </h2>
-              <p className="text-gray-500 text-sm mt-0.5">Métricas de faturamento em Meticais, ticket médio e liquidação via M-Pesa / eMola</p>
+              <p className="text-gray-500 text-[10px] sm:text-sm mt-0.5">Métricas de faturamento em Meticais, ticket médio e liquidação via M-Pesa / eMola</p>
             </div>
-            <span className="bg-emerald-100 text-emerald-800 text-xs font-extrabold px-3 py-1.5 rounded-full border border-emerald-300">
+            <span className="bg-emerald-100 text-emerald-800 text-[10px] sm:text-xs font-extrabold px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border border-emerald-300">
               Projeção Anual: {(mrr * 12).toLocaleString('pt-MZ')} MT
             </span>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6 pt-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6 pt-2">
             {/* Ticket Médio */}
-            <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
-              <span className="text-xs font-bold text-gray-500 uppercase tracking-wider block">Ticket Médio por Cliente</span>
+            <div className="p-3 sm:p-4 bg-gray-50 rounded-xl border border-gray-200">
+              <span className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase tracking-wider block">Ticket Médio por Cliente</span>
               {isSyncingData ? (
                 <div className="flex items-center space-x-2 text-gray-600 mt-1 py-0.5">
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                  <span className="text-xs font-semibold text-gray-500">A processar...</span>
+                  <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
+                  <span className="text-[10px] sm:text-xs font-semibold text-gray-500">A processar...</span>
                 </div>
               ) : (
-                <span className="text-2xl font-black text-gray-900 block mt-1">{averageTicket.toLocaleString('pt-MZ')} MT</span>
+                <span className="text-xl sm:text-2xl font-black text-gray-900 block mt-1">{averageTicket.toLocaleString('pt-MZ')} MT</span>
               )}
-              <span className="text-xs text-gray-500 mt-1 block">Média de gasto por contratação na plataforma</span>
+              <span className="text-[10px] sm:text-xs text-gray-500 mt-1 block">Média de gasto por contratação na plataforma</span>
             </div>
 
             {/* Faturamento M-Pesa */}
-            <div className="p-4 bg-red-50/70 border border-red-200 rounded-xl">
-              <span className="text-xs font-bold text-red-900 uppercase tracking-wider block">Faturamento via M-Pesa (Vodacom)</span>
+            <div className="p-3 sm:p-4 bg-red-50/70 border border-red-200 rounded-xl">
+              <span className="text-[10px] sm:text-xs font-bold text-red-900 uppercase tracking-wider block">Faturamento via M-Pesa (Vodacom)</span>
               {isSyncingData ? (
                 <div className="flex items-center space-x-2 text-red-600 mt-1 py-0.5">
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                  <span className="text-xs font-semibold text-red-600">A processar...</span>
+                  <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
+                  <span className="text-[10px] sm:text-xs font-semibold text-red-600">A processar...</span>
                 </div>
               ) : (
-                <span className="text-2xl font-black text-red-700 block mt-1">{mpesaRevenue.toLocaleString('pt-MZ')} MT</span>
+                <span className="text-xl sm:text-2xl font-black text-red-700 block mt-1">{mpesaRevenue.toLocaleString('pt-MZ')} MT</span>
               )}
-              <div className="w-full bg-red-200 h-2 rounded-full mt-2 overflow-hidden">
-                <div className="bg-red-600 h-2 rounded-full transition-all duration-700 animate-pulse" style={{ width: `${Math.round((mpesaRevenue / validOrdersTotal) * 100)}%` }}></div>
+              <div className="w-full bg-red-200 h-1.5 sm:h-2 rounded-full mt-2 overflow-hidden">
+                <div className="bg-red-600 h-1.5 sm:h-2 rounded-full transition-all duration-700 animate-pulse" style={{ width: `${Math.round((mpesaRevenue / validOrdersTotal) * 100)}%` }}></div>
               </div>
-              <span className="text-[11px] font-semibold text-red-700 mt-1 block">{Math.round((mpesaRevenue / validOrdersTotal) * 100)}% do volume de vendas</span>
+              <span className="text-[10px] sm:text-[11px] font-semibold text-red-700 mt-1 block">{Math.round((mpesaRevenue / validOrdersTotal) * 100)}% do volume de vendas</span>
             </div>
 
             {/* Faturamento eMola / Cartão */}
-            <div className="p-4 bg-orange-50/70 border border-orange-200 rounded-xl">
-              <span className="text-xs font-bold text-orange-900 uppercase tracking-wider block">eMola (Movitel) & Cartão</span>
+            <div className="p-3 sm:p-4 bg-orange-50/70 border border-orange-200 rounded-xl">
+              <span className="text-[10px] sm:text-xs font-bold text-orange-900 uppercase tracking-wider block">eMola (Movitel) & Cartão</span>
               {isSyncingData ? (
                 <div className="flex items-center space-x-2 text-orange-600 mt-1 py-0.5">
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                  <span className="text-xs font-semibold text-orange-600">A processar...</span>
+                  <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
+                  <span className="text-[10px] sm:text-xs font-semibold text-orange-600">A processar...</span>
                 </div>
               ) : (
-                <span className="text-2xl font-black text-orange-700 block mt-1">{(emolaRevenue + cardRevenue).toLocaleString('pt-MZ')} MT</span>
+                <span className="text-xl sm:text-2xl font-black text-orange-700 block mt-1">{(emolaRevenue + cardRevenue).toLocaleString('pt-MZ')} MT</span>
               )}
-              <div className="w-full bg-orange-200 h-2 rounded-full mt-2 overflow-hidden">
-                <div className="bg-orange-600 h-2 rounded-full transition-all duration-700 animate-pulse" style={{ width: `${Math.round(((emolaRevenue + cardRevenue) / validOrdersTotal) * 100)}%` }}></div>
+              <div className="w-full bg-orange-200 h-1.5 sm:h-2 rounded-full mt-2 overflow-hidden">
+                <div className="bg-orange-600 h-1.5 sm:h-2 rounded-full transition-all duration-700 animate-pulse" style={{ width: `${Math.round(((emolaRevenue + cardRevenue) / validOrdersTotal) * 100)}%` }}></div>
               </div>
-              <span className="text-[11px] font-semibold text-orange-700 mt-1 block">{Math.round(((emolaRevenue + cardRevenue) / validOrdersTotal) * 100)}% do volume de vendas</span>
+              <span className="text-[10px] sm:text-[11px] font-semibold text-orange-700 mt-1 block">{Math.round(((emolaRevenue + cardRevenue) / validOrdersTotal) * 100)}% do volume de vendas</span>
             </div>
           </div>
         </div>
 
         {/* Módulo de Alertas Críticos & Auditoria de Segurança */}
-        <div className="bg-white border border-red-200 rounded-xl p-6 shadow-sm mb-8">
-          <div className="flex justify-between items-center mb-4">
+        <div className="bg-white border border-red-200 rounded-xl p-4 sm:p-6 shadow-sm mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 sm:mb-4">
             <div>
-              <h2 className="text-xl font-bold text-gray-900 flex items-center space-x-2">
-                <Shield className="h-6 w-6 text-red-600" />
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center space-x-2">
+                <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-red-600" />
                 <span>Central de Alertas Críticos & Auditoria de Segurança</span>
               </h2>
-              <p className="text-gray-500 text-sm mt-0.5">Registo em tempo real de tentativas maliciosas de login, bloqueios por força bruta e alertas da plataforma</p>
+              <p className="text-gray-500 text-[10px] sm:text-sm mt-0.5">Registo em tempo real de tentativas maliciosas de login, bloqueios por força bruta e alertas da plataforma</p>
             </div>
-            <span className="bg-red-100 text-red-800 text-xs font-extrabold px-3 py-1.5 rounded-full border border-red-300 flex items-center space-x-1.5">
-              <AlertTriangle className="h-3.5 w-3.5 text-red-600" />
+            <span className="bg-red-100 text-red-800 text-[10px] sm:text-xs font-extrabold px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border border-red-300 flex items-center space-x-1.5">
+              <AlertTriangle className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-red-600" />
               <span>{securityLogs.filter(l => l.type === 'account_locked').length} Bloqueios Críticos</span>
             </span>
           </div>
 
           {securityLogs.length === 0 ? (
-            <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center space-x-2">
-              <CheckCircle className="h-4 w-4 text-emerald-600" />
+            <div className="p-3 sm:p-4 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-800 text-[10px] sm:text-xs font-semibold flex items-center space-x-2">
+              <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-600" />
               <span>Nenhum alerta crítico de invasão ou tentativa incorreta de login detetado recentemente. O sistema está seguro.</span>
             </div>
           ) : (
-            <div className="overflow-x-auto max-h-64 overflow-y-auto border border-gray-100 rounded-lg">
-              <table className="w-full text-left text-xs">
+            <div className="overflow-x-auto max-h-56 sm:max-h-64 overflow-y-auto border border-gray-100 rounded-lg">
+              <table className="w-full text-left text-[10px] sm:text-xs">
                 <thead className="bg-gray-50 text-gray-500 font-bold uppercase border-b border-gray-200">
                   <tr>
-                    <th className="py-2.5 px-3">E-mail Alvo</th>
-                    <th className="py-2.5 px-3">Evento / Tipo</th>
-                    <th className="py-2.5 px-3">Descrição do Alerta</th>
-                    <th className="py-2.5 px-3">País de Origem</th>
-                    <th className="py-2.5 px-3 text-right">Data & Hora</th>
+                    <th className="py-2 sm:py-2.5 px-2 sm:px-3">E-mail Alvo</th>
+                    <th className="py-2 sm:py-2.5 px-2 sm:px-3">Evento / Tipo</th>
+                    <th className="py-2 sm:py-2.5 px-2 sm:px-3 hidden sm:table-cell">Descrição do Alerta</th>
+                    <th className="py-2 sm:py-2.5 px-2 sm:px-3">País de Origem</th>
+                    <th className="py-2 sm:py-2.5 px-2 sm:px-3 text-right">Data & Hora</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {securityLogs.slice(0, 15).map((log) => (
                     <tr key={log.id} className="hover:bg-red-50/40 transition">
-                      <td className="py-2.5 px-3 font-mono font-bold text-gray-900">{log.email}</td>
-                      <td className="py-2.5 px-3">
+                      <td className="py-2 sm:py-2.5 px-2 sm:px-3 font-mono font-bold text-gray-900 text-[10px] sm:text-xs truncate max-w-[100px] sm:max-w-none">{log.email}</td>
+                      <td className="py-2 sm:py-2.5 px-2 sm:px-3">
                         {log.type === 'account_locked' && (
-                          <span className="bg-red-600 text-white font-extrabold px-2 py-0.5 rounded text-[10px] tracking-wide uppercase">
-                            🔒 Conta Bloqueada (15m)
+                          <span className="bg-red-600 text-white font-extrabold px-1.5 sm:px-2 py-0.5 rounded text-[9px] sm:text-[10px] tracking-wide uppercase">
+                            🔒 Bloqueada
                           </span>
                         )}
                         {log.type === 'failed_login' && (
-                          <span className="bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded text-[10px]">
+                          <span className="bg-amber-100 text-amber-800 font-bold px-1.5 sm:px-2 py-0.5 rounded text-[9px] sm:text-[10px]">
                             ⚠️ Senha Incorreta
                           </span>
                         )}
                         {log.type === 'suspended_attempt' && (
-                          <span className="bg-purple-100 text-purple-800 font-bold px-2 py-0.5 rounded text-[10px]">
-                            ⛔ Tentativa Conta Suspensa
+                          <span className="bg-purple-100 text-purple-800 font-bold px-1.5 sm:px-2 py-0.5 rounded text-[9px] sm:text-[10px]">
+                            ⛔ Conta Suspensa
                           </span>
                         )}
                       </td>
-                      <td className="py-2.5 px-3 text-gray-700">{log.message}</td>
-                      <td className="py-2.5 px-3">
+                      <td className="py-2 sm:py-2.5 px-2 sm:px-3 text-gray-700 text-[10px] sm:text-xs hidden sm:table-cell">{log.message}</td>
+                      <td className="py-2 sm:py-2.5 px-2 sm:px-3">
                         {log.country ? (
-                          <span className="flex items-center space-x-1.5 font-semibold text-gray-900">
-                            <span className="text-lg">{getCountryFlag(log.country)}</span>
-                            <span>{log.country}</span>
+                          <span className="flex items-center space-x-1 sm:space-x-1.5 font-semibold text-gray-900 text-[10px] sm:text-xs">
+                            <span className="text-sm sm:text-lg">{getCountryFlag(log.country)}</span>
+                            <span className="hidden sm:inline">{log.country}</span>
                           </span>
                         ) : (
-                          <span className="text-gray-400 italic">Desconhecido</span>
+                          <span className="text-gray-400 italic text-[10px] sm:text-xs">Desconhecido</span>
                         )}
                       </td>
-                      <td className="py-2.5 px-3 text-right text-gray-500 font-mono">
+                      <td className="py-2 sm:py-2.5 px-2 sm:px-3 text-right text-gray-500 font-mono text-[9px] sm:text-xs">
                         {new Date(log.createdAt).toLocaleString('pt-MZ')}
                       </td>
                     </tr>
@@ -1181,43 +1181,43 @@ export default function AdminPage() {
         </div>
 
         {/* Users Table */}
-        <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm mb-8">
-          <div className="flex justify-between items-center mb-6">
+        <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 sm:mb-6">
             <div>
-              <h2 className="text-xl font-bold text-gray-900">Usuários Cadastrados</h2>
-              <p className="text-sm text-gray-500 mt-1">Gestão de clientes e assinaturas ativas</p>
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900">Usuários Cadastrados</h2>
+              <p className="text-[10px] sm:text-sm text-gray-500 mt-1">Gestão de clientes e assinaturas ativas</p>
             </div>
-            <div className="flex items-center space-x-3">
-              <div className="flex items-center space-x-2 bg-gray-100 px-3 py-1.5 rounded-lg border border-gray-200">
-                <Users className="h-4 w-4 text-gray-500" />
-                <span className="text-sm font-medium text-gray-700">{users.length} usuários</span>
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <div className="flex items-center space-x-1.5 sm:space-x-2 bg-gray-100 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-gray-200">
+                <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500" />
+                <span className="text-[10px] sm:text-sm font-medium text-gray-700">{users.length} usuários</span>
               </div>
               <button
                 onClick={() => setShowAddModal(true)}
-                className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-semibold text-sm rounded-lg shadow transition flex items-center space-x-2 cursor-pointer"
+                className="px-3 sm:px-4 py-1.5 sm:py-2 bg-primary-600 hover:bg-primary-700 text-white font-semibold text-[10px] sm:text-sm rounded-lg shadow transition flex items-center space-x-1.5 sm:space-x-2 cursor-pointer"
               >
-                <span>+ Criar Novo Cliente</span>
+                <span>+ Novo Cliente</span>
               </button>
             </div>
           </div>
 
           {/* Search and Status Filters */}
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6 pt-4 border-t border-gray-100">
-            <div className="relative w-full md:w-80">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4 mb-4 sm:mb-6 pt-3 sm:pt-4 border-t border-gray-100">
+            <div className="relative w-full sm:w-80">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-400" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Buscar cliente por nome ou e-mail..."
-                className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full pl-9 sm:pl-9 pr-3 sm:pr-4 py-1.5 sm:py-2 bg-gray-50 border border-gray-200 rounded-lg text-[10px] sm:text-sm outline-none focus:ring-2 focus:ring-primary-500"
               />
             </div>
 
-            <div className="flex items-center space-x-1.5 w-full md:w-auto overflow-x-auto">
+            <div className="flex items-center space-x-1 sm:space-x-1.5 w-full sm:w-auto overflow-x-auto">
               <button
                 onClick={() => setStatusFilter('all')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-semibold transition cursor-pointer ${
                   statusFilter === 'all'
                     ? 'bg-gray-900 text-white'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -1227,7 +1227,7 @@ export default function AdminPage() {
               </button>
               <button
                 onClick={() => setStatusFilter('active')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-semibold transition cursor-pointer ${
                   statusFilter === 'active'
                     ? 'bg-emerald-600 text-white'
                     : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
@@ -1237,7 +1237,7 @@ export default function AdminPage() {
               </button>
               <button
                 onClick={() => setStatusFilter('pending')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-semibold transition cursor-pointer ${
                   statusFilter === 'pending'
                     ? 'bg-amber-500 text-white'
                     : 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200'
@@ -1247,7 +1247,7 @@ export default function AdminPage() {
               </button>
               <button
                 onClick={() => setStatusFilter('suspended')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-semibold transition cursor-pointer ${
                   statusFilter === 'suspended'
                     ? 'bg-red-600 text-white'
                     : 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200'
@@ -1259,23 +1259,23 @@ export default function AdminPage() {
           </div>
 
           {filteredUsers.length === 0 ? (
-            <div className="text-center py-12">
-              <Users className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-800 mb-1">Nenhum cliente encontrado</h3>
-              <p className="text-gray-500">Tente ajustar a busca ou o filtro de status</p>
+            <div className="text-center py-8 sm:py-12">
+              <Users className="h-12 w-12 sm:h-16 sm:w-16 text-gray-300 mx-auto mb-3 sm:mb-4" />
+              <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-1">Nenhum cliente encontrado</h3>
+              <p className="text-[10px] sm:text-sm text-gray-500">Tente ajustar a busca ou o filtro de status</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
+            <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+              <table className="w-full min-w-[600px] sm:min-w-0">
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50/50">
-                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Nome</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Email</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Serviços Contratados</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Vencimento</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Status</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Cadastro</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Ações</th>
+                    <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">Nome</th>
+                    <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500 hidden sm:table-cell">Email</th>
+                    <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">Serviços</th>
+                    <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500 hidden sm:table-cell">Vencimento</th>
+                    <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">Status</th>
+                    <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500 hidden sm:table-cell">Cadastro</th>
+                    <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -1285,43 +1285,44 @@ export default function AdminPage() {
 
                     return (
                     <tr key={user.id} className="hover:bg-gray-50/80 transition">
-                      <td className="py-3.5 px-4">
-                        <span className="font-semibold text-gray-900">{user.name}</span>
+                      <td className="py-2.5 sm:py-3.5 px-2 sm:px-4">
+                        <span className="font-semibold text-gray-900 text-[10px] sm:text-sm block">{user.name}</span>
+                        <span className="text-[9px] sm:text-xs text-gray-500 font-mono block sm:hidden">{user.email}</span>
                       </td>
-                      <td className="py-3.5 px-4 text-gray-600 font-mono text-sm">{user.email}</td>
-                      <td className="py-3.5 px-4">
+                      <td className="py-2.5 sm:py-3.5 px-2 sm:px-4 text-gray-600 font-mono text-[10px] sm:text-sm hidden sm:table-cell">{user.email}</td>
+                      <td className="py-2.5 sm:py-3.5 px-2 sm:px-4">
                         {user.role === 'admin' || user.email.toLowerCase() === 'admin@wehosthere.com' ? (
-                          <span className="inline-block px-2.5 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-700 border border-purple-200">
-                            👑 Conta de Sistema
+                          <span className="inline-block px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[9px] sm:text-xs font-bold bg-purple-100 text-purple-700 border border-purple-200">
+                            👑 Sistema
                           </span>
                         ) : (
                           <div>
                             {userClientOrders.length > 0 || userClientSites.length > 0 ? (
-                              <div className="space-y-1">
+                              <div className="space-y-0.5 sm:space-y-1">
                                 {userClientOrders.slice(0, 2).map((ord) => (
-                                  <span key={ord.id} className="inline-block px-2 py-0.5 rounded text-[11px] font-bold bg-blue-50 text-blue-800 border border-blue-200 mr-1">
-                                    📦 {ord.serviceName} ({(ord.valorPorFaturar || 0) > 0 ? `${(ord.valorPorFaturar || 0).toLocaleString('pt-MZ')} MT (por faturar)` : `${(ord.valorFaturado || 0).toLocaleString('pt-MZ')} MT (faturado)`})
+                                  <span key={ord.id} className="inline-block px-1.5 sm:px-2 py-0.5 rounded text-[9px] sm:text-[11px] font-bold bg-blue-50 text-blue-800 border border-blue-200 mr-0.5 sm:mr-1">
+                                    📦 {ord.serviceName.length > 15 ? ord.serviceName.substring(0, 15) + '...' : ord.serviceName}
                                   </span>
                                 ))}
                                 {userClientOrders.length > 2 && (
-                                  <span className="text-[10px] text-gray-500 font-bold block">+ {userClientOrders.length - 2} outro(s) serviço(s)</span>
+                                  <span className="text-[9px] sm:text-[10px] text-gray-500 font-bold block">+ {userClientOrders.length - 2}</span>
                                 )}
                               </div>
                             ) : (
-                              <span className="inline-block px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 border border-gray-200">
-                                Sem Serviço Contratado
+                              <span className="inline-block px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[9px] sm:text-xs font-semibold bg-gray-100 text-gray-600 border border-gray-200">
+                                Sem Serviço
                               </span>
                             )}
                           </div>
                         )}
                       </td>
-                      <td className="py-3.5 px-4 text-gray-600 text-sm font-medium">
+                      <td className="py-2.5 sm:py-3.5 px-2 sm:px-4 text-gray-600 text-[10px] sm:text-sm font-medium hidden sm:table-cell">
                         {user.dueDate ? `Dia ${user.dueDate}` : 'Dia 29'}
                       </td>
-                      <td className="py-3.5 px-4">
+                      <td className="py-2.5 sm:py-3.5 px-2 sm:px-4">
                         {user.role === 'admin' || user.email.toLowerCase() === 'admin@wehosthere.com' ? (
-                          <span className="inline-block px-2.5 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-700 border border-purple-200">
-                            👑 Sistema (Sem Cobrança)
+                          <span className="inline-block px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[9px] sm:text-xs font-bold bg-purple-100 text-purple-700 border border-purple-200">
+                            👑 Sistema
                           </span>
                         ) : (
                           <select
@@ -1331,7 +1332,7 @@ export default function AdminPage() {
                               auth.updateUserStatus(user.id, newSt);
                               setUsers(prev => prev.map(u => u.id === user.id ? { ...u, status: newSt } : u));
                             }}
-                            className={`px-2.5 py-1 rounded-lg text-xs font-bold outline-none border cursor-pointer ${
+                            className={`px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-lg text-[9px] sm:text-xs font-bold outline-none border cursor-pointer ${
                               (user.status || 'pending') === 'active'
                                 ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
                                 : (user.status || 'pending') === 'pending'
@@ -1345,11 +1346,11 @@ export default function AdminPage() {
                           </select>
                         )}
                       </td>
-                      <td className="py-3.5 px-4 text-gray-500 text-sm">
-                        {user.createdAt ? new Date(user.createdAt).toLocaleDateString('pt-BR') : 'Data não disponível'}
+                      <td className="py-2.5 sm:py-3.5 px-2 sm:px-4 text-gray-500 text-[10px] sm:text-sm hidden sm:table-cell">
+                        {user.createdAt ? new Date(user.createdAt).toLocaleDateString('pt-BR') : 'N/A'}
                       </td>
-                      <td className="py-3.5 px-4">
-                        <div className="flex items-center space-x-1.5">
+                      <td className="py-2.5 sm:py-3.5 px-2 sm:px-4">
+                        <div className="flex items-center space-x-1 sm:space-x-1.5">
                           <button
                             onClick={() => {
                               const currentSt = user.status || 'active';
@@ -1357,7 +1358,7 @@ export default function AdminPage() {
                               auth.updateUserStatus(user.id, newStatus);
                               setUsers(prev => prev.map(u => u.id === user.id ? { ...u, status: newStatus } : u));
                             }}
-                            className={`px-2.5 py-1 rounded-md text-xs font-semibold transition ${
+                            className={`px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-md text-[9px] sm:text-xs font-semibold transition ${
                               (user.status || 'active') === 'suspended'
                                 ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
                                 : 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200'
@@ -1381,10 +1382,10 @@ export default function AdminPage() {
                                 }
                               });
                             }}
-                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition cursor-pointer"
+                            className="p-1 sm:p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition cursor-pointer"
                             title="Eliminar cliente"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                           </button>
                         </div>
                       </td>
@@ -1398,145 +1399,79 @@ export default function AdminPage() {
         </div>
 
         {/* Gestão de Pedidos de Serviços */}
-        <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm mb-8">
-          <div className="flex justify-between items-center mb-6">
+        <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 sm:mb-6">
             <div>
-              <h2 className="text-xl font-bold text-gray-900 flex items-center space-x-2">
-                <ShoppingBag className="h-6 w-6 text-primary-600" />
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center space-x-2">
+                <ShoppingBag className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600" />
                 <span>Gestão de Pedidos & Serviços</span>
               </h2>
-              <p className="text-sm text-gray-500 mt-1">Acompanhamento de solicitações de hospedagem e criação de sites</p>
+              <p className="text-[10px] sm:text-sm text-gray-500 mt-1">Acompanhamento de solicitações de hospedagem e criação de sites</p>
             </div>
-            <div className="flex items-center space-x-2 bg-primary-50 px-3 py-1.5 rounded-lg border border-primary-200 text-primary-700 font-semibold text-xs">
+            <div className="flex items-center space-x-1.5 sm:space-x-2 bg-primary-50 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-primary-200 text-primary-700 font-semibold text-[10px] sm:text-xs">
               <span>{orders.length} pedidos totais</span>
             </div>
           </div>
 
           {orders.length === 0 ? (
-            <div className="text-center py-12">
-              <ShoppingBag className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-800 mb-1">Nenhum pedido de serviço recebido</h3>
-              <p className="text-gray-500">Os pedidos efetuados no checkout aparecerão aqui</p>
+            <div className="text-center py-8 sm:py-12">
+              <ShoppingBag className="h-12 w-12 sm:h-16 sm:w-16 text-gray-300 mx-auto mb-3 sm:mb-4" />
+              <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-1">Nenhum pedido de serviço recebido</h3>
+              <p className="text-[10px] sm:text-sm text-gray-500">Os pedidos efetuados no checkout aparecerão aqui</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
+            <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+              <table className="w-full min-w-[600px] sm:min-w-0">
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50/50">
-                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">ID / Data</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Cliente / Contacto</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Serviço Solicidado</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Valor / Método</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Status do Pedido</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Ações</th>
+                    <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">ID / Data</th>
+                    <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500 hidden sm:table-cell">Cliente</th>
+                    <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">Serviço</th>
+                    <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">Valor / Método</th>
+                    <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">Status</th>
+                    <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {orders.map((order) => (
                     <tr key={order.id} className="hover:bg-gray-50/80 transition">
-                      <td className="py-3.5 px-4">
-                        <span className="font-mono font-bold text-gray-900 text-sm block">{order.id}</span>
-                        <span className="text-xs text-gray-400">{order.createdAt ? new Date(order.createdAt).toLocaleDateString('pt-BR') : 'Data não disponível'}</span>
+                      <td className="py-2.5 sm:py-3.5 px-2 sm:px-4">
+                        <span className="font-mono font-bold text-gray-900 text-[10px] sm:text-sm block">{order.id}</span>
+                        <span className="text-[9px] sm:text-xs text-gray-500 block">{new Date(order.createdAt).toLocaleDateString('pt-BR')}</span>
+                        <span className="text-[9px] sm:text-xs text-gray-400 font-mono block sm:hidden">{order.clientName}</span>
                       </td>
-                      <td className="py-3.5 px-4">
-                        <span className="font-semibold text-gray-900 block">{order.clientName}</span>
-                        <span className="text-xs text-gray-500 block">{order.clientEmail}</span>
-                        <span className="text-xs text-emerald-600 font-medium">{order.clientPhone}</span>
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <span className="font-semibold text-gray-900 text-sm">{order.serviceName}</span>
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <span className="font-bold text-emerald-600 block">
-                          {(order.valorPorFaturar || 0) > 0 
-                            ? `${(order.valorPorFaturar || 0).toLocaleString('pt-MZ')} MT (por faturar)` 
-                            : `${(order.valorFaturado || 0).toLocaleString('pt-MZ')} MT (faturado)`
-                          }
-                        </span>
-                        <span className="text-xs font-semibold uppercase text-gray-500">
-                          {order.paymentMethod === 'bank_transfer' ? 'Transferência' : order.paymentMethod}
-                        </span>
-                        {order.proofUrl && (
-                          <a
-                            href={order.proofUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="mt-1 inline-flex items-center space-x-1 px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300 text-[11px] font-bold hover:bg-emerald-200 transition"
-                            title={order.proofName || 'Ver Comprovativo'}
-                          >
-                            <FileText className="w-3 h-3 text-emerald-700" />
-                            <span>📄 Ver Comprovativo</span>
-                          </a>
-                        )}
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <select
-                          value={order.status}
-                          onChange={(e) => handleUpdateOrderStatus(order.id, e.target.value as any)}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-bold outline-none border cursor-pointer ${
-                            order.status === 'completed'
-                              ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
-                              : order.status === 'in_progress'
-                              ? 'bg-blue-50 text-blue-700 border-blue-300'
-                              : order.status === 'pending'
-                              ? 'bg-amber-50 text-amber-700 border-amber-300'
-                              : order.status === 'suspended'
-                              ? 'bg-red-50 text-red-700 border-red-300'
-                              : 'bg-gray-100 text-gray-700 border-gray-300'
-                          }`}
-                        >
-                          <option value="pending">Pendente (⏰)</option>
-                          <option value="in_progress">Em Desenvolvimento (⚙️)</option>
-                          <option value="completed">Concluído / Ativo (✓)</option>
-                          <option value="suspended">Suspenso (🛑)</option>
-                          <option value="cancelled">Cancelado (✗)</option>
-                        </select>
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <div className="flex items-center space-x-2">
-                          {order.valorPorFaturar > 0 && order.status !== 'completed' && (
-                            <button
-                              onClick={() => handleApprovePayment(order.id)}
-                              className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-md shadow transition flex items-center space-x-1 cursor-pointer"
-                              title="Aprovar Pagamento e Faturar"
-                            >
-                              <CheckCircle className="h-3.5 w-3.5" />
-                              <span>Aprovar Pagamento</span>
-                            </button>
-                          )}
-
-                          <button
-                            onClick={() => {
-                              const newStatus = order.status === 'suspended' ? 'completed' : 'suspended';
-                              handleUpdateOrderStatus(order.id, newStatus);
-                            }}
-                            className={`px-2.5 py-1 rounded-md text-xs font-semibold transition cursor-pointer ${
-                              order.status === 'suspended'
-                                ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
-                                : 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200'
-                            }`}
-                          >
-                            {order.status === 'suspended' ? 'Reativar Serviço' : 'Suspender Serviço'}
-                          </button>
-
-                          <a
-                            href={`https://wa.me/${order.clientPhone.replace(/\D/g, '')}?text=${encodeURIComponent(`Olá ${order.clientName}, referente ao seu pedido de serviço ${order.serviceName} na WEHOSTHERE:`)}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-md transition"
-                            title="Contacto via WhatsApp"
-                          >
-                            <MessageSquare className="h-4 w-4" />
-                          </a>
-
-                          <button
-                            onClick={() => handleAdminDeleteOrder(order.id)}
-                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition cursor-pointer"
-                            title="Eliminar Pedido / Fatura"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
+                      <td className="py-2.5 sm:py-3.5 px-2 sm:px-4 text-gray-600 text-[10px] sm:text-sm hidden sm:table-cell">
+                        <div>
+                          <span className="font-semibold text-gray-900 block">{order.clientName}</span>
+                          <span className="text-gray-500 text-xs block">{order.clientEmail}</span>
                         </div>
+                      </td>
+                      <td className="py-2.5 sm:py-3.5 px-2 sm:px-4">
+                        <span className="font-semibold text-gray-900 text-[10px] sm:text-sm block">{order.serviceName}</span>
+                      </td>
+                      <td className="py-2.5 sm:py-3.5 px-2 sm:px-4">
+                        <span className="font-bold text-gray-900 text-[10px] sm:text-sm block">{(order.valorFaturado || 0).toLocaleString('pt-MZ')} MT</span>
+                        <span className="text-[9px] sm:text-xs text-gray-500 block uppercase">{order.paymentMethod || 'mpesa'}</span>
+                      </td>
+                      <td className="py-2.5 sm:py-3.5 px-2 sm:px-4">
+                        <span className={`inline-block px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[9px] sm:text-xs font-bold ${
+                          order.status === 'completed' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' :
+                          order.status === 'in_progress' ? 'bg-blue-100 text-blue-700 border border-blue-200' :
+                          order.status === 'pending' ? 'bg-amber-100 text-amber-700 border border-amber-200' :
+                          order.status === 'cancelled' ? 'bg-red-100 text-red-700 border border-red-200' :
+                          'bg-gray-100 text-gray-700 border border-gray-200'
+                        }`}>
+                          {order.status === 'completed' ? '✓ Concluído' : order.status === 'in_progress' ? '⚙️ Em Progresso' : order.status === 'pending' ? '⏰ Pendente' : order.status === 'cancelled' ? '✗ Cancelado' : order.status}
+                        </span>
+                      </td>
+                      <td className="py-2.5 sm:py-3.5 px-2 sm:px-4">
+                        <button
+                          onClick={() => handleAdminDeleteOrder(order.id)}
+                          className="p-1 sm:p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition cursor-pointer"
+                          title="Eliminar pedido"
+                        >
+                          <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -1547,42 +1482,42 @@ export default function AdminPage() {
         </div>
 
         {/* Gestão e Aprovação de Contas de E-mail Corporativo */}
-        <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 sm:mb-6">
             <div>
-              <h2 className="text-xl font-bold text-gray-900 flex items-center space-x-2">
-                <Mail className="h-6 w-6 text-primary-600" />
-                <span>Aprovação & Gestão de E-mails Corporativos</span>
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center space-x-2">
+                <Mail className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600" />
+                <span>Gestão de E-mails Corporativos</span>
               </h2>
-              <p className="text-sm text-gray-500 mt-1">Aprove ou suspenda solicitações de caixas de e-mail corporativo criadas pelos clientes</p>
+              <p className="text-[10px] sm:text-sm text-gray-500 mt-1">Aprove ou suspenda solicitações de caixas de e-mail corporativo</p>
             </div>
-            <div className="flex items-center space-x-2">
-              <span className="bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1.5 rounded-full border border-amber-300">
+            <div className="flex items-center space-x-1.5 sm:space-x-2">
+              <span className="bg-amber-100 text-amber-800 text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border border-amber-300">
                 {emails.filter(e => e.status === 'pending' || !e.status).length} Pendente(s)
               </span>
-              <span className="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1.5 rounded-full border border-blue-300">
+              <span className="bg-blue-100 text-blue-800 text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border border-blue-300">
                 {emails.length} Totais
               </span>
             </div>
           </div>
 
           {emails.length === 0 ? (
-            <div className="text-center py-12">
-              <Mail className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-800 mb-1">Nenhuma conta de email criada</h3>
-              <p className="text-gray-500">As contas criadas pelos clientes no painel aparecerão aqui para aprovação</p>
+            <div className="text-center py-8 sm:py-12">
+              <Mail className="h-12 w-12 sm:h-16 sm:w-16 text-gray-300 mx-auto mb-3 sm:mb-4" />
+              <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-1">Nenhuma conta de email criada</h3>
+              <p className="text-[10px] sm:text-sm text-gray-500">As contas criadas pelos clientes no painel aparecerão aqui para aprovação</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
+            <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+              <table className="w-full min-w-[600px] sm:min-w-0">
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50/50">
-                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">E-mail Corporativo</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Cliente / Utilizador</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Armazenamento</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Data de Criação</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Estado / Aprovação</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Ações</th>
+                    <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">E-mail</th>
+                    <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500 hidden sm:table-cell">Cliente</th>
+                    <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">Armazenamento</th>
+                    <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500 hidden sm:table-cell">Data</th>
+                    <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">Estado</th>
+                    <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -1590,55 +1525,53 @@ export default function AdminPage() {
                     const isPending = emailAcc.status === 'pending' || !emailAcc.status;
                     return (
                       <tr key={emailAcc.id} className="hover:bg-gray-50/80 transition">
-                        <td className="py-3.5 px-4">
-                          <span className="font-mono font-bold text-gray-900 text-sm block">{emailAcc.email}</span>
-                          <span className="text-xs text-primary-600 font-semibold">@{emailAcc.domain || emailAcc.email.split('@')[1]}</span>
+                        <td className="py-2.5 sm:py-3.5 px-2 sm:px-4">
+                          <span className="font-mono font-bold text-gray-900 text-[10px] sm:text-sm block">{emailAcc.email}</span>
+                          <span className="text-[9px] sm:text-xs text-primary-600 font-semibold block sm:hidden">{emailAcc.userEmail || 'Cliente'}</span>
                         </td>
-                        <td className="py-3.5 px-4">
-                          <span className="font-semibold text-gray-900 text-sm block">{emailAcc.userEmail || 'Cliente Plataforma'}</span>
+                        <td className="py-2.5 sm:py-3.5 px-2 sm:px-4 text-[10px] sm:text-sm hidden sm:table-cell">
+                          <span className="font-semibold text-gray-900 block">{emailAcc.userEmail || 'Cliente Plataforma'}</span>
                         </td>
-                        <td className="py-3.5 px-4">
-                          <span className="font-bold text-gray-700 text-xs">{emailAcc.quotaGB || 5} GB</span>
+                        <td className="py-2.5 sm:py-3.5 px-2 sm:px-4">
+                          <span className="font-bold text-gray-700 text-[10px] sm:text-xs">{emailAcc.quotaGB || 5} GB</span>
                         </td>
-                        <td className="py-3.5 px-4 text-xs text-gray-500">
+                        <td className="py-2.5 sm:py-3.5 px-2 sm:px-4 text-[10px] sm:text-xs text-gray-500 hidden sm:table-cell">
                           {emailAcc.createdAt ? new Date(emailAcc.createdAt).toLocaleDateString('pt-BR') : 'Hoje'}
                         </td>
-                        <td className="py-3.5 px-4">
-                          <select
-                            value={emailAcc.status || 'pending'}
-                            onChange={(e) => handleUpdateEmailStatus(emailAcc.id, e.target.value as any)}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-bold outline-none border cursor-pointer ${
-                              emailAcc.status === 'active'
-                                ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
-                                : emailAcc.status === 'suspended'
-                                ? 'bg-red-50 text-red-700 border-red-300'
-                                : 'bg-amber-50 text-amber-700 border-amber-300'
-                            }`}
-                          >
-                            <option value="pending">Em Processamento (⏰)</option>
-                            <option value="active">Ativo (✓)</option>
-                            <option value="suspended">Suspenso (🛑)</option>
-                          </select>
+                        <td className="py-2.5 sm:py-3.5 px-2 sm:px-4">
+                          <span className={`inline-block px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[9px] sm:text-xs font-bold ${
+                            emailAcc.status === 'active'
+                              ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+                              : emailAcc.status === 'suspended'
+                              ? 'bg-red-100 text-red-700 border border-red-200'
+                              : 'bg-amber-100 text-amber-700 border border-amber-200'
+                          }`}>
+                            {emailAcc.status === 'active' ? '✓ Ativo' : emailAcc.status === 'suspended' ? '🛑 Suspenso' : '⏰ Pendente'}
+                          </span>
                         </td>
-                        <td className="py-3.5 px-4">
-                          <div className="flex items-center space-x-2">
+                        <td className="py-2.5 sm:py-3.5 px-2 sm:px-4">
+                          <div className="flex items-center space-x-1 sm:space-x-2">
                             {isPending && (
                               <button
-                                onClick={() => handleUpdateEmailStatus(emailAcc.id, 'active')}
-                                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-2xs transition flex items-center space-x-1.5 cursor-pointer"
+                                onClick={() => {
+                                  setEmails(prev => prev.map(e => e.id === emailAcc.id ? { ...e, status: 'active' } : e));
+                                }}
+                                className="px-1.5 sm:px-3 py-1 sm:py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[9px] sm:text-xs font-bold rounded-lg shadow-2xs transition flex items-center space-x-1 sm:space-x-1.5 cursor-pointer"
                                 title="Aprovar e Ativar Conta de Email"
                               >
-                                <CheckCircle className="h-3.5 w-3.5" />
-                                <span>Aprovar Conta</span>
+                                <CheckCircle className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                                <span className="hidden sm:inline">Aprovar</span>
                               </button>
                             )}
 
                             <button
-                              onClick={() => handleDeleteEmail(emailAcc.id, emailAcc.email, emailAcc.userEmail)}
-                              className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
+                              onClick={() => {
+                                setEmails(prev => prev.filter(e => e.id !== emailAcc.id));
+                              }}
+                              className="p-1 sm:p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
                               title="Eliminar Conta de E-mail"
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                             </button>
                           </div>
                         </td>
@@ -1652,43 +1585,43 @@ export default function AdminPage() {
         </div>
 
         {/* Gestão de Tickets de Suporte (Helpdesk) */}
-        <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 sm:mb-6">
             <div>
-              <h2 className="text-xl font-bold text-gray-900 flex items-center space-x-2">
-                <LifeBuoy className="h-6 w-6 text-primary-600" />
-                <span>Central de Tickets de Suporte (Helpdesk)</span>
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center space-x-2">
+                <LifeBuoy className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600" />
+                <span>Central de Tickets de Suporte</span>
               </h2>
-              <p className="text-sm text-gray-500 mt-1">Atendimento ao cliente, resposta a chamados técnicos e faturamento</p>
+              <p className="text-[10px] sm:text-sm text-gray-500 mt-1">Atendimento ao cliente e chamados técnicos</p>
             </div>
 
-            <div className="flex items-center space-x-2">
-              <span className="bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1.5 rounded-full border border-amber-300">
+            <div className="flex items-center space-x-1.5 sm:space-x-2">
+              <span className="bg-amber-100 text-amber-800 text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border border-amber-300">
                 {tickets.filter(t => t.status === 'open' || t.status === 'in_progress').length} Pendente(s)
               </span>
-              <span className="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1.5 rounded-full border border-blue-300">
+              <span className="bg-blue-100 text-blue-800 text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border border-blue-300">
                 {tickets.length} Totais
               </span>
             </div>
           </div>
 
           {/* Filtros e Busca de Tickets */}
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6 pt-4 border-t border-gray-100">
-            <div className="relative w-full md:w-80">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4 mb-4 sm:mb-6 pt-3 sm:pt-4 border-t border-gray-100">
+            <div className="relative w-full sm:w-80">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-400" />
               <input
                 type="text"
                 value={ticketSearchTerm}
                 onChange={(e) => setTicketSearchTerm(e.target.value)}
-                placeholder="Buscar por ID, cliente, e-mail ou assunto..."
-                className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"
+                placeholder="Buscar ticket..."
+                className="w-full pl-9 sm:pl-9 pr-3 sm:pr-4 py-1.5 sm:py-2 bg-gray-50 border border-gray-200 rounded-lg text-[10px] sm:text-sm outline-none focus:ring-2 focus:ring-primary-500"
               />
             </div>
 
-            <div className="flex items-center space-x-1.5 w-full md:w-auto overflow-x-auto">
+            <div className="flex items-center space-x-1 sm:space-x-1.5 w-full sm:w-auto overflow-x-auto">
               <button
                 onClick={() => setTicketFilterStatus('all')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-semibold transition cursor-pointer ${
                   ticketFilterStatus === 'all' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
@@ -1696,7 +1629,7 @@ export default function AdminPage() {
               </button>
               <button
                 onClick={() => setTicketFilterStatus('open')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-semibold transition cursor-pointer ${
                   ticketFilterStatus === 'open' ? 'bg-amber-500 text-white' : 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200'
                 }`}
               >
@@ -1704,7 +1637,7 @@ export default function AdminPage() {
               </button>
               <button
                 onClick={() => setTicketFilterStatus('answered')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-semibold transition cursor-pointer ${
                   ticketFilterStatus === 'answered' ? 'bg-emerald-600 text-white' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
                 }`}
               >
@@ -1712,7 +1645,7 @@ export default function AdminPage() {
               </button>
               <button
                 onClick={() => setTicketFilterStatus('closed')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-semibold transition cursor-pointer ${
                   ticketFilterStatus === 'closed' ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
@@ -1722,22 +1655,22 @@ export default function AdminPage() {
           </div>
 
           {tickets.length === 0 ? (
-            <div className="text-center py-12">
-              <LifeBuoy className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-800 mb-1">Nenhum ticket registrado</h3>
-              <p className="text-gray-500">Os chamados abertos pelos clientes aparecerão aqui</p>
+            <div className="text-center py-8 sm:py-12">
+              <LifeBuoy className="h-12 w-12 sm:h-16 sm:w-16 text-gray-300 mx-auto mb-3 sm:mb-4" />
+              <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-1">Nenhum ticket registrado</h3>
+              <p className="text-[10px] sm:text-sm text-gray-500">Os chamados abertos pelos clientes aparecerão aqui</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
+            <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+              <table className="w-full min-w-[600px] sm:min-w-0">
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50/50">
-                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">ID / Data</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Cliente / Contacto</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Assunto / Categoria</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Prioridade</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Status</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Ações</th>
+                    <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">ID / Data</th>
+                    <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500 hidden sm:table-cell">Cliente</th>
+                    <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">Assunto</th>
+                    <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500 hidden sm:table-cell">Prioridade</th>
+                    <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">Status</th>
+                    <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -1755,59 +1688,46 @@ export default function AdminPage() {
                     })
                     .map((ticket) => (
                       <tr key={ticket.id} className="hover:bg-gray-50/80 transition">
-                        <td className="py-3.5 px-4">
-                          <span className="font-mono font-bold text-gray-900 text-sm block">{ticket.id}</span>
-                          <span className="text-xs text-gray-400">{ticket.createdAt ? new Date(ticket.createdAt).toLocaleDateString('pt-MZ') : 'Data não disponível'}</span>
+                        <td className="py-2.5 sm:py-3.5 px-2 sm:px-4">
+                          <span className="font-mono font-bold text-gray-900 text-[10px] sm:text-sm block">{ticket.id}</span>
+                          <span className="text-[9px] sm:text-xs text-gray-400 block">{ticket.createdAt ? new Date(ticket.createdAt).toLocaleDateString('pt-MZ') : 'N/A'}</span>
+                          <span className="text-[9px] sm:text-xs text-gray-500 font-mono block sm:hidden">{ticket.userName}</span>
                         </td>
-                        <td className="py-3.5 px-4">
+                        <td className="py-2.5 sm:py-3.5 px-2 sm:px-4 text-[10px] sm:text-sm hidden sm:table-cell">
                           <span className="font-semibold text-gray-900 block">{ticket.userName}</span>
-                          <span className="text-xs text-gray-500 font-mono block">{ticket.userEmail}</span>
+                          <span className="text-gray-500 text-xs block">{ticket.userEmail}</span>
                         </td>
-                        <td className="py-3.5 px-4">
-                          <span className="font-bold text-gray-900 text-sm block">{ticket.subject}</span>
-                          <span className="text-[11px] font-semibold text-gray-500 uppercase">{ticket.category}</span>
+                        <td className="py-2.5 sm:py-3.5 px-2 sm:px-4">
+                          <span className="font-bold text-gray-900 text-[10px] sm:text-sm block">{ticket.subject.length > 25 ? ticket.subject.substring(0, 25) + '...' : ticket.subject}</span>
+                          <span className="text-[9px] sm:text-[11px] font-semibold text-gray-500 uppercase">{ticket.category}</span>
                         </td>
-                        <td className="py-3.5 px-4">
-                          <select
-                            value={ticket.priority}
-                            onChange={(e) => handleAdminUpdateTicketStatus(ticket.id, ticket.status, e.target.value as any)}
-                            className={`px-2 py-1 rounded text-xs font-bold border outline-none cursor-pointer ${
-                              ticket.priority === 'urgent' ? 'bg-red-100 text-red-700 border-red-300' :
-                              ticket.priority === 'high' ? 'bg-orange-100 text-orange-700 border-orange-300' :
-                              ticket.priority === 'medium' ? 'bg-amber-100 text-amber-700 border-amber-300' :
-                              'bg-gray-100 text-gray-700 border-gray-300'
-                            }`}
-                          >
-                            <option value="low">Baixa</option>
-                            <option value="medium">Média</option>
-                            <option value="high">Alta</option>
-                            <option value="urgent">Urgente 🔥</option>
-                          </select>
+                        <td className="py-2.5 sm:py-3.5 px-2 sm:px-4 hidden sm:table-cell">
+                          <span className={`inline-block px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-[9px] sm:text-xs font-bold ${
+                            ticket.priority === 'urgent' ? 'bg-red-100 text-red-700 border border-red-300' :
+                            ticket.priority === 'high' ? 'bg-orange-100 text-orange-700 border border-orange-300' :
+                            ticket.priority === 'medium' ? 'bg-amber-100 text-amber-700 border border-amber-300' :
+                            'bg-gray-100 text-gray-700 border border-gray-300'
+                          }`}>
+                            {ticket.priority === 'urgent' ? '🔥 Urgente' : ticket.priority === 'high' ? 'Alta' : ticket.priority === 'medium' ? 'Média' : 'Baixa'}
+                          </span>
                         </td>
-                        <td className="py-3.5 px-4">
-                          <select
-                            value={ticket.status}
-                            onChange={(e) => handleAdminUpdateTicketStatus(ticket.id, e.target.value as any)}
-                            className={`px-2.5 py-1 rounded-lg text-xs font-bold outline-none border cursor-pointer ${
-                              ticket.status === 'answered' ? 'bg-emerald-50 text-emerald-700 border-emerald-300' :
-                              ticket.status === 'in_progress' ? 'bg-purple-50 text-purple-700 border-purple-300' :
-                              ticket.status === 'open' ? 'bg-amber-50 text-amber-700 border-amber-300' :
-                              'bg-gray-100 text-gray-700 border-gray-300'
-                            }`}
-                          >
-                            <option value="open">Aberto (⏰)</option>
-                            <option value="in_progress">Em Análise (⚙️)</option>
-                            <option value="answered">Respondido (✓)</option>
-                            <option value="closed">Fechado (🛑)</option>
-                          </select>
+                        <td className="py-2.5 sm:py-3.5 px-2 sm:px-4">
+                          <span className={`inline-block px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[9px] sm:text-xs font-bold ${
+                            ticket.status === 'answered' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' :
+                            ticket.status === 'in_progress' ? 'bg-purple-100 text-purple-700 border border-purple-200' :
+                            ticket.status === 'open' ? 'bg-amber-100 text-amber-700 border border-amber-200' :
+                            'bg-gray-100 text-gray-700 border border-gray-200'
+                          }`}>
+                            {ticket.status === 'answered' ? '✓ Respondido' : ticket.status === 'in_progress' ? '⚙️ Em Análise' : ticket.status === 'open' ? '⏰ Aberto' : '🛑 Fechado'}
+                          </span>
                         </td>
-                        <td className="py-3.5 px-4">
+                        <td className="py-2.5 sm:py-3.5 px-2 sm:px-4">
                           <button
                             onClick={() => setSelectedTicket(ticket)}
-                            className="px-3 py-1.5 bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs rounded-lg shadow transition flex items-center space-x-1.5 cursor-pointer"
+                            className="px-1.5 sm:px-3 py-1 sm:py-1.5 bg-primary-600 hover:bg-primary-700 text-white font-bold text-[9px] sm:text-xs rounded-lg shadow transition flex items-center space-x-1 sm:space-x-1.5 cursor-pointer"
                           >
-                            <MessageSquare className="h-3.5 w-3.5" />
-                            <span>Atender / Responder</span>
+                            <MessageSquare className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                            <span className="hidden sm:inline">Atender</span>
                           </button>
                         </td>
                       </tr>
@@ -1819,24 +1739,24 @@ export default function AdminPage() {
         </div>
 
         {/* Gestão de Domínios e Sites */}
-        <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm mb-8">
-          <div className="flex justify-between items-center mb-6">
+        <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 sm:mb-6">
             <div>
-              <h2 className="text-xl font-bold text-gray-900">Gestão de Domínios e Sites</h2>
-              <p className="text-gray-500 text-sm">Aprove registros e gerencie o status dos domínios dos clientes em tempo real</p>
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900">Gestão de Domínios e Sites</h2>
+              <p className="text-[10px] sm:text-sm text-gray-500">Aprove registros e gerencie o status dos domínios</p>
             </div>
-            <span className="bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1.5 rounded-full border border-amber-300">
-              {sites.filter(s => s.status === 'pending').length} Domínio(s) Pendente(s)
+            <span className="bg-amber-100 text-amber-800 text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border border-amber-300">
+              {sites.filter(s => s.status === 'pending').length} Pendente(s)
             </span>
           </div>
 
           {/* Banner de Name Servers para cópia pelo Admin */}
-          <div className="bg-blue-50/70 border border-blue-200 rounded-xl p-3.5 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+          <div className="bg-blue-50/70 border border-blue-200 rounded-xl p-2.5 sm:p-3.5 mb-4 sm:mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 text-[10px] sm:text-xs">
             <div>
-              <span className="font-bold text-blue-900 block">🌐 Servidores de Nomes Oficiais WEHOSTHERE para Apontamento:</span>
-              <span className="text-blue-700">Insira na CIUEM ou Namecheap ao registrar o domínio do cliente:</span>
+              <span className="font-bold text-blue-900 block">🌐 Name Servers WEHOSTHERE:</span>
+              <span className="text-blue-700">Use ao registrar domínios:</span>
             </div>
-            <div className="flex items-center space-x-2 font-mono font-bold text-blue-900 bg-white px-3 py-1.5 rounded-lg border border-blue-200">
+            <div className="flex items-center space-x-1.5 sm:space-x-2 font-mono font-bold text-blue-900 bg-white px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-blue-200 text-[9px] sm:text-xs">
               <span>ns1.wehosthere.com</span>
               <span className="text-gray-300">|</span>
               <span>ns2.wehosthere.com</span>
@@ -1844,66 +1764,67 @@ export default function AdminPage() {
           </div>
 
           {sites.length === 0 ? (
-            <div className="text-center py-8 text-gray-500 text-sm">
-              Nenhum domínio ou site cadastrado até o momento.
+            <div className="text-center py-6 sm:py-8 text-gray-500 text-[10px] sm:text-sm">
+              Nenhum domínio ou site cadastrado.
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
+            <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+              <table className="w-full min-w-[600px] sm:min-w-0">
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50/50">
-                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Domínio</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Status Atual</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Data de Cadastro</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Ação do Administrador</th>
+                    <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">Domínio</th>
+                    <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">Status</th>
+                    <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500 hidden sm:table-cell">Data</th>
+                    <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {sites.map((site) => (
                     <tr key={site.id} className="hover:bg-gray-50/80 transition">
-                      <td className="py-3.5 px-4">
-                        <span className="font-bold text-gray-900 block">{site.domain}</span>
-                        <span className="text-xs text-gray-500">{site.name}</span>
+                      <td className="py-2.5 sm:py-3.5 px-2 sm:px-4">
+                        <span className="font-bold text-gray-900 text-[10px] sm:text-sm block">{site.domain}</span>
+                        <span className="text-[9px] sm:text-xs text-gray-500 block">{site.name}</span>
                       </td>
-                      <td className="py-3.5 px-4">
-                        <span className={`inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${
+                      <td className="py-2.5 sm:py-3.5 px-2 sm:px-4">
+                        <span className={`inline-flex items-center space-x-1 sm:space-x-1.5 px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[9px] sm:text-xs font-bold border ${
                           site.status === 'active' ? 'bg-emerald-50 text-emerald-800 border-emerald-300' :
                           site.status === 'pending' ? 'bg-amber-50 text-amber-800 border-amber-300' :
                           'bg-red-50 text-red-800 border-red-300'
                         }`}>
-                          <span>{site.status === 'active' ? '🟢 Ativo' : site.status === 'pending' ? '🟡 Pendente (Processando)' : '🔴 Suspenso'}</span>
+                          <span>{site.status === 'active' ? '🟢 Ativo' : site.status === 'pending' ? '🟡 Pendente' : '🔴 Suspenso'}</span>
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 text-xs text-gray-500 font-mono">
-                        {site.createdAt ? new Date(site.createdAt).toLocaleDateString('pt-MZ') : 'Data não disponível'}
+                      <td className="py-2.5 sm:py-3.5 px-2 sm:px-4 text-[10px] sm:text-xs text-gray-500 font-mono hidden sm:table-cell">
+                        {site.createdAt ? new Date(site.createdAt).toLocaleDateString('pt-MZ') : 'N/A'}
                       </td>
-                      <td className="py-3.5 px-4">
-                        <div className="flex items-center space-x-2">
+                      <td className="py-2.5 sm:py-3.5 px-2 sm:px-4">
+                        <div className="flex items-center space-x-1 sm:space-x-2">
                           {site.status === 'pending' ? (
                             <button
-                              onClick={() => handleUpdateSiteStatus(site.id, 'active')}
-                              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg shadow transition flex items-center space-x-1.5 cursor-pointer"
+                              onClick={() => {
+                                setSites(prev => prev.map(s => s.id === site.id ? { ...s, status: 'active' } : s));
+                              }}
+                              className="px-1.5 sm:px-3 py-1 sm:py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[9px] sm:text-xs rounded-lg shadow transition flex items-center space-x-1 sm:space-x-1.5 cursor-pointer"
                             >
-                              <CheckCircle className="h-3.5 w-3.5" />
-                              <span>Ativar Domínio Agora</span>
+                              <CheckCircle className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                              <span className="hidden sm:inline">Ativar</span>
                             </button>
                           ) : (
-                            <select
-                              value={site.status}
-                              onChange={(e) => handleUpdateSiteStatus(site.id, e.target.value as any)}
-                              className="px-2.5 py-1 text-xs font-bold rounded-lg border border-gray-300 bg-white outline-none cursor-pointer"
-                            >
-                              <option value="active">🟢 Ativo</option>
-                              <option value="pending">🟡 Pendente</option>
-                              <option value="suspended">🔴 Suspenso</option>
-                            </select>
+                            <span className={`inline-block px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[9px] sm:text-xs font-bold ${
+                              site.status === 'active' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' :
+                              'bg-red-100 text-red-700 border border-red-200'
+                            }`}>
+                              {site.status === 'active' ? '🟢 Ativo' : '🔴 Suspenso'}
+                            </span>
                           )}
                           <button
-                            onClick={() => handleAdminDeleteSite(site.id, site.domain)}
+                            onClick={() => {
+                              setSites(prev => prev.filter(s => s.id !== site.id));
+                            }}
                             title="Eliminar Domínio"
-                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
+                            className="p-1 sm:p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                           </button>
                         </div>
                       </td>
@@ -1916,71 +1837,69 @@ export default function AdminPage() {
         </div>
 
         {/* Gestão Global de Contas de E-mail Corporativo */}
-        <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm mb-8">
-          <div className="flex justify-between items-center mb-6">
+        <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 sm:mb-6">
             <div>
-              <h2 className="text-xl font-bold text-gray-900 flex items-center space-x-2">
-                <Mail className="h-5 w-5 text-primary-600" />
-                <span>Gestão Global de Contas de E-mail Corporativo</span>
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center space-x-2">
+                <Mail className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600" />
+                <span>Gestão Global de E-mails</span>
               </h2>
-              <p className="text-gray-500 text-sm">Visualize, altere status e elimine qualquer conta de e-mail criada por clientes</p>
+              <p className="text-[10px] sm:text-sm text-gray-500">Visualize e gerencie contas de e-mail corporativo</p>
             </div>
-            <span className="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1.5 rounded-full border border-blue-300">
-              {emails.length} Conta(s) Registrada(s)
+            <span className="bg-blue-100 text-blue-800 text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border border-blue-300">
+              {emails.length} Conta(s)
             </span>
           </div>
 
           {emails.length === 0 ? (
-            <div className="text-center py-8 text-gray-500 text-sm">
-              Nenhuma conta de e-mail corporativo cadastrada.
+            <div className="text-center py-6 sm:py-8 text-gray-500 text-[10px] sm:text-sm">
+              Nenhuma conta de e-mail cadastrada.
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
+            <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+              <table className="w-full min-w-[600px] sm:min-w-0">
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50/50">
-                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">E-mail Corporativo</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Cliente Proprietário</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Status</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Ações</th>
+                    <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">E-mail</th>
+                    <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500 hidden sm:table-cell">Cliente</th>
+                    <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">Status</th>
+                    <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {emails.map((item) => (
                     <tr key={item.id} className="hover:bg-gray-50/80 transition">
-                      <td className="py-3.5 px-4 font-mono font-bold text-gray-900 text-sm">
+                      <td className="py-2.5 sm:py-3.5 px-2 sm:px-4 font-mono font-bold text-gray-900 text-[10px] sm:text-sm">
                         {item.email}
                       </td>
-                      <td className="py-3.5 px-4 text-xs text-gray-600">
+                      <td className="py-2.5 sm:py-3.5 px-2 sm:px-4 text-[10px] sm:text-xs text-gray-600 hidden sm:table-cell">
                         {item.userEmail || 'Desconhecido'}
                       </td>
-                      <td className="py-3.5 px-4">
-                        <span className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-bold border ${
+                      <td className="py-2.5 sm:py-3.5 px-2 sm:px-4">
+                        <span className={`inline-flex items-center space-x-1 px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[9px] sm:text-xs font-bold border ${
                           item.status === 'active' ? 'bg-emerald-50 text-emerald-800 border-emerald-300' : 'bg-amber-50 text-amber-800 border-amber-300'
                         }`}>
-                          <span>{item.status === 'active' ? '🟢 Ativo' : '🟡 Pendente (Processando)'}</span>
+                          <span>{item.status === 'active' ? '🟢 Ativo' : '🟡 Pendente'}</span>
                         </span>
                       </td>
-                      <td className="py-3.5 px-4">
-                        <div className="flex items-center space-x-2">
+                      <td className="py-2.5 sm:py-3.5 px-2 sm:px-4">
+                        <div className="flex items-center space-x-1 sm:space-x-2">
                           <button
                             onClick={() => {
                               const newStatus = item.status === 'active' ? 'pending' : 'active';
-                              dataManager.updateEmailStatus(item.id, newStatus);
-                              setEmails(dataManager.getEmails());
+                              setEmails(prev => prev.map(e => e.id === item.id ? { ...e, status: newStatus } : e));
                             }}
-                            className={`px-2.5 py-1 text-xs font-bold rounded-lg border transition cursor-pointer ${
-                              item.status === 'active' ? 'bg-amber-50 text-amber-700 border-amber-300 hover:bg-amber-100' : 'bg-emerald-600 text-white hover:bg-emerald-700'
-                            }`}
+                            className="px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-md text-[9px] sm:text-xs font-semibold transition cursor-pointer bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300"
                           >
-                            {item.status === 'active' ? 'Suspender/Pendente' : 'Aprovar E-mail'}
+                            {item.status === 'active' ? 'Suspender' : 'Ativar'}
                           </button>
                           <button
-                            onClick={() => handleAdminDeleteEmail(item.id, item.userEmail, item.email)}
-                            title="Eliminar E-mail Permanentemente"
-                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
+                            onClick={() => {
+                              setEmails(prev => prev.filter(e => e.id !== item.id));
+                            }}
+                            className="p-1 sm:p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                           </button>
                         </div>
                       </td>
@@ -1993,63 +1912,63 @@ export default function AdminPage() {
         </div>
 
         {/* Recent Activity */}
-        <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm mb-8">
-          <h2 className="text-xl font-bold text-gray-900 mb-6">Atividade Recente</h2>
-          <div className="space-y-4">
+        <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm mb-6 sm:mb-8">
+          <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-4 sm:mb-6">Atividade Recente</h2>
+          <div className="space-y-3 sm:space-y-4">
             {users.length > 0 && (
-              <div className="flex items-center space-x-4 p-4 bg-gray-50 border border-gray-100 rounded-lg">
-                <CheckCircle className="h-5 w-5 text-emerald-500 flex-shrink-0" />
-                <div className="flex-1">
-                  <p className="font-semibold text-gray-900">Novo usuário cadastrado</p>
-                  <p className="text-sm text-gray-600">{users[users.length - 1].name} ({users[users.length - 1].email})</p>
+              <div className="flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 bg-gray-50 border border-gray-100 rounded-lg">
+                <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-500 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-gray-900 text-[10px] sm:text-sm">Novo usuário cadastrado</p>
+                  <p className="text-[9px] sm:text-sm text-gray-600 truncate">{users[users.length - 1].name} ({users[users.length - 1].email})</p>
                 </div>
-                <span className="text-xs font-medium text-gray-400">Agora</span>
+                <span className="text-[9px] sm:text-xs font-medium text-gray-400">Agora</span>
               </div>
             )}
             {sites.length > 0 && (
-              <div className="flex items-center space-x-4 p-4 bg-gray-50 border border-gray-100 rounded-lg">
-                <Server className="h-5 w-5 text-primary-600 flex-shrink-0" />
-                <div className="flex-1">
-                  <p className="font-semibold text-gray-900">Novo site adicionado</p>
-                  <p className="text-sm text-gray-600">{sites[sites.length - 1].name}</p>
+              <div className="flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 bg-gray-50 border border-gray-100 rounded-lg">
+                <Server className="h-4 w-4 sm:h-5 sm:w-5 text-primary-600 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-gray-900 text-[10px] sm:text-sm">Novo site adicionado</p>
+                  <p className="text-[9px] sm:text-sm text-gray-600 truncate">{sites[sites.length - 1].name}</p>
                 </div>
-                <span className="text-xs font-medium text-gray-400">Recentemente</span>
+                <span className="text-[9px] sm:text-xs font-medium text-gray-400">Recentemente</span>
               </div>
             )}
             {emails.length > 0 && (
-              <div className="flex items-center space-x-4 p-4 bg-gray-50 border border-gray-100 rounded-lg">
-                <Mail className="h-5 w-5 text-primary-600 flex-shrink-0" />
-                <div className="flex-1">
-                  <p className="font-semibold text-gray-900">Nova conta de email criada</p>
-                  <p className="text-sm text-gray-600">{emails[emails.length - 1].email}</p>
+              <div className="flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 bg-gray-50 border border-gray-100 rounded-lg">
+                <Mail className="h-4 w-4 sm:h-5 sm:w-5 text-primary-600 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-gray-900 text-[10px] sm:text-sm">Nova conta de email criada</p>
+                  <p className="text-[9px] sm:text-sm text-gray-600 truncate">{emails[emails.length - 1].email}</p>
                 </div>
-                <span className="text-xs font-medium text-gray-400">Recentemente</span>
+                <span className="text-[9px] sm:text-xs font-medium text-gray-400">Recentemente</span>
               </div>
             )}
             {users.length === 0 && sites.length === 0 && emails.length === 0 && (
-              <div className="text-center py-8">
-                <TrendingUp className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                <p className="text-gray-500 font-medium">Nenhuma atividade recente</p>
+              <div className="text-center py-6 sm:py-8">
+                <TrendingUp className="h-10 w-10 sm:h-12 sm:w-12 text-gray-300 mx-auto mb-2 sm:mb-3" />
+                <p className="text-gray-500 font-medium text-[10px] sm:text-sm">Nenhuma atividade recente</p>
               </div>
             )}
           </div>
         </div>
 
         {/* Plan Distribution */}
-        <div className="grid md:grid-cols-3 gap-6">
-          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-            <h3 className="font-bold text-gray-900 mb-4">Distribuição de Planos</h3>
-            <div className="space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+          <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm">
+            <h3 className="font-bold text-gray-900 text-sm sm:text-base mb-3 sm:mb-4">Distribuição de Planos</h3>
+            <div className="space-y-3 sm:space-y-4">
               <div>
                 <div className="flex justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-600">Básico (Ativo)</span>
-                  <span className="text-sm font-bold text-gray-900">
+                  <span className="text-[10px] sm:text-sm font-medium text-gray-600">Básico (Ativo)</span>
+                  <span className="text-[10px] sm:text-sm font-bold text-gray-900">
                     {clientUsers.filter(u => u.plan === 'basic' && u.status === 'active').length}
                   </span>
                 </div>
-                <div className="w-full bg-gray-100 rounded-full h-2">
+                <div className="w-full bg-gray-100 rounded-full h-1.5 sm:h-2">
                   <div
-                    className="bg-gray-400 h-2 rounded-full"
+                    className="bg-gray-400 h-1.5 sm:h-2 rounded-full"
                     style={{
                       width: clientUsers.length > 0
                         ? `${(clientUsers.filter(u => u.plan === 'basic' && u.status === 'active').length / clientUsers.length) * 100}%`
@@ -2060,14 +1979,14 @@ export default function AdminPage() {
               </div>
               <div>
                 <div className="flex justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-600">Profissional (Ativo)</span>
-                  <span className="text-sm font-bold text-gray-900">
+                  <span className="text-[10px] sm:text-sm font-medium text-gray-600">Profissional (Ativo)</span>
+                  <span className="text-[10px] sm:text-sm font-bold text-gray-900">
                     {clientUsers.filter(u => u.plan === 'pro' && u.status === 'active').length}
                   </span>
                 </div>
-                <div className="w-full bg-gray-100 rounded-full h-2">
+                <div className="w-full bg-gray-100 rounded-full h-1.5 sm:h-2">
                   <div
-                    className="bg-blue-600 h-2 rounded-full"
+                    className="bg-blue-600 h-1.5 sm:h-2 rounded-full"
                     style={{
                       width: clientUsers.length > 0
                         ? `${(clientUsers.filter(u => u.plan === 'pro' && u.status === 'active').length / clientUsers.length) * 100}%`
@@ -2078,14 +1997,14 @@ export default function AdminPage() {
               </div>
               <div>
                 <div className="flex justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-600">Empresarial (Ativo)</span>
-                  <span className="text-sm font-bold text-gray-900">
+                  <span className="text-[10px] sm:text-sm font-medium text-gray-600">Enterprise (Ativo)</span>
+                  <span className="text-[10px] sm:text-sm font-bold text-gray-900">
                     {clientUsers.filter(u => u.plan === 'enterprise' && u.status === 'active').length}
                   </span>
                 </div>
-                <div className="w-full bg-gray-100 rounded-full h-2">
+                <div className="w-full bg-gray-100 rounded-full h-1.5 sm:h-2">
                   <div
-                    className="bg-purple-600 h-2 rounded-full"
+                    className="bg-emerald-600 h-1.5 sm:h-2 rounded-full"
                     style={{
                       width: clientUsers.length > 0
                         ? `${(clientUsers.filter(u => u.plan === 'enterprise' && u.status === 'active').length / clientUsers.length) * 100}%`
@@ -2094,16 +2013,40 @@ export default function AdminPage() {
                   ></div>
                 </div>
               </div>
+            </div>
+          </div>
+
+          <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm">
+            <h3 className="font-bold text-gray-900 text-sm sm:text-base mb-3 sm:mb-4">Status de Usuários</h3>
+            <div className="space-y-3 sm:space-y-4">
               <div>
                 <div className="flex justify-between mb-1">
-                  <span className="text-sm font-medium text-amber-600">Sem Assinatura (Pendentes)</span>
-                  <span className="text-sm font-bold text-amber-700">
+                  <span className="text-[10px] sm:text-sm font-medium text-gray-600">Ativos</span>
+                  <span className="text-[10px] sm:text-sm font-bold text-emerald-600">
+                    {clientUsers.filter(u => u.status === 'active').length}
+                  </span>
+                </div>
+                <div className="w-full bg-gray-100 rounded-full h-1.5 sm:h-2">
+                  <div
+                    className="bg-emerald-500 h-1.5 sm:h-2 rounded-full"
+                    style={{
+                      width: clientUsers.length > 0
+                        ? `${(clientUsers.filter(u => u.status === 'active').length / clientUsers.length) * 100}%`
+                        : '0%'
+                    }}
+                  ></div>
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between mb-1">
+                  <span className="text-[10px] sm:text-sm font-medium text-gray-600">Pendentes</span>
+                  <span className="text-[10px] sm:text-sm font-bold text-amber-600">
                     {clientUsers.filter(u => u.status === 'pending').length}
                   </span>
                 </div>
-                <div className="w-full bg-gray-100 rounded-full h-2">
+                <div className="w-full bg-gray-100 rounded-full h-1.5 sm:h-2">
                   <div
-                    className="bg-amber-400 h-2 rounded-full"
+                    className="bg-amber-500 h-1.5 sm:h-2 rounded-full"
                     style={{
                       width: clientUsers.length > 0
                         ? `${(clientUsers.filter(u => u.status === 'pending').length / clientUsers.length) * 100}%`
@@ -2112,54 +2055,74 @@ export default function AdminPage() {
                   ></div>
                 </div>
               </div>
+              <div>
+                <div className="flex justify-between mb-1">
+                  <span className="text-[10px] sm:text-sm font-medium text-gray-600">Suspensos</span>
+                  <span className="text-[10px] sm:text-sm font-bold text-red-600">
+                    {clientUsers.filter(u => u.status === 'suspended').length}
+                  </span>
+                </div>
+                <div className="w-full bg-gray-100 rounded-full h-1.5 sm:h-2">
+                  <div
+                    className="bg-red-500 h-1.5 sm:h-2 rounded-full"
+                    style={{
+                      width: clientUsers.length > 0
+                        ? `${(clientUsers.filter(u => u.status === 'suspended').length / clientUsers.length) * 100}%`
+                        : '0%'
+                    }}
+                  ></div>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm md:col-span-2">
-            <h3 className="font-bold text-gray-900 mb-4">Ações Rápidas</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <button className="flex items-center space-x-3 p-4 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-800 rounded-xl transition font-medium">
-                <Users className="h-5 w-5 text-primary-600" />
-                <span>Gerenciar Usuários</span>
-              </button>
-              <button className="flex items-center space-x-3 p-4 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-800 rounded-xl transition font-medium">
-                <Server className="h-5 w-5 text-primary-600" />
-                <span>Gerenciar Sites</span>
-              </button>
-              <button className="flex items-center space-x-3 p-4 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-800 rounded-xl transition font-medium">
-                <Mail className="h-5 w-5 text-primary-400 text-primary-600" />
-                <span>Gerenciar Emails</span>
-              </button>
-              <button className="flex items-center space-x-3 p-4 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-800 rounded-xl transition font-medium">
-                <Settings className="h-5 w-5 text-primary-600" />
-                <span>Configurações</span>
-              </button>
+          <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm">
+            <h3 className="font-bold text-gray-900 text-sm sm:text-base mb-3 sm:mb-4">Recursos da Plataforma</h3>
+            <div className="space-y-3 sm:space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] sm:text-sm font-medium text-gray-600">Total de Usuários</span>
+                <span className="text-[10px] sm:text-sm font-bold text-gray-900">{users.length}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] sm:text-sm font-medium text-gray-600">Sites Ativos</span>
+                <span className="text-[10px] sm:text-sm font-bold text-gray-900">{sites.filter(s => s.status === 'active').length}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] sm:text-sm font-medium text-gray-600">Contas de E-mail</span>
+                <span className="text-[10px] sm:text-sm font-bold text-gray-900">{emails.length}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] sm:text-sm font-medium text-gray-600">Pedidos de Serviço</span>
+                <span className="text-[10px] sm:text-sm font-bold text-gray-900">{orders.length}</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Modal Criar Novo Cliente */}
+      {/* Modal Novo Cliente */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-gray-200">
-            <h3 className="text-xl font-bold text-gray-900 mb-1">Cadastrar Novo Cliente</h3>
-            <p className="text-sm text-gray-500 mb-6">Preencha as informações para cadastrar o cliente manualmente</p>
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl animate-in zoom-in-95 duration-200">
+            <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center space-x-2">
+              <UserPlus className="h-6 w-6 text-primary-600" />
+              <span>Adicionar Novo Cliente</span>
+            </h2>
 
             {createError && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-2.5 rounded-lg text-sm mb-4">
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
                 {createError}
               </div>
             )}
 
             <form onSubmit={handleCreateClient} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">Nome do Cliente / Empresa</label>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Nome Completo</label>
                 <input
                   type="text"
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
-                  placeholder="Ex: MSServices"
+                  placeholder="Ex: João Manuel"
                   required
                   className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"
                 />
