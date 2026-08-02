@@ -42,11 +42,9 @@ function SiteQuoteContent() {
     const currentUser = auth.getCurrentUser();
     if (currentUser) {
       setUser(currentUser);
-      // Redirect to dashboard if logged in
+      // Only redirect admin users - regular users can access the quote page
       if (currentUser.role === 'admin' || currentUser.email.toLowerCase() === 'admin@wehosthere.com') {
         router.push('/admin');
-      } else {
-        router.push('/dashboard/orders');
       }
     }
   }, [router]);

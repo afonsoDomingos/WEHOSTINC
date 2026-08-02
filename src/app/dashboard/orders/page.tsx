@@ -155,10 +155,17 @@ export default function OrdersPage() {
                   <span>Meus Sites</span>
                 </Link>
                 <Link
+                  href="/site-quote"
+                  className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition font-medium"
+                >
+                  <ShoppingBag className="h-5 w-5" />
+                  <span>Solicitar Site</span>
+                </Link>
+                <Link
                   href="/dashboard/orders"
                   className="flex items-center space-x-3 px-4 py-3 bg-primary-50 text-primary-700 rounded-lg font-medium"
                 >
-                  <ShoppingBag className="h-5 w-5" />
+                  <FileText className="h-5 w-5" />
                   <span>Meus Pedidos</span>
                 </Link>
                 <Link
