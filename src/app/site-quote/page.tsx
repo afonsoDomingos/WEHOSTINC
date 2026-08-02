@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Server, ArrowLeft, ArrowRight, CheckCircle2, Clock, Search, SlidersHorizontal, X } from 'lucide-react';
 import { websiteTypes, WebsiteType } from '@/lib/data';
 import Navbar from '@/components/Navbar';
 import PageLoader from '@/components/PageLoader';
+import { auth, User } from '@/lib/auth';
 
 const complexityLabels: Record<string, { label: string; color: string; active: string }> = {
   simple: { label: 'Simples', color: 'text-emerald-700 bg-emerald-50 border-emerald-200', active: 'bg-emerald-600 text-white border-emerald-600' },
@@ -34,6 +35,21 @@ function SiteQuoteContent() {
   const [complexityFilter, setComplexityFilter] = useState('all');
   const [priceFilter, setPriceFilter] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+
+  // Check if user is logged in
+  useEffect(() => {
+    const currentUser = auth.getCurrentUser();
+    if (currentUser) {
+      setUser(currentUser);
+      // Redirect to dashboard if logged in
+      if (currentUser.role === 'admin' || currentUser.email.toLowerCase() === 'admin@wehosthere.com') {
+        router.push('/admin');
+      } else {
+        router.push('/dashboard/orders');
+      }
+    }
+  }, [router]);
 
   const activeFilterCount = (complexityFilter !== 'all' ? 1 : 0) + (priceFilter !== 'all' ? 1 : 0);
 

@@ -369,49 +369,50 @@ export default function EmailPage() {
                 <div className="space-y-4">
                   {emails.map((email) => (
                     <div key={email.id} className="border rounded-2xl p-4 sm:p-5 hover:bg-gray-50/80 transition bg-white shadow-sm">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div className="flex items-center space-x-4">
-                          <div className="bg-primary-50 p-3 rounded-2xl border border-primary-100">
-                            <Mail className="h-6 w-6 text-primary-600" />
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                        <div className="flex items-center space-x-3 sm:space-x-4 w-full sm:w-auto">
+                          <div className="bg-primary-50 p-2.5 sm:p-3 rounded-2xl border border-primary-100 shrink-0">
+                            <Mail className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600" />
                           </div>
-                          <div>
-                            <h3 className="font-bold text-gray-900 text-base flex items-center space-x-2">
-                              <span>{email.email}</span>
+                          <div className="min-w-0 flex-1">
+                            <h3 className="font-bold text-gray-900 text-sm sm:text-base flex items-center space-x-2">
+                              <span className="truncate">{email.email}</span>
                             </h3>
                             <p className="text-xs text-gray-500 mt-0.5">Conta Corporativa Profissional</p>
                           </div>
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
                           <StatusBadge status={email.status} />
 
                           {/* Botão Acessar Webmail Integrado */}
                           <Link
                             href={`/webmail?user=${encodeURIComponent(email.email)}`}
-                            className="px-3.5 py-2 bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs rounded-xl transition flex items-center space-x-1.5 cursor-pointer shadow-sm"
+                            className="px-3 py-1.5 sm:px-3.5 sm:py-2 bg-primary-600 hover:bg-primary-700 text-white font-bold text-[10px] sm:text-xs rounded-xl transition flex items-center space-x-1.5 cursor-pointer shadow-sm shrink-0"
                           >
-                            <Mail className="h-3.5 w-3.5" />
-                            <span>Abrir Webmail</span>
+                            <Mail className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                            <span className="hidden sm:inline">Abrir Webmail</span>
+                            <span className="sm:hidden">Webmail</span>
                           </Link>
 
                           {/* Botão Configurações / Editar Senha */}
                           <button
                             type="button"
                             onClick={() => handleOpenEditModal(email)}
-                            className="p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-100 rounded-xl transition cursor-pointer border border-gray-200"
+                            className="p-1.5 sm:p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-100 rounded-xl transition cursor-pointer border border-gray-200 shrink-0"
                             title="Editar Conta & Alterar Senha"
                           >
-                            <Settings className="h-4 w-4" />
+                            <Settings className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                           </button>
 
                           {/* Botão Excluir */}
                           <button
                             type="button"
                             onClick={() => setDeleteEmailConfirm({ isOpen: true, id: email.id, emailStr: email.email })}
-                            className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-xl transition cursor-pointer border border-gray-200"
+                            className="p-1.5 sm:p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-xl transition cursor-pointer border border-gray-200 shrink-0"
                             title="Excluir Conta"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                           </button>
                         </div>
                       </div>
@@ -425,14 +426,14 @@ export default function EmailPage() {
                         </div>
                       )}
 
-                      <div className="mt-4 pt-3 border-t border-gray-100 grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs text-gray-600">
+                      <div className="mt-4 pt-3 border-t border-gray-100 grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 text-[10px] sm:text-xs text-gray-600">
                         <div>
                           <span className="text-gray-400 block font-medium">Armazenamento</span>
                           <span className="font-bold text-gray-900">{email.storage} GB</span>
                         </div>
                         <div>
                           <span className="text-gray-400 block font-medium">Criado em</span>
-                          <span className="font-bold text-gray-900">
+                          <span className="font-bold text-gray-900 block">
                             {new Date(email.createdAt).toLocaleDateString('pt-BR')}
                           </span>
                         </div>
@@ -440,10 +441,10 @@ export default function EmailPage() {
                           <button
                             type="button"
                             onClick={() => handleOpenEditModal(email)}
-                            className="text-primary-600 hover:text-primary-800 font-bold underline cursor-pointer flex items-center space-x-1"
+                            className="text-primary-600 hover:text-primary-800 font-bold underline cursor-pointer flex items-center space-x-1 text-[10px] sm:text-xs"
                           >
-                            <Key className="h-3 w-3" />
-                            <span>Alterar Senha de Acesso</span>
+                            <Key className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                            <span className="truncate">Alterar Senha</span>
                           </button>
                         </div>
                       </div>
@@ -454,35 +455,35 @@ export default function EmailPage() {
             </div>
 
             {/* Email Configuration Box */}
-            <div className="bg-white border border-blue-200 rounded-2xl p-6 shadow-sm">
+            <div className="bg-white border border-blue-200 rounded-2xl p-4 sm:p-6 shadow-sm">
               <div className="flex items-center space-x-2 mb-3">
                 <ShieldCheck className="h-5 w-5 text-primary-600" />
-                <h3 className="font-bold text-gray-900 text-base">Parâmetros de Configuração de Email (Outlook, iPhone, Android)</h3>
+                <h3 className="font-bold text-gray-900 text-sm sm:text-base">Parâmetros de Configuração de Email (Outlook, iPhone, Android)</h3>
               </div>
               <p className="text-gray-600 text-xs sm:text-sm mb-4">
                 Utilize as configurações abaixo para adicionar estas contas ao Outlook, Thunderbird, Apple Mail ou no smartphone:
               </p>
 
-              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
                 <div className="p-3 bg-blue-50/60 rounded-xl border border-blue-100">
-                  <span className="font-bold text-blue-900 block mb-1">Servidor IMAP (Recomendado):</span>
-                  <span className="font-mono text-gray-800 block">mail.wehosthere.com</span>
-                  <span className="text-gray-500 font-mono text-[11px]">Porta 993 (SSL)</span>
+                  <span className="font-bold text-blue-900 block mb-1 text-[11px] sm:text-xs">Servidor IMAP (Recomendado):</span>
+                  <span className="font-mono text-gray-800 block text-[10px] sm:text-xs break-all">mail.wehosthere.com</span>
+                  <span className="text-gray-500 font-mono text-[10px] sm:text-[11px] block">Porta 993 (SSL)</span>
                 </div>
                 <div className="p-3 bg-blue-50/60 rounded-xl border border-blue-100">
-                  <span className="font-bold text-blue-900 block mb-1">Servidor POP3:</span>
-                  <span className="font-mono text-gray-800 block">mail.wehosthere.com</span>
-                  <span className="text-gray-500 font-mono text-[11px]">Porta 995 (SSL)</span>
+                  <span className="font-bold text-blue-900 block mb-1 text-[11px] sm:text-xs">Servidor POP3:</span>
+                  <span className="font-mono text-gray-800 block text-[10px] sm:text-xs break-all">mail.wehosthere.com</span>
+                  <span className="text-gray-500 font-mono text-[10px] sm:text-[11px] block">Porta 995 (SSL)</span>
                 </div>
                 <div className="p-3 bg-blue-50/60 rounded-xl border border-blue-100">
-                  <span className="font-bold text-blue-900 block mb-1">Servidor SMTP (Envio):</span>
-                  <span className="font-mono text-gray-800 block">mail.wehosthere.com</span>
-                  <span className="text-gray-500 font-mono text-[11px]">Porta 465 (SSL) / 587 (TLS)</span>
+                  <span className="font-bold text-blue-900 block mb-1 text-[11px] sm:text-xs">Servidor SMTP (Envio):</span>
+                  <span className="font-mono text-gray-800 block text-[10px] sm:text-xs break-all">mail.wehosthere.com</span>
+                  <span className="text-gray-500 font-mono text-[10px] sm:text-[11px] block">Porta 465 (SSL) / 587 (TLS)</span>
                 </div>
                 <div className="p-3 bg-blue-50/60 rounded-xl border border-blue-100">
-                  <span className="font-bold text-blue-900 block mb-1">URL Direto do Webmail:</span>
-                  <span className="font-mono text-primary-700 font-bold block truncate">webmail.wehosthere.com</span>
-                  <span className="text-gray-500 font-mono text-[11px]">Login: Email + Senha</span>
+                  <span className="font-bold text-blue-900 block mb-1 text-[11px] sm:text-xs">URL Direto do Webmail:</span>
+                  <span className="font-mono text-primary-700 font-bold block text-[10px] sm:text-xs break-all">webmail.wehosthere.com</span>
+                  <span className="text-gray-500 font-mono text-[10px] sm:text-[11px] block">Login: Email + Senha</span>
                 </div>
               </div>
             </div>

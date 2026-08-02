@@ -220,10 +220,10 @@ export default function VirtualAssistant() {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 left-6 z-50 bg-primary-600 hover:bg-primary-700 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 group"
+          className="fixed bottom-6 left-6 z-50 bg-primary-600 hover:bg-primary-700 text-white p-2.5 sm:p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 group"
           title="Assistente Virtual"
         >
-          <MessageCircle className="w-6 h-6 group-hover:scale-110 transition-transform" />
+          <MessageCircle className="h-4 w-4 sm:h-4.5 sm:w-4.5 group-hover:scale-110 transition-transform" />
         </button>
       )}
 

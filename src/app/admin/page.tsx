@@ -259,7 +259,6 @@ export default function AdminPage() {
 
   const [orders, setOrders] = useState<ServiceOrder[]>([]);
   const [securityLogs, setSecurityLogs] = useState<SecurityLog[]>([]);
-  const [domainLogs, setDomainLogs] = useState<Array<{ id: string; domain: string; extension: string; isAvailable: boolean; timestamp: string; searchCount?: number }>>([]);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   // Analytics State
@@ -333,20 +332,6 @@ export default function AdminPage() {
     }
   };
 
-  const fetchDomainLogs = async () => {
-    try {
-      const res = await fetch(apiEndpoint('/api/domains/history'));
-      if (res.ok) {
-        const data = await res.json();
-        if (data.logs) {
-          setDomainLogs(data.logs);
-        }
-      }
-    } catch (e) {
-      console.error('[Admin] Erro ao buscar logs de domínio:', e);
-    }
-  };
-
   const fetchAnalytics = useCallback(async (period: 'today' | 'week' | 'month' | 'all' = visitStatsPeriod) => {
     try {
       const [presenceRes, visitsRes] = await Promise.all([
@@ -386,7 +371,7 @@ export default function AdminPage() {
       if (e) setEmails(e);
       if (t) setTickets(t);
       if (sec) setSecurityLogs(sec);
-      await Promise.all([fetchDomainLogs(), fetchAnalytics()]);
+      await fetchAnalytics();
       setToastMsg({ title: 'Dados Atualizados', message: 'Os dados do servidor MongoDB foram sincronizados com sucesso.', type: 'success' });
     } catch (err) {
       setToastMsg({ title: 'Erro de Sincronização', message: 'Não foi possível atualizar os dados do servidor.', type: 'error' });
@@ -416,7 +401,6 @@ export default function AdminPage() {
     setOrders(dataManager.getOrders());
     setTickets(dataManager.getTickets());
     setSecurityLogs(dataManager.getSecurityLogs());
-    fetchDomainLogs();
     fetchAnalytics();
     setLoading(false);
 
@@ -431,7 +415,7 @@ export default function AdminPage() {
       setIsSyncingData(false);
     });
 
-    // Polling a cada 5s para sincronizar usuários, pedidos, sites, e-mails, tickets e pesquisas em tempo real
+    // Polling a cada 5s para sincronizar usuários, pedidos, sites, e-mails, tickets em tempo real
     const interval = setInterval(() => {
       auth.fetchUsersAsync().then((fetched) => {
         if (fetched && fetched.length > 0) setUsers(fetched);
@@ -451,7 +435,6 @@ export default function AdminPage() {
           setSelectedTicket(prev => prev ? fetched.find(t => t.id === prev.id) || prev : null);
         }
       });
-      fetchDomainLogs();
       fetchAnalytics();
       dataManager.fetchSecurityLogsAsync().then((fetched) => {
         if (fetched) setSecurityLogs(fetched);
@@ -2000,82 +1983,6 @@ export default function AdminPage() {
                             <Trash2 className="h-4 w-4" />
                           </button>
                         </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-
-        {/* Histórico de Pesquisas de Domínio em Tempo Real */}
-        <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-            <div>
-              <h2 className="text-xl font-bold text-gray-900 flex items-center space-x-2">
-                <Search className="h-5 w-5 text-primary-600" />
-                <span>Histórico de Pesquisas de Domínio (Tempo Real)</span>
-              </h2>
-              <p className="text-gray-500 text-sm">Acompanhe os nomes de domínio que os visitantes estão buscando no site</p>
-            </div>
-
-            <div className="flex items-center space-x-3">
-              <span className="bg-primary-50 text-primary-800 text-xs font-bold px-3 py-1.5 rounded-full border border-primary-200">
-                {domainLogs.length} Buscas Registradas
-              </span>
-              <span className="bg-emerald-50 text-emerald-800 text-xs font-bold px-3 py-1.5 rounded-full border border-emerald-200">
-                {domainLogs.filter(l => l.isAvailable).length} Livres ({domainLogs.length > 0 ? Math.round((domainLogs.filter(l => l.isAvailable).length / domainLogs.length) * 100) : 0}%)
-              </span>
-            </div>
-          </div>
-
-          {domainLogs.length === 0 ? (
-            <div className="text-center py-8 text-gray-500 text-sm">
-              Nenhuma pesquisa realizada no site ainda. As buscas dos clientes aparecerão aqui em tempo real!
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-200 bg-gray-50/50">
-                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Domínio Consultado</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Extensão</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Resultado da Busca</th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Horário da Busca</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {domainLogs.slice(0, 15).map((log) => (
-                    <tr key={log.id} className="hover:bg-gray-50/80 transition">
-                      <td className="py-3 px-4 font-mono text-sm font-bold text-gray-900 flex items-center space-x-2">
-                        <span>{log.domain}</span>
-                        {log.searchCount && log.searchCount > 1 && (
-                          <span className="bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-extrabold px-2 py-0.5 rounded-full" title={`Pesquisado ${log.searchCount} vezes`}>
-                            🔥 {log.searchCount}x buscas
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className="bg-gray-100 text-gray-800 text-xs font-bold px-2 py-0.5 rounded">
-                          {log.extension}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4">
-                        {log.isAvailable ? (
-                          <span className="inline-flex items-center space-x-1 bg-emerald-50 text-emerald-800 border border-emerald-300 text-xs font-bold px-2.5 py-0.5 rounded-full">
-                            <CheckCircle className="h-3.5 w-3.5 text-emerald-600" />
-                            <span>LIVRE PARA REGISTRO</span>
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center space-x-1 bg-red-50 text-red-800 border border-red-300 text-xs font-bold px-2.5 py-0.5 rounded-full">
-                            <XCircle className="h-3.5 w-3.5 text-red-600" />
-                            <span>INDISPONÍVEL / OCUPADO</span>
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-3 px-4 text-xs text-gray-500 font-mono">
-                        {new Date(log.timestamp).toLocaleTimeString('pt-MZ', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                       </td>
                     </tr>
                   ))}
