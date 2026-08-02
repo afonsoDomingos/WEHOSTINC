@@ -31,6 +31,10 @@ export interface SystemForRent {
   yearlyPrice: number;
   setupFee?: number;
   isActive: boolean;
+  approvalStatus: 'pending' | 'approved' | 'rejected';
+  developerEmail?: string;
+  developerName?: string;
+  rejectionReason?: string;
   createdAt: string;
   updatedAt: string;
 }

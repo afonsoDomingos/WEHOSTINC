@@ -37,6 +37,7 @@ export default function DashboardNav({ userName, userAvatar, onLogout, onRefresh
     { href: '/dashboard/sites', label: 'Meus Domínios & Sites', icon: Globe },
     { href: '/dashboard/orders', label: 'Meus Pedidos', icon: FileText },
     { href: '/dashboard/systems', label: 'Sistemas', icon: Star },
+    { href: '/dashboard/submit-system', label: 'Submeter Sistema', icon: Sparkles },
     { href: '/dashboard/site-quote', label: 'Solicitar Site', icon: Sparkles },
     { href: '/dashboard/domains', label: 'Comprar Domínio', icon: Link2 },
     { href: '/dashboard/email', label: 'Email', icon: Mail },
