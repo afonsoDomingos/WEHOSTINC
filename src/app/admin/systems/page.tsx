@@ -23,6 +23,8 @@ export default function AdminSystemsPage() {
   const [activeTab, setActiveTab] = useState<'systems' | 'requests' | 'accesses'>('systems');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
+  const [previousPendingCount, setPreviousPendingCount] = useState(0);
+  const [showNewRequestNotification, setShowNewRequestNotification] = useState(false);
   
   const [showAccessModal, setShowAccessModal] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<RentalRequest | null>(null);
@@ -87,7 +89,19 @@ export default function AdminSystemsPage() {
     const interval = setInterval(() => {
       Promise.all([
         dataManager.fetchSystemsForRentAsync().then(s => setSystems(s)),
-        dataManager.fetchRentalRequestsAsync().then(r => setRentalRequests(r)),
+        dataManager.fetchRentalRequestsAsync().then(r => {
+          const currentPendingCount = r.filter(req => req.status === 'pending').length;
+          if (currentPendingCount > previousPendingCount && previousPendingCount > 0) {
+            setShowNewRequestNotification(true);
+            setToastMsg({ 
+              title: 'Novo Pedido de Aluguer', 
+              message: `Há ${currentPendingCount} pedido(s) pendente(s) de aprovação.`, 
+              type: 'info' 
+            });
+          }
+          setPreviousPendingCount(currentPendingCount);
+          setRentalRequests(r);
+        }),
         dataManager.fetchSystemAccessesAsync().then(a => setSystemAccesses(a))
       ]);
     }, 5000);
@@ -134,6 +148,33 @@ export default function AdminSystemsPage() {
           }
           return acc;
         }, {} as Record<string, number>);
+    })(),
+    clientUsage: (() => {
+      const clientData = systemAccesses.reduce((acc, access) => {
+        if (!acc[access.clientEmail]) {
+          acc[access.clientEmail] = {
+            email: access.clientEmail,
+            name: access.clientName,
+            systemsRented: 0,
+            totalSpent: 0,
+            activeRentals: 0
+          };
+        }
+        acc[access.clientEmail].systemsRented++;
+        if (access.status === 'active') {
+          acc[access.clientEmail].activeRentals++;
+          const system = systems.find(s => s.id === access.systemId);
+          if (system) {
+            const price = access.billingCycle === 'monthly' ? system.monthlyPrice : system.yearlyPrice;
+            acc[access.clientEmail].totalSpent += price;
+          }
+        }
+        return acc;
+      }, {} as Record<string, any>);
+      
+      return Object.values(clientData)
+        .sort((a, b) => b.totalSpent - a.totalSpent)
+        .slice(0, 10);
     })()
   };
 
@@ -462,13 +503,18 @@ export default function AdminSystemsPage() {
             </button>
             <button
               onClick={() => setActiveTab('requests')}
-              className={`px-3 sm:px-4 py-2 sm:py-3 text-sm font-medium border-b-2 transition ${
+              className={`px-3 sm:px-4 py-2 sm:py-3 text-sm font-medium border-b-2 transition relative ${
                 activeTab === 'requests'
                   ? 'border-primary-600 text-primary-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
-              Pedidos ({rentalRequests.filter(r => r.status === 'pending').length})
+              Pedidos ({rentalRequests.length})
+              {analyticsData.pendingRequests > 0 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                  {analyticsData.pendingRequests}
+                </span>
+              )}
             </button>
             <button
               onClick={() => setActiveTab('accesses')}
@@ -605,6 +651,47 @@ export default function AdminSystemsPage() {
               </div>
             )}
           </div>
+        </div>
+
+        {/* Client Usage Report */}
+        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Clientes por Utilização</h3>
+          {analyticsData.clientUsage.length === 0 ? (
+            <p className="text-gray-500 text-sm">Nenhum cliente com utilização registada</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left py-2 px-3 font-medium text-gray-700">Cliente</th>
+                    <th className="text-left py-2 px-3 font-medium text-gray-700">Email</th>
+                    <th className="text-center py-2 px-3 font-medium text-gray-700">Sistemas</th>
+                    <th className="text-center py-2 px-3 font-medium text-gray-700">Ativos</th>
+                    <th className="text-right py-2 px-3 font-medium text-gray-700">Total Gasto</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {analyticsData.clientUsage.map((client, index) => (
+                    <tr key={client.email} className="border-b border-gray-100 hover:bg-gray-50">
+                      <td className="py-2 px-3">
+                        <span className="font-medium text-gray-900">#{index + 1} {client.name}</span>
+                      </td>
+                      <td className="py-2 px-3 text-gray-600">{client.email}</td>
+                      <td className="py-2 px-3 text-center text-gray-700">{client.systemsRented}</td>
+                      <td className="py-2 px-3 text-center">
+                        <span className="inline-flex items-center px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                          {client.activeRentals}
+                        </span>
+                      </td>
+                      <td className="py-2 px-3 text-right font-semibold text-gray-900">
+                        {client.totalSpent.toLocaleString()} MT
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
 
