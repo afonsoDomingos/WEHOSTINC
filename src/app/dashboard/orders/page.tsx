@@ -155,7 +155,7 @@ export default function OrdersPage() {
                   <span>Meus Sites</span>
                 </Link>
                 <Link
-                  href="/site-quote"
+                  href="/dashboard/site-quote"
                   className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition font-medium"
                 >
                   <ShoppingBag className="h-5 w-5" />
@@ -202,7 +202,7 @@ export default function OrdersPage() {
                   <p className="text-xs text-gray-500 mt-0.5">Acompanhe o status dos seus pedidos de criação de sites e outros serviços</p>
                 </div>
                 <Link
-                  href="/site-quote"
+                  href="/dashboard/site-quote"
                   className="inline-flex items-center justify-center space-x-1.5 bg-primary-600 text-white font-bold text-xs px-4 py-2.5 rounded-xl hover:bg-primary-700 transition cursor-pointer shadow-xs whitespace-nowrap"
                 >
                   <ShoppingBag className="h-4 w-4" />
@@ -216,7 +216,7 @@ export default function OrdersPage() {
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhum pedido encontrado</h3>
                   <p className="text-gray-600 mb-4 text-sm max-w-md mx-auto">Você ainda não fez nenhum pedido de serviço. Solicite a criação de um site profissional ou outros serviços.</p>
                   <Link
-                    href="/site-quote"
+                    href="/dashboard/site-quote"
                     className="inline-flex items-center space-x-2 bg-primary-600 text-white font-bold px-4 py-2.5 rounded-xl hover:bg-primary-700 transition text-sm cursor-pointer"
                   >
                     <ShoppingBag className="h-4 w-4" />
