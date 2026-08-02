@@ -9,7 +9,7 @@ import {
   LogOut, Settings, Home, CheckCircle, Clock, XCircle, Search,
   ShoppingBag, MessageSquare, ExternalLink, Trash2, LifeBuoy, Send, ShieldCheck, CheckCircle2, AlertCircle,
   Paperclip, FileText, Image as ImageIcon, Download, File, X, Loader2, Tag, Shield, AlertTriangle,
-  Activity, Eye, Globe, Wifi, WifiOff, BarChart2, RefreshCw
+  Activity, Eye, Globe, Wifi, WifiOff, BarChart2, RefreshCw, UserPlus
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 import { dataManager, ServiceOrder, SupportTicket, TicketMessage, TicketAttachment, SecurityLog } from '@/lib/data';
