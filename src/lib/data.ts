@@ -51,7 +51,7 @@ export interface RentalRequest {
   paymentMethod: 'mpesa' | 'emola' | 'card' | 'bank_transfer';
   proofUrl?: string;
   proofName?: string;
-  status: 'pending' | 'approved' | 'rejected' | 'cancelled';
+  status: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'completed';
   createdAt: string;
   approvedAt?: string;
   rejectedAt?: string;

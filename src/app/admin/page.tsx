@@ -9,10 +9,10 @@ import {
   LogOut, Settings, Home, CheckCircle, Clock, XCircle, Search,
   ShoppingBag, MessageSquare, ExternalLink, Trash2, LifeBuoy, Send, ShieldCheck, CheckCircle2, AlertCircle,
   Paperclip, FileText, Image as ImageIcon, Download, File, X, Loader2, Tag, Shield, AlertTriangle,
-  Activity, Eye, Globe, Wifi, WifiOff, BarChart2, RefreshCw, UserPlus
+  Activity, Eye, Globe, Wifi, WifiOff, BarChart2, RefreshCw, UserPlus, Star, Plus, Edit
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
-import { dataManager, ServiceOrder, SupportTicket, TicketMessage, TicketAttachment, SecurityLog } from '@/lib/data';
+import { dataManager, ServiceOrder, SupportTicket, TicketMessage, TicketAttachment, SecurityLog, SystemForRent, RentalRequest, SystemAccess } from '@/lib/data';
 import BrandLogo from '@/components/BrandLogo';
 import PageLoader from '@/components/PageLoader';
 import ConfirmModal from '@/components/ConfirmModal';
@@ -284,6 +284,14 @@ export default function AdminPage() {
   const [ticketSearchTerm, setTicketSearchTerm] = useState('');
   const [ticketFilterStatus, setTicketFilterStatus] = useState<'all' | 'open' | 'answered' | 'closed'>('all');
   
+  // Sistemas de Aluguer State
+  const [systems, setSystems] = useState<SystemForRent[]>([]);
+  const [rentalRequests, setRentalRequests] = useState<RentalRequest[]>([]);
+  const [systemAccesses, setSystemAccesses] = useState<SystemAccess[]>([]);
+  const [activeAdminTab, setActiveAdminTab] = useState<'overview' | 'users' | 'sites' | 'emails' | 'orders' | 'tickets' | 'security' | 'systems'>('overview');
+  const [showSystemModal, setShowSystemModal] = useState(false);
+  const [editingSystem, setEditingSystem] = useState<SystemForRent | null>(null);
+  
   // Anexos Admin
   const [adminReplyAttachments, setAdminReplyAttachments] = useState<TicketAttachment[]>([]);
   const [adminUploading, setAdminUploading] = useState(false);
@@ -401,6 +409,9 @@ export default function AdminPage() {
     setOrders(dataManager.getOrders());
     setTickets(dataManager.getTickets());
     setSecurityLogs(dataManager.getSecurityLogs());
+    setSystems(dataManager.getSystemsForRent());
+    setRentalRequests(dataManager.getRentalRequests());
+    setSystemAccesses(dataManager.getSystemAccesses());
     fetchAnalytics();
     setLoading(false);
 
@@ -410,12 +421,15 @@ export default function AdminPage() {
       dataManager.fetchOrdersAsync().then(o => { if (o) setOrders(o); }),
       dataManager.fetchSitesAsync().then(s => { if (s) setSites(s); }),
       dataManager.fetchEmailsAsync().then(e => { if (e) setEmails(e); }),
-      dataManager.fetchTicketsAsync().then(t => { if (t) setTickets(t); })
+      dataManager.fetchTicketsAsync().then(t => { if (t) setTickets(t); }),
+      dataManager.fetchSystemsForRentAsync().then(s => { if (s) setSystems(s); }),
+      dataManager.fetchRentalRequestsAsync().then(r => { if (r) setRentalRequests(r); }),
+      dataManager.fetchSystemAccessesAsync().then(a => { if (a) setSystemAccesses(a); })
     ]).finally(() => {
       setIsSyncingData(false);
     });
 
-    // Polling a cada 5s para sincronizar usuários, pedidos, sites, e-mails, tickets em tempo real
+    // Polling a cada 5s para sincronizar usuários, pedidos, sites, e-mails, tickets, sistemas em tempo real
     const interval = setInterval(() => {
       auth.fetchUsersAsync().then((fetched) => {
         if (fetched && fetched.length > 0) setUsers(fetched);
@@ -434,6 +448,15 @@ export default function AdminPage() {
           setTickets(fetched);
           setSelectedTicket(prev => prev ? fetched.find(t => t.id === prev.id) || prev : null);
         }
+      });
+      dataManager.fetchSystemsForRentAsync().then((fetched) => {
+        if (fetched && fetched.length > 0) setSystems(fetched);
+      });
+      dataManager.fetchRentalRequestsAsync().then((fetched) => {
+        if (fetched && fetched.length > 0) setRentalRequests(fetched);
+      });
+      dataManager.fetchSystemAccessesAsync().then((fetched) => {
+        if (fetched && fetched.length > 0) setSystemAccesses(fetched);
       });
       fetchAnalytics();
       dataManager.fetchSecurityLogsAsync().then((fetched) => {
@@ -489,29 +512,66 @@ export default function AdminPage() {
     dataManager.updateSiteStatus(id, newStatus);
     const targetSite = sites.find(s => s.id === id);
     if (targetSite) {
-      // Auto-atualizar e-mails associados a este domínio
-      const domainEmails = emails.filter(e => 
-        (e.domain || '').toLowerCase() === targetSite.domain.toLowerCase() || 
-        e.email.toLowerCase().endsWith(`@${targetSite.domain.toLowerCase()}`)
-      );
-      domainEmails.forEach(e => {
-        dataManager.updateEmailStatus(e.id, newStatus);
-      });
-      setEmails(dataManager.getEmails());
-
-      if (newStatus === 'active') {
-        fetch(apiEndpoint('/api/vps/provision'), {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            domain: targetSite.domain,
-            clientEmail: 'cliente@wehosthere.co.mz',
-            planId: 'pro'
-          })
-        }).catch(err => console.error('Erro de provisionamento VPS:', err));
-      }
+      setSites(sites.map(s => s.id === id ? { ...s, status: newStatus } : s));
     }
-    setSites(dataManager.getSites());
+  };
+
+  // Handlers para Sistemas
+  const handleApproveSystem = (systemId: string) => {
+    dataManager.updateSystemForRent(systemId, { approvalStatus: 'approved', isActive: true });
+    setSystems(systems.map(s => s.id === systemId ? { ...s, approvalStatus: 'approved', isActive: true } : s));
+    setToastMsg({ title: 'Sistema Aprovado', message: 'O sistema foi aprovado e está disponível para aluguer.', type: 'success' });
+  };
+
+  const handleRejectSystem = (systemId: string, reason: string) => {
+    dataManager.updateSystemForRent(systemId, { approvalStatus: 'rejected', rejectionReason: reason, isActive: false });
+    setSystems(systems.map(s => s.id === systemId ? { ...s, approvalStatus: 'rejected', rejectionReason: reason, isActive: false } : s));
+    setToastMsg({ title: 'Sistema Rejeitado', message: 'O sistema foi rejeitado.', type: 'warning' });
+  };
+
+  const handleApproveRentalRequest = (requestId: string) => {
+    const request = rentalRequests.find(r => r.id === requestId);
+    if (!request) return;
+
+    dataManager.updateRentalRequest(requestId, { status: 'approved', approvedAt: new Date().toISOString() });
+    setRentalRequests(rentalRequests.map(r => r.id === requestId ? { ...r, status: 'approved', approvedAt: new Date().toISOString() } : r));
+    setToastMsg({ title: 'Pedido Aprovado', message: 'Agora forneça as credenciais de acesso ao cliente.', type: 'success' });
+  };
+
+  const handleRejectRentalRequest = (requestId: string, reason: string) => {
+    dataManager.updateRentalRequest(requestId, { status: 'rejected', rejectedAt: new Date().toISOString(), rejectionReason: reason });
+    setRentalRequests(rentalRequests.map(r => r.id === requestId ? { ...r, status: 'rejected', rejectedAt: new Date().toISOString(), rejectionReason: reason } : r));
+    setToastMsg({ title: 'Pedido Rejeitado', message: 'O pedido foi rejeitado.', type: 'warning' });
+  };
+
+  const handleCreateSystemAccess = (request: RentalRequest, username: string, password: string, accessUrl: string) => {
+    const startDate = new Date();
+    const endDate = new Date();
+    endDate.setMonth(endDate.getMonth() + (request.billingCycle === 'yearly' ? 12 : 1));
+
+    const accessData: Omit<SystemAccess, 'id' | 'createdAt'> = {
+      systemId: request.systemId,
+      systemName: request.systemName,
+      clientEmail: request.clientEmail,
+      username,
+      password,
+      accessUrl,
+      status: 'active',
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      billingCycle: request.billingCycle
+    };
+
+    dataManager.addSystemAccess(accessData);
+    dataManager.updateRentalRequest(request.id, { status: 'completed' });
+    
+    // Recarregar dados
+    Promise.all([
+      dataManager.fetchSystemAccessesAsync().then(a => setSystemAccesses(a)),
+      dataManager.fetchRentalRequestsAsync().then(r => setRentalRequests(r))
+    ]);
+
+    setToastMsg({ title: 'Acesso Criado', message: 'As credenciais foram enviadas ao cliente.', type: 'success' });
   };
 
   const handleAdminDeleteSite = (id: string, domain: string) => {
@@ -790,6 +850,13 @@ export default function AdminPage() {
               >
                 <Home className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500" />
                 <span className="hidden sm:inline">Ver Site</span>
+              </Link>
+              <Link
+                href="/admin/systems"
+                className="flex items-center space-x-1.5 sm:space-x-2 text-gray-600 hover:text-primary-600 font-medium transition text-[10px] sm:text-xs sm:text-sm"
+              >
+                <Star className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500" />
+                <span className="hidden sm:inline">Sistemas</span>
               </Link>
               <button
                 onClick={handleLogout}
