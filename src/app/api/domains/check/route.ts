@@ -96,21 +96,30 @@ export async function GET(req: NextRequest) {
   try {
     const baseUrl = req.nextUrl.origin;
     console.log(`[Domain Check] Registrando pesquisa no histórico: ${fullDomain}`);
+    console.log(`[Domain Check] Base URL: ${baseUrl}`);
+    console.log(`[Domain Check] Payload:`, { domain: fullDomain, extension, isAvailable });
+    
     const logRes = await fetch(`${baseUrl}/api/domains/history`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ domain: fullDomain, extension, isAvailable }),
     });
-    console.log(`[Domain Check] Resposta do history API: ${logRes.status}`);
+    
+    console.log(`[Domain Check] Resposta do history API: ${logRes.status} ${logRes.statusText}`);
+    
     if (logRes.ok) {
       const logData = await logRes.json();
       searchCount = logData.searchCount || 1;
       console.log(`[Domain Check] searchCount retornado: ${searchCount}, source: ${logData.source}`);
+      console.log(`[Domain Check] Dados completos:`, logData);
     } else {
+      const errorText = await logRes.text();
       console.error(`[Domain Check] Erro ao registrar no history: ${logRes.status}`);
+      console.error(`[Domain Check] Corpo do erro:`, errorText);
     }
   } catch (logErr) {
     console.error('[Domain Check] Erro ao registar pesquisa de domínio no histórico:', logErr);
+    console.error('[Domain Check] Detalhes do erro:', logErr instanceof Error ? logErr.message : String(logErr));
   }
 
   // Consultar disponibilidade das alternativas em paralelo
