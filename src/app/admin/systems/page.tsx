@@ -669,7 +669,6 @@ export default function AdminSystemsPage() {
                       type="text"
                       value={newSystem.name}
                       onChange={(e) => setNewSystem(prev => ({ ...prev, name: e.target.value }))}
-                      required
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     />
                   </div>
@@ -679,7 +678,6 @@ export default function AdminSystemsPage() {
                       type="text"
                       value={newSystem.shortDescription}
                       onChange={(e) => setNewSystem(prev => ({ ...prev, shortDescription: e.target.value }))}
-                      required
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     />
                   </div>
@@ -688,7 +686,6 @@ export default function AdminSystemsPage() {
                     <select
                       value={newSystem.category}
                       onChange={(e) => setNewSystem(prev => ({ ...prev, category: e.target.value }))}
-                      required
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     >
                       <option value="">Selecione...</option>
@@ -713,7 +710,6 @@ export default function AdminSystemsPage() {
                     <textarea
                       value={newSystem.description}
                       onChange={(e) => setNewSystem(prev => ({ ...prev, description: e.target.value }))}
-                      required
                       rows={4}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     />
@@ -818,7 +814,6 @@ export default function AdminSystemsPage() {
                       type="number"
                       value={newSystem.monthlyPrice}
                       onChange={(e) => setNewSystem(prev => ({ ...prev, monthlyPrice: Number(e.target.value) }))}
-                      required
                       min="0"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     />
@@ -829,7 +824,6 @@ export default function AdminSystemsPage() {
                       type="number"
                       value={newSystem.yearlyPrice}
                       onChange={(e) => setNewSystem(prev => ({ ...prev, yearlyPrice: Number(e.target.value) }))}
-                      required
                       min="0"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     />
