@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from "next/link";
-import { Server, Mail, Shield, Zap, Globe, Users, Search, Sparkles, CheckCircle, Facebook, Phone, Linkedin } from "lucide-react";
+import { Server, Mail, Shield, Zap, Globe, Users, Search, Sparkles, CheckCircle, Facebook, Phone, Linkedin, Star, ArrowRight, Play } from "lucide-react";
 import { websiteTypes } from '@/lib/data';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 
@@ -40,6 +40,7 @@ export default function Home() {
   const featuresRef = useScrollAnimation<HTMLDivElement>();
   const pricingRef = useScrollAnimation<HTMLDivElement>();
   const siteCreationRef = useScrollAnimation<HTMLDivElement>();
+  const systemsRentRef = useScrollAnimation<HTMLDivElement>();
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       {/* Navbar Responsivo */}
@@ -447,6 +448,73 @@ export default function Home() {
                 </Link>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Systems for Rent Section - Mobile First */}
+      <section id="sistemas-aluguer" ref={systemsRentRef} className="anim-fade-up py-10 sm:py-16 px-3 sm:px-6 bg-gradient-to-b from-white to-purple-50">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-6 sm:mb-10">
+            <div className="inline-flex items-center space-x-1.5 sm:space-x-2 bg-purple-100 text-purple-800 border border-purple-200 px-3 sm:px-4 py-1.5 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-3 sm:mb-4">
+              <Star className="h-3 w-3 sm:h-4 sm:w-4 text-purple-600" />
+              <span>Novo Serviço</span>
+            </div>
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-gray-900 mb-2 sm:mb-3">
+              Aluguel de Sistemas Profissionais
+            </h2>
+            <p className="text-sm sm:text-base text-gray-600 max-w-2xl mx-auto mb-4 sm:mb-6 px-2">
+              Alugue sistemas prontos para usar sem precisar desenvolver do zero. ERP, CRM, Gestão de Stocks, e muito mais.
+            </p>
+          </div>
+
+          {/* Como Funciona */}
+          <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-xl border border-gray-200 mb-6 sm:mb-10">
+            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-4 sm:mb-6 text-center">Como Funciona</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-6">
+              <div className="text-center">
+                <div className="w-10 h-10 sm:w-14 sm:h-14 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3">
+                  <span className="text-lg sm:text-2xl font-bold text-blue-600">1</span>
+                </div>
+                <p className="text-[10px] sm:text-xs font-semibold text-gray-900 mb-1">Escolha</p>
+                <p className="text-[9px] sm:text-[10px] text-gray-600">Selecione o sistema ideal</p>
+              </div>
+              <div className="text-center">
+                <div className="w-10 h-10 sm:w-14 sm:h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3">
+                  <span className="text-lg sm:text-2xl font-bold text-green-600">2</span>
+                </div>
+                <p className="text-[10px] sm:text-xs font-semibold text-gray-900 mb-1">Solicite</p>
+                <p className="text-[9px] sm:text-[10px] text-gray-600">Faça o pedido de aluguer</p>
+              </div>
+              <div className="text-center">
+                <div className="w-10 h-10 sm:w-14 sm:h-14 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3">
+                  <span className="text-lg sm:text-2xl font-bold text-yellow-600">3</span>
+                </div>
+                <p className="text-[10px] sm:text-xs font-semibold text-gray-900 mb-1">Aprovação</p>
+                <p className="text-[9px] sm:text-[10px] text-gray-600">Após pagamento, aprovamos</p>
+              </div>
+              <div className="text-center">
+                <div className="w-10 h-10 sm:w-14 sm:h-14 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3">
+                  <span className="text-lg sm:text-2xl font-bold text-purple-600">4</span>
+                </div>
+                <p className="text-[10px] sm:text-xs font-semibold text-gray-900 mb-1">Use</p>
+                <p className="text-[9px] sm:text-[10px] text-gray-600">Receba credenciais e use</p>
+              </div>
+            </div>
+          </div>
+
+          {/* CTA */}
+          <div className="text-center">
+            <Link
+              href="/systems"
+              className="inline-flex items-center space-x-2 bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs sm:text-sm px-6 sm:px-8 py-3 sm:py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95"
+            >
+              <span>Ver Sistemas Disponíveis</span>
+              <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
+            </Link>
+            <p className="text-[10px] sm:text-xs text-gray-500 mt-2 sm:mt-3">
+              Ciclo mensal ou anual • Suporte incluído
+            </p>
           </div>
         </div>
       </section>
