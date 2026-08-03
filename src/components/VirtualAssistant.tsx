@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { MessageCircle, X, ChevronRight, Phone, Search, Globe, Mail, Server, Layout, Loader2, CheckCircle, User, Crown } from 'lucide-react';
+import { MessageCircle, X, ChevronRight, Phone, Search, Globe, Mail, Server, Layout, Loader2, CheckCircle, User, Crown, Star } from 'lucide-react';
 
 interface FAQItem {
   id: string;
@@ -109,10 +109,47 @@ const faqData: FAQItem[] = [
     question: 'Inclui domínio e hospedagem?',
     answer: 'Sim, o pacote inclui 1 domínio .co.mz e 1 ano de hospedagem gratuita. Após o primeiro ano, paga apenas renovação.',
     icon: <Layout className="w-5 h-5 text-primary-600" />
+  },
+  
+  // Sistemas
+  {
+    id: 'systems-1',
+    category: 'Sistemas',
+    question: 'Como funciona o aluguel de sistemas?',
+    answer: 'Escolha um sistema disponível na página /systems, faça o pedido de aluguer, após pagamento aprovamos e enviamos as credenciais de acesso por email.',
+    icon: <Star className="w-5 h-5 text-primary-600" />
+  },
+  {
+    id: 'systems-2',
+    category: 'Sistemas',
+    question: 'Quais sistemas estão disponíveis?',
+    answer: 'Temos ERP, CRM, Gestão de Stocks, Sistemas de Facturação, e muito mais. Visite /systems para ver todos os sistemas disponíveis.',
+    icon: <Star className="w-5 h-5 text-primary-600" />
+  },
+  {
+    id: 'systems-3',
+    category: 'Sistemas',
+    question: 'Qual o custo do aluguel?',
+    answer: 'Os preços variam por sistema e ciclo de pagamento (mensal ou anual). Cada sistema tem o seu preço listado na página /systems.',
+    icon: <Star className="w-5 h-5 text-primary-600" />
+  },
+  {
+    id: 'systems-4',
+    category: 'Sistemas',
+    question: 'Posso cancelar o aluguel?',
+    answer: 'Sim, pode cancelar a qualquer momento. O acesso permanece ativo até o fim do ciclo pago (mensal ou anual).',
+    icon: <Star className="w-5 h-5 text-primary-600" />
+  },
+  {
+    id: 'systems-5',
+    category: 'Sistemas',
+    question: 'Inclui suporte técnico?',
+    answer: 'Sim, todos os sistemas incluem suporte técnico para ajudar com dúvidas e problemas de utilização.',
+    icon: <Star className="w-5 h-5 text-primary-600" />
   }
 ];
 
-const categories = ['Todas', 'Domínio', 'Hospedagem', 'Email', 'Site'];
+const categories = ['Todas', 'Domínio', 'Hospedagem', 'Email', 'Site', 'Sistemas'];
 
 export default function VirtualAssistant() {
   const [isOpen, setIsOpen] = useState(false);
