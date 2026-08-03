@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { 
   Server, Mail, LayoutDashboard, Settings, LogOut, 
   Plus, Globe, Database, TrendingUp, Users, CheckCircle, Sparkles, ArrowRight, Link2, Loader2, ShoppingBag,
-  Activity, Cpu, HardDrive, Wifi, ShieldCheck, Zap
+  Activity, Cpu, HardDrive, Wifi, ShieldCheck, Zap, Star
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 import { dataManager } from '@/lib/data';
@@ -203,6 +203,20 @@ export default function DashboardPage() {
                   <span>Meus Pedidos</span>
                 </Link>
                 <Link
+                  href="/dashboard/systems"
+                  className="flex items-center space-x-2 sm:space-x-3 px-3 sm:px-4 py-2.5 sm:py-3 text-gray-700 hover:bg-gray-50 rounded-lg font-medium text-xs sm:text-sm"
+                >
+                  <Star className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <span>Sistemas Prontos</span>
+                </Link>
+                <Link
+                  href="/dashboard/submit-system"
+                  className="flex items-center space-x-2 sm:space-x-3 px-3 sm:px-4 py-2.5 sm:py-3 text-gray-700 hover:bg-gray-50 rounded-lg font-medium text-xs sm:text-sm"
+                >
+                  <Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <span>Submeter Sistema</span>
+                </Link>
+                <Link
                   href="/site-quote"
                   className="flex items-center space-x-2 sm:space-x-3 px-3 sm:px-4 py-2.5 sm:py-3 bg-amber-50 text-amber-900 border border-amber-200/80 rounded-lg font-bold hover:bg-amber-100 transition text-xs sm:text-sm"
                 >
@@ -343,6 +357,13 @@ export default function DashboardPage() {
                 >
                   <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
                   <span>Novo Site</span>
+                </Link>
+                <Link
+                  href="/dashboard/systems"
+                  className="flex items-center space-x-1.5 sm:space-x-2 bg-purple-500 text-white px-3 sm:px-5 py-2 sm:py-3 rounded-lg hover:bg-purple-400 transition font-semibold text-[10px] sm:text-sm"
+                >
+                  <Star className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <span>Sistemas Prontos</span>
                 </Link>
                 <Link
                   href="/dashboard/email"
