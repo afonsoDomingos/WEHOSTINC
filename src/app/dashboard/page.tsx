@@ -12,6 +12,7 @@ import { auth, User } from '@/lib/auth';
 import { dataManager } from '@/lib/data';
 
 import DashboardNav from '@/components/DashboardNav';
+import DashboardSidebar from '@/components/DashboardSidebar';
 import PageLoader from '@/components/PageLoader';
 
 function CircularProgress({ percentage, colorClass, size = 64, strokeWidth = 6 }: { percentage: number; colorClass: string; size?: number; strokeWidth?: number }) {
@@ -179,110 +180,43 @@ export default function DashboardPage() {
         <div className="grid lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
           {/* Sidebar (Desktop) */}
           <div className="hidden lg:block lg:col-span-1">
-            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
-              <nav className="space-y-1.5 sm:space-y-2">
-                <Link
-                  href="/dashboard"
-                  className="flex items-center space-x-2 sm:space-x-3 px-3 sm:px-4 py-2.5 sm:py-3 bg-primary-50 text-primary-700 rounded-lg font-medium text-xs sm:text-sm"
-                >
-                  <LayoutDashboard className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span>Dashboard</span>
-                </Link>
-                <Link
-                  href="/dashboard/sites"
-                  className="flex items-center space-x-2 sm:space-x-3 px-3 sm:px-4 py-2.5 sm:py-3 text-gray-700 hover:bg-gray-50 rounded-lg font-medium text-xs sm:text-sm"
-                >
-                  <Globe className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span>Meus Sites</span>
-                </Link>
-                <Link
-                  href="/dashboard/orders"
-                  className="flex items-center space-x-2 sm:space-x-3 px-3 sm:px-4 py-2.5 sm:py-3 text-gray-700 hover:bg-gray-50 rounded-lg font-medium text-xs sm:text-sm"
-                >
-                  <ShoppingBag className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span>Meus Pedidos</span>
-                </Link>
-                <Link
-                  href="/dashboard/systems"
-                  className="flex items-center space-x-2 sm:space-x-3 px-3 sm:px-4 py-2.5 sm:py-3 text-gray-700 hover:bg-gray-50 rounded-lg font-medium text-xs sm:text-sm"
-                >
-                  <Star className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span>Sistemas Prontos</span>
-                </Link>
-                <Link
-                  href="/dashboard/submit-system"
-                  className="flex items-center space-x-2 sm:space-x-3 px-3 sm:px-4 py-2.5 sm:py-3 text-gray-700 hover:bg-gray-50 rounded-lg font-medium text-xs sm:text-sm"
-                >
-                  <Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span>Submeter Sistema</span>
-                </Link>
-                <Link
-                  href="/site-quote"
-                  className="flex items-center space-x-2 sm:space-x-3 px-3 sm:px-4 py-2.5 sm:py-3 bg-amber-50 text-amber-900 border border-amber-200/80 rounded-lg font-bold hover:bg-amber-100 transition text-xs sm:text-sm"
-                >
-                  <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />
-                  <span>Solicitar Site</span>
-                </Link>
-                <Link
-                  href="/dashboard/email"
-                  className="flex items-center space-x-2 sm:space-x-3 px-3 sm:px-4 py-2.5 sm:py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition font-medium text-xs sm:text-sm"
-                >
-                  <Mail className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span>Email</span>
-                </Link>
-                <Link
-                  href="/dashboard/billing"
-                  className="flex items-center space-x-2 sm:space-x-3 px-3 sm:px-4 py-2.5 sm:py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition font-medium text-xs sm:text-sm"
-                >
-                  <Database className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span>Faturamento</span>
-                </Link>
-                <Link
-                  href="/dashboard/settings"
-                  className="flex items-center space-x-2 sm:space-x-3 px-3 sm:px-4 py-2.5 sm:py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition font-medium text-xs sm:text-sm"
-                >
-                  <Settings className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span>Configurações</span>
-                </Link>
-              </nav>
-
-              <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t">
-                <div className="mb-3 sm:mb-4">
-                  <p className="text-[10px] sm:text-sm text-gray-600 mb-1">Status da Conta</p>
-                  <span className={`inline-block px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold ${
-                    user.status === 'active' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-                  }`}>
-                    {user.status === 'active' ? '✓ Conta Ativa' : '⏰ Sem Assinatura'}
-                  </span>
-                </div>
-
-                {user.plan !== 'none' && user.status === 'active' && (
-                  <div className="mb-3 sm:mb-4 p-2 sm:p-3 bg-gray-50 rounded-lg border border-gray-200">
-                    <p className="text-[10px] sm:text-xs text-gray-600 mb-1">Plano Atual</p>
-                    <p className="text-xs sm:text-sm font-bold text-gray-900">{planInfo.name}</p>
-                    {user.dueDate && (
-                      <div className="mt-1.5 sm:mt-2">
-                        <p className="text-[10px] sm:text-xs text-gray-600">Vencimento</p>
-                        <p className="text-[10px] sm:text-xs font-semibold text-gray-900">
-                          Dia {user.dueDate} de cada mês
-                          {daysUntilExpiry !== null && (
-                            <span className="text-primary-600 ml-1">
-                              ({daysUntilExpiry} {daysUntilExpiry === 1 ? 'dia' : 'dias'} restantes)
-                            </span>
-                          )}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                <Link
-                  href="/dashboard/billing"
-                  className="block w-full py-1.5 sm:py-2 text-center bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition text-[10px] sm:text-sm font-semibold shadow-xs"
-                >
-                  Ver Faturamento & Planos →
-                </Link>
+            <DashboardSidebar />
+            <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t bg-white rounded-xl shadow-sm p-4 sm:p-6">
+              <div className="mb-3 sm:mb-4">
+                <p className="text-[10px] sm:text-sm text-gray-600 mb-1">Status da Conta</p>
+                <span className={`inline-block px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold ${
+                  user.status === 'active' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                }`}>
+                  {user.status === 'active' ? '✓ Conta Ativa' : '⏰ Sem Assinatura'}
+                </span>
               </div>
+
+              {user.plan !== 'none' && user.status === 'active' && (
+                <div className="mb-3 sm:mb-4 p-2 sm:p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  <p className="text-[10px] sm:text-xs text-gray-600 mb-1">Plano Atual</p>
+                  <p className="text-xs sm:text-sm font-bold text-gray-900">{planInfo.name}</p>
+                  {user.dueDate && (
+                    <div className="mt-1.5 sm:mt-2">
+                      <p className="text-[10px] sm:text-xs text-gray-600">Vencimento</p>
+                      <p className="text-[10px] sm:text-xs font-semibold text-gray-900">
+                        Dia {user.dueDate} de cada mês
+                        {daysUntilExpiry !== null && (
+                          <span className="text-primary-600 ml-1">
+                            ({daysUntilExpiry} {daysUntilExpiry === 1 ? 'dia' : 'dias'} restantes)
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <Link
+                href="/dashboard/billing"
+                className="block w-full py-1.5 sm:py-2 text-center bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition text-[10px] sm:text-sm font-semibold shadow-xs"
+              >
+                Ver Faturamento & Planos →
+              </Link>
             </div>
           </div>
 

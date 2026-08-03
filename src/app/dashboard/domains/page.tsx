@@ -11,6 +11,7 @@ import {
 import { auth, User } from '@/lib/auth';
 import { dataManager, Site } from '@/lib/data';
 import DashboardNav from '@/components/DashboardNav';
+import DashboardSidebar from '@/components/DashboardSidebar';
 import PageLoader from '@/components/PageLoader';
 import StatusBadge from '@/components/StatusBadge';
 import ApprovalCelebration from '@/components/ApprovalCelebration';
@@ -141,7 +142,9 @@ export default function DomainsPage() {
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6">
         <div className="grid lg:grid-cols-4 gap-6">
           {/* Sidebar Desktop */}
-          <div className="hidden lg:block lg:col-span-1" />
+          <div className="hidden lg:block lg:col-span-1">
+            <DashboardSidebar />
+          </div>
 
           {/* Main Content */}
           <div className="lg:col-span-3 space-y-6">

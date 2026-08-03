@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Server, ArrowLeft, ArrowRight, CheckCircle2, Clock, Search, SlidersHorizontal, X } from 'lucide-react';
 import { websiteTypes, WebsiteType } from '@/lib/data';
 import DashboardNav from '@/components/DashboardNav';
+import DashboardSidebar from '@/components/DashboardSidebar';
 import PageLoader from '@/components/PageLoader';
 import { auth, User } from '@/lib/auth';
 
@@ -107,7 +108,16 @@ function SiteQuoteContent() {
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       <DashboardNav userName={user?.name} onLogout={handleLogout} />
 
-      <main className="max-w-6xl mx-auto px-4 py-10 pb-44">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6">
+        <div className="grid lg:grid-cols-4 gap-8">
+          {/* Sidebar (Desktop) */}
+          <div className="hidden lg:block lg:col-span-1">
+            <DashboardSidebar />
+          </div>
+
+          {/* Main Content */}
+          <div className="lg:col-span-3">
+            <main className="max-w-6xl mx-auto px-4 py-10 pb-44">
         {/* Header */}
         <div className="mb-8">
           <Link href="/dashboard" className="inline-flex items-center text-sm text-gray-500 hover:text-gray-900 mb-4 transition">
@@ -324,7 +334,6 @@ function SiteQuoteContent() {
             })}
           </div>
         )}
-      </main>
 
       {/* Painel Sticky */}
       {selected && (
@@ -386,6 +395,10 @@ function SiteQuoteContent() {
           </div>
         </div>
       )}
+            </main>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

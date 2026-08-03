@@ -10,6 +10,7 @@ import {
 import { auth, User } from '@/lib/auth';
 import { dataManager, SystemForRent } from '@/lib/data';
 import DashboardNav from '@/components/DashboardNav';
+import DashboardSidebar from '@/components/DashboardSidebar';
 import PageLoader from '@/components/PageLoader';
 
 export default function SubmitSystemPage() {
@@ -124,73 +125,7 @@ export default function SubmitSystemPage() {
         <div className="grid lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 w-full">
           {/* Sidebar (Desktop) */}
           <div className="hidden lg:block lg:col-span-1">
-            <div className="bg-white rounded-xl shadow-sm p-4 md:p-6">
-              <nav className="space-y-2">
-                <Link
-                  href="/dashboard"
-                  className="flex items-center space-x-3 px-3 sm:px-4 py-2.5 sm:py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition font-medium text-xs sm:text-sm"
-                >
-                  <LayoutDashboard className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span>Dashboard</span>
-                </Link>
-                <Link
-                  href="/dashboard/sites"
-                  className="flex items-center space-x-3 px-3 sm:px-4 py-2.5 sm:py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition font-medium text-xs sm:text-sm"
-                >
-                  <Globe className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span>Meus Sites</span>
-                </Link>
-                <Link
-                  href="/dashboard/site-quote"
-                  className="flex items-center space-x-3 px-3 sm:px-4 py-2.5 sm:py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition font-medium text-xs sm:text-sm"
-                >
-                  <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span>Solicitar Site</span>
-                </Link>
-                <Link
-                  href="/dashboard/orders"
-                  className="flex items-center space-x-3 px-3 sm:px-4 py-2.5 sm:py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition font-medium text-xs sm:text-sm"
-                >
-                  <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span>Meus Pedidos</span>
-                </Link>
-                <Link
-                  href="/dashboard/systems"
-                  className="flex items-center space-x-3 px-3 sm:px-4 py-2.5 sm:py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition font-medium text-xs sm:text-sm"
-                >
-                  <Star className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span>Sistemas</span>
-                </Link>
-                <Link
-                  href="/dashboard/submit-system"
-                  className="flex items-center space-x-3 px-3 sm:px-4 py-2.5 sm:py-3 bg-primary-50 text-primary-700 rounded-lg font-medium text-xs sm:text-sm"
-                >
-                  <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span>Submeter Sistema</span>
-                </Link>
-                <Link
-                  href="/dashboard/email"
-                  className="flex items-center space-x-3 px-3 sm:px-4 py-2.5 sm:py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition font-medium text-xs sm:text-sm"
-                >
-                  <Mail className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span>Email</span>
-                </Link>
-                <Link
-                  href="/dashboard/billing"
-                  className="flex items-center space-x-3 px-3 sm:px-4 py-2.5 sm:py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition font-medium text-xs sm:text-sm"
-                >
-                  <Database className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span>Faturamento</span>
-                </Link>
-                <Link
-                  href="/dashboard/settings"
-                  className="flex items-center space-x-3 px-3 sm:px-4 py-2.5 sm:py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition font-medium text-xs sm:text-sm"
-                >
-                  <SettingsIcon className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span>Configurações</span>
-                </Link>
-              </nav>
-            </div>
+            <DashboardSidebar />
           </div>
 
           {/* Main Content */}

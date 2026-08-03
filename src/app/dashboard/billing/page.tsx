@@ -10,6 +10,7 @@ import {
 import { auth, User } from '@/lib/auth';
 import { hostingPlans, dataManager, ServiceOrder } from '@/lib/data';
 import DashboardNav from '@/components/DashboardNav';
+import DashboardSidebar from '@/components/DashboardSidebar';
 import PageLoader from '@/components/PageLoader';
 import ReceiptModal, { ReceiptData } from '@/components/ReceiptModal';
 import Toast from '@/components/Toast';
@@ -87,45 +88,7 @@ export default function BillingPage() {
         <div className="grid lg:grid-cols-4 gap-8">
           {/* Sidebar (Desktop) */}
           <div className="hidden lg:block lg:col-span-1">
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <nav className="space-y-2">
-                <Link
-                  href="/dashboard"
-                  className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition"
-                >
-                  <LayoutDashboard className="h-5 w-5" />
-                  <span>Dashboard</span>
-                </Link>
-                <Link
-                  href="/dashboard/sites"
-                  className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition"
-                >
-                  <Globe className="h-5 w-5" />
-                  <span>Meus Sites</span>
-                </Link>
-                <Link
-                  href="/dashboard/email"
-                  className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition"
-                >
-                  <Mail className="h-5 w-5" />
-                  <span>Email</span>
-                </Link>
-                <Link
-                  href="/dashboard/billing"
-                  className="flex items-center space-x-3 px-4 py-3 bg-primary-50 text-primary-700 rounded-lg"
-                >
-                  <Database className="h-5 w-5" />
-                  <span>Faturamento</span>
-                </Link>
-                <Link
-                  href="/dashboard/settings"
-                  className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition"
-                >
-                  <SettingsIcon className="h-5 w-5" />
-                  <span>Configurações</span>
-                </Link>
-              </nav>
-            </div>
+            <DashboardSidebar />
           </div>
 
           {/* Main Content */}

@@ -9,6 +9,7 @@ import {
   Paperclip, FileText, Image as ImageIcon, Download, ExternalLink, File, Trash2, Loader2
 } from 'lucide-react';
 import DashboardNav from '@/components/DashboardNav';
+import DashboardSidebar from '@/components/DashboardSidebar';
 import PageLoader from '@/components/PageLoader';
 import { auth, User } from '@/lib/auth';
 import { dataManager, SupportTicket, TicketMessage, TicketAttachment } from '@/lib/data';
@@ -289,10 +290,18 @@ export default function ClientTicketsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-gray-50">
       <DashboardNav userName={user?.name} onLogout={handleLogout} />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6">
+        <div className="grid lg:grid-cols-4 gap-8">
+          {/* Sidebar (Desktop) */}
+          <div className="hidden lg:block lg:col-span-1">
+            <DashboardSidebar />
+          </div>
+
+          {/* Main Content */}
+          <div className="lg:col-span-3 space-y-6">
         {/* Cabeçalho da Página */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
@@ -463,7 +472,9 @@ export default function ClientTicketsPage() {
             ))}
           </div>
         )}
-      </main>
+          </div>
+        </div>
+      </div>
 
       {/* Modal Criar Novo Ticket */}
       {showCreateModal && (

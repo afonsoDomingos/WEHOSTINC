@@ -10,6 +10,7 @@ import {
 import { auth, User } from '@/lib/auth';
 import { dataManager, Site } from '@/lib/data';
 import DashboardNav from '@/components/DashboardNav';
+import DashboardSidebar from '@/components/DashboardSidebar';
 import PageLoader from '@/components/PageLoader';
 import StatusBadge from '@/components/StatusBadge';
 import ConfirmModal from '@/components/ConfirmModal';
@@ -159,59 +160,7 @@ export default function SitesPage() {
         <div className="grid lg:grid-cols-4 gap-8">
           {/* Sidebar (Desktop) */}
           <div className="hidden lg:block lg:col-span-1">
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <nav className="space-y-2">
-                <Link
-                  href="/dashboard"
-                  className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition font-medium"
-                >
-                  <LayoutDashboard className="h-5 w-5" />
-                  <span>Dashboard</span>
-                </Link>
-                <Link
-                  href="/dashboard/sites"
-                  className="flex items-center space-x-3 px-4 py-3 bg-primary-50 text-primary-700 rounded-lg font-medium"
-                >
-                  <Globe className="h-5 w-5" />
-                  <span>Meus Sites</span>
-                </Link>
-                <Link
-                  href="/dashboard/orders"
-                  className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg font-medium"
-                >
-                  <ShoppingBag className="h-5 w-5" />
-                  <span>Meus Pedidos</span>
-                </Link>
-                <Link
-                  href="/site-quote"
-                  className="flex items-center space-x-3 px-4 py-3 bg-amber-50 text-amber-900 border border-amber-200/80 rounded-lg font-bold hover:bg-amber-100 transition"
-                >
-                  <Sparkles className="h-5 w-5 text-amber-600" />
-                  <span>Solicitar Site</span>
-                </Link>
-                <Link
-                  href="/dashboard/email"
-                  className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition font-medium"
-                >
-                  <Mail className="h-5 w-5" />
-                  <span>Email</span>
-                </Link>
-                <Link
-                  href="/dashboard/billing"
-                  className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition font-medium"
-                >
-                  <Database className="h-5 w-5" />
-                  <span>Faturamento</span>
-                </Link>
-                <Link
-                  href="/dashboard/settings"
-                  className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition font-medium"
-                >
-                  <SettingsIcon className="h-5 w-5" />
-                  <span>Configurações</span>
-                </Link>
-              </nav>
-            </div>
+            <DashboardSidebar />
           </div>
 
           {/* Main Content */}
