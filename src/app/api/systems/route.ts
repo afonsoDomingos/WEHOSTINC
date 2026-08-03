@@ -90,15 +90,11 @@ async function tryMongo() {
 export async function GET() {
   try {
     if (await tryMongo()) {
-      let systems = await SystemForRentModel.find({}).lean();
-      if (!systems || systems.length === 0) {
-        await SystemForRentModel.insertMany(DEFAULT_SYSTEMS_DATA);
-        systems = await SystemForRentModel.find({}).lean();
-      }
+      const systems = await SystemForRentModel.find({}).lean();
       return NextResponse.json({ systems });
     }
   } catch (e) { console.error('MongoDB indisponível (systems):', e); }
-  return NextResponse.json({ systems: DEFAULT_SYSTEMS_DATA });
+  return NextResponse.json({ systems: [] });
 }
 
 export async function POST(req: Request) {
