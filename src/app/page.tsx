@@ -94,9 +94,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Partners Section */}
-      <PartnersSection />
-
       {/* Features - Mobile First */}
       <section id="recursos" ref={featuresRef} className="anim-fade-up py-6 sm:py-14 px-3 sm:px-6 bg-white">
         <div className="max-w-7xl mx-auto">
@@ -588,6 +585,9 @@ export default function Home() {
           </div>
         </div>
       </footer>
+
+      {/* Partners Section */}
+      <PartnersSection />
 
       {/* Virtual Assistant */}
       <VirtualAssistant />
