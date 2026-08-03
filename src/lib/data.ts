@@ -2,6 +2,15 @@ import { auth } from './auth';
 import { apiEndpoint } from './siteConfig';
 import { sanitizeDomainName } from './domains';
 
+export interface SocialProof {
+  id: string;
+  userName: string;
+  location: string;
+  action: string;
+  timeAgo: string;
+  active: boolean;
+}
+
 export interface ServiceOrder {
   id: string;
   clientName: string;
@@ -1589,6 +1598,60 @@ export const dataManager = {
     if (ratings.length === 0) return 0;
     const sum = ratings.reduce((acc, r) => acc + r.rating, 0);
     return Math.round((sum / ratings.length) * 10) / 10;
+  },
+
+  getSocialProofs: (): SocialProof[] => {
+    const DEFAULT_SOCIAL_PROOFS: SocialProof[] = [
+      { id: 'sp-1', userName: 'Carlos M.', location: 'Maputo', action: 'contratou o plano Profissional SSD', timeAgo: 'há 3 min', active: true },
+      { id: 'sp-2', userName: 'Ana S.', location: 'Matola', action: 'registou o domínio empresa.co.mz', timeAgo: 'há 7 min', active: true },
+      { id: 'sp-3', userName: 'Nelson B.', location: 'Beira', action: 'alugou o Sistema ERP de Vendas', timeAgo: 'há 12 min', active: true },
+      { id: 'sp-4', userName: 'Fátima Z.', location: 'Nampula', action: 'solicitou a criação de Loja E-commerce', timeAgo: 'há 18 min', active: true },
+      { id: 'sp-5', userName: 'Sousa J.', location: 'Tete', action: 'subiu para o plano Empresarial', timeAgo: 'há 25 min', active: true },
+      { id: 'sp-6', userName: 'Mélio A.', location: 'Chimoio', action: 'configurou 5 contas de Email Corporativo', timeAgo: 'há 34 min', active: true }
+    ];
+
+    if (typeof window === 'undefined') return DEFAULT_SOCIAL_PROOFS;
+    const stored = localStorage.getItem('wehost_social_proofs');
+    if (!stored) {
+      localStorage.setItem('wehost_social_proofs', JSON.stringify(DEFAULT_SOCIAL_PROOFS));
+      return DEFAULT_SOCIAL_PROOFS;
+    }
+    try {
+      return JSON.parse(stored);
+    } catch {
+      return DEFAULT_SOCIAL_PROOFS;
+    }
+  },
+
+  addSocialProof: (proof: Omit<SocialProof, 'id'>): SocialProof => {
+    const proofs = dataManager.getSocialProofs();
+    const newProof: SocialProof = {
+      ...proof,
+      id: `sp-${Date.now()}`
+    };
+    proofs.unshift(newProof);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('wehost_social_proofs', JSON.stringify(proofs));
+    }
+    return newProof;
+  },
+
+  toggleSocialProof: (id: string): SocialProof[] => {
+    const proofs = dataManager.getSocialProofs();
+    const updated = proofs.map(p => p.id === id ? { ...p, active: !p.active } : p);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('wehost_social_proofs', JSON.stringify(updated));
+    }
+    return updated;
+  },
+
+  deleteSocialProof: (id: string): SocialProof[] => {
+    const proofs = dataManager.getSocialProofs();
+    const filtered = proofs.filter(p => p.id !== id);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('wehost_social_proofs', JSON.stringify(filtered));
+    }
+    return filtered;
   }
 };
 

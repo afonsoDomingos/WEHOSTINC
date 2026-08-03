@@ -3,6 +3,7 @@ import { Poppins } from "next/font/google";
 import "./globals.css";
 import ScrollToTop from "@/components/ScrollToTop";
 import AnalyticsTracker from "@/components/AnalyticsTracker";
+import SocialProofToast from "@/components/SocialProofToast";
 import { SITE_URL } from "@/lib/siteConfig";
 
 const poppins = Poppins({ 
@@ -120,6 +121,7 @@ export default function RootLayout({
         {children}
         <ScrollToTop />
         <AnalyticsTracker />
+        <SocialProofToast />
       </body>
     </html>
   );

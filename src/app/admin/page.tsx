@@ -12,7 +12,7 @@ import {
   Activity, Eye, Globe, Wifi, WifiOff, BarChart2, RefreshCw, UserPlus, Star, Plus, Edit
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
-import { dataManager, ServiceOrder, SupportTicket, TicketMessage, TicketAttachment, SecurityLog, SystemForRent, RentalRequest, SystemAccess } from '@/lib/data';
+import { dataManager, ServiceOrder, SupportTicket, TicketMessage, TicketAttachment, SecurityLog, SystemForRent, RentalRequest, SystemAccess, SocialProof } from '@/lib/data';
 import BrandLogo from '@/components/BrandLogo';
 import PageLoader from '@/components/PageLoader';
 import ConfirmModal from '@/components/ConfirmModal';
@@ -291,6 +291,13 @@ export default function AdminPage() {
   const [activeAdminTab, setActiveAdminTab] = useState<'overview' | 'users' | 'sites' | 'emails' | 'orders' | 'tickets' | 'security' | 'systems'>('overview');
   const [showSystemModal, setShowSystemModal] = useState(false);
   const [editingSystem, setEditingSystem] = useState<SystemForRent | null>(null);
+
+  // Provas Sociais State
+  const [socialProofs, setSocialProofs] = useState<SocialProof[]>([]);
+  const [newProofName, setNewProofName] = useState('');
+  const [newProofLocation, setNewProofLocation] = useState('Maputo');
+  const [newProofAction, setNewProofAction] = useState('contratou o plano Profissional SSD');
+  const [newProofTime, setNewProofTime] = useState('há 5 min');
   
   // Anexos Admin
   const [adminReplyAttachments, setAdminReplyAttachments] = useState<TicketAttachment[]>([]);
@@ -412,6 +419,7 @@ export default function AdminPage() {
     setSystems(dataManager.getSystemsForRent());
     setRentalRequests(dataManager.getRentalRequests());
     setSystemAccesses(dataManager.getSystemAccesses());
+    setSocialProofs(dataManager.getSocialProofs());
     fetchAnalytics();
     setLoading(false);
 
@@ -597,6 +605,36 @@ export default function AdminPage() {
         }
       }
     });
+  };
+
+  // Handlers para Provas Sociais
+  const handleAddSocialProof = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newProofName.trim() || !newProofAction.trim()) {
+      setToastMsg({ title: 'Campos Incompletos', message: 'Por favor preencha o nome do cliente e a ação realizada.', type: 'error' });
+      return;
+    }
+    dataManager.addSocialProof({
+      userName: newProofName,
+      location: newProofLocation || 'Maputo',
+      action: newProofAction,
+      timeAgo: newProofTime || 'há poucos minutos',
+      active: true
+    });
+    setSocialProofs(dataManager.getSocialProofs());
+    setNewProofName('');
+    setToastMsg({ title: 'Notificação Adicionada', message: 'A notificação ao vivo foi cadastrada e já está em exibição no site!', type: 'success' });
+  };
+
+  const handleToggleSocialProof = (id: string) => {
+    const updated = dataManager.toggleSocialProof(id);
+    setSocialProofs(updated);
+  };
+
+  const handleDeleteSocialProof = (id: string) => {
+    const updated = dataManager.deleteSocialProof(id);
+    setSocialProofs(updated);
+    setToastMsg({ title: 'Notificação Removida', message: 'A prova social foi removida.', type: 'info' });
   };
 
   const handleAdminDeleteEmail = (id: string, userEmail?: string, emailStr?: string) => {
@@ -1249,6 +1287,132 @@ export default function AdminPage() {
               </table>
             </div>
           )}
+        </div>
+
+        {/* ───── GESTÃO DE PROVAS SOCIAIS / NOTIFICAÇÕES AO VIVO ───── */}
+        <div className="bg-white border border-purple-200 rounded-xl p-4 sm:p-6 shadow-sm mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+            <div>
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center space-x-2">
+                <ShoppingBag className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />
+                <span>Gestão de Provas Sociais & Notificações ao Vivo (Toast)</span>
+              </h2>
+              <p className="text-gray-500 text-[10px] sm:text-sm mt-0.5">
+                Cadastre e controle as notificações automáticas de vendas/registros exibidas no canto da tela para os visitantes.
+              </p>
+            </div>
+            <span className="bg-purple-100 text-purple-800 text-[10px] sm:text-xs font-extrabold px-3 py-1 rounded-full border border-purple-300">
+              {socialProofs.filter(p => p.active).length} Notificações Ativas
+            </span>
+          </div>
+
+          {/* Formulário de Adicionar Nova Prova Social */}
+          <form onSubmit={handleAddSocialProof} className="bg-purple-50/60 border border-purple-100 rounded-xl p-3 sm:p-4 mb-6">
+            <h3 className="text-xs sm:text-sm font-bold text-purple-900 mb-3 flex items-center gap-1.5">
+              <Plus className="w-4 h-4 text-purple-600" />
+              <span>Adicionar Nova Notificação Manual de Venda / Registro</span>
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 sm:gap-3">
+              <div>
+                <label className="text-[10px] font-semibold text-gray-600 block mb-1">Nome do Cliente</label>
+                <input
+                  type="text"
+                  placeholder="Ex: Carlos M."
+                  value={newProofName}
+                  onChange={(e) => setNewProofName(e.target.value)}
+                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-purple-500"
+                  required
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-semibold text-gray-600 block mb-1">Cidade / Localização</label>
+                <input
+                  type="text"
+                  placeholder="Ex: Maputo, Matola, Beira..."
+                  value={newProofLocation}
+                  onChange={(e) => setNewProofLocation(e.target.value)}
+                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-purple-500"
+                  required
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-semibold text-gray-600 block mb-1">Ação / Produto</label>
+                <input
+                  type="text"
+                  placeholder="Ex: contratou o plano Profissional SSD"
+                  value={newProofAction}
+                  onChange={(e) => setNewProofAction(e.target.value)}
+                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-purple-500"
+                  required
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-semibold text-gray-600 block mb-1">Tempo Relativo</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Ex: há 3 min"
+                    value={newProofTime}
+                    onChange={(e) => setNewProofTime(e.target.value)}
+                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-lg shadow transition whitespace-nowrap cursor-pointer"
+                  >
+                    Adicionar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </form>
+
+          {/* Tabela de Provas Sociais */}
+          <div className="overflow-x-auto border border-gray-100 rounded-lg">
+            <table className="w-full text-left text-[10px] sm:text-xs">
+              <thead className="bg-gray-50 text-gray-500 font-bold uppercase border-b border-gray-200">
+                <tr>
+                  <th className="py-2.5 px-3">Status</th>
+                  <th className="py-2.5 px-3">Cliente</th>
+                  <th className="py-2.5 px-3">Localização</th>
+                  <th className="py-2.5 px-3">Ação Exibida</th>
+                  <th className="py-2.5 px-3">Tempo</th>
+                  <th className="py-2.5 px-3 text-right">Ações</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {socialProofs.map((sp) => (
+                  <tr key={sp.id} className="hover:bg-purple-50/30 transition">
+                    <td className="py-2.5 px-3">
+                      <button
+                        onClick={() => handleToggleSocialProof(sp.id)}
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold border transition cursor-pointer ${
+                          sp.active
+                            ? 'bg-emerald-100 text-emerald-700 border-emerald-300'
+                            : 'bg-gray-100 text-gray-500 border-gray-300'
+                        }`}
+                      >
+                        {sp.active ? '🟢 Ativa' : '⚪ Pausada'}
+                      </button>
+                    </td>
+                    <td className="py-2.5 px-3 font-bold text-gray-900">{sp.userName}</td>
+                    <td className="py-2.5 px-3 text-gray-600">{sp.location}</td>
+                    <td className="py-2.5 px-3 text-purple-900 font-medium">{sp.action}</td>
+                    <td className="py-2.5 px-3 text-gray-500 font-mono">{sp.timeAgo}</td>
+                    <td className="py-2.5 px-3 text-right">
+                      <button
+                        onClick={() => handleDeleteSocialProof(sp.id)}
+                        className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition cursor-pointer"
+                        title="Eliminar prova social"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {/* Users Table */}
