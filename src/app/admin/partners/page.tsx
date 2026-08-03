@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Plus, Edit, Trash2, ExternalLink, Image as ImageIcon, Save, X, Upload } from 'lucide-react';
+import { Plus, Edit, Trash2, ExternalLink, Image as ImageIcon, Save, X, Upload, Loader2 } from 'lucide-react';
 import { auth } from '@/lib/auth';
 import { dataManager, Partner } from '@/lib/data';
 import { useRouter } from 'next/navigation';
@@ -26,6 +26,7 @@ export default function AdminPartnersPage() {
     websiteUrl: '',
     active: true
   });
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     const user = auth.getCurrentUser();
@@ -111,6 +112,43 @@ export default function AdminPartnersPage() {
   const handleToggleActive = (partner: Partner) => {
     dataManager.updatePartner(partner.id, { active: !partner.active });
     loadPartners();
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Check file type
+    if (!file.type.startsWith('image/')) {
+      setToast({ show: true, message: 'Por favor, selecione apenas arquivos de imagem', type: 'error' });
+      return;
+    }
+
+    // Check file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setToast({ show: true, message: 'A imagem deve ter no máximo 5MB', type: 'error' });
+      return;
+    }
+
+    setUploading(true);
+
+    try {
+      // Convert to base64
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64 = event.target?.result as string;
+        setFormData({ ...formData, logoUrl: base64 });
+        setUploading(false);
+      };
+      reader.onerror = () => {
+        setToast({ show: true, message: 'Erro ao carregar imagem', type: 'error' });
+        setUploading(false);
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      setToast({ show: true, message: 'Erro ao processar imagem', type: 'error' });
+      setUploading(false);
+    }
   };
 
   const handleMoveUp = (partner: Partner) => {
@@ -332,15 +370,42 @@ export default function AdminPartnersPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  URL do Logo *
+                  Logo *
                 </label>
-                <input
-                  type="text"
-                  value={formData.logoUrl}
-                  onChange={(e) => setFormData({ ...formData, logoUrl: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="https://exemplo.com/logo.png"
-                />
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileUpload}
+                      disabled={uploading}
+                      className="flex-1 text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
+                    />
+                    {uploading && (
+                      <div className="flex items-center space-x-2 text-primary-600">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span className="text-xs">Carregando...</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-gray-300"></div>
+                    </div>
+                    <div className="relative flex justify-center text-xs">
+                      <span className="px-2 bg-white text-gray-500">ou cole URL</span>
+                    </div>
+                  </div>
+
+                  <input
+                    type="text"
+                    value={formData.logoUrl}
+                    onChange={(e) => setFormData({ ...formData, logoUrl: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    placeholder="https://exemplo.com/logo.png"
+                  />
+                </div>
                 {formData.logoUrl && (
                   <div className="mt-2 w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
                     <img
