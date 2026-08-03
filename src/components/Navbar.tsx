@@ -6,10 +6,13 @@ import { useRouter } from 'next/navigation';
 import { Menu, X, LayoutDashboard, LogOut, User as UserIcon } from 'lucide-react';
 import BrandLogo from '@/components/BrandLogo';
 import PageLoader from '@/components/PageLoader';
+import LanguageSelector from '@/components/LanguageSelector';
+import { useLanguage } from '@/context/LanguageContext';
 import { auth, User } from '@/lib/auth';
 
 export default function Navbar() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -47,36 +50,38 @@ export default function Navbar() {
               href="/#planos" 
               className="text-xs sm:text-sm font-medium text-gray-700 hover:text-primary-600 transition"
             >
-              Planos
+              {t('nav.plans')}
             </Link>
             <Link 
               href="/#criacao-sites" 
               className="text-xs sm:text-sm font-semibold text-primary-600 hover:text-primary-700 bg-primary-50 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-primary-200/60 transition"
             >
-              Criação de Sites (a partir de 12.000 MT)
+              {t('nav.sites')}
             </Link>
             <Link 
               href="/systems" 
               className="text-xs sm:text-sm font-medium text-gray-700 hover:text-primary-600 transition"
             >
-              Sistemas Prontos
+              {t('nav.systems')}
             </Link>
             <Link 
               href="/#recursos" 
               className="text-xs sm:text-sm font-medium text-gray-700 hover:text-primary-600 transition"
             >
-              Recursos
+              {t('nav.resources')}
             </Link>
             <Link 
               href="/#contacto" 
               className="text-xs sm:text-sm font-medium text-gray-700 hover:text-primary-600 transition"
             >
-              Contacto
+              {t('nav.contact')}
             </Link>
           </nav>
 
           {/* Desktop CTA Action Buttons */}
           <div className="hidden md:flex items-center space-x-2 lg:space-x-3">
+            <LanguageSelector />
+
             {user ? (
               <>
                 <div className="flex items-center space-x-2 lg:space-x-3">
@@ -97,7 +102,7 @@ export default function Navbar() {
                     className="px-3 sm:px-4 py-2 sm:py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-sm hover:shadow transition flex items-center space-x-1.5 sm:space-x-2"
                   >
                     <LayoutDashboard className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                    <span className="hidden sm:inline">{user.role === 'admin' || user.email.toLowerCase() === 'admin@wehosthere.com' ? 'Painel Admin' : 'Meu Painel'}</span>
+                    <span className="hidden sm:inline">{user.role === 'admin' || user.email.toLowerCase() === 'admin@wehosthere.com' ? t('nav.admin') : t('nav.dashboard')}</span>
                     <span className="sm:hidden">Painel</span>
                   </Link>
                 </div>
@@ -116,13 +121,13 @@ export default function Navbar() {
                   href="/login" 
                   className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-gray-700 hover:text-primary-600 transition"
                 >
-                  Login
+                  {t('nav.login')}
                 </Link>
                 <Link 
                   href="/register" 
                   className="px-4 sm:px-5 py-2 sm:py-2.5 bg-primary-600 text-white text-xs sm:text-sm font-semibold rounded-xl hover:bg-primary-700 shadow-sm hover:shadow transition"
                 >
-                  Criar Conta
+                  {t('nav.register')}
                 </Link>
               </>
             )}
@@ -130,6 +135,7 @@ export default function Navbar() {
 
           {/* Mobile Hamburger Button */}
           <div className="flex md:hidden items-center space-x-1 sm:space-x-2">
+            <LanguageSelector />
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}

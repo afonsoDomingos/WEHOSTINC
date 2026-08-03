@@ -87,6 +87,8 @@ export const metadata: Metadata = {
   category: 'technology',
 };
 
+import { LanguageProvider } from "@/context/LanguageContext";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -118,10 +120,12 @@ export default function RootLayout({
         />
       </head>
       <body className={poppins.className}>
-        {children}
-        <ScrollToTop />
-        <AnalyticsTracker />
-        <SocialProofToast />
+        <LanguageProvider>
+          {children}
+          <ScrollToTop />
+          <AnalyticsTracker />
+          <SocialProofToast />
+        </LanguageProvider>
       </body>
     </html>
   );
