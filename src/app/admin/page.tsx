@@ -778,9 +778,9 @@ export default function AdminPage() {
 
   const averageTicket = orders.length > 0 ? Math.round(totalRevenue / orders.length) : (activeClients.length > 0 ? Math.round(mrr / activeClients.length) : 0);
 
-  const mpesaRevenue = orders.filter(o => o.paymentMethod === 'mpesa' && o.status !== 'cancelled').reduce((acc, o) => acc + o.valorFaturado, 0);
-  const emolaRevenue = orders.filter(o => o.paymentMethod === 'emola' && o.status !== 'cancelled').reduce((acc, o) => acc + o.valorFaturado, 0);
-  const cardRevenue = orders.filter(o => o.paymentMethod === 'card' && o.status !== 'cancelled').reduce((acc, o) => acc + o.valorFaturado, 0);
+  const mpesaRevenue = orders.filter(o => o.paymentMethod === 'mpesa' && o.status !== 'cancelled').reduce((acc, o) => acc + (o.valorFaturado || 0), 0);
+  const emolaRevenue = orders.filter(o => o.paymentMethod === 'emola' && o.status !== 'cancelled').reduce((acc, o) => acc + (o.valorFaturado || 0), 0);
+  const cardRevenue = orders.filter(o => o.paymentMethod === 'card' && o.status !== 'cancelled').reduce((acc, o) => acc + (o.valorFaturado || 0), 0);
   const validOrdersTotal = (mpesaRevenue + emolaRevenue + cardRevenue) || 1;
 
   const getUserStatus = (user: User) => {
