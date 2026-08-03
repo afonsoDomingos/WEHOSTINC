@@ -10,6 +10,7 @@ export interface User {
   dueDate?: number;
   role?: 'admin' | 'user';
   avatar?: string;
+  referralCode?: string;
   createdAt: string;
 }
 
@@ -135,7 +136,7 @@ export const auth = {
   },
 
   // Registrar novo usuário assincronamente (com confirmação garantida no banco de dados do servidor)
-  registerAsync: async (name: string, email: string, password: string, plan: 'none' | 'basic' | 'pro' | 'enterprise' = 'none', status: 'active' | 'pending' | 'suspended' = 'pending', dueDate: number = 29): Promise<User> => {
+  registerAsync: async (name: string, email: string, password: string, plan: 'none' | 'basic' | 'pro' | 'enterprise' = 'none', status: 'active' | 'pending' | 'suspended' = 'pending', dueDate: number = 29, referralCode?: string): Promise<User> => {
     seedDefaultUsers();
     
     // 1. Sincronizar usuários atualizados do servidor para garantir validação global
@@ -148,6 +149,9 @@ export const auth = {
       throw new Error('Este endereço de e-mail já está registado na plataforma. Por favor, faça login ou use outro e-mail.');
     }
 
+    // 3. Gerar código de referral único
+    const userReferralCode = `WH${email.substring(0, 3).toUpperCase()}${Math.floor(1000 + Math.random() * 9000)}`;
+
     const newUser: User = {
       id: Date.now().toString(),
       name,
@@ -156,18 +160,19 @@ export const auth = {
       status,
       dueDate,
       role: 'user',
+      referralCode: userReferralCode,
       createdAt: new Date().toISOString()
     };
 
-    const userWithPassword = { ...newUser, password };
+    const userWithPassword = { ...newUser, password, referralCode: userReferralCode };
 
-    // 3. ENVIAR PRIMEIRO PARA O BANCO DE DADOS MONGODB ATLAS (DATABASE-FIRST)
+    // 4. ENVIAR PRIMEIRO PARA O BANCO DE DADOS MONGODB ATLAS (DATABASE-FIRST)
     let savedOnServer = false;
     try {
       const res = await fetch(apiEndpoint('/api/users'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'register', user: userWithPassword })
+        body: JSON.stringify({ action: 'register', user: userWithPassword, referralCode })
       });
       
       const resData = await res.json();
@@ -180,7 +185,16 @@ export const auth = {
       throw new Error('Não foi possível conectar ao servidor para registar a conta. Por favor, verifique a sua ligação.');
     }
 
-    // 4. Gravar na cache do navegador somente após confirmação do servidor MongoDB
+    // 5. Criar registro de referral para o novo usuário
+    if (savedOnServer) {
+      try {
+        dataManager.createReferral(newUser.email, newUser.name);
+      } catch (err) {
+        console.error('Erro ao criar referral:', err);
+      }
+    }
+
+    // 6. Gravar na cache do navegador somente após confirmação do servidor MongoDB
     if (typeof window !== 'undefined') {
       localStorage.setItem(`user_${newUser.id}`, JSON.stringify(userWithPassword));
       const currentList = auth.getUsers();

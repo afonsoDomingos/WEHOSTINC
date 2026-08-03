@@ -101,6 +101,36 @@ export interface SystemRating {
   createdAt: string;
 }
 
+export interface Referral {
+  id: string;
+  referrerEmail: string;
+  referrerName: string;
+  referralCode: string;
+  referredEmail?: string;
+  referredName?: string;
+  status: 'active' | 'inactive';
+  totalReferrals: number;
+  totalCommissions: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ReferralCommission {
+  id: string;
+  referrerEmail: string;
+  referrerName: string;
+  referredEmail: string;
+  referredName: string;
+  systemId?: string;
+  systemName?: string;
+  amount: number;
+  percentage: number; // 30%
+  billingCycle: 'monthly' | 'yearly';
+  status: 'pending' | 'paid' | 'cancelled';
+  paymentDate?: string;
+  createdAt: string;
+}
+
 export interface Site {
   id: string;
   name: string;
@@ -1617,16 +1647,8 @@ export const dataManager = {
     ];
 
     if (typeof window === 'undefined') return DEFAULT_SOCIAL_PROOFS;
-    const stored = localStorage.getItem('wehost_social_proofs');
-    if (!stored) {
-      localStorage.setItem('wehost_social_proofs', JSON.stringify(DEFAULT_SOCIAL_PROOFS));
-      return DEFAULT_SOCIAL_PROOFS;
-    }
-    try {
-      return JSON.parse(stored);
-    } catch {
-      return DEFAULT_SOCIAL_PROOFS;
-    }
+    const data = localStorage.getItem('wehosthere_social_proofs');
+    return data ? JSON.parse(data) : DEFAULT_SOCIAL_PROOFS;
   },
 
   addSocialProof: (proof: Omit<SocialProof, 'id'>): SocialProof => {
@@ -1658,6 +1680,166 @@ export const dataManager = {
       localStorage.setItem('wehost_social_proofs', JSON.stringify(filtered));
     }
     return filtered;
+  },
+
+  // Referrals
+  getReferrals: (): Referral[] => {
+    if (typeof window === 'undefined') return [];
+    const data = localStorage.getItem('wehosthere_referrals');
+    return data ? JSON.parse(data) : [];
+  },
+
+  fetchReferralsAsync: async (): Promise<Referral[]> => {
+    try {
+      const res = await fetch(apiEndpoint('/api/referrals'));
+      if (res.ok) {
+        const data = await res.json();
+        if (data.referrals && Array.isArray(data.referrals)) {
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('wehosthere_referrals', JSON.stringify(data.referrals));
+          }
+          return data.referrals;
+        }
+      }
+    } catch (e) {
+      console.error('Falha ao buscar referrals:', e);
+    }
+    return dataManager.getReferrals();
+  },
+
+  createReferral: (referrerEmail: string, referrerName: string): Referral => {
+    const referrals = dataManager.getReferrals();
+    const existing = referrals.find(r => r.referrerEmail === referrerEmail);
+    if (existing) return existing;
+
+    const now = new Date().toISOString();
+    const referralCode = `WH${referrerEmail.substring(0, 3).toUpperCase()}${Math.floor(1000 + Math.random() * 9000)}`;
+    const newReferral: Referral = {
+      id: `REF-${Math.floor(1000 + Math.random() * 9000)}`,
+      referrerEmail,
+      referrerName,
+      referralCode,
+      status: 'active',
+      totalReferrals: 0,
+      totalCommissions: 0,
+      createdAt: now,
+      updatedAt: now
+    };
+    referrals.unshift(newReferral);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('wehosthere_referrals', JSON.stringify(referrals));
+
+      fetch(apiEndpoint('/api/referrals'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'create', referral: newReferral })
+      }).catch(err => console.error('Erro de sync de referral no servidor:', err));
+    }
+    return newReferral;
+  },
+
+  getReferralByCode: (code: string): Referral | null => {
+    const referrals = dataManager.getReferrals();
+    return referrals.find(r => r.referralCode === code) || null;
+  },
+
+  getReferralByReferrerEmail: (email: string): Referral | null => {
+    const referrals = dataManager.getReferrals();
+    return referrals.find(r => r.referrerEmail === email) || null;
+  },
+
+  updateReferralStats: (referrerEmail: string, commissionAmount: number): void => {
+    const referrals = dataManager.getReferrals();
+    const index = referrals.findIndex(r => r.referrerEmail === referrerEmail);
+    if (index !== -1) {
+      referrals[index].totalReferrals += 1;
+      referrals[index].totalCommissions += commissionAmount;
+      referrals[index].updatedAt = new Date().toISOString();
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('wehosthere_referrals', JSON.stringify(referrals));
+
+        fetch(apiEndpoint('/api/referrals'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            action: 'update_stats', 
+            referrerEmail, 
+            totalReferrals: referrals[index].totalReferrals,
+            totalCommissions: referrals[index].totalCommissions
+          })
+        }).catch(err => console.error('Erro de sync de stats de referral:', err));
+      }
+    }
+  },
+
+  // Referral Commissions
+  getReferralCommissions: (): ReferralCommission[] => {
+    if (typeof window === 'undefined') return [];
+    const data = localStorage.getItem('wehosthere_referral_commissions');
+    return data ? JSON.parse(data) : [];
+  },
+
+  fetchReferralCommissionsAsync: async (): Promise<ReferralCommission[]> => {
+    try {
+      const res = await fetch(apiEndpoint('/api/referral-commissions'));
+      if (res.ok) {
+        const data = await res.json();
+        if (data.commissions && Array.isArray(data.commissions)) {
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('wehosthere_referral_commissions', JSON.stringify(data.commissions));
+          }
+          return data.commissions;
+        }
+      }
+    } catch (e) {
+      console.error('Falha ao buscar comissões de referral:', e);
+    }
+    return dataManager.getReferralCommissions();
+  },
+
+  createReferralCommission: (commissionData: Omit<ReferralCommission, 'id' | 'createdAt'>): ReferralCommission => {
+    const commissions = dataManager.getReferralCommissions();
+    const now = new Date().toISOString();
+    const newCommission: ReferralCommission = {
+      ...commissionData,
+      id: `RCM-${Math.floor(1000 + Math.random() * 9000)}`,
+      createdAt: now
+    };
+    commissions.unshift(newCommission);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('wehosthere_referral_commissions', JSON.stringify(commissions));
+
+      fetch(apiEndpoint('/api/referral-commissions'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'create', commission: newCommission })
+      }).catch(err => console.error('Erro de sync de comissão no servidor:', err));
+    }
+    return newCommission;
+  },
+
+  getReferralCommissionsByReferrer: (referrerEmail: string): ReferralCommission[] => {
+    return dataManager.getReferralCommissions().filter(c => c.referrerEmail === referrerEmail);
+  },
+
+  updateReferralCommissionStatus: (commissionId: string, status: 'pending' | 'paid' | 'cancelled', paymentDate?: string): void => {
+    const commissions = dataManager.getReferralCommissions();
+    const index = commissions.findIndex(c => c.id === commissionId);
+    if (index !== -1) {
+      commissions[index].status = status;
+      if (paymentDate) {
+        commissions[index].paymentDate = paymentDate;
+      }
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('wehosthere_referral_commissions', JSON.stringify(commissions));
+
+        fetch(apiEndpoint('/api/referral-commissions'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'update_status', commissionId, status, paymentDate })
+        }).catch(err => console.error('Erro de sync de status de comissão:', err));
+      }
+    }
   }
 };
 
