@@ -16,18 +16,10 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  // Carregar estado do colapso do localStorage
+  // Limpar localStorage antigo para garantir estado limpo
   useEffect(() => {
-    const saved = localStorage.getItem('dashboardSidebarCollapsed');
-    if (saved === 'true') {
-      setIsCollapsed(true);
-    }
+    localStorage.removeItem('dashboardSidebarCollapsed');
   }, []);
-
-  // Salvar estado do colapso no localStorage quando mudar
-  useEffect(() => {
-    localStorage.setItem('dashboardSidebarCollapsed', isCollapsed.toString());
-  }, [isCollapsed]);
 
   const navItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
