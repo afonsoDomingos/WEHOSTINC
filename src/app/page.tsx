@@ -10,6 +10,7 @@ import Navbar from '@/components/Navbar';
 
 import DomainSearch from '@/components/DomainSearch';
 import VirtualAssistant from '@/components/VirtualAssistant';
+import InteractiveSteps from '@/components/InteractiveSteps';
 
 export default function Home() {
   const [durationMonths, setDurationMonths] = useState<number>(1);
@@ -470,37 +471,7 @@ export default function Home() {
 
           {/* Como Funciona */}
           <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-xl border border-gray-200 mb-6 sm:mb-10">
-            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-4 sm:mb-6 text-center">Como Funciona</h3>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-6">
-              <div className="text-center">
-                <div className="w-10 h-10 sm:w-14 sm:h-14 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3">
-                  <span className="text-lg sm:text-2xl font-bold text-blue-600">1</span>
-                </div>
-                <p className="text-[10px] sm:text-xs font-semibold text-gray-900 mb-1">Escolha</p>
-                <p className="text-[9px] sm:text-[10px] text-gray-600">Selecione o sistema ideal</p>
-              </div>
-              <div className="text-center">
-                <div className="w-10 h-10 sm:w-14 sm:h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3">
-                  <span className="text-lg sm:text-2xl font-bold text-green-600">2</span>
-                </div>
-                <p className="text-[10px] sm:text-xs font-semibold text-gray-900 mb-1">Solicite</p>
-                <p className="text-[9px] sm:text-[10px] text-gray-600">Faça o pedido de aluguer</p>
-              </div>
-              <div className="text-center">
-                <div className="w-10 h-10 sm:w-14 sm:h-14 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3">
-                  <span className="text-lg sm:text-2xl font-bold text-yellow-600">3</span>
-                </div>
-                <p className="text-[10px] sm:text-xs font-semibold text-gray-900 mb-1">Aprovação</p>
-                <p className="text-[9px] sm:text-[10px] text-gray-600">Após pagamento, aprovamos</p>
-              </div>
-              <div className="text-center">
-                <div className="w-10 h-10 sm:w-14 sm:h-14 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3">
-                  <span className="text-lg sm:text-2xl font-bold text-purple-600">4</span>
-                </div>
-                <p className="text-[10px] sm:text-xs font-semibold text-gray-900 mb-1">Use</p>
-                <p className="text-[9px] sm:text-[10px] text-gray-600">Receba credenciais e use</p>
-              </div>
-            </div>
+            <InteractiveSteps />
           </div>
 
           {/* CTA */}

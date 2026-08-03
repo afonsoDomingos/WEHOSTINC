@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { ExternalLink, Play, Check, Star, ArrowRight, Search, Filter } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import PageLoader from '@/components/PageLoader';
+import InteractiveSteps from '@/components/InteractiveSteps';
 import { dataManager, SystemForRent } from '@/lib/data';
 import { auth } from '@/lib/auth';
 
@@ -143,30 +144,8 @@ export default function SystemsPage() {
       {/* Como Funciona */}
       <div id="como-funciona" className="py-12 sm:py-16 md:py-20 bg-white">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-          <div className="text-center mb-10 sm:mb-12">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">
-              Como Funciona
-            </h2>
-            <p className="text-gray-600 text-sm sm:text-base max-w-2xl mx-auto">
-              Em apenas 4 passos simples, você terá o sistema pronto para usar
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
-            {[
-              { step: '1', title: 'Escolha', desc: 'Selecione o sistema ideal' },
-              { step: '2', title: 'Solicite', desc: 'Faça o pedido de aluguer' },
-              { step: '3', title: 'Aprovação', desc: 'Após pagamento, aprovamos' },
-              { step: '4', title: 'Use', desc: 'Receba credenciais e use' }
-            ].map((item, index) => (
-              <div key={index} className="text-center">
-                <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-2 sm:mb-4 bg-gradient-to-br from-primary-500 to-purple-600 rounded-full flex items-center justify-center text-white text-lg sm:text-2xl sm:text-3xl font-bold shadow-lg">
-                  {item.step}
-                </div>
-                <h3 className="text-sm sm:text-lg sm:text-xl font-bold text-gray-900 mb-1 sm:mb-2">{item.title}</h3>
-                <p className="text-gray-600 text-[10px] sm:text-xs sm:text-sm">{item.desc}</p>
-              </div>
-            ))}
+          <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-xl border border-gray-200">
+            <InteractiveSteps />
           </div>
         </div>
       </div>
