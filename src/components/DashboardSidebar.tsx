@@ -1,10 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
   LayoutDashboard, Globe, Mail, Database, Settings as SettingsIcon, 
-  LifeBuoy, Sparkles, Link2, FileText, Star, ShoppingBag
+  LifeBuoy, Sparkles, Link2, FileText, Star, ChevronLeft, ChevronRight, Menu
 } from 'lucide-react';
 
 interface DashboardSidebarProps {
@@ -13,6 +14,7 @@ interface DashboardSidebarProps {
 
 export default function DashboardSidebar({ currentPath }: DashboardSidebarProps) {
   const pathname = usePathname();
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const navItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -29,7 +31,16 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
   ];
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+    <div className={`bg-white rounded-xl shadow-sm transition-all duration-300 sticky top-24 ${isCollapsed ? 'p-3' : 'p-4 sm:p-6'}`}>
+      {/* Toggle Button */}
+      <button
+        onClick={() => setIsCollapsed(!isCollapsed)}
+        className="w-full flex items-center justify-center mb-3 p-2 rounded-lg bg-gray-50 hover:bg-gray-100 transition text-gray-600"
+        title={isCollapsed ? 'Expandir menu' : 'Colapsar menu'}
+      >
+        {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+      </button>
+
       <nav className="space-y-1.5 sm:space-y-2">
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -48,8 +59,8 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
                     : 'text-gray-700 hover:bg-gray-50'
               }`}
             >
-              <Icon className={`h-4 w-4 sm:h-5 sm:w-5 ${isActive ? 'text-primary-600' : isSiteQuote ? 'text-amber-600' : 'text-gray-500'}`} />
-              <span>{item.label}</span>
+              <Icon className={`h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0 ${isActive ? 'text-primary-600' : isSiteQuote ? 'text-amber-600' : 'text-gray-500'}`} />
+              {!isCollapsed && <span>{item.label}</span>}
             </Link>
           );
         })}
