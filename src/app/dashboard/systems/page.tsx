@@ -254,13 +254,13 @@ export default function DashboardSystemsPage() {
                           </p>
                           <div className="bg-white rounded-lg p-2 sm:p-3 border border-green-200">
                             <p className="text-[9px] sm:text-[10px] md:text-xs text-gray-600 mb-1">
-                              <strong>URL:</strong> {access.accessUrl}
+                              <strong>URL:</strong> {access.credentials?.url || 'N/A'}
                             </p>
                             <p className="text-[9px] sm:text-[10px] md:text-xs text-gray-600 mb-1">
-                              <strong>Utilizador:</strong> {access.username}
+                              <strong>Utilizador:</strong> {access.credentials?.username || 'N/A'}
                             </p>
                             <p className="text-[9px] sm:text-[10px] md:text-xs text-gray-600">
-                              <strong>Senha:</strong> {access.password}
+                              <strong>Senha:</strong> {access.credentials?.password || 'N/A'}
                             </p>
                           </div>
                         </div>
