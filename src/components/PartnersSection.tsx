@@ -12,13 +12,20 @@ export default function PartnersSection() {
   useEffect(() => {
     const loadPartners = async () => {
       try {
+        // First try to load from localStorage directly
+        const localPartners = dataManager.getPartners();
+        console.log('Local partners from localStorage:', localPartners);
+        console.log('Local partners count:', localPartners.length);
+        
+        // Then try to sync with server
         await dataManager.fetchPartnersAsync();
         const activePartners = dataManager.getActivePartners();
-        console.log('Partners loaded:', activePartners);
+        console.log('Partners loaded after sync:', activePartners);
         console.log('Partners count:', activePartners.length);
         if (activePartners.length > 0) {
           console.log('First partner:', activePartners[0]);
           console.log('First partner logoUrl:', activePartners[0].logoUrl);
+          console.log('First partner active:', activePartners[0].active);
         }
         setPartners(activePartners);
       } catch (error) {
