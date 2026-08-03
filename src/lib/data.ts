@@ -140,6 +140,7 @@ export interface ReferralCommission {
   status: 'pending' | 'paid' | 'cancelled';
   paymentDate?: string;
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface Site {

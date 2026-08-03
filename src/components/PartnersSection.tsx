@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { dataManager, Partner } from '@/lib/data';
 
 export default function PartnersSection() {
@@ -49,17 +50,21 @@ export default function PartnersSection() {
                   rel="noopener noreferrer"
                   className="w-full h-20 sm:h-24 flex items-center justify-center"
                 >
-                  <img
+                  <Image
                     src={partner.logoUrl}
                     alt={partner.name}
+                    width={100}
+                    height={100}
                     className="max-h-full max-w-full object-contain opacity-70 group-hover:opacity-100 transition duration-300"
                   />
                 </a>
               ) : (
                 <div className="w-full h-20 sm:h-24 flex items-center justify-center">
-                  <img
+                  <Image
                     src={partner.logoUrl}
                     alt={partner.name}
+                    width={100}
+                    height={100}
                     className="max-h-full max-w-full object-contain opacity-70 group-hover:opacity-100 transition duration-300"
                   />
                 </div>
