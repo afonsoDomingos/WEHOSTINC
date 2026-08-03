@@ -900,6 +900,13 @@ export default function AdminPage() {
                 <Star className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500" />
                 <span className="hidden sm:inline">Sistemas</span>
               </Link>
+              <Link
+                href="/admin/partners"
+                className="flex items-center space-x-1.5 sm:space-x-2 text-gray-600 hover:text-primary-600 font-medium transition text-[10px] sm:text-xs sm:text-sm"
+              >
+                <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500" />
+                <span className="hidden sm:inline">Parceiros</span>
+              </Link>
               <button
                 onClick={handleLogout}
                 className="flex items-center space-x-1.5 sm:space-x-2 text-gray-600 hover:text-red-600 font-medium transition text-[10px] sm:text-xs sm:text-sm"

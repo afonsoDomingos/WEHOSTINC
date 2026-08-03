@@ -11,6 +11,7 @@ import Navbar from '@/components/Navbar';
 import DomainSearch from '@/components/DomainSearch';
 import VirtualAssistant from '@/components/VirtualAssistant';
 import InteractiveSteps from '@/components/InteractiveSteps';
+import PartnersSection from '@/components/PartnersSection';
 
 export default function Home() {
   const [durationMonths, setDurationMonths] = useState<number>(1);
@@ -92,6 +93,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Partners Section */}
+      <PartnersSection />
 
       {/* Features - Mobile First */}
       <section id="recursos" ref={featuresRef} className="anim-fade-up py-6 sm:py-14 px-3 sm:px-6 bg-white">

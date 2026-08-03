@@ -90,6 +90,17 @@ export interface SystemAccess {
   updatedAt: string;
 }
 
+export interface Partner {
+  id: string;
+  name: string;
+  logoUrl: string;
+  websiteUrl?: string;
+  order: number;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface SystemRating {
   id: string;
   systemId: string;
@@ -1738,6 +1749,103 @@ export const dataManager = {
     return newReferral;
   },
 
+  // Partners methods
+  getPartners: (): Partner[] => {
+    if (typeof window === 'undefined') return [];
+    const data = localStorage.getItem('wehosthere_partners');
+    return data ? JSON.parse(data) : [];
+  },
+
+  fetchPartnersAsync: async (): Promise<Partner[]> => {
+    try {
+      const res = await fetch(apiEndpoint('/api/partners'));
+      if (res.ok) {
+        const data = await res.json();
+        if (data.partners && Array.isArray(data.partners)) {
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('wehosthere_partners', JSON.stringify(data.partners));
+          }
+          return data.partners;
+        }
+      }
+    } catch (e) {
+      console.error('Falha ao buscar partners:', e);
+    }
+    return dataManager.getPartners();
+  },
+
+  createPartner: (name: string, logoUrl: string, websiteUrl?: string): Partner => {
+    const partners = dataManager.getPartners();
+    const now = new Date().toISOString();
+    const maxOrder = partners.length > 0 ? Math.max(...partners.map(p => p.order)) : 0;
+    const newPartner: Partner = {
+      id: `PART-${Math.floor(1000 + Math.random() * 9000)}`,
+      name,
+      logoUrl,
+      websiteUrl,
+      order: maxOrder + 1,
+      active: true,
+      createdAt: now,
+      updatedAt: now
+    };
+    partners.push(newPartner);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('wehosthere_partners', JSON.stringify(partners));
+      fetch(apiEndpoint('/api/partners'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'create', partner: newPartner })
+      }).catch(err => console.error('Erro de sync de partner no servidor:', err));
+    }
+    return newPartner;
+  },
+
+  updatePartner: (id: string, updates: Partial<Partner>): Partner | null => {
+    const partners = dataManager.getPartners();
+    const index = partners.findIndex(p => p.id === id);
+    if (index === -1) return null;
+    
+    partners[index] = {
+      ...partners[index],
+      ...updates,
+      updatedAt: new Date().toISOString()
+    };
+    
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('wehosthere_partners', JSON.stringify(partners));
+      fetch(apiEndpoint('/api/partners'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update', partner: partners[index] })
+      }).catch(err => console.error('Erro de sync de partner no servidor:', err));
+    }
+    return partners[index];
+  },
+
+  deletePartner: (id: string): boolean => {
+    const partners = dataManager.getPartners();
+    const index = partners.findIndex(p => p.id === id);
+    if (index === -1) return false;
+    
+    partners.splice(index, 1);
+    
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('wehosthere_partners', JSON.stringify(partners));
+      fetch(apiEndpoint('/api/partners'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete', partnerId: id })
+      }).catch(err => console.error('Erro de sync de partner no servidor:', err));
+    }
+    return true;
+  },
+
+  getActivePartners: (): Partner[] => {
+    return dataManager.getPartners()
+      .filter(p => p.active)
+      .sort((a, b) => a.order - b.order);
+  },
+
   getReferralByCode: (code: string): Referral | null => {
     const referrals = dataManager.getReferrals();
     return referrals.find(r => r.referralCode === code) || null;
@@ -1748,31 +1856,26 @@ export const dataManager = {
     return referrals.find(r => r.referrerEmail === email) || null;
   },
 
-  updateReferralStats: (referrerEmail: string, commissionAmount: number): void => {
+  updateReferralStats: (referralId: string, newReferralCount: number, newCommissionAmount: number): boolean => {
     const referrals = dataManager.getReferrals();
-    const index = referrals.findIndex(r => r.referrerEmail === referrerEmail);
-    if (index !== -1) {
-      referrals[index].totalReferrals += 1;
-      referrals[index].totalCommissions += commissionAmount;
-      referrals[index].updatedAt = new Date().toISOString();
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('wehosthere_referrals', JSON.stringify(referrals));
+    const index = referrals.findIndex(r => r.id === referralId);
+    if (index === -1) return false;
 
-        fetch(apiEndpoint('/api/referrals'), {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            action: 'update_stats', 
-            referrerEmail, 
-            totalReferrals: referrals[index].totalReferrals,
-            totalCommissions: referrals[index].totalCommissions
-          })
-        }).catch(err => console.error('Erro de sync de stats de referral:', err));
-      }
+    referrals[index].totalReferrals = newReferralCount;
+    referrals[index].totalCommissions = newCommissionAmount;
+    referrals[index].updatedAt = new Date().toISOString();
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('wehosthere_referrals', JSON.stringify(referrals));
+      fetch(apiEndpoint('/api/referrals'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update', referral: referrals[index] })
+      }).catch(err => console.error('Erro de sync de referral no servidor:', err));
     }
+    return true;
   },
 
-  // Referral Commissions
   getReferralCommissions: (): ReferralCommission[] => {
     if (typeof window === 'undefined') return [];
     const data = localStorage.getItem('wehosthere_referral_commissions');
@@ -1792,28 +1895,28 @@ export const dataManager = {
         }
       }
     } catch (e) {
-      console.error('Falha ao buscar comissões de referral:', e);
+      console.error('Falha ao buscar referral commissions:', e);
     }
     return dataManager.getReferralCommissions();
   },
 
-  createReferralCommission: (commissionData: Omit<ReferralCommission, 'id' | 'createdAt'>): ReferralCommission => {
+  createReferralCommission: (commission: Omit<ReferralCommission, 'id' | 'createdAt' | 'updatedAt'>): ReferralCommission => {
     const commissions = dataManager.getReferralCommissions();
     const now = new Date().toISOString();
     const newCommission: ReferralCommission = {
-      ...commissionData,
-      id: `RCM-${Math.floor(1000 + Math.random() * 9000)}`,
-      createdAt: now
+      ...commission,
+      id: `RCOM-${Math.floor(1000 + Math.random() * 9000)}`,
+      createdAt: now,
+      updatedAt: now
     };
     commissions.unshift(newCommission);
     if (typeof window !== 'undefined') {
       localStorage.setItem('wehosthere_referral_commissions', JSON.stringify(commissions));
-
       fetch(apiEndpoint('/api/referral-commissions'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'create', commission: newCommission })
-      }).catch(err => console.error('Erro de sync de comissão no servidor:', err));
+      }).catch(err => console.error('Erro de sync de commission no servidor:', err));
     }
     return newCommission;
   },
@@ -1822,24 +1925,23 @@ export const dataManager = {
     return dataManager.getReferralCommissions().filter(c => c.referrerEmail === referrerEmail);
   },
 
-  updateReferralCommissionStatus: (commissionId: string, status: 'pending' | 'paid' | 'cancelled', paymentDate?: string): void => {
+  updateReferralCommissionStatus: (commissionId: string, status: ReferralCommission['status']): boolean => {
     const commissions = dataManager.getReferralCommissions();
     const index = commissions.findIndex(c => c.id === commissionId);
-    if (index !== -1) {
-      commissions[index].status = status;
-      if (paymentDate) {
-        commissions[index].paymentDate = paymentDate;
-      }
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('wehosthere_referral_commissions', JSON.stringify(commissions));
+    if (index === -1) return false;
 
-        fetch(apiEndpoint('/api/referral-commissions'), {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'update_status', commissionId, status, paymentDate })
-        }).catch(err => console.error('Erro de sync de status de comissão:', err));
-      }
+    commissions[index].status = status;
+    commissions[index].updatedAt = new Date().toISOString();
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('wehosthere_referral_commissions', JSON.stringify(commissions));
+      fetch(apiEndpoint('/api/referral-commissions'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update', commission: commissions[index] })
+      }).catch(err => console.error('Erro de sync de commission no servidor:', err));
     }
+    return true;
   }
 };
 
