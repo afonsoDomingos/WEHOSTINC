@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { dictionaryPTtoEN, dictionaryENtoPT } from '@/lib/translations';
 
 export type Language = 'pt' | 'en';
 
@@ -72,35 +73,96 @@ const LanguageContext = createContext<LanguageContextType>({
 export const LanguageProvider = ({ children }: { children: React.ReactNode }) => {
   const [language, setLanguageState] = useState<Language>('pt');
 
+  // Função para varrer e traduzir nós de texto do DOM dinamicamente
+  const translateDOM = (toLang: Language) => {
+    if (typeof window === 'undefined') return;
+    const dict = toLang === 'en' ? dictionaryPTtoEN : dictionaryENtoPT;
+
+    const walk = (node: Node) => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        const val = node.nodeValue || '';
+        const trimmed = val.trim();
+        if (trimmed && dict[trimmed]) {
+          node.nodeValue = val.replace(trimmed, dict[trimmed]);
+        }
+      } else if (
+        node.nodeType === Node.ELEMENT_NODE &&
+        node.nodeName !== 'SCRIPT' &&
+        node.nodeName !== 'STYLE' &&
+        node.nodeName !== 'TEXTAREA' &&
+        node.nodeName !== 'INPUT'
+      ) {
+        const el = node as HTMLElement;
+        if (el.getAttribute('placeholder')) {
+          const ph = el.getAttribute('placeholder')?.trim();
+          if (ph && dict[ph]) el.setAttribute('placeholder', dict[ph]);
+        }
+        for (const child of Array.from(node.childNodes)) {
+          walk(child);
+        }
+      }
+    };
+
+    walk(document.body);
+  };
+
   useEffect(() => {
     const saved = localStorage.getItem('wehost_lang') as Language;
     if (saved === 'pt' || saved === 'en') {
       setLanguageState(saved);
       document.documentElement.lang = saved === 'pt' ? 'pt-MZ' : 'en';
+
+      if (saved === 'en') {
+        setTimeout(() => {
+          translateDOM('en');
+          loadGoogleTranslateScript('en');
+        }, 300);
+      }
     }
   }, []);
+
+  // Observer para manter elementos dinâmicos traduzidos
+  useEffect(() => {
+    if (language !== 'en' || typeof window === 'undefined') return;
+
+    const observer = new MutationObserver(() => {
+      translateDOM('en');
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      characterData: true
+    });
+
+    return () => observer.disconnect();
+  }, [language]);
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
     localStorage.setItem('wehost_lang', lang);
     document.documentElement.lang = lang === 'pt' ? 'pt-MZ' : 'en';
 
-    // Atualizar cookie de tradução automática
-    const targetLang = lang === 'pt' ? 'pt' : 'en';
+    // Se mudou para Português, recarrega a página de forma limpa para restaurar a interface original
+    if (lang === 'pt') {
+      document.cookie = `googtrans=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;`;
+      document.cookie = `googtrans=; path=/; domain=${window.location.hostname}; expires=Thu, 01 Jan 1970 00:00:00 UTC;`;
+      window.location.reload();
+      return;
+    }
+
+    // Se mudou para Inglês, aciona traduções e motor
+    translateDOM('en');
+    const targetLang = 'en';
     document.cookie = `googtrans=/pt/${targetLang}; path=/; domain=${window.location.hostname}`;
     document.cookie = `googtrans=/pt/${targetLang}; path=/;`;
 
-    // Se o elemento do Google Translate existir, acionar alteração
     const selectEl = document.querySelector('.goog-te-combo') as HTMLSelectElement | null;
     if (selectEl) {
       selectEl.value = targetLang;
       selectEl.dispatchEvent(new Event('change'));
-    } else if (lang === 'en') {
-      // Carregar elemento de suporte se necessário
-      loadGoogleTranslateScript(targetLang);
     } else {
-      // Recarregar se retornar para Português puro
-      window.dispatchEvent(new CustomEvent('languageChange', { detail: lang }));
+      loadGoogleTranslateScript(targetLang);
     }
   };
 
@@ -140,7 +202,6 @@ export const LanguageProvider = ({ children }: { children: React.ReactNode }) =>
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage, t }}>
-      {/* Div oculta necessária para o motor do Google Translate */}
       <div id="google-translate-element" style={{ display: 'none' }} />
       {children}
     </LanguageContext.Provider>

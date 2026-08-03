@@ -1,0 +1,102 @@
+export const dictionaryPTtoEN: Record<string, string> = {
+  // Menu & Nav
+  "Planos": "Plans",
+  "Planos de Hospedagem": "Hosting Plans",
+  "Criação de Sites": "Website Creation",
+  "Criação de Sites (a partir de 12.000 MT)": "Website Creation (from 12,000 MT)",
+  "Sistemas Prontos": "Ready Systems",
+  "Recursos": "Features",
+  "Contacto": "Contact",
+  "Login": "Login",
+  "Criar Conta": "Create Account",
+  "Meu Painel": "My Dashboard",
+  "Painel Admin": "Admin Panel",
+  "Painel de Administração": "Admin Panel",
+  "Sair": "Logout",
+  "Sair da Conta": "Logout Account",
+
+  // Hero Section
+  "Hospedagem de Sites & Email Profissional em Moçambique": "Web Hosting & Professional Email in Mozambique",
+  "Hospedagem de Sites & Email Profissional em": "Web Hosting & Professional Email in",
+  "Moçambique": "Mozambique",
+  "Infraestrutura Cloud de Alta Velocidade": "High-Speed Cloud Infrastructure",
+  "Servidores ultra-rápidos com armazenamento NVMe SSD, certificado SSL grátis e suporte local 24/7. Transfira ou registe o seu domínio hoje mesmo.": "Ultra-fast servers with NVMe SSD storage, free SSL certificate and 24/7 local support. Transfer or register your domain today.",
+  "Digite o nome do seu domínio (ex: minhaempresa.co.mz)...": "Enter your domain name (e.g. mycompany.co.mz)...",
+  "Pesquisar": "Search",
+  "Pesquisar Domínio": "Search Domain",
+  "Disponível!": "Available!",
+  "Indisponível": "Unavailable",
+  "Apenas Domínio": "Domain Only",
+  "Domínio + Hospedagem": "Domain + Hosting",
+  "Domínio + Criação de Site": "Domain + Website Creation",
+  "Garanta Agora": "Get It Now",
+  "Registrar": "Register",
+  "Registrar Este": "Register This",
+  "Outras extensões para": "Other extensions for",
+  "Sugestões Inteligentes de Nomes Alternativos": "Smart Alternative Name Suggestions",
+  "Variações de nomes comerciais com excelente memorização para": "Commercial name variations with great brand recall for",
+  "100% Disponíveis": "100% Available",
+
+  // Stepper / Stepping section
+  "Como Funciona em 4 Passos Simples": "How It Works in 4 Simple Steps",
+  "Processo rápido, transparente e 100% online": "Fast, transparent and 100% online process",
+  "1. Escolha o Plano": "1. Choose Plan",
+  "2. Solicite o Serviço": "2. Request Service",
+  "3. Aprovação Rápida": "3. Fast Approval",
+  "4. Comece a Usar": "4. Start Using",
+
+  // Pricing Plans
+  "Escolha o Plano Ideal para o Seu Negócio": "Choose the Ideal Plan for Your Business",
+  "Mensal": "Monthly",
+  "Anual": "Annual",
+  "Anual (2 Meses Grátis)": "Annual (2 Months Free)",
+  "Assinar Agora": "Subscribe Now",
+  "Mais Popular": "Most Popular",
+  "Recomendado": "Recommended",
+  "Sem fidelização • Cancele quando quiser": "No contract lock-in • Cancel anytime",
+  "Básico": "Basic",
+  "Profissional": "Professional",
+  "Empresarial": "Enterprise",
+
+  // Dashboard & Admin Titles
+  "Visão Geral": "Overview",
+  "Meus Servidores": "My Servers",
+  "Servidores Activos": "Active Servers",
+  "Faturamento": "Billing",
+  "Minhas Faturas": "My Invoices",
+  "Tickets de Suporte": "Support Tickets",
+  "Meus Domínios": "My Domains",
+  "Meus Emails": "My Emails",
+  "Configurações": "Settings",
+  "Usuários Cadastrados": "Registered Users",
+  "Gestão de Provas Sociais & Notificações ao Vivo (Toast)": "Social Proof & Live Toast Management",
+  "Central de Alertas Críticos & Auditoria de Segurança": "Critical Alerts & Security Audit Center",
+  "Adicionar Nova Notificação Manual de Venda / Registro": "Add New Manual Sales / Registration Notification",
+  "Nome do Cliente": "Client Name",
+  "Cidade / Localização": "City / Location",
+  "Ação / Produto": "Action / Product",
+  "Tempo Relativo": "Relative Time",
+  "Adicionar": "Add",
+  "Status": "Status",
+  "Cliente": "Client",
+  "Localização": "Location",
+  "Ação Exibida": "Displayed Action",
+  "Tempo": "Time",
+  "Ações": "Actions",
+  "Ativa": "Active",
+  "Pausada": "Paused",
+
+  // Common UI
+  "Todos os direitos reservados.": "All rights reserved.",
+  "Suporte Local 24/7": "24/7 Local Support",
+  "Pagamentos Seguros M-Pesa & eMola": "Secure M-Pesa & eMola Payments"
+};
+
+// Mapa inverso (EN -> PT) para restaurar texto se necessário
+export const dictionaryENtoPT: Record<string, string> = Object.entries(dictionaryPTtoEN).reduce(
+  (acc, [pt, en]) => {
+    acc[en] = pt;
+    return acc;
+  },
+  {} as Record<string, string>
+);
