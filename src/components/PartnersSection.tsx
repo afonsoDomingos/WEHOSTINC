@@ -11,9 +11,18 @@ export default function PartnersSection() {
 
   useEffect(() => {
     const loadPartners = async () => {
-      await dataManager.fetchPartnersAsync();
-      setPartners(dataManager.getActivePartners());
-      setLoading(false);
+      try {
+        await dataManager.fetchPartnersAsync();
+        const activePartners = dataManager.getActivePartners();
+        console.log('Partners loaded:', activePartners);
+        setPartners(activePartners);
+      } catch (error) {
+        console.error('Error loading partners:', error);
+        // Fallback to localStorage
+        setPartners(dataManager.getActivePartners());
+      } finally {
+        setLoading(false);
+      }
     };
     loadPartners();
   }, []);
@@ -84,23 +93,39 @@ export default function PartnersSection() {
                   rel="noopener noreferrer"
                   className="w-full h-20 sm:h-24 flex items-center justify-center"
                 >
-                  <Image
-                    src={partner.logoUrl}
-                    alt={partner.name}
-                    width={100}
-                    height={100}
-                    className="max-h-full max-w-full object-contain opacity-70 group-hover:opacity-100 transition duration-300"
-                  />
+                  {partner.logoUrl.startsWith('data:') ? (
+                    <img
+                      src={partner.logoUrl}
+                      alt={partner.name}
+                      className="max-h-full max-w-full object-contain opacity-70 group-hover:opacity-100 transition duration-300"
+                    />
+                  ) : (
+                    <Image
+                      src={partner.logoUrl}
+                      alt={partner.name}
+                      width={100}
+                      height={100}
+                      className="max-h-full max-w-full object-contain opacity-70 group-hover:opacity-100 transition duration-300"
+                    />
+                  )}
                 </a>
               ) : (
                 <div className="w-full h-20 sm:h-24 flex items-center justify-center">
-                  <Image
-                    src={partner.logoUrl}
-                    alt={partner.name}
-                    width={100}
-                    height={100}
-                    className="max-h-full max-w-full object-contain opacity-70 group-hover:opacity-100 transition duration-300"
-                  />
+                  {partner.logoUrl.startsWith('data:') ? (
+                    <img
+                      src={partner.logoUrl}
+                      alt={partner.name}
+                      className="max-h-full max-w-full object-contain opacity-70 group-hover:opacity-100 transition duration-300"
+                    />
+                  ) : (
+                    <Image
+                      src={partner.logoUrl}
+                      alt={partner.name}
+                      width={100}
+                      height={100}
+                      className="max-h-full max-w-full object-contain opacity-70 group-hover:opacity-100 transition duration-300"
+                    />
+                  )}
                 </div>
               )}
             </div>
