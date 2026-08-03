@@ -24,6 +24,22 @@ const priceRanges = [
   { id: 'orcamento', label: 'Sob orçamento', icon: '🔵', fn: (p: number) => p >= 100000 }
 ];
 
+const WhatsAppIcon = ({ className = "h-4 w-4" }: { className?: string }) => (
+  <svg className={className} fill="currentColor" viewBox="0 0 24 24">
+    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-1.147 4.193 4.29-1.124zm10.741-6.72c-.08-.133-.294-.213-.615-.374-.321-.16-1.898-.937-2.192-1.044-.294-.107-.508-.16-.723.16-.214.32-.828 1.044-1.015 1.258-.187.214-.374.241-.695.08-.321-.16-1.354-.499-2.58-1.593-.954-.852-1.598-1.905-1.785-2.226-.187-.321-.02-.495.14-.654.144-.143.321-.374.481-.561.16-.187.214-.321.321-.535.107-.214.053-.401-.027-.561-.08-.16-.723-1.74-1.006-2.404-.275-.646-.554-.558-.763-.569-.2-.01-.428-.01-.655-.01-.227 0-.596.085-.908.427-.312.341-1.194 1.167-1.194 2.847 0 1.68 1.222 3.303 1.393 3.533.171.229 2.405 3.673 5.828 5.15.814.351 1.45.561 1.946.719.817.26 1.561.223 2.148.136.655-.097 2.015-.824 2.298-1.62.283-.797.283-1.48.199-1.62z"/>
+  </svg>
+);
+
+const sendWhatsAppQuote = (type: WebsiteType, domain?: string | null) => {
+  const whatsappNumber = '258840000000';
+  const domainText = domain ? `\n🌐 *Domínio Desejado:* ${domain}` : '';
+  
+  const text = `Olá WEHOSTHERE! 👋\n\nGostaria de solicitar a cotação/desenvolvimento de um site:\n\n💻 *Projeto:* ${type.name}${domainText}\n💰 *Preço Estimado:* ${type.basePrice >= 100000 ? 'Sob orçamento' : `${type.basePrice.toLocaleString('pt-MZ')} MT`}\n⏱️ *Prazo Estimado:* ${type.deliveryDays} dias úteis\n📋 *Recursos Inclusos:*\n${type.examples.slice(0, 4).map(ex => ` • ${ex}`).join('\n')}\n\nPodem ajudar-me a dar início ao projeto?`;
+
+  const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(text)}`;
+  window.open(url, '_blank');
+};
+
 function SiteQuoteContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -254,14 +270,25 @@ function SiteQuoteContent() {
                     </div>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => handleProceed(type)}
-                    className="w-full py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-bold text-sm rounded-xl transition duration-200 flex items-center justify-center space-x-2 group-hover:scale-[1.02] active:scale-95"
-                  >
-                    <span>Solicitar Orçamento</span>
-                    <ArrowRight className="h-4 w-4" />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleProceed(type)}
+                      className="flex-1 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs sm:text-sm rounded-xl transition duration-200 flex items-center justify-center space-x-1.5 active:scale-95 shadow"
+                    >
+                      <span>Solicitar no Site</span>
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => sendWhatsAppQuote(type, domainParam)}
+                      className="py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm rounded-xl transition duration-200 flex items-center justify-center space-x-1.5 active:scale-95 shadow shrink-0"
+                      title="Enviar Cotação para WhatsApp"
+                    >
+                      <WhatsAppIcon className="h-4 w-4" />
+                      <span className="hidden xs:inline sm:inline">WhatsApp</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
