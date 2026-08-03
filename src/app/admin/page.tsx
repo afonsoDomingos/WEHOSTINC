@@ -553,13 +553,17 @@ export default function AdminPage() {
       systemId: request.systemId,
       systemName: request.systemName,
       clientEmail: request.clientEmail,
-      username,
-      password,
-      accessUrl,
+      clientName: request.clientName,
+      credentials: {
+        username,
+        password,
+        url: accessUrl
+      },
       status: 'active',
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
-      billingCycle: request.billingCycle
+      billingCycle: request.billingCycle,
+      updatedAt: new Date().toISOString()
     };
 
     dataManager.addSystemAccess(accessData);

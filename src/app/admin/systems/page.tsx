@@ -91,15 +91,17 @@ export default function AdminSystemsPage() {
         dataManager.fetchSystemsForRentAsync().then(s => setSystems(s)),
         dataManager.fetchRentalRequestsAsync().then(r => {
           const currentPendingCount = r.filter(req => req.status === 'pending').length;
-          if (currentPendingCount > previousPendingCount && previousPendingCount > 0) {
-            setShowNewRequestNotification(true);
-            setToastMsg({ 
-              title: 'Novo Pedido de Aluguer', 
-              message: `Há ${currentPendingCount} pedido(s) pendente(s) de aprovação.`, 
-              type: 'info' 
-            });
-          }
-          setPreviousPendingCount(currentPendingCount);
+          setPreviousPendingCount(prev => {
+            if (currentPendingCount > prev && prev > 0) {
+              setShowNewRequestNotification(true);
+              setToastMsg({ 
+                title: 'Novo Pedido de Aluguer', 
+                message: `Há ${currentPendingCount} pedido(s) pendente(s) de aprovação.`, 
+                type: 'info' 
+              });
+            }
+            return currentPendingCount;
+          });
           setRentalRequests(r);
         }),
         dataManager.fetchSystemAccessesAsync().then(a => setSystemAccesses(a))
