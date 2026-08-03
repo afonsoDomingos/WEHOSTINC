@@ -76,7 +76,8 @@ export const LanguageProvider = ({ children }: { children: React.ReactNode }) =>
   // Função otimizada para traduzir nós de texto do DOM - usa seletores CSS específicos
   const translateDOM = (toLang: Language) => {
     if (typeof window === 'undefined') return;
-    const dict = toLang === 'en' ? dictionaryPTtoEN : dictionaryENtoPT;
+    // Como só suportamos PT -> EN, usamos apenas o dicionário PTtoEN
+    const dict = dictionaryPTtoEN;
 
     // Traduz apenas elementos com texto direto, ignorando estrutura complexa
     const textElements = document.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, a, button, label, div[role="button"]');

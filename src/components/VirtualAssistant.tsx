@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { MessageCircle, X, ChevronRight, Phone, Search, Globe, Mail, Server, Layout, Loader2, CheckCircle, User, Crown, Star } from 'lucide-react';
+import Image from 'next/image';
 
 interface FAQItem {
   id: string;
@@ -272,9 +273,11 @@ export default function VirtualAssistant() {
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-1.5 sm:space-x-2">
                 <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-lg flex items-center justify-center overflow-hidden p-1 shadow-md">
-                  <img
+                  <Image
                     src="/logo.png"
                     alt="WEHOSTHERE"
+                    width={40}
+                    height={40}
                     className="w-full h-full object-contain"
                   />
                 </div>
