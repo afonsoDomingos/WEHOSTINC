@@ -50,7 +50,7 @@ export default function Navbar() {
               Planos
             </Link>
             <Link 
-              href="/site-quote" 
+              href="/#criacao-sites" 
               className="text-xs sm:text-sm font-semibold text-primary-600 hover:text-primary-700 bg-primary-50 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-primary-200/60 transition"
             >
               Criação de Sites (a partir de 12.000 MT)
@@ -158,7 +158,7 @@ export default function Navbar() {
               Planos de Hospedagem
             </Link>
             <Link
-              href="#criacao-sites"
+              href="/#criacao-sites"
               onClick={closeMobileMenu}
               className="px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-semibold text-primary-700 bg-primary-50/80 border border-primary-100 flex items-center justify-between transition"
             >
