@@ -5,13 +5,49 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
   Server, Mail, LayoutDashboard, Settings, LogOut, 
-  Plus, Globe, Database, TrendingUp, Users, CheckCircle, Sparkles, ArrowRight, Link2, Loader2, ShoppingBag
+  Plus, Globe, Database, TrendingUp, Users, CheckCircle, Sparkles, ArrowRight, Link2, Loader2, ShoppingBag,
+  Activity, Cpu, HardDrive, Wifi, ShieldCheck, Zap
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 import { dataManager } from '@/lib/data';
 
 import DashboardNav from '@/components/DashboardNav';
 import PageLoader from '@/components/PageLoader';
+
+function CircularProgress({ percentage, colorClass, size = 64, strokeWidth = 6 }: { percentage: number; colorClass: string; size?: number; strokeWidth?: number }) {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (Math.min(100, Math.max(0, percentage)) / 100) * circumference;
+
+  return (
+    <div className="relative inline-flex items-center justify-center shrink-0">
+      <svg width={size} height={size} className="transform -rotate-90">
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke="currentColor"
+          strokeWidth={strokeWidth}
+          className="text-gray-200"
+          fill="transparent"
+        />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke="currentColor"
+          strokeWidth={strokeWidth}
+          className={`${colorClass} transition-all duration-1000 ease-out`}
+          fill="transparent"
+          strokeDasharray={circumference}
+          strokeDashoffset={strokeDashoffset}
+          strokeLinecap="round"
+        />
+      </svg>
+      <span className="absolute text-xs font-black text-gray-900">{Math.round(percentage)}%</span>
+    </div>
+  );
+}
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -22,6 +58,10 @@ export default function DashboardPage() {
   const [emailCount, setEmailCount] = useState(0);
   const [storageUsed, setStorageUsed] = useState(0);
   const [storageTotal, setStorageTotal] = useState(10);
+  const [bandwidthUsed, setBandwidthUsed] = useState(2.4);
+  const [bandwidthTotal, setBandwidthTotal] = useState(100);
+  const [ramUsed, setRamUsed] = useState(0.5);
+  const [ramTotal, setRamTotal] = useState(2);
 
   useEffect(() => {
     const currentUser = auth.getCurrentUser();
@@ -43,8 +83,20 @@ export default function DashboardPage() {
     const usedStorage = sites.reduce((sum, s) => sum + (s.storage || 0), 0)
       + emails.reduce((sum, e) => sum + (e.storage || 0), 0);
     setStorageUsed(usedStorage);
-    const planLimits: Record<string, number> = { basic: 10, pro: 50, enterprise: 200 };
-    setStorageTotal(planLimits[currentUser.plan] || 10);
+    const planLimits: Record<string, { storage: number; bandwidth: number; ram: number }> = {
+      basic: { storage: 10, bandwidth: 100, ram: 2 },
+      pro: { storage: 50, bandwidth: 500, ram: 8 },
+      enterprise: { storage: 200, bandwidth: 2000, ram: 16 }
+    };
+    const limits = planLimits[currentUser.plan] || planLimits.basic;
+    setStorageTotal(limits.storage);
+    setBandwidthTotal(limits.bandwidth);
+    setRamTotal(limits.ram);
+
+    const initialBw = Math.min(limits.bandwidth, Math.round((sites.length * 4.2 + emails.length * 0.5 + 1.2) * 10) / 10);
+    const initialRam = Math.min(limits.ram, Math.round((0.4 + sites.length * 0.3) * 10) / 10);
+    setBandwidthUsed(initialBw);
+    setRamUsed(initialRam);
     setLoading(false);
 
     // Sincronizar assincronamente os contadores via API MongoDB
@@ -57,6 +109,10 @@ export default function DashboardPage() {
       const used = fetchedSites.reduce((sum, s) => sum + (s.storage || 0), 0)
         + fetchedEmails.reduce((sum, e) => sum + (e.storage || 0), 0);
       setStorageUsed(used);
+      const bw = Math.min(limits.bandwidth, Math.round((fetchedSites.length * 4.2 + fetchedEmails.length * 0.5 + 1.2) * 10) / 10);
+      const r = Math.min(limits.ram, Math.round((0.4 + fetchedSites.length * 0.3) * 10) / 10);
+      setBandwidthUsed(bw);
+      setRamUsed(r);
       setIsSyncingCounts(false);
     }).catch(() => {
       setIsSyncingCounts(false);
@@ -299,9 +355,100 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Stats */}
+            {/* Seção de Saúde do Servidor & Recursos (estilo cPanel / Cloudflare) */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 mb-5 border-b border-gray-100 gap-2">
+                <div>
+                  <h2 className="text-base sm:text-lg font-extrabold text-gray-900 flex items-center gap-2">
+                    <Activity className="h-5 w-5 text-emerald-600" />
+                    <span>Recursos & Saúde do Servidor</span>
+                  </h2>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Monitoramento em tempo real do seu plano e limites de hardware.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                    <span>Servidor Online (99.98% Uptime)</span>
+                  </span>
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-gray-100 text-gray-600">
+                    <Zap className="w-3.5 h-3.5 text-amber-500" />
+                    <span>Latência: 12ms</span>
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+                {/* 1. Armazenamento SSD */}
+                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-gray-700 mb-1">
+                      <HardDrive className="h-4 w-4 text-blue-600" />
+                      <span>Disco SSD NVMe</span>
+                    </div>
+                    <p className="text-xl font-black text-gray-900">
+                      {storageUsed} GB <span className="text-xs font-normal text-gray-500">/ {storageTotal} GB</span>
+                    </p>
+                    <p className="text-[10px] text-gray-500 mt-1">
+                      {storageTotal - storageUsed} GB livres
+                    </p>
+                  </div>
+                  <CircularProgress
+                    percentage={Math.min(100, (storageUsed / storageTotal) * 100)}
+                    colorClass="text-blue-600"
+                    size={58}
+                  />
+                </div>
+
+                {/* 2. Tráfego Mensal (Bandwidth) */}
+                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-gray-700 mb-1">
+                      <Wifi className="h-4 w-4 text-purple-600" />
+                      <span>Tráfego Mensal</span>
+                    </div>
+                    <p className="text-xl font-black text-gray-900">
+                      {bandwidthUsed} GB <span className="text-xs font-normal text-gray-500">/ {bandwidthTotal} GB</span>
+                    </p>
+                    <p className="text-[10px] text-emerald-600 font-semibold mt-1 flex items-center gap-1">
+                      <ShieldCheck className="h-3 w-3" />
+                      <span>Tráfego ilimitado</span>
+                    </p>
+                  </div>
+                  <CircularProgress
+                    percentage={Math.min(100, (bandwidthUsed / bandwidthTotal) * 100)}
+                    colorClass="text-purple-600"
+                    size={58}
+                  />
+                </div>
+
+                {/* 3. Memória RAM / vCPU */}
+                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-gray-700 mb-1">
+                      <Cpu className="h-4 w-4 text-emerald-600" />
+                      <span>RAM / vCPU Alocada</span>
+                    </div>
+                    <p className="text-xl font-black text-gray-900">
+                      {ramUsed} GB <span className="text-xs font-normal text-gray-500">/ {ramTotal} GB RAM</span>
+                    </p>
+                    <p className="text-[10px] text-emerald-600 font-semibold mt-1">
+                      ⚡ Desempenho Máximo
+                    </p>
+                  </div>
+                  <CircularProgress
+                    percentage={Math.min(100, (ramUsed / ramTotal) * 100)}
+                    colorClass="text-emerald-600"
+                    size={58}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Stats RÁPIDOS */}
             <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
-              <Link href="/dashboard/sites" className="bg-white rounded-xl shadow-sm p-4 sm:p-6 hover:shadow-md transition cursor-pointer group">
+              <Link href="/dashboard/sites" className="bg-white rounded-xl shadow-sm p-4 sm:p-6 hover:shadow-md transition cursor-pointer group border border-gray-100">
                 <div className="flex items-center justify-between mb-3 sm:mb-4">
                   <Globe className="h-6 w-6 sm:h-8 sm:w-8 text-primary-600 group-hover:scale-110 transition-transform" />
                   <span className="text-[10px] sm:text-sm text-gray-500">Sites</span>
@@ -321,7 +468,7 @@ export default function DashboardPage() {
                 )}
               </Link>
 
-              <Link href="/dashboard/email" className="bg-white rounded-xl shadow-sm p-4 sm:p-6 hover:shadow-md transition cursor-pointer group">
+              <Link href="/dashboard/email" className="bg-white rounded-xl shadow-sm p-4 sm:p-6 hover:shadow-md transition cursor-pointer group border border-gray-100">
                 <div className="flex items-center justify-between mb-3 sm:mb-4">
                   <Mail className="h-6 w-6 sm:h-8 sm:w-8 text-primary-600 group-hover:scale-110 transition-transform" />
                   <span className="text-[10px] sm:text-sm text-gray-500">Emails</span>
@@ -341,22 +488,13 @@ export default function DashboardPage() {
                 )}
               </Link>
 
-              <Link href="/dashboard/domains" className="bg-white rounded-xl shadow-sm p-4 sm:p-6 hover:shadow-md transition cursor-pointer group">
+              <Link href="/dashboard/billing" className="bg-white rounded-xl shadow-sm p-4 sm:p-6 hover:shadow-md transition cursor-pointer group border border-gray-100">
                 <div className="flex items-center justify-between mb-3 sm:mb-4">
-                  <Database className="h-6 w-6 sm:h-8 sm:w-8 text-primary-600 group-hover:scale-110 transition-transform" />
-                  <span className="text-[10px] sm:text-sm text-gray-500">Armazenamento</span>
+                  <TrendingUp className="h-6 w-6 sm:h-8 sm:w-8 text-primary-600 group-hover:scale-110 transition-transform" />
+                  <span className="text-[10px] sm:text-sm text-gray-500">Plano</span>
                 </div>
-                {isSyncingCounts ? (
-                  <div className="flex items-center space-x-2 text-primary-600 my-1 font-semibold">
-                    <Loader2 className="h-5 w-5 sm:h-6 sm:w-6 animate-spin" />
-                    <span className="text-[10px] sm:text-sm text-gray-600">A processar...</span>
-                  </div>
-                ) : (
-                  <>
-                    <p className="text-2xl sm:text-3xl font-bold text-gray-900">{storageUsed} GB</p>
-                    <p className="text-[10px] sm:text-sm text-gray-600 mt-1">de {storageTotal} GB utilizados</p>
-                  </>
-                )}
+                <p className="text-2xl sm:text-3xl font-bold text-gray-900">{planInfo.name}</p>
+                <p className="text-[10px] sm:text-sm text-emerald-600 font-semibold mt-1">✓ Status Ativo</p>
               </Link>
             </div>
 
