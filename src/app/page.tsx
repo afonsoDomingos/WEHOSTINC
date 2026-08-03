@@ -573,8 +573,12 @@ export default function Home() {
             <div>
               <h4 className="font-bold text-white mb-3 sm:mb-4 uppercase tracking-wider text-[10px] sm:text-xs">Legal & Garantias</h4>
               <ul className="space-y-1.5 sm:space-y-2 text-slate-400 text-[10px] sm:text-sm">
-                <li className="hover:text-primary-300 transition cursor-pointer hover:translate-x-1 hover:translate-y-[-2px] duration-300">Termos de Serviço</li>
-                <li className="hover:text-primary-300 transition cursor-pointer hover:translate-x-1 hover:translate-y-[-2px] duration-300">Política de Privacidade</li>
+                <li className="hover:text-primary-300 transition cursor-pointer hover:translate-x-1 hover:translate-y-[-2px] duration-300">
+                  <Link href="/terms" className="hover:text-primary-300">Termos de Serviço</Link>
+                </li>
+                <li className="hover:text-primary-300 transition cursor-pointer hover:translate-x-1 hover:translate-y-[-2px] duration-300">
+                  <Link href="/privacy" className="hover:text-primary-300">Política de Privacidade</Link>
+                </li>
                 <li className="hover:text-primary-300 transition cursor-pointer hover:translate-x-1 hover:translate-y-[-2px] duration-300">SLA 99.9% Uptime</li>
               </ul>
             </div>
