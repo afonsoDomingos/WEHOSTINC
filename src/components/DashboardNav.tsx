@@ -36,15 +36,18 @@ export default function DashboardNav({ userName, userAvatar, onLogout, onRefresh
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/dashboard/sites', label: 'Meus Domínios & Sites', icon: Globe },
     { href: '/dashboard/orders', label: 'Meus Pedidos', icon: FileText },
-    { href: '/systems', label: 'Alugar Sistemas', icon: Star },
-    { href: '/dashboard/systems', label: 'Meus Sistemas', icon: Star },
-    { href: '/dashboard/submit-system', label: 'Submeter Sistema', icon: Sparkles },
     { href: '/dashboard/site-quote', label: 'Solicitar Site', icon: Sparkles },
     { href: '/dashboard/domains', label: 'Comprar Domínio', icon: Link2 },
     { href: '/dashboard/email', label: 'Email', icon: Mail },
     { href: '/dashboard/billing', label: 'Faturamento', icon: Database },
     { href: '/dashboard/tickets', label: 'Suporte', icon: LifeBuoy },
     { href: '/dashboard/settings', label: 'Configurações', icon: SettingsIcon },
+  ];
+
+  const systemsSubItems = [
+    { href: '/systems', label: 'Alugar Sistemas', icon: Star },
+    { href: '/dashboard/systems', label: 'Meus Sistemas', icon: Star },
+    { href: '/dashboard/submit-system', label: 'Submeter Sistema', icon: Sparkles },
   ];
 
   const closeMobileMenu = () => setMobileMenuOpen(false);
@@ -168,6 +171,32 @@ export default function DashboardNav({ userName, userAvatar, onLogout, onRefresh
                   </Link>
                 );
               })}
+
+              {/* Sistemas Submenu */}
+              <div className="space-y-1">
+                <p className="px-2 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1 mt-2">
+                  Sistemas
+                </p>
+                {systemsSubItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = pathname === item.href;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={closeMobileMenu}
+                      className={`flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition ${
+                        isActive 
+                          ? 'bg-primary-600 text-white font-semibold shadow-sm' 
+                          : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                      }`}
+                    >
+                      <Icon className={`h-5 w-5 ${isActive ? 'text-white' : 'text-gray-500'}`} />
+                      <span>{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
             </nav>
           </div>
         )}
@@ -176,6 +205,24 @@ export default function DashboardNav({ userName, userAvatar, onLogout, onRefresh
         <div className="lg:hidden bg-gray-50 border-t border-gray-200 overflow-x-auto">
           <div className="flex items-center space-x-1.5 px-4 py-2 w-max min-w-full">
             {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center space-x-1.5 px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition flex-shrink-0 ${
+                    isActive
+                      ? 'bg-primary-600 text-white shadow-sm'
+                      : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200/80'
+                  }`}
+                >
+                  <Icon className={`h-3.5 w-3.5 ${isActive ? 'text-white' : 'text-gray-500'}`} />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+            {systemsSubItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
               return (
