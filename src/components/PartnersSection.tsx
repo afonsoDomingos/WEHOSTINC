@@ -16,6 +16,10 @@ export default function PartnersSection() {
         const activePartners = dataManager.getActivePartners();
         console.log('Partners loaded:', activePartners);
         console.log('Partners count:', activePartners.length);
+        if (activePartners.length > 0) {
+          console.log('First partner:', activePartners[0]);
+          console.log('First partner logoUrl:', activePartners[0].logoUrl);
+        }
         setPartners(activePartners);
       } catch (error) {
         console.error('Error loading partners:', error);
@@ -87,15 +91,30 @@ export default function PartnersSection() {
           {partners.map((partner) => (
             <div
               key={partner.id}
-              className="flex items-center justify-center p-4 sm:p-6 bg-gray-50 rounded-xl hover:bg-gray-100 transition group"
+              className="flex flex-col items-center justify-center p-4 sm:p-6 bg-gray-50 rounded-xl hover:bg-gray-100 transition group"
             >
-              {partner.websiteUrl ? (
-                <a
-                  href={partner.websiteUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full h-20 sm:h-24 flex items-center justify-center"
-                >
+              <div className="w-full h-20 sm:h-24 flex items-center justify-center bg-white rounded-lg overflow-hidden">
+                {partner.websiteUrl ? (
+                  <a
+                    href={partner.websiteUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full h-full flex items-center justify-center"
+                  >
+                    <img
+                      src={partner.logoUrl}
+                      alt={partner.name}
+                      className="max-h-full max-w-full object-contain opacity-70 group-hover:opacity-100 transition duration-300"
+                      onError={(e) => {
+                        console.error('Failed to load partner logo:', partner.name, partner.logoUrl);
+                        e.currentTarget.style.display = 'none';
+                      }}
+                      onLoad={() => {
+                        console.log('Partner logo loaded successfully:', partner.name);
+                      }}
+                    />
+                  </a>
+                ) : (
                   <img
                     src={partner.logoUrl}
                     alt={partner.name}
@@ -104,21 +123,13 @@ export default function PartnersSection() {
                       console.error('Failed to load partner logo:', partner.name, partner.logoUrl);
                       e.currentTarget.style.display = 'none';
                     }}
-                  />
-                </a>
-              ) : (
-                <div className="w-full h-20 sm:h-24 flex items-center justify-center">
-                  <img
-                    src={partner.logoUrl}
-                    alt={partner.name}
-                    className="max-h-full max-w-full object-contain opacity-70 group-hover:opacity-100 transition duration-300"
-                    onError={(e) => {
-                      console.error('Failed to load partner logo:', partner.name, partner.logoUrl);
-                      e.currentTarget.style.display = 'none';
+                    onLoad={() => {
+                      console.log('Partner logo loaded successfully:', partner.name);
                     }}
                   />
-                </div>
-              )}
+                )}
+              </div>
+              <p className="text-xs text-gray-600 mt-2 text-center truncate w-full">{partner.name}</p>
             </div>
           ))}
         </div>
