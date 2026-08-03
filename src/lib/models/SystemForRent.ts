@@ -13,6 +13,7 @@ const SystemForRentSchema = new mongoose.Schema({
   demoUrl: { type: String },
   image: { type: String },
   isActive: { type: Boolean, default: true },
+  isFree: { type: Boolean, default: false },
   approvalStatus: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
   developerEmail: { type: String },
   developerName: { type: String },

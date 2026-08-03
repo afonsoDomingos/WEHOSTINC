@@ -27,6 +27,7 @@ export default function SubmitSystemPage() {
   const [monthlyPrice, setMonthlyPrice] = useState('');
   const [yearlyPrice, setYearlyPrice] = useState('');
   const [setupFee, setSetupFee] = useState('');
+  const [isFree, setIsFree] = useState(false);
   const [features, setFeatures] = useState<string[]>([]);
   const [currentFeature, setCurrentFeature] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -88,11 +89,12 @@ export default function SubmitSystemPage() {
         category,
         demoUrl: demoUrl || undefined,
         features,
-        monthlyPrice: parseFloat(monthlyPrice) || 0,
-        yearlyPrice: parseFloat(yearlyPrice) || 0,
-        setupFee: setupFee ? parseFloat(setupFee) : undefined,
+        monthlyPrice: isFree ? 0 : (parseFloat(monthlyPrice) || 0),
+        yearlyPrice: isFree ? 0 : (parseFloat(yearlyPrice) || 0),
+        setupFee: (isFree || !setupFee) ? 0 : parseFloat(setupFee),
         image: imagePreview || '',
         isActive: false,
+        isFree: isFree || (parseFloat(monthlyPrice) === 0 && parseFloat(yearlyPrice) === 0),
         approvalStatus: 'pending',
         developerEmail: user.email,
         developerName: user.name
@@ -355,49 +357,86 @@ export default function SubmitSystemPage() {
 
                 {/* Preços */}
                 <div className="space-y-4">
-                  <h2 className="text-lg font-bold text-gray-900">Preços (MT)</h2>
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-lg font-bold text-gray-900">Preços & Modelo de Licença</h2>
+                  </div>
+
+                  {/* Toggle para Sistema Gratuito */}
+                  <div className="p-4 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl flex items-start space-x-3">
+                    <input
+                      type="checkbox"
+                      id="isFreeToggle"
+                      checked={isFree}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setIsFree(checked);
+                        if (checked) {
+                          setMonthlyPrice('0');
+                          setYearlyPrice('0');
+                          setSetupFee('0');
+                        }
+                      }}
+                      className="mt-0.5 h-5 w-5 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded cursor-pointer"
+                    />
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Preço Mensal *</label>
-                      <input
-                        type="number"
-                        value={monthlyPrice}
-                        onChange={(e) => setMonthlyPrice(e.target.value)}
-                        required
-                        min="0"
-                        step="100"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                        placeholder="0"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Preço Anual *</label>
-                      <input
-                        type="number"
-                        value={yearlyPrice}
-                        onChange={(e) => setYearlyPrice(e.target.value)}
-                        required
-                        min="0"
-                        step="100"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                        placeholder="0"
-                      />
+                      <label htmlFor="isFreeToggle" className="block text-sm font-bold text-emerald-900 cursor-pointer">
+                        Disponibilizar este sistema gratuitamente (100% Grátis)
+                      </label>
+                      <p className="text-xs text-emerald-700 mt-0.5">
+                        Marque esta opção para disponibilizar o sistema para a comunidade sem qualquer cobrança.
+                      </p>
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Taxa de Configuração (opcional)</label>
-                    <input
-                      type="number"
-                      value={setupFee}
-                      onChange={(e) => setSetupFee(e.target.value)}
-                      min="0"
-                      step="100"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                      placeholder="0"
-                    />
-                  </div>
+                  {!isFree ? (
+                    <>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Preço Mensal (MT) *</label>
+                          <input
+                            type="number"
+                            value={monthlyPrice}
+                            onChange={(e) => setMonthlyPrice(e.target.value)}
+                            required={!isFree}
+                            min="0"
+                            step="100"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                            placeholder="Ex: 2500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Preço Anual (MT) *</label>
+                          <input
+                            type="number"
+                            value={yearlyPrice}
+                            onChange={(e) => setYearlyPrice(e.target.value)}
+                            required={!isFree}
+                            min="0"
+                            step="100"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                            placeholder="Ex: 25000"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Taxa de Configuração (opcional)</label>
+                        <input
+                          type="number"
+                          value={setupFee}
+                          onChange={(e) => setSetupFee(e.target.value)}
+                          min="0"
+                          step="100"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                          placeholder="0"
+                        />
+                      </div>
+                    </>
+                  ) : (
+                    <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-600 font-medium text-center">
+                      Os valores de mensalidade, anuidade e taxa de instalação foram definidos como 0 MT (Gratuito).
+                    </div>
+                  )}
                 </div>
 
                 {/* Demo */}

@@ -753,15 +753,28 @@ export default function AdminSystemsPage() {
                   <div key={system.id} className="bg-whiterounded-xl shadow-sm border border-gray-200 p-4">
                     <div className="flex justify-between items-start mb-3">
                       <div className="flex-1">
-                        <h3 className="font-bold text-gray-900">{system.name}</h3>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <h3 className="font-bold text-gray-900">{system.name}</h3>
+                          {(system.isFree || system.monthlyPrice === 0) && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                              GRÁTIS
+                            </span>
+                          )}
+                        </div>
                         <p className="text-xs text-gray-500">{system.category}</p>
                       </div>
                       {getStatusBadge(system.approvalStatus)}
                     </div>
                     <p className="text-sm text-gray-600 mb-3 line-clamp-2">{system.shortDescription}</p>
                     <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
-                      <span>Mensal: {system.monthlyPrice.toLocaleString('pt-MZ')} MT</span>
-                      <span>Anual: {system.yearlyPrice.toLocaleString('pt-MZ')} MT</span>
+                      {(system.isFree || system.monthlyPrice === 0) ? (
+                        <span className="font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded">100% Gratuito</span>
+                      ) : (
+                        <>
+                          <span>Mensal: {system.monthlyPrice.toLocaleString('pt-MZ')} MT</span>
+                          <span>Anual: {system.yearlyPrice.toLocaleString('pt-MZ')} MT</span>
+                        </>
+                      )}
                     </div>
                     {system.developerName && (
                       <p className="text-xs text-gray-500 mb-3">Por: {system.developerName}</p>

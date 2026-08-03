@@ -67,8 +67,10 @@ export default function SystemsPage() {
     }
 
     // Filtro de preço
-    if (priceRange === 'low') {
-      filtered = filtered.filter(s => s.monthlyPrice < 5000);
+    if (priceRange === 'free') {
+      filtered = filtered.filter(s => s.isFree || s.monthlyPrice === 0);
+    } else if (priceRange === 'low') {
+      filtered = filtered.filter(s => s.monthlyPrice > 0 && s.monthlyPrice < 5000);
     } else if (priceRange === 'medium') {
       filtered = filtered.filter(s => s.monthlyPrice >= 5000 && s.monthlyPrice < 15000);
     } else if (priceRange === 'high') {
@@ -200,6 +202,7 @@ export default function SystemsPage() {
                   className="w-full px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 >
                   <option value="all">Todos os Preços</option>
+                  <option value="free">Gratuitos (Grátis)</option>
                   <option value="low">Até 5.000 MT/mês</option>
                   <option value="medium">5.000 - 15.000 MT/mês</option>
                   <option value="high">Acima de 15.000 MT/mês</option>
@@ -241,6 +244,11 @@ export default function SystemsPage() {
                       />
                     ) : (
                       <div className="text-6xl sm:text-7xl">🚀</div>
+                    )}
+                    {(system.isFree || system.monthlyPrice === 0) && (
+                      <div className="absolute top-3 left-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-extrabold text-xs px-3 py-1 rounded-full shadow-md uppercase tracking-wider flex items-center space-x-1">
+                        <span>GRÁTIS</span>
+                      </div>
                     )}
                     {system.demoUrl && (
                       <Link
@@ -295,34 +303,48 @@ export default function SystemsPage() {
                     </div>
 
                     {/* Preços */}
-                    <div className="mb-4 p-3 sm:p-4 bg-gray-50 rounded-xl">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-gray-600 text-xs sm:text-sm">Mensal</span>
-                        <span className="text-lg sm:text-xl font-bold text-gray-900">
-                          {system.monthlyPrice.toLocaleString('pt-MZ')} MT
-                        </span>
+                    {(system.isFree || system.monthlyPrice === 0) ? (
+                      <div className="mb-4 p-3 sm:p-4 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl flex items-center justify-between shadow-xs">
+                        <div className="flex items-center space-x-2">
+                          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-600 text-white font-bold text-xs">✓</span>
+                          <span className="text-emerald-950 font-bold text-sm sm:text-base">100% Gratuito</span>
+                        </div>
+                        <span className="text-[11px] font-bold text-emerald-800 bg-emerald-200/80 px-2.5 py-1 rounded-md">Sem Custos</span>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-600 text-xs sm:text-sm">Anual</span>
-                        <span className="text-lg sm:text-xl font-bold text-primary-600">
-                          {system.yearlyPrice.toLocaleString('pt-MZ')} MT
-                        </span>
-                      </div>
-                      {system.setupFee && (
-                        <div className="mt-2 pt-2 border-t border-gray-200">
-                          <span className="text-gray-500 text-[10px] sm:text-xs">
-                            Taxa de configuração: {system.setupFee.toLocaleString('pt-MZ')} MT
+                    ) : (
+                      <div className="mb-4 p-3 sm:p-4 bg-gray-50 rounded-xl">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-gray-600 text-xs sm:text-sm">Mensal</span>
+                          <span className="text-lg sm:text-xl font-bold text-gray-900">
+                            {system.monthlyPrice.toLocaleString('pt-MZ')} MT
                           </span>
                         </div>
-                      )}
-                    </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-gray-600 text-xs sm:text-sm">Anual</span>
+                          <span className="text-lg sm:text-xl font-bold text-primary-600">
+                            {system.yearlyPrice.toLocaleString('pt-MZ')} MT
+                          </span>
+                        </div>
+                        {system.setupFee ? (
+                          <div className="mt-2 pt-2 border-t border-gray-200">
+                            <span className="text-gray-500 text-[10px] sm:text-xs">
+                              Taxa de configuração: {system.setupFee.toLocaleString('pt-MZ')} MT
+                            </span>
+                          </div>
+                        ) : null}
+                      </div>
+                    )}
 
                     {/* Botão */}
                     <button
                       onClick={() => handleRentSystem(system.id)}
-                      className="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-2.5 sm:py-3 rounded-xl transition flex items-center justify-center space-x-2"
+                      className={`w-full font-bold py-2.5 sm:py-3 rounded-xl transition flex items-center justify-center space-x-2 ${
+                        (system.isFree || system.monthlyPrice === 0)
+                          ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20'
+                          : 'bg-primary-600 hover:bg-primary-700 text-white'
+                      }`}
                     >
-                      <span>Solicitar Aluguer</span>
+                      <span>{(system.isFree || system.monthlyPrice === 0) ? 'Obter Acesso Grátis' : 'Solicitar Aluguer'}</span>
                       <ArrowRight className="h-4 w-4" />
                     </button>
                   </div>

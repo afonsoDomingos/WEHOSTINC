@@ -40,6 +40,7 @@ export interface SystemForRent {
   yearlyPrice: number;
   setupFee?: number;
   isActive: boolean;
+  isFree?: boolean;
   approvalStatus: 'pending' | 'approved' | 'rejected';
   developerEmail?: string;
   developerName?: string;

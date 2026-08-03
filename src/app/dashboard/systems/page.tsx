@@ -84,8 +84,9 @@ export default function DashboardSystemsPage() {
     e.preventDefault();
     if (!selectedSystem || !user) return;
 
-    const amount = billingCycle === 'monthly' ? selectedSystem.monthlyPrice : selectedSystem.yearlyPrice;
-    const totalAmount = selectedSystem.setupFee ? amount + selectedSystem.setupFee : amount;
+    const isFree = selectedSystem.isFree || selectedSystem.monthlyPrice === 0;
+    const amount = isFree ? 0 : (billingCycle === 'monthly' ? selectedSystem.monthlyPrice : selectedSystem.yearlyPrice);
+    const totalAmount = (isFree || !selectedSystem.setupFee) ? amount : amount + selectedSystem.setupFee;
 
     const requestData: Omit<RentalRequest, 'id' | 'createdAt'> = {
       systemId: selectedSystem.id,
@@ -354,99 +355,130 @@ export default function DashboardSystemsPage() {
             </div>
 
             <form onSubmit={handleRentSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Ciclo de Pagamento</label>
-                <div className="grid grid-cols-2 gap-3">
+              {(selectedSystem.isFree || selectedSystem.monthlyPrice === 0) ? (
+                <div className="space-y-4">
+                  <div className="p-4 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl space-y-2">
+                    <div className="flex items-center space-x-2 text-emerald-950 font-bold">
+                      <CheckCircle className="h-5 w-5 text-emerald-600" />
+                      <span>Sistema 100% Gratuito</span>
+                    </div>
+                    <p className="text-xs text-emerald-800">
+                      Este sistema é disponibilizado sem qualquer taxa de mensalidade, anuidade ou taxa de instalação.
+                    </p>
+                  </div>
+
+                  <div className="bg-gray-50 rounded-lg p-3">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Total a pagar:</span>
+                      <span className="font-bold text-emerald-600">0 MT (Grátis)</span>
+                    </div>
+                  </div>
+
                   <button
-                    type="button"
-                    onClick={() => setBillingCycle('monthly')}
-                    className={`p-3 rounded-xl border-2 transition ${
-                      billingCycle === 'monthly'
-                        ? 'border-primary-500 bg-primary-50 text-primary-700'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
+                    type="submit"
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition flex items-center justify-center space-x-2 shadow-md shadow-emerald-600/20"
                   >
-                    <div className="text-lg font-bold">{selectedSystem.monthlyPrice.toLocaleString('pt-MZ')} MT</div>
-                    <div className="text-xs text-gray-600">Mensal</div>
+                    <span>Ativar Acesso Gratuito</span>
+                    <ArrowRight className="h-4 w-4" />
                   </button>
+                </div>
+              ) : (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Ciclo de Pagamento</label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setBillingCycle('monthly')}
+                        className={`p-3 rounded-xl border-2 transition ${
+                          billingCycle === 'monthly'
+                            ? 'border-primary-500 bg-primary-50 text-primary-700'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <div className="text-lg font-bold">{selectedSystem.monthlyPrice.toLocaleString('pt-MZ')} MT</div>
+                        <div className="text-xs text-gray-600">Mensal</div>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setBillingCycle('yearly')}
+                        className={`p-3 rounded-xl border-2 transition ${
+                          billingCycle === 'yearly'
+                            ? 'border-primary-500 bg-primary-50 text-primary-700'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <div className="text-lg font-bold">{selectedSystem.yearlyPrice.toLocaleString('pt-MZ')} MT</div>
+                        <div className="text-xs text-gray-600">Anual</div>
+                      </button>
+                    </div>
+                    {selectedSystem.setupFee ? (
+                      <p className="text-xs text-gray-500 mt-2">
+                        + Taxa de configuração: {selectedSystem.setupFee.toLocaleString('pt-MZ')} MT
+                      </p>
+                    ) : null}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Método de Pagamento</label>
+                    <select
+                      value={paymentMethod}
+                      onChange={(e) => setPaymentMethod(e.target.value as any)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    >
+                      <option value="mpesa">M-Pesa</option>
+                      <option value="emola">eMola</option>
+                      <option value="card">Cartão</option>
+                      <option value="bank_transfer">Transferência Bancária</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Comprovativo de Pagamento</label>
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-primary-500 transition cursor-pointer">
+                      <input
+                        type="file"
+                        onChange={(e) => setProofFile(e.target.files?.[0] || null)}
+                        className="hidden"
+                        id="proof-file"
+                      />
+                      <label htmlFor="proof-file" className="cursor-pointer">
+                        {proofFile ? (
+                          <div className="flex items-center justify-center space-x-2">
+                            <CheckCircle className="h-5 w-5 text-green-500" />
+                            <span className="text-sm text-gray-700">{proofFile.name}</span>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center">
+                            <Upload className="h-8 w-8 text-gray-400 mb-2" />
+                            <span className="text-sm text-gray-600">Clique para fazer upload</span>
+                          </div>
+                        )}
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-50 rounded-lg p-3">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Total a pagar:</span>
+                      <span className="font-bold text-gray-900">
+                        {(
+                          (billingCycle === 'monthly' ? selectedSystem.monthlyPrice : selectedSystem.yearlyPrice) +
+                          (selectedSystem.setupFee || 0)
+                        ).toLocaleString('pt-MZ')} MT
+                      </span>
+                    </div>
+                  </div>
+
                   <button
-                    type="button"
-                    onClick={() => setBillingCycle('yearly')}
-                    className={`p-3 rounded-xl border-2 transition ${
-                      billingCycle === 'yearly'
-                        ? 'border-primary-500 bg-primary-50 text-primary-700'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
+                    type="submit"
+                    className="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-3 rounded-xl transition flex items-center justify-center space-x-2"
                   >
-                    <div className="text-lg font-bold">{selectedSystem.yearlyPrice.toLocaleString('pt-MZ')} MT</div>
-                    <div className="text-xs text-gray-600">Anual</div>
+                    <span>Confirmar Solicitação</span>
+                    <ArrowRight className="h-4 w-4" />
                   </button>
-                </div>
-                {selectedSystem.setupFee && (
-                  <p className="text-xs text-gray-500 mt-2">
-                    + Taxa de configuração: {selectedSystem.setupFee.toLocaleString('pt-MZ')} MT
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Método de Pagamento</label>
-                <select
-                  value={paymentMethod}
-                  onChange={(e) => setPaymentMethod(e.target.value as any)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                >
-                  <option value="mpesa">M-Pesa</option>
-                  <option value="emola">eMola</option>
-                  <option value="card">Cartão</option>
-                  <option value="bank_transfer">Transferência Bancária</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Comprovativo de Pagamento</label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-primary-500 transition cursor-pointer">
-                  <input
-                    type="file"
-                    onChange={(e) => setProofFile(e.target.files?.[0] || null)}
-                    className="hidden"
-                    id="proof-file"
-                  />
-                  <label htmlFor="proof-file" className="cursor-pointer">
-                    {proofFile ? (
-                      <div className="flex items-center justify-center space-x-2">
-                        <CheckCircle className="h-5 w-5 text-green-500" />
-                        <span className="text-sm text-gray-700">{proofFile.name}</span>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col items-center">
-                        <Upload className="h-8 w-8 text-gray-400 mb-2" />
-                        <span className="text-sm text-gray-600">Clique para fazer upload</span>
-                      </div>
-                    )}
-                  </label>
-                </div>
-              </div>
-
-              <div className="bg-gray-50 rounded-lg p-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Total a pagar:</span>
-                  <span className="font-bold text-gray-900">
-                    {(
-                      (billingCycle === 'monthly' ? selectedSystem.monthlyPrice : selectedSystem.yearlyPrice) +
-                      (selectedSystem.setupFee || 0)
-                    ).toLocaleString('pt-MZ')} MT
-                  </span>
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                className="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-3 rounded-xl transition flex items-center justify-center space-x-2"
-              >
-                <span>Confirmar Solicitação</span>
-                <ArrowRight className="h-4 w-4" />
-              </button>
+                </>
+              )}
             </form>
           </div>
         </div>
