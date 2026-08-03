@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import SystemForRentModel from '@/lib/models/SystemForRent';
 
-export const DEFAULT_SYSTEMS_DATA = [
+const DEFAULT_SYSTEMS_DATA = [
   {
     id: 'SYS-1001',
     name: 'Sistema de Gestão Financeira',
