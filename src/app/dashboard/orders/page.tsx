@@ -133,7 +133,7 @@ export default function OrdersPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header Responsivo */}
-      <DashboardNav userName={user.name} onLogout={handleLogout} />
+      <DashboardNav userName={user.name} userAvatar={user.avatar} onLogout={handleLogout} />
 
       <div className="w-full px-2 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 md:py-6">
         <div className="grid lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 w-full">
