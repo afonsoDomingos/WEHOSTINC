@@ -491,6 +491,9 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Partners Section */}
+      <PartnersSection />
+
       {/* Footer com Fundo do Datacenter em Alta Tecnologia - Mobile First */}
       <footer id="contacto" className="relative bg-slate-950 text-white py-10 sm:py-16 px-3 sm:px-4 overflow-hidden border-t border-slate-800">
         {/* Imagem de Fundo Datacenter 100% Visível em Cores Reais */}
@@ -585,9 +588,6 @@ export default function Home() {
           </div>
         </div>
       </footer>
-
-      {/* Partners Section */}
-      <PartnersSection />
 
       {/* Virtual Assistant */}
       <VirtualAssistant />
