@@ -465,11 +465,74 @@ export default function DomainSearch() {
             </div>
           )}
 
-          {/* Alternativas sugeridas */}
+          {/* Sugestões Inteligentes de Nomes Alternativos (Gerador IA) */}
+          {result.smartSuggestions && result.smartSuggestions.length > 0 && (
+            <div className="mt-5 sm:mt-7 pt-4 sm:pt-5 border-t border-purple-100 bg-gradient-to-br from-purple-50/60 via-indigo-50/40 to-blue-50/30 p-3.5 sm:p-5 rounded-2xl border border-purple-200/80 shadow-sm">
+              <div className="flex items-center justify-between mb-2 sm:mb-3">
+                <div className="flex items-center space-x-2">
+                  <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
+                  <h4 className="text-xs sm:text-sm font-extrabold text-purple-950">
+                    Sugestões Inteligentes de Nomes Alternativos
+                  </h4>
+                </div>
+                <span className="text-[10px] bg-purple-200 text-purple-900 font-extrabold px-2.5 py-0.5 rounded-full">
+                  100% Disponíveis
+                </span>
+              </div>
+              <p className="text-[10px] sm:text-xs text-purple-800 mb-3">
+                Variações de nomes comerciais com excelente memorização para <strong>{result.sld}</strong>:
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-3">
+                {result.smartSuggestions.map((sug) => (
+                  <div
+                    key={sug.fullDomain}
+                    className="p-3 bg-white rounded-xl border border-purple-200/90 shadow-sm hover:shadow-md hover:border-purple-400 transition flex flex-col justify-between group"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 border border-purple-200">
+                          {sug.badge}
+                        </span>
+                        <span className="text-xs font-black text-emerald-600">
+                          {sug.price.toLocaleString('pt-MZ')} MT
+                        </span>
+                      </div>
+                      <span className="font-extrabold text-gray-900 text-xs sm:text-sm block group-hover:text-purple-700 transition-colors">
+                        {sug.fullDomain}
+                      </span>
+                      <p className="text-[10px] text-gray-500 mt-1 line-clamp-1">{sug.reason}</p>
+                    </div>
+
+                    <div className="mt-3 pt-2 border-t border-gray-100 flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => handleRegisterOnly(sug.fullDomain, sug.price)}
+                        className="flex-1 py-1.5 px-2 bg-purple-600 hover:bg-purple-700 text-white font-bold text-[10px] sm:text-xs rounded-lg transition shadow-xs flex items-center justify-center space-x-1 cursor-pointer active:scale-95"
+                      >
+                        <span>Registrar Este</span>
+                        <ArrowRight className="h-3 w-3" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleRegisterWithWebsite(sug.fullDomain, sug.price)}
+                        className="py-1.5 px-2 bg-purple-100 hover:bg-purple-200 text-purple-800 font-bold text-[10px] rounded-lg transition cursor-pointer"
+                        title="Registrar com Criação de Site"
+                      >
+                        + Site
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Alternativas de Extensões */}
           {result.alternatives.length > 0 && (
             <div className="mt-4 sm:mt-6 pt-4 sm:pt-5 border-t border-gray-100">
               <h4 className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 sm:mb-3">
-                Outras extensões disponíveis para {result.sld}:
+                Outras extensões para {result.sld}:
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3">
                 {result.alternatives.map((alt) => (

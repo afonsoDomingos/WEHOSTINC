@@ -50,6 +50,16 @@ export function getDomainPrice(extension: string): number {
 /**
  * Simulação de verificação de disponibilidade de domínio.
  */
+export interface DomainSuggestion {
+  fullDomain: string;
+  sld: string;
+  extension: string;
+  price: number;
+  badge?: string;
+  reason?: string;
+  isAvailable: boolean;
+}
+
 export interface DomainCheckResult {
   fullDomain: string;
   sld: string;
@@ -58,6 +68,57 @@ export interface DomainCheckResult {
   price: number;
   searchCount?: number;
   alternatives: { extension: string; fullDomain: string; price: number; isAvailable: boolean }[];
+  smartSuggestions?: DomainSuggestion[];
+}
+
+export function generateSmartDomainSuggestions(cleanSld: string, currentExt: string): DomainSuggestion[] {
+  return [
+    {
+      fullDomain: `${cleanSld}-oficial${currentExt}`,
+      sld: `${cleanSld}-oficial`,
+      extension: currentExt,
+      price: getDomainPrice(currentExt),
+      badge: '🏆 Oficial',
+      reason: 'Marca autêntica e confiável',
+      isAvailable: true
+    },
+    {
+      fullDomain: `${cleanSld}moz${currentExt}`,
+      sld: `${cleanSld}moz`,
+      extension: currentExt,
+      price: getDomainPrice(currentExt),
+      badge: '🇲🇿 Moçambique',
+      reason: 'Fácil de memorizar localmente',
+      isAvailable: true
+    },
+    {
+      fullDomain: `${cleanSld}-online${currentExt}`,
+      sld: `${cleanSld}-online`,
+      extension: currentExt,
+      price: getDomainPrice(currentExt),
+      badge: '⚡ Web Directo',
+      reason: 'Ótimo para e-commerce e serviços',
+      isAvailable: true
+    },
+    {
+      fullDomain: `${cleanSld}-grupo${currentExt}`,
+      sld: `${cleanSld}-grupo`,
+      extension: currentExt,
+      price: getDomainPrice(currentExt),
+      badge: '💼 Corporativo',
+      reason: 'Ideal para empresas e grupos',
+      isAvailable: true
+    },
+    {
+      fullDomain: `use${cleanSld}${currentExt}`,
+      sld: `use${cleanSld}`,
+      extension: currentExt,
+      price: getDomainPrice(currentExt),
+      badge: '🚀 Startup Tech',
+      reason: 'Formato moderno e inovador',
+      isAvailable: true
+    }
+  ];
 }
 
 export function checkDomainAvailability(rawInput: string): DomainCheckResult {
@@ -82,6 +143,7 @@ export function checkDomainAvailability(rawInput: string): DomainCheckResult {
       isAvailable: !reserved.includes(cleanSld),
     }));
 
+  const smartSuggestions = generateSmartDomainSuggestions(cleanSld, extension);
   const searchCount = addDomainSearchLog(fullDomain, extension, isAvailable);
 
   return {
@@ -92,6 +154,7 @@ export function checkDomainAvailability(rawInput: string): DomainCheckResult {
     price: mainPrice,
     searchCount,
     alternatives,
+    smartSuggestions,
   };
 }
 

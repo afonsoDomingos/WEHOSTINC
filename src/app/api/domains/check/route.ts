@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dns from 'dns/promises';
-import { DOMAIN_PRICES, sanitizeDomainName, getDomainPrice } from '@/lib/domains';
+import { DOMAIN_PRICES, sanitizeDomainName, getDomainPrice, generateSmartDomainSuggestions } from '@/lib/domains';
 
 /**
  * Verifica se um domínio possui registros DNS ativos na internet.
@@ -109,6 +109,8 @@ export async function GET(req: NextRequest) {
     })
   );
 
+  const smartSuggestions = generateSmartDomainSuggestions(cleanSld, extension);
+
   return NextResponse.json({
     fullDomain,
     sld: cleanSld,
@@ -116,5 +118,6 @@ export async function GET(req: NextRequest) {
     isAvailable,
     price,
     alternatives,
+    smartSuggestions,
   });
 }
