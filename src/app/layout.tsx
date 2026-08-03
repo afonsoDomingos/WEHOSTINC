@@ -96,29 +96,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-MZ">
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              // Capturar erros de scripts externos que não afetam a aplicação
-              window.addEventListener('error', function(e) {
-                // Ignorar erros de scripts externos desconhecidos
-                if (e.filename && e.filename.includes('share-modal')) {
-                  e.preventDefault();
-                  console.warn('Ignorado erro de script externo:', e.message);
-                  return false;
-                }
-              }, true);
-              
-              // Capturar erros de promessas não tratadas
-              window.addEventListener('unhandledrejection', function(e) {
-                console.warn('Promessa não tratada:', e.reason);
-                e.preventDefault();
-              });
-            `,
-          }}
-        />
-      </head>
       <body className={poppins.className}>
         <LanguageProvider>
           {children}

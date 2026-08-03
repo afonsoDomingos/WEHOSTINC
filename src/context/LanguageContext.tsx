@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { dictionaryPTtoEN, dictionaryENtoPT } from '@/lib/translations';
+import { dictionaryPTtoEN } from '@/lib/translations';
 
 export type Language = 'pt' | 'en';
 
@@ -73,37 +73,35 @@ const LanguageContext = createContext<LanguageContextType>({
 export const LanguageProvider = ({ children }: { children: React.ReactNode }) => {
   const [language, setLanguageState] = useState<Language>('pt');
 
-  // Função para varrer e traduzir nós de texto do DOM dinamicamente
+  // Função otimizada para traduzir nós de texto do DOM - usa seletores CSS específicos
   const translateDOM = (toLang: Language) => {
     if (typeof window === 'undefined') return;
     const dict = toLang === 'en' ? dictionaryPTtoEN : dictionaryENtoPT;
 
-    const walk = (node: Node) => {
-      if (node.nodeType === Node.TEXT_NODE) {
-        const val = node.nodeValue || '';
-        const trimmed = val.trim();
-        if (trimmed && dict[trimmed]) {
-          node.nodeValue = val.replace(trimmed, dict[trimmed]);
-        }
-      } else if (
-        node.nodeType === Node.ELEMENT_NODE &&
-        node.nodeName !== 'SCRIPT' &&
-        node.nodeName !== 'STYLE' &&
-        node.nodeName !== 'TEXTAREA' &&
-        node.nodeName !== 'INPUT'
-      ) {
-        const el = node as HTMLElement;
-        if (el.getAttribute('placeholder')) {
-          const ph = el.getAttribute('placeholder')?.trim();
-          if (ph && dict[ph]) el.setAttribute('placeholder', dict[ph]);
-        }
-        for (const child of Array.from(node.childNodes)) {
-          walk(child);
-        }
+    // Traduz apenas elementos com texto direto, ignorando estrutura complexa
+    const textElements = document.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, a, button, label, div[role="button"]');
+    
+    textElements.forEach(el => {
+      // Ignorar elementos que já foram traduzidos ou têm filhos complexos
+      if (el.getAttribute('data-translated') === toLang) return;
+      if (el.children.length > 0 && !el.hasAttribute('data-translate-children')) return;
+      
+      const text = el.textContent?.trim();
+      if (text && dict[text]) {
+        el.textContent = dict[text];
+        el.setAttribute('data-translated', toLang);
       }
-    };
+    });
 
-    walk(document.body);
+    // Traduz placeholders de inputs de forma mais eficiente
+    const inputs = document.querySelectorAll('input[placeholder], textarea[placeholder]');
+    inputs.forEach(input => {
+      const ph = input.getAttribute('placeholder')?.trim();
+      if (ph && dict[ph]) {
+        input.setAttribute('placeholder', dict[ph]);
+        input.setAttribute('data-translated', toLang);
+      }
+    });
   };
 
   useEffect(() => {
@@ -115,86 +113,50 @@ export const LanguageProvider = ({ children }: { children: React.ReactNode }) =>
       if (saved === 'en') {
         setTimeout(() => {
           translateDOM('en');
-          loadGoogleTranslateScript('en');
         }, 300);
       }
     }
   }, []);
 
-  // Observer para manter elementos dinâmicos traduzidos
-  useEffect(() => {
-    if (language !== 'en' || typeof window === 'undefined') return;
+  // Observer para manter elementos dinâmicos traduzidos - DESATIVADO por performance
+  // Este MutationObserver estava causando lentidão massiva ao retraduzir todo o DOM
+  // em cada mudança mínima. Sistema simplificado agora traduz apenas na mudança de idioma.
+  // useEffect(() => {
+  //   if (language !== 'en' || typeof window === 'undefined') return;
 
-    const observer = new MutationObserver(() => {
-      translateDOM('en');
-    });
+  //   const observer = new MutationObserver(() => {
+  //     translateDOM('en');
+  //   });
 
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-      characterData: true
-    });
+  //   observer.observe(document.body, {
+  //     childList: true,
+  //     subtree: true,
+  //     characterData: true
+  //   });
 
-    return () => observer.disconnect();
-  }, [language]);
+  //   return () => observer.disconnect();
+  // }, [language]);
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
     localStorage.setItem('wehost_lang', lang);
     document.documentElement.lang = lang === 'pt' ? 'pt-MZ' : 'en';
 
-    // Se mudou para Português, recarrega a página de forma limpa para restaurar a interface original
+    // Se mudou para Português, remove cookies e traduz de volta
     if (lang === 'pt') {
       document.cookie = `googtrans=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;`;
       document.cookie = `googtrans=; path=/; domain=${window.location.hostname}; expires=Thu, 01 Jan 1970 00:00:00 UTC;`;
+      // Recarregar página para limpar traduções do DOM
       window.location.reload();
       return;
     }
 
-    // Se mudou para Inglês, aciona traduções e motor
+    // Se mudou para Inglês, usa apenas tradução via dicionário local (muito mais rápido)
     translateDOM('en');
-    const targetLang = 'en';
-    document.cookie = `googtrans=/pt/${targetLang}; path=/; domain=${window.location.hostname}`;
-    document.cookie = `googtrans=/pt/${targetLang}; path=/;`;
-
-    const selectEl = document.querySelector('.goog-te-combo') as HTMLSelectElement | null;
-    if (selectEl) {
-      selectEl.value = targetLang;
-      selectEl.dispatchEvent(new Event('change'));
-    } else {
-      loadGoogleTranslateScript(targetLang);
-    }
   };
 
-  const loadGoogleTranslateScript = (targetLang: string) => {
-    if (document.getElementById('google-translate-script')) {
-      const selectEl = document.querySelector('.goog-te-combo') as HTMLSelectElement | null;
-      if (selectEl) {
-        selectEl.value = targetLang;
-        selectEl.dispatchEvent(new Event('change'));
-      }
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.id = 'google-translate-script';
-    script.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
-    document.body.appendChild(script);
-
-    (window as any).googleTranslateElementInit = () => {
-      new (window as any).google.translate.TranslateElement(
-        { pageLanguage: 'pt', includedLanguages: 'en,pt', autoDisplay: false },
-        'google_translate_element'
-      );
-      setTimeout(() => {
-        const selectEl = document.querySelector('.goog-te-combo') as HTMLSelectElement | null;
-        if (selectEl) {
-          selectEl.value = targetLang;
-          selectEl.dispatchEvent(new Event('change'));
-        }
-      }, 500);
-    };
-  };
+  // Função loadGoogleTranslateScript removida - usando apenas tradução local por performance
+  // O Google Translate era muito pesado e causava lentidão
 
   const t = (key: string): string => {
     return translations[language]?.[key] || translations['pt']?.[key] || key;
@@ -202,7 +164,6 @@ export const LanguageProvider = ({ children }: { children: React.ReactNode }) =>
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage, t }}>
-      <div id="google-translate-element" style={{ display: 'none' }} />
       {children}
     </LanguageContext.Provider>
   );

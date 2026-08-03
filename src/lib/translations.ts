@@ -89,14 +89,20 @@ export const dictionaryPTtoEN: Record<string, string> = {
   // Common UI
   "Todos os direitos reservados.": "All rights reserved.",
   "Suporte Local 24/7": "24/7 Local Support",
-  "Pagamentos Seguros M-Pesa & eMola": "Secure M-Pesa & eMola Payments"
+  "Pagamentos Seguros M-Pesa & eMola": "Secure M-Pesa & eMola Payments",
+  
+  // Additional common terms
+  "Domínio, Hospedagem, Email": "Domain, Hosting, Email",
+  "e Site": "and Website",
+  "Tudo o que a sua empresa precisa para ter uma presença online de alta performance em Moçambique com servidores ultrarrápidos e seguros.": "Everything your business needs for a high-performance online presence in Mozambique with ultra-fast and secure servers.",
+  "Por que escolher a WEHOSTHERE?": "Why choose WEHOSTHERE?",
+  "Ultra Rápido": "Ultra Fast",
+  "Servidores de máxima performance": "Maximum performance servers",
+  "100% Seguro": "100% Secure",
+  "Backup diário & proteção total": "Daily backup & total protection",
+  "Suporte 24/7": "24/7 Support",
+  "Equipa técnica sempre disponível": "Technical team always available",
+  "Domínio, Hospedagem, Email e Site": "Domain, Hosting, Email and Website",
+  "Infraestrutura Datacenter de Última Geração": "Latest Generation Datacenter Infrastructure",
+  "Datacenter de Alta Performance": "High Performance Datacenter"
 };
-
-// Mapa inverso (EN -> PT) para restaurar texto se necessário
-export const dictionaryENtoPT: Record<string, string> = Object.entries(dictionaryPTtoEN).reduce(
-  (acc, [pt, en]) => {
-    acc[en] = pt;
-    return acc;
-  },
-  {} as Record<string, string>
-);

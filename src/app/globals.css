@@ -21,7 +21,9 @@ html {
   scroll-padding-top: 5rem;
 }
 
-/* ─── Google Translate Overrides — Visual Silencioso ───────────────── */
+/* ─── Google Translate Overrides — Removido por performance ───────────────── */
+/* O Google Translate foi removido do sistema por causar lentidão excessiva */
+/* Agora usamos apenas tradução local via dicionário */
 body {
   top: 0 !important;
   position: static !important;
@@ -32,22 +34,6 @@ body {
       rgb(var(--background-end-rgb))
     )
     rgb(var(--background-start-rgb));
-}
-
-.goog-te-banner-frame,
-.goog-te-balloon-frame,
-#goog-gt-tt,
-.goog-te-spinner-pos,
-.goog-tooltip,
-.goog-tooltip:hover {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-}
-
-font {
-  background-color: transparent !important;
-  box-shadow: none !important;
 }
 
 /* ─── Animações de Scroll (IntersectionObserver) ─────────────────────── */
