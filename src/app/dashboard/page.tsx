@@ -181,43 +181,6 @@ export default function DashboardPage() {
           {/* Sidebar (Desktop) */}
           <div className="hidden lg:block lg:col-span-1">
             <DashboardSidebar />
-            <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t bg-white rounded-xl shadow-sm p-4 sm:p-6">
-              <div className="mb-3 sm:mb-4">
-                <p className="text-[10px] sm:text-sm text-gray-600 mb-1">Status da Conta</p>
-                <span className={`inline-block px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold ${
-                  user.status === 'active' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-                }`}>
-                  {user.status === 'active' ? '✓ Conta Ativa' : '⏰ Sem Assinatura'}
-                </span>
-              </div>
-
-              {user.plan !== 'none' && user.status === 'active' && (
-                <div className="mb-3 sm:mb-4 p-2 sm:p-3 bg-gray-50 rounded-lg border border-gray-200">
-                  <p className="text-[10px] sm:text-xs text-gray-600 mb-1">Plano Atual</p>
-                  <p className="text-xs sm:text-sm font-bold text-gray-900">{planInfo.name}</p>
-                  {user.dueDate && (
-                    <div className="mt-1.5 sm:mt-2">
-                      <p className="text-[10px] sm:text-xs text-gray-600">Vencimento</p>
-                      <p className="text-[10px] sm:text-xs font-semibold text-gray-900">
-                        Dia {user.dueDate} de cada mês
-                        {daysUntilExpiry !== null && (
-                          <span className="text-primary-600 ml-1">
-                            ({daysUntilExpiry} {daysUntilExpiry === 1 ? 'dia' : 'dias'} restantes)
-                          </span>
-                        )}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              <Link
-                href="/dashboard/billing"
-                className="block w-full py-1.5 sm:py-2 text-center bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition text-[10px] sm:text-sm font-semibold shadow-xs"
-              >
-                Ver Faturamento & Planos →
-              </Link>
-            </div>
           </div>
 
           {/* Main Content */}
