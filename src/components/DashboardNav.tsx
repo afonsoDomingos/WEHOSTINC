@@ -35,8 +35,7 @@ export default function DashboardNav({ userName, userAvatar, onLogout, onRefresh
   const navItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/dashboard/sites', label: 'Meus Domínios & Sites', icon: Globe },
-    { href: '/dashboard/systems', label: 'Meus Sistemas', icon: Package },
-    { href: '/systems', label: 'Alugar Sistemas', icon: Star },
+    { href: '/dashboard/systems', label: 'Sistemas para Aluguer', icon: Package },
     { href: '/dashboard/orders', label: 'Meus Pedidos', icon: FileText },
     { href: '/dashboard/site-quote', label: 'Solicitar Site', icon: Sparkles },
     { href: '/dashboard/domains', label: 'Comprar Domínio', icon: Link2 },

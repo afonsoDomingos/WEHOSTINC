@@ -48,9 +48,13 @@ export default function SystemsPage() {
 
     loadData();
 
-    // Verificar se usuário está logado
+    // Verificar se usuário está logado e redirecionar para a versão interna do dashboard
     const currentUser = auth.getCurrentUser();
     setUser(currentUser);
+    if (currentUser) {
+      router.replace('/dashboard/systems');
+      return;
+    }
   }, []);
 
   // Filtrar sistemas
