@@ -76,21 +76,21 @@ export default function AdminPartnersPage() {
     });
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!formData.name || !formData.logoUrl) {
       setToast({ show: true, message: 'Nome e logo são obrigatórios', type: 'error' });
       return;
     }
 
     if (editingPartner) {
-      dataManager.updatePartner(editingPartner.id, formData);
+      await dataManager.updatePartnerAsync(editingPartner.id, formData);
       setToast({ show: true, message: 'Parceiro atualizado com sucesso', type: 'success' });
     } else {
-      dataManager.createPartner(formData.name, formData.logoUrl, formData.websiteUrl);
+      await dataManager.createPartnerAsync(formData.name, formData.logoUrl, formData.websiteUrl);
       setToast({ show: true, message: 'Parceiro adicionado com sucesso', type: 'success' });
     }
 
-    loadPartners();
+    await loadPartners();
     handleCloseModal();
   };
 
@@ -99,19 +99,19 @@ export default function AdminPartnersPage() {
     setShowDeleteModal(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (partnerToDelete) {
-      dataManager.deletePartner(partnerToDelete);
+      await dataManager.deletePartnerAsync(partnerToDelete);
       setToast({ show: true, message: 'Parceiro removido com sucesso', type: 'success' });
-      loadPartners();
+      await loadPartners();
       setShowDeleteModal(false);
       setPartnerToDelete(null);
     }
   };
 
-  const handleToggleActive = (partner: Partner) => {
-    dataManager.updatePartner(partner.id, { active: !partner.active });
-    loadPartners();
+  const handleToggleActive = async (partner: Partner) => {
+    await dataManager.updatePartnerAsync(partner.id, { active: !partner.active });
+    await loadPartners();
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {

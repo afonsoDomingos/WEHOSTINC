@@ -1,38 +1,25 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
 import { Image as ImageIcon } from 'lucide-react';
 import { dataManager, Partner } from '@/lib/data';
 
 export default function PartnersSection() {
   const [partners, setPartners] = useState<Partner[]>([]);
   const [loading, setLoading] = useState(true);
+  const [failedLogos, setFailedLogos] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const loadPartners = async () => {
       try {
-        // First try to load from localStorage directly
-        const localPartners = dataManager.getPartners();
-        console.log('Local partners from localStorage:', localPartners);
-        console.log('Local partners count:', localPartners.length);
-        
-        // Then try to sync with server
-        await dataManager.fetchPartnersAsync();
-        const activePartners = dataManager.getActivePartners();
-        console.log('Partners loaded after sync:', activePartners);
-        console.log('Partners count:', activePartners.length);
-        if (activePartners.length > 0) {
-          console.log('First partner:', activePartners[0]);
-          console.log('First partner logoUrl:', activePartners[0].logoUrl);
-          console.log('First partner active:', activePartners[0].active);
-        }
+        const fetchedPartners = await dataManager.fetchPartnersAsync();
+        const activePartners = (fetchedPartners || [])
+          .filter(p => p.active)
+          .sort((a, b) => a.order - b.order);
         setPartners(activePartners);
       } catch (error) {
-        console.error('Error loading partners:', error);
-        // Fallback to localStorage
+        console.error('Erro ao carregar parceiros:', error);
         const localPartners = dataManager.getActivePartners();
-        console.log('Fallback to localStorage partners:', localPartners);
         setPartners(localPartners);
       } finally {
         setLoading(false);
@@ -40,6 +27,10 @@ export default function PartnersSection() {
     };
     loadPartners();
   }, []);
+
+  const handleImageError = (partnerId: string) => {
+    setFailedLogos(prev => ({ ...prev, [partnerId]: true }));
+  };
 
   if (loading) {
     return (
@@ -95,50 +86,49 @@ export default function PartnersSection() {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6 sm:gap-8">
-          {partners.map((partner) => (
-            <div
-              key={partner.id}
-              className="flex flex-col items-center justify-center p-4 sm:p-6 bg-gray-50 rounded-xl hover:bg-gray-100 transition group"
-            >
-              <div className="w-full h-20 sm:h-24 flex items-center justify-center bg-white rounded-lg overflow-hidden">
+          {partners.map((partner) => {
+            const hasFailed = failedLogos[partner.id] || !partner.logoUrl;
+            const content = (
+              <div className="w-full h-20 sm:h-24 flex flex-col items-center justify-center bg-white rounded-lg overflow-hidden p-2 shadow-sm border border-gray-100 group-hover:border-blue-200 transition">
+                {!hasFailed ? (
+                  <img
+                    src={partner.logoUrl}
+                    alt={partner.name}
+                    className="max-h-full max-w-full object-contain opacity-80 group-hover:opacity-100 transition duration-300"
+                    onError={() => handleImageError(partner.id)}
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 font-bold flex items-center justify-center text-lg">
+                    {partner.name.charAt(0).toUpperCase()}
+                  </div>
+                )}
+              </div>
+            );
+
+            return (
+              <div
+                key={partner.id}
+                className="flex flex-col items-center justify-center p-3 sm:p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition group"
+              >
                 {partner.websiteUrl ? (
                   <a
                     href={partner.websiteUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full h-full flex items-center justify-center"
+                    className="w-full"
+                    title={partner.name}
                   >
-                    <img
-                      src={partner.logoUrl}
-                      alt={partner.name}
-                      className="max-h-full max-w-full object-contain opacity-70 group-hover:opacity-100 transition duration-300"
-                      onError={(e) => {
-                        console.error('Failed to load partner logo:', partner.name, partner.logoUrl);
-                        e.currentTarget.style.display = 'none';
-                      }}
-                      onLoad={() => {
-                        console.log('Partner logo loaded successfully:', partner.name);
-                      }}
-                    />
+                    {content}
                   </a>
                 ) : (
-                  <img
-                    src={partner.logoUrl}
-                    alt={partner.name}
-                    className="max-h-full max-w-full object-contain opacity-70 group-hover:opacity-100 transition duration-300"
-                    onError={(e) => {
-                      console.error('Failed to load partner logo:', partner.name, partner.logoUrl);
-                      e.currentTarget.style.display = 'none';
-                    }}
-                    onLoad={() => {
-                      console.log('Partner logo loaded successfully:', partner.name);
-                    }}
-                  />
+                  content
                 )}
+                <p className="text-xs text-gray-700 font-semibold mt-2 text-center truncate w-full">
+                  {partner.name}
+                </p>
               </div>
-              <p className="text-xs text-gray-600 mt-2 text-center truncate w-full">{partner.name}</p>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>

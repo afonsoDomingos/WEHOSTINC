@@ -1763,10 +1763,26 @@ export const dataManager = {
       if (res.ok) {
         const data = await res.json();
         if (data.partners && Array.isArray(data.partners)) {
+          const serverPartners: Partner[] = data.partners;
           if (typeof window !== 'undefined') {
-            localStorage.setItem('wehosthere_partners', JSON.stringify(data.partners));
+            const localPartners = dataManager.getPartners();
+            // If local storage has partners created prior to API availability, sync them to server
+            if (localPartners.length > 0) {
+              const missingOnServer = localPartners.filter(lp => !serverPartners.some(sp => sp.id === lp.id));
+              if (missingOnServer.length > 0) {
+                const merged = [...serverPartners, ...missingOnServer];
+                fetch(apiEndpoint('/api/partners'), {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ action: 'sync_all', partners: merged })
+                }).catch(err => console.error('Erro de sync_all partner:', err));
+                localStorage.setItem('wehosthere_partners', JSON.stringify(merged));
+                return merged;
+              }
+            }
+            localStorage.setItem('wehosthere_partners', JSON.stringify(serverPartners));
           }
-          return data.partners;
+          return serverPartners;
         }
       }
     } catch (e) {
@@ -1801,6 +1817,20 @@ export const dataManager = {
     return newPartner;
   },
 
+  createPartnerAsync: async (name: string, logoUrl: string, websiteUrl?: string): Promise<Partner> => {
+    const newPartner = dataManager.createPartner(name, logoUrl, websiteUrl);
+    try {
+      await fetch(apiEndpoint('/api/partners'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'create', partner: newPartner })
+      });
+    } catch (err) {
+      console.error('Erro de sync de partner async:', err);
+    }
+    return newPartner;
+  },
+
   updatePartner: (id: string, updates: Partial<Partner>): Partner | null => {
     const partners = dataManager.getPartners();
     const index = partners.findIndex(p => p.id === id);
@@ -1817,10 +1847,26 @@ export const dataManager = {
       fetch(apiEndpoint('/api/partners'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'update', partner: partners[index] })
+        body: JSON.stringify({ action: 'update', partner: partners[index], partnerId: id, updates })
       }).catch(err => console.error('Erro de sync de partner no servidor:', err));
     }
     return partners[index];
+  },
+
+  updatePartnerAsync: async (id: string, updates: Partial<Partner>): Promise<Partner | null> => {
+    const updated = dataManager.updatePartner(id, updates);
+    if (updated) {
+      try {
+        await fetch(apiEndpoint('/api/partners'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'update', partner: updated, partnerId: id, updates })
+        });
+      } catch (err) {
+        console.error('Erro de update async partner:', err);
+      }
+    }
+    return updated;
   },
 
   deletePartner: (id: string): boolean => {
@@ -1839,6 +1885,20 @@ export const dataManager = {
       }).catch(err => console.error('Erro de sync de partner no servidor:', err));
     }
     return true;
+  },
+
+  deletePartnerAsync: async (id: string): Promise<boolean> => {
+    const result = dataManager.deletePartner(id);
+    try {
+      await fetch(apiEndpoint('/api/partners'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete', partnerId: id })
+      });
+    } catch (err) {
+      console.error('Erro de delete async partner:', err);
+    }
+    return result;
   },
 
   getActivePartners: (): Partner[] => {
