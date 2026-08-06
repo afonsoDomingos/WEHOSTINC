@@ -2243,7 +2243,21 @@ export const dataManager = {
     const modules = dataManager.getModules();
     const index = modules.findIndex((m: Module) => m.id === id);
     if (index === -1) return false;
-    modules[index] = { ...modules[index], ...updates, updatedAt: new Date().toISOString() };
+    
+    // Limpar campos de video/material se hasVideo/hasMaterial for false
+    const cleanUpdates: Partial<Module> = { ...updates };
+    if (updates.hasVideo === false) {
+      cleanUpdates.videoUrl = undefined;
+      cleanUpdates.videoTitle = undefined;
+      cleanUpdates.videoDescription = undefined;
+    }
+    if (updates.hasMaterial === false) {
+      cleanUpdates.materialUrl = undefined;
+      cleanUpdates.materialTitle = undefined;
+      cleanUpdates.materialType = undefined;
+    }
+    
+    modules[index] = { ...modules[index], ...cleanUpdates, updatedAt: new Date().toISOString() };
     if (typeof window !== 'undefined') {
       localStorage.setItem('wehosthere_modules', JSON.stringify(modules));
       fetch(apiEndpoint('/api/modules'), {
@@ -2323,7 +2337,21 @@ export const dataManager = {
     const lessons = dataManager.getLessons();
     const index = lessons.findIndex((l: Lesson) => l.id === id);
     if (index === -1) return false;
-    lessons[index] = { ...lessons[index], ...updates, updatedAt: new Date().toISOString() };
+    
+    // Limpar campos de video/material se hasVideo/hasMaterial for false
+    const cleanUpdates: Partial<Lesson> = { ...updates };
+    if (updates.hasVideo === false) {
+      cleanUpdates.videoUrl = undefined;
+      cleanUpdates.videoTitle = undefined;
+      cleanUpdates.videoDescription = undefined;
+    }
+    if (updates.hasMaterial === false) {
+      cleanUpdates.materialUrl = undefined;
+      cleanUpdates.materialTitle = undefined;
+      cleanUpdates.materialType = undefined;
+    }
+    
+    lessons[index] = { ...lessons[index], ...cleanUpdates, updatedAt: new Date().toISOString() };
     if (typeof window !== 'undefined') {
       localStorage.setItem('wehosthere_lessons', JSON.stringify(lessons));
       fetch(apiEndpoint('/api/lessons'), {

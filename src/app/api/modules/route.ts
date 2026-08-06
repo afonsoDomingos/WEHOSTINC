@@ -52,9 +52,22 @@ export async function POST(request: NextRequest) {
     if (action === 'update' && module) {
       console.log('[API Modules] Atualizando módulo:', module.id);
       
+      // Limpar campos de video/material se hasVideo/hasMaterial for false
+      const updateData: any = { ...module, updatedAt: new Date().toISOString() };
+      if (!module.hasVideo) {
+        updateData.videoUrl = undefined;
+        updateData.videoTitle = undefined;
+        updateData.videoDescription = undefined;
+      }
+      if (!module.hasMaterial) {
+        updateData.materialUrl = undefined;
+        updateData.materialTitle = undefined;
+        updateData.materialType = undefined;
+      }
+      
       const updated = await ModuleModel.findOneAndUpdate(
         { id: module.id },
-        { ...module, updatedAt: new Date().toISOString() },
+        updateData,
         { new: true }
       );
       

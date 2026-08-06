@@ -52,9 +52,22 @@ export async function POST(request: NextRequest) {
     if (action === 'update' && lesson) {
       console.log('[API Lessons] Atualizando lição:', lesson.id);
       
+      // Limpar campos de video/material se hasVideo/hasMaterial for false
+      const updateData: any = { ...lesson, updatedAt: new Date().toISOString() };
+      if (!lesson.hasVideo) {
+        updateData.videoUrl = undefined;
+        updateData.videoTitle = undefined;
+        updateData.videoDescription = undefined;
+      }
+      if (!lesson.hasMaterial) {
+        updateData.materialUrl = undefined;
+        updateData.materialTitle = undefined;
+        updateData.materialType = undefined;
+      }
+      
       const updated = await LessonModel.findOneAndUpdate(
         { id: lesson.id },
-        { ...lesson, updatedAt: new Date().toISOString() },
+        updateData,
         { new: true }
       );
       

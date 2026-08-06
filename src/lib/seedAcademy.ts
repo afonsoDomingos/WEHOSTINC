@@ -26,27 +26,9 @@ export async function seedAcademyData() {
     active: true
   };
 
-  // Salvar no localStorage primeiro (sempre funciona)
+  // Salvar no localStorage (MongoDB não está configurado na Vercel)
   const course = dataManager.createCourse(courseData);
   console.log('[SeedAcademy] Curso criado no localStorage:', course.id);
-
-  // Tentar salvar no servidor (MongoDB) - não falhar se não funcionar
-  try {
-    const courseRes = await fetch('/api/courses', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'create', course: courseData })
-    });
-    
-    if (!courseRes.ok) {
-      console.warn('[SeedAcademy] Servidor retornou erro ao salvar curso (MongoDB pode não estar configurado):', courseRes.status);
-    } else {
-      const courseDataRes = await courseRes.json();
-      console.log('[SeedAcademy] Curso salvo no servidor com sucesso:', courseDataRes.course.id);
-    }
-  } catch (e) {
-    console.warn('[SeedAcademy] Erro ao salvar curso no servidor (MongoDB pode não estar configurado):', e);
-  }
 
   // Criar módulos
   const modules = [
@@ -139,26 +121,9 @@ export async function seedAcademyData() {
       active: true
     };
     
-    // Salvar no localStorage primeiro (sempre funciona)
+    // Salvar no localStorage (MongoDB não está configurado na Vercel)
     const courseModule = dataManager.createModule(moduleData);
     console.log(`[SeedAcademy] Módulo ${index + 1} criado no localStorage:`, courseModule.id);
-    
-    // Tentar salvar no servidor (MongoDB) - não falhar se não funcionar
-    fetch('/api/modules', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'create', module: moduleData })
-    }).then(res => {
-      if (!res.ok) {
-        console.warn(`[SeedAcademy] Servidor retornou erro ao salvar módulo ${index + 1} (MongoDB pode não estar configurado):`, res.status);
-      } else {
-        return res.json();
-      }
-    }).then(data => {
-      if (data) console.log(`[SeedAcademy] Módulo ${index + 1} salvo no servidor com sucesso:`, data.module.id);
-    }).catch(e => {
-      console.warn(`[SeedAcademy] Erro ao salvar módulo ${index + 1} no servidor (MongoDB pode não estar configurado):`, e);
-    });
     
     return courseModule;
   });
@@ -617,26 +582,9 @@ export async function seedAcademyData() {
         active: true
       };
       
-      // Salvar no localStorage primeiro (sempre funciona)
+      // Salvar no localStorage (MongoDB não está configurado na Vercel)
       const lesson = dataManager.createLesson(lessonDataWithModule);
       console.log(`[SeedAcademy] Lição ${lessonIndex + 1} do módulo ${moduleIndex + 1} criada no localStorage:`, lesson.id);
-      
-      // Tentar salvar no servidor (MongoDB) - não falhar se não funcionar
-      fetch('/api/lessons', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'create', lesson: lessonDataWithModule })
-      }).then(res => {
-        if (!res.ok) {
-          console.warn(`[SeedAcademy] Servidor retornou erro ao salvar lição ${lessonIndex + 1} do módulo ${moduleIndex + 1} (MongoDB pode não estar configurado):`, res.status);
-        } else {
-          return res.json();
-        }
-      }).then(data => {
-        if (data) console.log(`[SeedAcademy] Lição ${lessonIndex + 1} do módulo ${moduleIndex + 1} salva no servidor com sucesso:`, data.lesson.id);
-      }).catch(e => {
-        console.warn(`[SeedAcademy] Erro ao salvar lição ${lessonIndex + 1} do módulo ${moduleIndex + 1} no servidor (MongoDB pode não estar configurado):`, e);
-      });
     });
   });
 
