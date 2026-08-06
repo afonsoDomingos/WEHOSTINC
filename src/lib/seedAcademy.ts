@@ -1,7 +1,11 @@
 import { dataManager, Course, Module, Lesson } from '@/lib/data';
+import { connectDB } from '@/lib/mongodb';
+import { CourseModel } from '@/lib/models/CourseModel';
+import { ModuleModel } from '@/lib/models/ModuleModel';
+import { LessonModel } from '@/lib/models/LessonModel';
 
 export async function seedAcademyData() {
-  console.log('A criar dados iniciais da Academia Web...');
+  console.log('[SeedAcademy] A criar dados iniciais da Academia Web...');
 
   // Limpar dados existentes para evitar duplicatas
   if (typeof window !== 'undefined') {
@@ -10,23 +14,56 @@ export async function seedAcademyData() {
     localStorage.removeItem('wehosthere_lessons');
     localStorage.removeItem('wehosthere_course_enrollments');
     localStorage.removeItem('wehosthere_course_progress');
-    console.log('Dados antigos limpos do localStorage');
+    console.log('[SeedAcademy] Dados antigos limpos do localStorage');
+  }
+
+  // Limpar dados do MongoDB
+  try {
+    await connectDB();
+    console.log('[SeedAcademy] Conectado ao MongoDB');
+    
+    // Limpar dados existentes
+    await CourseModel.deleteMany({});
+    await ModuleModel.deleteMany({});
+    await LessonModel.deleteMany({});
+    console.log('[SeedAcademy] Dados antigos limpos do MongoDB');
+  } catch (error) {
+    console.error('[SeedAcademy] Erro ao conectar ao MongoDB:', error);
+    // Continuar com localStorage se MongoDB falhar
   }
 
   // Criar o curso principal
-  const course = dataManager.createCourse({
+  const courseData = {
     title: 'Criação de Página de Vendas Profissional',
     shortDescription: 'Aprenda a criar páginas de vendas do zero, desde a ideia até ao lançamento online',
     description: 'Este curso ensina, passo a passo, como criar uma Página de Vendas Profissional, começando desde a ideia inicial do negócio até ao lançamento oficial online. Durante o curso, você aprenderá a estruturar um negócio digital, preparar o ambiente de desenvolvimento, criar o projeto, publicar na internet e conectar um domínio profissional.',
     duration: '12 horas',
     outcome: 'Será capaz de criar páginas de vendas profissionais do zero e publicá-las online',
     thumbnail: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=400&fit=crop',
-    accessType: 'free',
+    accessType: 'free' as const,
     order: 1,
     active: true
-  });
+  };
 
-  console.log('Curso criado:', course.id);
+  // Salvar no MongoDB
+  let course: Course;
+  try {
+    const newCourse = new CourseModel({
+      ...courseData,
+      id: `COURSE-${Math.floor(1000 + Math.random() * 9000)}`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    });
+    await newCourse.save();
+    course = newCourse.toObject() as Course;
+    console.log('[SeedAcademy] Curso salvo no MongoDB:', course.id);
+  } catch (error) {
+    console.error('[SeedAcademy] Erro ao salvar curso no MongoDB, usando localStorage:', error);
+    course = dataManager.createCourse(courseData);
+  }
+
+  // Salvar no localStorage também
+  dataManager.createCourse(courseData);
 
   // Criar módulos
   const modules = [
@@ -110,15 +147,34 @@ export async function seedAcademyData() {
     }
   ];
 
-  const createdModules = modules.map((mod, index) => {
-    const courseModule = dataManager.createModule({
+  const createdModules = await Promise.all(modules.map(async (mod, index) => {
+    const moduleData = {
       courseId: course.id,
       ...mod,
       active: true
-    });
-    console.log(`Módulo ${index + 1} criado:`, courseModule.id);
+    };
+
+    let courseModule: Module;
+    try {
+      const newModule = new ModuleModel({
+        ...moduleData,
+        id: `MODULE-${Math.floor(1000 + Math.random() * 9000)}`,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+      await newModule.save();
+      courseModule = newModule.toObject() as Module;
+      console.log(`[SeedAcademy] Módulo ${index + 1} salvo no MongoDB:`, courseModule.id);
+    } catch (error) {
+      console.error(`[SeedAcademy] Erro ao salvar módulo ${index + 1} no MongoDB, usando localStorage:`, error);
+      courseModule = dataManager.createModule(moduleData);
+    }
+
+    // Salvar no localStorage também
+    dataManager.createModule(moduleData);
+    
     return courseModule;
-  });
+  }));
 
   // Criar lições para cada módulo
   const lessonsData = [
@@ -565,27 +621,45 @@ export async function seedAcademyData() {
     ]
   ];
 
-  lessonsData.forEach((moduleLessons, moduleIndex) => {
+  await Promise.all(lessonsData.map(async (moduleLessons, moduleIndex) => {
     const courseModule = createdModules[moduleIndex];
-    moduleLessons.forEach((lessonData, lessonIndex) => {
-      const lesson = dataManager.createLesson({
+    await Promise.all(moduleLessons.map(async (lessonData, lessonIndex) => {
+      const lessonDataWithModule = {
         moduleId: courseModule.id,
         ...lessonData,
         active: true
-      });
-      console.log(`Lição ${lessonIndex + 1} do módulo ${moduleIndex + 1} criada:`, lesson.id);
-    });
-  });
+      };
 
-  console.log('Dados da Academia Web criados com sucesso!');
-  console.log('Curso ID:', course.id);
-  console.log('Total de módulos:', createdModules.length);
+      let lesson: Lesson;
+      try {
+        const newLesson = new LessonModel({
+          ...lessonDataWithModule,
+          id: `LESSON-${Math.floor(1000 + Math.random() * 9000)}`,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        });
+        await newLesson.save();
+        lesson = newLesson.toObject() as Lesson;
+        console.log(`[SeedAcademy] Lição ${lessonIndex + 1} do módulo ${moduleIndex + 1} salva no MongoDB:`, lesson.id);
+      } catch (error) {
+        console.error(`[SeedAcademy] Erro ao salvar lição ${lessonIndex + 1} do módulo ${moduleIndex + 1} no MongoDB, usando localStorage:`, error);
+        lesson = dataManager.createLesson(lessonDataWithModule);
+      }
+
+      // Salvar no localStorage também
+      dataManager.createLesson(lessonDataWithModule);
+    }));
+  }));
+
+  console.log('[SeedAcademy] Dados da Academia Web criados com sucesso!');
+  console.log('[SeedAcademy] Curso ID:', course.id);
+  console.log('[SeedAcademy] Total de módulos:', createdModules.length);
   
   let totalLessons = 0;
   createdModules.forEach(mod => {
     totalLessons += dataManager.getLessons(mod.id).length;
   });
-  console.log('Total de lições:', totalLessons);
+  console.log('[SeedAcademy] Total de lições:', totalLessons);
 
   return course;
 }

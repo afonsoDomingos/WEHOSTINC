@@ -1,18 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Lesson } from '@/lib/data';
-
-let lessons: Lesson[] = [];
+import { connectDB } from '@/lib/mongodb';
+import { LessonModel } from '@/lib/models/LessonModel';
 
 export async function GET(request: NextRequest) {
   try {
+    await connectDB();
     const { searchParams } = new URL(request.url);
     const moduleId = searchParams.get('moduleId');
     
-    const filteredLessons = moduleId 
-      ? lessons.filter(l => l.moduleId === moduleId)
-      : lessons;
-      
-    return NextResponse.json({ lessons: filteredLessons });
+    let query: any = {};
+    if (moduleId) {
+      query.moduleId = moduleId;
+    }
+    
+    const lessons = await LessonModel.find(query).sort({ order: 1 });
+    return NextResponse.json({ lessons });
   } catch (error) {
     console.error('Erro ao buscar lições:', error);
     return NextResponse.json({ error: 'Erro ao buscar lições' }, { status: 500 });
@@ -21,35 +23,38 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    await connectDB();
     const body = await request.json();
     const { action, lesson, lessonId } = body;
 
     if (action === 'create' && lesson) {
-      const newLesson: Lesson = {
+      const newLesson = new LessonModel({
         ...lesson,
         id: `LESSON-${Math.floor(1000 + Math.random() * 9000)}`,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
-      };
-      lessons.unshift(newLesson);
+      });
+      await newLesson.save();
       return NextResponse.json({ lesson: newLesson });
     }
 
     if (action === 'update' && lesson) {
-      const index = lessons.findIndex(l => l.id === lesson.id);
-      if (index === -1) {
+      const updated = await LessonModel.findOneAndUpdate(
+        { id: lesson.id },
+        { ...lesson, updatedAt: new Date().toISOString() },
+        { new: true }
+      );
+      if (!updated) {
         return NextResponse.json({ error: 'Lição não encontrada' }, { status: 404 });
       }
-      lessons[index] = { ...lessons[index], ...lesson, updatedAt: new Date().toISOString() };
-      return NextResponse.json({ lesson: lessons[index] });
+      return NextResponse.json({ lesson: updated });
     }
 
     if (action === 'delete' && lessonId) {
-      const index = lessons.findIndex(l => l.id === lessonId);
-      if (index === -1) {
+      const deleted = await LessonModel.findOneAndDelete({ id: lessonId });
+      if (!deleted) {
         return NextResponse.json({ error: 'Lição não encontrada' }, { status: 404 });
       }
-      lessons.splice(index, 1);
       return NextResponse.json({ success: true });
     }
 

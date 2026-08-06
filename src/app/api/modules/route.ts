@@ -1,18 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Module } from '@/lib/data';
-
-let modules: Module[] = [];
+import { connectDB } from '@/lib/mongodb';
+import { ModuleModel } from '@/lib/models/ModuleModel';
 
 export async function GET(request: NextRequest) {
   try {
+    await connectDB();
     const { searchParams } = new URL(request.url);
     const courseId = searchParams.get('courseId');
     
-    const filteredModules = courseId 
-      ? modules.filter(m => m.courseId === courseId)
-      : modules;
-      
-    return NextResponse.json({ modules: filteredModules });
+    let query: any = {};
+    if (courseId) {
+      query.courseId = courseId;
+    }
+    
+    const modules = await ModuleModel.find(query).sort({ order: 1 });
+    return NextResponse.json({ modules });
   } catch (error) {
     console.error('Erro ao buscar módulos:', error);
     return NextResponse.json({ error: 'Erro ao buscar módulos' }, { status: 500 });
@@ -21,35 +23,38 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    await connectDB();
     const body = await request.json();
     const { action, module, moduleId } = body;
 
     if (action === 'create' && module) {
-      const newModule: Module = {
+      const newModule = new ModuleModel({
         ...module,
         id: `MODULE-${Math.floor(1000 + Math.random() * 9000)}`,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
-      };
-      modules.unshift(newModule);
+      });
+      await newModule.save();
       return NextResponse.json({ module: newModule });
     }
 
     if (action === 'update' && module) {
-      const index = modules.findIndex(m => m.id === module.id);
-      if (index === -1) {
+      const updated = await ModuleModel.findOneAndUpdate(
+        { id: module.id },
+        { ...module, updatedAt: new Date().toISOString() },
+        { new: true }
+      );
+      if (!updated) {
         return NextResponse.json({ error: 'Módulo não encontrado' }, { status: 404 });
       }
-      modules[index] = { ...modules[index], ...module, updatedAt: new Date().toISOString() };
-      return NextResponse.json({ module: modules[index] });
+      return NextResponse.json({ module: updated });
     }
 
     if (action === 'delete' && moduleId) {
-      const index = modules.findIndex(m => m.id === moduleId);
-      if (index === -1) {
+      const deleted = await ModuleModel.findOneAndDelete({ id: moduleId });
+      if (!deleted) {
         return NextResponse.json({ error: 'Módulo não encontrado' }, { status: 404 });
       }
-      modules.splice(index, 1);
       return NextResponse.json({ success: true });
     }
 
