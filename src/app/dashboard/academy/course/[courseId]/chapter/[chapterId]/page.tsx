@@ -21,6 +21,7 @@ export default function ChapterViewPage() {
   const [progress, setProgress] = useState<CourseProgress | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentLesson, setCurrentLesson] = useState(0);
+  const [currentChapterId, setCurrentChapterId] = useState(chapterId);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
   const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' | 'info' | 'warning' }>({ show: false, message: '', type: 'success' });
@@ -59,7 +60,7 @@ export default function ChapterViewPage() {
   }, [courseId, router, loadCourseData]);
 
   const getCurrentChapter = () => {
-    const chapterIndex = modules.findIndex(m => m.id === chapterId);
+    const chapterIndex = modules.findIndex(m => m.id === currentChapterId);
     if (chapterIndex === -1) {
       return { chapterIndex: -1, module: null };
     }
@@ -97,11 +98,12 @@ export default function ChapterViewPage() {
     if (currentLesson < moduleLessons.length - 1) {
       setCurrentLesson(currentLesson + 1);
     } else {
-      // Move to next chapter
+      // Move to next chapter - use local state instead of navigation
       const { chapterIndex } = getCurrentChapter();
-      if (chapterIndex < modules.length - 1) {
+      if (chapterIndex !== -1 && chapterIndex < modules.length - 1) {
         const nextModule = modules[chapterIndex + 1];
-        router.push(`/dashboard/academy/course/${courseId}/chapter/${nextModule.id}`);
+        setCurrentChapterId(nextModule.id);
+        setCurrentLesson(0);
       }
     }
   };
@@ -114,7 +116,8 @@ export default function ChapterViewPage() {
       if (chapterIndex > 0) {
         const prevModule = modules[chapterIndex - 1];
         const prevModuleLessons = lessons.filter(l => l.moduleId === prevModule.id).sort((a, b) => a.order - b.order);
-        router.push(`/dashboard/academy/course/${courseId}/chapter/${prevModule.id}`);
+        setCurrentChapterId(prevModule.id);
+        setCurrentLesson(prevModuleLessons.length - 1);
       }
     }
   };
@@ -134,7 +137,8 @@ export default function ChapterViewPage() {
       const { chapterIndex } = getCurrentChapter();
       if (chapterIndex !== -1 && chapterIndex < modules.length - 1) {
         const nextModule = modules[chapterIndex + 1];
-        router.push(`/dashboard/academy/course/${courseId}/chapter/${nextModule.id}`);
+        setCurrentChapterId(nextModule.id);
+        setCurrentLesson(0);
       }
     }
   };
@@ -263,14 +267,15 @@ export default function ChapterViewPage() {
               {modules.map((module, index) => {
                 const moduleLessons = getModuleLessons(module.id);
                 const completedInModule = moduleLessons.filter(l => isLessonCompleted(l.id)).length;
-                const isActive = module.id === chapterId;
+                const isActive = module.id === currentChapterId;
                 const isCompleted = completedInModule === moduleLessons.length && moduleLessons.length > 0;
 
                 return (
                   <div key={module.id} className="mb-3">
                     <button
                       onClick={() => {
-                        router.push(`/dashboard/academy/course/${courseId}/chapter/${module.id}`);
+                        setCurrentChapterId(module.id);
+                        setCurrentLesson(0);
                         setSidebarOpen(false);
                       }}
                       className={`w-full text-left p-3 rounded-lg transition ${
