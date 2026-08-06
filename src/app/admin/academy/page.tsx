@@ -130,10 +130,6 @@ export default function AdminAcademyPage() {
       order: modules.filter(m => m.courseId === selectedCourse.id).length
     };
 
-    console.log('[handleSaveModule] moduleData:', moduleData);
-    console.log('[handleSaveModule] hasVideo:', moduleData.hasVideo);
-    console.log('[handleSaveModule] videoUrl:', moduleData.videoUrl);
-
     if (editingModule) {
       dataManager.updateModule(editingModule.id, moduleData);
       setToast({ show: true, message: 'Módulo atualizado com sucesso', type: 'success' });
