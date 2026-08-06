@@ -61,14 +61,20 @@ export default function DashboardAcademyPage() {
       return;
     }
 
-    dataManager.enrollInCourse(user.email, course.id);
-    setEnrollments([...enrollments, dataManager.enrollInCourse(user.email, course.id)]);
+    const enrollment = dataManager.enrollInCourse(user.email, course.id);
+    setEnrollments([...enrollments, enrollment]);
     setToast({ show: true, message: 'Inscrição realizada com sucesso!', type: 'success' });
-    loadData();
+    
+    // Redirecionar para o curso após inscrição
+    router.push(`/dashboard/academy/course/${course.id}`);
   };
 
   const handleStartCourse = (courseId: string) => {
     router.push(`/dashboard/academy/course/${courseId}`);
+  };
+
+  const handleViewCourse = (course: Course) => {
+    router.push(`/dashboard/academy/course/${course.id}`);
   };
 
   if (loading) return <PageLoader text="A carregar cursos..." />;
