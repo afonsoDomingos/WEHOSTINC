@@ -26,8 +26,11 @@ export async function seedAcademyData() {
     active: true
   };
 
-  // Salvar no servidor (MongoDB) primeiro
-  let course: Course;
+  // Salvar no localStorage primeiro (sempre funciona)
+  const course = dataManager.createCourse(courseData);
+  console.log('[SeedAcademy] Curso criado no localStorage:', course.id);
+
+  // Tentar salvar no servidor (MongoDB) - não falhar se não funcionar
   try {
     const courseRes = await fetch('/api/courses', {
       method: 'POST',
@@ -36,28 +39,14 @@ export async function seedAcademyData() {
     });
     
     if (!courseRes.ok) {
-      throw new Error(`Erro ao salvar curso: ${courseRes.status}`);
+      console.warn('[SeedAcademy] Servidor retornou erro ao salvar curso (MongoDB pode não estar configurado):', courseRes.status);
+    } else {
+      const courseDataRes = await courseRes.json();
+      console.log('[SeedAcademy] Curso salvo no servidor com sucesso:', courseDataRes.course.id);
     }
-    
-    const courseDataRes = await courseRes.json();
-    course = courseDataRes.course;
-    console.log('[SeedAcademy] Curso salvo no servidor com sucesso:', course.id);
-    
-    // Double-check: buscar curso do servidor para confirmar
-    const checkRes = await fetch('/api/courses');
-    const checkData = await checkRes.json();
-    const savedCourse = checkData.courses.find((c: Course) => c.id === course.id);
-    if (!savedCourse) {
-      throw new Error('Double-check falhou: curso não encontrado no servidor');
-    }
-    console.log('[SeedAcademy] Double-check: curso confirmado no servidor');
   } catch (e) {
-    console.error('[SeedAcademy] Erro ao salvar curso no servidor, usando localStorage:', e);
-    course = dataManager.createCourse(courseData);
+    console.warn('[SeedAcademy] Erro ao salvar curso no servidor (MongoDB pode não estar configurado):', e);
   }
-
-  // Salvar no localStorage também
-  dataManager.createCourse(courseData);
 
   // Criar módulos
   const modules = [
@@ -141,7 +130,7 @@ export async function seedAcademyData() {
     }
   ];
 
-  const createdModules = await Promise.all(modules.map(async (mod, index) => {
+  const createdModules = modules.map((mod, index) => {
     const moduleData = {
       courseId: course.id,
       ...mod,
@@ -150,40 +139,29 @@ export async function seedAcademyData() {
       active: true
     };
     
-    let courseModule: Module;
-    try {
-      const moduleRes = await fetch('/api/modules', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'create', module: moduleData })
-      });
-      
-      if (!moduleRes.ok) {
-        throw new Error(`Erro ao salvar módulo: ${moduleRes.status}`);
-      }
-      
-      const moduleDataRes = await moduleRes.json();
-      courseModule = moduleDataRes.module;
-      console.log(`[SeedAcademy] Módulo ${index + 1} salvo no servidor com sucesso:`, courseModule.id);
-      
-      // Double-check: buscar módulo do servidor para confirmar
-      const checkRes = await fetch(`/api/modules?courseId=${course.id}`);
-      const checkData = await checkRes.json();
-      const savedModule = checkData.modules.find((m: Module) => m.id === courseModule.id);
-      if (!savedModule) {
-        throw new Error(`Double-check falhou: módulo ${index + 1} não encontrado no servidor`);
-      }
-      console.log(`[SeedAcademy] Double-check: módulo ${index + 1} confirmado no servidor`);
-    } catch (e) {
-      console.error(`[SeedAcademy] Erro ao salvar módulo ${index + 1} no servidor, usando localStorage:`, e);
-      courseModule = dataManager.createModule(moduleData);
-    }
+    // Salvar no localStorage primeiro (sempre funciona)
+    const courseModule = dataManager.createModule(moduleData);
+    console.log(`[SeedAcademy] Módulo ${index + 1} criado no localStorage:`, courseModule.id);
     
-    // Salvar no localStorage também
-    dataManager.createModule(moduleData);
+    // Tentar salvar no servidor (MongoDB) - não falhar se não funcionar
+    fetch('/api/modules', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'create', module: moduleData })
+    }).then(res => {
+      if (!res.ok) {
+        console.warn(`[SeedAcademy] Servidor retornou erro ao salvar módulo ${index + 1} (MongoDB pode não estar configurado):`, res.status);
+      } else {
+        return res.json();
+      }
+    }).then(data => {
+      if (data) console.log(`[SeedAcademy] Módulo ${index + 1} salvo no servidor com sucesso:`, data.module.id);
+    }).catch(e => {
+      console.warn(`[SeedAcademy] Erro ao salvar módulo ${index + 1} no servidor (MongoDB pode não estar configurado):`, e);
+    });
     
     return courseModule;
-  }));
+  });
 
   // Criar lições para cada módulo
   const lessonsData = [
@@ -630,47 +608,37 @@ export async function seedAcademyData() {
     ]
   ];
 
-  await Promise.all(lessonsData.map(async (moduleLessons, moduleIndex) => {
+  lessonsData.forEach((moduleLessons, moduleIndex) => {
     const courseModule = createdModules[moduleIndex];
-    await Promise.all(moduleLessons.map(async (lessonData, lessonIndex) => {
+    moduleLessons.forEach((lessonData, lessonIndex) => {
       const lessonDataWithModule = {
         moduleId: courseModule.id,
         ...lessonData,
         active: true
       };
       
-      try {
-        const lessonRes = await fetch('/api/lessons', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'create', lesson: lessonDataWithModule })
-        });
-        
-        if (!lessonRes.ok) {
-          throw new Error(`Erro ao salvar lição: ${lessonRes.status}`);
-        }
-        
-        const lessonDataRes = await lessonRes.json();
-        const lesson = lessonDataRes.lesson;
-        console.log(`[SeedAcademy] Lição ${lessonIndex + 1} do módulo ${moduleIndex + 1} salva no servidor com sucesso:`, lesson.id);
-        
-        // Double-check: buscar lição do servidor para confirmar
-        const checkRes = await fetch(`/api/lessons?moduleId=${courseModule.id}`);
-        const checkData = await checkRes.json();
-        const savedLesson = checkData.lessons.find((l: Lesson) => l.id === lesson.id);
-        if (!savedLesson) {
-          throw new Error(`Double-check falhou: lição ${lessonIndex + 1} do módulo ${moduleIndex + 1} não encontrada no servidor`);
-        }
-        console.log(`[SeedAcademy] Double-check: lição ${lessonIndex + 1} do módulo ${moduleIndex + 1} confirmada no servidor`);
-      } catch (e) {
-        console.error(`[SeedAcademy] Erro ao salvar lição ${lessonIndex + 1} do módulo ${moduleIndex + 1} no servidor, usando localStorage:`, e);
-        dataManager.createLesson(lessonDataWithModule);
-      }
+      // Salvar no localStorage primeiro (sempre funciona)
+      const lesson = dataManager.createLesson(lessonDataWithModule);
+      console.log(`[SeedAcademy] Lição ${lessonIndex + 1} do módulo ${moduleIndex + 1} criada no localStorage:`, lesson.id);
       
-      // Salvar no localStorage também
-      dataManager.createLesson(lessonDataWithModule);
-    }));
-  }));
+      // Tentar salvar no servidor (MongoDB) - não falhar se não funcionar
+      fetch('/api/lessons', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'create', lesson: lessonDataWithModule })
+      }).then(res => {
+        if (!res.ok) {
+          console.warn(`[SeedAcademy] Servidor retornou erro ao salvar lição ${lessonIndex + 1} do módulo ${moduleIndex + 1} (MongoDB pode não estar configurado):`, res.status);
+        } else {
+          return res.json();
+        }
+      }).then(data => {
+        if (data) console.log(`[SeedAcademy] Lição ${lessonIndex + 1} do módulo ${moduleIndex + 1} salva no servidor com sucesso:`, data.lesson.id);
+      }).catch(e => {
+        console.warn(`[SeedAcademy] Erro ao salvar lição ${lessonIndex + 1} do módulo ${moduleIndex + 1} no servidor (MongoDB pode não estar configurado):`, e);
+      });
+    });
+  });
 
   console.log('[SeedAcademy] Dados da Academia Web criados com sucesso!');
   console.log('[SeedAcademy] Curso ID:', course.id);
