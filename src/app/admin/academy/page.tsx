@@ -72,12 +72,14 @@ export default function AdminAcademyPage() {
     loadData();
   }, [router]);
 
-  const loadData = async () => {
-    await Promise.all([
-      dataManager.fetchCoursesAsync(),
-      dataManager.fetchModulesAsync(),
-      dataManager.fetchLessonsAsync()
-    ]);
+  const loadData = async (skipServerFetch = false) => {
+    if (!skipServerFetch) {
+      await Promise.all([
+        dataManager.fetchCoursesAsync(),
+        dataManager.fetchModulesAsync(),
+        dataManager.fetchLessonsAsync()
+      ]);
+    }
     setCourses(dataManager.getCourses());
     setModules(dataManager.getModules());
     setLessons(dataManager.getLessons());
@@ -308,7 +310,7 @@ export default function AdminAcademyPage() {
                 onClick={async () => {
                   try {
                     await seedAcademyData();
-                    loadData();
+                    loadData(true);
                     setToast({ show: true, message: 'Dados de exemplo carregados com sucesso!', type: 'success' });
                   } catch (error) {
                     console.error('Erro ao carregar dados:', error);
