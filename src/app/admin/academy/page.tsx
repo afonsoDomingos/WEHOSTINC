@@ -417,6 +417,14 @@ export default function AdminAcademyPage() {
                         <div className="flex items-center space-x-4 text-xs text-gray-500">
                           <span>{courseModules.length} módulos</span>
                           <span>{course.duration}</span>
+                          <span className="flex items-center space-x-1">
+                            <Video className="h-3 w-3" />
+                            <span>{courseModules.filter(m => m.hasVideo).length} vídeos</span>
+                          </span>
+                          <span className="flex items-center space-x-1">
+                            <FileText className="h-3 w-3" />
+                            <span>{courseModules.filter(m => m.hasMaterial).length} materiais</span>
+                          </span>
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
