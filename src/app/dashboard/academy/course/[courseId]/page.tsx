@@ -14,11 +14,17 @@ export default function CourseRedirectPage() {
 
   useEffect(() => {
     const loadAndRedirect = async () => {
-      await Promise.all([
-        dataManager.fetchCoursesAsync(),
-        dataManager.fetchModulesAsync()
-      ]);
+      // Try to load from server first, but fallback to localStorage
+      try {
+        await Promise.all([
+          dataManager.fetchCoursesAsync(),
+          dataManager.fetchModulesAsync()
+        ]);
+      } catch (e) {
+        console.error('Erro ao buscar dados do servidor, usando dados locais:', e);
+      }
 
+      // Always use local data for redirect
       const modules = dataManager.getModules(courseId).sort((a, b) => a.order - b.order);
       if (modules.length > 0) {
         const firstModule = modules[0];

@@ -12,6 +12,7 @@ import Toast from '@/components/Toast';
 export default function DashboardAcademyPage() {
   const router = useRouter();
   const [courses, setCourses] = useState<Course[]>([]);
+  const [modules, setModules] = useState<Module[]>([]);
   const [enrollments, setEnrollments] = useState<CourseEnrollment[]>([]);
   const [progressList, setProgressList] = useState<CourseProgress[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,13 +31,18 @@ export default function DashboardAcademyPage() {
     const user = auth.getCurrentUser();
     if (!user) return;
 
-    await Promise.all([
-      dataManager.fetchCoursesAsync(),
-      dataManager.fetchModulesAsync(),
-      dataManager.fetchLessonsAsync()
-    ]);
+    try {
+      await Promise.all([
+        dataManager.fetchCoursesAsync(),
+        dataManager.fetchModulesAsync(),
+        dataManager.fetchLessonsAsync()
+      ]);
+    } catch (e) {
+      console.error('Erro ao buscar dados do servidor, usando dados locais:', e);
+    }
 
     setCourses(dataManager.getCourses().filter(c => c.active));
+    setModules(dataManager.getModules());
     setEnrollments(dataManager.getEnrollments(user.email));
     setLoading(false);
   };
@@ -113,9 +119,11 @@ export default function DashboardAcademyPage() {
                 if (!course) return null;
 
                 const progress = getCourseProgress(course.id);
+                const totalLessons = getTotalLessons(course.id);
                 const progressPercent = progress 
-                  ? Math.round((progress.completedLessons.length / getTotalLessons(course.id)) * 100)
+                  ? Math.round((progress.completedLessons.length / totalLessons) * 100)
                   : 0;
+                const moduleCount = modules.filter(m => m.courseId === course.id).length;
 
                 return (
                   <div key={enrollment.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition cursor-pointer" onClick={() => handleStartCourse(course.id)}>
@@ -127,6 +135,17 @@ export default function DashboardAcademyPage() {
                     <div className="p-5">
                       <h4 className="font-bold text-gray-900 mb-2">{course.title}</h4>
                       <p className="text-sm text-gray-600 mb-4 line-clamp-2">{course.shortDescription}</p>
+                      
+                      <div className="flex items-center space-x-4 text-xs text-gray-500 mb-4">
+                        <span className="flex items-center space-x-1">
+                          <BookOpen className="h-3 w-3" />
+                          <span>{moduleCount} módulos</span>
+                        </span>
+                        <span className="flex items-center space-x-1">
+                          <Clock className="h-3 w-3" />
+                          <span>{course.duration}</span>
+                        </span>
+                      </div>
                       
                       <div className="mb-4">
                         <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
@@ -174,77 +193,81 @@ export default function DashboardAcademyPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {courses.filter(c => !isEnrolled(c.id)).map((course) => (
-                <div key={course.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition">
-                  {course.thumbnail && (
-                    <div className="h-40 bg-gray-100">
-                      <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover" />
-                    </div>
-                  )}
-                  <div className="p-5">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <h4 className="font-bold text-gray-900">{course.title}</h4>
-                      {course.accessType === 'paid' && (
-                        <span className="flex items-center space-x-1 bg-amber-100 text-amber-800 px-2 py-1 rounded-full text-xs font-medium">
-                          <DollarSign className="h-3 w-3" />
-                          <span>Pago</span>
-                        </span>
-                      )}
-                      {course.accessType === 'free' && (
-                        <span className="flex items-center space-x-1 bg-emerald-100 text-emerald-800 px-2 py-1 rounded-full text-xs font-medium">
-                          <Unlock className="h-3 w-3" />
-                          <span>Gratuito</span>
-                        </span>
-                      )}
-                      {course.accessType === 'preview' && (
-                        <span className="flex items-center space-x-1 bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
-                          <Eye className="h-3 w-3" />
-                          <span>Prévia</span>
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm text-gray-600 mb-4 line-clamp-2">{course.shortDescription}</p>
-                    
-                    <div className="flex items-center space-x-4 text-xs text-gray-500 mb-4">
-                      <span className="flex items-center space-x-1">
-                        <Clock className="h-3 w-3" />
-                        <span>{course.duration}</span>
-                      </span>
-                      <span className="flex items-center space-x-1">
-                        <BookOpen className="h-3 w-3" />
-                        <span>{getModuleCount(course.id)} módulos</span>
-                      </span>
-                    </div>
-
-                    {course.accessType === 'paid' ? (
-                      <div className="mb-4">
-                        <div className="flex items-center justify-between">
-                          <span className="text-lg font-bold text-gray-900">
-                            {course.price?.toLocaleString('pt-MZ')} {course.currency}
-                          </span>
-                        </div>
+              {courses.filter(c => !isEnrolled(c.id)).map((course) => {
+                const moduleCount = modules.filter(m => m.courseId === course.id).length;
+                
+                return (
+                  <div key={course.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition">
+                    {course.thumbnail && (
+                      <div className="h-40 bg-gray-100">
+                        <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover" />
                       </div>
-                    ) : null}
+                    )}
+                    <div className="p-5">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <h4 className="font-bold text-gray-900">{course.title}</h4>
+                        {course.accessType === 'paid' && (
+                          <span className="flex items-center space-x-1 bg-amber-100 text-amber-800 px-2 py-1 rounded-full text-xs font-medium">
+                            <DollarSign className="h-3 w-3" />
+                            <span>Pago</span>
+                          </span>
+                        )}
+                        {course.accessType === 'free' && (
+                          <span className="flex items-center space-x-1 bg-emerald-100 text-emerald-800 px-2 py-1 rounded-full text-xs font-medium">
+                            <Unlock className="h-3 w-3" />
+                            <span>Gratuito</span>
+                          </span>
+                        )}
+                        {course.accessType === 'preview' && (
+                          <span className="flex items-center space-x-1 bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
+                            <Eye className="h-3 w-3" />
+                            <span>Prévia</span>
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-600 mb-4 line-clamp-2">{course.shortDescription}</p>
+                      
+                      <div className="flex items-center space-x-4 text-xs text-gray-500 mb-4">
+                        <span className="flex items-center space-x-1">
+                          <Clock className="h-3 w-3" />
+                          <span>{course.duration}</span>
+                        </span>
+                        <span className="flex items-center space-x-1">
+                          <BookOpen className="h-3 w-3" />
+                          <span>{moduleCount} módulos</span>
+                        </span>
+                      </div>
 
-                    <button
-                      onClick={() => handleEnroll(course)}
-                      className="w-full flex items-center justify-center space-x-2 bg-primary-600 hover:bg-primary-700 text-white py-2 rounded-lg font-medium transition"
-                    >
                       {course.accessType === 'paid' ? (
-                        <>
-                          <DollarSign className="h-4 w-4" />
-                          <span>Comprar</span>
-                        </>
-                      ) : (
-                        <>
-                          <ArrowRight className="h-4 w-4" />
-                          <span>Começar Agora</span>
-                        </>
-                      )}
-                    </button>
+                        <div className="mb-4">
+                          <div className="flex items-center justify-between">
+                            <span className="text-lg font-bold text-gray-900">
+                              {course.price?.toLocaleString('pt-MZ')} {course.currency}
+                            </span>
+                          </div>
+                        </div>
+                      ) : null}
+
+                      <button
+                        onClick={() => handleEnroll(course)}
+                        className="w-full flex items-center justify-center space-x-2 bg-primary-600 hover:bg-primary-700 text-white py-2 rounded-lg font-medium transition"
+                      >
+                        {course.accessType === 'paid' ? (
+                          <>
+                            <DollarSign className="h-4 w-4" />
+                            <span>Comprar</span>
+                          </>
+                        ) : (
+                          <>
+                            <ArrowRight className="h-4 w-4" />
+                            <span>Começar Agora</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </section>
