@@ -60,6 +60,9 @@ export default function ChapterViewPage() {
 
   const getCurrentChapter = () => {
     const chapterIndex = modules.findIndex(m => m.id === chapterId);
+    if (chapterIndex === -1) {
+      return { chapterIndex: -1, module: null };
+    }
     return { chapterIndex, module: modules[chapterIndex] };
   };
 
@@ -121,13 +124,15 @@ export default function ChapterViewPage() {
     if (!currentLessonData) return;
 
     const { module } = getCurrentChapter();
+    if (!module) return;
+
     const moduleLessons = lessons.filter(l => l.moduleId === module.id).sort((a, b) => a.order - b.order);
 
     if (currentLesson < moduleLessons.length - 1) {
       setCurrentLesson(currentLesson + 1);
     } else {
       const { chapterIndex } = getCurrentChapter();
-      if (chapterIndex < modules.length - 1) {
+      if (chapterIndex !== -1 && chapterIndex < modules.length - 1) {
         const nextModule = modules[chapterIndex + 1];
         router.push(`/dashboard/academy/course/${courseId}/chapter/${nextModule.id}`);
       }
@@ -156,17 +161,18 @@ export default function ChapterViewPage() {
   const { chapterIndex, module: currentModule } = getCurrentChapter();
   const currentLessonData = getCurrentLesson();
 
-  if (!currentModule) {
+  if (!currentModule || chapterIndex === -1) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <BookOpen className="h-16 w-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Capítulo não encontrado</h3>
+          <p className="text-gray-600 mb-4">O capítulo solicitado não existe ou foi removido.</p>
           <button
-            onClick={() => router.push(`/dashboard/academy/course/${courseId}`)}
+            onClick={() => router.push('/dashboard/academy')}
             className="text-primary-600 hover:text-primary-700 font-medium"
           >
-            Voltar ao curso
+            Voltar para Academia
           </button>
         </div>
       </div>
