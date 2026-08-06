@@ -32,7 +32,7 @@ const WhatsAppIcon = ({ className = "h-4 w-4" }: { className?: string }) => (
 );
 
 const sendWhatsAppQuote = (type: WebsiteType, domain?: string | null, userName?: string | null) => {
-  const whatsappNumber = '258840000000';
+  const whatsappNumber = '258844384702';
   const domainText = domain ? `\n🌐 *Domínio Desejado:* ${domain}` : '';
   const userText = userName ? `\n👤 *Cliente:* ${userName}` : '';
   

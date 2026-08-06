@@ -31,7 +31,7 @@ const WhatsAppIcon = ({ className = "h-4 w-4" }: { className?: string }) => (
 );
 
 const sendWhatsAppQuote = (type: WebsiteType, domain?: string | null) => {
-  const whatsappNumber = '258840000000';
+  const whatsappNumber = '258844384702';
   const domainText = domain ? `\n🌐 *Domínio Desejado:* ${domain}` : '';
   
   const text = `Olá WEHOSTHERE! 👋\n\nGostaria de solicitar a cotação/desenvolvimento de um site:\n\n💻 *Projeto:* ${type.name}${domainText}\n💰 *Preço Estimado:* ${type.basePrice >= 100000 ? 'Sob orçamento' : `${type.basePrice.toLocaleString('pt-MZ')} MT`}\n⏱️ *Prazo Estimado:* ${type.deliveryDays} dias úteis\n📋 *Recursos Inclusos:*\n${type.examples.slice(0, 4).map(ex => ` • ${ex}`).join('\n')}\n\nPodem ajudar-me a dar início ao projeto?`;
