@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { ArrowLeft, Play, CheckCircle, Circle, Video, FileText, Lock, ChevronDown, ChevronRight, BookOpen } from 'lucide-react';
 import { auth } from '@/lib/auth';
@@ -23,7 +23,7 @@ export default function CourseViewPage() {
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
   const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' | 'info' | 'warning' }>({ show: false, message: '', type: 'success' });
 
-  const loadCourseData = async () => {
+  const loadCourseData = useCallback(async () => {
     const user = auth.getCurrentUser();
     if (!user) return;
 
@@ -55,7 +55,7 @@ export default function CourseViewPage() {
     }
 
     setLoading(false);
-  };
+  }, [courseId, router]);
 
   useEffect(() => {
     const user = auth.getCurrentUser();
@@ -64,7 +64,7 @@ export default function CourseViewPage() {
       return;
     }
     loadCourseData();
-  }, [courseId, router]);
+  }, [courseId, router, loadCourseData]);
 
   const handleCompleteLesson = () => {
     if (!selectedLesson || !course) return;
@@ -92,7 +92,9 @@ export default function CourseViewPage() {
       const currentModuleIndex = modules.findIndex(m => m.id === selectedLesson.moduleId);
       if (currentModuleIndex < modules.length - 1) {
         const nextModule = modules[currentModuleIndex + 1];
-        setExpandedModules(new Set([...expandedModules, nextModule.id]));
+        const newExpanded = new Set(expandedModules);
+        newExpanded.add(nextModule.id);
+        setExpandedModules(newExpanded);
         const nextModuleLessons = lessons.filter(l => l.moduleId === nextModule.id).sort((a, b) => a.order - b.order);
         if (nextModuleLessons.length > 0) {
           setSelectedLesson(nextModuleLessons[0]);
