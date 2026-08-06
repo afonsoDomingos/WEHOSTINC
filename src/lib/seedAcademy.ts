@@ -646,9 +646,22 @@ export async function seedAcademyData() {
   
   let totalLessons = 0;
   createdModules.forEach(mod => {
-    totalLessons += dataManager.getLessons(mod.id).length;
+    const moduleLessons = dataManager.getLessons(mod.id);
+    totalLessons += moduleLessons.length;
+    console.log(`[SeedAcademy] Módulo ${mod.id} tem ${moduleLessons.length} lições`);
   });
   console.log('[SeedAcademy] Total de lições:', totalLessons);
+  
+  // Verificar dados no localStorage
+  if (typeof window !== 'undefined') {
+    const courses = localStorage.getItem('wehosthere_courses');
+    const modules = localStorage.getItem('wehosthere_modules');
+    const lessons = localStorage.getItem('wehosthere_lessons');
+    console.log('[SeedAcademy] Verificação localStorage:');
+    console.log('[SeedAcademy] - Cursos no localStorage:', courses ? JSON.parse(courses).length : 0);
+    console.log('[SeedAcademy] - Módulos no localStorage:', modules ? JSON.parse(modules).length : 0);
+    console.log('[SeedAcademy] - Lições no localStorage:', lessons ? JSON.parse(lessons).length : 0);
+  }
 
   return course;
 }
