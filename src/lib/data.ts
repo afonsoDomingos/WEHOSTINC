@@ -125,6 +125,14 @@ export interface Module {
   title: string;
   description: string;
   objective: string;
+  hasVideo: boolean;
+  videoUrl?: string;
+  videoTitle?: string;
+  videoDescription?: string;
+  hasMaterial: boolean;
+  materialUrl?: string;
+  materialTitle?: string;
+  materialType?: 'pdf' | 'document' | 'link';
   order: number;
   active: boolean;
   createdAt: string;

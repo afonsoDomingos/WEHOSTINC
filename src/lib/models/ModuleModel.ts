@@ -6,6 +6,14 @@ export interface IModule {
   title: string;
   description: string;
   objective: string;
+  hasVideo: boolean;
+  videoUrl?: string;
+  videoTitle?: string;
+  videoDescription?: string;
+  hasMaterial: boolean;
+  materialUrl?: string;
+  materialTitle?: string;
+  materialType?: 'pdf' | 'document' | 'link';
   order: number;
   active: boolean;
   createdAt: string;
@@ -18,6 +26,14 @@ const ModuleSchema = new Schema<IModule>({
   title: { type: String, required: true },
   description: { type: String, required: true },
   objective: { type: String, required: true },
+  hasVideo: { type: Boolean, required: true, default: false },
+  videoUrl: { type: String },
+  videoTitle: { type: String },
+  videoDescription: { type: String },
+  hasMaterial: { type: Boolean, required: true, default: false },
+  materialUrl: { type: String },
+  materialTitle: { type: String },
+  materialType: { type: String, enum: ['pdf', 'document', 'link'] },
   order: { type: Number, required: true },
   active: { type: Boolean, required: true, default: true },
   createdAt: { type: String, required: true },

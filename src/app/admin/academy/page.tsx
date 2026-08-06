@@ -46,6 +46,14 @@ export default function AdminAcademyPage() {
     title: '',
     description: '',
     objective: '',
+    hasVideo: false,
+    videoUrl: '',
+    videoTitle: '',
+    videoDescription: '',
+    hasMaterial: false,
+    materialUrl: '',
+    materialTitle: '',
+    materialType: 'pdf' as 'pdf' | 'document' | 'link',
     active: true
   });
 
@@ -223,6 +231,14 @@ export default function AdminAcademyPage() {
         title: module.title,
         description: module.description,
         objective: module.objective,
+        hasVideo: module.hasVideo || false,
+        videoUrl: module.videoUrl || '',
+        videoTitle: module.videoTitle || '',
+        videoDescription: module.videoDescription || '',
+        hasMaterial: module.hasMaterial || false,
+        materialUrl: module.materialUrl || '',
+        materialTitle: module.materialTitle || '',
+        materialType: module.materialType || 'pdf',
         active: module.active
       });
     } else {
@@ -231,6 +247,14 @@ export default function AdminAcademyPage() {
         title: '',
         description: '',
         objective: '',
+        hasVideo: false,
+        videoUrl: '',
+        videoTitle: '',
+        videoDescription: '',
+        hasMaterial: false,
+        materialUrl: '',
+        materialTitle: '',
+        materialType: 'pdf',
         active: true
       });
     }
@@ -716,6 +740,95 @@ export default function AdminAcademyPage() {
                   rows={2}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
+              </div>
+              <div className="border-t border-gray-200 pt-4">
+                <div className="flex items-center space-x-2 mb-4">
+                  <input
+                    type="checkbox"
+                    id="moduleHasVideo"
+                    checked={moduleForm.hasVideo}
+                    onChange={(e) => setModuleForm({ ...moduleForm, hasVideo: e.target.checked })}
+                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="moduleHasVideo" className="text-sm font-medium text-gray-700">Incluir vídeo</label>
+                </div>
+                {moduleForm.hasVideo && (
+                  <div className="space-y-3 ml-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">URL do Vídeo</label>
+                      <input
+                        type="text"
+                        value={moduleForm.videoUrl}
+                        onChange={(e) => setModuleForm({ ...moduleForm, videoUrl: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Título do Vídeo</label>
+                      <input
+                        type="text"
+                        value={moduleForm.videoTitle}
+                        onChange={(e) => setModuleForm({ ...moduleForm, videoTitle: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Descrição do Vídeo</label>
+                      <textarea
+                        value={moduleForm.videoDescription}
+                        onChange={(e) => setModuleForm({ ...moduleForm, videoDescription: e.target.value })}
+                        rows={2}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="border-t border-gray-200 pt-4">
+                <div className="flex items-center space-x-2 mb-4">
+                  <input
+                    type="checkbox"
+                    id="moduleHasMaterial"
+                    checked={moduleForm.hasMaterial}
+                    onChange={(e) => setModuleForm({ ...moduleForm, hasMaterial: e.target.checked })}
+                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="moduleHasMaterial" className="text-sm font-medium text-gray-700">Incluir material de apoio</label>
+                </div>
+                {moduleForm.hasMaterial && (
+                  <div className="space-y-3 ml-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">URL do Material</label>
+                      <input
+                        type="text"
+                        value={moduleForm.materialUrl}
+                        onChange={(e) => setModuleForm({ ...moduleForm, materialUrl: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Título do Material</label>
+                      <input
+                        type="text"
+                        value={moduleForm.materialTitle}
+                        onChange={(e) => setModuleForm({ ...moduleForm, materialTitle: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de Material</label>
+                      <select
+                        value={moduleForm.materialType}
+                        onChange={(e) => setModuleForm({ ...moduleForm, materialType: e.target.value as 'pdf' | 'document' | 'link' })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      >
+                        <option value="pdf">PDF</option>
+                        <option value="document">Documento</option>
+                        <option value="link">Link</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
               </div>
               <div className="flex items-center space-x-2">
                 <input
