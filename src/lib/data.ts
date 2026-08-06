@@ -2321,6 +2321,37 @@ export const dataManager = {
     return progress.find((p: CourseProgress) => p.userId === userId && p.courseId === courseId) || null;
   },
 
+  fetchCourseProgressAsync: async (userId: string, courseId: string): Promise<CourseProgress | null> => {
+    try {
+      const res = await fetch(apiEndpoint(`/api/course-progress?userId=${userId}&courseId=${courseId}`));
+      if (res.ok) {
+        const data = await res.json();
+        if (data.progress && Array.isArray(data.progress) && data.progress.length > 0) {
+          const serverProgress = data.progress[0];
+          
+          // Update localStorage with server data
+          if (typeof window !== 'undefined') {
+            const localData = localStorage.getItem('wehosthere_course_progress');
+            const localProgress = localData ? JSON.parse(localData) : [];
+            const existingIndex = localProgress.findIndex((p: CourseProgress) => p.userId === userId && p.courseId === courseId);
+            
+            if (existingIndex !== -1) {
+              localProgress[existingIndex] = serverProgress;
+            } else {
+              localProgress.push(serverProgress);
+            }
+            localStorage.setItem('wehosthere_course_progress', JSON.stringify(localProgress));
+          }
+          
+          return serverProgress;
+        }
+      }
+    } catch (e) {
+      console.error('Falha ao buscar progresso do servidor:', e);
+    }
+    return dataManager.getCourseProgress(userId, courseId);
+  },
+
   updateCourseProgress: (userId: string, courseId: string, lessonId: string, moduleId?: string): CourseProgress => {
     const data = localStorage.getItem('wehosthere_course_progress');
     const progressList = data ? JSON.parse(data) : [];
@@ -2359,7 +2390,16 @@ export const dataManager = {
       fetch(apiEndpoint('/api/course-progress'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'update', progress })
+        body: JSON.stringify({ 
+          action: 'complete_lesson', 
+          progress: {
+            userId,
+            courseId,
+            lessonId,
+            currentLessonId: lessonId,
+            currentModuleId: moduleId
+          }
+        })
       }).catch(err => console.error('Erro de sync de progress no servidor:', err));
     }
     

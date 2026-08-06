@@ -45,7 +45,10 @@ export default function ChapterViewPage() {
     setCourse(courseData);
     setModules(dataManager.getModules(courseId).sort((a, b) => a.order - b.order));
     setLessons(dataManager.getLessons());
-    setProgress(dataManager.getCourseProgress(user.email, courseId));
+    
+    // Fetch progress from server
+    const serverProgress = await dataManager.fetchCourseProgressAsync(user.email, courseId);
+    setProgress(serverProgress);
 
     setLoading(false);
   }, [courseId, router]);
