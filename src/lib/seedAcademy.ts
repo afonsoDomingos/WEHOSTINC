@@ -28,6 +28,19 @@ export async function seedAcademyData() {
 
   // Salvar no localStorage
   const course = dataManager.createCourse(courseData);
+  console.log('[SeedAcademy] Curso criado no localStorage:', course.id);
+
+  // Salvar no servidor (MongoDB)
+  try {
+    await fetch('/api/courses', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'create', course: courseData })
+    });
+    console.log('[SeedAcademy] Curso salvo no servidor');
+  } catch (e) {
+    console.error('[SeedAcademy] Erro ao salvar curso no servidor:', e);
+  }
 
   // Criar módulos
   const modules = [
@@ -112,14 +125,25 @@ export async function seedAcademyData() {
   ];
 
   const createdModules = modules.map((mod, index) => {
-    const courseModule = dataManager.createModule({
+    const moduleData = {
       courseId: course.id,
       ...mod,
       hasVideo: false,
       hasMaterial: false,
       active: true
-    });
-    console.log(`[SeedAcademy] Módulo ${index + 1} criado:`, courseModule.id);
+    };
+    
+    const courseModule = dataManager.createModule(moduleData);
+    console.log(`[SeedAcademy] Módulo ${index + 1} criado no localStorage:`, courseModule.id);
+    
+    // Salvar no servidor
+    fetch('/api/modules', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'create', module: moduleData })
+    }).then(() => console.log(`[SeedAcademy] Módulo ${index + 1} salvo no servidor`))
+      .catch(e => console.error(`[SeedAcademy] Erro ao salvar módulo ${index + 1} no servidor:`, e));
+    
     return courseModule;
   });
 
@@ -571,12 +595,22 @@ export async function seedAcademyData() {
   lessonsData.forEach((moduleLessons, moduleIndex) => {
     const courseModule = createdModules[moduleIndex];
     moduleLessons.forEach((lessonData, lessonIndex) => {
-      const lesson = dataManager.createLesson({
+      const lessonDataWithModule = {
         moduleId: courseModule.id,
         ...lessonData,
         active: true
-      });
-      console.log(`[SeedAcademy] Lição ${lessonIndex + 1} do módulo ${moduleIndex + 1} criada:`, lesson.id);
+      };
+      
+      const lesson = dataManager.createLesson(lessonDataWithModule);
+      console.log(`[SeedAcademy] Lição ${lessonIndex + 1} do módulo ${moduleIndex + 1} criada no localStorage:`, lesson.id);
+      
+      // Salvar no servidor
+      fetch('/api/lessons', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'create', lesson: lessonDataWithModule })
+      }).then(() => console.log(`[SeedAcademy] Lição ${lessonIndex + 1} do módulo ${moduleIndex + 1} salva no servidor`))
+        .catch(e => console.error(`[SeedAcademy] Erro ao salvar lição ${lessonIndex + 1} do módulo ${moduleIndex + 1} no servidor:`, e));
     });
   });
 
