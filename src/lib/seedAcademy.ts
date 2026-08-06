@@ -1,8 +1,4 @@
 import { dataManager, Course, Module, Lesson } from '@/lib/data';
-import { connectDB } from '@/lib/mongodb';
-import { CourseModel } from '@/lib/models/CourseModel';
-import { ModuleModel } from '@/lib/models/ModuleModel';
-import { LessonModel } from '@/lib/models/LessonModel';
 
 export async function seedAcademyData() {
   console.log('[SeedAcademy] A criar dados iniciais da Academia Web...');
@@ -15,21 +11,6 @@ export async function seedAcademyData() {
     localStorage.removeItem('wehosthere_course_enrollments');
     localStorage.removeItem('wehosthere_course_progress');
     console.log('[SeedAcademy] Dados antigos limpos do localStorage');
-  }
-
-  // Limpar dados do MongoDB
-  try {
-    await connectDB();
-    console.log('[SeedAcademy] Conectado ao MongoDB');
-    
-    // Limpar dados existentes
-    await CourseModel.deleteMany({});
-    await ModuleModel.deleteMany({});
-    await LessonModel.deleteMany({});
-    console.log('[SeedAcademy] Dados antigos limpos do MongoDB');
-  } catch (error) {
-    console.error('[SeedAcademy] Erro ao conectar ao MongoDB:', error);
-    // Continuar com localStorage se MongoDB falhar
   }
 
   // Criar o curso principal
@@ -45,25 +26,8 @@ export async function seedAcademyData() {
     active: true
   };
 
-  // Salvar no MongoDB
-  let course: Course;
-  try {
-    const newCourse = new CourseModel({
-      ...courseData,
-      id: `COURSE-${Math.floor(1000 + Math.random() * 9000)}`,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    });
-    await newCourse.save();
-    course = newCourse.toObject() as Course;
-    console.log('[SeedAcademy] Curso salvo no MongoDB:', course.id);
-  } catch (error) {
-    console.error('[SeedAcademy] Erro ao salvar curso no MongoDB, usando localStorage:', error);
-    course = dataManager.createCourse(courseData);
-  }
-
-  // Salvar no localStorage também
-  dataManager.createCourse(courseData);
+  // Salvar no localStorage
+  const course = dataManager.createCourse(courseData);
 
   // Criar módulos
   const modules = [
@@ -147,34 +111,17 @@ export async function seedAcademyData() {
     }
   ];
 
-  const createdModules = await Promise.all(modules.map(async (mod, index) => {
-    const moduleData = {
+  const createdModules = modules.map((mod, index) => {
+    const courseModule = dataManager.createModule({
       courseId: course.id,
       ...mod,
+      hasVideo: false,
+      hasMaterial: false,
       active: true
-    };
-
-    let courseModule: Module;
-    try {
-      const newModule = new ModuleModel({
-        ...moduleData,
-        id: `MODULE-${Math.floor(1000 + Math.random() * 9000)}`,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      });
-      await newModule.save();
-      courseModule = newModule.toObject() as Module;
-      console.log(`[SeedAcademy] Módulo ${index + 1} salvo no MongoDB:`, courseModule.id);
-    } catch (error) {
-      console.error(`[SeedAcademy] Erro ao salvar módulo ${index + 1} no MongoDB, usando localStorage:`, error);
-      courseModule = dataManager.createModule(moduleData);
-    }
-
-    // Salvar no localStorage também
-    dataManager.createModule(moduleData);
-    
+    });
+    console.log(`[SeedAcademy] Módulo ${index + 1} criado:`, courseModule.id);
     return courseModule;
-  }));
+  });
 
   // Criar lições para cada módulo
   const lessonsData = [
@@ -621,35 +568,17 @@ export async function seedAcademyData() {
     ]
   ];
 
-  await Promise.all(lessonsData.map(async (moduleLessons, moduleIndex) => {
+  lessonsData.forEach((moduleLessons, moduleIndex) => {
     const courseModule = createdModules[moduleIndex];
-    await Promise.all(moduleLessons.map(async (lessonData, lessonIndex) => {
-      const lessonDataWithModule = {
+    moduleLessons.forEach((lessonData, lessonIndex) => {
+      const lesson = dataManager.createLesson({
         moduleId: courseModule.id,
         ...lessonData,
         active: true
-      };
-
-      let lesson: Lesson;
-      try {
-        const newLesson = new LessonModel({
-          ...lessonDataWithModule,
-          id: `LESSON-${Math.floor(1000 + Math.random() * 9000)}`,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        });
-        await newLesson.save();
-        lesson = newLesson.toObject() as Lesson;
-        console.log(`[SeedAcademy] Lição ${lessonIndex + 1} do módulo ${moduleIndex + 1} salva no MongoDB:`, lesson.id);
-      } catch (error) {
-        console.error(`[SeedAcademy] Erro ao salvar lição ${lessonIndex + 1} do módulo ${moduleIndex + 1} no MongoDB, usando localStorage:`, error);
-        lesson = dataManager.createLesson(lessonDataWithModule);
-      }
-
-      // Salvar no localStorage também
-      dataManager.createLesson(lessonDataWithModule);
-    }));
-  }));
+      });
+      console.log(`[SeedAcademy] Lição ${lessonIndex + 1} do módulo ${moduleIndex + 1} criada:`, lesson.id);
+    });
+  });
 
   console.log('[SeedAcademy] Dados da Academia Web criados com sucesso!');
   console.log('[SeedAcademy] Curso ID:', course.id);
