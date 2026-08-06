@@ -67,6 +67,18 @@ export async function seedAcademyData() {
       description: 'Estratégias de lançamento e métricas',
       objective: 'Lançar e monitorar o desempenho da página',
       order: 8
+    },
+    {
+      title: 'Estratégias de Tráfego',
+      description: 'Como atrair visitantes qualificados para sua página',
+      objective: 'Implementar estratégias de aquisição de tráfego',
+      order: 9
+    },
+    {
+      title: 'Escalabilidade e Crescimento',
+      description: 'Como escalar suas páginas de vendas e maximizar resultados',
+      objective: 'Estratégias para crescimento contínuo',
+      order: 10
     }
   ];
 
@@ -237,6 +249,56 @@ export async function seedAcademyData() {
         hasMaterial: true,
         materialUrl: 'https://example.com/dashboard-metricas.pdf',
         materialTitle: 'Template de Dashboard',
+        materialType: 'pdf' as const,
+        order: 2
+      }
+    ],
+    // Módulo 9
+    [
+      {
+        title: 'Tráfego Orgânico e SEO',
+        content: 'Estratégias de SEO para páginas de vendas:\n\n**Otimização On-Page:**\n- Palavras-chave estratégicas\n- Meta tags otimizadas\n- Estrutura de headings\n- Conteúdo de qualidade\n- Velocidade de carregamento\n\n**SEO Técnico:**\n- Sitemap XML\n- Robots.txt\n- Canonical tags\n- Estrutura de URLs\n- Mobile-first indexing\n\n**Link Building:**\n- Backlinks de qualidade\n- Guest posting\n- Parcerias estratégicas\n- Conteúdo compartilhável\n\n**Ferramentas SEO:**\n- Google Search Console\n- Ahrefs\n- SEMrush\n- Moz',
+        hasVideo: true,
+        videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+        videoTitle: 'SEO para Páginas de Vendas',
+        hasMaterial: true,
+        materialUrl: 'https://example.com/checklist-seo.pdf',
+        materialTitle: 'Checklist de SEO',
+        materialType: 'pdf' as const,
+        order: 1
+      },
+      {
+        title: 'Tráfego Pago: Google Ads',
+        content: 'Google Ads para páginas de vendas:\n\n**Configuração de Campanhas:**\n- Seleção de objetivos\n- Segmentação de público\n- Configuração de orçamento\n- Estrutura de grupos de anúncios\n\n**Criar Anúncios Eficazes:**\n- Headlines persuasivas\n- Descrições atrativas\n- Extensões de anúncios\n- Testes A/B\n\n**Otimização:**\n- Taxa de cliques (CTR)\n- Taxa de conversão\n- Custo por clique (CPC)\n- Quality Score\n\n**Remarketing:**\n- Configurar pixel\n- Segmentar visitantes\n- Criar campanhas de remarketing\n- Otimizar para conversões',
+        hasVideo: false,
+        hasMaterial: true,
+        materialUrl: 'https://example.com/guia-google-ads.pdf',
+        materialTitle: 'Guia de Google Ads',
+        materialType: 'pdf' as const,
+        order: 2
+      }
+    ],
+    // Módulo 10
+    [
+      {
+        title: 'Estratégias de Escalabilidade',
+        content: 'Como escalar suas páginas de vendas:\n\n**Testar e Otimizar:**\n- A/B testing contínuo\n- Análise de dados\n- Feedback de usuários\n- Iteração constante\n\n**Expandir Canais:**\n- Múltiplas plataformas\n- Diferentes formatos\n- Novos públicos\n- Mercados geográficos\n\n**Automatizar Processos:**\n- Automação de marketing\n- CRM integrado\n- Funis de vendas\n- Sequências de email\n\n**Diversificar Ofertas:**\n- Upselling e cross-selling\n- Produtos complementares\n- Programas de fidelidade\n- Parcerias estratégicas',
+        hasVideo: true,
+        videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+        videoTitle: 'Estratégias de Escalabilidade',
+        hasMaterial: true,
+        materialUrl: 'https://example.com/plano-escalabilidade.pdf',
+        materialTitle: 'Plano de Escalabilidade',
+        materialType: 'pdf' as const,
+        order: 1
+      },
+      {
+        title: 'Análise de Dados e Tomada de Decisões',
+        content: 'Data-driven para crescimento:\n\n**KPIs Essenciais:**\n- Custo de aquisição\n- Valor do cliente\n- LTV/CAC ratio\n- Taxa de retenção\n\n**Ferramentas de Análise:**\n- Google Analytics 4\n- Mixpanel\n- Amplitude\n- Tableau\n\n**Interpretação de Dados:**\n- Identificar tendências\n- Detectar oportunidades\n- Reconhecer problemas\n- Prever comportamentos\n\n**Tomada de Decisões:**\n- Baseada em dados\n- Testar hipóteses\n- Validar resultados\n- Ajustar estratégias',
+        hasVideo: false,
+        hasMaterial: true,
+        materialUrl: 'https://example.com/dashboard-kpis.pdf',
+        materialTitle: 'Dashboard de KPIs',
         materialType: 'pdf' as const,
         order: 2
       }
