@@ -28,30 +28,53 @@ export default function ChapterViewPage() {
 
   const loadCourseData = useCallback(async () => {
     const user = auth.getCurrentUser();
-    if (!user) return;
+    if (!user) {
+      console.error('[ChapterView] Usuário não autenticado');
+      return;
+    }
 
-    await Promise.all([
-      dataManager.fetchCoursesAsync(),
-      dataManager.fetchModulesAsync(),
-      dataManager.fetchLessonsAsync()
-    ]);
+    console.log('[ChapterView] Carregando dados do curso:', courseId);
+    console.log('[ChapterView] Chapter ID:', chapterId);
+
+    try {
+      await Promise.all([
+        dataManager.fetchCoursesAsync(),
+        dataManager.fetchModulesAsync(),
+        dataManager.fetchLessonsAsync()
+      ]);
+    } catch (e) {
+      console.error('[ChapterView] Erro ao buscar dados do servidor, usando dados locais:', e);
+    }
 
     const courseData = dataManager.getCourses().find(c => c.id === courseId);
+    console.log('[ChapterView] Curso encontrado:', courseData?.title);
+    
     if (!courseData) {
+      console.error('[ChapterView] Curso não encontrado, redirecionando para academy');
       router.push('/dashboard/academy');
       return;
     }
 
+    const courseModules = dataManager.getModules(courseId).sort((a, b) => a.order - b.order);
+    console.log('[ChapterView] Módulos encontrados:', courseModules.length);
+    
     setCourse(courseData);
-    setModules(dataManager.getModules(courseId).sort((a, b) => a.order - b.order));
+    setModules(courseModules);
     setLessons(dataManager.getLessons());
     
     // Fetch progress from server
-    const serverProgress = await dataManager.fetchCourseProgressAsync(user.email, courseId);
-    setProgress(serverProgress);
+    try {
+      const serverProgress = await dataManager.fetchCourseProgressAsync(user.email, courseId);
+      console.log('[ChapterView] Progresso do servidor:', serverProgress);
+      setProgress(serverProgress);
+    } catch (e) {
+      console.error('[ChapterView] Erro ao buscar progresso, usando local:', e);
+      const localProgress = dataManager.getCourseProgress(user.email, courseId);
+      setProgress(localProgress);
+    }
 
     setLoading(false);
-  }, [courseId, router]);
+  }, [courseId, chapterId, router]);
 
   useEffect(() => {
     const user = auth.getCurrentUser();
