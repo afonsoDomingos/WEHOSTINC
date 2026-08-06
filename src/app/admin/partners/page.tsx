@@ -36,7 +36,7 @@ export default function AdminPartnersPage() {
     }
 
     loadPartners();
-  }, []);
+  }, [router]);
 
   const loadPartners = async () => {
     await dataManager.fetchPartnersAsync();

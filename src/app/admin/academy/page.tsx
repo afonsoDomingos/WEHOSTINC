@@ -70,7 +70,7 @@ export default function AdminAcademyPage() {
       return;
     }
     loadData();
-  }, []);
+  }, [router]);
 
   const loadData = async () => {
     await Promise.all([
