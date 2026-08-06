@@ -2120,6 +2120,7 @@ export const dataManager = {
     } catch (e) {
       console.error('Falha ao buscar courses:', e);
     }
+    // Se falhar, retorna dados do localStorage (que podem vir do seed)
     return dataManager.getCourses();
   },
 
@@ -2199,6 +2200,7 @@ export const dataManager = {
     } catch (e) {
       console.error('Falha ao buscar modules:', e);
     }
+    // Se falhar, retorna dados do localStorage (que podem vir do seed)
     return dataManager.getModules();
   },
 
@@ -2278,6 +2280,7 @@ export const dataManager = {
     } catch (e) {
       console.error('Falha ao buscar lessons:', e);
     }
+    // Se falhar, retorna dados do localStorage (que podem vir do seed)
     return dataManager.getLessons();
   },
 
