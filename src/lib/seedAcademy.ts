@@ -3,6 +3,16 @@ import { dataManager, Course, Module, Lesson } from '@/lib/data';
 export async function seedAcademyData() {
   console.log('A criar dados iniciais da Academia Web...');
 
+  // Limpar dados existentes para evitar duplicatas
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('wehosthere_courses');
+    localStorage.removeItem('wehosthere_modules');
+    localStorage.removeItem('wehosthere_lessons');
+    localStorage.removeItem('wehosthere_course_enrollments');
+    localStorage.removeItem('wehosthere_course_progress');
+    console.log('Dados antigos limpos do localStorage');
+  }
+
   // Criar o curso principal
   const course = dataManager.createCourse({
     title: 'Criação de Página de Vendas Profissional',
