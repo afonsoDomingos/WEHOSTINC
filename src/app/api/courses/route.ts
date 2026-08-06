@@ -15,44 +15,69 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('[API Courses] Iniciando POST request');
     await connectDB();
+    console.log('[API Courses] Conectado ao MongoDB');
+    
     const body = await request.json();
+    console.log('[API Courses] Body recebido:', JSON.stringify(body, null, 2));
+    
     const { action, course, courseId } = body;
 
     if (action === 'create' && course) {
+      console.log('[API Courses] Criando novo curso:', course);
+      
       const newCourse = new CourseModel({
         ...course,
         id: `COURSE-${Math.floor(1000 + Math.random() * 9000)}`,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       });
+      
+      console.log('[API Courses] Salvando curso no MongoDB...');
       await newCourse.save();
+      console.log('[API Courses] Curso salvo com sucesso:', newCourse.id);
+      
       return NextResponse.json({ course: newCourse });
     }
 
     if (action === 'update' && course) {
+      console.log('[API Courses] Atualizando curso:', course.id);
+      
       const updated = await CourseModel.findOneAndUpdate(
         { id: course.id },
         { ...course, updatedAt: new Date().toISOString() },
         { new: true }
       );
+      
       if (!updated) {
+        console.error('[API Courses] Curso não encontrado para atualização:', course.id);
         return NextResponse.json({ error: 'Curso não encontrado' }, { status: 404 });
       }
+      
+      console.log('[API Courses] Curso atualizado com sucesso');
       return NextResponse.json({ course: updated });
     }
 
     if (action === 'delete' && courseId) {
+      console.log('[API Courses] Deletando curso:', courseId);
+      
       const deleted = await CourseModel.findOneAndDelete({ id: courseId });
+      
       if (!deleted) {
+        console.error('[API Courses] Curso não encontrado para deleção:', courseId);
         return NextResponse.json({ error: 'Curso não encontrado' }, { status: 404 });
       }
+      
+      console.log('[API Courses] Curso deletado com sucesso');
       return NextResponse.json({ success: true });
     }
 
+    console.error('[API Courses] Ação inválida:', action);
     return NextResponse.json({ error: 'Ação inválida' }, { status: 400 });
   } catch (error) {
-    console.error('Erro ao processar requisição:', error);
-    return NextResponse.json({ error: 'Erro ao processar requisição' }, { status: 500 });
+    console.error('[API Courses] Erro ao processar requisição:', error);
+    console.error('[API Courses] Stack trace:', error instanceof Error ? error.stack : 'No stack trace');
+    return NextResponse.json({ error: 'Erro ao processar requisição', details: error instanceof Error ? error.message : 'Unknown error' }, { status: 500 });
   }
 }

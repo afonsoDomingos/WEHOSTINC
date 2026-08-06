@@ -23,44 +23,69 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('[API Lessons] Iniciando POST request');
     await connectDB();
+    console.log('[API Lessons] Conectado ao MongoDB');
+    
     const body = await request.json();
+    console.log('[API Lessons] Body recebido:', JSON.stringify(body, null, 2));
+    
     const { action, lesson, lessonId } = body;
 
     if (action === 'create' && lesson) {
+      console.log('[API Lessons] Criando nova lição:', lesson);
+      
       const newLesson = new LessonModel({
         ...lesson,
         id: `LESSON-${Math.floor(1000 + Math.random() * 9000)}`,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       });
+      
+      console.log('[API Lessons] Salvando lição no MongoDB...');
       await newLesson.save();
+      console.log('[API Lessons] Lição salva com sucesso:', newLesson.id);
+      
       return NextResponse.json({ lesson: newLesson });
     }
 
     if (action === 'update' && lesson) {
+      console.log('[API Lessons] Atualizando lição:', lesson.id);
+      
       const updated = await LessonModel.findOneAndUpdate(
         { id: lesson.id },
         { ...lesson, updatedAt: new Date().toISOString() },
         { new: true }
       );
+      
       if (!updated) {
+        console.error('[API Lessons] Lição não encontrada para atualização:', lesson.id);
         return NextResponse.json({ error: 'Lição não encontrada' }, { status: 404 });
       }
+      
+      console.log('[API Lessons] Lição atualizada com sucesso');
       return NextResponse.json({ lesson: updated });
     }
 
     if (action === 'delete' && lessonId) {
+      console.log('[API Lessons] Deletando lição:', lessonId);
+      
       const deleted = await LessonModel.findOneAndDelete({ id: lessonId });
+      
       if (!deleted) {
+        console.error('[API Lessons] Lição não encontrada para deleção:', lessonId);
         return NextResponse.json({ error: 'Lição não encontrada' }, { status: 404 });
       }
+      
+      console.log('[API Lessons] Lição deletada com sucesso');
       return NextResponse.json({ success: true });
     }
 
+    console.error('[API Lessons] Ação inválida:', action);
     return NextResponse.json({ error: 'Ação inválida' }, { status: 400 });
   } catch (error) {
-    console.error('Erro ao processar requisição:', error);
-    return NextResponse.json({ error: 'Erro ao processar requisição' }, { status: 500 });
+    console.error('[API Lessons] Erro ao processar requisição:', error);
+    console.error('[API Lessons] Stack trace:', error instanceof Error ? error.stack : 'No stack trace');
+    return NextResponse.json({ error: 'Erro ao processar requisição', details: error instanceof Error ? error.message : 'Unknown error' }, { status: 500 });
   }
 }
