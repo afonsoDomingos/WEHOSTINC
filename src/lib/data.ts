@@ -101,6 +101,78 @@ export interface Partner {
   updatedAt: string;
 }
 
+// Academy/Course Management
+export interface Course {
+  id: string;
+  title: string;
+  description: string;
+  shortDescription: string;
+  duration: string;
+  outcome: string;
+  thumbnail?: string;
+  accessType: 'free' | 'paid' | 'preview';
+  price?: number;
+  currency?: string;
+  order: number;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Module {
+  id: string;
+  courseId: string;
+  title: string;
+  description: string;
+  objective: string;
+  order: number;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Lesson {
+  id: string;
+  moduleId: string;
+  title: string;
+  content: string;
+  hasVideo: boolean;
+  videoUrl?: string;
+  videoTitle?: string;
+  videoDescription?: string;
+  hasMaterial: boolean;
+  materialUrl?: string;
+  materialTitle?: string;
+  materialType?: 'pdf' | 'document' | 'link';
+  order: number;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CourseProgress {
+  id: string;
+  userId: string;
+  courseId: string;
+  completedLessons: string[];
+  currentModuleId?: string;
+  currentLessonId?: string;
+  completedAt?: string;
+  lastAccessedAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CourseEnrollment {
+  id: string;
+  userId: string;
+  courseId: string;
+  status: 'active' | 'completed' | 'cancelled';
+  enrolledAt: string;
+  completedAt?: string;
+  paymentId?: string;
+}
+
 export interface SystemRating {
   id: string;
   systemId: string;
@@ -2003,6 +2075,331 @@ export const dataManager = {
       }).catch(err => console.error('Erro de sync de commission no servidor:', err));
     }
     return true;
+  },
+
+  // Academy/Course Management
+  getCourses: (): Course[] => {
+    if (typeof window === 'undefined') return [];
+    const data = localStorage.getItem('wehosthere_courses');
+    return data ? JSON.parse(data) : [];
+  },
+
+  fetchCoursesAsync: async (): Promise<Course[]> => {
+    try {
+      const res = await fetch(apiEndpoint('/api/courses'));
+      if (res.ok) {
+        const data = await res.json();
+        if (data.courses && Array.isArray(data.courses)) {
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('wehosthere_courses', JSON.stringify(data.courses));
+          }
+          return data.courses;
+        }
+      }
+    } catch (e) {
+      console.error('Falha ao buscar courses:', e);
+    }
+    return dataManager.getCourses();
+  },
+
+  createCourse: (course: Omit<Course, 'id' | 'createdAt' | 'updatedAt'>): Course => {
+    const courses = dataManager.getCourses();
+    const now = new Date().toISOString();
+    const newCourse: Course = {
+      ...course,
+      id: `COURSE-${Math.floor(1000 + Math.random() * 9000)}`,
+      createdAt: now,
+      updatedAt: now
+    };
+    courses.unshift(newCourse);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('wehosthere_courses', JSON.stringify(courses));
+      fetch(apiEndpoint('/api/courses'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'create', course: newCourse })
+      }).catch(err => console.error('Erro de sync de course no servidor:', err));
+    }
+    return newCourse;
+  },
+
+  updateCourse: (id: string, updates: Partial<Course>): boolean => {
+    const courses = dataManager.getCourses();
+    const index = courses.findIndex((c: Course) => c.id === id);
+    if (index === -1) return false;
+    courses[index] = { ...courses[index], ...updates, updatedAt: new Date().toISOString() };
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('wehosthere_courses', JSON.stringify(courses));
+      fetch(apiEndpoint('/api/courses'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update', course: courses[index] })
+      }).catch(err => console.error('Erro de sync de course no servidor:', err));
+    }
+    return true;
+  },
+
+  deleteCourse: (id: string): boolean => {
+    const courses = dataManager.getCourses();
+    const index = courses.findIndex((c: Course) => c.id === id);
+    if (index === -1) return false;
+    courses.splice(index, 1);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('wehosthere_courses', JSON.stringify(courses));
+      fetch(apiEndpoint('/api/courses'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete', courseId: id })
+      }).catch(err => console.error('Erro de sync de course no servidor:', err));
+    }
+    return true;
+  },
+
+  // Module methods
+  getModules: (courseId?: string): Module[] => {
+    if (typeof window === 'undefined') return [];
+    const data = localStorage.getItem('wehosthere_modules');
+    const modules = data ? JSON.parse(data) : [];
+    return courseId ? modules.filter((m: Module) => m.courseId === courseId) : modules;
+  },
+
+  fetchModulesAsync: async (): Promise<Module[]> => {
+    try {
+      const res = await fetch(apiEndpoint('/api/modules'));
+      if (res.ok) {
+        const data = await res.json();
+        if (data.modules && Array.isArray(data.modules)) {
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('wehosthere_modules', JSON.stringify(data.modules));
+          }
+          return data.modules;
+        }
+      }
+    } catch (e) {
+      console.error('Falha ao buscar modules:', e);
+    }
+    return dataManager.getModules();
+  },
+
+  createModule: (module: Omit<Module, 'id' | 'createdAt' | 'updatedAt'>): Module => {
+    const modules = dataManager.getModules();
+    const now = new Date().toISOString();
+    const newModule: Module = {
+      ...module,
+      id: `MODULE-${Math.floor(1000 + Math.random() * 9000)}`,
+      createdAt: now,
+      updatedAt: now
+    };
+    modules.unshift(newModule);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('wehosthere_modules', JSON.stringify(modules));
+      fetch(apiEndpoint('/api/modules'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'create', module: newModule })
+      }).catch(err => console.error('Erro de sync de module no servidor:', err));
+    }
+    return newModule;
+  },
+
+  updateModule: (id: string, updates: Partial<Module>): boolean => {
+    const modules = dataManager.getModules();
+    const index = modules.findIndex((m: Module) => m.id === id);
+    if (index === -1) return false;
+    modules[index] = { ...modules[index], ...updates, updatedAt: new Date().toISOString() };
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('wehosthere_modules', JSON.stringify(modules));
+      fetch(apiEndpoint('/api/modules'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update', module: modules[index] })
+      }).catch(err => console.error('Erro de sync de module no servidor:', err));
+    }
+    return true;
+  },
+
+  deleteModule: (id: string): boolean => {
+    const modules = dataManager.getModules();
+    const index = modules.findIndex((m: Module) => m.id === id);
+    if (index === -1) return false;
+    modules.splice(index, 1);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('wehosthere_modules', JSON.stringify(modules));
+      fetch(apiEndpoint('/api/modules'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete', moduleId: id })
+      }).catch(err => console.error('Erro de sync de module no servidor:', err));
+    }
+    return true;
+  },
+
+  // Lesson methods
+  getLessons: (moduleId?: string): Lesson[] => {
+    if (typeof window === 'undefined') return [];
+    const data = localStorage.getItem('wehosthere_lessons');
+    const lessons = data ? JSON.parse(data) : [];
+    return moduleId ? lessons.filter((l: Lesson) => l.moduleId === moduleId) : lessons;
+  },
+
+  fetchLessonsAsync: async (): Promise<Lesson[]> => {
+    try {
+      const res = await fetch(apiEndpoint('/api/lessons'));
+      if (res.ok) {
+        const data = await res.json();
+        if (data.lessons && Array.isArray(data.lessons)) {
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('wehosthere_lessons', JSON.stringify(data.lessons));
+          }
+          return data.lessons;
+        }
+      }
+    } catch (e) {
+      console.error('Falha ao buscar lessons:', e);
+    }
+    return dataManager.getLessons();
+  },
+
+  createLesson: (lesson: Omit<Lesson, 'id' | 'createdAt' | 'updatedAt'>): Lesson => {
+    const lessons = dataManager.getLessons();
+    const now = new Date().toISOString();
+    const newLesson: Lesson = {
+      ...lesson,
+      id: `LESSON-${Math.floor(1000 + Math.random() * 9000)}`,
+      createdAt: now,
+      updatedAt: now
+    };
+    lessons.unshift(newLesson);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('wehosthere_lessons', JSON.stringify(lessons));
+      fetch(apiEndpoint('/api/lessons'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'create', lesson: newLesson })
+      }).catch(err => console.error('Erro de sync de lesson no servidor:', err));
+    }
+    return newLesson;
+  },
+
+  updateLesson: (id: string, updates: Partial<Lesson>): boolean => {
+    const lessons = dataManager.getLessons();
+    const index = lessons.findIndex((l: Lesson) => l.id === id);
+    if (index === -1) return false;
+    lessons[index] = { ...lessons[index], ...updates, updatedAt: new Date().toISOString() };
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('wehosthere_lessons', JSON.stringify(lessons));
+      fetch(apiEndpoint('/api/lessons'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update', lesson: lessons[index] })
+      }).catch(err => console.error('Erro de sync de lesson no servidor:', err));
+    }
+    return true;
+  },
+
+  deleteLesson: (id: string): boolean => {
+    const lessons = dataManager.getLessons();
+    const index = lessons.findIndex((l: Lesson) => l.id === id);
+    if (index === -1) return false;
+    lessons.splice(index, 1);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('wehosthere_lessons', JSON.stringify(lessons));
+      fetch(apiEndpoint('/api/lessons'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete', lessonId: id })
+      }).catch(err => console.error('Erro de sync de lesson no servidor:', err));
+    }
+    return true;
+  },
+
+  // Course Progress methods
+  getCourseProgress: (userId: string, courseId: string): CourseProgress | null => {
+    if (typeof window === 'undefined') return null;
+    const data = localStorage.getItem('wehosthere_course_progress');
+    const progress = data ? JSON.parse(data) : [];
+    return progress.find((p: CourseProgress) => p.userId === userId && p.courseId === courseId) || null;
+  },
+
+  updateCourseProgress: (userId: string, courseId: string, lessonId: string, moduleId?: string): CourseProgress => {
+    const data = localStorage.getItem('wehosthere_course_progress');
+    const progressList = data ? JSON.parse(data) : [];
+    const existingIndex = progressList.findIndex((p: CourseProgress) => p.userId === userId && p.courseId === courseId);
+    
+    const now = new Date().toISOString();
+    let progress: CourseProgress;
+    
+    if (existingIndex !== -1) {
+      progress = progressList[existingIndex];
+      if (!progress.completedLessons.includes(lessonId)) {
+        progress.completedLessons.push(lessonId);
+      }
+      progress.currentModuleId = moduleId;
+      progress.currentLessonId = lessonId;
+      progress.lastAccessedAt = now;
+      progress.updatedAt = now;
+      progressList[existingIndex] = progress;
+    } else {
+      progress = {
+        id: `PROG-${Math.floor(1000 + Math.random() * 9000)}`,
+        userId,
+        courseId,
+        completedLessons: [lessonId],
+        currentModuleId: moduleId,
+        currentLessonId: lessonId,
+        lastAccessedAt: now,
+        createdAt: now,
+        updatedAt: now
+      };
+      progressList.push(progress);
+    }
+    
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('wehosthere_course_progress', JSON.stringify(progressList));
+      fetch(apiEndpoint('/api/course-progress'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update', progress })
+      }).catch(err => console.error('Erro de sync de progress no servidor:', err));
+    }
+    
+    return progress;
+  },
+
+  // Course Enrollment methods
+  getEnrollments: (userId?: string): CourseEnrollment[] => {
+    if (typeof window === 'undefined') return [];
+    const data = localStorage.getItem('wehosthere_enrollments');
+    const enrollments = data ? JSON.parse(data) : [];
+    return userId ? enrollments.filter((e: CourseEnrollment) => e.userId === userId) : enrollments;
+  },
+
+  enrollInCourse: (userId: string, courseId: string, paymentId?: string): CourseEnrollment => {
+    const enrollments = dataManager.getEnrollments();
+    const now = new Date().toISOString();
+    const newEnrollment: CourseEnrollment = {
+      id: `ENROLL-${Math.floor(1000 + Math.random() * 9000)}`,
+      userId,
+      courseId,
+      status: 'active',
+      enrolledAt: now,
+      paymentId
+    };
+    enrollments.unshift(newEnrollment);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('wehosthere_enrollments', JSON.stringify(enrollments));
+      fetch(apiEndpoint('/api/enrollments'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'create', enrollment: newEnrollment })
+      }).catch(err => console.error('Erro de sync de enrollment no servidor:', err));
+    }
+    return newEnrollment;
+  },
+
+  isEnrolled: (userId: string, courseId: string): boolean => {
+    const enrollments = dataManager.getEnrollments(userId);
+    return enrollments.some((e: CourseEnrollment) => e.courseId === courseId && e.status === 'active');
   }
 };
 
