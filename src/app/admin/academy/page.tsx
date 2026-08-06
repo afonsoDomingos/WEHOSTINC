@@ -707,8 +707,8 @@ export default function AdminAcademyPage() {
       {/* Module Modal */}
       {showModuleModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-lg w-full">
-            <div className="p-6 border-b border-gray-200">
+          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
               <h2 className="text-xl font-bold text-gray-900">
                 {editingModule ? 'Editar Módulo' : 'Novo Módulo'}
               </h2>
@@ -728,7 +728,7 @@ export default function AdminAcademyPage() {
                 <textarea
                   value={moduleForm.description}
                   onChange={(e) => setModuleForm({ ...moduleForm, description: e.target.value })}
-                  rows={3}
+                  rows={2}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
               </div>
@@ -742,7 +742,7 @@ export default function AdminAcademyPage() {
                 />
               </div>
               <div className="border-t border-gray-200 pt-4">
-                <div className="flex items-center space-x-2 mb-4">
+                <div className="flex items-center space-x-2 mb-3">
                   <input
                     type="checkbox"
                     id="moduleHasVideo"
@@ -753,8 +753,8 @@ export default function AdminAcademyPage() {
                   <label htmlFor="moduleHasVideo" className="text-sm font-medium text-gray-700">Incluir vídeo</label>
                 </div>
                 {moduleForm.hasVideo && (
-                  <div className="space-y-3 ml-6">
-                    <div>
+                  <div className="grid grid-cols-2 gap-3 ml-6">
+                    <div className="col-span-2">
                       <label className="block text-sm font-medium text-gray-700 mb-1">URL do Vídeo</label>
                       <input
                         type="text"
@@ -773,7 +773,7 @@ export default function AdminAcademyPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Descrição do Vídeo</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
                       <textarea
                         value={moduleForm.videoDescription}
                         onChange={(e) => setModuleForm({ ...moduleForm, videoDescription: e.target.value })}
@@ -785,7 +785,7 @@ export default function AdminAcademyPage() {
                 )}
               </div>
               <div className="border-t border-gray-200 pt-4">
-                <div className="flex items-center space-x-2 mb-4">
+                <div className="flex items-center space-x-2 mb-3">
                   <input
                     type="checkbox"
                     id="moduleHasMaterial"
@@ -796,8 +796,8 @@ export default function AdminAcademyPage() {
                   <label htmlFor="moduleHasMaterial" className="text-sm font-medium text-gray-700">Incluir material de apoio</label>
                 </div>
                 {moduleForm.hasMaterial && (
-                  <div className="space-y-3 ml-6">
-                    <div>
+                  <div className="grid grid-cols-2 gap-3 ml-6">
+                    <div className="col-span-2">
                       <label className="block text-sm font-medium text-gray-700 mb-1">URL do Material</label>
                       <input
                         type="text"
@@ -816,7 +816,7 @@ export default function AdminAcademyPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de Material</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
                       <select
                         value={moduleForm.materialType}
                         onChange={(e) => setModuleForm({ ...moduleForm, materialType: e.target.value as 'pdf' | 'document' | 'link' })}
@@ -841,7 +841,7 @@ export default function AdminAcademyPage() {
                 <label htmlFor="moduleActive" className="text-sm text-gray-700">Módulo ativo</label>
               </div>
             </div>
-            <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
+            <div className="p-6 border-t border-gray-200 flex justify-end space-x-3 sticky bottom-0 bg-white">
               <button
                 onClick={handleCloseModuleModal}
                 className="px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition"
