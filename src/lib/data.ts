@@ -11,6 +11,20 @@ export interface SocialProof {
   active: boolean;
 }
 
+export interface UserFeedback {
+  id: string;
+  userId: string;
+  userEmail: string;
+  type: 'course' | 'lesson' | 'platform' | 'general';
+  targetId?: string; // courseId ou lessonId se aplicável
+  rating: number; // 1-5
+  comment: string;
+  category?: 'content' | 'structure' | 'support' | 'bug' | 'suggestion' | 'other';
+  status: 'pending' | 'reviewed' | 'resolved';
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface ServiceOrder {
   id: string;
   clientName: string;
@@ -2551,6 +2565,59 @@ export const dataManager = {
   isEnrolled: (userId: string, courseId: string): boolean => {
     const enrollments = dataManager.getEnrollments(userId);
     return enrollments.some((e: CourseEnrollment) => e.courseId === courseId && e.status === 'active');
+  },
+
+  // User Feedback methods
+  getFeedbacks: (): UserFeedback[] => {
+    if (typeof window === 'undefined') return [];
+    const data = localStorage.getItem('wehosthere_feedbacks');
+    return data ? JSON.parse(data) : [];
+  },
+
+  getFeedbacksByUser: (userId: string): UserFeedback[] => {
+    return dataManager.getFeedbacks().filter((f: UserFeedback) => f.userId === userId);
+  },
+
+  getFeedbacksByTarget: (targetId: string): UserFeedback[] => {
+    return dataManager.getFeedbacks().filter((f: UserFeedback) => f.targetId === targetId);
+  },
+
+  createFeedback: (feedback: Omit<UserFeedback, 'id' | 'createdAt' | 'updatedAt'>): UserFeedback => {
+    const feedbacks = dataManager.getFeedbacks();
+    const now = new Date().toISOString();
+    const newFeedback: UserFeedback = {
+      ...feedback,
+      id: `FEEDBACK-${Math.floor(1000 + Math.random() * 9000)}`,
+      createdAt: now,
+      updatedAt: now
+    };
+    feedbacks.unshift(newFeedback);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('wehosthere_feedbacks', JSON.stringify(feedbacks));
+    }
+    return newFeedback;
+  },
+
+  updateFeedback: (id: string, updates: Partial<UserFeedback>): boolean => {
+    const feedbacks = dataManager.getFeedbacks();
+    const index = feedbacks.findIndex((f: UserFeedback) => f.id === id);
+    if (index === -1) return false;
+    feedbacks[index] = { ...feedbacks[index], ...updates, updatedAt: new Date().toISOString() };
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('wehosthere_feedbacks', JSON.stringify(feedbacks));
+    }
+    return true;
+  },
+
+  deleteFeedback: (id: string): boolean => {
+    const feedbacks = dataManager.getFeedbacks();
+    const index = feedbacks.findIndex((f: UserFeedback) => f.id === id);
+    if (index === -1) return false;
+    feedbacks.splice(index, 1);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('wehosthere_feedbacks', JSON.stringify(feedbacks));
+    }
+    return true;
   }
 };
 
