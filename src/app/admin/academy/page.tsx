@@ -764,6 +764,22 @@ export default function AdminAcademyPage() {
                         type="text"
                         value={moduleForm.videoUrl}
                         onChange={(e) => setModuleForm({ ...moduleForm, videoUrl: e.target.value })}
+                        placeholder="https://..."
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Ou fazer upload de vídeo</label>
+                      <input
+                        type="file"
+                        accept="video/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            console.log('[Module] Vídeo selecionado:', file.name);
+                            // TODO: Implementar upload do arquivo
+                          }
+                        }}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       />
                     </div>
@@ -807,6 +823,22 @@ export default function AdminAcademyPage() {
                         type="text"
                         value={moduleForm.materialUrl}
                         onChange={(e) => setModuleForm({ ...moduleForm, materialUrl: e.target.value })}
+                        placeholder="https://..."
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Ou fazer upload de material (PDF, documento)</label>
+                      <input
+                        type="file"
+                        accept=".pdf,.doc,.docx,.txt"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            console.log('[Module] Material selecionado:', file.name);
+                            // TODO: Implementar upload do arquivo
+                          }
+                        }}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       />
                     </div>
@@ -911,6 +943,22 @@ export default function AdminAcademyPage() {
                         type="text"
                         value={lessonForm.videoUrl}
                         onChange={(e) => setLessonForm({ ...lessonForm, videoUrl: e.target.value })}
+                        placeholder="https://..."
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Ou fazer upload de vídeo</label>
+                      <input
+                        type="file"
+                        accept="video/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            console.log('[Lesson] Vídeo selecionado:', file.name);
+                            // TODO: Implementar upload do arquivo
+                          }
+                        }}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       />
                     </div>
@@ -954,6 +1002,22 @@ export default function AdminAcademyPage() {
                         type="text"
                         value={lessonForm.materialUrl}
                         onChange={(e) => setLessonForm({ ...lessonForm, materialUrl: e.target.value })}
+                        placeholder="https://..."
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Ou fazer upload de material (PDF, documento)</label>
+                      <input
+                        type="file"
+                        accept=".pdf,.doc,.docx,.txt"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            console.log('[Lesson] Material selecionado:', file.name);
+                            // TODO: Implementar upload do arquivo
+                          }
+                        }}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       />
                     </div>
