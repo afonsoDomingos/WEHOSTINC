@@ -2244,7 +2244,7 @@ export const dataManager = {
     const index = modules.findIndex((m: Module) => m.id === id);
     if (index === -1) return false;
     
-    // Limpar campos de video/material se hasVideo/hasMaterial for false
+    // Limpar campos de video/material apenas se hasVideo/hasMaterial for false explicitamente
     const cleanUpdates: Partial<Module> = { ...updates };
     if (updates.hasVideo === false) {
       cleanUpdates.videoUrl = undefined;
