@@ -23,15 +23,6 @@ export default function CourseViewPage() {
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
   const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' | 'info' | 'warning' }>({ show: false, message: '', type: 'success' });
 
-  useEffect(() => {
-    const user = auth.getCurrentUser();
-    if (!user) {
-      router.push('/login');
-      return;
-    }
-    loadCourseData();
-  }, [courseId]);
-
   const loadCourseData = async () => {
     const user = auth.getCurrentUser();
     if (!user) return;
@@ -66,16 +57,25 @@ export default function CourseViewPage() {
     setLoading(false);
   };
 
+  useEffect(() => {
+    const user = auth.getCurrentUser();
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+    loadCourseData();
+  }, [courseId, router]);
+
   const handleCompleteLesson = () => {
     if (!selectedLesson || !course) return;
 
     const user = auth.getCurrentUser();
     if (!user) return;
 
-    const module = modules.find(m => m.id === selectedLesson.moduleId);
-    if (!module) return;
+    const courseModule = modules.find(m => m.id === selectedLesson.moduleId);
+    if (!courseModule) return;
 
-    dataManager.updateCourseProgress(user.email, course.id, selectedLesson.id, module.id);
+    dataManager.updateCourseProgress(user.email, course.id, selectedLesson.id, courseModule.id);
     const updatedProgress = dataManager.getCourseProgress(user.email, course.id);
     setProgress(updatedProgress);
 

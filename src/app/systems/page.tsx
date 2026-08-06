@@ -55,7 +55,7 @@ export default function SystemsPage() {
       router.replace('/dashboard/systems');
       return;
     }
-  }, []);
+  }, [router]);
 
   // Filtrar sistemas
   useEffect(() => {

@@ -24,7 +24,7 @@ export default function DashboardAcademyPage() {
       return;
     }
     loadData();
-  }, []);
+  }, [router]);
 
   const loadData = async () => {
     const user = auth.getCurrentUser();
