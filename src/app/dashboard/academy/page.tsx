@@ -141,7 +141,13 @@ export default function DashboardAcademyPage() {
                         </div>
                       </div>
 
-                      <button className="w-full flex items-center justify-center space-x-2 bg-primary-600 hover:bg-primary-700 text-white py-2 rounded-lg font-medium transition">
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleStartCourse(course.id);
+                        }}
+                        className="w-full flex items-center justify-center space-x-2 bg-primary-600 hover:bg-primary-700 text-white py-2 rounded-lg font-medium transition"
+                      >
                         <Play className="h-4 w-4" />
                         <span>Continuar</span>
                       </button>
