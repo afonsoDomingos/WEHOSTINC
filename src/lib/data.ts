@@ -173,6 +173,19 @@ export interface CourseEnrollment {
   paymentId?: string;
 }
 
+export interface Certificate {
+  id: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  courseId: string;
+  courseTitle: string;
+  completionDate: string;
+  certificateNumber: string;
+  verificationUrl: string;
+  createdAt: string;
+}
+
 export interface SystemRating {
   id: string;
   systemId: string;
@@ -2435,6 +2448,93 @@ export const dataManager = {
       }).catch(err => console.error('Erro de sync de enrollment no servidor:', err));
     }
     return newEnrollment;
+  },
+
+  // Certificate methods
+  getCertificates: (userId?: string): Certificate[] => {
+    if (typeof window === 'undefined') return [];
+    const data = localStorage.getItem('wehosthere_certificates');
+    const certificates = data ? JSON.parse(data) : [];
+    return userId ? certificates.filter((c: Certificate) => c.userId === userId) : certificates;
+  },
+
+  fetchCertificatesAsync: async (userId?: string): Promise<Certificate[]> => {
+    try {
+      const url = userId ? apiEndpoint(`/api/certificates?userId=${userId}`) : apiEndpoint('/api/certificates');
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.certificates && Array.isArray(data.certificates)) {
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('wehosthere_certificates', JSON.stringify(data.certificates));
+          }
+          return data.certificates;
+        }
+      }
+    } catch (e) {
+      console.error('Falha ao buscar certificados do servidor:', e);
+    }
+    return dataManager.getCertificates(userId);
+  },
+
+  createCertificate: async (userId: string, userName: string, userEmail: string, courseId: string, courseTitle: string): Promise<Certificate | null> => {
+    try {
+      const completionDate = new Date().toISOString();
+      const certificateNumber = `WH-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+      const verificationUrl = `${window.location.origin}/verify-certificate?code=${certificateNumber}`;
+      
+      const certificateData = {
+        userId,
+        userName,
+        userEmail,
+        courseId,
+        courseTitle,
+        completionDate,
+        certificateNumber,
+        verificationUrl
+      };
+
+      const res = await fetch(apiEndpoint('/api/certificates'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'create', certificate: certificateData })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.certificate) {
+          // Update localStorage
+          if (typeof window !== 'undefined') {
+            const localData = localStorage.getItem('wehosthere_certificates');
+            const localCertificates = localData ? JSON.parse(localData) : [];
+            localCertificates.push(data.certificate);
+            localStorage.setItem('wehosthere_certificates', JSON.stringify(localCertificates));
+          }
+          return data.certificate;
+        }
+      }
+    } catch (e) {
+      console.error('Erro ao criar certificado:', e);
+    }
+    return null;
+  },
+
+  verifyCertificate: async (certificateNumber: string): Promise<{ valid: boolean; certificate?: Certificate; message?: string }> => {
+    try {
+      const res = await fetch(apiEndpoint('/api/certificates'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'verify', certificateNumber })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        return data;
+      }
+    } catch (e) {
+      console.error('Erro ao verificar certificado:', e);
+    }
+    return { valid: false, message: 'Erro ao verificar certificado' };
   },
 
   isEnrolled: (userId: string, courseId: string): boolean => {

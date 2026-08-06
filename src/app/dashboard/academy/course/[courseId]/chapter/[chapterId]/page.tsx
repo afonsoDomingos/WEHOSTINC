@@ -77,7 +77,7 @@ export default function ChapterViewPage() {
     return moduleLessons[currentLesson] || null;
   };
 
-  const handleCompleteLesson = () => {
+  const handleCompleteLesson = async () => {
     const currentLessonData = getCurrentLesson();
     if (!currentLessonData || !course) return;
 
@@ -95,6 +95,29 @@ export default function ChapterViewPage() {
     setTimeout(() => setShowCelebration(false), 2000);
 
     setToast({ show: true, message: 'Excelente! Lição concluída com sucesso!', type: 'success' });
+
+    // Check if all lessons are completed
+    const allLessons = lessons.filter(l => l.moduleId && modules.some(m => m.id === l.moduleId && m.courseId === course.id));
+    const completedLessons = updatedProgress?.completedLessons || [];
+    
+    if (allLessons.length > 0 && completedLessons.length === allLessons.length) {
+      // All lessons completed - create certificate
+      const certificate = await dataManager.createCertificate(
+        user.email,
+        user.name,
+        user.email,
+        course.id,
+        course.title
+      );
+      
+      if (certificate) {
+        setToast({ 
+          show: true, 
+          message: 'Parabéns! Você completou o curso e recebeu seu certificado!', 
+          type: 'success' 
+        });
+      }
+    }
 
     // Move to next lesson
     const moduleLessons = lessons.filter(l => l.moduleId === module.id).sort((a, b) => a.order - b.order);
