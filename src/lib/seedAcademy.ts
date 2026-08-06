@@ -71,13 +71,13 @@ export async function seedAcademyData() {
   ];
 
   const createdModules = modules.map((mod, index) => {
-    const module = dataManager.createModule({
+    const courseModule = dataManager.createModule({
       courseId: course.id,
       ...mod,
       active: true
     });
-    console.log(`Módulo ${index + 1} criado:`, module.id);
-    return module;
+    console.log(`Módulo ${index + 1} criado:`, courseModule.id);
+    return courseModule;
   });
 
   // Criar lições para cada módulo
@@ -244,10 +244,10 @@ export async function seedAcademyData() {
   ];
 
   lessonsData.forEach((moduleLessons, moduleIndex) => {
-    const module = createdModules[moduleIndex];
+    const courseModule = createdModules[moduleIndex];
     moduleLessons.forEach((lessonData, lessonIndex) => {
       const lesson = dataManager.createLesson({
-        moduleId: module.id,
+        moduleId: courseModule.id,
         ...lessonData,
         active: true
       });
