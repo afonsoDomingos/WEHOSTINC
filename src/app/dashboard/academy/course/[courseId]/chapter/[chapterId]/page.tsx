@@ -531,9 +531,16 @@ export default function ChapterViewPage() {
           </button>
 
           <button
-            onClick={handleCompleteLesson}
+            onClick={() => {
+              console.log('[Mobile Nav] Botão concluir clicado');
+              console.log('[Mobile Nav] currentLessonData:', currentLessonData);
+              handleCompleteLesson();
+            }}
+            disabled={!currentLessonData}
             className={`flex items-center space-x-2 px-6 py-2 rounded-lg font-medium transition ${
-              isLessonCompleted(currentLessonData?.id || '')
+              !currentLessonData
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                : isLessonCompleted(currentLessonData?.id || '')
                 ? 'bg-emerald-600 text-white'
                 : 'bg-primary-600 text-white'
             }`}
