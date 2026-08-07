@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Edit, Trash2, BookOpen, Video, FileText, ChevronRight, ChevronDown, Save, X, Lock, Unlock, DollarSign, Eye, Database } from 'lucide-react';
+import { Plus, Edit, Trash2, BookOpen, Video, FileText, ChevronRight, ChevronDown, ChevronUp, Save, X, Lock, Unlock, DollarSign, Eye, Database } from 'lucide-react';
 import { auth } from '@/lib/auth';
 import { dataManager, Course, Module, Lesson } from '@/lib/data';
 import BrandLogo from '@/components/BrandLogo';
@@ -183,6 +183,74 @@ export default function AdminAcademyPage() {
     loadData();
     setShowDeleteModal(false);
     setDeleteTarget(null);
+  };
+
+  const handleMoveLessonUp = (moduleId: string, lessonId: string) => {
+    const moduleLessons = getModuleLessons(moduleId).sort((a, b) => a.order - b.order);
+    const currentIndex = moduleLessons.findIndex(l => l.id === lessonId);
+    
+    if (currentIndex > 0) {
+      const prevLesson = moduleLessons[currentIndex - 1];
+      const currentLesson = moduleLessons[currentIndex];
+      
+      // Swap orders
+      dataManager.updateLesson(prevLesson.id, { order: currentLesson.order });
+      dataManager.updateLesson(currentLesson.id, { order: prevLesson.order });
+      
+      loadData();
+      setToast({ show: true, message: 'Lição movida para cima', type: 'success' });
+    }
+  };
+
+  const handleMoveLessonDown = (moduleId: string, lessonId: string) => {
+    const moduleLessons = getModuleLessons(moduleId).sort((a, b) => a.order - b.order);
+    const currentIndex = moduleLessons.findIndex(l => l.id === lessonId);
+    
+    if (currentIndex < moduleLessons.length - 1) {
+      const nextLesson = moduleLessons[currentIndex + 1];
+      const currentLesson = moduleLessons[currentIndex];
+      
+      // Swap orders
+      dataManager.updateLesson(nextLesson.id, { order: currentLesson.order });
+      dataManager.updateLesson(currentLesson.id, { order: nextLesson.order });
+      
+      loadData();
+      setToast({ show: true, message: 'Lição movida para baixo', type: 'success' });
+    }
+  };
+
+  const handleMoveModuleUp = (courseId: string, moduleId: string) => {
+    const courseModules = getCourseModules(courseId).sort((a, b) => a.order - b.order);
+    const currentIndex = courseModules.findIndex(m => m.id === moduleId);
+    
+    if (currentIndex > 0) {
+      const prevModule = courseModules[currentIndex - 1];
+      const currentModule = courseModules[currentIndex];
+      
+      // Swap orders
+      dataManager.updateModule(prevModule.id, { order: currentModule.order });
+      dataManager.updateModule(currentModule.id, { order: prevModule.order });
+      
+      loadData();
+      setToast({ show: true, message: 'Módulo movido para cima', type: 'success' });
+    }
+  };
+
+  const handleMoveModuleDown = (courseId: string, moduleId: string) => {
+    const courseModules = getCourseModules(courseId).sort((a, b) => a.order - b.order);
+    const currentIndex = courseModules.findIndex(m => m.id === moduleId);
+    
+    if (currentIndex < courseModules.length - 1) {
+      const nextModule = courseModules[currentIndex + 1];
+      const currentModule = courseModules[currentIndex];
+      
+      // Swap orders
+      dataManager.updateModule(nextModule.id, { order: currentModule.order });
+      dataManager.updateModule(currentModule.id, { order: nextModule.order });
+      
+      loadData();
+      setToast({ show: true, message: 'Módulo movido para baixo', type: 'success' });
+    }
   };
 
   const handleShowCourseModal = (course?: Course) => {
@@ -469,7 +537,7 @@ export default function AdminAcademyPage() {
                         <p className="text-sm text-gray-500 text-center py-4">Nenhum módulo criado</p>
                       ) : (
                         <div className="space-y-3">
-                          {courseModules.map((module) => {
+                          {courseModules.map((module, index) => {
                             const moduleLessons = getModuleLessons(module.id).sort((a, b) => a.order - b.order);
                             const moduleExpanded = expandedCourse === `${course.id}-${module.id}`;
 
@@ -488,6 +556,20 @@ export default function AdminAcademyPage() {
                                       <div className="text-xs text-gray-500 mt-1">{moduleLessons.length} lições</div>
                                     </div>
                                     <div className="flex items-center space-x-2">
+                                      <button
+                                        onClick={() => handleMoveModuleUp(course.id, module.id)}
+                                        disabled={index === 0}
+                                        className={`p-1 hover:bg-gray-100 rounded transition ${index === 0 ? 'opacity-30 cursor-not-allowed' : ''}`}
+                                      >
+                                        <ChevronUp className="h-4 w-4 text-gray-600" />
+                                      </button>
+                                      <button
+                                        onClick={() => handleMoveModuleDown(course.id, module.id)}
+                                        disabled={index === courseModules.length - 1}
+                                        className={`p-1 hover:bg-gray-100 rounded transition ${index === courseModules.length - 1 ? 'opacity-30 cursor-not-allowed' : ''}`}
+                                      >
+                                        <ChevronDown className="h-4 w-4 text-gray-600" />
+                                      </button>
                                       <button
                                         onClick={() => setExpandedCourse(moduleExpanded ? null : `${course.id}-${module.id}`)}
                                         className="p-1 hover:bg-gray-100 rounded transition"
@@ -531,7 +613,7 @@ export default function AdminAcademyPage() {
                                       <p className="text-xs text-gray-500 text-center py-2">Nenhuma lição criada</p>
                                     ) : (
                                       <div className="space-y-2">
-                                        {moduleLessons.map((lesson) => (
+                                        {moduleLessons.map((lesson, index) => (
                                           <div key={lesson.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
                                             <div className="flex items-center space-x-2">
                                               {lesson.hasVideo && <Video className="h-3 w-3 text-primary-600" />}
@@ -542,6 +624,20 @@ export default function AdminAcademyPage() {
                                               )}
                                             </div>
                                             <div className="flex items-center space-x-1">
+                                              <button
+                                                onClick={() => handleMoveLessonUp(module.id, lesson.id)}
+                                                disabled={index === 0}
+                                                className={`p-1 hover:bg-gray-200 rounded transition ${index === 0 ? 'opacity-30 cursor-not-allowed' : ''}`}
+                                              >
+                                                <ChevronUp className="h-3 w-3 text-gray-600" />
+                                              </button>
+                                              <button
+                                                onClick={() => handleMoveLessonDown(module.id, lesson.id)}
+                                                disabled={index === moduleLessons.length - 1}
+                                                className={`p-1 hover:bg-gray-200 rounded transition ${index === moduleLessons.length - 1 ? 'opacity-30 cursor-not-allowed' : ''}`}
+                                              >
+                                                <ChevronDown className="h-3 w-3 text-gray-600" />
+                                              </button>
                                               <button
                                                 onClick={() => handleShowLessonModal(module, lesson)}
                                                 className="p-1 hover:bg-gray-200 rounded transition"
