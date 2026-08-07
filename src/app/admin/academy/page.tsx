@@ -219,6 +219,26 @@ export default function AdminAcademyPage() {
     }
   };
 
+  const handleLessonOrderChange = (moduleId: string, lessonId: string, newOrder: number) => {
+    const moduleLessons = getModuleLessons(moduleId).sort((a, b) => a.order - b.order);
+    const currentLesson = moduleLessons.find(l => l.id === lessonId);
+    
+    if (!currentLesson || newOrder < 1 || newOrder > moduleLessons.length) return;
+    
+    // Update all lessons to maintain order
+    moduleLessons.forEach((lesson, index) => {
+      if (lesson.id === lessonId) {
+        dataManager.updateLesson(lesson.id, { order: newOrder - 1 });
+      } else {
+        const targetOrder = index < newOrder - 1 ? index : index + 1;
+        dataManager.updateLesson(lesson.id, { order: targetOrder });
+      }
+    });
+    
+    loadData();
+    setToast({ show: true, message: 'Ordem da lição atualizada', type: 'success' });
+  };
+
   const handleMoveModuleUp = (courseId: string, moduleId: string) => {
     const courseModules = getCourseModules(courseId).sort((a, b) => a.order - b.order);
     const currentIndex = courseModules.findIndex(m => m.id === moduleId);
@@ -251,6 +271,26 @@ export default function AdminAcademyPage() {
       loadData();
       setToast({ show: true, message: 'Módulo movido para baixo', type: 'success' });
     }
+  };
+
+  const handleModuleOrderChange = (courseId: string, moduleId: string, newOrder: number) => {
+    const courseModules = getCourseModules(courseId).sort((a, b) => a.order - b.order);
+    const currentModule = courseModules.find(m => m.id === moduleId);
+    
+    if (!currentModule || newOrder < 1 || newOrder > courseModules.length) return;
+    
+    // Update all modules to maintain order
+    courseModules.forEach((module, index) => {
+      if (module.id === moduleId) {
+        dataManager.updateModule(module.id, { order: newOrder - 1 });
+      } else {
+        const targetOrder = index < newOrder - 1 ? index : index + 1;
+        dataManager.updateModule(module.id, { order: targetOrder });
+      }
+    });
+    
+    loadData();
+    setToast({ show: true, message: 'Ordem do módulo atualizada', type: 'success' });
   };
 
   const handleShowCourseModal = (course?: Course) => {
@@ -556,20 +596,22 @@ export default function AdminAcademyPage() {
                                       <div className="text-xs text-gray-500 mt-1">{moduleLessons.length} lições</div>
                                     </div>
                                     <div className="flex items-center space-x-2">
-                                      <button
-                                        onClick={() => handleMoveModuleUp(course.id, module.id)}
-                                        disabled={index === 0}
-                                        className={`p-1 hover:bg-gray-100 rounded transition ${index === 0 ? 'opacity-30 cursor-not-allowed' : ''}`}
-                                      >
-                                        <ChevronUp className="h-4 w-4 text-gray-600" />
-                                      </button>
-                                      <button
-                                        onClick={() => handleMoveModuleDown(course.id, module.id)}
-                                        disabled={index === courseModules.length - 1}
-                                        className={`p-1 hover:bg-gray-100 rounded transition ${index === courseModules.length - 1 ? 'opacity-30 cursor-not-allowed' : ''}`}
-                                      >
-                                        <ChevronDown className="h-4 w-4 text-gray-600" />
-                                      </button>
+                                      <div className="flex items-center space-x-1">
+                                        <span className="text-xs text-gray-500">Pos:</span>
+                                        <input
+                                          type="number"
+                                          min="1"
+                                          max={courseModules.length}
+                                          value={module.order + 1}
+                                          onChange={(e) => {
+                                            const newOrder = parseInt(e.target.value);
+                                            if (!isNaN(newOrder)) {
+                                              handleModuleOrderChange(course.id, module.id, newOrder);
+                                            }
+                                          }}
+                                          className="w-12 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                        />
+                                      </div>
                                       <button
                                         onClick={() => setExpandedCourse(moduleExpanded ? null : `${course.id}-${module.id}`)}
                                         className="p-1 hover:bg-gray-100 rounded transition"
@@ -624,20 +666,22 @@ export default function AdminAcademyPage() {
                                               )}
                                             </div>
                                             <div className="flex items-center space-x-1">
-                                              <button
-                                                onClick={() => handleMoveLessonUp(module.id, lesson.id)}
-                                                disabled={index === 0}
-                                                className={`p-1 hover:bg-gray-200 rounded transition ${index === 0 ? 'opacity-30 cursor-not-allowed' : ''}`}
-                                              >
-                                                <ChevronUp className="h-3 w-3 text-gray-600" />
-                                              </button>
-                                              <button
-                                                onClick={() => handleMoveLessonDown(module.id, lesson.id)}
-                                                disabled={index === moduleLessons.length - 1}
-                                                className={`p-1 hover:bg-gray-200 rounded transition ${index === moduleLessons.length - 1 ? 'opacity-30 cursor-not-allowed' : ''}`}
-                                              >
-                                                <ChevronDown className="h-3 w-3 text-gray-600" />
-                                              </button>
+                                              <div className="flex items-center space-x-1">
+                                                <span className="text-xs text-gray-500">Pos:</span>
+                                                <input
+                                                  type="number"
+                                                  min="1"
+                                                  max={moduleLessons.length}
+                                                  value={lesson.order + 1}
+                                                  onChange={(e) => {
+                                                    const newOrder = parseInt(e.target.value);
+                                                    if (!isNaN(newOrder)) {
+                                                      handleLessonOrderChange(module.id, lesson.id, newOrder);
+                                                    }
+                                                  }}
+                                                  className="w-10 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                                />
+                                              </div>
                                               <button
                                                 onClick={() => handleShowLessonModal(module, lesson)}
                                                 className="p-1 hover:bg-gray-200 rounded transition"
