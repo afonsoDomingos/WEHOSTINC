@@ -374,7 +374,7 @@ export default function AdminAcademyPage() {
         ) : (
           <div className="space-y-4">
             {courses.map((course) => {
-              const courseModules = getCourseModules(course.id);
+              const courseModules = getCourseModules(course.id).sort((a, b) => a.order - b.order);
               const isExpanded = expandedCourse === course.id;
 
               return (
@@ -470,7 +470,7 @@ export default function AdminAcademyPage() {
                       ) : (
                         <div className="space-y-3">
                           {courseModules.map((module) => {
-                            const moduleLessons = getModuleLessons(module.id);
+                            const moduleLessons = getModuleLessons(module.id).sort((a, b) => a.order - b.order);
                             const moduleExpanded = expandedCourse === `${course.id}-${module.id}`;
 
                             return (

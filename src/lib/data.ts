@@ -2227,7 +2227,7 @@ export const dataManager = {
       createdAt: now,
       updatedAt: now
     };
-    modules.unshift(newModule);
+    modules.push(newModule);
     if (typeof window !== 'undefined') {
       localStorage.setItem('wehosthere_modules', JSON.stringify(modules));
       fetch(apiEndpoint('/api/modules'), {
@@ -2321,7 +2321,7 @@ export const dataManager = {
       createdAt: now,
       updatedAt: now
     };
-    lessons.unshift(newLesson);
+    lessons.push(newLesson);
     if (typeof window !== 'undefined') {
       localStorage.setItem('wehosthere_lessons', JSON.stringify(lessons));
       fetch(apiEndpoint('/api/lessons'), {
