@@ -515,19 +515,19 @@ export default function ChapterViewPage() {
       </div>
 
       {/* Mobile Fixed Navigation Bar */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 px-4 py-3">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 px-2 py-2">
         <div className="flex items-center justify-between">
           <button
             onClick={goToPrevious}
             disabled={chapterIndex === 0 && currentLesson === 0}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition ${
+            className={`flex items-center space-x-1 px-2 py-1.5 rounded-md font-medium transition ${
               chapterIndex === 0 && currentLesson === 0
                 ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                 : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
             }`}
           >
-            <ChevronLeft className="h-4 w-4" />
-            <span className="text-sm">Anterior</span>
+            <ChevronLeft className="h-3 w-3" />
+            <span className="text-xs">Ant</span>
           </button>
 
           <button
@@ -537,7 +537,7 @@ export default function ChapterViewPage() {
               handleCompleteLesson();
             }}
             disabled={!currentLessonData}
-            className={`flex items-center space-x-2 px-6 py-2 rounded-lg font-medium transition ${
+            className={`flex items-center space-x-1 px-3 py-1.5 rounded-md font-medium transition ${
               !currentLessonData
                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 : isLessonCompleted(currentLessonData?.id || '')
@@ -545,23 +545,23 @@ export default function ChapterViewPage() {
                 : 'bg-primary-600 text-white'
             }`}
           >
-            <CheckCircle className="h-4 w-4" />
-            <span className="text-sm">
-              {isLessonCompleted(currentLessonData?.id || '') ? 'Concluído' : 'Concluir'}
+            <CheckCircle className="h-3 w-3" />
+            <span className="text-xs">
+              {isLessonCompleted(currentLessonData?.id || '') ? 'Ok' : 'Concluir'}
             </span>
           </button>
 
           <button
             onClick={goToNext}
             disabled={chapterIndex === modules.length - 1 && currentLesson === moduleLessons.length - 1}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition ${
+            className={`flex items-center space-x-1 px-2 py-1.5 rounded-md font-medium transition ${
               chapterIndex === modules.length - 1 && currentLesson === moduleLessons.length - 1
                 ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                 : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
             }`}
           >
-            <span className="text-sm">Próximo</span>
-            <ChevronRight className="h-4 w-4" />
+            <span className="text-xs">Próx</span>
+            <ChevronRight className="h-3 w-3" />
           </button>
         </div>
       </div>
