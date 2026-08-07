@@ -509,6 +509,51 @@ export default function ChapterViewPage() {
         </div>
       </div>
 
+      {/* Mobile Fixed Navigation Bar */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 px-4 py-3">
+        <div className="flex items-center justify-between">
+          <button
+            onClick={goToPrevious}
+            disabled={chapterIndex === 0 && currentLesson === 0}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition ${
+              chapterIndex === 0 && currentLesson === 0
+                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+            }`}
+          >
+            <ChevronLeft className="h-4 w-4" />
+            <span className="text-sm">Anterior</span>
+          </button>
+
+          <button
+            onClick={handleCompleteLesson}
+            className={`flex items-center space-x-2 px-6 py-2 rounded-lg font-medium transition ${
+              isLessonCompleted(currentLessonData?.id || '')
+                ? 'bg-emerald-600 text-white'
+                : 'bg-primary-600 text-white'
+            }`}
+          >
+            <CheckCircle className="h-4 w-4" />
+            <span className="text-sm">
+              {isLessonCompleted(currentLessonData?.id || '') ? 'Concluído' : 'Concluir'}
+            </span>
+          </button>
+
+          <button
+            onClick={goToNext}
+            disabled={chapterIndex === modules.length - 1 && currentLesson === moduleLessons.length - 1}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition ${
+              chapterIndex === modules.length - 1 && currentLesson === moduleLessons.length - 1
+                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+            }`}
+          >
+            <span className="text-sm">Próximo</span>
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+
       {/* Toast */}
       {toast.show && (
         <Toast
