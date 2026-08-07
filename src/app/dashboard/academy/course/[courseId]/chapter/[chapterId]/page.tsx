@@ -110,8 +110,10 @@ export default function ChapterViewPage() {
     const { module } = getCurrentChapter();
     if (!module) return;
 
+    console.log('[handleCompleteLesson] Marcando lição como concluída:', currentLessonData.id);
     dataManager.updateCourseProgress(user.email, course.id, currentLessonData.id, module.id);
     const updatedProgress = dataManager.getCourseProgress(user.email, course.id);
+    console.log('[handleCompleteLesson] Progresso atualizado:', updatedProgress);
     setProgress(updatedProgress);
 
     setShowCelebration(true);
@@ -122,9 +124,11 @@ export default function ChapterViewPage() {
     // Check if all lessons are completed
     const allLessons = lessons.filter(l => l.moduleId && modules.some(m => m.id === l.moduleId && m.courseId === course.id));
     const completedLessons = updatedProgress?.completedLessons || [];
+    console.log('[handleCompleteLesson] Total de lições:', allLessons.length, 'Concluídas:', completedLessons.length);
     
     if (allLessons.length > 0 && completedLessons.length === allLessons.length) {
       // All lessons completed - create certificate
+      console.log('[handleCompleteLesson] Todas as lições concluídas! Criando certificado...');
       const certificate = await dataManager.createCertificate(
         user.email,
         user.name,
@@ -134,6 +138,7 @@ export default function ChapterViewPage() {
       );
       
       if (certificate) {
+        console.log('[handleCompleteLesson] Certificado criado:', certificate);
         setToast({ 
           show: true, 
           message: 'Parabéns! Você completou o curso e recebeu seu certificado!', 
