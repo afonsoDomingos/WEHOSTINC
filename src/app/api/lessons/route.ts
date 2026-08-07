@@ -51,19 +51,22 @@ export async function POST(request: NextRequest) {
 
     if (action === 'update' && lesson) {
       console.log('[API Lessons] Atualizando lição:', lesson.id);
+      console.log('[API Lessons] Dados recebidos:', JSON.stringify(lesson, null, 2));
       
-      // Limpar campos de video/material se hasVideo/hasMaterial for false
+      // Limpar campos de video/material apenas se hasVideo/hasMaterial for false explicitamente
       const updateData: any = { ...lesson, updatedAt: new Date().toISOString() };
-      if (!lesson.hasVideo) {
+      if (lesson.hasVideo === false) {
         updateData.videoUrl = undefined;
         updateData.videoTitle = undefined;
         updateData.videoDescription = undefined;
       }
-      if (!lesson.hasMaterial) {
+      if (lesson.hasMaterial === false) {
         updateData.materialUrl = undefined;
         updateData.materialTitle = undefined;
         updateData.materialType = undefined;
       }
+      
+      console.log('[API Lessons] Dados para update:', JSON.stringify(updateData, null, 2));
       
       const updated = await LessonModel.findOneAndUpdate(
         { id: lesson.id },
