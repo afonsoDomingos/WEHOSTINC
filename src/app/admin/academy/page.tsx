@@ -225,13 +225,26 @@ export default function AdminAcademyPage() {
     
     if (!currentLesson || newOrder < 1 || newOrder > moduleLessons.length) return;
     
+    const oldOrder = currentLesson.order;
+    const targetOrder = newOrder - 1; // Convert to 0-based index
+    
+    if (oldOrder === targetOrder) return; // No change needed
+    
     // Update all lessons to maintain order
-    moduleLessons.forEach((lesson, index) => {
+    moduleLessons.forEach((lesson) => {
       if (lesson.id === lessonId) {
-        dataManager.updateLesson(lesson.id, { order: newOrder - 1 });
-      } else {
-        const targetOrder = index < newOrder - 1 ? index : index + 1;
+        // Set the target order for the moved lesson
         dataManager.updateLesson(lesson.id, { order: targetOrder });
+      } else if (oldOrder < targetOrder) {
+        // Moving down: shift lessons between old+1 and target down by 1
+        if (lesson.order > oldOrder && lesson.order <= targetOrder) {
+          dataManager.updateLesson(lesson.id, { order: lesson.order - 1 });
+        }
+      } else {
+        // Moving up: shift lessons between target and old-1 up by 1
+        if (lesson.order >= targetOrder && lesson.order < oldOrder) {
+          dataManager.updateLesson(lesson.id, { order: lesson.order + 1 });
+        }
       }
     });
     
@@ -279,13 +292,26 @@ export default function AdminAcademyPage() {
     
     if (!currentModule || newOrder < 1 || newOrder > courseModules.length) return;
     
+    const oldOrder = currentModule.order;
+    const targetOrder = newOrder - 1; // Convert to 0-based index
+    
+    if (oldOrder === targetOrder) return; // No change needed
+    
     // Update all modules to maintain order
-    courseModules.forEach((module, index) => {
+    courseModules.forEach((module) => {
       if (module.id === moduleId) {
-        dataManager.updateModule(module.id, { order: newOrder - 1 });
-      } else {
-        const targetOrder = index < newOrder - 1 ? index : index + 1;
+        // Set the target order for the moved module
         dataManager.updateModule(module.id, { order: targetOrder });
+      } else if (oldOrder < targetOrder) {
+        // Moving down: shift modules between old+1 and target down by 1
+        if (module.order > oldOrder && module.order <= targetOrder) {
+          dataManager.updateModule(module.id, { order: module.order - 1 });
+        }
+      } else {
+        // Moving up: shift modules between target and old-1 up by 1
+        if (module.order >= targetOrder && module.order < oldOrder) {
+          dataManager.updateModule(module.id, { order: module.order + 1 });
+        }
       }
     });
     
