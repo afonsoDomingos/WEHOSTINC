@@ -536,7 +536,7 @@ export async function dispatchMessage(payload: SendMessagePayload): Promise<{ su
             <div style="text-align:center;">
               <img src="https://wehosthere.com/logo.png" alt="WEHOSTHERE" width="80" style="max-width:80px;height:auto;opacity:0.35;margin-bottom:10px;" />
               <p style="color:#64748b;font-size:12px;margin:0 0 12px;font-weight:600;">Siga-nos nas redes sociais</p>
-              <div style="display:flex;justify-content:center;gap:10px;margin-bottom:14px;">
+              <div style="display:flex;justify-content:center;gap:16px;margin-bottom:14px;">
                 <a href="https://www.facebook.com/profile.php?id=61592497206566" target="_blank" rel="noopener noreferrer"
                    style="display:inline-flex;align-items:center;gap:6px;background:#1877F2;color:white;text-decoration:none;font-size:12px;font-weight:700;padding:7px 14px;border-radius:8px;">
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
