@@ -30,6 +30,8 @@ export interface ServiceOrder {
   clientName: string;
   clientEmail: string;
   clientPhone: string;
+  userName?: string;
+  userEmail?: string;
   serviceName: string;
   amount: number;
   valorFaturado: number;

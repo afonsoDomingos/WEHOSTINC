@@ -10,6 +10,7 @@ export interface ConfirmModalProps {
   confirmText?: string;
   cancelText?: string;
   variant?: 'danger' | 'warning' | 'info' | 'success';
+  type?: 'danger' | 'warning' | 'info' | 'success';
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -20,11 +21,14 @@ export default function ConfirmModal({
   message,
   confirmText = 'Confirmar',
   cancelText = 'Cancelar',
-  variant = 'danger',
+  variant,
+  type = 'danger',
   onConfirm,
   onCancel
 }: ConfirmModalProps) {
   if (!isOpen) return null;
+
+  const activeVariant = (variant || type || 'danger') as 'danger' | 'warning' | 'info' | 'success';
 
   const variantStyles = {
     danger: {
@@ -47,7 +51,7 @@ export default function ConfirmModal({
       icon: <CheckCircle2 className="h-6 w-6" />,
       btnConfirm: 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-200',
     }
-  }[variant];
+  }[activeVariant];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-in fade-in duration-200">

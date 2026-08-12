@@ -1,20 +1,8 @@
-import { Resend } from 'resend';
 import { SITE_URL } from '@/lib/siteConfig';
 
 // Remetente padrão da plataforma
-export const DEFAULT_FROM = process.env.EMAIL_USER || 'karinganastudio23@gmail.com';
+export const DEFAULT_FROM = process.env.EMAIL_USER || 'noreply@wehosthere.com';
 export const DEFAULT_FROM_NAME = 'WEHOSTHERE';
-
-const getResendClient = () => {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) return null;
-  try {
-    return new Resend(apiKey);
-  } catch (err) {
-    console.warn('[Resend] Erro ao instanciar cliente:', err);
-    return null;
-  }
-};
 
 export interface SendEmailOptions {
   to: string;
@@ -26,12 +14,12 @@ export interface SendEmailOptions {
 }
 
 /**
- * Envia um e-mail via Resend.
- * Requer RESEND_API_KEY no .env.local.
+ * Envia um e-mail via Resend API (HTTP direct call).
+ * Requer RESEND_API_KEY no .env.local / variáveis de ambiente.
  */
 export async function sendEmail(opts: SendEmailOptions): Promise<{ success: boolean; error?: string }> {
-  const resend = getResendClient();
-  if (!resend) {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
     console.warn('[Resend] RESEND_API_KEY não configurado ou inválido. E-mail não enviado.');
     return { success: false, error: 'RESEND_API_KEY não configurado no servidor.' };
   }
@@ -44,24 +32,34 @@ export async function sendEmail(opts: SendEmailOptions): Promise<{ success: bool
     const bodyHtml = opts.html || (opts.text ? opts.text.replace(/\n/g, '<br>') : '<p></p>');
     const bodyText = opts.text || '';
 
-    const { error } = await resend.emails.send({
-      from: fromFormatted,
-      to: [opts.to],
-      subject: opts.subject,
-      html: bodyHtml,
-      text: bodyText,
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        from: fromFormatted,
+        to: [opts.to],
+        subject: opts.subject,
+        html: bodyHtml,
+        text: bodyText
+      })
     });
 
-    if (error) {
-      console.error('[Resend] ❌ Erro:', error);
-      return { success: false, error: error.message };
+    const data = await response.json();
+
+    if (!response.ok) {
+      const errorMsg = data?.message || data?.name || 'Erro ao enviar e-mail via Resend API';
+      console.error('[Resend] ❌ Erro API Resend:', errorMsg, data);
+      return { success: false, error: errorMsg };
     }
 
-    console.log(`[Resend] ✅ E-mail enviado para: ${opts.to} | Assunto: ${opts.subject}`);
+    console.log(`[Resend] ✅ E-mail enviado para: ${opts.to} | ID: ${data.id}`);
     return { success: true };
   } catch (err: unknown) {
     const errMsg = err instanceof Error ? err.message : String(err);
-    console.error('[Resend] ❌ Exceção:', errMsg);
+    console.error('[Resend] ❌ Exceção ao enviar e-mail:', errMsg);
     return { success: false, error: errMsg };
   }
 }

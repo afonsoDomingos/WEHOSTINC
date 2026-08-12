@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import UserModel from '@/lib/models/User';
+import { addAdminNotification, dispatchMessage } from '@/lib/notifications';
 
 // Fallback in-memory para quando MongoDB não estiver acessível (dev local sem rede)
 let FALLBACK_USERS: any[] = [
@@ -253,6 +254,31 @@ export async function POST(req: Request) {
       } else {
         const createdDoc = await UserModel.create(userData);
         saved = createdDoc.toObject ? createdDoc.toObject() : createdDoc;
+
+        // Notificar admin do novo registo
+        if (action === 'register') {
+          addAdminNotification({
+            title: `👤 Novo Utilizador Registado`,
+            message: `${userData.name || userData.email} criou uma nova conta na plataforma.`,
+            type: 'user_signup',
+            userEmail: userData.email,
+            userName: userData.name,
+            link: '/admin?tab=users'
+          });
+
+          // Enviar e-mail de boas-vindas ao cliente
+          dispatchMessage({
+            recipientEmail: userData.email,
+            recipientName: userData.name || userData.email.split('@')[0],
+            templateId: 'welcome',
+            variables: {
+              nome_cliente: userData.name || userData.email.split('@')[0],
+              email: userData.email
+            },
+            isAutomatic: true,
+            eventType: 'user_signup'
+          });
+        }
       }
 
       const users = await UserModel.find({}).lean();
@@ -260,8 +286,33 @@ export async function POST(req: Request) {
     }
 
     const idx = FALLBACK_USERS.findIndex(u => u.email.toLowerCase() === reqEmail);
+    const isNewFallback = idx < 0;
     if (idx >= 0) FALLBACK_USERS[idx] = { ...FALLBACK_USERS[idx], ...userData };
     else FALLBACK_USERS.push(userData);
+
+    if (isNewFallback && action === 'register') {
+      addAdminNotification({
+        title: `👤 Novo Utilizador Registado`,
+        message: `${userData.name || userData.email} criou uma nova conta na plataforma.`,
+        type: 'user_signup',
+        userEmail: userData.email,
+        userName: userData.name,
+        link: '/admin?tab=users'
+      });
+
+      dispatchMessage({
+        recipientEmail: userData.email,
+        recipientName: userData.name || userData.email.split('@')[0],
+        templateId: 'welcome',
+        variables: {
+          nome_cliente: userData.name || userData.email.split('@')[0],
+          email: userData.email
+        },
+        isAutomatic: true,
+        eventType: 'user_signup'
+      });
+    }
+
     return NextResponse.json({ success: true, user: userData, users: FALLBACK_USERS });
 
   } catch (error: any) {

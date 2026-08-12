@@ -18,6 +18,8 @@ import PageLoader from '@/components/PageLoader';
 import ConfirmModal from '@/components/ConfirmModal';
 import Toast from '@/components/Toast';
 import { API_URL, apiEndpoint } from '@/lib/siteConfig';
+import AdminNotificationCenter from '@/components/AdminNotificationCenter';
+import { dispatchMessage, addAdminNotification } from '@/lib/notifications';
 
 const ADMIN_CANNED_RESPONSES = [
   {
@@ -513,7 +515,39 @@ export default function AdminPage() {
 
   const handleUpdateOrderStatus = (id: string, newStatus: ServiceOrder['status']) => {
     dataManager.updateOrderStatus(id, newStatus);
-    setOrders(dataManager.getOrders());
+    const updatedOrders = dataManager.getOrders();
+    setOrders(updatedOrders);
+
+    const targetOrder = updatedOrders.find(o => o.id === id);
+    if (targetOrder) {
+      const clientEmail = targetOrder.clientEmail || targetOrder.userEmail || '';
+      const clientName = targetOrder.clientName || targetOrder.userName || clientEmail.split('@')[0] || 'Cliente';
+
+      // 1. Notificar o Administrador
+      addAdminNotification({
+        title: `Pedido ${newStatus === 'completed' ? 'Aprovado' : newStatus === 'cancelled' ? 'Cancelado' : 'Atualizado'}: #${id}`,
+        message: `O pedido #${id} do cliente ${clientName} foi alterado para: ${newStatus}.`,
+        type: newStatus === 'completed' ? 'order_approved' : newStatus === 'cancelled' ? 'order_cancelled' : 'order_updated',
+        userEmail: clientEmail,
+        userName: clientName,
+        link: '/admin?tab=orders'
+      });
+
+      // 2. Disparar e-mail automático ao cliente
+      const templateId = newStatus === 'completed' ? 'order-approved' : newStatus === 'cancelled' ? 'order-cancelled' : 'order-status-changed';
+      dispatchMessage({
+        recipientEmail: clientEmail,
+        recipientName: clientName,
+        templateId,
+        variables: {
+          numero_pedido: targetOrder.id,
+          valor: `${(targetOrder.valorPorFaturar || targetOrder.valorFaturado || 0).toLocaleString('pt-MZ')} MT`,
+          estado_pedido: newStatus === 'completed' ? 'Aprovado / Concluído' : newStatus === 'cancelled' ? 'Cancelado' : newStatus
+        },
+        isAutomatic: true,
+        eventType: `order_${newStatus}`
+      });
+    }
   };
 
   const handleUpdateSiteStatus = (id: string, newStatus: 'active' | 'pending' | 'suspended') => {
@@ -777,6 +811,32 @@ export default function AdminPage() {
       message: `O pagamento do pedido ${orderId} foi aprovado. Valor faturado: ${updatedOrder.valorFaturado.toLocaleString('pt-MZ')} MT`,
       type: 'success'
     });
+
+    const cEmail = updatedOrder.clientEmail || updatedOrder.userEmail || '';
+    const cName = updatedOrder.clientName || updatedOrder.userName || cEmail.split('@')[0] || 'Cliente';
+
+    // 1. Notificar Administrador
+    addAdminNotification({
+      title: `Pagamento Confirmado: #${orderId}`,
+      message: `O pagamento de ${(updatedOrder.valorFaturado || 0).toLocaleString('pt-MZ')} MT do cliente ${cName} foi aprovado.`,
+      type: 'payment_success',
+      userEmail: cEmail,
+      userName: cName,
+      link: '/admin?tab=orders'
+    });
+
+    // 2. Disparar e-mail de confirmação de pagamento para o cliente
+    dispatchMessage({
+      recipientEmail: cEmail,
+      recipientName: cName,
+      templateId: 'payment-confirmed',
+      variables: {
+        numero_pedido: updatedOrder.id,
+        valor: `${(updatedOrder.valorFaturado || 0).toLocaleString('pt-MZ')} MT`
+      },
+      isAutomatic: true,
+      eventType: 'payment_approved'
+    });
   };
 
   const handleDeleteEmail = (emailId: string, emailAddr: string, ownerEmail?: string) => {
@@ -894,6 +954,13 @@ export default function AdminPage() {
                 <span className="hidden sm:inline">Ver Site</span>
               </Link>
               <Link
+                href="/admin/comunicacao"
+                className="flex items-center space-x-1.5 sm:space-x-2 text-gray-600 hover:text-blue-600 font-medium transition text-[10px] sm:text-xs sm:text-sm"
+              >
+                <MessageSquare className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-500" />
+                <span className="hidden sm:inline">Comunicação</span>
+              </Link>
+              <Link
                 href="/admin/systems"
                 className="flex items-center space-x-1.5 sm:space-x-2 text-gray-600 hover:text-primary-600 font-medium transition text-[10px] sm:text-xs sm:text-sm"
               >
@@ -914,6 +981,7 @@ export default function AdminPage() {
                 <BookOpen className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500" />
                 <span className="hidden sm:inline">Academia</span>
               </Link>
+              <AdminNotificationCenter onNavigate={(url) => router.push(url)} />
               <button
                 onClick={handleLogout}
                 className="flex items-center space-x-1.5 sm:space-x-2 text-gray-600 hover:text-red-600 font-medium transition text-[10px] sm:text-xs sm:text-sm"

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import TicketModel from '@/lib/models/Ticket';
+import { addAdminNotification } from '@/lib/notifications';
 
 let FALLBACK_TICKETS: any[] = [];
 
@@ -73,6 +74,17 @@ export async function POST(req: Request) {
 
     if (action === 'create' || ticket) {
       const newTicket = ticket || { id: `TCK-${Math.floor(1000 + Math.random() * 9000)}`, userId: body.userId, userName: body.userName, userEmail: body.userEmail, subject: body.subject, category: body.category || 'technical', priority: body.priority || 'medium', status: body.status || 'open', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), messages: body.messages || [] };
+
+      // Notificar administrador do novo ticket
+      addAdminNotification({
+        title: `🎫 Novo Ticket de Suporte: #${newTicket.id}`,
+        message: `${newTicket.userName || newTicket.userEmail || 'Cliente'} abriu um ticket: "${newTicket.subject}".`,
+        type: 'support_ticket',
+        userEmail: newTicket.userEmail,
+        userName: newTicket.userName,
+        link: '/admin?tab=tickets'
+      });
+
       if (useMongo) {
         await TicketModel.findOneAndUpdate({ id: newTicket.id }, newTicket, { upsert: true, new: true });
         return NextResponse.json({ success: true, ticket: newTicket, tickets: await TicketModel.find({}).sort({ updatedAt: -1 }).lean() });
