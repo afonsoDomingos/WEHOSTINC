@@ -2,103 +2,103 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { 
-  Send, Users, Mail, FileText, History, Plus, Edit2, Trash2, CheckCircle2, 
-  XCircle, AlertCircle, Eye, RefreshCw, ArrowLeft, Search, Filter, ShieldCheck, 
-  Sparkles, Layers, Check, Copy, Info, CheckSquare, Square
+  ArrowLeft, Send, Users, FileText, History, RefreshCw, Sparkles, CheckCircle2, XCircle, Search, Filter, Plus, Edit2, Trash2, Mail, Info, Clock, AlertCircle
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 import { dataManager } from '@/lib/data';
-import { 
-  CommunicationTemplate, 
-  CommunicationLog, 
-  getCommunicationTemplates, 
-  getCommunicationLogs, 
-  saveCommunicationTemplate, 
-  deleteCommunicationTemplate, 
-  dispatchMessage,
-  replaceTemplateVariables
-} from '@/lib/notifications';
-import BrandLogo from '@/components/BrandLogo';
 import PageLoader from '@/components/PageLoader';
-import Toast from '@/components/Toast';
 import ConfirmModal from '@/components/ConfirmModal';
+import Toast from '@/components/Toast';
+import AdminNotificationCenter from '@/components/AdminNotificationCenter';
+import { 
+  getCommunicationTemplates, 
+  saveCommunicationTemplate, 
+  deleteCommunicationTemplate,
+  getCommunicationLogs, 
+  dispatchMessage, 
+  replaceTemplateVariables,
+  CommunicationTemplate, 
+  CommunicationLog 
+} from '@/lib/notifications';
 
 export default function AdminCommunicationPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const initialTab = (searchParams.get('tab') as 'manual' | 'bulk' | 'templates' | 'history') || 'manual';
-
-  const [activeTab, setActiveTab] = useState<'manual' | 'bulk' | 'templates' | 'history'>(initialTab);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Dados Principais
   const [clients, setClients] = useState<User[]>([]);
   const [templates, setTemplates] = useState<CommunicationTemplate[]>([]);
   const [logs, setLogs] = useState<CommunicationLog[]>([]);
 
-  // Toast e Modais
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
-  const [isConfirmingBulk, setIsConfirmingBulk] = useState(false);
-  const [selectedLog, setSelectedLog] = useState<CommunicationLog | null>(null);
-  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
-  const [editingTemplate, setEditingTemplate] = useState<Partial<CommunicationTemplate> | null>(null);
+  // Abas do Painel ('manual' | 'bulk' | 'templates' | 'history')
+  const [activeTab, setActiveTab] = useState<'manual' | 'bulk' | 'templates' | 'history'>('manual');
 
-  // ESTADO - ENVIO MANUAL
+  // Estado do Toast Alert
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  // -------------------------------------------------------------
+  // ABA 1: ESTADO DO ENVIO MANUAL (DIRETO)
+  // -------------------------------------------------------------
   const [manualClientEmail, setManualClientEmail] = useState('');
   const [manualTemplateId, setManualTemplateId] = useState('');
   const [manualSubject, setManualSubject] = useState('');
   const [manualBody, setManualBody] = useState('');
   const [isSendingManual, setIsSendingManual] = useState(false);
 
-  // ESTADO - ENVIO EM MASSA
+  // -------------------------------------------------------------
+  // ABA 2: ESTADO DO ENVIO EM MASSA
+  // -------------------------------------------------------------
   const [bulkFilter, setBulkFilter] = useState<'all' | 'active' | 'pending' | 'suspended' | 'pending_payment' | 'custom'>('all');
   const [bulkSelectedEmails, setBulkSelectedEmails] = useState<string[]>([]);
   const [bulkTemplateId, setBulkTemplateId] = useState('');
   const [bulkSubject, setBulkSubject] = useState('');
   const [bulkBody, setBulkBody] = useState('');
+  const [isConfirmingBulk, setIsConfirmingBulk] = useState(false);
   const [isSendingBulk, setIsSendingBulk] = useState(false);
 
-  // Filtro de Histórico
+  // -------------------------------------------------------------
+  // ABA 3: ESTADO DA GESTÃO DE TEMPLATES
+  // -------------------------------------------------------------
+  const [editingTemplate, setEditingTemplate] = useState<Partial<CommunicationTemplate> | null>(null);
+  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
+
+  // -------------------------------------------------------------
+  // ABA 4: ESTADO DO HISTÓRICO DE MENSAGENS
+  // -------------------------------------------------------------
   const [historySearch, setHistorySearch] = useState('');
   const [historyFilter, setHistoryFilter] = useState<'all' | 'sent' | 'failed' | 'auto' | 'manual'>('all');
+  const [selectedLog, setSelectedLog] = useState<CommunicationLog | null>(null);
 
+  // Carregar dados iniciais
   useEffect(() => {
-    // Verificar se o utilizador é Admin
-    const currentUser = auth.getCurrentUser();
-    if (!currentUser || currentUser.role !== 'admin') {
+    const user = auth.getCurrentUser();
+    if (!user || user.role !== 'admin') {
       router.push('/login');
       return;
     }
-
+    setCurrentUser(user);
     loadData();
+    setLoading(false);
   }, [router]);
 
-  const loadData = () => {
-    setLoading(true);
+  const loadData = async () => {
     try {
-      const allUsers = auth.getUsers().filter(u => u.role !== 'admin');
-      setClients(allUsers);
-
-      const tpls = getCommunicationTemplates();
-      setTemplates(tpls);
-
-      const lgs = getCommunicationLogs();
-      setLogs(lgs);
+      const allUsers = await auth.fetchUsersAsync();
+      setClients((allUsers || []).filter((u: User) => u.role !== 'admin'));
+      setTemplates(getCommunicationTemplates());
+      setLogs(getCommunicationLogs());
     } catch (err) {
-      console.error('Erro ao carregar dados:', err);
-    } finally {
-      setLoading(false);
+      console.error('Erro ao carregar dados da central de comunicação:', err);
     }
   };
 
-  // Ao selecionar um template no envio manual
+  // Selecionar Modelo no Envio Manual
   const handleManualTemplateSelect = (templateId: string) => {
     setManualTemplateId(templateId);
-    if (!templateId) {
-      setManualSubject('');
-      setManualBody('');
-      return;
-    }
+    if (!templateId) return;
     const found = templates.find(t => t.id === templateId);
     if (found) {
       setManualSubject(found.subject);
@@ -106,14 +106,10 @@ export default function AdminCommunicationPage() {
     }
   };
 
-  // Ao selecionar um template no envio em massa
+  // Selecionar Modelo no Envio em Massa
   const handleBulkTemplateSelect = (templateId: string) => {
     setBulkTemplateId(templateId);
-    if (!templateId) {
-      setBulkSubject('');
-      setBulkBody('');
-      return;
-    }
+    if (!templateId) return;
     const found = templates.find(t => t.id === templateId);
     if (found) {
       setBulkSubject(found.subject);
@@ -145,89 +141,77 @@ export default function AdminCommunicationPage() {
       return;
     }
     if (!manualSubject || !manualBody) {
-      setToast({ message: 'Preencha o assunto e o corpo da mensagem.', type: 'error' });
+      setToast({ message: 'Preencha o assunto e o conteúdo da mensagem.', type: 'error' });
       return;
     }
 
     setIsSendingManual(true);
-    try {
-      const client = clients.find(c => c.email === manualClientEmail);
-      const res = await dispatchMessage({
-        recipientEmail: manualClientEmail,
-        recipientName: client?.name || manualClientEmail.split('@')[0],
-        templateId: manualTemplateId || undefined,
-        subject: manualSubject,
-        body: manualBody,
-        variables: {
-          nome_cliente: client?.name || manualClientEmail.split('@')[0],
-          email: manualClientEmail
-        },
-        isAutomatic: false
-      });
+    const targetClient = clients.find(c => c.email === manualClientEmail);
 
-      if (res.success) {
-        setToast({ message: `Mensagem enviada com sucesso para ${manualClientEmail}!`, type: 'success' });
-        setManualSubject('');
-        setManualBody('');
-        setManualTemplateId('');
-        loadData();
-      } else {
-        setToast({ message: `Erro ao enviar: ${res.error || 'Falha no servidor.'}`, type: 'error' });
-      }
-    } catch (err: any) {
-      setToast({ message: `Erro ao enviar mensagem: ${err.message}`, type: 'error' });
-    } finally {
-      setIsSendingManual(false);
+    const result = await dispatchMessage({
+      recipientEmail: manualClientEmail,
+      recipientName: targetClient?.name || manualClientEmail.split('@')[0],
+      templateId: manualTemplateId || undefined,
+      subject: manualSubject,
+      body: manualBody,
+      isAutomatic: false,
+      channel: 'email'
+    });
+
+    setIsSendingManual(false);
+
+    if (result.success) {
+      setToast({ message: `Mensagem enviada com sucesso para ${manualClientEmail}!`, type: 'success' });
+      setManualSubject('');
+      setManualBody('');
+      setManualTemplateId('');
+      loadData();
+    } else {
+      setToast({ message: `Erro ao enviar e-mail: ${result.error || 'Falha no servidor.'}`, type: 'error' });
     }
   };
 
   // Executar Envio em Massa
   const handleSendBulk = async () => {
+    setIsConfirmingBulk(false);
     const recipients = getBulkRecipients();
     if (recipients.length === 0) {
-      setToast({ message: 'Nenhum cliente selecionado para o envio em massa.', type: 'error' });
+      setToast({ message: 'Nenhum cliente selecionado para o disparo em massa.', type: 'error' });
       return;
     }
 
     setIsSendingBulk(true);
-    setIsConfirmingBulk(false);
+    let successCount = 0;
+    let failCount = 0;
 
-    try {
-      let sentCount = 0;
-      let failCount = 0;
-
-      for (const client of recipients) {
-        const res = await dispatchMessage({
-          recipientEmail: client.email,
-          recipientName: client.name || client.email.split('@')[0],
-          templateId: bulkTemplateId || undefined,
-          subject: bulkSubject,
-          body: bulkBody,
-          variables: {
-            nome_cliente: client.name || client.email.split('@')[0],
-            email: client.email
-          },
-          isAutomatic: false
-        });
-
-        if (res.success) sentCount++;
-        else failCount++;
-      }
-
-      setToast({ 
-        message: `Disparo concluído! ${sentCount} enviadas com sucesso, ${failCount} falhas.`, 
-        type: sentCount > 0 ? 'success' : 'error' 
+    for (const client of recipients) {
+      const res = await dispatchMessage({
+        recipientEmail: client.email,
+        recipientName: client.name || client.email.split('@')[0],
+        templateId: bulkTemplateId || undefined,
+        subject: bulkSubject,
+        body: bulkBody,
+        isAutomatic: false,
+        channel: 'email'
       });
+      if (res.success) successCount++;
+      else failCount++;
+    }
 
-      loadData();
-    } catch (err: any) {
-      setToast({ message: `Erro no disparo em massa: ${err.message}`, type: 'error' });
-    } finally {
-      setIsSendingBulk(false);
+    setIsSendingBulk(false);
+    loadData();
+
+    if (failCount === 0) {
+      setToast({ message: `Envio em massa concluído com sucesso para todos os ${successCount} clientes!`, type: 'success' });
+      setBulkSubject('');
+      setBulkBody('');
+      setBulkTemplateId('');
+    } else {
+      setToast({ message: `Envio concluído: ${successCount} entregues, ${failCount} falhas.`, type: 'error' });
     }
   };
 
-  // Guardar ou Editar Template
+  // Guardar Modelo de Mensagem
   const handleSaveTemplate = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingTemplate?.name || !editingTemplate?.subject || !editingTemplate?.body) {
@@ -235,46 +219,38 @@ export default function AdminCommunicationPage() {
       return;
     }
 
-    try {
-      saveCommunicationTemplate({
-        id: editingTemplate.id || `tpl_${Date.now()}`,
-        name: editingTemplate.name,
-        category: editingTemplate.category || 'Geral',
-        subject: editingTemplate.subject,
-        body: editingTemplate.body,
-        channel: editingTemplate.channel || 'email',
-        isSystem: editingTemplate.isSystem || false
-      });
+    saveCommunicationTemplate({
+      id: editingTemplate.id || `tpl_${Date.now()}`,
+      name: editingTemplate.name,
+      category: editingTemplate.category || 'Geral',
+      subject: editingTemplate.subject,
+      body: editingTemplate.body,
+      channel: editingTemplate.channel || 'email',
+      isSystem: editingTemplate.isSystem || false
+    });
 
-      setToast({ message: 'Modelo de mensagem guardado com sucesso!', type: 'success' });
-      setIsTemplateModalOpen(false);
-      setEditingTemplate(null);
-      loadData();
-    } catch (err: any) {
-      setToast({ message: `Erro ao guardar modelo: ${err.message}`, type: 'error' });
-    }
+    setIsTemplateModalOpen(false);
+    setEditingTemplate(null);
+    setToast({ message: 'Modelo de mensagem guardado com sucesso!', type: 'success' });
+    loadData();
   };
 
-  // Eliminar Template Customizado
+  // Eliminar Modelo de Mensagem
   const handleDeleteTemplate = (id: string) => {
-    try {
-      deleteCommunicationTemplate(id);
-      setToast({ message: 'Modelo removido com sucesso.', type: 'info' });
-      loadData();
-    } catch (err: any) {
-      setToast({ message: `Erro ao remover modelo: ${err.message}`, type: 'error' });
-    }
+    deleteCommunicationTemplate(id);
+    setToast({ message: 'Modelo eliminado com sucesso.', type: 'success' });
+    loadData();
   };
 
-  // Inserir tag de variável no editor ativo
-  const insertVariable = (tag: string, target: 'manual' | 'bulk' | 'template') => {
-    const varTag = `{{${tag}}}`;
+  // Inserir variável rápida no cursor do textarea
+  const insertVariable = (varTag: string, target: 'manual' | 'bulk' | 'template') => {
+    const formattedTag = `{{${varTag}}}`;
     if (target === 'manual') {
-      setManualBody(prev => prev + ' ' + varTag);
+      setManualBody(prev => prev + ' ' + formattedTag);
     } else if (target === 'bulk') {
-      setBulkBody(prev => prev + ' ' + varTag);
+      setBulkBody(prev => prev + ' ' + formattedTag);
     } else if (target === 'template' && editingTemplate) {
-      setEditingTemplate(prev => ({ ...prev, body: (prev?.body || '') + ' ' + varTag }));
+      setEditingTemplate(prev => ({ ...prev, body: (prev?.body || '') + ' ' + formattedTag }));
     }
   };
 
@@ -313,7 +289,7 @@ export default function AdminCommunicationPage() {
   });
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 pb-16">
+    <div className="min-h-screen bg-slate-50 text-gray-900 pb-16">
       {/* Toast Alert */}
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
@@ -333,64 +309,70 @@ export default function AdminCommunicationPage() {
 
       {/* Modal de Detalhes do Log do Histórico */}
       {selectedLog && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white border border-gray-100 rounded-3xl max-w-2xl w-full p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-150">
             <button
               onClick={() => setSelectedLog(null)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800"
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-1.5 rounded-full hover:bg-gray-100 transition cursor-pointer"
             >
               <XCircle className="w-6 h-6" />
             </button>
             
-            <div className="flex items-center gap-3 mb-4 border-b border-slate-800 pb-4">
-              <Mail className="w-6 h-6 text-blue-400" />
+            <div className="flex items-center gap-3 mb-4 border-b border-gray-100 pb-4">
+              <div className="p-3 rounded-2xl bg-primary-50 text-primary-600">
+                <Mail className="w-6 h-6" />
+              </div>
               <div>
-                <h3 className="text-lg font-bold text-white">Detalhes da Mensagem</h3>
-                <p className="text-xs text-slate-400">ID: {selectedLog.id} • {new Date(selectedLog.sentAt).toLocaleString()}</p>
+                <h3 className="text-lg font-bold text-gray-900">Detalhes da Mensagem</h3>
+                <p className="text-xs text-gray-500">ID: {selectedLog.id} • {new Date(selectedLog.sentAt).toLocaleString('pt-MZ')}</p>
               </div>
             </div>
 
             <div className="space-y-4 text-sm">
-              <div className="grid grid-cols-2 gap-4 bg-slate-950 p-3.5 rounded-xl border border-slate-800">
+              <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-2xl border border-gray-200/80">
                 <div>
-                  <span className="text-xs text-slate-500 font-semibold block">Destinatário:</span>
-                  <span className="text-slate-200 font-medium">{selectedLog.recipientName} ({selectedLog.recipientEmail})</span>
+                  <span className="text-xs text-gray-500 font-semibold block">Destinatário:</span>
+                  <span className="text-gray-900 font-bold">{selectedLog.recipientName}</span>
+                  <span className="text-xs text-gray-500 block">{selectedLog.recipientEmail}</span>
                 </div>
                 <div>
-                  <span className="text-xs text-slate-500 font-semibold block">Modelo Utilizado:</span>
-                  <span className="text-slate-200 font-medium">{selectedLog.templateName || 'Personalizado'}</span>
+                  <span className="text-xs text-gray-500 font-semibold block">Modelo Utilizado:</span>
+                  <span className="text-gray-800 font-medium">{selectedLog.templateName || 'Personalizado'}</span>
                 </div>
                 <div>
-                  <span className="text-xs text-slate-500 font-semibold block">Estado:</span>
-                  <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full ${
-                    selectedLog.status === 'sent' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'
+                  <span className="text-xs text-gray-500 font-semibold block">Estado:</span>
+                  <span className={`inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full border mt-0.5 ${
+                    selectedLog.status === 'sent' 
+                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                      : 'bg-rose-50 text-rose-700 border-rose-200'
                   }`}>
                     {selectedLog.status === 'sent' ? '✅ Enviado' : '❌ Falhou'}
                   </span>
                 </div>
                 <div>
-                  <span className="text-xs text-slate-500 font-semibold block">Origem:</span>
-                  <span className="text-slate-300">{selectedLog.isAutomatic ? '🤖 Automático (Evento)' : '👤 Manual (Admin)'}</span>
+                  <span className="text-xs text-gray-500 font-semibold block">Origem:</span>
+                  <span className="text-gray-700 font-medium">{selectedLog.isAutomatic ? '🤖 Automático (Evento)' : '👤 Manual (Admin)'}</span>
                 </div>
               </div>
 
               <div>
-                <span className="text-xs text-slate-500 font-semibold block mb-1">Assunto:</span>
-                <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 font-medium text-white">
+                <span className="text-xs text-gray-500 font-semibold block mb-1">Assunto:</span>
+                <div className="p-3.5 bg-gray-50 rounded-xl border border-gray-200 font-bold text-gray-900">
                   {selectedLog.subject}
                 </div>
               </div>
 
               <div>
-                <span className="text-xs text-slate-500 font-semibold block mb-1">Conteúdo da Mensagem:</span>
-                <div className="p-4 bg-slate-950 rounded-xl border border-slate-800 text-slate-300 font-mono text-xs whitespace-pre-line max-h-60 overflow-y-auto leading-relaxed">
+                <span className="text-xs text-gray-500 font-semibold block mb-1">Conteúdo da Mensagem:</span>
+                <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 text-gray-700 font-mono text-xs whitespace-pre-line max-h-60 overflow-y-auto leading-relaxed">
                   {selectedLog.body}
                 </div>
               </div>
 
               {selectedLog.error && (
-                <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs text-rose-300">
-                  ⚠️ Erro Registado: {selectedLog.error}
+                <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-xs font-medium text-rose-700 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                  <span>Erro Registado: {selectedLog.error}</span>
                 </div>
               )}
             </div>
@@ -400,40 +382,40 @@ export default function AdminCommunicationPage() {
 
       {/* Modal Criar / Editar Template */}
       {isTemplateModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full p-6 shadow-2xl relative">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white border border-gray-100 rounded-3xl max-w-2xl w-full p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-150">
             <button
               onClick={() => { setIsTemplateModalOpen(false); setEditingTemplate(null); }}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800"
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-1.5 rounded-full hover:bg-gray-100 transition cursor-pointer"
             >
               <XCircle className="w-6 h-6" />
             </button>
 
-            <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-              <FileText className="w-5 h-5 text-blue-400" />
+            <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <FileText className="w-5 h-5 text-primary-600" />
               {editingTemplate?.id ? 'Editar Modelo de Mensagem' : 'Novo Modelo de Mensagem'}
             </h3>
 
             <form onSubmit={handleSaveTemplate} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Nome do Modelo</label>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Nome do Modelo</label>
                   <input
                     type="text"
                     value={editingTemplate?.name || ''}
                     onChange={e => setEditingTemplate(prev => ({ ...prev, name: e.target.value }))}
                     placeholder="Ex: Aviso de Manutenção"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Categoria</label>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Categoria</label>
                   <select
                     value={editingTemplate?.category || 'Geral'}
                     onChange={e => setEditingTemplate(prev => ({ ...prev, category: e.target.value }))}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
                   >
                     <option value="Boas-Vindas">Boas-Vindas</option>
                     <option value="Pedidos">Pedidos</option>
@@ -445,31 +427,31 @@ export default function AdminCommunicationPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Assunto do E-mail</label>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Assunto do E-mail</label>
                 <input
                   type="text"
                   value={editingTemplate?.subject || ''}
                   onChange={e => setEditingTemplate(prev => ({ ...prev, subject: e.target.value }))}
                   placeholder="Ex: 📢 Comunicado Importante para {{nome_cliente}}"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
                   required
                 />
               </div>
 
               <div>
                 <div className="flex justify-between items-center mb-1">
-                  <label className="block text-xs font-semibold text-slate-300">Corpo da Mensagem (Texto / HTML)</label>
-                  <span className="text-[11px] text-slate-400">Clique para inserir variável:</span>
+                  <label className="block text-xs font-bold text-gray-700">Corpo da Mensagem (Texto / HTML)</label>
+                  <span className="text-[11px] text-gray-500">Clique para inserir variável:</span>
                 </div>
 
                 {/* Toolbar de Variáveis */}
-                <div className="flex flex-wrap gap-1.5 mb-2 bg-slate-950 p-2 rounded-xl border border-slate-800">
+                <div className="flex flex-wrap gap-1.5 mb-2 bg-gray-50 p-2.5 rounded-xl border border-gray-200">
                   {['nome_cliente', 'email', 'numero_pedido', 'valor', 'data', 'estado_pedido', 'nome_empresa'].map(v => (
                     <button
                       key={v}
                       type="button"
                       onClick={() => insertVariable(v, 'template')}
-                      className="px-2 py-1 bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white rounded-lg text-xs font-mono transition-colors"
+                      className="px-2.5 py-1 bg-white hover:bg-primary-600 text-gray-700 hover:text-white rounded-lg text-xs font-mono border border-gray-200 shadow-2xs transition-colors cursor-pointer"
                     >
                       +{v}
                     </button>
@@ -481,7 +463,7 @@ export default function AdminCommunicationPage() {
                   value={editingTemplate?.body || ''}
                   onChange={e => setEditingTemplate(prev => ({ ...prev, body: e.target.value }))}
                   placeholder="Escreva aqui a mensagem pré-configurada..."
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3.5 text-sm text-white font-mono focus:outline-none focus:border-blue-500 leading-relaxed"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3.5 text-sm text-gray-900 font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 leading-relaxed"
                   required
                 />
               </div>
@@ -490,13 +472,13 @@ export default function AdminCommunicationPage() {
                 <button
                   type="button"
                   onClick={() => { setIsTemplateModalOpen(false); setEditingTemplate(null); }}
-                  className="px-4 py-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 text-sm font-medium transition-colors"
+                  className="px-4 py-2.5 rounded-xl text-gray-700 hover:bg-gray-100 text-sm font-bold transition-colors cursor-pointer"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold shadow-lg shadow-blue-600/30 transition-all"
+                  className="px-5 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-bold shadow-md shadow-primary-200 transition-all cursor-pointer"
                 >
                   Guardar Modelo
                 </button>
@@ -506,50 +488,51 @@ export default function AdminCommunicationPage() {
         </div>
       )}
 
-      {/* BANNER / CABEÇALHO */}
-      <div className="bg-slate-900 border-b border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      {/* BANNER / CABEÇALHO SUPERIOR */}
+      <div className="bg-white border-b border-gray-200/80 shadow-2xs sticky top-0 z-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <Link 
                 href="/admin"
-                className="p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition-all border border-slate-700/60"
+                className="p-2.5 rounded-2xl bg-gray-100 hover:bg-gray-200 text-gray-700 transition-all border border-gray-200/80 cursor-pointer"
                 title="Voltar ao Painel Admin"
               >
                 <ArrowLeft className="w-5 h-5" />
               </Link>
               <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-2xl font-black text-white tracking-tight">Central de Comunicação</h1>
-                  <span className="bg-blue-500/20 text-blue-400 text-xs font-bold px-2.5 py-0.5 rounded-full border border-blue-500/30">
+                <div className="flex items-center gap-2.5">
+                  <h1 className="text-2xl font-black text-gray-900 tracking-tight">Central de Comunicação</h1>
+                  <span className="bg-primary-50 text-primary-700 text-xs font-extrabold px-3 py-1 rounded-full border border-primary-200">
                     WEHOSTHERE
                   </span>
                 </div>
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs text-gray-500 mt-1">
                   Envio de mensagens diretas, comunicação em massa, gestão de modelos e histórico de envios.
                 </p>
               </div>
             </div>
 
             <div className="flex items-center gap-3">
+              <AdminNotificationCenter />
               <button
                 onClick={loadData}
-                className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors border border-slate-700/50 flex items-center gap-2 text-xs font-semibold"
+                className="px-3.5 py-2 rounded-xl bg-white hover:bg-gray-50 text-gray-700 transition-colors border border-gray-200 flex items-center gap-2 text-xs font-bold shadow-2xs cursor-pointer"
               >
-                <RefreshCw className="w-4 h-4" />
+                <RefreshCw className="w-4 h-4 text-gray-500" />
                 Atualizar
               </button>
             </div>
           </div>
 
           {/* ABAS DE NAVEGAÇÃO */}
-          <div className="flex gap-2 mt-8 border-b border-slate-800 overflow-x-auto custom-scrollbar pb-px">
+          <div className="flex gap-2 mt-6 border-b border-gray-100 overflow-x-auto custom-scrollbar pb-px">
             <button
               onClick={() => setActiveTab('manual')}
-              className={`flex items-center gap-2 px-4 py-3 font-bold text-sm rounded-t-xl transition-all border-b-2 ${
+              className={`flex items-center gap-2 px-4 py-3 font-bold text-xs sm:text-sm rounded-t-xl transition-all border-b-2 cursor-pointer ${
                 activeTab === 'manual'
-                  ? 'border-blue-500 bg-slate-800/60 text-blue-400 shadow-sm'
-                  : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'
+                  ? 'border-primary-600 bg-primary-50/70 text-primary-700 shadow-2xs'
+                  : 'border-transparent text-gray-500 hover:text-gray-900 hover:bg-gray-50'
               }`}
             >
               <Send className="w-4 h-4" />
@@ -558,10 +541,10 @@ export default function AdminCommunicationPage() {
 
             <button
               onClick={() => setActiveTab('bulk')}
-              className={`flex items-center gap-2 px-4 py-3 font-bold text-sm rounded-t-xl transition-all border-b-2 ${
+              className={`flex items-center gap-2 px-4 py-3 font-bold text-xs sm:text-sm rounded-t-xl transition-all border-b-2 cursor-pointer ${
                 activeTab === 'bulk'
-                  ? 'border-blue-500 bg-slate-800/60 text-blue-400 shadow-sm'
-                  : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'
+                  ? 'border-primary-600 bg-primary-50/70 text-primary-700 shadow-2xs'
+                  : 'border-transparent text-gray-500 hover:text-gray-900 hover:bg-gray-50'
               }`}
             >
               <Users className="w-4 h-4" />
@@ -570,10 +553,10 @@ export default function AdminCommunicationPage() {
 
             <button
               onClick={() => setActiveTab('templates')}
-              className={`flex items-center gap-2 px-4 py-3 font-bold text-sm rounded-t-xl transition-all border-b-2 ${
+              className={`flex items-center gap-2 px-4 py-3 font-bold text-xs sm:text-sm rounded-t-xl transition-all border-b-2 cursor-pointer ${
                 activeTab === 'templates'
-                  ? 'border-blue-500 bg-slate-800/60 text-blue-400 shadow-sm'
-                  : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'
+                  ? 'border-primary-600 bg-primary-50/70 text-primary-700 shadow-2xs'
+                  : 'border-transparent text-gray-500 hover:text-gray-900 hover:bg-gray-50'
               }`}
             >
               <FileText className="w-4 h-4" />
@@ -582,10 +565,10 @@ export default function AdminCommunicationPage() {
 
             <button
               onClick={() => setActiveTab('history')}
-              className={`flex items-center gap-2 px-4 py-3 font-bold text-sm rounded-t-xl transition-all border-b-2 ${
+              className={`flex items-center gap-2 px-4 py-3 font-bold text-xs sm:text-sm rounded-t-xl transition-all border-b-2 cursor-pointer ${
                 activeTab === 'history'
-                  ? 'border-blue-500 bg-slate-800/60 text-blue-400 shadow-sm'
-                  : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'
+                  ? 'border-primary-600 bg-primary-50/70 text-primary-700 shadow-2xs'
+                  : 'border-transparent text-gray-500 hover:text-gray-900 hover:bg-gray-50'
               }`}
             >
               <History className="w-4 h-4" />
@@ -602,21 +585,23 @@ export default function AdminCommunicationPage() {
         {activeTab === 'manual' && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Formulário de Envio */}
-            <div className="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
-              <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2 border-b border-slate-800 pb-3">
-                <Send className="w-5 h-5 text-blue-400" />
+            <div className="lg:col-span-7 bg-white border border-gray-200/80 rounded-3xl p-6 sm:p-8 shadow-xs">
+              <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2.5 border-b border-gray-100 pb-4">
+                <div className="p-2 rounded-xl bg-primary-50 text-primary-600">
+                  <Send className="w-5 h-5" />
+                </div>
                 Enviar Mensagem para Cliente Específico
               </h2>
 
               <form onSubmit={handleSendManual} className="space-y-5">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">
                     1. Selecionar Cliente Destinatário
                   </label>
                   <select
                     value={manualClientEmail}
                     onChange={e => setManualClientEmail(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-sm text-gray-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
                     required
                   >
                     <option value="">-- Escolha um Cliente da Lista --</option>
@@ -629,13 +614,13 @@ export default function AdminCommunicationPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">
                     2. Escolher Modelo Pré-Configurado (Opcional)
                   </label>
                   <select
                     value={manualTemplateId}
                     onChange={e => handleManualTemplateSelect(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-sm text-gray-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
                   >
                     <option value="">-- Escrever Mensagem Livre / Sem Modelo --</option>
                     {templates.map(t => (
@@ -647,7 +632,7 @@ export default function AdminCommunicationPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">
                     3. Assunto da Mensagem
                   </label>
                   <input
@@ -655,27 +640,27 @@ export default function AdminCommunicationPage() {
                     value={manualSubject}
                     onChange={e => setManualSubject(e.target.value)}
                     placeholder="Ex: Atualização importante sobre o seu serviço"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-sm text-gray-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
                     required
                   />
                 </div>
 
                 <div>
                   <div className="flex justify-between items-center mb-1.5">
-                    <label className="block text-xs font-semibold text-slate-300">
+                    <label className="block text-xs font-bold text-gray-700">
                       4. Conteúdo da Mensagem
                     </label>
-                    <span className="text-[11px] text-slate-400">Variáveis rápidas:</span>
+                    <span className="text-[11px] text-gray-500">Variáveis rápidas:</span>
                   </div>
 
                   {/* Toolbar de Inserção de Variáveis */}
-                  <div className="flex flex-wrap gap-1.5 mb-2.5 bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                  <div className="flex flex-wrap gap-1.5 mb-2.5 bg-gray-50 p-2.5 rounded-2xl border border-gray-200">
                     {['nome_cliente', 'email', 'numero_pedido', 'valor', 'data', 'estado_pedido', 'nome_empresa'].map(v => (
                       <button
                         key={v}
                         type="button"
                         onClick={() => insertVariable(v, 'manual')}
-                        className="px-2.5 py-1 bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white rounded-lg text-xs font-mono transition-colors"
+                        className="px-2.5 py-1 bg-white hover:bg-primary-600 text-gray-700 hover:text-white rounded-lg text-xs font-mono border border-gray-200 shadow-2xs transition-colors cursor-pointer"
                       >
                         +{v}
                       </button>
@@ -687,7 +672,7 @@ export default function AdminCommunicationPage() {
                     value={manualBody}
                     onChange={e => setManualBody(e.target.value)}
                     placeholder="Escreva aqui o texto da mensagem..."
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-sm text-white font-mono focus:outline-none focus:border-blue-500 leading-relaxed"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 text-sm text-gray-900 font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 leading-relaxed"
                     required
                   />
                 </div>
@@ -695,7 +680,7 @@ export default function AdminCommunicationPage() {
                 <button
                   type="submit"
                   disabled={isSendingManual}
-                  className="w-full py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm shadow-xl shadow-blue-600/25 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="w-full py-4 rounded-2xl bg-gradient-to-r from-primary-600 to-blue-600 hover:from-primary-700 hover:to-blue-700 text-white font-bold text-sm shadow-md shadow-primary-200 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                 >
                   {isSendingManual ? (
                     <>
@@ -713,38 +698,38 @@ export default function AdminCommunicationPage() {
             </div>
 
             {/* Painel de Pré-Visualização em Tempo Real */}
-            <div className="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col">
-              <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2 border-b border-slate-800 pb-3">
-                <Sparkles className="w-4 h-4 text-amber-400" />
+            <div className="lg:col-span-5 bg-white border border-gray-200/80 rounded-3xl p-6 sm:p-8 shadow-xs flex flex-col">
+              <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2 border-b border-gray-100 pb-4">
+                <Sparkles className="w-4 h-4 text-amber-500" />
                 Pré-visualização em Tempo Real (Substituição de Variáveis)
               </h3>
 
-              <div className="bg-slate-950 rounded-xl border border-slate-800 p-4 flex-1 flex flex-col justify-between">
+              <div className="bg-gray-50 rounded-2xl border border-gray-200/80 p-5 flex-1 flex flex-col justify-between">
                 <div>
-                  <div className="border-b border-slate-800 pb-3 mb-3">
-                    <span className="text-[11px] font-semibold text-slate-500 block uppercase tracking-wider">Para:</span>
-                    <span className="text-xs font-semibold text-blue-400">
+                  <div className="border-b border-gray-200/80 pb-3 mb-3">
+                    <span className="text-[11px] font-bold text-gray-400 block uppercase tracking-wider">Para:</span>
+                    <span className="text-xs font-bold text-primary-600">
                       {selectedManualClient ? `${selectedManualClient.name} (${selectedManualClient.email})` : 'Nenhum cliente selecionado'}
                     </span>
                   </div>
 
-                  <div className="border-b border-slate-800 pb-3 mb-3">
-                    <span className="text-[11px] font-semibold text-slate-500 block uppercase tracking-wider">Assunto:</span>
-                    <span className="text-sm font-bold text-white">
+                  <div className="border-b border-gray-200/80 pb-3 mb-3">
+                    <span className="text-[11px] font-bold text-gray-400 block uppercase tracking-wider">Assunto:</span>
+                    <span className="text-sm font-bold text-gray-900">
                       {previewManualSubject || '— Sem Assunto —'}
                     </span>
                   </div>
 
                   <div>
-                    <span className="text-[11px] font-semibold text-slate-500 block uppercase tracking-wider mb-1">Corpo Formatado:</span>
-                    <div className="text-xs text-slate-300 font-mono whitespace-pre-line leading-relaxed bg-slate-900/60 p-3.5 rounded-lg border border-slate-800 max-h-72 overflow-y-auto">
+                    <span className="text-[11px] font-bold text-gray-400 block uppercase tracking-wider mb-1.5">Corpo Formatado:</span>
+                    <div className="text-xs text-gray-700 font-mono whitespace-pre-line leading-relaxed bg-white p-4 rounded-xl border border-gray-200 max-h-72 overflow-y-auto shadow-2xs">
                       {previewManualBody || 'A pré-visualização da mensagem formatada aparecerá aqui...'}
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-slate-800 text-[11px] text-slate-500 flex items-center gap-1.5">
-                  <Info className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
+                <div className="mt-4 pt-3 border-t border-gray-200/80 text-[11px] text-gray-500 flex items-center gap-2">
+                  <Info className="w-4 h-4 text-primary-600 shrink-0" />
                   <span>As variáveis como <code>&#123;&#123;nome_cliente&#125;&#125;</code> são substituídas automaticamente pelos dados reais do cliente.</span>
                 </div>
               </div>
@@ -754,20 +739,22 @@ export default function AdminCommunicationPage() {
 
         {/* ABA 2: ENVIO EM MASSA */}
         {activeTab === 'bulk' && (
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
-            <h2 className="text-lg font-bold text-white mb-2 flex items-center gap-2 border-b border-slate-800 pb-3">
-              <Users className="w-5 h-5 text-blue-400" />
+          <div className="bg-white border border-gray-200/80 rounded-3xl p-6 sm:p-8 shadow-xs">
+            <h2 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2.5 border-b border-gray-100 pb-4">
+              <div className="p-2 rounded-xl bg-primary-50 text-primary-600">
+                <Users className="w-5 h-5" />
+              </div>
               Comunicação em Massa para Segmentos de Clientes
             </h2>
-            <p className="text-xs text-slate-400 mb-6">
+            <p className="text-xs text-gray-500 mb-6">
               Envie anúncios, notificações de manutenção ou atualizações da plataforma para grupos selecionados de clientes.
             </p>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
               {/* Filtro de Segmentação */}
               <div className="lg:col-span-4 space-y-4">
-                <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
-                  <label className="block text-xs font-bold text-slate-300 mb-2">Filtrar Destinatários por Segmento</label>
+                <div className="bg-gray-50 p-5 rounded-2xl border border-gray-200/80">
+                  <label className="block text-xs font-bold text-gray-800 mb-3">Filtrar Destinatários por Segmento</label>
                   <div className="space-y-2 text-xs">
                     {[
                       { key: 'all', label: `Todos os Clientes (${clients.length})` },
@@ -777,15 +764,15 @@ export default function AdminCommunicationPage() {
                       { key: 'pending_payment', label: 'Clientes com Pagamento Pendente' },
                       { key: 'custom', label: `Seleção Manual por Caixas (${bulkSelectedEmails.length} selecionados)` }
                     ].map(opt => (
-                      <label key={opt.key} className="flex items-center gap-2 p-2 bg-slate-900 hover:bg-slate-800 rounded-lg cursor-pointer border border-slate-800/60">
+                      <label key={opt.key} className="flex items-center gap-2.5 p-2.5 bg-white hover:bg-gray-100 rounded-xl cursor-pointer border border-gray-200 transition-colors">
                         <input
                           type="radio"
                           name="bulkFilter"
                           checked={bulkFilter === opt.key}
                           onChange={() => setBulkFilter(opt.key as any)}
-                          className="accent-blue-500"
+                          className="accent-primary-600"
                         />
-                        <span className="text-slate-200 font-medium">{opt.label}</span>
+                        <span className="text-gray-800 font-bold">{opt.label}</span>
                       </label>
                     ))}
                   </div>
@@ -793,10 +780,10 @@ export default function AdminCommunicationPage() {
 
                 {/* Seleção Manual se custom */}
                 {bulkFilter === 'custom' && (
-                  <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 max-h-60 overflow-y-auto space-y-1.5">
-                    <span className="text-xs font-semibold text-slate-400 block mb-2">Selecione os clientes:</span>
+                  <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200 max-h-60 overflow-y-auto space-y-2">
+                    <span className="text-xs font-bold text-gray-700 block mb-2">Selecione os clientes:</span>
                     {clients.map(c => (
-                      <label key={c.email} className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer hover:text-white">
+                      <label key={c.email} className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer hover:text-gray-900">
                         <input
                           type="checkbox"
                           checked={bulkSelectedEmails.includes(c.email)}
@@ -804,7 +791,7 @@ export default function AdminCommunicationPage() {
                             if (e.target.checked) setBulkSelectedEmails(prev => [...prev, c.email]);
                             else setBulkSelectedEmails(prev => prev.filter(em => em !== c.email));
                           }}
-                          className="rounded bg-slate-900 border-slate-700 accent-blue-500"
+                          className="rounded bg-white border-gray-300 accent-primary-600"
                         />
                         <span className="truncate">{c.name || 'Cliente'} ({c.email})</span>
                       </label>
@@ -813,20 +800,20 @@ export default function AdminCommunicationPage() {
                 )}
 
                 {/* Resumo do Destino */}
-                <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-xl text-xs text-blue-300">
+                <div className="p-4 bg-primary-50 border border-primary-200 rounded-2xl text-xs text-primary-800">
                   <span className="font-bold block mb-1">🎯 Destinatários Confirmados:</span>
-                  Esta mensagem será enviada para <strong className="text-white font-black text-sm">{getBulkRecipients().length}</strong> clientes.
+                  Esta mensagem será enviada para <strong className="text-primary-900 font-black text-sm">{getBulkRecipients().length}</strong> clientes.
                 </div>
               </div>
 
               {/* Formulário do Disparo */}
               <div className="lg:col-span-8 space-y-5">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">Modelo de Mensagem em Massa</label>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Modelo de Mensagem em Massa</label>
                   <select
                     value={bulkTemplateId}
                     onChange={e => handleBulkTemplateSelect(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-sm text-gray-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
                   >
                     <option value="">-- Selecionar Modelo de Comunicado / Aviso --</option>
                     {templates.map(t => (
@@ -838,30 +825,30 @@ export default function AdminCommunicationPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">Assunto da Mensagem em Massa</label>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Assunto da Mensagem em Massa</label>
                   <input
                     type="text"
                     value={bulkSubject}
                     onChange={e => setBulkSubject(e.target.value)}
                     placeholder="Ex: 📢 Comunicado Importante da WEHOSTHERE"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-sm text-gray-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
                     required
                   />
                 </div>
 
                 <div>
                   <div className="flex justify-between items-center mb-1.5">
-                    <label className="block text-xs font-semibold text-slate-300">Conteúdo do Comunicado</label>
-                    <span className="text-[11px] text-slate-400">Variáveis rápidas:</span>
+                    <label className="block text-xs font-bold text-gray-700">Conteúdo do Comunicado</label>
+                    <span className="text-[11px] text-gray-500">Variáveis rápidas:</span>
                   </div>
 
-                  <div className="flex flex-wrap gap-1.5 mb-2.5 bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                  <div className="flex flex-wrap gap-1.5 mb-2.5 bg-gray-50 p-2.5 rounded-2xl border border-gray-200">
                     {['nome_cliente', 'email', 'data', 'nome_empresa'].map(v => (
                       <button
                         key={v}
                         type="button"
                         onClick={() => insertVariable(v, 'bulk')}
-                        className="px-2.5 py-1 bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white rounded-lg text-xs font-mono transition-colors"
+                        className="px-2.5 py-1 bg-white hover:bg-primary-600 text-gray-700 hover:text-white rounded-lg text-xs font-mono border border-gray-200 shadow-2xs transition-colors cursor-pointer"
                       >
                         +{v}
                       </button>
@@ -873,7 +860,7 @@ export default function AdminCommunicationPage() {
                     value={bulkBody}
                     onChange={e => setBulkBody(e.target.value)}
                     placeholder="Escreva aqui o comunicado em massa..."
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-sm text-white font-mono focus:outline-none focus:border-blue-500 leading-relaxed"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 text-sm text-gray-900 font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 leading-relaxed"
                     required
                   />
                 </div>
@@ -882,7 +869,7 @@ export default function AdminCommunicationPage() {
                   type="button"
                   onClick={() => setIsConfirmingBulk(true)}
                   disabled={isSendingBulk || getBulkRecipients().length === 0 || !bulkSubject || !bulkBody}
-                  className="w-full py-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm shadow-xl shadow-blue-600/30 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="w-full py-4 rounded-2xl bg-gradient-to-r from-primary-600 to-blue-600 hover:from-primary-700 hover:to-blue-700 text-white font-bold text-sm shadow-md shadow-primary-200 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                 >
                   {isSendingBulk ? (
                     <>
@@ -904,13 +891,13 @@ export default function AdminCommunicationPage() {
         {/* ABA 3: MODELOS DE MENSAGENS */}
         {activeTab === 'templates' && (
           <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900 border border-slate-800 rounded-2xl p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-gray-200/80 rounded-3xl p-6 shadow-xs">
               <div>
-                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-blue-400" />
+                <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-primary-600" />
                   Modelos de Mensagens Prontas (Templates)
                 </h2>
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs text-gray-500 mt-1">
                   Gerencie os modelos reutilizáveis com variáveis dinâmicas para automação e envio rápido.
                 </p>
               </div>
@@ -927,7 +914,7 @@ export default function AdminCommunicationPage() {
                   });
                   setIsTemplateModalOpen(true);
                 }}
-                className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-600/20 transition-all flex items-center gap-2"
+                className="px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs rounded-2xl shadow-md shadow-primary-200 transition-all flex items-center gap-2 cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
                 Criar Novo Modelo
@@ -939,40 +926,40 @@ export default function AdminCommunicationPage() {
               {templates.map(tpl => (
                 <div 
                   key={tpl.id}
-                  className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg flex flex-col justify-between hover:border-slate-700 transition-all group"
+                  className="bg-white border border-gray-200/80 rounded-3xl p-6 shadow-xs flex flex-col justify-between hover:border-primary-300 transition-all group"
                 >
                   <div>
                     <div className="flex items-start justify-between gap-2 mb-3">
-                      <span className="text-[10px] font-bold uppercase tracking-wider bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded-full border border-blue-500/20">
+                      <span className="text-[10px] font-bold uppercase tracking-wider bg-primary-50 text-primary-700 px-2.5 py-0.5 rounded-full border border-primary-200">
                         {tpl.category}
                       </span>
                       {tpl.isSystem && (
-                        <span className="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">
-                          Sistema (Padrão)
+                        <span className="text-[10px] bg-gray-100 text-gray-600 px-2.5 py-0.5 rounded-full font-bold">
+                          Sistema
                         </span>
                       )}
                     </div>
 
-                    <h3 className="font-bold text-white text-base group-hover:text-blue-400 transition-colors">
+                    <h3 className="font-bold text-gray-900 text-base group-hover:text-primary-600 transition-colors">
                       {tpl.name}
                     </h3>
-                    <p className="text-xs font-semibold text-slate-300 mt-1 line-clamp-1">
+                    <p className="text-xs font-semibold text-gray-600 mt-1 line-clamp-1">
                       Assunto: {tpl.subject}
                     </p>
 
-                    <div className="mt-3 p-3 bg-slate-950 rounded-xl border border-slate-800/80 text-slate-400 text-xs font-mono line-clamp-4 leading-relaxed">
+                    <div className="mt-3 p-3.5 bg-gray-50 rounded-2xl border border-gray-200/80 text-gray-600 text-xs font-mono line-clamp-4 leading-relaxed">
                       {tpl.body}
                     </div>
                   </div>
 
-                  <div className="mt-4 pt-3 border-t border-slate-800/60 flex items-center justify-between">
+                  <div className="mt-4 pt-3.5 border-t border-gray-100 flex items-center justify-between">
                     <button
                       onClick={() => {
                         setManualTemplateId(tpl.id);
                         handleManualTemplateSelect(tpl.id);
                         setActiveTab('manual');
                       }}
-                      className="text-xs font-semibold text-blue-400 hover:text-blue-300 flex items-center gap-1"
+                      className="text-xs font-bold text-primary-600 hover:text-primary-700 flex items-center gap-1.5 cursor-pointer"
                     >
                       <Send className="w-3.5 h-3.5" />
                       Usar para Enviar
@@ -984,7 +971,7 @@ export default function AdminCommunicationPage() {
                           setEditingTemplate(tpl);
                           setIsTemplateModalOpen(true);
                         }}
-                        className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+                        className="p-1.5 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
                         title="Editar Modelo"
                       >
                         <Edit2 className="w-4 h-4" />
@@ -992,7 +979,7 @@ export default function AdminCommunicationPage() {
                       {!tpl.isSystem && (
                         <button
                           onClick={() => handleDeleteTemplate(tpl.id)}
-                          className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition-colors"
+                          className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
                           title="Eliminar Modelo"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -1008,14 +995,14 @@ export default function AdminCommunicationPage() {
 
         {/* ABA 4: HISTÓRICO DE MENSAGENS */}
         {activeTab === 'history' && (
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+          <div className="bg-white border border-gray-200/80 rounded-3xl p-6 sm:p-8 shadow-xs space-y-5">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-100 pb-4">
               <div>
-                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <History className="w-5 h-5 text-blue-400" />
+                <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                  <History className="w-5 h-5 text-primary-600" />
                   Histórico Completo de Comunicações
                 </h2>
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs text-gray-500 mt-1">
                   Registo de todas as mensagens disparadas automaticamente ou enviadas manualmente pelo Administrador.
                 </p>
               </div>
@@ -1023,20 +1010,20 @@ export default function AdminCommunicationPage() {
               {/* Barra de Pesquisa e Filtros */}
               <div className="flex flex-wrap items-center gap-3">
                 <div className="relative">
-                  <Search className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+                  <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-3" />
                   <input
                     type="text"
                     value={historySearch}
                     onChange={e => setHistorySearch(e.target.value)}
                     placeholder="Pesquisar por cliente, e-mail ou assunto..."
-                    className="bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 w-64"
+                    className="bg-gray-50 border border-gray-200 rounded-xl pl-9 pr-4 py-2 text-xs text-gray-900 placeholder-gray-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 w-64"
                   />
                 </div>
 
                 <select
                   value={historyFilter}
                   onChange={e => setHistoryFilter(e.target.value as any)}
-                  className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500"
+                  className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
                 >
                   <option value="all">Todas as Mensagens</option>
                   <option value="sent">Apenas Enviadas (✅)</option>
@@ -1048,66 +1035,68 @@ export default function AdminCommunicationPage() {
             </div>
 
             {/* Tabela de Logs */}
-            <div className="overflow-x-auto rounded-xl border border-slate-800">
+            <div className="overflow-x-auto rounded-2xl border border-gray-200">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-950 text-slate-400 text-xs font-semibold uppercase tracking-wider border-b border-slate-800">
-                    <th className="py-3 px-4">Destinatário</th>
-                    <th className="py-3 px-4">Assunto</th>
-                    <th className="py-3 px-4">Modelo</th>
-                    <th className="py-3 px-4">Origem</th>
-                    <th className="py-3 px-4">Data / Hora</th>
-                    <th className="py-3 px-4">Estado</th>
-                    <th className="py-3 px-4 text-right">Ação</th>
+                  <tr className="bg-gray-50 text-gray-500 text-xs font-bold uppercase tracking-wider border-b border-gray-200">
+                    <th className="py-3.5 px-4">Destinatário</th>
+                    <th className="py-3.5 px-4">Assunto</th>
+                    <th className="py-3.5 px-4">Modelo</th>
+                    <th className="py-3.5 px-4">Origem</th>
+                    <th className="py-3.5 px-4">Data / Hora</th>
+                    <th className="py-3.5 px-4">Estado</th>
+                    <th className="py-3.5 px-4 text-right">Ação</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800 text-xs">
+                <tbody className="divide-y divide-gray-100 text-xs">
                   {filteredLogs.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="py-8 text-center text-slate-500">
+                      <td colSpan={7} className="py-10 text-center text-gray-400 font-medium">
                         Nenhuma mensagem encontrada no histórico.
                       </td>
                     </tr>
                   ) : (
                     filteredLogs.map(log => (
-                      <tr key={log.id} className="hover:bg-slate-800/40 transition-colors">
-                        <td className="py-3 px-4">
-                          <span className="font-semibold text-white block">{log.recipientName}</span>
-                          <span className="text-[11px] text-slate-400">{log.recipientEmail}</span>
+                      <tr key={log.id} className="hover:bg-gray-50/80 transition-colors">
+                        <td className="py-3.5 px-4">
+                          <span className="font-bold text-gray-900 block">{log.recipientName}</span>
+                          <span className="text-[11px] text-gray-500">{log.recipientEmail}</span>
                         </td>
 
-                        <td className="py-3 px-4 max-w-xs truncate font-medium text-slate-200">
+                        <td className="py-3.5 px-4 max-w-xs truncate font-medium text-gray-800">
                           {log.subject}
                         </td>
 
-                        <td className="py-3 px-4 text-slate-400">
+                        <td className="py-3.5 px-4 text-gray-600">
                           {log.templateName || 'Personalizado'}
                         </td>
 
-                        <td className="py-3 px-4">
-                          <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-semibold ${
-                            log.isAutomatic ? 'bg-purple-500/20 text-purple-300' : 'bg-blue-500/20 text-blue-300'
+                        <td className="py-3.5 px-4">
+                          <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                            log.isAutomatic 
+                              ? 'bg-purple-50 text-purple-700 border-purple-200' 
+                              : 'bg-blue-50 text-blue-700 border-blue-200'
                           }`}>
                             {log.isAutomatic ? '🤖 Automático' : '👤 Manual'}
                           </span>
                         </td>
 
-                        <td className="py-3 px-4 text-slate-400">
+                        <td className="py-3.5 px-4 text-gray-500">
                           {new Date(log.sentAt).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
                         </td>
 
-                        <td className="py-3 px-4">
+                        <td className="py-3.5 px-4">
                           <span className={`inline-flex items-center gap-1 font-bold ${
-                            log.status === 'sent' ? 'text-emerald-400' : 'text-rose-400'
+                            log.status === 'sent' ? 'text-emerald-600' : 'text-rose-600'
                           }`}>
                             {log.status === 'sent' ? '✅ Enviado' : '❌ Falhou'}
                           </span>
                         </td>
 
-                        <td className="py-3 px-4 text-right">
+                        <td className="py-3.5 px-4 text-right">
                           <button
                             onClick={() => setSelectedLog(log)}
-                            className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-lg transition-colors font-medium text-xs"
+                            className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-xl transition-colors font-bold text-xs cursor-pointer"
                           >
                             Ver Detalhes
                           </button>
