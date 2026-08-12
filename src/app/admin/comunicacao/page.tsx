@@ -148,26 +148,34 @@ export default function AdminCommunicationPage() {
     setIsSendingManual(true);
     const targetClient = clients.find(c => c.email === manualClientEmail);
 
-    const result = await dispatchMessage({
-      recipientEmail: manualClientEmail,
-      recipientName: targetClient?.name || manualClientEmail.split('@')[0],
-      templateId: manualTemplateId || undefined,
-      subject: manualSubject,
-      body: manualBody,
-      isAutomatic: false,
-      channel: 'email'
-    });
+    try {
+      const response = await fetch('/api/admin/communication', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          recipientEmail: manualClientEmail,
+          recipientName: targetClient?.name || manualClientEmail.split('@')[0],
+          templateId: manualTemplateId || undefined,
+          subject: manualSubject,
+          body: manualBody,
+          isAutomatic: false
+        })
+      });
+      const result = await response.json();
+      setIsSendingManual(false);
 
-    setIsSendingManual(false);
-
-    if (result.success) {
-      setToast({ message: `Mensagem enviada com sucesso para ${manualClientEmail}!`, type: 'success' });
-      setManualSubject('');
-      setManualBody('');
-      setManualTemplateId('');
-      loadData();
-    } else {
-      setToast({ message: `Erro ao enviar e-mail: ${result.error || 'Falha no servidor.'}`, type: 'error' });
+      if (result.success) {
+        setToast({ message: `Mensagem enviada com sucesso para ${manualClientEmail}!`, type: 'success' });
+        setManualSubject('');
+        setManualBody('');
+        setManualTemplateId('');
+        loadData();
+      } else {
+        setToast({ message: `Erro ao enviar e-mail: ${result.error || 'Falha no servidor.'}`, type: 'error' });
+      }
+    } catch (err: any) {
+      setIsSendingManual(false);
+      setToast({ message: `Erro na ligação com o servidor: ${err?.message || 'Tente novamente.'}`, type: 'error' });
     }
   };
 
@@ -181,33 +189,33 @@ export default function AdminCommunicationPage() {
     }
 
     setIsSendingBulk(true);
-    let successCount = 0;
-    let failCount = 0;
-
-    for (const client of recipients) {
-      const res = await dispatchMessage({
-        recipientEmail: client.email,
-        recipientName: client.name || client.email.split('@')[0],
-        templateId: bulkTemplateId || undefined,
-        subject: bulkSubject,
-        body: bulkBody,
-        isAutomatic: false,
-        channel: 'email'
+    try {
+      const response = await fetch('/api/admin/communication', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'send_bulk',
+          recipients,
+          templateId: bulkTemplateId || undefined,
+          subject: bulkSubject,
+          body: bulkBody
+        })
       });
-      if (res.success) successCount++;
-      else failCount++;
-    }
+      const result = await response.json();
+      setIsSendingBulk(false);
+      loadData();
 
-    setIsSendingBulk(false);
-    loadData();
-
-    if (failCount === 0) {
-      setToast({ message: `Envio em massa concluído com sucesso para todos os ${successCount} clientes!`, type: 'success' });
-      setBulkSubject('');
-      setBulkBody('');
-      setBulkTemplateId('');
-    } else {
-      setToast({ message: `Envio concluído: ${successCount} entregues, ${failCount} falhas.`, type: 'error' });
+      if (result.success) {
+        setToast({ message: `Envio em massa concluído com sucesso! (${result.summary?.success || recipients.length} entregues)`, type: 'success' });
+        setBulkSubject('');
+        setBulkBody('');
+        setBulkTemplateId('');
+      } else {
+        setToast({ message: `Erro no envio em massa: ${result.error || 'Falha no servidor.'}`, type: 'error' });
+      }
+    } catch (err: any) {
+      setIsSendingBulk(false);
+      setToast({ message: `Erro na ligação com o servidor: ${err?.message || 'Tente novamente.'}`, type: 'error' });
     }
   };
 
