@@ -519,14 +519,25 @@ export async function dispatchMessage(payload: SendMessagePayload): Promise<{ su
         subject: finalSubject,
         text: finalBody,
         html: `<div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;color:#1e293b;line-height:1.7;">
-          <div style="background:linear-gradient(135deg,#1d4ed8,#2563eb);padding:32px 24px;border-radius:12px 12px 0 0;text-align:center;">
-            <h1 style="color:white;margin:0;font-size:24px;font-weight:800;">WEHOSTHERE</h1>
-            <p style="color:#bfdbfe;margin:6px 0 0;font-size:13px;">Hospedagem & Serviços de Nuvem</p>
+          <div style="background:linear-gradient(135deg,#1d4ed8,#2563eb);padding:28px 24px 24px;border-radius:12px 12px 0 0;text-align:center;">
+            <img
+              src="https://wehosthere.com/logo.png"
+              alt="WEHOSTHERE"
+              width="160"
+              style="max-width:160px;height:auto;display:block;margin:0 auto;"
+              onerror="this.style.display='none';document.getElementById('wh-logo-text').style.display='block';"
+            />
+            <span id="wh-logo-text" style="display:none;color:white;font-size:22px;font-weight:800;letter-spacing:1px;">WEHOSTHERE</span>
+            <p style="color:#bfdbfe;margin:10px 0 0;font-size:13px;">Hospedagem &amp; Serviços de Nuvem</p>
           </div>
           <div style="background:#ffffff;padding:32px 24px;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 12px 12px;">
-            <div style="white-space:pre-line;font-size:15px;color:#334155;">${finalBody}</div>
+            <div style="white-space:pre-line;font-size:15px;color:#334155;line-height:1.8;">${finalBody}</div>
             <hr style="border:none;border-top:1px solid #e2e8f0;margin:28px 0 16px;">
-            <p style="color:#94a3b8;font-size:12px;margin:0;text-align:center;">WEHOSTHERE — Suporte & Comunicação Automática</p>
+            <div style="text-align:center;">
+              <img src="https://wehosthere.com/logo.png" alt="WEHOSTHERE" width="80" style="max-width:80px;height:auto;opacity:0.4;margin-bottom:6px;" />
+              <p style="color:#94a3b8;font-size:11px;margin:0;">WEHOSTHERE &mdash; Suporte &amp; Comunicação Automática</p>
+              <p style="color:#cbd5e1;font-size:11px;margin:4px 0 0;"><a href="https://wehosthere.com" style="color:#93c5fd;text-decoration:none;">wehosthere.com</a></p>
+            </div>
           </div>
         </div>`
       });
