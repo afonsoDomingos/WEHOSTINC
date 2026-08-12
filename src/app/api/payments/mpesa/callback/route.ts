@@ -52,6 +52,21 @@ export async function POST(req: Request) {
         userName: userName,
         link: '/admin?tab=orders'
       });
+
+      // Notificar o cliente por e-mail sobre a falha no pagamento (se tiver e-mail)
+      if (userEmail) {
+        await dispatchMessage({
+          recipientEmail: userEmail,
+          recipientName: userName || 'Cliente',
+          templateId: 'payment-failed',
+          variables: {
+            numero_pedido: thirdPartyRef,
+            valor: `${Number(amount).toLocaleString('pt-MZ')} MT`
+          },
+          isAutomatic: true,
+          eventType: 'mpesa_payment_failed'
+        });
+      }
     }
 
     return NextResponse.json({ status: 'SUCCESS', message: 'Callback processado' });

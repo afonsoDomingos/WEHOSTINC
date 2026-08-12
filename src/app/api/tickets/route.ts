@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import TicketModel from '@/lib/models/Ticket';
-import { addAdminNotification } from '@/lib/notifications';
+import { addAdminNotification, dispatchMessage } from '@/lib/notifications';
 
 let FALLBACK_TICKETS: any[] = [];
 
@@ -84,6 +84,22 @@ export async function POST(req: Request) {
         userName: newTicket.userName,
         link: '/admin?tab=tickets'
       });
+
+      // Confirmar ao cliente que o ticket foi recebido
+      if (newTicket.userEmail) {
+        dispatchMessage({
+          recipientEmail: newTicket.userEmail,
+          recipientName: newTicket.userName || newTicket.userEmail.split('@')[0],
+          templateId: 'support-ticket-received',
+          variables: {
+            numero_ticket: newTicket.id,
+            assunto: newTicket.subject || 'Sem assunto',
+            prioridade: newTicket.priority === 'high' ? 'Alta' : newTicket.priority === 'low' ? 'Baixa' : 'Média'
+          },
+          isAutomatic: true,
+          eventType: 'support_ticket_created'
+        });
+      }
 
       if (useMongo) {
         await TicketModel.findOneAndUpdate({ id: newTicket.id }, newTicket, { upsert: true, new: true });

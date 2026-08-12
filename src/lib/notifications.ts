@@ -287,6 +287,58 @@ Equipa {{nome_empresa}}`,
     channel: 'email',
     isSystem: true,
     createdAt: new Date().toISOString()
+  },
+  {
+    id: 'payment-failed',
+    name: 'Pagamento falhado',
+    category: 'Pagamentos',
+    subject: '❌ Problema no seu Pagamento - Pedido {{numero_pedido}}',
+    body: `Olá {{nome_cliente}},
+
+Informamos que o seu pagamento de {{valor}} referente ao pedido {{numero_pedido}} não pôde ser processado com sucesso em {{data}}.
+
+Motivo possível: falha na transação, saldo insuficiente ou tempo esgotado.
+
+O que fazer agora:
+• Verifique o saldo da sua conta M-Pesa
+• Tente novamente no seu painel de pagamentos
+• Ou entre em contacto com o nosso suporte para assistência
+
+Aceda ao seu painel: https://wehosthere.com/dashboard
+
+Estamos aqui para ajudar!
+
+Atenciosamente,
+Equipa {{nome_empresa}}`,
+    channel: 'email',
+    isSystem: true,
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'support-ticket-received',
+    name: 'Ticket de suporte recebido',
+    category: 'Suporte',
+    subject: '🎫 Recebemos o seu pedido de suporte #{{numero_ticket}} - {{nome_empresa}}',
+    body: `Olá {{nome_cliente}},
+
+Confirmamos que recebemos o seu pedido de suporte e a nossa equipa técnica já está a analisar a situação.
+
+Detalhes do Ticket:
+• Número: #{{numero_ticket}}
+• Assunto: {{assunto}}
+• Prioridade: {{prioridade}}
+• Data de Abertura: {{data}}
+• Estado Atual: Em análise
+
+O nosso objetivo é responder no prazo máximo de 24 horas úteis. Acompanhe o estado do seu ticket no seu painel de cliente.
+
+Aceda ao suporte: https://wehosthere.com/dashboard
+
+Obrigado pela sua paciência,
+Equipa de Suporte {{nome_empresa}}`,
+    channel: 'email',
+    isSystem: true,
+    createdAt: new Date().toISOString()
   }
 ];
 
