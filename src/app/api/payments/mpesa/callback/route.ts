@@ -1,24 +1,51 @@
 import { NextResponse } from 'next/server';
 import { addAdminNotification, dispatchMessage } from '@/lib/notifications';
+import { connectDB } from '@/lib/mongodb';
+import OrderModel from '@/lib/models/Order';
+import SiteModel from '@/lib/models/Site';
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    console.log('M-Pesa Callback recebido:', body);
+    console.log('[M-PESA CALLBACK RECEBIDO]:', body);
 
     // Extrair dados do callback M-Pesa (formato Vodacom)
-    const transactionStatus = body.output_ResponseCode || body.TransactionStatus || 'unknown';
+    const transactionStatus = String(body.output_ResponseCode || body.TransactionStatus || 'unknown');
     const transactionId = body.output_TransactionID || body.TransactionID || 'N/A';
     const amount = body.output_Amount || body.Amount || 0;
     const msisdn = body.output_MSISDN || body.MSISDN || 'N/A';
-    const thirdPartyRef = body.input_ThirdPartyReference || body.ThirdPartyReference || 'N/A';
-    const userEmail = body.userEmail || '';
+    const thirdPartyRef = body.input_ThirdPartyReference || body.ThirdPartyReference || body.reference || 'N/A';
+    const userEmail = body.userEmail || body.email || '';
     const userName = body.userName || msisdn;
 
-    const isSuccess = transactionStatus === '0' || transactionStatus === 'SUCCESS' || String(transactionStatus) === '0';
+    const isSuccess = transactionStatus === '0' || transactionStatus === 'INS-0' || transactionStatus.toUpperCase() === 'SUCCESS';
+
+    // Atualização automática na Base de Dados (Se disponível)
+    try {
+      await connectDB();
+      if (thirdPartyRef && thirdPartyRef !== 'N/A') {
+        const orderIdClean = thirdPartyRef.replace('ORDER_', '');
+        await OrderModel.findOneAndUpdate(
+          { id: { $regex: new RegExp(orderIdClean, 'i') } },
+          { 
+            status: isSuccess ? 'completed' : 'pending',
+            ...(isSuccess ? { valorFaturado: amount } : {})
+          }
+        );
+
+        if (isSuccess && userEmail) {
+          await SiteModel.updateMany(
+            { userEmail: userEmail.toLowerCase() },
+            { status: 'active' }
+          );
+        }
+      }
+    } catch (dbErr) {
+      console.warn('Alerta no DB durante callback M-Pesa:', dbErr);
+    }
 
     if (isSuccess) {
-      // Notificar Administrador de pagamento M-Pesa recebido
+      // 🟢 CASO DE SUCESSO: Notificar Administrador
       addAdminNotification({
         title: `💳 Pagamento M-Pesa Confirmado`,
         message: `Pagamento de ${Number(amount).toLocaleString('pt-MZ')} MT recebido via M-Pesa (${msisdn}). TxID: ${transactionId}. Ref: ${thirdPartyRef}.`,
@@ -28,7 +55,7 @@ export async function POST(req: Request) {
         link: '/admin?tab=orders'
       });
 
-      // Notificar o cliente por e-mail (se tiver e-mail disponível no callback)
+      // ✉️ Enviar recibo ao cliente por e-mail
       if (userEmail) {
         await dispatchMessage({
           recipientEmail: userEmail,
@@ -43,7 +70,7 @@ export async function POST(req: Request) {
         });
       }
     } else {
-      // Notificar Admin de pagamento falhado / pendente
+      // 🔴 CASO DE ERRO / FALHA: Notificar Administrador
       addAdminNotification({
         title: `⚠️ Pagamento M-Pesa Falhado`,
         message: `Falha no pagamento via M-Pesa de ${msisdn}. Código: ${transactionStatus}. TxID: ${transactionId}. Ref: ${thirdPartyRef}.`,
@@ -53,7 +80,7 @@ export async function POST(req: Request) {
         link: '/admin?tab=orders'
       });
 
-      // Notificar o cliente por e-mail sobre a falha no pagamento (se tiver e-mail)
+      // ✉️ Notificar o cliente sobre a falha no pagamento
       if (userEmail) {
         await dispatchMessage({
           recipientEmail: userEmail,
