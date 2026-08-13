@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { 
   Server, ShieldCheck, Lock, Check, CreditCard, 
   Smartphone, Bitcoin, ArrowLeft, CheckCircle2, AlertCircle, RefreshCw,
-  Landmark, Paperclip, FileText, Image as ImageIcon, Upload, Loader2
+  Landmark, Paperclip, FileText, Image as ImageIcon, Upload, Loader2, Lock as LockIcon
 } from 'lucide-react';
 import { hostingPlans, HostingPlan, dataManager } from '@/lib/data';
 import { auth } from '@/lib/auth';
@@ -630,37 +630,31 @@ function CheckoutContent() {
                   <span className="text-xs font-bold text-gray-800">M-Pesa</span>
                 </button>
 
-                {/* eMola Option */}
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod('emola')}
-                  className={`p-3 border-2 rounded-xl text-center flex flex-col items-center justify-center transition cursor-pointer ${
-                    paymentMethod === 'emola'
-                      ? 'border-orange-500 bg-orange-50/50 shadow-sm ring-2 ring-orange-500/20'
-                      : 'border-gray-200 bg-white hover:border-gray-300'
-                  }`}
+                {/* eMola Option - Desativado temporariamente */}
+                <div
+                  className="relative p-3 border-2 rounded-xl text-center flex flex-col items-center justify-center border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed select-none"
+                  title="eMola ainda não disponível. Em breve!"
                 >
-                  <div className="w-10 h-7 bg-orange-500 text-white rounded flex items-center justify-center font-bold text-xs mb-1">
+                  <span className="absolute -top-2 -right-2 bg-gray-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wide">Em Breve</span>
+                  <div className="w-10 h-7 bg-orange-300 text-white rounded flex items-center justify-center font-bold text-xs mb-1">
                     eMola
                   </div>
-                  <span className="text-xs font-bold text-gray-800">eMola</span>
-                </button>
+                  <span className="text-xs font-bold text-gray-400">eMola</span>
+                  <Lock className="h-3 w-3 text-gray-400 mt-0.5" />
+                </div>
 
-                {/* Credit Card Option */}
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod('card')}
-                  className={`p-3 border-2 rounded-xl text-center flex flex-col items-center justify-center transition cursor-pointer ${
-                    paymentMethod === 'card'
-                      ? 'border-blue-600 bg-blue-50/50 shadow-sm ring-2 ring-blue-500/20'
-                      : 'border-gray-200 bg-white hover:border-gray-300'
-                  }`}
+                {/* Credit Card Option - Desativado temporariamente */}
+                <div
+                  className="relative p-3 border-2 rounded-xl text-center flex flex-col items-center justify-center border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed select-none"
+                  title="Pagamento por cartão ainda não disponível. Em breve!"
                 >
-                  <div className="flex items-center space-x-1 mb-1 text-blue-600">
+                  <span className="absolute -top-2 -right-2 bg-gray-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wide">Em Breve</span>
+                  <div className="flex items-center space-x-1 mb-1 text-blue-300">
                     <CreditCard className="h-6 w-6" />
                   </div>
-                  <span className="text-xs font-bold text-gray-800">Cartão de Crédito</span>
-                </button>
+                  <span className="text-xs font-bold text-gray-400">Cartão de Crédito</span>
+                  <Lock className="h-3 w-3 text-gray-400 mt-0.5" />
+                </div>
 
                 {/* Bank Transfer Option */}
                 <button
