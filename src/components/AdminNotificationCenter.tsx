@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { 
   Bell, Check, CheckCheck, Trash2, ExternalLink, UserPlus, ShoppingBag, 
-  CreditCard, AlertCircle, MessageSquare, ShieldAlert, X, Filter
+  CreditCard, AlertCircle, MessageSquare, ShieldAlert, X, Filter,
+  Wrench
 } from 'lucide-react';
 import { 
   AdminNotification, 
@@ -21,6 +22,8 @@ export default function AdminNotificationCenter({ onNavigate }: AdminNotificatio
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<AdminNotification[]>([]);
   const [filter, setFilter] = useState<'all' | 'unread'>('unread');
+  const [maintenanceActive, setMaintenanceActive] = useState(false);
+  const [updatingMaintenance, setUpdatingMaintenance] = useState(false);
   const drawerRef = useRef<HTMLDivElement>(null);
 
   const fetchNotifs = () => {
@@ -28,9 +31,42 @@ export default function AdminNotificationCenter({ onNavigate }: AdminNotificatio
     setNotifications(data);
   };
 
+  const fetchMaintenanceStatus = async () => {
+    try {
+      const res = await fetch('/api/system/maintenance', { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.maintenance) setMaintenanceActive(data.maintenance.active);
+      }
+    } catch (e) {}
+  };
+
+  const toggleMaintenance = async () => {
+    setUpdatingMaintenance(true);
+    const nextState = !maintenanceActive;
+    try {
+      const res = await fetch('/api/system/maintenance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ active: nextState })
+      });
+      if (res.ok) {
+        setMaintenanceActive(nextState);
+      }
+    } catch (e) {
+      console.error('Erro ao atualizar modo de manutenção:', e);
+    } finally {
+      setUpdatingMaintenance(false);
+    }
+  };
+
   useEffect(() => {
     fetchNotifs();
-    const interval = setInterval(fetchNotifs, 10000); // Polling a cada 10s para atualizar novas notificações
+    fetchMaintenanceStatus();
+    const interval = setInterval(() => {
+      fetchNotifs();
+      fetchMaintenanceStatus();
+    }, 10000);
     return () => clearInterval(interval);
   }, []);
 
