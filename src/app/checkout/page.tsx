@@ -128,8 +128,9 @@ function CheckoutContent() {
     if (pushModal && countdown > 0) {
       timer = setInterval(() => setCountdown(prev => prev - 1), 1000);
     } else if (pushModal && countdown === 0) {
-      // Auto complete simulation when countdown finishes
-      finalizeOrder();
+      setPushModal(false);
+      setLoading(false);
+      setError('⚠️ O tempo limite para introduzir o PIN do M-Pesa expirou (45s). Por favor, tente novamente ou escolha outro método de pagamento.');
     }
     return () => clearInterval(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
