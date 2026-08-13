@@ -128,11 +128,25 @@ function CheckoutContent() {
     let timer: NodeJS.Timeout;
     if (pushModal && pushStatus === 'waiting' && countdown > 0) {
       timer = setInterval(() => setCountdown(prev => prev - 1), 1000);
-    } else if (pushModal && countdown === 0) {
+    } else if (pushModal && pushStatus === 'waiting' && countdown === 0) {
       setPushStatus('expired');
+      
+      // Disparar e-mail automático de notificação de tempo expirado ao cliente
+      if (email) {
+        fetch(apiEndpoint('/api/payments/mpesa/timeout'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            clientEmail: email,
+            clientName: name,
+            amount: grandTotal,
+            orderRef: `ORD-${Date.now().toString().slice(-5)}`
+          })
+        }).catch(err => console.warn('Erro ao notificar timeout M-Pesa por e-mail:', err));
+      }
     }
     return () => clearInterval(timer);
-  }, [pushModal, pushStatus, countdown]);
+  }, [pushModal, pushStatus, countdown, email, name, grandTotal]);
 
   const handleRetryPush = () => {
     setPushStatus('waiting');
