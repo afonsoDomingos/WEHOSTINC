@@ -3,6 +3,7 @@ import { addAdminNotification, dispatchMessage } from '@/lib/notifications';
 import { connectDB } from '@/lib/mongodb';
 import OrderModel from '@/lib/models/Order';
 import SiteModel from '@/lib/models/Site';
+import { generateInvoicePdf } from '@/lib/invoiceGenerator';
 
 export async function POST(req: Request) {
   try {
@@ -57,6 +58,19 @@ export async function POST(req: Request) {
 
       // ✉️ Enviar recibo ao cliente por e-mail
       if (userEmail) {
+        let pdfBase64 = '';
+        try {
+          pdfBase64 = await generateInvoicePdf({
+            invoiceRef: thirdPartyRef,
+            userName: userName || 'Cliente',
+            planName: 'Serviços WEHOSTHERE',
+            amount: Number(amount).toLocaleString('pt-MZ'),
+            date: new Date().toLocaleDateString('pt-MZ')
+          });
+        } catch (err) {
+          console.error('Erro ao gerar PDF da fatura:', err);
+        }
+
         await dispatchMessage({
           recipientEmail: userEmail,
           recipientName: userName || 'Cliente',
@@ -66,7 +80,8 @@ export async function POST(req: Request) {
             valor: `${Number(amount).toLocaleString('pt-MZ')} MT`
           },
           isAutomatic: true,
-          eventType: 'mpesa_payment_success'
+          eventType: 'mpesa_payment_success',
+          attachments: pdfBase64 ? [{ filename: `Fatura_${thirdPartyRef}.pdf`, content: pdfBase64 }] : []
         });
       }
     } else {

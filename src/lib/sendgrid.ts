@@ -11,6 +11,7 @@ export interface SendEmailOptions {
   subject: string;
   text?: string;
   html?: string;
+  attachments?: { filename: string; content: string }[];
 }
 
 /**
@@ -43,7 +44,8 @@ export async function sendEmail(opts: SendEmailOptions): Promise<{ success: bool
         to: [opts.to],
         subject: opts.subject,
         html: bodyHtml,
-        text: bodyText
+        text: bodyText,
+        ...(opts.attachments && opts.attachments.length > 0 ? { attachments: opts.attachments } : {})
       })
     });
 

@@ -339,6 +339,27 @@ Equipa de Suporte {{nome_empresa}}`,
     channel: 'email',
     isSystem: true,
     createdAt: new Date().toISOString()
+  },
+  {
+    id: 'abandoned-cart',
+    name: 'Carrinho Abandonado',
+    category: 'Vendas',
+    subject: '🛍️ O seu domínio/hospedagem está à sua espera! - {{nome_empresa}}',
+    body: `Olá {{nome_cliente}},
+
+Notámos que iniciou o pedido {{numero_pedido}}, mas ainda não concluiu o pagamento.
+
+Sabia que o seu domínio/hospedagem pode ser reservado por outra pessoa a qualquer momento? Não perca a oportunidade de colocar o seu projeto online hoje mesmo!
+
+Se teve algum problema durante o pagamento via M-Pesa, pode aceder à sua conta e tentar novamente.
+
+Aceda ao seu painel e conclua a compra: https://wehosthere.com/dashboard/billing
+
+Estamos aqui para ajudar,
+Equipa {{nome_empresa}}`,
+    channel: 'email',
+    isSystem: true,
+    createdAt: new Date().toISOString()
   }
 ];
 
@@ -534,6 +555,7 @@ export interface SendMessagePayload {
   isAutomatic?: boolean;
   eventType?: string;
   channel?: CommunicationChannel;
+  attachments?: { filename: string; content: string }[];
 }
 
 export async function dispatchMessage(payload: SendMessagePayload): Promise<{ success: boolean; error?: string }> {
@@ -605,7 +627,8 @@ export async function dispatchMessage(payload: SendMessagePayload): Promise<{ su
               <p style="color:#cbd5e1;font-size:11px;margin:4px 0 0;"><a href="https://wehosthere.com" style="color:#3b82f6;text-decoration:none;">wehosthere.com</a></p>
             </div>
           </div>
-        </div>`
+        </div>`,
+        attachments: payload.attachments
       });
     } else {
       // Extensibilidade para WhatsApp / SMS (mock de entrega pronta para integração)

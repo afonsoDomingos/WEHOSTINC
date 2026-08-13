@@ -11,6 +11,7 @@ export interface IOrder extends Document {
   proofUrl?: string;
   proofName?: string;
   status: 'pending' | 'in_progress' | 'completed' | 'cancelled' | 'suspended';
+  cartRecoverySent?: boolean;
   createdAt: string;
 }
 
@@ -25,6 +26,7 @@ const OrderSchema = new Schema<IOrder>({
   proofUrl: { type: String },
   proofName: { type: String },
   status: { type: String, enum: ['pending', 'in_progress', 'completed', 'cancelled', 'suspended'], default: 'pending' },
+  cartRecoverySent: { type: Boolean, default: false },
   createdAt: { type: String, default: () => new Date().toISOString() },
 }, { timestamps: false, versionKey: false });
 
