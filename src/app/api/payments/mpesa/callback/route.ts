@@ -4,6 +4,7 @@ import { connectDB } from '@/lib/mongodb';
 import OrderModel from '@/lib/models/Order';
 import SiteModel from '@/lib/models/Site';
 import { generateInvoicePdf } from '@/lib/invoiceGenerator';
+import { generateHostingCredentials } from '@/lib/provisioning';
 
 export async function POST(req: Request) {
   try {
@@ -83,6 +84,29 @@ export async function POST(req: Request) {
           eventType: 'mpesa_payment_success',
           attachments: pdfBase64 ? [{ filename: `Fatura_${thirdPartyRef}.pdf`, content: pdfBase64 }] : []
         });
+
+        // 🔑 AUTO-PROVISIONAMENTO: Enviar credenciais de acesso ao serviço por e-mail
+        try {
+          const creds = generateHostingCredentials(thirdPartyRef, userEmail);
+          await dispatchMessage({
+            recipientEmail: userEmail,
+            recipientName: userName || 'Cliente',
+            templateId: 'service-credentials',
+            variables: {
+              numero_pedido: thirdPartyRef,
+              utilizador: creds.username,
+              palavra_passe: creds.password,
+              link_painel: creds.cpanelUrl,
+              link_webmail: creds.webmailUrl,
+              servidor_dns1: creds.nameserver1,
+              servidor_dns2: creds.nameserver2
+            },
+            isAutomatic: true,
+            eventType: 'service_auto_provisioned'
+          });
+        } catch (credErr) {
+          console.error('Erro ao gerar/enviar credenciais de acesso:', credErr);
+        }
       }
     } else {
       // 🔴 CASO DE ERRO / FALHA: Notificar Administrador

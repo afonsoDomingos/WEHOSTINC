@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import OrderModel from '@/lib/models/Order';
 import { addAdminNotification, dispatchMessage } from '@/lib/notifications';
+import { generateHostingCredentials } from '@/lib/provisioning';
 
 let FALLBACK_ORDERS: any[] = [];
 
@@ -78,6 +79,31 @@ export async function POST(req: Request) {
               isAutomatic: true,
               eventType: `order_${status}`
             });
+
+            // 🔑 AUTO-PROVISIONAMENTO: Se o pedido foi APROVADO, enviar credenciais de acesso
+            if (status === 'approved' || status === 'completed' || status === 'active') {
+              try {
+                const creds = generateHostingCredentials(orderId, orderDoc.clientEmail);
+                await dispatchMessage({
+                  recipientEmail: orderDoc.clientEmail,
+                  recipientName: orderDoc.clientName || 'Cliente',
+                  templateId: 'service-credentials',
+                  variables: {
+                    numero_pedido: orderId,
+                    utilizador: creds.username,
+                    palavra_passe: creds.password,
+                    link_painel: creds.cpanelUrl,
+                    link_webmail: creds.webmailUrl,
+                    servidor_dns1: creds.nameserver1,
+                    servidor_dns2: creds.nameserver2
+                  },
+                  isAutomatic: true,
+                  eventType: 'service_auto_provisioned'
+                });
+              } catch (credErr) {
+                console.error('Erro ao enviar credenciais ao cliente:', credErr);
+              }
+            }
           }
         }
 

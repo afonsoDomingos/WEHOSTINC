@@ -360,6 +360,37 @@ Equipa {{nome_empresa}}`,
     channel: 'email',
     isSystem: true,
     createdAt: new Date().toISOString()
+  },
+  {
+    id: 'service-credentials',
+    name: 'Credenciais de Acesso ao Serviço',
+    category: 'Ativações',
+    subject: '🔑 Os seus Dados de Acesso ao Serviço - {{nome_empresa}}',
+    body: `Olá {{nome_cliente}},
+
+O seu serviço atrelado ao pedido {{numero_pedido}} foi ativado com sucesso!
+
+Abaixo encontram-se as suas credenciais privadas para gestão do seu alojamento, e-mails e domínios:
+
+🔑 Dados de Acesso:
+• Nome de Utilizador: {{utilizador}}
+• Palavra-passe Temporária: {{palavra_passe}}
+• Painel de Gestão: {{link_painel}}
+• Webmail Corporativo: {{link_webmail}}
+
+🌐 Servidores de Nome (DNS):
+• NS1: {{servidor_dns1}}
+• NS2: {{servidor_dns2}}
+
+Recomendamos que guarde esta mensagem em local seguro ou altere a palavra-passe após o primeiro acesso no seu painel.
+
+Se tiver qualquer questão na configuração dos seus e-mails corporativos, a nossa equipa de suporte está sempre disponível.
+
+Atenciosamente,
+Equipa Técnica {{nome_empresa}}`,
+    channel: 'email',
+    isSystem: true,
+    createdAt: new Date().toISOString()
   }
 ];
 
