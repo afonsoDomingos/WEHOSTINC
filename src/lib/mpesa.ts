@@ -52,7 +52,9 @@ export const mpesa = {
     const defaultUrl = isProduction
       ? 'https://api.vm.co.mz:18352/ipg/v1x/c2bPayment/singleStage/'
       : 'https://api.sandbox.vm.co.mz:18352/ipg/v1x/c2bPayment/singleStage/';
-    const c2bUrl = process.env.MPESA_C2B_URL || defaultUrl;
+    const c2bUrl = isProduction 
+      ? (process.env.MPESA_C2B_URL_PROD || 'https://api.vm.co.mz:18352/ipg/v1x/c2bPayment/singleStage/')
+      : (process.env.MPESA_C2B_URL || defaultUrl);
     const serviceProviderCode = process.env.MPESA_SERVICE_PROVIDER_CODE || '171717';
     const bearerToken = getBearerToken();
 
