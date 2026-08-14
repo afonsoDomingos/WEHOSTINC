@@ -1,8 +1,30 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { validateResetToken, deleteResetToken } from '../forgot-password/route';
 
 export const dynamic = 'force-dynamic';
+
+// Armazenamento temporário de tokens (em produção, usar Redis ou banco de dados)
+const resetTokens = new Map<string, { email: string; expiresAt: number }>();
+
+// Funções auxiliares privadas
+function validateResetToken(token: string): { valid: boolean; email?: string } {
+  const data = resetTokens.get(token);
+  
+  if (!data) {
+    return { valid: false };
+  }
+
+  if (data.expiresAt < Date.now()) {
+    resetTokens.delete(token);
+    return { valid: false };
+  }
+
+  return { valid: true, email: data.email };
+}
+
+function deleteResetToken(token: string): void {
+  resetTokens.delete(token);
+}
 
 export async function POST(req: Request) {
   try {

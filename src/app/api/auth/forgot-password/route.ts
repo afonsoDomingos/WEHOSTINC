@@ -7,6 +7,26 @@ export const dynamic = 'force-dynamic';
 // Armazenamento temporário de tokens (em produção, usar Redis ou banco de dados)
 const resetTokens = new Map<string, { email: string; expiresAt: number }>();
 
+// Funções auxiliares privadas
+function validateResetToken(token: string): { valid: boolean; email?: string } {
+  const data = resetTokens.get(token);
+  
+  if (!data) {
+    return { valid: false };
+  }
+
+  if (data.expiresAt < Date.now()) {
+    resetTokens.delete(token);
+    return { valid: false };
+  }
+
+  return { valid: true, email: data.email };
+}
+
+function deleteResetToken(token: string): void {
+  resetTokens.delete(token);
+}
+
 export async function POST(req: Request) {
   try {
     const { email } = await req.json();
@@ -64,25 +84,4 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   }
-}
-
-// Função auxiliar para validar token (exportada para uso em other routes)
-export function validateResetToken(token: string): { valid: boolean; email?: string } {
-  const data = resetTokens.get(token);
-  
-  if (!data) {
-    return { valid: false };
-  }
-
-  if (data.expiresAt < Date.now()) {
-    resetTokens.delete(token);
-    return { valid: false };
-  }
-
-  return { valid: true, email: data.email };
-}
-
-// Função auxiliar para deletar token após uso
-export function deleteResetToken(token: string): void {
-  resetTokens.delete(token);
 }
