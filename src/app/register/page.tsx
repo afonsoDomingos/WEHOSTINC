@@ -85,10 +85,13 @@ export default function RegisterPage() {
     if (!agreed) return setError('Aceite os Termos de Serviço para continuar.');
     setLoading(true);
     try {
+      console.log('[Register Page] Iniciando registro:', { name, email });
       await auth.registerAsync(name, email, password);
+      console.log('[Register Page] Registro bem-sucedido, redirecionando');
       // Não fazer login automático - redirecionar para tela de confirmação
       router.push('/confirm-email?email=' + encodeURIComponent(email));
     } catch (err) {
+      console.error('[Register Page] Erro no registro:', err);
       setError(err instanceof Error ? err.message : 'Erro ao criar conta.');
     } finally {
       setLoading(false);

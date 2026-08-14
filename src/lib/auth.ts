@@ -138,15 +138,19 @@ export const auth = {
 
   // Registrar novo usuário assincronamente (com confirmação garantida no banco de dados do servidor)
   registerAsync: async (name: string, email: string, password: string, plan: 'none' | 'basic' | 'pro' | 'enterprise' = 'none', status: 'active' | 'pending' | 'suspended' = 'pending', dueDate: number = 29, referralCode?: string): Promise<User> => {
+    console.log('[Register] Iniciando registro para:', email);
     seedDefaultUsers();
     
     // 1. Sincronizar usuários atualizados do servidor para garantir validação global
+    console.log('[Register] Buscando usuários do servidor...');
     const users = await auth.fetchUsersAsync();
+    console.log('[Register] Usuários buscados:', users.length);
     
     // 2. Verificar se email já existe local ou globalmente
     const targetEmail = email.trim().toLowerCase();
     const existing = users.find(u => u.email.trim().toLowerCase() === targetEmail);
     if (existing) {
+      console.error('[Register] Email já existe:', targetEmail);
       throw new Error('Este endereço de e-mail já está registado na plataforma. Por favor, faça login ou use outro e-mail.');
     }
 
@@ -170,21 +174,32 @@ export const auth = {
 
     const userWithPassword = { ...newUser, password, referralCode: userReferralCode, confirmationToken };
 
+    console.log('[Register] Enviando dados para API:', { email: newUser.email, plan: newUser.plan, status: newUser.status });
+
     // 4. ENVIAR PRIMEIRO PARA O BANCO DE DADOS MONGODB ATLAS (DATABASE-FIRST)
     let savedOnServer = false;
     try {
-      const res = await fetch(apiEndpoint('/api/users'), {
+      const apiUrl = apiEndpoint('/api/users');
+      console.log('[Register] URL da API:', apiUrl);
+      
+      const res = await fetch(apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'register', user: userWithPassword, referralCode })
       });
       
+      console.log('[Register] Resposta da API:', res.status, res.statusText);
       const resData = await res.json();
+      console.log('[Register] Dados da resposta:', resData);
+      
       if (!res.ok || resData.error) {
+        console.error('[Register] Erro na API:', resData.error);
         throw new Error(resData.error || 'Erro ao gravar dados no servidor.');
       }
       savedOnServer = true;
+      console.log('[Register] Usuário salvo no servidor com sucesso');
     } catch (err) {
+      console.error('[Register] Erro ao salvar no servidor:', err);
       if (err instanceof Error) throw err;
       throw new Error('Não foi possível conectar ao servidor para registar a conta. Por favor, verifique a sua ligação.');
     }
@@ -211,6 +226,7 @@ export const auth = {
       });
     }
 
+    console.log('[Register] Registro concluído com sucesso:', newUser.email);
     return newUser;
   },
 
