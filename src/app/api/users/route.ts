@@ -32,9 +32,24 @@ async function tryMongo() {
 }
 
 async function ensureAdmin() {
+  const adminHash = process.env.ADMIN_DEFAULT_PASSWORD_HASH?.trim();
+  const adminPayload = {
+    ...FALLBACK_USERS[0],
+    ...(adminHash ? { password: adminHash } : {}),
+  };
+
   const exists = await UserModel.findOne({ email: 'admin@wehosthere.com' });
   if (!exists) {
-    await UserModel.create(FALLBACK_USERS[0]);
+    await UserModel.create(adminPayload);
+    return;
+  }
+
+  // Sincronizar hash da env quando o admin já existe (ex.: após rotação de password)
+  if (adminHash && exists.password !== adminHash) {
+    await UserModel.findOneAndUpdate(
+      { email: 'admin@wehosthere.com' },
+      { $set: { password: adminHash } }
+    );
   }
 }
 
@@ -149,10 +164,23 @@ export async function POST(req: Request) {
           return NextResponse.json({ error: 'Usuário não encontrado.' }, { status: 401 });
         }
 
-        // 🔒 Comparar com bcrypt — nunca comparar passwords em texto puro
-        const passwordMatch = userDoc.password
-          ? await bcrypt.compare(targetPassword, userDoc.password)
-          : false;
+        // 🔒 Comparar com bcrypt — com migração automática para passwords antigas em plaintext
+        let passwordMatch = false;
+        if (userDoc.password) {
+          if (userDoc.password.startsWith('$2')) {
+            passwordMatch = await bcrypt.compare(targetPassword, userDoc.password);
+          } else if (userDoc.password === targetPassword) {
+            // Migração automática e transparente de contas antigas para bcrypt
+            passwordMatch = true;
+            try {
+              const newHashed = await bcrypt.hash(targetPassword, 12);
+              await UserModel.updateOne({ email: targetEmail }, { $set: { password: newHashed } });
+            } catch (e) {
+              console.error('Erro ao migrar senha para bcrypt:', e);
+            }
+          }
+        }
+
         if (!passwordMatch) {
           // Registrar tentativa falha com IP e país
           try {
@@ -191,7 +219,8 @@ export async function POST(req: Request) {
           return NextResponse.json({ error: 'Sua conta encontra-se suspensa por questões de faturação ou incumprimento dos termos. Por favor, entre em contacto com o suporte WEHOSTHERE (+258 84 438 4702).' }, { status: 403 });
         }
 
-        return NextResponse.json({ success: true, user: userDoc });
+        const { password: _pw, confirmationCode: _cc, confirmationCodeExpiresAt: _cce, ...safeUser } = userDoc as any;
+        return NextResponse.json({ success: true, user: safeUser });
       } else {
         const fallbackUser = FALLBACK_USERS.find(u => u.email.toLowerCase() === targetEmail);
 
@@ -211,8 +240,58 @@ export async function POST(req: Request) {
           return NextResponse.json({ error: 'Sua conta encontra-se suspensa por questões de faturação ou incumprimento dos termos. Por favor, entre em contacto com o suporte WEHOSTHERE (+258 84 438 4702).' }, { status: 403 });
         }
 
-        return NextResponse.json({ success: true, user: fallbackUser });
+        const { password: _pw, ...safeFallbackUser } = fallbackUser;
+        return NextResponse.json({ success: true, user: safeFallbackUser });
       }
+    }
+
+    if (action === 'update_password') {
+      const targetId = (userId || body.id || '').toLowerCase();
+      const targetEmail = safeEmail || (body.email || '').trim().toLowerCase();
+
+      if (!safePassword) {
+        return NextResponse.json({ error: 'Nova senha é obrigatória.' }, { status: 400 });
+      }
+      if (safePassword.length < 6) {
+        return NextResponse.json({ error: 'A senha deve ter pelo menos 6 caracteres.' }, { status: 400 });
+      }
+
+      const hashedPassword = safePassword.startsWith('$2')
+        ? safePassword
+        : await bcrypt.hash(safePassword, 12);
+
+      if (useMongo) {
+        const filter = targetEmail
+          ? { $or: [{ id: targetId }, { email: targetEmail }] }
+          : { id: targetId };
+
+        const updated = await UserModel.findOneAndUpdate(
+          filter,
+          { $set: { password: hashedPassword } },
+          { new: true }
+        ).lean();
+
+        if (!updated) {
+          return NextResponse.json({ error: 'Usuário não encontrado.' }, { status: 404 });
+        }
+
+        const { password: _pw, confirmationCode: _cc, confirmationCodeExpiresAt: _cce, ...safeUser } = updated as any;
+        return NextResponse.json({ success: true, user: safeUser });
+      }
+
+      FALLBACK_USERS = FALLBACK_USERS.map(u =>
+        (targetId && u.id.toLowerCase() === targetId) || (targetEmail && u.email.toLowerCase() === targetEmail)
+          ? { ...u, password: hashedPassword }
+          : u
+      );
+      const updatedFallback = FALLBACK_USERS.find(u =>
+        (targetId && u.id.toLowerCase() === targetId) || (targetEmail && u.email.toLowerCase() === targetEmail)
+      );
+      if (!updatedFallback) {
+        return NextResponse.json({ error: 'Usuário não encontrado.' }, { status: 404 });
+      }
+      const { password: _pw, ...safeUser } = updatedFallback;
+      return NextResponse.json({ success: true, user: safeUser });
     }
 
     if (action === 'update_plan') {
