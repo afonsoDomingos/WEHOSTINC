@@ -62,11 +62,11 @@ export async function POST(req: Request) {
 
     // Limpar tokens expirados
     const now = Date.now();
-    for (const [token, data] of resetTokens.entries()) {
+    resetTokens.forEach((data, token) => {
       if (data.expiresAt < now) {
         resetTokens.delete(token);
       }
-    }
+    });
 
     // Enviar email de recuperação
     await sendPasswordResetEmail(user.email, user.name, resetToken);
