@@ -10,7 +10,10 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { email, code } = body;
 
+    console.log('[Confirm Email] Dados recebidos:', { email, code, codeLength: code?.length });
+
     if (!email || !code) {
+      console.error('[Confirm Email] Email ou código faltando:', { hasEmail: !!email, hasCode: !!code });
       return NextResponse.json(
         { error: 'Email e código são obrigatórios' },
         { status: 400 }
@@ -18,6 +21,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (code.length !== 6) {
+      console.error('[Confirm Email] Código com tamanho inválido:', code.length);
       return NextResponse.json(
         { error: 'Código deve ter 6 dígitos' },
         { status: 400 }
@@ -36,6 +40,7 @@ export async function POST(request: NextRequest) {
     );
 
     if (!rateLimitResult.success) {
+      console.warn('[Confirm Email] Rate limit excedido:', { email, clientIp });
       return NextResponse.json(
         { 
           error: 'Muitas tentativas. Tente novamente em 1 minuto.',
@@ -46,9 +51,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Buscar usuários para encontrar o código de confirmação
-    const usersResponse = await fetch(`${process.env.NEXTAUTH_URL || 'https://wehosthere.com'}/api/users`);
+    const usersUrl = `${process.env.NEXTAUTH_URL || 'https://wehosthere.com'}/api/users`;
+    console.log('[Confirm Email] Buscando usuários de:', usersUrl);
+    
+    const usersResponse = await fetch(usersUrl);
     const usersData = await usersResponse.json();
     const users = usersData.users || [];
+    
+    console.log('[Confirm Email] Total de usuários:', users.length);
 
     // Encontrar usuário com o código de confirmação
     const user = users.find((u: any) => 
@@ -56,17 +66,36 @@ export async function POST(request: NextRequest) {
       u.confirmationCode === code
     );
 
+    console.log('[Confirm Email] Usuário encontrado:', !!user);
+    
     if (!user) {
+      console.error('[Confirm Email] Usuário não encontrado ou código inválido:', { 
+        email: email.toLowerCase(),
+        code,
+        hasConfirmationCode: users.some((u: any) => u.email.toLowerCase() === email.toLowerCase())
+      });
       return NextResponse.json(
         { error: 'Código inválido' },
         { status: 400 }
       );
     }
 
+    console.log('[Confirm Email] Usuário encontrado:', { 
+      email: user.email, 
+      hasCode: !!user.confirmationCode,
+      hasExpiration: !!user.confirmationCodeExpiresAt 
+    });
+
     // Verificar expiração do código
     if (user.confirmationCodeExpiresAt) {
       const expirationDate = new Date(user.confirmationCodeExpiresAt);
       const now = new Date();
+      console.log('[Confirm Email] Verificando expiração:', { 
+        expirationDate, 
+        now, 
+        isExpired: now > expirationDate 
+      });
+      
       if (now > expirationDate) {
         return NextResponse.json(
           { error: 'Código expirado. Solicite um novo código.' },
@@ -86,13 +115,17 @@ export async function POST(request: NextRequest) {
       })
     });
 
+    console.log('[Confirm Email] Resposta da atualização:', updateResponse.status);
+
     if (!updateResponse.ok) {
+      console.error('[Confirm Email] Erro ao atualizar usuário:', updateResponse.status);
       return NextResponse.json(
         { error: 'Erro ao confirmar email' },
         { status: 500 }
       );
     }
 
+    console.log('[Confirm Email] Confirmação bem-sucedida');
     return NextResponse.json({ success: true, message: 'Email confirmado com sucesso' });
   } catch (error) {
     console.error('[Confirm Email] Erro:', error);
