@@ -190,6 +190,44 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true, users: FALLBACK_USERS });
     }
 
+    if (action === 'update_confirmation_code') {
+      const targetId = (userId || body.id || '').toLowerCase();
+      const targetEmail = (email || body.email || '').trim().toLowerCase();
+      const newCode = body.confirmationCode;
+      const newExpiresAt = body.confirmationCodeExpiresAt;
+
+      if (!newCode || !newExpiresAt) {
+        return NextResponse.json({ error: 'Código e expiração são obrigatórios' }, { status: 400 });
+      }
+
+      if (useMongo) {
+        const filter = targetEmail
+          ? { $or: [{ id: targetId }, { email: targetEmail }] }
+          : { id: targetId };
+        
+        const updated = await UserModel.findOneAndUpdate(
+          filter,
+          { 
+            confirmationCode: newCode,
+            confirmationCodeExpiresAt: newExpiresAt
+          },
+          { new: true }
+        ).lean();
+        
+        if (!updated) {
+          return NextResponse.json({ error: 'Usuário não encontrado' }, { status: 404 });
+        }
+        
+        return NextResponse.json({ success: true, user: updated });
+      }
+      
+      FALLBACK_USERS = FALLBACK_USERS.map(u =>
+        (targetId && u.id.toLowerCase() === targetId) || (targetEmail && u.email.toLowerCase() === targetEmail)
+          ? { ...u, confirmationCode: newCode, confirmationCodeExpiresAt: newExpiresAt } : u
+      );
+      return NextResponse.json({ success: true, users: FALLBACK_USERS });
+    }
+
     if (action === 'confirm_email') {
       const targetId = (userId || body.id || '').toLowerCase();
       const targetEmail = (email || body.email || '').trim().toLowerCase();

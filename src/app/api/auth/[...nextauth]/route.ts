@@ -49,8 +49,9 @@ export const GET = NextAuth({
 
         console.log('[Google OAuth] Criando novo usuário para:', user.email);
 
-        // Gerar código de confirmação de 6 dígitos
+        // Gerar código de confirmação de 6 dígitos com expiração
         const confirmationCode = Math.floor(100000 + Math.random() * 900000).toString();
+        const confirmationCodeExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // 24 horas
 
         const newUser = {
           id: `USER-${Date.now()}`,
@@ -61,7 +62,8 @@ export const GET = NextAuth({
           role: 'user' as const,
           avatar: user.image,
           createdAt: new Date().toISOString(),
-          confirmationCode
+          confirmationCode,
+          confirmationCodeExpiresAt
         };
 
         console.log('[Google OAuth] Dados do novo usuário:', newUser);

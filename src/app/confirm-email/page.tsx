@@ -86,9 +86,19 @@ export default function ConfirmEmailPage() {
     setResending(true);
     setMessage('');
     try {
-      // TODO: Implementar reenvio de email de confirmação
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      setMessage('Email de confirmação reenviado com sucesso!');
+      const response = await fetch('/api/auth/resend-confirmation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setMessage('Novo código de confirmação enviado com sucesso!');
+      } else {
+        setMessage(data.error || 'Erro ao reenviar email. Tente novamente.');
+      }
     } catch (err) {
       setMessage('Erro ao reenviar email. Tente novamente.');
     } finally {
