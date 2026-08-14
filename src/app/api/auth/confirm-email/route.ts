@@ -6,9 +6,8 @@ export async function GET(request: NextRequest) {
   const email = searchParams.get('email');
 
   if (!token || !email) {
-    return NextResponse.json(
-      { error: 'Token e email são obrigatórios' },
-      { status: 400 }
+    return NextResponse.redirect(
+      new URL('/confirm-email?error=missing_params', request.url)
     );
   }
 
@@ -25,9 +24,8 @@ export async function GET(request: NextRequest) {
     );
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'Token inválido ou expirado' },
-        { status: 400 }
+      return NextResponse.redirect(
+        new URL('/confirm-email?error=invalid_token', request.url)
       );
     }
 
@@ -43,18 +41,19 @@ export async function GET(request: NextRequest) {
     });
 
     if (!updateResponse.ok) {
-      return NextResponse.json(
-        { error: 'Erro ao confirmar email' },
-        { status: 500 }
+      return NextResponse.redirect(
+        new URL('/confirm-email?error=confirmation_failed', request.url)
       );
     }
 
-    return NextResponse.json({ success: true, message: 'Email confirmado com sucesso' });
+    // Redirecionar para página de sucesso
+    return NextResponse.redirect(
+      new URL('/confirm-email?success=true', request.url)
+    );
   } catch (error) {
     console.error('[Confirm Email] Erro:', error);
-    return NextResponse.json(
-      { error: 'Erro ao confirmar email' },
-      { status: 500 }
+    return NextResponse.redirect(
+      new URL('/confirm-email?error=server_error', request.url)
     );
   }
 }
