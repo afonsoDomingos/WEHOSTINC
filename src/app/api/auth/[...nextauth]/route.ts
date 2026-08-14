@@ -3,7 +3,7 @@ import GoogleProvider from 'next-auth/providers/google';
 import { auth } from '@/lib/auth';
 import { sendWelcomeEmail } from '@/lib/sendgrid';
 
-export const authOptions: NextAuthOptions = {
+const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || '',
