@@ -175,7 +175,15 @@ export const auth = {
 
     const userWithPassword = { ...newUser, password, referralCode: userReferralCode, confirmationCode, confirmationCodeExpiresAt };
 
-    console.log('[Register] Enviando dados para API:', { email: newUser.email, plan: newUser.plan, status: newUser.status });
+    console.log('[Register] Enviando dados para API:', { 
+      email: newUser.email, 
+      plan: newUser.plan, 
+      status: newUser.status,
+      hasConfirmationCode: !!confirmationCode, 
+      codeLength: confirmationCode?.length,
+      hasExpiration: !!confirmationCodeExpiresAt,
+      expirationDate: confirmationCodeExpiresAt
+    });
 
     // 4. ENVIAR PRIMEIRO PARA O BANCO DE DADOS MONGODB ATLAS (DATABASE-FIRST)
     let savedOnServer = false;

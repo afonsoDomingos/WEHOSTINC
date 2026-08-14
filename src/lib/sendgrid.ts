@@ -78,6 +78,14 @@ export async function sendWelcomeEmail(toEmail: string, userName: string, plan: 
     enterprise: 'Empresarial',
   };
 
+  console.log('[SendGrid] Enviando email de boas-vindas:', { 
+    toEmail, 
+    userName, 
+    plan, 
+    hasConfirmationCode: !!confirmationCode,
+    codeLength: confirmationCode?.length 
+  });
+
   const confirmPageLink = `${SITE_URL}/confirm-email?email=${encodeURIComponent(toEmail)}`;
 
   return sendEmail({

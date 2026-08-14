@@ -314,12 +314,20 @@ export async function POST(req: Request) {
     const reqEmail = (user?.email || body.email || '').trim().toLowerCase();
 
     if (action === 'register') {
+      console.log('[Users API] Iniciando registro:', { email: reqEmail, hasUser: !!user, hasBody: !!body });
+      
       if (useMongo) {
         const exists = await UserModel.findOne({ email: reqEmail });
-        if (exists) return NextResponse.json({ error: 'Este e-mail já está registado na plataforma.' }, { status: 400 });
+        if (exists) {
+          console.log('[Users API] Email já existe:', reqEmail);
+          return NextResponse.json({ error: 'Este e-mail já está registado na plataforma.' }, { status: 400 });
+        }
       } else {
         const exists = FALLBACK_USERS.find(u => u.email.toLowerCase() === reqEmail);
-        if (exists) return NextResponse.json({ error: 'Este e-mail já está registado na plataforma.' }, { status: 400 });
+        if (exists) {
+          console.log('[Users API] Email já existe (fallback):', reqEmail);
+          return NextResponse.json({ error: 'Este e-mail já está registado na plataforma.' }, { status: 400 });
+        }
       }
     }
 
@@ -334,6 +342,22 @@ export async function POST(req: Request) {
       role: body.role || 'user',
       createdAt: body.createdAt || new Date().toISOString()
     };
+
+    // Adicionar campos de confirmação se existirem no body
+    if (body.confirmationCode) {
+      userData.confirmationCode = body.confirmationCode;
+      console.log('[Users API] Código de confirmação adicionado:', body.confirmationCode);
+    }
+    if (body.confirmationCodeExpiresAt) {
+      userData.confirmationCodeExpiresAt = body.confirmationCodeExpiresAt;
+      console.log('[Users API] Expiração do código adicionada:', body.confirmationCodeExpiresAt);
+    }
+
+    console.log('[Users API] Dados do usuário antes de salvar:', { 
+      email: userData.email, 
+      hasConfirmationCode: !!userData.confirmationCode,
+      hasExpiration: !!userData.confirmationCodeExpiresAt 
+    });
 
     if (useMongo) {
       // Garantir email limpo em minúsculas

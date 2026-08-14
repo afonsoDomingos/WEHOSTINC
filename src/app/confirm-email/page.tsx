@@ -55,6 +55,7 @@ export default function ConfirmEmailPage() {
       return;
     }
 
+    console.log('[Confirm Page] Enviando código para confirmação:', { email, code, codeLength: code.length });
     setLoading(true);
     setMessage('');
     try {
@@ -65,6 +66,7 @@ export default function ConfirmEmailPage() {
       });
 
       const data = await response.json();
+      console.log('[Confirm Page] Resposta da API:', { status: response.status, data });
 
       if (response.ok && data.success) {
         setStatus('success');
@@ -74,6 +76,7 @@ export default function ConfirmEmailPage() {
         setMessage(data.error || 'Erro ao confirmar código.');
       }
     } catch (err) {
+      console.error('[Confirm Page] Erro ao confirmar código:', err);
       setStatus('error');
       setMessage('Erro ao conectar com servidor. Tente novamente.');
     } finally {
