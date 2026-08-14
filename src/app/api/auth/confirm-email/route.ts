@@ -15,16 +15,16 @@ export async function POST(request: NextRequest) {
     const cleanEmail = (email || '').trim().toLowerCase();
     const cleanCode = (code || '').trim();
 
-    if (!cleanEmail || !cleanCode) {
+    if (!cleanCode) {
       return NextResponse.json(
-        { error: 'Email e código são obrigatórios' },
+        { error: 'Por favor, insira o código de confirmação de 6 dígitos.' },
         { status: 400 }
       );
     }
 
     if (cleanCode.length !== 6) {
       return NextResponse.json(
-        { error: 'O código deve ter 6 dígitos' },
+        { error: 'O código deve ter exatamente 6 dígitos.' },
         { status: 400 }
       );
     }
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
                     'unknown';
     
     const rateLimitResult = rateLimit(
-      getRateLimitIdentifier(clientIp, cleanEmail),
+      getRateLimitIdentifier(clientIp, cleanEmail || cleanCode),
       10, // 10 tentativas
       60000 // 1 minuto
     );
@@ -52,12 +52,16 @@ export async function POST(request: NextRequest) {
 
     await connectDB();
 
-    // 🔒 Buscar diretamente no MongoDB com segurança
-    const user = await UserModel.findOne({ email: cleanEmail });
+    // 🔒 Buscar diretamente no MongoDB por email e código, ou por código caso email não tenha vindo
+    const query = cleanEmail 
+      ? { email: cleanEmail }
+      : { confirmationCode: cleanCode };
+
+    const user = await UserModel.findOne(query);
 
     if (!user) {
       return NextResponse.json(
-        { error: 'Utilizador não encontrado. Verifique o email inserido.' },
+        { error: 'Código inválido ou expirado. Verifique o código no email ou solicite um novo.' },
         { status: 404 }
       );
     }

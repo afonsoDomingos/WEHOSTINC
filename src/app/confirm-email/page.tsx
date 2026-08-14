@@ -19,10 +19,16 @@ export default function ConfirmEmailPage() {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const emailParam = params.get('email');
+      const storedEmail = localStorage.getItem('wehosthere_registered_email') || '';
       const success = params.get('success');
       const error = params.get('error');
 
-      if (emailParam) setEmail(emailParam);
+      if (emailParam) {
+        setEmail(emailParam);
+        localStorage.setItem('wehosthere_registered_email', emailParam);
+      } else if (storedEmail) {
+        setEmail(storedEmail);
+      }
 
       if (success === 'true') {
         setStatus('success');
@@ -242,19 +248,25 @@ export default function ConfirmEmailPage() {
             </div>
           </div>
 
-          <div className="text-center mb-4 sm:mb-5">
-            <p className="text-slate-300 text-xs sm:text-sm mb-2">
-              Enviamos um código para:
-            </p>
-            <p className="text-white font-semibold text-sm sm:text-base mb-3">
-              {email || 'seu@email.com'}
-            </p>
-            <p className="text-slate-400 text-[10px] sm:text-xs">
-              Insira o código de 6 dígitos abaixo para ativar sua conta.
+          <div className="text-center mb-4">
+            <p className="text-slate-300 text-xs mb-1">
+              Enviamos um código de 6 dígitos para o seu email:
             </p>
           </div>
 
+          <div className="mb-4">
+            <label className="block text-slate-400 text-[11px] mb-1 font-medium">Endereço de E-mail:</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="seu@email.com"
+              className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-xs placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
+            />
+          </div>
+
           <div className="mb-4 sm:mb-5">
+            <label className="block text-slate-400 text-[11px] mb-1 font-medium text-center">Código de 6 Dígitos:</label>
             <input
               type="text"
               value={code}

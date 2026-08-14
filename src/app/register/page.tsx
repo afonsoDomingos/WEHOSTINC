@@ -94,6 +94,9 @@ export default function RegisterPage() {
     try {
       console.log('[Register Page] Iniciando registro:', { name, email });
       await auth.registerAsync(name, email, password);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('wehosthere_registered_email', email);
+      }
       console.log('[Register Page] Registro bem-sucedido, redirecionando');
       // Não fazer login automático - redirecionar para tela de confirmação
       router.push('/confirm-email?email=' + encodeURIComponent(email));
