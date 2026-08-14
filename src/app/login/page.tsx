@@ -58,6 +58,20 @@ export default function LoginPage() {
     setGoogleLoading(true);
     try {
       console.log('[Login] Iniciando login com Google');
+      
+      // Verificar se NextAuth está configurado
+      const hasClientId = !!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID;
+      const hasClientSecret = !!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET;
+      
+      console.log('[Login] Configuração NextAuth:', { hasClientId, hasClientSecret });
+      
+      if (!hasClientId || !hasClientSecret) {
+        console.error('[Login] Variáveis de ambiente do NextAuth não configuradas');
+        setError('Configuração do Google OAuth não encontrada. Entre em contato com o suporte.');
+        setGoogleLoading(false);
+        return;
+      }
+
       const result = await signIn('google', { 
         callbackUrl: '/dashboard',
         redirect: false 
@@ -67,7 +81,7 @@ export default function LoginPage() {
       
       if (result?.error) {
         console.error('[Login] Erro no login Google:', result.error);
-        setError('Erro ao fazer login com Google. Por favor, tente novamente.');
+        setError('Erro ao fazer login com Google: ' + result.error);
         setGoogleLoading(false);
         return;
       }
@@ -78,12 +92,12 @@ export default function LoginPage() {
         router.push('/dashboard');
       } else {
         console.warn('[Login] Resultado inesperado do signIn:', result);
-        setError('Erro inesperado ao fazer login. Por favor, tente novamente.');
+        setError('Erro inesperado ao fazer login. O NextAuth pode não estar configurado corretamente.');
         setGoogleLoading(false);
       }
     } catch (err) {
       console.error('[Login] Erro ao processar login Google:', err);
-      setError('Erro ao conectar com Google. Por favor, tente novamente.');
+      setError('Erro ao conectar com Google: ' + (err instanceof Error ? err.message : 'Erro desconhecido'));
       setGoogleLoading(false);
     }
   };
