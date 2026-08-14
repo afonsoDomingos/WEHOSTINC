@@ -3,12 +3,13 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Mail, CheckCircle2, ArrowRight, RefreshCw, XCircle, AlertCircle } from 'lucide-react';
+import { Mail, CheckCircle2, ArrowRight, RefreshCw, XCircle } from 'lucide-react';
 import BrandLogo from '@/components/BrandLogo';
 
 export default function ConfirmEmailPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
+  const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
   const [message, setMessage] = useState('');
@@ -32,8 +33,8 @@ export default function ConfirmEmailPage() {
           case 'missing_params':
             setMessage('Parâmetros inválidos. Tente novamente.');
             break;
-          case 'invalid_token':
-            setMessage('Token inválido ou expirado. Solicite um novo email de confirmação.');
+          case 'invalid_code':
+            setMessage('Código inválido. Verifique o código no email e tente novamente.');
             break;
           case 'confirmation_failed':
             setMessage('Erro ao confirmar email. Tente novamente.');
@@ -47,6 +48,38 @@ export default function ConfirmEmailPage() {
       }
     }
   }, []);
+
+  const handleConfirmCode = async () => {
+    if (!code || code.length !== 6) {
+      setMessage('Por favor, insira o código de 6 dígitos.');
+      return;
+    }
+
+    setLoading(true);
+    setMessage('');
+    try {
+      const response = await fetch('/api/auth/confirm-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setStatus('success');
+        setMessage('Email confirmado com sucesso! Sua conta está ativa.');
+      } else {
+        setStatus('error');
+        setMessage(data.error || 'Erro ao confirmar código.');
+      }
+    } catch (err) {
+      setStatus('error');
+      setMessage('Erro ao conectar com servidor. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleResendEmail = async () => {
     if (!email) return;
@@ -136,6 +169,13 @@ export default function ConfirmEmailPage() {
             </div>
 
             <button
+              onClick={() => setStatus('pending')}
+              className="w-full py-2 sm:py-2.5 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-lg sm:rounded-xl transition border border-white/20 flex items-center justify-center space-x-2 sm:space-x-2.5 text-xs sm:text-sm mb-3 sm:mb-4"
+            >
+              Tentar novamente
+            </button>
+
+            <button
               onClick={handleResendEmail}
               disabled={resending}
               className="w-full py-2 sm:py-2.5 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-lg sm:rounded-xl transition border border-white/20 flex items-center justify-center space-x-2 sm:space-x-2.5 text-xs sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed mb-3 sm:mb-4"
@@ -179,7 +219,7 @@ export default function ConfirmEmailPage() {
         <div className="text-center mb-5 sm:mb-6">
           <BrandLogo logoHeightClass="h-7 sm:h-8" />
           <h1 className="text-lg sm:text-xl font-bold text-white mt-3 sm:mt-4">Confirme seu email</h1>
-          <p className="text-slate-400 text-xs sm:text-sm mt-1">Enviamos um link de confirmação para o seu email</p>
+          <p className="text-slate-400 text-xs sm:text-sm mt-1">Insira o código de 6 dígitos enviado para seu email</p>
         </div>
 
         <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-2xl">
@@ -191,14 +231,25 @@ export default function ConfirmEmailPage() {
 
           <div className="text-center mb-4 sm:mb-5">
             <p className="text-slate-300 text-xs sm:text-sm mb-2">
-              Enviamos um email de confirmação para:
+              Enviamos um código para:
             </p>
             <p className="text-white font-semibold text-sm sm:text-base mb-3">
               {email || 'seu@email.com'}
             </p>
             <p className="text-slate-400 text-[10px] sm:text-xs">
-              Clique no link no email para ativar sua conta. Se não receber o email em alguns minutos, verifique sua caixa de spam.
+              Insira o código de 6 dígitos abaixo para ativar sua conta.
             </p>
+          </div>
+
+          <div className="mb-4 sm:mb-5">
+            <input
+              type="text"
+              value={code}
+              onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              placeholder="000000"
+              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg sm:rounded-xl text-white text-center text-xl sm:text-2xl font-bold tracking-widest placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition"
+              maxLength={6}
+            />
           </div>
 
           {message && (
@@ -210,6 +261,21 @@ export default function ConfirmEmailPage() {
               {message}
             </div>
           )}
+
+          <button
+            onClick={handleConfirmCode}
+            disabled={loading || code.length !== 6}
+            className="w-full py-2 sm:py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg sm:rounded-xl transition flex items-center justify-center space-x-2 sm:space-x-2.5 text-xs sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed mb-3 sm:mb-4"
+          >
+            {loading ? (
+              <span className="flex items-center space-x-1.5 sm:space-x-2">
+                <RefreshCw className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" />
+                <span>A verificar...</span>
+              </span>
+            ) : (
+              <span>Confirmar Código</span>
+            )}
+          </button>
 
           <button
             onClick={handleResendEmail}
@@ -224,7 +290,7 @@ export default function ConfirmEmailPage() {
             ) : (
               <>
                 <RefreshCw className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                <span>Reenviar email</span>
+                <span>Reenviar código</span>
               </>
             )}
           </button>

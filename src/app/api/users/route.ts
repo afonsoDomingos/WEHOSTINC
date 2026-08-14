@@ -167,7 +167,7 @@ export async function POST(req: Request) {
         
         const updated = await UserModel.findOneAndUpdate(
           filter,
-          { status: 'active', $unset: { confirmationToken: 1 } },
+          { status: 'active', $unset: { confirmationCode: 1 } },
           { new: true }
         ).lean();
         
@@ -181,7 +181,7 @@ export async function POST(req: Request) {
       
       FALLBACK_USERS = FALLBACK_USERS.map(u =>
         (targetId && u.id.toLowerCase() === targetId) || (targetEmail && u.email.toLowerCase() === targetEmail)
-          ? { ...u, status: 'active', confirmationToken: undefined } : u
+          ? { ...u, status: 'active', confirmationCode: undefined } : u
       );
       return NextResponse.json({ success: true, users: FALLBACK_USERS });
     }

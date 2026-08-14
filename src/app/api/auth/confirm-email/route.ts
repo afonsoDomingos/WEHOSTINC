@@ -1,35 +1,47 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams;
-  const token = searchParams.get('token');
-  const email = searchParams.get('email');
+  return NextResponse.json({ error: 'Use POST method to confirm email with code' }, { status: 405 });
+}
 
-  if (!token || !email) {
-    return NextResponse.redirect(
-      new URL('/confirm-email?error=missing_params', request.url)
-    );
-  }
-
+export async function POST(request: NextRequest) {
   try {
-    // Buscar usuários para encontrar o token
+    const body = await request.json();
+    const { email, code } = body;
+
+    if (!email || !code) {
+      return NextResponse.json(
+        { error: 'Email e código são obrigatórios' },
+        { status: 400 }
+      );
+    }
+
+    if (code.length !== 6) {
+      return NextResponse.json(
+        { error: 'Código deve ter 6 dígitos' },
+        { status: 400 }
+      );
+    }
+
+    // Buscar usuários para encontrar o código de confirmação
     const usersResponse = await fetch(`${process.env.NEXTAUTH_URL || 'https://wehosthere.com'}/api/users`);
     const usersData = await usersResponse.json();
     const users = usersData.users || [];
 
-    // Encontrar usuário com o token de confirmação
+    // Encontrar usuário com o código de confirmação
     const user = users.find((u: any) => 
       u.email.toLowerCase() === email.toLowerCase() && 
-      u.confirmationToken === token
+      u.confirmationCode === code
     );
 
     if (!user) {
-      return NextResponse.redirect(
-        new URL('/confirm-email?error=invalid_token', request.url)
+      return NextResponse.json(
+        { error: 'Código inválido' },
+        { status: 400 }
       );
     }
 
-    // Atualizar status para active e remover token
+    // Atualizar status para active e remover código
     const updateResponse = await fetch(`${process.env.NEXTAUTH_URL || 'https://wehosthere.com'}/api/users`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -41,19 +53,18 @@ export async function GET(request: NextRequest) {
     });
 
     if (!updateResponse.ok) {
-      return NextResponse.redirect(
-        new URL('/confirm-email?error=confirmation_failed', request.url)
+      return NextResponse.json(
+        { error: 'Erro ao confirmar email' },
+        { status: 500 }
       );
     }
 
-    // Redirecionar para página de sucesso
-    return NextResponse.redirect(
-      new URL('/confirm-email?success=true', request.url)
-    );
+    return NextResponse.json({ success: true, message: 'Email confirmado com sucesso' });
   } catch (error) {
     console.error('[Confirm Email] Erro:', error);
-    return NextResponse.redirect(
-      new URL('/confirm-email?error=server_error', request.url)
+    return NextResponse.json(
+      { error: 'Erro ao confirmar email' },
+      { status: 500 }
     );
   }
 }

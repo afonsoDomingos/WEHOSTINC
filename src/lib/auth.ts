@@ -157,8 +157,8 @@ export const auth = {
     // 3. Gerar código de referral único
     const userReferralCode = `WH${email.substring(0, 3).toUpperCase()}${Math.floor(1000 + Math.random() * 9000)}`;
 
-    // 4. Gerar token de confirmação de email
-    const confirmationToken = `CONF-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+    // 4. Gerar código de confirmação de 6 dígitos
+    const confirmationCode = Math.floor(100000 + Math.random() * 900000).toString();
 
     const newUser: User = {
       id: Date.now().toString(),
@@ -172,7 +172,7 @@ export const auth = {
       createdAt: new Date().toISOString()
     };
 
-    const userWithPassword = { ...newUser, password, referralCode: userReferralCode, confirmationToken };
+    const userWithPassword = { ...newUser, password, referralCode: userReferralCode, confirmationCode };
 
     console.log('[Register] Enviando dados para API:', { email: newUser.email, plan: newUser.plan, status: newUser.status });
 
@@ -220,8 +220,8 @@ export const auth = {
       const updatedList = [...currentList.filter(u => u.id !== newUser.id), newUser];
       localStorage.setItem('wehosthere_all_users', JSON.stringify(updatedList));
 
-      // Enviar email de boas-vindas com link de confirmação
-      sendWelcomeEmail(newUser.email, newUser.name, newUser.plan, confirmationToken).catch(err => {
+      // Enviar email de boas-vindas com código de confirmação
+      sendWelcomeEmail(newUser.email, newUser.name, newUser.plan, confirmationCode).catch(err => {
         console.error('Erro ao enviar email de boas-vindas:', err);
       });
     }

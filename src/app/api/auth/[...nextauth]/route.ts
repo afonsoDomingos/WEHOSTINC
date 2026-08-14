@@ -41,6 +41,9 @@ export const GET = NextAuth({
 
         console.log('[Google OAuth] Criando novo usuário para:', user.email);
 
+        // Gerar código de confirmação de 6 dígitos
+        const confirmationCode = Math.floor(100000 + Math.random() * 900000).toString();
+
         const newUser = {
           id: `USER-${Date.now()}`,
           name: user.name || 'Usuário Google',
@@ -49,7 +52,8 @@ export const GET = NextAuth({
           status: 'pending' as const, // Criar como pending para requerer confirmação
           role: 'user' as const,
           avatar: user.image,
-          createdAt: new Date().toISOString()
+          createdAt: new Date().toISOString(),
+          confirmationCode
         };
 
         console.log('[Google OAuth] Dados do novo usuário:', newUser);
@@ -86,7 +90,7 @@ export const GET = NextAuth({
         }
 
         console.log('[Google OAuth] Enviando email de boas-vindas...');
-        sendWelcomeEmail(newUser.email, newUser.name, newUser.plan).catch((err: any) => {
+        sendWelcomeEmail(newUser.email, newUser.name, newUser.plan, confirmationCode).catch((err: any) => {
           console.error('[Google OAuth] Erro ao enviar email de boas-vindas:', err);
         });
 
