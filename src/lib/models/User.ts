@@ -10,6 +10,8 @@ export interface IUser extends Document {
   role: 'admin' | 'user';
   dueDate?: number;
   avatar?: string;
+  confirmationCode?: string;
+  confirmationCodeExpiresAt?: string;
   createdAt: string;
 }
 
@@ -23,6 +25,8 @@ const UserSchema = new Schema<IUser>({
   role: { type: String, enum: ['admin', 'user'], default: 'user' },
   dueDate: { type: Number, default: 29 },
   avatar: { type: String, default: '' },
+  confirmationCode: { type: String },
+  confirmationCodeExpiresAt: { type: String },
   createdAt: { type: String, default: () => new Date().toISOString() },
 }, { timestamps: false, versionKey: false });
 
