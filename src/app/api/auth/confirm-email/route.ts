@@ -54,7 +54,18 @@ export async function POST(request: NextRequest) {
     const usersUrl = `${process.env.NEXTAUTH_URL || 'https://wehosthere.com'}/api/users`;
     console.log('[Confirm Email] Buscando usuários de:', usersUrl);
     
-    const usersResponse = await fetch(usersUrl);
+    let usersResponse;
+    try {
+      usersResponse = await fetch(usersUrl);
+      console.log('[Confirm Email] Resposta da API de usuários:', usersResponse.status);
+    } catch (fetchError) {
+      console.error('[Confirm Email] Erro ao buscar usuários:', fetchError);
+      return NextResponse.json(
+        { error: 'Erro ao conectar com banco de dados' },
+        { status: 500 }
+      );
+    }
+    
     const usersData = await usersResponse.json();
     const users = usersData.users || [];
     
@@ -72,10 +83,11 @@ export async function POST(request: NextRequest) {
       console.error('[Confirm Email] Usuário não encontrado ou código inválido:', { 
         email: email.toLowerCase(),
         code,
-        hasConfirmationCode: users.some((u: any) => u.email.toLowerCase() === email.toLowerCase())
+        hasConfirmationCode: users.some((u: any) => u.email.toLowerCase() === email.toLowerCase()),
+        userWithEmail: users.find((u: any) => u.email.toLowerCase() === email.toLowerCase())
       });
       return NextResponse.json(
-        { error: 'Código inválido' },
+        { error: 'Código inválido. Verifique o código no email ou solicite um novo.' },
         { status: 400 }
       );
     }
@@ -120,7 +132,7 @@ export async function POST(request: NextRequest) {
     if (!updateResponse.ok) {
       console.error('[Confirm Email] Erro ao atualizar usuário:', updateResponse.status);
       return NextResponse.json(
-        { error: 'Erro ao confirmar email' },
+        { error: 'Erro ao confirmar email no banco de dados' },
         { status: 500 }
       );
     }
@@ -128,9 +140,9 @@ export async function POST(request: NextRequest) {
     console.log('[Confirm Email] Confirmação bem-sucedida');
     return NextResponse.json({ success: true, message: 'Email confirmado com sucesso' });
   } catch (error) {
-    console.error('[Confirm Email] Erro:', error);
+    console.error('[Confirm Email] Erro geral:', error);
     return NextResponse.json(
-      { error: 'Erro ao confirmar email' },
+      { error: 'Erro ao confirmar email: ' + (error instanceof Error ? error.message : 'Erro desconhecido') },
       { status: 500 }
     );
   }
