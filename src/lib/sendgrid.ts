@@ -175,3 +175,29 @@ export async function sendSupportTicketEmail(toEmail: string, userName: string, 
       </div>`,
   });
 }
+
+/** Email de recuperação de senha */
+export async function sendPasswordResetEmail(toEmail: string, userName: string, resetToken: string) {
+  const resetUrl = `${SITE_URL}/reset-password?token=${resetToken}`;
+  
+  return sendEmail({
+    to: toEmail,
+    subject: '🔐 Recuperação de Senha — WEHOSTHERE',
+    html: `
+      <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;">
+        <div style="background:linear-gradient(135deg,#f59e0b,#d97706);padding:40px 32px;border-radius:16px 16px 0 0;text-align:center;">
+          <h1 style="color:white;margin:0;font-size:26px;font-weight:800;">🔐 Recuperação de Senha</h1>
+          <p style="color:#fef3c7;margin:8px 0 0;font-size:13px;">WEHOSTHERE</p>
+        </div>
+        <div style="background:#f8fafc;padding:40px 32px;border-radius:0 0 16px 16px;border:1px solid #e2e8f0;">
+          <p style="color:#475569;line-height:1.7;">Olá <strong>${userName}</strong>,</p>
+          <p style="color:#475569;line-height:1.7;">Recebemos um pedido para redefinir a sua senha. Se não fez este pedido, pode ignorar este email.</p>
+          <div style="text-align:center;margin:32px 0;">
+            <a href="${resetUrl}" style="background:#f59e0b;color:white;font-weight:700;padding:16px 40px;border-radius:10px;text-decoration:none;font-size:16px;display:inline-block;">Redefinir Senha →</a>
+          </div>
+          <p style="color:#94a3b8;font-size:12px;margin:0;">Este link expira em 1 hora por segurança.</p>
+          <p style="color:#94a3b8;font-size:12px;margin:16px 0 0;">Equipa WEHOSTHERE — Hospedagem Profissional em Moçambique</p>
+        </div>
+      </div>`,
+  });
+}
