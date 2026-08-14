@@ -11,7 +11,7 @@ const handler = NextAuth({
     }),
   ],
   callbacks: {
-    async signIn({ user, account, profile }) {
+    async signIn({ user, account, profile }: any) {
       console.log('[Google OAuth] Sign in callback:', { user, account, profile });
       
       if (!user.email) {
@@ -20,17 +20,14 @@ const handler = NextAuth({
       }
 
       try {
-        // Check if user already exists
         const users = await auth.fetchUsersAsync();
-        const existingUser = users.find(u => u.email.toLowerCase() === (user.email || '').toLowerCase());
+        const existingUser = users.find((u: any) => u.email.toLowerCase() === (user.email || '').toLowerCase());
 
         if (existingUser) {
           console.log('[Google OAuth] Usuário existente encontrado:', existingUser.email);
-          // Update user with Google data if needed
           return true;
         }
 
-        // Create new user from Google data
         const newUser = {
           id: `USER-${Date.now()}`,
           name: user.name || 'Usuário Google',
@@ -44,14 +41,12 @@ const handler = NextAuth({
 
         console.log('[Google OAuth] Criando novo usuário:', newUser.email);
         
-        // Save to localStorage (will be synced to server)
         if (typeof window !== 'undefined') {
           const key = `user_${newUser.id}`;
           localStorage.setItem(key, JSON.stringify(newUser));
         }
 
-        // Enviar email de boas-vindas
-        sendWelcomeEmail(newUser.email, newUser.name, newUser.plan).catch(err => {
+        sendWelcomeEmail(newUser.email, newUser.name, newUser.plan).catch((err: any) => {
           console.error('[Google OAuth] Erro ao enviar email de boas-vindas:', err);
         });
 
@@ -61,23 +56,23 @@ const handler = NextAuth({
         return false;
       }
     },
-    async session({ session, token }) {
+    async session({ session, token }: any) {
       console.log('[Google OAuth] Session callback:', { session, token });
       
       if (session.user && token.sub) {
-        (session.user as any).id = token.sub;
-        session.user.email = token.email as string;
-        session.user.name = token.name as string;
-        session.user.image = token.picture as string;
+        session.user.id = token.sub;
+        session.user.email = token.email;
+        session.user.name = token.name;
+        session.user.image = token.picture;
       }
       
       return session;
     },
-    async jwt({ token, user, account }) {
-      console.log('[Google OAuth] JWT callback:', { token, user, account });
+    async jwt({ token, user }: any) {
+      console.log('[Google OAuth] JWT callback:', { token, user });
       
       if (user) {
-        token.sub = (user as any).id || token.sub;
+        token.sub = user.id || token.sub;
         token.email = user.email;
         token.name = user.name;
         token.picture = user.image;
