@@ -63,6 +63,8 @@ export default function LoginPage() {
         redirect: false 
       });
       
+      console.log('[Login] Resultado do signIn:', result);
+      
       if (result?.error) {
         console.error('[Login] Erro no login Google:', result.error);
         setError('Erro ao fazer login com Google. Por favor, tente novamente.');
@@ -71,8 +73,13 @@ export default function LoginPage() {
       }
       
       if (result?.ok) {
-        console.log('[Login] Login Google bem-sucedido');
+        console.log('[Login] Login Google bem-sucedido, redirecionando para dashboard');
+        setError('');
         router.push('/dashboard');
+      } else {
+        console.warn('[Login] Resultado inesperado do signIn:', result);
+        setError('Erro inesperado ao fazer login. Por favor, tente novamente.');
+        setGoogleLoading(false);
       }
     } catch (err) {
       console.error('[Login] Erro ao processar login Google:', err);

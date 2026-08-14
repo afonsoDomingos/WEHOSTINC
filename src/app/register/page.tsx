@@ -105,6 +105,8 @@ export default function RegisterPage() {
         redirect: false 
       });
       
+      console.log('[Register] Resultado do signIn:', result);
+      
       if (result?.error) {
         console.error('[Register] Erro no registro Google:', result.error);
         setError('Erro ao criar conta com Google. Por favor, tente novamente.');
@@ -113,8 +115,13 @@ export default function RegisterPage() {
       }
       
       if (result?.ok) {
-        console.log('[Register] Registro Google bem-sucedido');
+        console.log('[Register] Registro Google bem-sucedido, redirecionando para dashboard');
+        setError('');
         router.push('/dashboard');
+      } else {
+        console.warn('[Register] Resultado inesperado do signIn:', result);
+        setError('Erro inesperado ao criar conta. Por favor, tente novamente.');
+        setGoogleLoading(false);
       }
     } catch (err) {
       console.error('[Register] Erro ao processar registro Google:', err);
