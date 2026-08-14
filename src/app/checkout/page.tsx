@@ -169,6 +169,13 @@ function CheckoutContent() {
   const [currentOrderData, setCurrentOrderData] = useState<ReceiptData | null>(null);
 
   const finalizeOrder = async () => {
+    console.log('[Checkout] Iniciando processamento de pedido');
+    console.log('[Checkout] Método de pagamento:', paymentMethod);
+    console.log('[Checkout] Valor total:', grandTotal);
+    console.log('[Checkout] Plano selecionado:', selectedPlan?.name);
+    console.log('[Checkout] Duração:', durationMonths, 'meses');
+    console.log('[Checkout] Domínio:', domainParam);
+    
     try {
       const currentUser = auth.getCurrentUser();
       let accountStatus: 'logged_in' | 'account_exists' | 'no_account' = 'logged_in';
@@ -188,6 +195,7 @@ function CheckoutContent() {
         }
       }
 
+      console.log('[Checkout] Status da conta:', accountStatus);
       setCheckoutAccountStatus(accountStatus);
 
       const isWebsite = selectedPlan?.id === 'website_creation';
@@ -617,7 +625,10 @@ function CheckoutContent() {
                 {/* M-Pesa Option */}
                 <button
                   type="button"
-                  onClick={() => setPaymentMethod('mpesa')}
+                  onClick={() => {
+                    console.log('[Checkout] Método de pagamento selecionado: M-Pesa');
+                    setPaymentMethod('mpesa');
+                  }}
                   className={`p-3 border-2 rounded-xl text-center flex flex-col items-center justify-center transition cursor-pointer ${
                     paymentMethod === 'mpesa'
                       ? 'border-red-600 bg-red-50/50 shadow-sm ring-2 ring-red-500/20'
@@ -659,7 +670,10 @@ function CheckoutContent() {
                 {/* Bank Transfer Option */}
                 <button
                   type="button"
-                  onClick={() => setPaymentMethod('bank_transfer')}
+                  onClick={() => {
+                    console.log('[Checkout] Método de pagamento selecionado: Transferência / Comprovativo');
+                    setPaymentMethod('bank_transfer');
+                  }}
                   className={`p-3 border-2 rounded-xl text-center flex flex-col items-center justify-center transition cursor-pointer ${
                     paymentMethod === 'bank_transfer'
                       ? 'border-emerald-600 bg-emerald-50/50 shadow-sm ring-2 ring-emerald-500/20'
@@ -835,7 +849,10 @@ function CheckoutContent() {
                     {/* 1 Mês */}
                     <button
                       type="button"
-                      onClick={() => setDurationMonths(1)}
+                      onClick={() => {
+                        console.log('[Checkout] Duração selecionada: 1 mês');
+                        setDurationMonths(1);
+                      }}
                       className={`p-3 border-2 rounded-xl text-left transition cursor-pointer relative ${
                         durationMonths === 1
                           ? 'border-primary-600 bg-primary-50/50 ring-2 ring-primary-500/20'
@@ -852,7 +869,10 @@ function CheckoutContent() {
                     {/* 3 Meses */}
                     <button
                       type="button"
-                      onClick={() => setDurationMonths(3)}
+                      onClick={() => {
+                        console.log('[Checkout] Duração selecionada: 3 meses (5% desconto)');
+                        setDurationMonths(3);
+                      }}
                       className={`p-3 border-2 rounded-xl text-left transition cursor-pointer relative ${
                         durationMonths === 3
                           ? 'border-primary-600 bg-primary-50/50 ring-2 ring-primary-500/20'
@@ -872,27 +892,33 @@ function CheckoutContent() {
                     {/* 6 Meses */}
                     <button
                       type="button"
-                      onClick={() => setDurationMonths(6)}
+                      onClick={() => {
+                        console.log('[Checkout] Duração selecionada: 6 meses (10% desconto)');
+                        setDurationMonths(6);
+                      }}
                       className={`p-3 border-2 rounded-xl text-left transition cursor-pointer relative ${
                         durationMonths === 6
                           ? 'border-primary-600 bg-primary-50/50 ring-2 ring-primary-500/20'
                           : 'border-gray-200 bg-white hover:border-gray-300'
                       }`}
                     >
-                      <span className="absolute -top-2 right-2 bg-purple-600 text-white text-[9px] font-extrabold px-1.5 py-0.2 rounded-full uppercase">
+                      <span className="absolute -top-2 right-2 bg-blue-600 text-white text-[9px] font-extrabold px-1.5 py-0.2 rounded-full uppercase">
                         -10% OFF
                       </span>
                       <span className="text-[10px] font-bold text-gray-500 block uppercase">6 Meses</span>
                       <span className="text-sm font-bold text-gray-900 block mt-0.5">
                         {Math.round(selectedPlan.price * 6 * 0.90).toLocaleString('pt-MZ')} MT
                       </span>
-                      <span className="text-[10px] text-purple-700 block font-bold">10% Desconto</span>
+                      <span className="text-[10px] text-emerald-700 block font-bold">10% Desconto</span>
                     </button>
 
                     {/* 12 Meses / 1 Ano */}
                     <button
                       type="button"
-                      onClick={() => setDurationMonths(12)}
+                      onClick={() => {
+                        console.log('[Checkout] Duração selecionada: 12 meses (2 meses grátis)');
+                        setDurationMonths(12);
+                      }}
                       className={`p-3 border-2 rounded-xl text-left transition cursor-pointer relative ${
                         durationMonths === 12
                           ? 'border-emerald-600 bg-emerald-50/60 ring-2 ring-emerald-500/20'
@@ -994,6 +1020,7 @@ function CheckoutContent() {
             <button
               type="submit"
               disabled={loading}
+              onClick={() => console.log('[Checkout] Botão de compra clicado')}
               className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-xl transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
             >
               {loading ? (
