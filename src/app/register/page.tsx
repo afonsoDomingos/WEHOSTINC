@@ -103,28 +103,6 @@ export default function RegisterPage() {
     setGoogleLoading(true);
     try {
       console.log('[Register] Iniciando registro com Google');
-      
-      // Verificar se NextAuth está configurado
-      const hasClientId = !!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID;
-      const hasClientSecret = !!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET;
-      const hasNextAuthSecret = !!process.env.NEXTAUTH_SECRET;
-      const hasNextAuthUrl = !!process.env.NEXTAUTH_URL;
-      
-      console.log('[Register] Configuração NextAuth:', { 
-        hasClientId, 
-        hasClientSecret,
-        hasNextAuthSecret,
-        hasNextAuthUrl,
-        clientIdPrefix: process.env.GOOGLE_CLIENT_ID?.substring(0, 10) + '...',
-        nextAuthUrl: process.env.NEXTAUTH_URL
-      });
-      
-      if (!hasClientId || !hasClientSecret) {
-        console.error('[Register] Variáveis de ambiente do NextAuth não configuradas');
-        setError('Configuração do Google OAuth não encontrada. Entre em contato com o suporte.');
-        setGoogleLoading(false);
-        return;
-      }
 
       const result = await signIn('google', { 
         callbackUrl: '/dashboard',
