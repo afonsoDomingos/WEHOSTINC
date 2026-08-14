@@ -9,13 +9,12 @@ export function getSiteUrl(): string {
 }
 
 export function getApiUrl(): string {
-  if (process.env.NEXT_PUBLIC_API_URL) {
-    return process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '');
-  }
-  if (typeof window !== 'undefined' && (window.location.hostname === 'wehosthere.com' || window.location.hostname === 'www.wehosthere.com' || window.location.hostname.includes('vercel.app'))) {
+  // Em produção, sempre usar URLs relativas para evitar CORS
+  if (typeof window !== 'undefined' && !window.location.hostname.includes('localhost')) {
     return ''; // Use relative URLs for same-origin requests
   }
-  if (typeof window !== 'undefined' && window.location.hostname.includes('localhost')) {
+  // Em desenvolvimento local, também usar URLs relativas
+  if (typeof window !== 'undefined') {
     return ''; // Use relative URLs for local development
   }
   return '';
