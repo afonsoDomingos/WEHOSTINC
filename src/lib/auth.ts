@@ -23,12 +23,14 @@ export interface AuthState {
 // Simulação de banco de dados em localStorage
 const STORAGE_KEY = 'wehosthere_auth';
 
+// Utilizador admin padrão — password NUNCA hardcoded
+// A password real deve ser definida no MongoDB ou via variável de ambiente.
 const DEFAULT_USERS: Array<User & { password?: string }> = [
   {
     id: 'admin_root',
     name: 'Administrador WEHOSTHERE',
     email: 'admin@wehosthere.com',
-    password: '@Admin123@',
+    // 🔒 Password removida do código-fonte — gerida via MongoDB/ambiente
     plan: 'enterprise',
     status: 'active',
     role: 'admin',
@@ -38,11 +40,13 @@ const DEFAULT_USERS: Array<User & { password?: string }> = [
 
 const seedDefaultUsers = () => {
   if (typeof window === 'undefined') return;
-  
+
   DEFAULT_USERS.forEach((defaultUser) => {
     const key = `user_${defaultUser.id}`;
     if (!localStorage.getItem(key)) {
-      localStorage.setItem(key, JSON.stringify(defaultUser));
+      // 🔒 Nunca guardar a password no localStorage
+      const { password: _pw, ...userWithoutPassword } = defaultUser as any;
+      localStorage.setItem(key, JSON.stringify(userWithoutPassword));
     }
   });
 };
@@ -101,19 +105,20 @@ const clearFailedAttempts = (email: string) => {
   localStorage.removeItem(key);
 };
 
-// Função para obter IP e país do usuário via API de geolocalização
+// Funcião para obter IP e país do utilizador via API de geolocalização
 const getClientLocation = async (): Promise<{ ipAddress: string; country: string }> => {
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
-    
-    const res = await fetch('https://ipapi.co/json/', { 
+
+    // ipapi.co é um serviço de terceiros — apenas o IP público é enviado (necessidade legítima: segurança)
+    const res = await fetch('https://ipapi.co/json/', {
       signal: controller.signal,
       cache: 'no-cache'
     });
-    
+
     clearTimeout(timeoutId);
-    
+
     if (res.ok) {
       const data = await res.json();
       return {
@@ -222,9 +227,11 @@ export const auth = {
       }
     }
 
-    // 6. Gravar na cache do navegador somente após confirmação do servidor MongoDB
+    // 5. Gravar na cache do navegador somente após confirmação do servidor MongoDB
     if (typeof window !== 'undefined') {
-      localStorage.setItem(`user_${newUser.id}`, JSON.stringify(userWithPassword));
+      // 🔒 NUNCA guardar a password no localStorage
+      const { password: _pw, confirmationCode: _cc, ...userSafeData } = userWithPassword as any;
+      localStorage.setItem(`user_${newUser.id}`, JSON.stringify(userSafeData));
       const currentList = auth.getUsers();
       const updatedList = [...currentList.filter(u => u.id !== newUser.id), newUser];
       localStorage.setItem('wehosthere_all_users', JSON.stringify(updatedList));
@@ -331,8 +338,9 @@ export const auth = {
       const session = { user: serverUser };
       if (typeof window !== 'undefined') {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
-        // Atualizar cache local com dados do servidor
-        localStorage.setItem(`user_${serverUser.id}`, JSON.stringify({ ...serverUser, password }));
+        // 🔒 Atualizar cache local com dados do servidor — SEM password
+        const { password: _pw, ...serverUserSafe } = serverUser as any;
+        localStorage.setItem(`user_${serverUser.id}`, JSON.stringify(serverUserSafe));
       }
       
       return serverUser;
@@ -505,7 +513,17 @@ export const auth = {
   // Buscar usuários do servidor via API e atualizar LocalStorage
   fetchUsersAsync: async (): Promise<User[]> => {
     try {
-      const res = await fetch(apiEndpoint('/api/users'));
+      // 🔒 Adicionar header de autorização interna para aceder ao endpoint protegido
+      const internalSecret = typeof window === 'undefined'
+        ? (process.env.NEXTAUTH_SECRET || '')
+        : ''; // No browser não há acesso a NEXTAUTH_SECRET
+
+      const headers: Record<string, string> = {};
+      if (internalSecret) {
+        headers['x-internal-auth'] = internalSecret;
+      }
+
+      const res = await fetch(apiEndpoint('/api/users'), { headers });
       if (res.ok) {
         const data = await res.json();
         if (data.users && Array.isArray(data.users)) {

@@ -31,8 +31,24 @@ const nextConfig = {
             value: 'strict-origin-when-cross-origin'
           },
           {
+            // 🔒 CSP reforçado:
+            // - Removido unsafe-eval (não necessário em Next.js produção)
+            // - Removido wehostinc.onrender.com (não utilizado)
+            // - Adicionado frame-ancestors para prevenir clickjacking
+            // - connect-src restrito ao próprio domínio e APIs necessárias
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.google.com https://accounts.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.resend.com https://wehostinc.onrender.com https://wehosthere.com; frame-src https://accounts.google.com;"
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' https://accounts.google.com",
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' data: https: blob:",
+              "font-src 'self' data:",
+              "connect-src 'self' https://api.resend.com https://ipapi.co https://wehosthere.com",
+              "frame-src https://accounts.google.com",
+              "frame-ancestors 'self'",
+              "base-uri 'self'",
+              "form-action 'self' https://accounts.google.com",
+            ].join('; ')
           }
         ]
       }
@@ -41,3 +57,4 @@ const nextConfig = {
 }
 
 module.exports = nextConfig
+

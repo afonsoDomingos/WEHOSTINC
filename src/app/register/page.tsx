@@ -102,37 +102,38 @@ export default function RegisterPage() {
     setError('');
     setGoogleLoading(true);
     try {
-      console.log('[Register] Iniciando registro com Google');
-
-      const result = await signIn('google', { 
+      const result = await signIn('google', {
         callbackUrl: '/dashboard',
-        redirect: false 
+        redirect: false,
       });
-      
-      console.log('[Register] Resultado do signIn:', result);
-      
+
+      if (result?.ok) {
+        // Login/Registo bem-sucedido
+        setError('');
+        router.push('/dashboard');
+        return;
+      }
+
+      if (result?.error === 'AccessDenied') {
+        // Conta criada — redirecionar para confirmação de email
+        router.push('/confirm-email');
+        return;
+      }
+
       if (result?.error) {
-        console.error('[Register] Erro no registro Google:', result.error);
-        setError('Erro ao criar conta com Google: ' + result.error);
+        setError('Não foi possível criar conta com o Google. Tente novamente.');
         setGoogleLoading(false);
         return;
       }
-      
-      if (result?.ok) {
-        console.log('[Register] Registro Google bem-sucedido, redirecionando para dashboard');
-        setError('');
-        router.push('/dashboard');
-      } else {
-        console.warn('[Register] Resultado inesperado do signIn:', result);
-        setError('Erro inesperado ao criar conta. O NextAuth pode não estar configurado corretamente.');
-        setGoogleLoading(false);
-      }
+
+      setError('Erro ao processar registo com Google. Tente novamente.');
+      setGoogleLoading(false);
     } catch (err) {
-      console.error('[Register] Erro ao processar registro Google:', err);
-      setError('Erro ao conectar com Google: ' + (err instanceof Error ? err.message : 'Erro desconhecido'));
+      setError('Erro ao conectar com Google. Verifique a sua ligação à internet.');
       setGoogleLoading(false);
     }
   };
+
 
   const passwordStrength = () => {
     if (!password) return 0;

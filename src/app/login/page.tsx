@@ -57,34 +57,37 @@ export default function LoginPage() {
     setError('');
     setGoogleLoading(true);
     try {
-      console.log('[Login] Iniciando login com Google');
-
-      const result = await signIn('google', { 
+      const result = await signIn('google', {
         callbackUrl: '/dashboard',
-        redirect: false 
+        redirect: false,
       });
-      
-      console.log('[Login] Resultado do signIn:', result);
-      
+
+      if (result?.ok) {
+        // Login bem-sucedido
+        setError('');
+        router.push('/dashboard');
+        return;
+      }
+
+      if (result?.error === 'AccessDenied') {
+        // Conta criada mas pendente de confirmação de email
+        // Ou conta já existente mas não confirmada
+        // Redirecionar para página de confirmação
+        router.push('/confirm-email');
+        return;
+      }
+
       if (result?.error) {
-        console.error('[Login] Erro no login Google:', result.error);
-        setError('Erro ao fazer login com Google: ' + result.error);
+        setError('Não foi possível entrar com o Google. Verifique as suas permissões e tente novamente.');
         setGoogleLoading(false);
         return;
       }
-      
-      if (result?.ok) {
-        console.log('[Login] Login Google bem-sucedido, redirecionando para dashboard');
-        setError('');
-        router.push('/dashboard');
-      } else {
-        console.warn('[Login] Resultado inesperado do signIn:', result);
-        setError('Erro inesperado ao fazer login. O NextAuth pode não estar configurado corretamente.');
-        setGoogleLoading(false);
-      }
+
+      // Resultado inesperado
+      setError('Erro ao processar login com Google. Tente novamente.');
+      setGoogleLoading(false);
     } catch (err) {
-      console.error('[Login] Erro ao processar login Google:', err);
-      setError('Erro ao conectar com Google: ' + (err instanceof Error ? err.message : 'Erro desconhecido'));
+      setError('Erro ao conectar com Google. Verifique a sua ligação à internet.');
       setGoogleLoading(false);
     }
   };

@@ -3,14 +3,16 @@ import { connectDB } from '@/lib/mongodb';
 import UserModel from '@/lib/models/User';
 import { addAdminNotification, dispatchMessage } from '@/lib/notifications';
 import { rateLimit, getRateLimitIdentifier } from '@/lib/rateLimiter';
+import bcrypt from 'bcryptjs';
 
 // Fallback in-memory para quando MongoDB não estiver acessível (dev local sem rede)
+// ⚠️ A password do admin NÃO está hardcoded aqui. Deve ser definida via variável de ambiente ADMIN_DEFAULT_PASSWORD.
 let FALLBACK_USERS: any[] = [
   {
     id: 'admin_root',
     name: 'Administrador WEHOSTHERE',
     email: 'admin@wehosthere.com',
-    password: '@Admin123@',
+    password: process.env.ADMIN_DEFAULT_PASSWORD_HASH || '', // Hash da password — nunca em texto puro
     plan: 'enterprise',
     status: 'active',
     role: 'admin',
@@ -36,18 +38,43 @@ async function ensureAdmin() {
   }
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  // 🔒 PROTECÇÃO: Apenas permite:
+  // 1. Chamadas server-side (sem header Origin) — ex: NextAuth, outros routes
+  // 2. Chamadas com token interno correto (x-internal-auth)
+  // 3. Chamadas do próprio domínio do site (same-origin browser calls)
+  const origin = request.headers.get('origin');
+  const authHeader = request.headers.get('x-internal-auth');
+  const internalSecret = process.env.NEXTAUTH_SECRET || '';
+
+  const isInternalCall = !origin; // Chamadas server-side não enviam Origin
+  const hasValidInternalToken = authHeader === internalSecret && internalSecret.length > 0;
+  const isSameOrigin = origin === 'https://wehosthere.com' ||
+                       origin === 'https://www.wehosthere.com' ||
+                       origin === 'http://localhost:3000' ||
+                       origin === 'http://localhost:3001';
+
+  if (!isInternalCall && !hasValidInternalToken && !isSameOrigin) {
+    console.warn('[Users API] Acesso não autorizado ao GET /api/users — origin:', origin);
+    return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+  }
+
   try {
     if (await tryMongo()) {
       await ensureAdmin();
       const users = await UserModel.find({}).lean();
-      return NextResponse.json({ users });
+      // 🔒 NUNCA retornar passwords ou códigos de confirmação na resposta
+      const safeUsers = users.map(({ password: _pw, confirmationCode: _cc, confirmationCodeExpiresAt: _cce, ...u }: any) => u);
+      return NextResponse.json({ users: safeUsers });
     }
   } catch (e) {
     console.error('MongoDB indisponível, usando fallback:', e);
   }
-  return NextResponse.json({ users: FALLBACK_USERS });
+  // Fallback: remover passwords
+  const safeFallback = FALLBACK_USERS.map(({ password: _pw, ...u }: any) => u);
+  return NextResponse.json({ users: safeFallback });
 }
+
 
 export async function POST(req: Request) {
   try {
@@ -122,7 +149,11 @@ export async function POST(req: Request) {
           return NextResponse.json({ error: 'Usuário não encontrado.' }, { status: 401 });
         }
 
-        if (userDoc.password !== targetPassword) {
+        // 🔒 Comparar com bcrypt — nunca comparar passwords em texto puro
+        const passwordMatch = userDoc.password
+          ? await bcrypt.compare(targetPassword, userDoc.password)
+          : false;
+        if (!passwordMatch) {
           // Registrar tentativa falha com IP e país
           try {
             const SecurityLogModel = (await import('@/lib/models/SecurityLog')).default;
@@ -163,12 +194,16 @@ export async function POST(req: Request) {
         return NextResponse.json({ success: true, user: userDoc });
       } else {
         const fallbackUser = FALLBACK_USERS.find(u => u.email.toLowerCase() === targetEmail);
-        
+
         if (!fallbackUser) {
           return NextResponse.json({ error: 'Usuário não encontrado.' }, { status: 401 });
         }
 
-        if (fallbackUser.password !== targetPassword) {
+        // 🔒 Comparar com bcrypt
+        const fallbackMatch = fallbackUser.password
+          ? await bcrypt.compare(targetPassword, fallbackUser.password)
+          : false;
+        if (!fallbackMatch) {
           return NextResponse.json({ error: 'Senha incorreta.' }, { status: 401 });
         }
 
@@ -331,17 +366,29 @@ export async function POST(req: Request) {
       }
     }
 
+    // 🔒 Se existe uma password em texto puro vinda do body, fazer hash antes de guardar
+    let incomingPassword = (user?.password) || body.password || '';
+    if (incomingPassword && !incomingPassword.startsWith('$2')) {
+      // Ainda não está em hash bcrypt (hashes bcrypt começam com $2a$ ou $2b$)
+      incomingPassword = await bcrypt.hash(incomingPassword, 12);
+    }
+
     const userData = user || {
       id: body.id || Date.now().toString(),
       name: body.name,
       email: body.email,
-      password: body.password || '@Admin123@',
+      password: incomingPassword, // Sempre guardado em hash
       plan: body.plan || 'none',
       status: body.status || 'pending',
       dueDate: body.dueDate || 29,
       role: body.role || 'user',
       createdAt: body.createdAt || new Date().toISOString()
     };
+
+    // Garantir que o userData.password também está em hash quando veio do objeto user
+    if (userData.password && !userData.password.startsWith('$2')) {
+      userData.password = await bcrypt.hash(userData.password, 12);
+    }
 
     // Adicionar campos de confirmação se existirem no body.user ou body
     const userBody = body.user || body;
