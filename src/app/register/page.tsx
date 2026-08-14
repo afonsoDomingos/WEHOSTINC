@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react';
 import {
   Server, Lock, Mail, User, Eye, EyeOff,
   ArrowRight, ArrowLeft, CheckCircle2, Building2, Phone
@@ -170,7 +171,7 @@ export default function RegisterPage() {
                 type="button"
                 onClick={() => {
                   console.log('[Register] Botão Google clicado');
-                  // TODO: Implementar Google OAuth
+                  signIn('google', { callbackUrl: '/dashboard' });
                 }}
                 className="w-full py-2 sm:py-2.5 bg-white hover:bg-gray-50 text-gray-900 font-semibold rounded-lg sm:rounded-xl transition border border-gray-300 flex items-center justify-center space-x-2 sm:space-x-2.5 text-xs sm:text-sm"
               >

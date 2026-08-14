@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react';
 import { Server, Lock, Mail, Eye, EyeOff, ArrowRight, ShieldCheck } from 'lucide-react';
 import { auth } from '@/lib/auth';
 import BrandLogo from '@/components/BrandLogo';
@@ -86,7 +87,7 @@ export default function LoginPage() {
             type="button"
             onClick={() => {
               console.log('[Login] Botão Google clicado');
-              // TODO: Implementar Google OAuth
+              signIn('google', { callbackUrl: '/dashboard' });
             }}
             className="w-full py-2 sm:py-2.5 bg-white hover:bg-gray-50 text-gray-900 font-semibold rounded-lg sm:rounded-xl transition border border-gray-300 flex items-center justify-center space-x-2 sm:space-x-2.5 mb-3 sm:mb-4 text-xs sm:text-sm"
           >
