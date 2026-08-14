@@ -46,12 +46,31 @@ export const GET = NextAuth({
 
         console.log('[Google OAuth] Dados do novo usuário:', newUser);
         
-        if (typeof window !== 'undefined') {
-          const key = `user_${newUser.id}`;
-          localStorage.setItem(key, JSON.stringify(newUser));
-          console.log('[Google OAuth] Usuário salvo no localStorage');
-        } else {
-          console.warn('[Google OAuth] window não está disponível (server-side)');
+        // Criar usuário via API em vez de localStorage
+        try {
+          const apiResponse = await fetch('/api/users', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newUser)
+          });
+          
+          if (apiResponse.ok) {
+            console.log('[Google OAuth] Usuário criado via API com sucesso');
+          } else {
+            console.warn('[Google OAuth] Falha ao criar usuário via API, tentando localStorage fallback');
+            // Fallback para localStorage se a API falhar
+            if (typeof window !== 'undefined') {
+              const key = `user_${newUser.id}`;
+              localStorage.setItem(key, JSON.stringify(newUser));
+            }
+          }
+        } catch (apiError) {
+          console.warn('[Google OAuth] Erro na API, usando localStorage fallback:', apiError);
+          // Fallback para localStorage se a API falhar
+          if (typeof window !== 'undefined') {
+            const key = `user_${newUser.id}`;
+            localStorage.setItem(key, JSON.stringify(newUser));
+          }
         }
 
         console.log('[Google OAuth] Enviando email de boas-vindas...');
