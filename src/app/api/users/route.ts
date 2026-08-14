@@ -156,6 +156,36 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true, users: FALLBACK_USERS });
     }
 
+    if (action === 'confirm_email') {
+      const targetId = (userId || body.id || '').toLowerCase();
+      const targetEmail = (email || body.email || '').trim().toLowerCase();
+      
+      if (useMongo) {
+        const filter = targetEmail
+          ? { $or: [{ id: targetId }, { email: targetEmail }] }
+          : { id: targetId };
+        
+        const updated = await UserModel.findOneAndUpdate(
+          filter,
+          { status: 'active', $unset: { confirmationToken: 1 } },
+          { new: true }
+        ).lean();
+        
+        if (!updated) {
+          return NextResponse.json({ error: 'Usuário não encontrado' }, { status: 404 });
+        }
+        
+        const users = await UserModel.find({}).lean();
+        return NextResponse.json({ success: true, user: updated, users });
+      }
+      
+      FALLBACK_USERS = FALLBACK_USERS.map(u =>
+        (targetId && u.id.toLowerCase() === targetId) || (targetEmail && u.email.toLowerCase() === targetEmail)
+          ? { ...u, status: 'active', confirmationToken: undefined } : u
+      );
+      return NextResponse.json({ success: true, users: FALLBACK_USERS });
+    }
+
     if (action === 'update_status') {
       const targetId = (userId || body.id || '').toLowerCase();
       const targetEmail = (body.email || body.userEmail || '').trim().toLowerCase();

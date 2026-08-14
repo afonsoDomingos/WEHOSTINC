@@ -86,8 +86,8 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       await auth.registerAsync(name, email, password);
-      await auth.loginAsync(email, password);
-      router.push('/dashboard');
+      // Não fazer login automático - redirecionar para tela de confirmação
+      router.push('/confirm-email?email=' + encodeURIComponent(email));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao criar conta.');
     } finally {

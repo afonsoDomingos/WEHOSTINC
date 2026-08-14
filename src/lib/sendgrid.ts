@@ -71,16 +71,20 @@ export async function sendEmail(opts: SendEmailOptions): Promise<{ success: bool
 // ——————————————————————————————————————
 
 /** E-mail de boas-vindas enviado após registo */
-export async function sendWelcomeEmail(toEmail: string, userName: string, plan: string) {
+export async function sendWelcomeEmail(toEmail: string, userName: string, plan: string, confirmationToken?: string) {
   const planNames: Record<string, string> = {
     basic: 'Básico',
     pro: 'Profissional',
     enterprise: 'Empresarial',
   };
 
+  const confirmLink = confirmationToken 
+    ? `${SITE_URL}/api/auth/confirm-email?token=${confirmationToken}&email=${encodeURIComponent(toEmail)}`
+    : `${SITE_URL}/dashboard`;
+
   return sendEmail({
     to: toEmail,
-    subject: `✅ Bem-vindo à WEHOSTHERE, ${userName}!`,
+    subject: `✅ Confirme sua conta WEHOSTHERE, ${userName}!`,
     html: `
       <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;">
         <div style="background:linear-gradient(135deg,#1d4ed8,#3b82f6);padding:40px 32px;border-radius:16px 16px 0 0;text-align:center;">
@@ -90,8 +94,9 @@ export async function sendWelcomeEmail(toEmail: string, userName: string, plan: 
         <div style="background:#f8fafc;padding:40px 32px;border-radius:0 0 16px 16px;border:1px solid #e2e8f0;">
           <h2 style="color:#1e3a8a;font-size:22px;margin-top:0;">👋 Bem-vindo, ${userName}!</h2>
           <p style="color:#475569;line-height:1.7;">A sua conta foi criada com sucesso. Plano: <strong>${planNames[plan] || plan}</strong>.</p>
+          <p style="color:#475569;line-height:1.7;">Para ativar sua conta e começar a usar a plataforma, clique no botão abaixo para confirmar seu email:</p>
           <div style="text-align:center;margin:24px 0;">
-            <a href="${SITE_URL}/dashboard" style="background:#2563eb;color:white;font-weight:700;padding:14px 32px;border-radius:10px;text-decoration:none;font-size:15px;">Aceder ao Painel →</a>
+            <a href="${confirmLink}" style="background:#2563eb;color:white;font-weight:700;padding:14px 32px;border-radius:10px;text-decoration:none;font-size:15px;">Confirmar Email →</a>
           </div>
           <p style="color:#94a3b8;font-size:12px;margin:0;">Equipa WEHOSTHERE — Hospedagem Profissional em Moçambique</p>
         </div>

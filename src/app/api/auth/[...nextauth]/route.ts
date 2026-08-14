@@ -28,6 +28,14 @@ export const GET = NextAuth({
 
         if (existingUser) {
           console.log('[Google OAuth] Usuário existente encontrado:', existingUser.email);
+          
+          // Verificar se a conta está confirmada
+          if (existingUser.status === 'pending') {
+            console.warn('[Google OAuth] Conta não confirmada, redirecionando para tela de confirmação');
+            // Redirecionar para tela de confirmação em vez de fazer login
+            return '/confirm-email?email=' + encodeURIComponent(user.email);
+          }
+          
           return true;
         }
 
@@ -38,7 +46,7 @@ export const GET = NextAuth({
           name: user.name || 'Usuário Google',
           email: user.email,
           plan: 'none' as const,
-          status: 'active' as const,
+          status: 'pending' as const, // Criar como pending para requerer confirmação
           role: 'user' as const,
           avatar: user.image,
           createdAt: new Date().toISOString()
@@ -82,8 +90,9 @@ export const GET = NextAuth({
           console.error('[Google OAuth] Erro ao enviar email de boas-vindas:', err);
         });
 
-        console.log('[Google OAuth] Usuário criado com sucesso:', newUser.email);
-        return true;
+        console.log('[Google OAuth] Usuário criado com sucesso, redirecionando para tela de confirmação:', newUser.email);
+        // Redirecionar para tela de confirmação em vez de fazer login
+        return '/confirm-email?email=' + encodeURIComponent(newUser.email);
       } catch (error) {
         console.error('[Google OAuth] ERRO CRÍTICO ao processar login:', error);
         console.error('[Google OAuth] Detalhes do erro:', {
