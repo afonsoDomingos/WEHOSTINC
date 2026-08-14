@@ -343,14 +343,15 @@ export async function POST(req: Request) {
       createdAt: body.createdAt || new Date().toISOString()
     };
 
-    // Adicionar campos de confirmação se existirem no body
-    if (body.confirmationCode) {
-      userData.confirmationCode = body.confirmationCode;
-      console.log('[Users API] Código de confirmação adicionado:', body.confirmationCode);
+    // Adicionar campos de confirmação se existirem no body.user ou body
+    const userBody = body.user || body;
+    if (userBody.confirmationCode) {
+      userData.confirmationCode = userBody.confirmationCode;
+      console.log('[Users API] Código de confirmação adicionado:', userBody.confirmationCode);
     }
-    if (body.confirmationCodeExpiresAt) {
-      userData.confirmationCodeExpiresAt = body.confirmationCodeExpiresAt;
-      console.log('[Users API] Expiração do código adicionada:', body.confirmationCodeExpiresAt);
+    if (userBody.confirmationCodeExpiresAt) {
+      userData.confirmationCodeExpiresAt = userBody.confirmationCodeExpiresAt;
+      console.log('[Users API] Expiração do código adicionada:', userBody.confirmationCodeExpiresAt);
     }
 
     console.log('[Users API] Dados do usuário antes de salvar:', { 
