@@ -48,7 +48,11 @@ export const GET = NextAuth({
         
         // Criar usuário via API em vez de localStorage
         try {
-          const apiResponse = await fetch('/api/users', {
+          // Usar URL absoluta no servidor-side
+          const baseUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL || 'https://wehosthere.com';
+          const apiUrl = `${baseUrl}/api/users`;
+          
+          const apiResponse = await fetch(apiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(newUser)
