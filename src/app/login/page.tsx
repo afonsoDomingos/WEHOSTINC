@@ -24,15 +24,19 @@ export default function LoginPage() {
         const params = new URLSearchParams(window.location.search);
         const emailParam = params.get('email');
         if (emailParam) setEmail(emailParam);
+
+        const errorParam = params.get('error');
+        if (errorParam === 'AccessDenied') {
+          router.push('/confirm-email' + (emailParam ? `?email=${encodeURIComponent(emailParam)}` : ''));
+        } else if (errorParam) {
+          setError('Não foi possível entrar com o Google. Verifique as suas permissões e tente novamente.');
+        }
       }
-      // Sincroniza do servidor caso o utilizador tenha limpo os cookies/cache do navegador
-      auth.fetchUsersAsync().catch((err) => {
-        console.error('Erro ao buscar usuários:', err);
-      });
+      auth.fetchUsersAsync().catch(() => {});
     } catch (err) {
       console.error('Erro no useEffect:', err);
     }
-  }, []);
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,35 +61,8 @@ export default function LoginPage() {
     setError('');
     setGoogleLoading(true);
     try {
-      const result = await signIn('google', {
-        callbackUrl: '/dashboard',
-        redirect: false,
-      });
-
-      if (result?.ok) {
-        // Login bem-sucedido
-        setError('');
-        router.push('/dashboard');
-        return;
-      }
-
-      if (result?.error === 'AccessDenied') {
-        // Conta criada mas pendente de confirmação de email
-        // Ou conta já existente mas não confirmada
-        // Redirecionar para página de confirmação
-        router.push('/confirm-email');
-        return;
-      }
-
-      if (result?.error) {
-        setError('Não foi possível entrar com o Google. Verifique as suas permissões e tente novamente.');
-        setGoogleLoading(false);
-        return;
-      }
-
-      // Resultado inesperado
-      setError('Erro ao processar login com Google. Tente novamente.');
-      setGoogleLoading(false);
+      // Redireciona o navegador diretamente para a página de autorização do Google
+      await signIn('google', { callbackUrl: '/dashboard' });
     } catch (err) {
       setError('Erro ao conectar com Google. Verifique a sua ligação à internet.');
       setGoogleLoading(false);

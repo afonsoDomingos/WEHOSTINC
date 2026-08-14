@@ -45,8 +45,15 @@ export default function RegisterPage() {
       const nameParam = params.get('name');
       if (emailParam) setEmail(emailParam);
       if (nameParam) setName(nameParam);
+
+      const errorParam = params.get('error');
+      if (errorParam === 'AccessDenied') {
+        router.push('/confirm-email' + (emailParam ? `?email=${encodeURIComponent(emailParam)}` : ''));
+      } else if (errorParam) {
+        setError('Não foi possível criar conta com o Google. Tente novamente.');
+      }
     }
-  }, []);
+  }, [router]);
 
   // Step 1 validation
   const handleNext1 = async () => {
@@ -102,32 +109,8 @@ export default function RegisterPage() {
     setError('');
     setGoogleLoading(true);
     try {
-      const result = await signIn('google', {
-        callbackUrl: '/dashboard',
-        redirect: false,
-      });
-
-      if (result?.ok) {
-        // Login/Registo bem-sucedido
-        setError('');
-        router.push('/dashboard');
-        return;
-      }
-
-      if (result?.error === 'AccessDenied') {
-        // Conta criada — redirecionar para confirmação de email
-        router.push('/confirm-email');
-        return;
-      }
-
-      if (result?.error) {
-        setError('Não foi possível criar conta com o Google. Tente novamente.');
-        setGoogleLoading(false);
-        return;
-      }
-
-      setError('Erro ao processar registo com Google. Tente novamente.');
-      setGoogleLoading(false);
+      // Redireciona o navegador diretamente para a página de autorização do Google
+      await signIn('google', { callbackUrl: '/dashboard' });
     } catch (err) {
       setError('Erro ao conectar com Google. Verifique a sua ligação à internet.');
       setGoogleLoading(false);
