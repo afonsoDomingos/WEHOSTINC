@@ -24,11 +24,13 @@ export function rateLimit(
     
     // Limpar entradas antigas periodicamente
     if (rateLimitMap.size > 1000) {
-      for (const [key, value] of rateLimitMap.entries()) {
+      const keysToDelete: string[] = [];
+      rateLimitMap.forEach((value, key) => {
         if (now > value.resetTime) {
-          rateLimitMap.delete(key);
+          keysToDelete.push(key);
         }
-      }
+      });
+      keysToDelete.forEach(key => rateLimitMap.delete(key));
     }
     
     return {
