@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import UserModel from '@/lib/models/User';
 import { addAdminNotification, dispatchMessage } from '@/lib/notifications';
+import { rateLimit, getRateLimitIdentifier } from '@/lib/rateLimiter';
 
 // Fallback in-memory para quando MongoDB não estiver acessível (dev local sem rede)
 let FALLBACK_USERS: any[] = [
@@ -54,15 +55,48 @@ export async function POST(req: Request) {
     const { action, user, userId, plan, status, email, password, avatar } = body;
     const useMongo = await tryMongo();
 
+    // Sanitização básica de inputs
+    const sanitizeInput = (input: any): string => {
+      if (typeof input !== 'string') return '';
+      return input.trim().replace(/[<>]/g, '');
+    };
+
+    const safeEmail = email ? sanitizeInput(email).toLowerCase() : '';
+    const safePassword = password ? sanitizeInput(password) : '';
+    const safeName = user?.name ? sanitizeInput(user.name) : '';
+
+    // Validar formato de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (safeEmail && !emailRegex.test(safeEmail)) {
+      return NextResponse.json({ error: 'Formato de email inválido.' }, { status: 400 });
+    }
+
     // Endpoint de login - valida credenciais no servidor (database-first)
     if (action === 'login') {
-      const targetEmail = (email || body.email || '').trim().toLowerCase();
-      const targetPassword = password || body.password;
+      const targetEmail = safeEmail;
+      const targetPassword = safePassword;
       const clientIpAddress = body.ipAddress || '';
       const clientCountry = body.country || '';
 
       if (!targetEmail || !targetPassword) {
         return NextResponse.json({ error: 'E-mail e senha são obrigatórios.' }, { status: 400 });
+      }
+
+      // Rate limiting para prevenir força bruta
+      const rateLimitResult = rateLimit(
+        getRateLimitIdentifier(clientIpAddress, targetEmail),
+        5, // 5 tentativas
+        60000 // 1 minuto
+      );
+
+      if (!rateLimitResult.success) {
+        return NextResponse.json(
+          { 
+            error: 'Muitas tentativas de login. Tente novamente em 1 minuto.',
+            resetTime: rateLimitResult.resetTime
+          }, 
+          { status: 429 }
+        );
       }
 
       if (useMongo) {
@@ -167,7 +201,7 @@ export async function POST(req: Request) {
         
         const updated = await UserModel.findOneAndUpdate(
           filter,
-          { status: 'active', $unset: { confirmationCode: 1 } },
+          { status: 'active', $unset: { confirmationCode: 1, confirmationCodeExpiresAt: 1 } },
           { new: true }
         ).lean();
         
@@ -181,7 +215,7 @@ export async function POST(req: Request) {
       
       FALLBACK_USERS = FALLBACK_USERS.map(u =>
         (targetId && u.id.toLowerCase() === targetId) || (targetEmail && u.email.toLowerCase() === targetEmail)
-          ? { ...u, status: 'active', confirmationCode: undefined } : u
+          ? { ...u, status: 'active', confirmationCode: undefined, confirmationCodeExpiresAt: undefined } : u
       );
       return NextResponse.json({ success: true, users: FALLBACK_USERS });
     }

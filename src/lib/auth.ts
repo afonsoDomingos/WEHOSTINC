@@ -157,8 +157,9 @@ export const auth = {
     // 3. Gerar código de referral único
     const userReferralCode = `WH${email.substring(0, 3).toUpperCase()}${Math.floor(1000 + Math.random() * 9000)}`;
 
-    // 4. Gerar código de confirmação de 6 dígitos
+    // 4. Gerar código de confirmação de 6 dígitos com expiração
     const confirmationCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const confirmationCodeExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // 24 horas
 
     const newUser: User = {
       id: Date.now().toString(),
@@ -172,7 +173,7 @@ export const auth = {
       createdAt: new Date().toISOString()
     };
 
-    const userWithPassword = { ...newUser, password, referralCode: userReferralCode, confirmationCode };
+    const userWithPassword = { ...newUser, password, referralCode: userReferralCode, confirmationCode, confirmationCodeExpiresAt };
 
     console.log('[Register] Enviando dados para API:', { email: newUser.email, plan: newUser.plan, status: newUser.status });
 
