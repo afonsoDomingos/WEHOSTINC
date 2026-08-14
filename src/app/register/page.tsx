@@ -103,6 +103,20 @@ export default function RegisterPage() {
     setGoogleLoading(true);
     try {
       console.log('[Register] Iniciando registro com Google');
+      
+      // Verificar se NextAuth está configurado
+      const hasClientId = !!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID;
+      const hasClientSecret = !!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET;
+      
+      console.log('[Register] Configuração NextAuth:', { hasClientId, hasClientSecret });
+      
+      if (!hasClientId || !hasClientSecret) {
+        console.error('[Register] Variáveis de ambiente do NextAuth não configuradas');
+        setError('Configuração do Google OAuth não encontrada. Entre em contato com o suporte.');
+        setGoogleLoading(false);
+        return;
+      }
+
       const result = await signIn('google', { 
         callbackUrl: '/dashboard',
         redirect: false 
@@ -112,7 +126,7 @@ export default function RegisterPage() {
       
       if (result?.error) {
         console.error('[Register] Erro no registro Google:', result.error);
-        setError('Erro ao criar conta com Google. Por favor, tente novamente.');
+        setError('Erro ao criar conta com Google: ' + result.error);
         setGoogleLoading(false);
         return;
       }
@@ -123,12 +137,12 @@ export default function RegisterPage() {
         router.push('/dashboard');
       } else {
         console.warn('[Register] Resultado inesperado do signIn:', result);
-        setError('Erro inesperado ao criar conta. Por favor, tente novamente.');
+        setError('Erro inesperado ao criar conta. O NextAuth pode não estar configurado corretamente.');
         setGoogleLoading(false);
       }
     } catch (err) {
       console.error('[Register] Erro ao processar registro Google:', err);
-      setError('Erro ao conectar com Google. Por favor, tente novamente.');
+      setError('Erro ao conectar com Google: ' + (err instanceof Error ? err.message : 'Erro desconhecido'));
       setGoogleLoading(false);
     }
   };
