@@ -1,6 +1,7 @@
 import NextAuth, { NextAuthOptions, User } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import { auth } from '@/lib/auth';
+import { sendWelcomeEmail } from '@/lib/sendgrid';
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -48,6 +49,11 @@ export const authOptions: NextAuthOptions = {
           const key = `user_${newUser.id}`;
           localStorage.setItem(key, JSON.stringify(newUser));
         }
+
+        // Enviar email de boas-vindas
+        sendWelcomeEmail(newUser.email, newUser.name, newUser.plan).catch(err => {
+          console.error('[Google OAuth] Erro ao enviar email de boas-vindas:', err);
+        });
 
         return true;
       } catch (error) {

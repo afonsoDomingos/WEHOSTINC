@@ -1,5 +1,6 @@
 import { dataManager } from './data';
 import { apiEndpoint } from './siteConfig';
+import { sendWelcomeEmail } from './sendgrid';
 
 export interface User {
   id: string;
@@ -200,6 +201,11 @@ export const auth = {
       const currentList = auth.getUsers();
       const updatedList = [...currentList.filter(u => u.id !== newUser.id), newUser];
       localStorage.setItem('wehosthere_all_users', JSON.stringify(updatedList));
+
+      // Enviar email de boas-vindas
+      sendWelcomeEmail(newUser.email, newUser.name, newUser.plan).catch(err => {
+        console.error('Erro ao enviar email de boas-vindas:', err);
+      });
     }
 
     return newUser;
@@ -241,6 +247,11 @@ export const auth = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user: userWithPassword })
       }).catch(err => console.error('Erro de sync no servidor:', err));
+
+      // Enviar email de boas-vindas
+      sendWelcomeEmail(newUser.email, newUser.name, newUser.plan).catch(err => {
+        console.error('Erro ao enviar email de boas-vindas:', err);
+      });
     }
 
     return newUser;
