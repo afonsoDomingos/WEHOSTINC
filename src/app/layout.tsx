@@ -82,7 +82,7 @@ export const metadata: Metadata = {
     apple: '/logo.png',
   },
   verification: {
-    google: 'google72d5b94a44233f0c',
+    google: '-WIDb6-E1CZzvXz2qkam2i118tdjPuEsgdnpbTpA7_0',
   },
   category: 'technology',
 };
