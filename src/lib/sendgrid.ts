@@ -78,6 +78,8 @@ export async function sendWelcomeEmail(toEmail: string, userName: string, plan: 
     enterprise: 'Empresarial',
   };
 
+  const confirmPageLink = `${SITE_URL}/confirm-email?email=${encodeURIComponent(toEmail)}`;
+
   return sendEmail({
     to: toEmail,
     subject: `✅ Confirme sua conta WEHOSTHERE, ${userName}!`,
@@ -93,6 +95,9 @@ export async function sendWelcomeEmail(toEmail: string, userName: string, plan: 
           <p style="color:#475569;line-height:1.7;">Para ativar sua conta, insira o código de 6 dígitos abaixo na página de confirmação:</p>
           <div style="background:#1e3a8a;color:white;font-size:32px;font-weight:700;letter-spacing:8px;text-align:center;padding:20px;border-radius:10px;margin:24px 0;">
             ${confirmationCode || '------'}
+          </div>
+          <div style="text-align:center;margin:24px 0;">
+            <a href="${confirmPageLink}" style="background:#2563eb;color:white;font-weight:700;padding:14px 32px;border-radius:10px;text-decoration:none;font-size:15px;display:inline-block;">Ir para página de confirmação →</a>
           </div>
           <p style="color:#94a3b8;font-size:12px;margin:0;">Este código expira em 24 horas. Equipa WEHOSTHERE — Hospedagem Profissional em Moçambique</p>
         </div>

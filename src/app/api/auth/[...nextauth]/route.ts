@@ -3,6 +3,14 @@ import GoogleProvider from 'next-auth/providers/google';
 import { auth } from '@/lib/auth';
 import { sendWelcomeEmail } from '@/lib/sendgrid';
 
+// Validar configuração do NextAuth
+const requiredEnvVars = ['NEXTAUTH_SECRET', 'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET'];
+const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
+
+if (missingEnvVars.length > 0) {
+  console.error('[NextAuth] Variáveis de ambiente faltando:', missingEnvVars);
+}
+
 export const GET = NextAuth({
   providers: [
     GoogleProvider({
@@ -140,6 +148,7 @@ export const GET = NextAuth({
     strategy: 'jwt',
   },
   secret: process.env.NEXTAUTH_SECRET,
+  debug: process.env.NODE_ENV === 'development',
 });
 
 export const POST = GET;
