@@ -12,21 +12,26 @@ export const GET = NextAuth({
   ],
   callbacks: {
     async signIn({ user, account, profile }: any) {
-      console.log('[Google OAuth] Sign in callback:', { user, account, profile });
+      console.log('[Google OAuth] Sign in callback iniciado:', { user, account, profile });
       
       if (!user.email) {
-        console.log('[Google OAuth] Email não fornecido pelo Google');
+        console.error('[Google OAuth] ERRO: Email não fornecido pelo Google');
         return false;
       }
 
       try {
+        console.log('[Google OAuth] Tentando buscar usuários...');
         const users = await auth.fetchUsersAsync();
+        console.log('[Google OAuth] Usuários buscados com sucesso, total:', users.length);
+        
         const existingUser = users.find((u: any) => u.email.toLowerCase() === (user.email || '').toLowerCase());
 
         if (existingUser) {
           console.log('[Google OAuth] Usuário existente encontrado:', existingUser.email);
           return true;
         }
+
+        console.log('[Google OAuth] Criando novo usuário para:', user.email);
 
         const newUser = {
           id: `USER-${Date.now()}`,
@@ -39,20 +44,30 @@ export const GET = NextAuth({
           createdAt: new Date().toISOString()
         };
 
-        console.log('[Google OAuth] Criando novo usuário:', newUser.email);
+        console.log('[Google OAuth] Dados do novo usuário:', newUser);
         
         if (typeof window !== 'undefined') {
           const key = `user_${newUser.id}`;
           localStorage.setItem(key, JSON.stringify(newUser));
+          console.log('[Google OAuth] Usuário salvo no localStorage');
+        } else {
+          console.warn('[Google OAuth] window não está disponível (server-side)');
         }
 
+        console.log('[Google OAuth] Enviando email de boas-vindas...');
         sendWelcomeEmail(newUser.email, newUser.name, newUser.plan).catch((err: any) => {
           console.error('[Google OAuth] Erro ao enviar email de boas-vindas:', err);
         });
 
+        console.log('[Google OAuth] Usuário criado com sucesso:', newUser.email);
         return true;
       } catch (error) {
-        console.error('[Google OAuth] Erro ao criar usuário:', error);
+        console.error('[Google OAuth] ERRO CRÍTICO ao processar login:', error);
+        console.error('[Google OAuth] Detalhes do erro:', {
+          message: error instanceof Error ? error.message : 'Unknown error',
+          stack: error instanceof Error ? error.stack : undefined,
+          name: error instanceof Error ? error.name : undefined
+        });
         return false;
       }
     },
