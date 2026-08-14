@@ -3,7 +3,7 @@ import GoogleProvider from 'next-auth/providers/google';
 import { auth } from '@/lib/auth';
 import { sendWelcomeEmail } from '@/lib/sendgrid';
 
-const handler = NextAuth({
+export const GET = NextAuth({
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || '',
@@ -91,4 +91,4 @@ const handler = NextAuth({
   secret: process.env.NEXTAUTH_SECRET,
 });
 
-export { handler as GET, handler as POST };
+export const POST = GET;
