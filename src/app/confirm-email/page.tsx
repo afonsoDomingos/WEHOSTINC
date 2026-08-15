@@ -60,29 +60,38 @@ export default function ConfirmEmailPage() {
       setMessage('Por favor, insira o código de 6 dígitos.');
       return;
     }
+    if (!email || !email.includes('@')) {
+      setMessage('Por favor, insira o seu endereço de email.');
+      return;
+    }
 
-    console.log('[Confirm Page] Enviando código para confirmação:', { email, code, codeLength: code.length });
     setLoading(true);
     setMessage('');
     try {
       const response = await fetch('/api/auth/confirm-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, code })
+        body: JSON.stringify({ email: email.trim().toLowerCase(), code })
       });
 
       const data = await response.json();
-      console.log('[Confirm Page] Resposta da API:', { status: response.status, data });
 
       if (response.ok && data.success) {
+        // Limpar email guardado no localStorage após confirmação
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('wehosthere_registered_email');
+        }
         setStatus('success');
-        setMessage('Email confirmado com sucesso! Sua conta está ativa.');
+        setMessage('Email confirmado com sucesso! A sua conta está ativa.');
+        // Redirecionar para login com email pré-preenchido após 2 segundos
+        setTimeout(() => {
+          router.push('/login?email=' + encodeURIComponent(email));
+        }, 2000);
       } else {
         setStatus('error');
         setMessage(data.error || 'Erro ao confirmar código.');
       }
     } catch (err) {
-      console.error('[Confirm Page] Erro ao confirmar código:', err);
       setStatus('error');
       setMessage('Erro ao conectar com servidor. Tente novamente.');
     } finally {
@@ -127,7 +136,7 @@ export default function ConfirmEmailPage() {
         <div className="relative z-10 w-full max-w-sm">
           <div className="text-center mb-5 sm:mb-6">
             <BrandLogo logoHeightClass="h-7 sm:h-8" />
-            <h1 className="text-lg sm:text-xl font-bold text-white mt-3 sm:mt-4">Email Confirmado!</h1>
+            <h1 className="text-lg sm:text-xl font-bold text-white mt-3 sm:mt-4">Email Confirmado! 🎉</h1>
           </div>
 
           <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-2xl">
@@ -139,18 +148,21 @@ export default function ConfirmEmailPage() {
 
             <div className="text-center mb-4 sm:mb-5">
               <p className="text-slate-300 text-xs sm:text-sm mb-2">
-                Sua conta foi ativada com sucesso!
+                A sua conta foi ativada com sucesso!
               </p>
-              <p className="text-slate-400 text-[10px] sm:text-xs">
-                Agora você pode fazer login e acessar todas as funcionalidades da plataforma.
+              <p className="text-slate-400 text-[10px] sm:text-xs mb-4">
+                A redirecionar para o login em instantes...
               </p>
+              <div className="flex justify-center">
+                <div className="w-6 h-6 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
+              </div>
             </div>
 
             <Link
-              href="/login"
+              href={'/login' + (email ? '?email=' + encodeURIComponent(email) : '')}
               className="w-full py-2 sm:py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg sm:rounded-xl transition flex items-center justify-center space-x-2 sm:space-x-2.5 text-xs sm:text-sm"
             >
-              <span>Fazer Login</span>
+              <span>Ir para Login agora</span>
               <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </Link>
           </div>
