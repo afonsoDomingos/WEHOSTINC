@@ -249,3 +249,38 @@ export async function sendAccountDeletionEmail(toEmail: string, userName: string
       </div>`,
   });
 }
+
+/** Email de confirmação de ativação de conta */
+export async function sendAccountActivatedEmail(toEmail: string, userName: string) {
+  const loginUrl = `${SITE_URL}/login`;
+  
+  return sendEmail({
+    to: toEmail,
+    subject: '✅ Sua conta WEHOSTHERE foi ativada com sucesso!',
+    html: `
+      <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;">
+        <div style="background:linear-gradient(135deg,#059669,#10b981);padding:40px 32px;border-radius:16px 16px 0 0;text-align:center;">
+          <h1 style="color:white;margin:0;font-size:26px;font-weight:800;">✅ Conta Ativada</h1>
+          <p style="color:#d1fae5;margin:8px 0 0;font-size:13px;">WEHOSTHERE</p>
+        </div>
+        <div style="background:#f8fafc;padding:40px 32px;border-radius:0 0 16px 16px;border:1px solid #e2e8f0;">
+          <p style="color:#475569;line-height:1.7;">Parabéns, <strong>${userName}</strong>!</p>
+          <p style="color:#475569;line-height:1.7;">A sua conta na plataforma WEHOSTHERE foi ativada com sucesso. Você já pode começar a utilizar todos os nossos serviços.</p>
+          <div style="background:#ecfdf5;border-left:4px solid #10b981;padding:16px;border-radius:8px;margin:16px 0;">
+            <p style="margin:0;font-weight:700;color:#059669;">O que você pode fazer agora:</p>
+            <ul style="margin:8px 0 0;padding-left:20px;color:#475569;">
+              <li style="margin:4px 0;">Fazer login na sua conta</li>
+              <li style="margin:4px 0;">Acessar o painel de controlo</li>
+              <li style="margin:4px 0;">Configurar o seu site</li>
+              <li style="margin:4px 0;">Gerenciar seus serviços</li>
+            </ul>
+          </div>
+          <div style="text-align:center;margin:32px 0;">
+            <a href="${loginUrl}" style="background:#10b981;color:white;font-weight:700;padding:16px 40px;border-radius:10px;text-decoration:none;font-size:16px;display:inline-block;">Fazer Login Agora →</a>
+          </div>
+          <p style="color:#94a3b8;font-size:12px;margin:0;">Se tiver alguma dúvida, entre em contacto com o nosso suporte.</p>
+          <p style="color:#94a3b8;font-size:12px;margin:16px 0 0;">Equipa WEHOSTHERE — Hospedagem Profissional em Moçambique</p>
+        </div>
+      </div>`,
+  });
+}
