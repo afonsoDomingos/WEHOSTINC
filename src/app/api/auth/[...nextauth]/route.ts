@@ -181,13 +181,22 @@ export const GET = NextAuth({
 
     // 🔒 Validar callbackUrl para prevenir Open Redirect
     async redirect({ url, baseUrl }: any) {
+      console.log('[NextAuth Redirect] url:', url, 'baseUrl:', baseUrl);
       // Permitir apenas URLs relativas ou do mesmo domínio
-      if (url.startsWith('/')) return `${baseUrl}${url}`;
+      if (url.startsWith('/')) {
+        const finalUrl = `${baseUrl}${url}`;
+        console.log('[NextAuth Redirect] Redirecionando para (relativa):', finalUrl);
+        return finalUrl;
+      }
       try {
-        if (new URL(url).origin === new URL(baseUrl).origin) return url;
+        if (new URL(url).origin === new URL(baseUrl).origin) {
+          console.log('[NextAuth Redirect] Redirecionando para (mesmo domínio):', url);
+          return url;
+        }
       } catch {
         // URL inválida — usar base
       }
+      console.log('[NextAuth Redirect] Redirecionando para (base):', baseUrl);
       return baseUrl;
     },
   },
