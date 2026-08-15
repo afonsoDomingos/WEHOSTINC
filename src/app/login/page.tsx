@@ -61,9 +61,12 @@ export default function LoginPage() {
     setError('');
     setGoogleLoading(true);
     try {
+      console.log('[Google Login] Iniciando login Google...');
       // Redireciona o navegador diretamente para a página de autorização do Google
-      await signIn('google', { callbackUrl: '/dashboard' });
+      const result = await signIn('google', { callbackUrl: '/dashboard' });
+      console.log('[Google Login] Result do signIn:', result);
     } catch (err) {
+      console.error('[Google Login] Erro ao conectar com Google:', err);
       setError('Erro ao conectar com Google. Verifique a sua ligação à internet.');
       setGoogleLoading(false);
     }
