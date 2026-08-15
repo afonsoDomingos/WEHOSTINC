@@ -160,22 +160,26 @@ export const GET = NextAuth({
     },
 
     async session({ session, token }: any) {
+      console.log('[NextAuth Session] Session callback iniciado:', { session, token });
       if (session.user && token.sub) {
         session.user.id = token.sub;
         session.user.email = token.email;
         session.user.name = token.name;
         session.user.image = token.picture;
       }
+      console.log('[NextAuth Session] Session final:', session);
       return session;
     },
 
     async jwt({ token, user }: any) {
+      console.log('[NextAuth JWT] JWT callback iniciado:', { token, user });
       if (user) {
         token.sub = user.id || token.sub;
         token.email = user.email;
         token.name = user.name;
         token.picture = user.image;
       }
+      console.log('[NextAuth JWT] Token final:', token);
       return token;
     },
 
