@@ -4,6 +4,7 @@ import UserModel from '@/lib/models/User';
 import { addAdminNotification, dispatchMessage } from '@/lib/notifications';
 import { rateLimit, getRateLimitIdentifier } from '@/lib/rateLimiter';
 import bcrypt from 'bcryptjs';
+import { sendAccountDeletionEmail } from '@/lib/sendgrid';
 
 const DEFAULT_ADMIN_HASH = '$2a$12$uKp3eU0f.E8ZTuQJg2B3K.Ekqb7BqmPLoHdwmdu7pmtdIeUGaq7wG';
 
@@ -432,10 +433,30 @@ export async function POST(req: Request) {
     if (action === 'delete') {
       const targetId = (userId || body.userId || '').toLowerCase().trim();
       const targetEmail = (body.email || body.userEmail || '').toLowerCase().trim();
+      
       if (useMongo) {
         // Protect root admin from deletion
         const isRootAdmin = targetEmail === 'admin@wehosthere.com' || targetId === 'admin_root';
         if (!isRootAdmin) {
+          // Buscar usuário para enviar email antes de deletar
+          const userToDelete = await UserModel.findOne({
+            $or: [
+              { id: targetId },
+              { email: new RegExp(`^${targetEmail}$`, 'i') }
+            ]
+          });
+          
+          // Enviar email de notificação antes de deletar
+          if (userToDelete && userToDelete.email) {
+            sendAccountDeletionEmail(
+              userToDelete.email,
+              userToDelete.name,
+              body.reason || 'Violação dos termos de serviço'
+            ).catch((err) => {
+              console.error('[Users API] Erro ao enviar email de exclusão:', err);
+            });
+          }
+          
           const deleteConditions: any[] = [];
           if (targetId) deleteConditions.push({ id: targetId });
           if (targetEmail) deleteConditions.push({ email: new RegExp(`^${targetEmail}$`, 'i') });
@@ -446,6 +467,24 @@ export async function POST(req: Request) {
         const users = await UserModel.find({}).lean();
         return NextResponse.json({ success: true, users });
       }
+      
+      // Para fallback, buscar usuário antes de deletar
+      const userToDelete = FALLBACK_USERS.find(u =>
+        (targetId && (u.id.toLowerCase() === targetId || u.email.toLowerCase() === targetId)) ||
+        (targetEmail && (u.id.toLowerCase() === targetEmail || u.email.toLowerCase() === targetEmail))
+      );
+      
+      // Enviar email de notificação antes de deletar
+      if (userToDelete && userToDelete.email && userToDelete.email.toLowerCase() !== 'admin@wehosthere.com') {
+        sendAccountDeletionEmail(
+          userToDelete.email,
+          userToDelete.name,
+          body.reason || 'Violação dos termos de serviço'
+        ).catch((err) => {
+          console.error('[Users API] Erro ao enviar email de exclusão:', err);
+        });
+      }
+      
       FALLBACK_USERS = FALLBACK_USERS.filter(u =>
         u.email.toLowerCase() === 'admin@wehosthere.com' ||
         (!(targetId && (u.id.toLowerCase() === targetId || u.email.toLowerCase() === targetId)) &&

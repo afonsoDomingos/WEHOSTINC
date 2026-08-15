@@ -215,3 +215,37 @@ export async function sendPasswordResetEmail(toEmail: string, userName: string, 
       </div>`,
   });
 }
+
+/** Email de notificação de exclusão de conta */
+export async function sendAccountDeletionEmail(toEmail: string, userName: string, reason?: string) {
+  return sendEmail({
+    to: toEmail,
+    subject: '⚠️ Sua conta WEHOSTHERE foi eliminada',
+    html: `
+      <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;">
+        <div style="background:linear-gradient(135deg,#dc2626,#ef4444);padding:40px 32px;border-radius:16px 16px 0 0;text-align:center;">
+          <h1 style="color:white;margin:0;font-size:26px;font-weight:800;">⚠️ Conta Eliminada</h1>
+          <p style="color:#fecaca;margin:8px 0 0;font-size:13px;">WEHOSTHERE</p>
+        </div>
+        <div style="background:#f8fafc;padding:40px 32px;border-radius:0 0 16px 16px;border:1px solid #e2e8f0;">
+          <p style="color:#475569;line-height:1.7;">Olá <strong>${userName}</strong>,</p>
+          <p style="color:#475569;line-height:1.7;">Informamos que a sua conta na plataforma WEHOSTHERE foi eliminada pela administração.</p>
+          ${reason ? `
+          <div style="background:#fef2f2;border-left:4px solid #dc2626;padding:16px;border-radius:8px;margin:16px 0;">
+            <p style="margin:0;font-weight:700;color:#dc2626;">Motivo:</p>
+            <p style="margin:8px 0 0;color:#475569;">${reason}</p>
+          </div>
+          ` : ''}
+          <p style="color:#475569;line-height:1.7;">Todos os seus dados, serviços e informações associados a esta conta foram removidos permanentemente.</p>
+          <p style="color:#475569;line-height:1.7;">Se acredita que esta ação foi um erro ou tem alguma dúvida, entre em contacto com o nosso suporte:</p>
+          <div style="background:#eff6ff;padding:16px;border-radius:8px;margin:16px 0;">
+            <p style="margin:0;color:#1e3a8a;font-weight:700;">Email:</p>
+            <p style="margin:4px 0 0;color:#475569;">info@wehosthere.com</p>
+            <p style="margin:8px 0 0;color:#1e3a8a;font-weight:700;">Telefone:</p>
+            <p style="margin:4px 0 0;color:#475569;">+258 84 438 4702</p>
+          </div>
+          <p style="color:#94a3b8;font-size:12px;margin:16px 0 0;">Equipa WEHOSTHERE — Hospedagem Profissional em Moçambique</p>
+        </div>
+      </div>`,
+  });
+}
