@@ -26,9 +26,9 @@ export default function LoginPage() {
         if (emailParam) setEmail(emailParam);
 
         const errorParam = params.get('error');
-        if (errorParam === 'AccessDenied') {
-          router.push('/confirm-email' + (emailParam ? `?email=${encodeURIComponent(emailParam)}` : ''));
-        } else if (errorParam) {
+        if (errorParam) {
+          // AccessDenied pode acontecer por outras razões (ex: conta bloqueada)
+          // Contas Google pendentes de confirmação são redirecionadas diretamente pelo NextAuth
           setError('Não foi possível entrar com o Google. Verifique as suas permissões e tente novamente.');
         }
       }

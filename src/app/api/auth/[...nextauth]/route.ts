@@ -103,20 +103,19 @@ export const GET = NextAuth({
         );
 
         if (existingUser) {
-          // 🔒 Verificar se a conta está confirmada antes de permitir login
           if (existingUser.status === 'pending') {
-            console.warn('[Google OAuth] Conta não confirmada — login bloqueado:', user.email);
-            // Retornar false — o NextAuth irá redirecionar para pages.error (/login)
-            // A página de login irá mostrar mensagem adequada via query param "error"
-            return false;
+            // Conta existe mas ainda não foi confirmada — redirecionar para confirmação
+            console.warn('[Google OAuth] Conta pendente de confirmação:', user.email);
+            return `/confirm-email?email=${encodeURIComponent(user.email)}`;
           }
 
-          // Utilizador ativo — permitir login
+          // ✅ Utilizador ativo e confirmado — permitir login diretamente
+          console.log('[Google OAuth] Login permitido para utilizador ativo:', user.email);
           return true;
         }
 
         // Utilizador novo — criar conta com status pending (requer confirmação)
-        console.log('[Google OAuth] Criando novo utilizador:', user.email);
+        console.log('[Google OAuth] Criando novo utilizador Google:', user.email);
 
         const confirmationCode = Math.floor(100000 + Math.random() * 900000).toString();
         const confirmationCodeExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // 24 horas
@@ -126,7 +125,7 @@ export const GET = NextAuth({
           name: user.name || 'Utilizador Google',
           email: user.email,
           plan: 'none' as const,
-          status: 'pending' as const, // Requer confirmação de email
+          status: 'pending' as const,
           role: 'user' as const,
           avatar: user.image,
           createdAt: new Date().toISOString(),
@@ -152,8 +151,8 @@ export const GET = NextAuth({
           console.error('[Google OAuth] Erro ao enviar email de boas-vindas:', err);
         });
 
-        // 🔒 Retornar false — conta criada mas precisa de confirmação de email
-        return false;
+        // Conta criada mas precisa de confirmação — redirecionar para confirm-email
+        return `/confirm-email?email=${encodeURIComponent(user.email)}`;
       } catch (error) {
         console.error('[Google OAuth] ERRO ao processar login:', error instanceof Error ? error.message : 'Erro desconhecido');
         return false;
