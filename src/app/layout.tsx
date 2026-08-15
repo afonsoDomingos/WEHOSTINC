@@ -90,6 +90,7 @@ export const metadata: Metadata = {
 import { LanguageProvider } from "@/context/LanguageContext";
 import OfflineDetector from "@/components/OfflineDetector";
 import MaintenanceGate from "@/components/MaintenanceGate";
+import Providers from "@/components/Providers";
 
 export default function RootLayout({
   children,
@@ -99,15 +100,17 @@ export default function RootLayout({
   return (
     <html lang="pt-MZ">
       <body className={poppins.className}>
-        <LanguageProvider>
-          <MaintenanceGate>
-            {children}
-          </MaintenanceGate>
-          <OfflineDetector />
-          <ScrollToTop />
-          <AnalyticsTracker />
-          <SocialProofToast />
-        </LanguageProvider>
+        <Providers>
+          <LanguageProvider>
+            <MaintenanceGate>
+              {children}
+            </MaintenanceGate>
+            <OfflineDetector />
+            <ScrollToTop />
+            <AnalyticsTracker />
+            <SocialProofToast />
+          </LanguageProvider>
+        </Providers>
       </body>
     </html>
   );
