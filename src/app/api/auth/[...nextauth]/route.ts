@@ -1,6 +1,6 @@
 import NextAuth from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
-import { sendWelcomeEmail } from '@/lib/sendgrid';
+import { sendWelcomeEmail, sendLoginNotificationEmail } from '@/lib/sendgrid';
 
 // Validar configuração do NextAuth
 const requiredEnvVars = ['NEXTAUTH_SECRET', 'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET'];
@@ -168,6 +168,27 @@ export const GET = NextAuth({
         session.user.image = token.picture;
       }
       console.log('[NextAuth Session] Session final:', session);
+      
+      // Enviar notificação de login (apenas na primeira criação de sessão)
+      if (session.user && session.user.email && !token.loginNotified) {
+        const loginTime = new Date().toLocaleString('pt-PT', { 
+          timeZone: 'Africa/Maputo',
+          dateStyle: 'full',
+          timeStyle: 'long'
+        });
+        
+        sendLoginNotificationEmail(
+          session.user.email,
+          session.user.name || 'Usuário',
+          loginTime
+        ).catch((err: any) => {
+          console.error('[NextAuth Session] Erro ao enviar notificação de login:', err);
+        });
+        
+        // Marcar como notificado para evitar duplicatas
+        token.loginNotified = true;
+      }
+      
       return session;
     },
 

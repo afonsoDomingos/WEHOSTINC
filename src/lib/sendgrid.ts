@@ -284,3 +284,42 @@ export async function sendAccountActivatedEmail(toEmail: string, userName: strin
       </div>`,
   });
 }
+
+/** Email de notificação de login */
+export async function sendLoginNotificationEmail(toEmail: string, userName: string, loginTime: string, ipAddress?: string, device?: string) {
+  const dashboardUrl = `${SITE_URL}/dashboard`;
+  
+  return sendEmail({
+    to: toEmail,
+    subject: '🔐 Nova sessão iniciada na sua conta WEHOSTHERE',
+    html: `
+      <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;">
+        <div style="background:linear-gradient(135deg,#3b82f6,#1d4ed8);padding:40px 32px;border-radius:16px 16px 0 0;text-align:center;">
+          <img src="${SITE_URL}/logo.png" alt="WEHOSTHERE Logo" style="width:180px;height:auto;margin:0 auto 16px;display:block;" />
+          <p style="color:#bfdbfe;margin:8px 0 0;font-size:13px;">Notificação de Login</p>
+        </div>
+        <div style="background:#f8fafc;padding:40px 32px;border-radius:0 0 16px 16px;border:1px solid #e2e8f0;">
+          <p style="color:#475569;line-height:1.7;">Olá, <strong>${userName}</strong>!</p>
+          <p style="color:#475569;line-height:1.7;">Informamos que uma nova sessão foi iniciada na sua conta WEHOSTHERE.</p>
+          
+          <div style="background:#eff6ff;border-left:4px solid #3b82f6;padding:16px;border-radius:8px;margin:16px 0;">
+            <p style="margin:0;font-weight:700;color:#1d4ed8;">Detalhes do login:</p>
+            <ul style="margin:8px 0 0;padding-left:20px;color:#475569;">
+              <li style="margin:4px 0;"><strong>Data e hora:</strong> ${loginTime}</li>
+              ${ipAddress ? `<li style="margin:4px 0;"><strong>Endereço IP:</strong> ${ipAddress}</li>` : ''}
+              ${device ? `<li style="margin:4px 0;"><strong>Dispositivo:</strong> ${device}</li>` : ''}
+            </ul>
+          </div>
+          
+          <p style="color:#475569;line-height:1.7;margin-top:16px;">Se você reconhece esta atividade, não é necessário tomar nenhuma ação.</p>
+          <p style="color:#dc2626;line-height:1.7;margin-top:8px;">Se você não reconhece este login, por favor altere a sua senha imediatamente e entre em contacto com o nosso suporte.</p>
+          
+          <div style="text-align:center;margin:32px 0;">
+            <a href="${dashboardUrl}" style="background:#3b82f6;color:white;font-weight:700;padding:16px 40px;border-radius:10px;text-decoration:none;font-size:16px;display:inline-block;">Acessar Painel →</a>
+          </div>
+          <p style="color:#94a3b8;font-size:12px;margin:0;">Se tiver alguma dúvida, entre em contacto com o nosso suporte.</p>
+          <p style="color:#94a3b8;font-size:12px;margin:16px 0 0;">Equipa WEHOSTHERE — Hospedagem Profissional em Moçambique</p>
+        </div>
+      </div>`,
+  });
+}
