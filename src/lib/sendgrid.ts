@@ -94,7 +94,7 @@ export async function sendWelcomeEmail(toEmail: string, userName: string, plan: 
     html: `
       <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;">
         <div style="background:linear-gradient(135deg,#1d4ed8,#3b82f6);padding:40px 32px;border-radius:16px 16px 0 0;text-align:center;">
-          <h1 style="color:white;margin:0;font-size:28px;font-weight:800;">WEHOSTHERE</h1>
+          <img src="${SITE_URL}/logo.png" alt="WEHOSTHERE Logo" style="width:180px;height:auto;margin:0 auto 16px;display:block;" />
           <p style="color:#bfdbfe;margin:8px 0 0;font-size:14px;">Plataforma de Hospedagem Profissional</p>
         </div>
         <div style="background:#f8fafc;padding:40px 32px;border-radius:0 0 16px 16px;border:1px solid #e2e8f0;">
@@ -121,8 +121,8 @@ export async function sendInvoiceEmail(toEmail: string, userName: string, invoic
     html: `
       <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;">
         <div style="background:linear-gradient(135deg,#059669,#10b981);padding:40px 32px;border-radius:16px 16px 0 0;text-align:center;">
-          <h1 style="color:white;margin:0;font-size:26px;font-weight:800;">✅ Pagamento Confirmado</h1>
-          <p style="color:#d1fae5;margin:8px 0 0;font-size:13px;">WEHOSTHERE — Fatura ${invoiceRef}</p>
+          <img src="${SITE_URL}/logo.png" alt="WEHOSTHERE Logo" style="width:180px;height:auto;margin:0 auto 16px;display:block;" />
+          <p style="color:#d1fae5;margin:8px 0 0;font-size:13px;">Fatura ${invoiceRef}</p>
         </div>
         <div style="background:#f8fafc;padding:40px 32px;border-radius:0 0 16px 16px;border:1px solid #e2e8f0;">
           <p>Olá <strong>${userName}</strong>, o seu pagamento foi confirmado.</p>
@@ -149,8 +149,8 @@ export async function sendWebmailMessage(fromEmail: string, toEmail: string, sub
     subject,
     html: `
       <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;">
-        <div style="background:#1e3a8a;padding:16px 24px;">
-          <span style="color:#93c5fd;font-size:13px;font-weight:600;">✉️ Mensagem enviada via WEHOSTHERE Webmail</span>
+        <div style="background:#1e3a8a;padding:24px;text-align:center;">
+          <img src="${SITE_URL}/logo.png" alt="WEHOSTHERE Logo" style="width:120px;height:auto;margin:0 auto;display:block;" />
         </div>
         <div style="padding:32px 24px;">
           <p style="margin:0 0 6px;color:#64748b;font-size:12px;"><strong>De:</strong> ${fromEmail}</p>
@@ -173,7 +173,7 @@ export async function sendSupportTicketEmail(toEmail: string, userName: string, 
     html: `
       <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;">
         <div style="background:linear-gradient(135deg,#7c3aed,#6d28d9);padding:40px 32px;border-radius:16px 16px 0 0;text-align:center;">
-          <h1 style="color:white;margin:0;font-size:24px;font-weight:800;">🎫 Ticket de Suporte</h1>
+          <img src="${SITE_URL}/logo.png" alt="WEHOSTHERE Logo" style="width:180px;height:auto;margin:0 auto 16px;display:block;" />
           <p style="color:#ede9fe;margin:8px 0 0;font-size:13px;">#${ticketId}</p>
         </div>
         <div style="background:#f8fafc;padding:40px 32px;border-radius:0 0 16px 16px;border:1px solid #e2e8f0;">
@@ -200,8 +200,8 @@ export async function sendPasswordResetEmail(toEmail: string, userName: string, 
     html: `
       <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;">
         <div style="background:linear-gradient(135deg,#f59e0b,#d97706);padding:40px 32px;border-radius:16px 16px 0 0;text-align:center;">
-          <h1 style="color:white;margin:0;font-size:26px;font-weight:800;">🔐 Recuperação de Senha</h1>
-          <p style="color:#fef3c7;margin:8px 0 0;font-size:13px;">WEHOSTHERE</p>
+          <img src="${SITE_URL}/logo.png" alt="WEHOSTHERE Logo" style="width:180px;height:auto;margin:0 auto 16px;display:block;" />
+          <p style="color:#fef3c7;margin:8px 0 0;font-size:13px;">Recuperação de Senha</p>
         </div>
         <div style="background:#f8fafc;padding:40px 32px;border-radius:0 0 16px 16px;border:1px solid #e2e8f0;">
           <p style="color:#475569;line-height:1.7;">Olá <strong>${userName}</strong>,</p>
@@ -224,8 +224,8 @@ export async function sendAccountDeletionEmail(toEmail: string, userName: string
     html: `
       <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;">
         <div style="background:linear-gradient(135deg,#dc2626,#ef4444);padding:40px 32px;border-radius:16px 16px 0 0;text-align:center;">
-          <h1 style="color:white;margin:0;font-size:26px;font-weight:800;">⚠️ Conta Eliminada</h1>
-          <p style="color:#fecaca;margin:8px 0 0;font-size:13px;">WEHOSTHERE</p>
+          <img src="${SITE_URL}/logo.png" alt="WEHOSTHERE Logo" style="width:180px;height:auto;margin:0 auto 16px;display:block;" />
+          <p style="color:#fecaca;margin:8px 0 0;font-size:13px;">Conta Eliminada</p>
         </div>
         <div style="background:#f8fafc;padding:40px 32px;border-radius:0 0 16px 16px;border:1px solid #e2e8f0;">
           <p style="color:#475569;line-height:1.7;">Olá <strong>${userName}</strong>,</p>
@@ -260,8 +260,8 @@ export async function sendAccountActivatedEmail(toEmail: string, userName: strin
     html: `
       <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;">
         <div style="background:linear-gradient(135deg,#059669,#10b981);padding:40px 32px;border-radius:16px 16px 0 0;text-align:center;">
-          <h1 style="color:white;margin:0;font-size:26px;font-weight:800;">✅ Conta Ativada</h1>
-          <p style="color:#d1fae5;margin:8px 0 0;font-size:13px;">WEHOSTHERE</p>
+          <img src="${SITE_URL}/logo.png" alt="WEHOSTHERE Logo" style="width:180px;height:auto;margin:0 auto 16px;display:block;" />
+          <p style="color:#d1fae5;margin:8px 0 0;font-size:13px;">Conta Ativada</p>
         </div>
         <div style="background:#f8fafc;padding:40px 32px;border-radius:0 0 16px 16px;border:1px solid #e2e8f0;">
           <p style="color:#475569;line-height:1.7;">Parabéns, <strong>${userName}</strong>!</p>
