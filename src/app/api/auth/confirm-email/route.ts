@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { rateLimit, getRateLimitIdentifier } from '@/lib/rateLimiter';
 import { connectDB } from '@/lib/mongodb';
 import UserModel from '@/lib/models/User';
+import { sendAccountActivatedEmail } from '@/lib/sendgrid';
 
 export async function GET() {
   return NextResponse.json({ error: 'Use POST method to confirm email with code' }, { status: 405 });
@@ -104,6 +105,11 @@ export async function POST(request: NextRequest) {
     );
 
     console.log('[Confirm Email] Conta confirmada com sucesso para:', cleanEmail);
+    
+    // Enviar email de confirmação de ativação
+    sendAccountActivatedEmail(user.email, user.name).catch((err: any) => {
+      console.error('[Confirm Email] Erro ao enviar email de ativação:', err);
+    });
     
     return NextResponse.json({
       success: true,
