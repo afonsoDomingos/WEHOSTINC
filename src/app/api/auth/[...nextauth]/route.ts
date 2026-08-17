@@ -103,6 +103,7 @@ export const GET = NextAuth({
         );
 
         if (existingUser) {
+          console.log('[Google OAuth] Usuário encontrado:', { email: user.email, status: existingUser.status, plan: existingUser.plan });
           if (existingUser.status === 'pending') {
             // Conta existe mas ainda não foi confirmada — redirecionar para confirmação
             console.warn('[Google OAuth] Conta pendente de confirmação:', user.email);

@@ -43,14 +43,18 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
     try {
+      console.log('[Login Normal] Iniciando login com email:', email);
       const user = await auth.loginAsync(email, password);
+      console.log('[Login Normal] Usuário autenticado:', { email: user.email, status: user.status, role: user.role });
       if (user.role === 'admin' || user.email === 'admin@wehosthere.com') {
+        console.log('[Login Normal] Redirecionando para admin');
         router.push('/admin');
       } else {
+        console.log('[Login Normal] Redirecionando para dashboard');
         router.push('/dashboard');
       }
     } catch (err) {
-      console.error('Erro de login:', err);
+      console.error('[Login Normal] Erro de login:', err);
       setError(err instanceof Error ? err.message : 'Credenciais inválidas. Tente novamente.');
     } finally {
       setLoading(false);
