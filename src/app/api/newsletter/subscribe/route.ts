@@ -5,6 +5,9 @@ import { rateLimit, getRateLimitIdentifier } from '@/lib/rateLimiter';
 
 export async function POST(req: Request) {
   try {
+    console.log('[Newsletter API] Iniciando POST request');
+    console.log('[Newsletter API] URL:', req.url);
+    
     const body = await req.json();
     const { email, name, source } = body;
 
@@ -75,13 +78,13 @@ export async function POST(req: Request) {
 
     // Criar nova subscrição
     console.log('[Newsletter API] Criando nova subscrição...');
-    await NewsletterModel.create({
+    const newSubscription = await NewsletterModel.create({
       email: cleanEmail,
       name: name || '',
       source: source || 'footer',
       status: 'active'
     });
-    console.log('[Newsletter API] Nova subscrição criada');
+    console.log('[Newsletter API] Nova subscrição criada:', newSubscription._id);
 
     return NextResponse.json({ 
       success: true, 
@@ -98,6 +101,7 @@ export async function POST(req: Request) {
     });
     
     if (error.code === 11000) {
+      console.log('[Newsletter API] Duplicação detectada (11000)');
       return NextResponse.json({ 
         success: true, 
         message: 'Este email já está subscrito à newsletter.' 

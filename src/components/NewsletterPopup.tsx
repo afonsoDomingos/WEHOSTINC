@@ -16,34 +16,13 @@ export default function NewsletterPopup() {
     const dismissed = localStorage.getItem('newsletter_popup_dismissed');
     if (dismissed) return;
 
-    // Verificar se o usuário já está subscrito
-    const checkSubscription = async () => {
-      try {
-        const response = await fetch('/api/newsletter/subscribe?check=true');
-        if (response.ok) {
-          const data = await response.json();
-          if (data.subscribed) {
-            setIsSubscribed(true);
-            localStorage.setItem('newsletter_popup_dismissed', 'true');
-            return;
-          }
-        }
-      } catch (error) {
-        console.error('Erro ao verificar subscrição:', error);
-      }
-    };
-
-    checkSubscription();
-
     // Mostrar popup após 10 segundos
     const timer = setTimeout(() => {
-      if (!isSubscribed) {
-        setIsVisible(true);
-      }
+      setIsVisible(true);
     }, 10000);
 
     return () => clearTimeout(timer);
-  }, [isSubscribed]);
+  }, []);
 
   const handleClose = () => {
     setIsVisible(false);
