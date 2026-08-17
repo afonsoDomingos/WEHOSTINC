@@ -1066,6 +1066,13 @@ export default function AdminPage() {
                 <Mail className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-500" />
                 <span className="hidden sm:inline">Newsletter</span>
               </Link>
+              <Link
+                href="/admin/blog"
+                className="flex items-center space-x-1.5 sm:space-x-2 text-gray-600 hover:text-green-600 font-medium transition text-[10px] sm:text-xs sm:text-sm"
+              >
+                <BookOpen className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-500" />
+                <span className="hidden sm:inline">Blog</span>
+              </Link>
               <AdminNotificationCenter onNavigate={(url) => router.push(url)} />
               <button
                 onClick={handleLogout}
