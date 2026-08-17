@@ -1,15 +1,43 @@
 import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     await connectDB();
     
     const AdminNotification = (await import('@/lib/models/AdminNotification')).default;
     
-    const notifications = await AdminNotification.find({})
+    const { searchParams } = new URL(req.url);
+    const type = searchParams.get('type');
+    const read = searchParams.get('read');
+    const startDate = searchParams.get('startDate');
+    const endDate = searchParams.get('endDate');
+    const limit = parseInt(searchParams.get('limit') || '200');
+    
+    // Construir filtro
+    const filter: any = {};
+    
+    if (type) {
+      filter.type = type;
+    }
+    
+    if (read !== null && read !== undefined && read !== '') {
+      filter.read = read === 'true';
+    }
+    
+    if (startDate || endDate) {
+      filter.createdAt = {};
+      if (startDate) {
+        filter.createdAt.$gte = new Date(startDate);
+      }
+      if (endDate) {
+        filter.createdAt.$lte = new Date(endDate);
+      }
+    }
+    
+    const notifications = await AdminNotification.find(filter)
       .sort({ createdAt: -1 })
-      .limit(200)
+      .limit(limit)
       .lean();
     
     return NextResponse.json({
@@ -25,7 +53,9 @@ export async function GET() {
         userEmail: n.userEmail,
         userName: n.userName,
         metadata: n.metadata
-      }))
+      })),
+      filters: { type, read, startDate, endDate, limit },
+      total: notifications.length
     });
   } catch (err: any) {
     console.error('[Admin Notifications GET] Erro:', err);

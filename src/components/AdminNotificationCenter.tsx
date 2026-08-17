@@ -63,11 +63,48 @@ export default function AdminNotificationCenter({ onNavigate }: AdminNotificatio
   useEffect(() => {
     fetchNotifs();
     fetchMaintenanceStatus();
-    const interval = setInterval(() => {
-      fetchNotifs();
-      fetchMaintenanceStatus();
-    }, 10000);
-    return () => clearInterval(interval);
+
+    // Conectar ao SSE para atualizações real-time
+    let eventSource: EventSource | null = null;
+    
+    try {
+      eventSource = new EventSource('/api/admin/notifications/stream');
+      
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          
+          if (data.type === 'notifications') {
+            setNotifications(data.data);
+          }
+        } catch (e) {
+          console.error('Erro ao processar mensagem SSE:', e);
+        }
+      };
+      
+      eventSource.onerror = (error) => {
+        console.error('Erro na conexão SSE:', error);
+        // Fallback para polling se SSE falhar
+        eventSource?.close();
+        const interval = setInterval(() => {
+          fetchNotifs();
+          fetchMaintenanceStatus();
+        }, 10000);
+        return () => clearInterval(interval);
+      };
+    } catch (e) {
+      console.error('Erro ao conectar SSE, usando polling:', e);
+      // Fallback para polling
+      const interval = setInterval(() => {
+        fetchNotifs();
+        fetchMaintenanceStatus();
+      }, 10000);
+      return () => clearInterval(interval);
+    }
+
+    return () => {
+      eventSource?.close();
+    };
   }, []);
 
   // Fechar ao clicar fora
