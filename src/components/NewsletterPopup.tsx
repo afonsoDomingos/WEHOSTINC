@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Mail, Sparkles, CheckCircle, Loader2 } from 'lucide-react';
+import { Mail, Sparkles, CheckCircle, Loader2 } from 'lucide-react';
 
 export default function NewsletterPopup() {
   const [isVisible, setIsVisible] = useState(false);
@@ -45,11 +45,6 @@ export default function NewsletterPopup() {
     return () => clearTimeout(timer);
   }, [isSubscribed]);
 
-  const handleClose = () => {
-    setIsVisible(false);
-    localStorage.setItem('newsletter_popup_dismissed', 'true');
-  };
-
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !email.includes('@')) {
@@ -76,7 +71,8 @@ export default function NewsletterPopup() {
         setStatus('success');
         setEmail('');
         setTimeout(() => {
-          handleClose();
+          setIsVisible(false);
+          localStorage.setItem('newsletter_popup_dismissed', 'true');
         }, 2000);
       } else {
         setMessage(data.error || 'Erro ao subscrever. Tente novamente.');
@@ -93,101 +89,69 @@ export default function NewsletterPopup() {
   if (!isVisible || isSubscribed) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="bg-white rounded-2xl max-w-md w-full p-6 sm:p-8 shadow-2xl animate-in zoom-in-95 duration-300 relative">
-        {/* Botão de fechar */}
-        <button
-          onClick={handleClose}
-          className="absolute top-4 right-4 p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition"
-          title="Fechar"
-        >
-          <X className="h-5 w-5" />
-        </button>
-
-        {/* Cabeçalho */}
-        <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full mb-4 shadow-lg">
-            <Mail className="h-8 w-8 text-white" />
-          </div>
-          <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
-            Não perca as novidades!
-          </h3>
-          <p className="text-sm text-gray-600">
-            Subscreva à nossa newsletter e receba ofertas exclusivas e atualizações sobre a WEHOSTHERE.
-          </p>
-        </div>
-
-        {/* Formulário */}
-        {status === 'success' ? (
-          <div className="text-center py-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-100 rounded-full mb-4">
-              <CheckCircle className="h-8 w-8 text-emerald-600" />
+    <div className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-r from-purple-600 to-indigo-600 shadow-2xl animate-in slide-in-from-bottom-10 duration-500">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          {/* Texto de incentivo */}
+          <div className="flex items-center space-x-3 text-white">
+            <div className="p-2 bg-white/20 rounded-full">
+              <Mail className="h-5 w-5" />
             </div>
-            <p className="text-emerald-700 font-semibold text-lg mb-2">
-              Subscrito com sucesso!
-            </p>
-            <p className="text-gray-600 text-sm">
-              {message}
-            </p>
-          </div>
-        ) : (
-          <form onSubmit={handleSubscribe} className="space-y-4">
             <div>
+              <p className="font-semibold text-sm sm:text-base">
+                🎁 Receba ofertas exclusivas e novidades!
+              </p>
+              <p className="text-xs text-purple-100 hidden sm:block">
+                Subscreva à newsletter WEHOSTHERE
+              </p>
+            </div>
+          </div>
+
+          {/* Formulário de subscrição */}
+          {status === 'success' ? (
+            <div className="flex items-center space-x-2 text-white">
+              <CheckCircle className="h-5 w-5" />
+              <span className="font-semibold text-sm">Subscrito com sucesso!</span>
+            </div>
+          ) : (
+            <form onSubmit={handleSubscribe} className="flex items-center space-x-2 w-full sm:w-auto">
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Seu melhor email"
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                placeholder="Seu email"
+                className="flex-1 sm:flex-none px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-purple-200 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent transition text-sm"
                 disabled={loading}
                 required
               />
-            </div>
-
-            {message && status !== 'idle' && (
-              <p className={`text-sm ${
-                status === 'success' ? 'text-emerald-600' : 'text-red-600'
-              }`}>
-                {message}
-              </p>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg shadow-purple-200 transition flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                  <span>A subscrever...</span>
-                </>
-              ) : (
-                <>
-                  <Sparkles className="h-5 w-5" />
-                  <span>Quero receber novidades</span>
-                </>
-              )}
-            </button>
-
-            <div className="text-center">
               <button
-                type="button"
-                onClick={handleClose}
-                className="text-sm text-gray-500 hover:text-gray-700 transition"
+                type="submit"
+                disabled={loading}
+                className="px-4 py-2 bg-white text-purple-600 font-semibold rounded-lg hover:bg-purple-50 transition flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
               >
-                Não, obrigado
+                {loading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span className="hidden sm:inline">...</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4" />
+                    <span>Subscrever</span>
+                  </>
+                )}
               </button>
-            </div>
-          </form>
-        )}
-
-        {/* Rodapé */}
-        <div className="mt-6 pt-4 border-t border-gray-100 text-center">
-          <p className="text-xs text-gray-400">
-            🎁 Subscritores recebem ofertas exclusivas e descontos especiais
-          </p>
+            </form>
+          )}
         </div>
+
+        {message && status !== 'idle' && (
+          <p className={`text-xs mt-2 text-center ${
+            status === 'success' ? 'text-emerald-200' : 'text-red-200'
+          }`}>
+            {message}
+          </p>
+        )}
       </div>
     </div>
   );
