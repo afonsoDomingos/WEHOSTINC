@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
-import NewsletterModel from '@/lib/models/Newsletter';
 import { rateLimit, getRateLimitIdentifier } from '@/lib/rateLimiter';
 
 export async function POST(req: Request) {
@@ -50,6 +49,20 @@ export async function POST(req: Request) {
       return NextResponse.json({ 
         error: 'Erro ao conectar ao banco de dados.',
         details: dbError.message 
+      }, { status: 500 });
+    }
+
+    // Importar modelo dinamicamente para evitar erros de importação
+    console.log('[Newsletter API] Importando modelo Newsletter...');
+    let NewsletterModel;
+    try {
+      NewsletterModel = (await import('@/lib/models/Newsletter')).default;
+      console.log('[Newsletter API] Modelo importado com sucesso');
+    } catch (importError: any) {
+      console.error('[Newsletter API] Erro ao importar modelo:', importError);
+      return NextResponse.json({ 
+        error: 'Erro ao importar modelo de newsletter.',
+        details: importError.message 
       }, { status: 500 });
     }
 
