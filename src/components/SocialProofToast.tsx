@@ -1,14 +1,17 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { ShoppingBag, X, CheckCircle2 } from 'lucide-react';
 import { dataManager, SocialProof } from '@/lib/data';
 
 export default function SocialProofToast() {
+  const pathname = usePathname();
   const [proofs, setProofs] = useState<SocialProof[]>([]);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [visible, setVisible] = useState<boolean>(false);
   const [dismissed, setDismissed] = useState<boolean>(false);
+  const [newsletterVisible, setNewsletterVisible] = useState<boolean>(false);
 
   useEffect(() => {
     const activeProofs = dataManager.getSocialProofs().filter((p) => p.active);
@@ -17,7 +20,29 @@ export default function SocialProofToast() {
     }
   }, []);
 
+  // Verificar se newsletter popup está visível
   useEffect(() => {
+    const checkNewsletterVisibility = () => {
+      const dismissed = localStorage.getItem('newsletter_popup_dismissed');
+      setNewsletterVisible(!dismissed);
+    };
+
+    checkNewsletterVisibility();
+    
+    // Verificar periodicamente caso o estado mude
+    const interval = setInterval(checkNewsletterVisibility, 1000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    // Não mostrar nas páginas de login/registro
+    const isAuthPage = pathname === '/login' || pathname === '/register';
+    if (isAuthPage) return;
+    
+    // Não mostrar se newsletter popup está visível
+    if (newsletterVisible) return;
+
     if (proofs.length === 0 || dismissed) return;
 
     // Exibir primeiro toast após 4s
@@ -38,9 +63,11 @@ export default function SocialProofToast() {
       clearTimeout(initialTimer);
       clearInterval(cycleInterval);
     };
-  }, [proofs, dismissed]);
+  }, [proofs, dismissed, pathname, newsletterVisible]);
 
-  if (proofs.length === 0 || dismissed) return null;
+  // Não renderizar se estiver em páginas de login/registro ou newsletter estiver visível
+  const isAuthPage = pathname === '/login' || pathname === '/register';
+  if (isAuthPage || newsletterVisible || proofs.length === 0 || dismissed) return null;
 
   const current = proofs[currentIndex] || proofs[0];
 
