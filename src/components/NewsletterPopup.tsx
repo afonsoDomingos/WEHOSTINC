@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Mail, Sparkles, CheckCircle, Loader2 } from 'lucide-react';
+import { X, Mail, Sparkles, CheckCircle, Loader2 } from 'lucide-react';
 
 export default function NewsletterPopup() {
   const [isVisible, setIsVisible] = useState(false);
@@ -44,6 +44,11 @@ export default function NewsletterPopup() {
 
     return () => clearTimeout(timer);
   }, [isSubscribed]);
+
+  const handleClose = () => {
+    setIsVisible(false);
+    localStorage.setItem('newsletter_popup_dismissed', 'true');
+  };
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,7 +98,7 @@ export default function NewsletterPopup() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           {/* Texto de incentivo */}
-          <div className="flex items-center space-x-3 text-white">
+          <div className="flex items-center space-x-3 text-white flex-1">
             <div className="p-2 bg-white/20 rounded-full">
               <Mail className="h-5 w-5" />
             </div>
@@ -107,20 +112,26 @@ export default function NewsletterPopup() {
             </div>
           </div>
 
-          {/* Formulário de subscrição */}
-          {status === 'success' ? (
-            <div className="flex items-center space-x-2 text-white">
-              <CheckCircle className="h-5 w-5" />
-              <span className="font-semibold text-sm">Subscrito com sucesso!</span>
-            </div>
-          ) : (
-            <form onSubmit={handleSubscribe} className="flex items-center space-x-2 w-full sm:w-auto">
+          {/* Botão de fechar */}
+          <button
+            onClick={handleClose}
+            className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition"
+            title="Fechar"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* Formulário de subscrição */}
+        {status !== 'success' && (
+          <div className="mt-4 flex items-center space-x-2">
+            <form onSubmit={handleSubscribe} className="flex items-center space-x-2 w-full">
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Seu email"
-                className="flex-1 sm:flex-none px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-purple-200 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent transition text-sm"
+                className="flex-1 px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-purple-200 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent transition text-sm"
                 disabled={loading}
                 required
               />
@@ -142,8 +153,16 @@ export default function NewsletterPopup() {
                 )}
               </button>
             </form>
-          )}
-        </div>
+          </div>
+        )}
+
+        {/* Mensagem de sucesso */}
+        {status === 'success' && (
+          <div className="mt-4 flex items-center space-x-2 text-white">
+            <CheckCircle className="h-5 w-5" />
+            <span className="font-semibold text-sm">Subscrito com sucesso!</span>
+          </div>
+        )}
 
         {message && status !== 'idle' && (
           <p className={`text-xs mt-2 text-center ${

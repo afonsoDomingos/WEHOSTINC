@@ -8,12 +8,16 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { email, name, source } = body;
 
+    console.log('[Newsletter API] Dados recebidos:', { email, name, source });
+
     // Validação básica
     if (!email || !email.includes('@')) {
+      console.log('[Newsletter API] Email inválido:', email);
       return NextResponse.json({ error: 'Email inválido.' }, { status: 400 });
     }
 
     const cleanEmail = email.trim().toLowerCase();
+    console.log('[Newsletter API] Email limpo:', cleanEmail);
 
     // Rate limiting para prevenir spam
     const rateLimitResult = rateLimit(
@@ -23,6 +27,7 @@ export async function POST(req: Request) {
     );
 
     if (!rateLimitResult.success) {
+      console.log('[Newsletter API] Rate limit excedido:', rateLimitResult);
       return NextResponse.json(
         { 
           error: 'Muitas tentativas de subscrição. Tente novamente em 1 hora.',
@@ -32,10 +37,13 @@ export async function POST(req: Request) {
       );
     }
 
+    console.log('[Newsletter API] Conectando ao MongoDB...');
     await connectDB();
+    console.log('[Newsletter API] MongoDB conectado com sucesso');
 
     // Verificar se já existe
     const existing = await NewsletterModel.findOne({ email: cleanEmail });
+    console.log('[Newsletter API] Subscrição existente:', existing ? 'Sim' : 'Não');
     
     if (existing) {
       if (existing.status === 'unsubscribed') {
@@ -49,6 +57,7 @@ export async function POST(req: Request) {
             source: source || existing.source
           }
         );
+        console.log('[Newsletter API] Subscrição reativada');
         return NextResponse.json({ 
           success: true, 
           message: 'Subscrição reativada com sucesso!' 
@@ -56,6 +65,7 @@ export async function POST(req: Request) {
       }
       
       if (existing.status === 'active') {
+        console.log('[Newsletter API] Email já subscrito');
         return NextResponse.json({ 
           success: true, 
           message: 'Este email já está subscrito à newsletter.' 
@@ -64,12 +74,14 @@ export async function POST(req: Request) {
     }
 
     // Criar nova subscrição
+    console.log('[Newsletter API] Criando nova subscrição...');
     await NewsletterModel.create({
       email: cleanEmail,
       name: name || '',
       source: source || 'footer',
       status: 'active'
     });
+    console.log('[Newsletter API] Nova subscrição criada');
 
     return NextResponse.json({ 
       success: true, 
@@ -77,7 +89,13 @@ export async function POST(req: Request) {
     });
 
   } catch (error: any) {
-    console.error('[Newsletter API] Erro:', error);
+    console.error('[Newsletter API] Erro completo:', error);
+    console.error('[Newsletter API] Detalhes do erro:', {
+      message: error.message,
+      code: error.code,
+      name: error.name,
+      stack: error.stack
+    });
     
     if (error.code === 11000) {
       return NextResponse.json({ 
@@ -87,7 +105,8 @@ export async function POST(req: Request) {
     }
     
     return NextResponse.json({ 
-      error: 'Erro ao processar subscrição.' 
+      error: 'Erro ao processar subscrição.',
+      details: error.message
     }, { status: 500 });
   }
 }
