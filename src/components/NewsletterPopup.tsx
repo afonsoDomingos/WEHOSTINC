@@ -94,21 +94,21 @@ export default function NewsletterPopup() {
   if (!isVisible || isSubscribed) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-r from-purple-600 to-indigo-600 shadow-2xl animate-in slide-in-from-bottom-10 duration-500">
+    <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-2xl animate-in slide-in-from-bottom-10 duration-500">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-3 sm:py-4">
         {/* Primeira linha: Texto e botão de fechar */}
         <div className="flex items-center justify-between gap-2 sm:gap-4">
           {/* Texto de incentivo */}
-          <div className="flex items-center space-x-2 sm:space-x-3 text-white flex-1 min-w-0">
-            <div className="p-1.5 sm:p-2 bg-white/20 rounded-full flex-shrink-0">
-              <Mail className="h-4 w-4 sm:h-5 sm:w-5" />
+          <div className="flex items-center space-x-2 sm:space-x-3 text-gray-900 flex-1 min-w-0">
+            <div className="p-1.5 sm:p-2 bg-purple-100 rounded-full flex-shrink-0">
+              <Mail className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
             </div>
             <div className="min-w-0">
               <p className="font-semibold text-xs sm:text-sm sm:text-base truncate">
-                🎁 Receba ofertas exclusivas!
+                📰 Mantenha-se atualizado!
               </p>
-              <p className="text-[10px] sm:text-xs text-purple-100 hidden sm:block">
-                Subscreva à newsletter WEHOSTHERE
+              <p className="text-[10px] sm:text-xs text-gray-600 hidden sm:block">
+                Receba novidades e atualizações da WEHOSTHERE
               </p>
             </div>
           </div>
@@ -116,7 +116,7 @@ export default function NewsletterPopup() {
           {/* Botão de fechar */}
           <button
             onClick={handleClose}
-            className="p-1.5 sm:p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition flex-shrink-0"
+            className="p-1.5 sm:p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition flex-shrink-0"
             title="Fechar"
           >
             <X className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -132,14 +132,14 @@ export default function NewsletterPopup() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Seu email"
-                className="w-full px-3 sm:px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-purple-200 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent transition text-xs sm:text-sm"
+                className="w-full px-3 sm:px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition text-xs sm:text-sm"
                 disabled={loading}
                 required
               />
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full sm:w-auto px-3 sm:px-4 py-2 bg-white text-purple-600 font-semibold rounded-lg hover:bg-purple-50 transition flex items-center justify-center space-x-1.5 sm:space-x-2 disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm whitespace-nowrap"
+                className="w-full sm:w-auto px-3 sm:px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition flex items-center justify-center space-x-1.5 sm:space-x-2 disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm whitespace-nowrap"
               >
                 {loading ? (
                   <>
@@ -159,7 +159,7 @@ export default function NewsletterPopup() {
 
         {/* Mensagem de sucesso */}
         {status === 'success' && (
-          <div className="mt-3 sm:mt-4 flex items-center space-x-2 text-white">
+          <div className="mt-3 sm:mt-4 flex items-center space-x-2 text-emerald-600">
             <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5" />
             <span className="font-semibold text-xs sm:text-sm">Subscrito com sucesso!</span>
           </div>
@@ -167,7 +167,7 @@ export default function NewsletterPopup() {
 
         {message && status !== 'idle' && (
           <p className={`text-[10px] sm:text-xs mt-2 text-center ${
-            status === 'success' ? 'text-emerald-200' : status === 'error' ? 'text-red-200' : 'text-white'
+            status === 'success' ? 'text-emerald-600' : status === 'error' ? 'text-red-600' : 'text-gray-600'
           }`}>
             {message}
           </p>
