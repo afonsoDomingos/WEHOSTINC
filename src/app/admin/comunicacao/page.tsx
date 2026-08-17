@@ -32,6 +32,7 @@ export default function AdminCommunicationPage() {
   const [clients, setClients] = useState<User[]>([]);
   const [templates, setTemplates] = useState<CommunicationTemplate[]>([]);
   const [logs, setLogs] = useState<CommunicationLog[]>([]);
+  const [newsletterSubscribers, setNewsletterSubscribers] = useState<any[]>([]);
 
   // Abas do Painel ('manual' | 'bulk' | 'templates' | 'history')
   const [activeTab, setActiveTab] = useState<'manual' | 'bulk' | 'templates' | 'history'>('manual');
@@ -51,7 +52,7 @@ export default function AdminCommunicationPage() {
   // -------------------------------------------------------------
   // ABA 2: ESTADO DO ENVIO EM MASSA
   // -------------------------------------------------------------
-  const [bulkFilter, setBulkFilter] = useState<'all' | 'active' | 'pending' | 'suspended' | 'pending_payment' | 'custom'>('all');
+  const [bulkFilter, setBulkFilter] = useState<'all' | 'active' | 'pending' | 'suspended' | 'pending_payment' | 'newsletter' | 'custom'>('all');
   const [bulkSelectedEmails, setBulkSelectedEmails] = useState<string[]>([]);
   const [bulkTemplateId, setBulkTemplateId] = useState('');
   const [bulkSubject, setBulkSubject] = useState('');
@@ -90,6 +91,15 @@ export default function AdminCommunicationPage() {
       setClients((allUsers || []).filter((u: User) => u.role !== 'admin'));
       setTemplates(getCommunicationTemplates());
       setLogs(getCommunicationLogs());
+      
+      // Carregar subscritores da newsletter
+      const newsletterResponse = await fetch('/api/admin/newsletter/send');
+      if (newsletterResponse.ok) {
+        const newsletterData = await newsletterResponse.json();
+        if (newsletterData.success) {
+          setNewsletterSubscribers(newsletterData.subscribers || []);
+        }
+      }
     } catch (err) {
       console.error('Erro ao carregar dados da central de comunicação:', err);
     }
@@ -129,6 +139,20 @@ export default function AdminCommunicationPage() {
       const allOrders = dataManager.getOrders();
       const pendingEmails = new Set(allOrders.filter(o => o.status === 'pending').map(o => o.clientEmail || o.userEmail || ''));
       return clients.filter(c => pendingEmails.has(c.email));
+    }
+    if (bulkFilter === 'newsletter') {
+      // Retornar subscritores ativos da newsletter como objetos User compatíveis
+      return newsletterSubscribers
+        .filter(s => s.status === 'active')
+        .map(s => ({
+          id: s.email,
+          email: s.email,
+          name: s.name || s.email.split('@')[0],
+          role: 'user',
+          status: 'active',
+          plan: 'none',
+          createdAt: s.subscribedAt
+        } as User));
     }
     return clients; // 'all'
   };
@@ -770,6 +794,7 @@ export default function AdminCommunicationPage() {
                       { key: 'pending', label: `Clientes Pendentes (${clients.filter(c => c.status === 'pending').length})` },
                       { key: 'suspended', label: `Clientes Suspensos (${clients.filter(c => c.status === 'suspended').length})` },
                       { key: 'pending_payment', label: 'Clientes com Pagamento Pendente' },
+                      { key: 'newsletter', label: `Subscritores Newsletter (${newsletterSubscribers.filter(s => s.status === 'active').length})` },
                       { key: 'custom', label: `Seleção Manual por Caixas (${bulkSelectedEmails.length} selecionados)` }
                     ].map(opt => (
                       <label key={opt.key} className="flex items-center gap-2.5 p-2.5 bg-white hover:bg-gray-100 rounded-xl cursor-pointer border border-gray-200 transition-colors">
