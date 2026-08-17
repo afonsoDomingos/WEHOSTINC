@@ -104,15 +104,22 @@ export const GET = NextAuth({
 
         if (existingUser) {
           console.log('[Google OAuth] Usuário encontrado:', { email: user.email, status: existingUser.status, plan: existingUser.plan });
+          
+          // Se o usuário já estiver ativo, permitir login diretamente
+          if (existingUser.status === 'active') {
+            console.log('[Google OAuth] Login permitido para utilizador ativo:', user.email);
+            return true;
+          }
+          
+          // Se o usuário estiver pendente, redirecionar para confirmação
           if (existingUser.status === 'pending') {
-            // Conta existe mas ainda não foi confirmada — redirecionar para confirmação
             console.warn('[Google OAuth] Conta pendente de confirmação:', user.email);
             return `/confirm-email?email=${encodeURIComponent(user.email)}`;
           }
-
-          // ✅ Utilizador ativo e confirmado — permitir login diretamente
-          console.log('[Google OAuth] Login permitido para utilizador ativo:', user.email);
-          return true;
+          
+          // Para outros status (suspended), negar login
+          console.warn('[Google OAuth] Conta com status inválido:', existingUser.status);
+          return false;
         }
 
         // Utilizador novo — criar conta com status pending (requer confirmação)
