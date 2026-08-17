@@ -4,13 +4,20 @@ import { rateLimit, getRateLimitIdentifier } from '@/lib/rateLimiter';
 
 export async function POST(req: Request) {
   try {
-    console.log('[Newsletter API] Iniciando POST request');
+    console.log('[Newsletter API] ========== INICIANDO POST REQUEST ==========');
+    console.log('[Newsletter API] Timestamp:', new Date().toISOString());
     console.log('[Newsletter API] URL:', req.url);
     
     const body = await req.json();
     const { email, name, source } = body;
 
-    console.log('[Newsletter API] Dados recebidos:', { email, name, source });
+    console.log('[Newsletter API] Dados recebidos:', { 
+      email, 
+      name, 
+      source,
+      emailType: typeof email,
+      sourceType: typeof source
+    });
 
     // Validação básica
     if (!email || !email.includes('@')) {
@@ -43,9 +50,9 @@ export async function POST(req: Request) {
     let db;
     try {
       db = await connectDB();
-      console.log('[Newsletter API] MongoDB conectado com sucesso');
+      console.log('[Newsletter API] ✅ MongoDB conectado com sucesso');
     } catch (dbError: any) {
-      console.error('[Newsletter API] Erro ao conectar MongoDB:', dbError);
+      console.error('[Newsletter API] ❌ Erro ao conectar MongoDB:', dbError);
       return NextResponse.json({ 
         error: 'Erro ao conectar ao banco de dados.',
         details: dbError.message 
@@ -57,9 +64,9 @@ export async function POST(req: Request) {
     let NewsletterModel;
     try {
       NewsletterModel = (await import('@/lib/models/Newsletter')).default;
-      console.log('[Newsletter API] Modelo importado com sucesso');
+      console.log('[Newsletter API] ✅ Modelo importado com sucesso');
     } catch (importError: any) {
-      console.error('[Newsletter API] Erro ao importar modelo:', importError);
+      console.error('[Newsletter API] ❌ Erro ao importar modelo:', importError);
       return NextResponse.json({ 
         error: 'Erro ao importar modelo de newsletter.',
         details: importError.message 
@@ -69,7 +76,7 @@ export async function POST(req: Request) {
     // Verificar se o modelo existe
     console.log('[Newsletter API] Verificando modelo Newsletter...');
     if (!NewsletterModel) {
-      console.error('[Newsletter API] NewsletterModel não está definido');
+      console.error('[Newsletter API] ❌ NewsletterModel não está definido');
       return NextResponse.json({ 
         error: 'Erro interno: modelo de newsletter não disponível.' 
       }, { status: 500 });
@@ -81,8 +88,11 @@ export async function POST(req: Request) {
     console.log('[Newsletter API] Subscrição existente:', existing ? 'Sim' : 'Não');
     
     if (existing) {
+      console.log('[Newsletter API] Status da subscrição existente:', existing.status);
+      
       if (existing.status === 'unsubscribed') {
         // Reativar subscrição
+        console.log('[Newsletter API] Reativando subscrição...');
         await NewsletterModel.updateOne(
           { email: cleanEmail },
           { 
@@ -92,7 +102,7 @@ export async function POST(req: Request) {
             source: source || existing.source
           }
         );
-        console.log('[Newsletter API] Subscrição reativada');
+        console.log('[Newsletter API] ✅ Subscrição reativada');
         return NextResponse.json({ 
           success: true, 
           message: 'Subscrição reativada com sucesso!' 
@@ -110,13 +120,20 @@ export async function POST(req: Request) {
 
     // Criar nova subscrição
     console.log('[Newsletter API] Criando nova subscrição...');
+    console.log('[Newsletter API] Dados da nova subscrição:', {
+      email: cleanEmail,
+      name: name || '',
+      source: source || 'footer',
+      status: 'active'
+    });
+    
     const newSubscription = await NewsletterModel.create({
       email: cleanEmail,
       name: name || '',
       source: source || 'footer',
       status: 'active'
     });
-    console.log('[Newsletter API] Nova subscrição criada:', newSubscription._id);
+    console.log('[Newsletter API] ✅ Nova subscrição criada:', newSubscription._id);
 
     return NextResponse.json({ 
       success: true, 
@@ -124,7 +141,7 @@ export async function POST(req: Request) {
     });
 
   } catch (error: any) {
-    console.error('[Newsletter API] Erro completo:', error);
+    console.error('[Newsletter API] ❌ ERRO COMPLETO:', error);
     console.error('[Newsletter API] Detalhes do erro:', {
       message: error.message,
       code: error.code,

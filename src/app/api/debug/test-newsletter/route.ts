@@ -28,7 +28,7 @@ export async function GET(req: Request) {
     const testSubscription = await NewsletterModel.create({
       email: testEmail,
       name: 'Test User',
-      source: 'debug',
+      source: 'popup',
       status: 'active'
     });
     console.log('[Test Newsletter] ✅ Subscrição criada:', testSubscription._id);
