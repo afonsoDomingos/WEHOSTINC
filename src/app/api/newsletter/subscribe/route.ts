@@ -41,10 +41,29 @@ export async function POST(req: Request) {
     }
 
     console.log('[Newsletter API] Conectando ao MongoDB...');
-    await connectDB();
-    console.log('[Newsletter API] MongoDB conectado com sucesso');
+    let db;
+    try {
+      db = await connectDB();
+      console.log('[Newsletter API] MongoDB conectado com sucesso');
+    } catch (dbError: any) {
+      console.error('[Newsletter API] Erro ao conectar MongoDB:', dbError);
+      return NextResponse.json({ 
+        error: 'Erro ao conectar ao banco de dados.',
+        details: dbError.message 
+      }, { status: 500 });
+    }
+
+    // Verificar se o modelo existe
+    console.log('[Newsletter API] Verificando modelo Newsletter...');
+    if (!NewsletterModel) {
+      console.error('[Newsletter API] NewsletterModel não está definido');
+      return NextResponse.json({ 
+        error: 'Erro interno: modelo de newsletter não disponível.' 
+      }, { status: 500 });
+    }
 
     // Verificar se já existe
+    console.log('[Newsletter API] Buscando subscrição existente...');
     const existing = await NewsletterModel.findOne({ email: cleanEmail });
     console.log('[Newsletter API] Subscrição existente:', existing ? 'Sim' : 'Não');
     
