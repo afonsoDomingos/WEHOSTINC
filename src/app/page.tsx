@@ -13,6 +13,7 @@ import VirtualAssistant from '@/components/VirtualAssistant';
 import InteractiveSteps from '@/components/InteractiveSteps';
 import PartnersSection from '@/components/PartnersSection';
 import NewsletterForm from '@/components/NewsletterForm';
+import NewsletterPopup from '@/components/NewsletterPopup';
 
 export default function Home() {
   const [durationMonths, setDurationMonths] = useState<number>(1);
@@ -610,6 +611,9 @@ export default function Home() {
 
       {/* Virtual Assistant */}
       <VirtualAssistant />
+
+      {/* Newsletter Popup */}
+      <NewsletterPopup />
     </div>
   );
 }
