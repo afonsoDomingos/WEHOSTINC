@@ -126,20 +126,20 @@ export default function NewsletterPopup() {
         {/* Formulário de subscrição - layout responsivo */}
         {status !== 'success' && (
           <div className="mt-3 sm:mt-4">
-            <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2">
+            <form onSubmit={handleSubscribe} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Seu email"
-                className="flex-1 px-3 sm:px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-purple-200 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent transition text-xs sm:text-sm"
+                className="w-full px-3 sm:px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-purple-200 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent transition text-xs sm:text-sm"
                 disabled={loading}
                 required
               />
               <button
                 type="submit"
                 disabled={loading}
-                className="px-3 sm:px-4 py-2 bg-white text-purple-600 font-semibold rounded-lg hover:bg-purple-50 transition flex items-center justify-center space-x-1.5 sm:space-x-2 disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm whitespace-nowrap"
+                className="w-full sm:w-auto px-3 sm:px-4 py-2 bg-white text-purple-600 font-semibold rounded-lg hover:bg-purple-50 transition flex items-center justify-center space-x-1.5 sm:space-x-2 disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm whitespace-nowrap"
               >
                 {loading ? (
                   <>
