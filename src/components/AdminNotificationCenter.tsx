@@ -26,8 +26,8 @@ export default function AdminNotificationCenter({ onNavigate }: AdminNotificatio
   const [updatingMaintenance, setUpdatingMaintenance] = useState(false);
   const drawerRef = useRef<HTMLDivElement>(null);
 
-  const fetchNotifs = () => {
-    const data = getAdminNotifications();
+  const fetchNotifs = async () => {
+    const data = await getAdminNotifications();
     setNotifications(data);
   };
 
@@ -85,25 +85,25 @@ export default function AdminNotificationCenter({ onNavigate }: AdminNotificatio
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  const handleMarkRead = (id: string, e?: React.MouseEvent) => {
+  const handleMarkRead = async (id: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    markAdminNotificationRead(id);
-    fetchNotifs();
+    await markAdminNotificationRead(id);
+    await fetchNotifs();
   };
 
-  const handleMarkAllRead = () => {
-    markAllAdminNotificationsRead();
-    fetchNotifs();
+  const handleMarkAllRead = async () => {
+    await markAllAdminNotificationsRead();
+    await fetchNotifs();
   };
 
-  const handleClearAll = () => {
-    clearAdminNotifications();
-    fetchNotifs();
+  const handleClearAll = async () => {
+    await clearAdminNotifications();
+    await fetchNotifs();
   };
 
-  const handleItemClick = (n: AdminNotification) => {
-    markAdminNotificationRead(n.id);
-    fetchNotifs();
+  const handleItemClick = async (n: AdminNotification) => {
+    await markAdminNotificationRead(n.id);
+    await fetchNotifs();
     setIsOpen(false);
     if (n.link && onNavigate) {
       onNavigate(n.link);

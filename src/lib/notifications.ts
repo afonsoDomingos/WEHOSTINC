@@ -418,66 +418,166 @@ export function replaceTemplateVariables(
 }
 
 // -------------------------------------------------------------
-// NOTIFICAÇÕES DO ADMINISTRADOR (Storage & Helpers)
+// NOTIFICAÇÕES DO ADMINISTRADOR (MongoDB & Helpers)
 // -------------------------------------------------------------
 
-export function getAdminNotifications(): AdminNotification[] {
-  if (typeof window === 'undefined') return [];
+export async function getAdminNotifications(): Promise<AdminNotification[]> {
   try {
-    const stored = localStorage.getItem(NOTIFICATIONS_STORAGE_KEY);
-    return stored ? JSON.parse(stored) : [];
-  } catch {
-    return [];
+    const AdminNotification = (await import('@/lib/models/AdminNotification')).default;
+    const notifications = await AdminNotification.find({})
+      .sort({ createdAt: -1 })
+      .limit(200)
+      .lean();
+    
+    return notifications.map((n: any) => ({
+      id: n._id?.toString() || n.id,
+      title: n.title,
+      message: n.message,
+      type: n.type,
+      read: n.read,
+      createdAt: n.createdAt,
+      link: n.link,
+      userEmail: n.userEmail,
+      userName: n.userName,
+      metadata: n.metadata
+    }));
+  } catch (error) {
+    console.error('[Notifications] Erro ao buscar notificações do MongoDB:', error);
+    // Fallback para localStorage
+    if (typeof window === 'undefined') return [];
+    try {
+      const stored = localStorage.getItem(NOTIFICATIONS_STORAGE_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
   }
 }
 
-export function saveAdminNotifications(notifications: AdminNotification[]): void {
+export async function saveAdminNotifications(notifications: AdminNotification[]): Promise<void> {
+  // Não usado mais - persistência é feita diretamente no MongoDB
+  // Mantido para compatibilidade
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(NOTIFICATIONS_STORAGE_KEY, JSON.stringify(notifications));
   } catch { /* ignore */ }
 }
 
-export function addAdminNotification(
+export async function addAdminNotification(
   notification: Omit<AdminNotification, 'id' | 'createdAt' | 'read'>
-): AdminNotification {
-  const newNotif: AdminNotification = {
-    ...notification,
-    id: `notif_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
-    read: false,
-    createdAt: new Date().toISOString()
-  };
+): Promise<AdminNotification> {
+  try {
+    const AdminNotification = (await import('@/lib/models/AdminNotification')).default;
+    
+    const newNotif = await AdminNotification.create({
+      title: notification.title,
+      message: notification.message,
+      type: notification.type,
+      read: false,
+      link: notification.link,
+      userEmail: notification.userEmail,
+      userName: notification.userName,
+      metadata: notification.metadata || {}
+    });
 
-  const current = getAdminNotifications();
-  const updated = [newNotif, ...current].slice(0, 200); // Manter as últimas 200
-  saveAdminNotifications(updated);
+    const result: AdminNotification = {
+      id: newNotif._id.toString(),
+      title: newNotif.title,
+      message: newNotif.message,
+      type: newNotif.type,
+      read: newNotif.read,
+      createdAt: newNotif.createdAt,
+      link: newNotif.link,
+      userEmail: newNotif.userEmail,
+      userName: newNotif.userName,
+      metadata: newNotif.metadata
+    };
 
-  // Opcional: enviar aviso também via API interna se estivermos no servidor ou navegador
-  if (typeof window !== 'undefined') {
-    fetch('/api/admin/notifications', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newNotif)
-    }).catch(() => { /* ignore fallback */ });
+    // Atualizar localStorage como cache
+    if (typeof window !== 'undefined') {
+      const current = await getAdminNotifications();
+      const updated = [result, ...current].slice(0, 200);
+      localStorage.setItem(NOTIFICATIONS_STORAGE_KEY, JSON.stringify(updated));
+    }
+
+    return result;
+  } catch (error) {
+    console.error('[Notifications] Erro ao adicionar notificação ao MongoDB:', error);
+    
+    // Fallback para localStorage
+    const newNotif: AdminNotification = {
+      ...notification,
+      id: `notif_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+      read: false,
+      createdAt: new Date().toISOString()
+    };
+
+    if (typeof window !== 'undefined') {
+      const current = await getAdminNotifications();
+      const updated = [newNotif, ...current].slice(0, 200);
+      localStorage.setItem(NOTIFICATIONS_STORAGE_KEY, JSON.stringify(updated));
+    }
+
+    return newNotif;
+  }
+}
+
+export async function markAdminNotificationRead(id: string): Promise<void> {
+  try {
+    const AdminNotification = (await import('@/lib/models/AdminNotification')).default;
+    await AdminNotification.findByIdAndUpdate(id, { read: true });
+  } catch (error) {
+    console.error('[Notifications] Erro ao marcar notificação como lida no MongoDB:', error);
   }
 
-  return newNotif;
+  // Atualizar localStorage
+  if (typeof window !== 'undefined') {
+    try {
+      const stored = localStorage.getItem(NOTIFICATIONS_STORAGE_KEY);
+      if (stored) {
+        const notifications = JSON.parse(stored);
+        const updated = notifications.map((n: AdminNotification) => 
+          n.id === id ? { ...n, read: true } : n
+        );
+        localStorage.setItem(NOTIFICATIONS_STORAGE_KEY, JSON.stringify(updated));
+      }
+    } catch { /* ignore */ }
+  }
 }
 
-export function markAdminNotificationRead(id: string): void {
-  const current = getAdminNotifications();
-  const updated = current.map(n => n.id === id ? { ...n, read: true } : n);
-  saveAdminNotifications(updated);
+export async function markAllAdminNotificationsRead(): Promise<void> {
+  try {
+    const AdminNotification = (await import('@/lib/models/AdminNotification')).default;
+    await AdminNotification.updateMany({}, { read: true });
+  } catch (error) {
+    console.error('[Notifications] Erro ao marcar todas notificações como lidas no MongoDB:', error);
+  }
+
+  // Atualizar localStorage
+  if (typeof window !== 'undefined') {
+    try {
+      const stored = localStorage.getItem(NOTIFICATIONS_STORAGE_KEY);
+      if (stored) {
+        const notifications = JSON.parse(stored);
+        const updated = notifications.map((n: AdminNotification) => ({ ...n, read: true }));
+        localStorage.setItem(NOTIFICATIONS_STORAGE_KEY, JSON.stringify(updated));
+      }
+    } catch { /* ignore */ }
+  }
 }
 
-export function markAllAdminNotificationsRead(): void {
-  const current = getAdminNotifications();
-  const updated = current.map(n => ({ ...n, read: true }));
-  saveAdminNotifications(updated);
-}
+export async function clearAdminNotifications(): Promise<void> {
+  try {
+    const AdminNotification = (await import('@/lib/models/AdminNotification')).default;
+    await AdminNotification.deleteMany({});
+  } catch (error) {
+    console.error('[Notifications] Erro ao limpar notificações no MongoDB:', error);
+  }
 
-export function clearAdminNotifications(): void {
-  saveAdminNotifications([]);
+  // Limpar localStorage
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(NOTIFICATIONS_STORAGE_KEY, JSON.stringify([]));
+  }
 }
 
 // -------------------------------------------------------------
@@ -557,18 +657,43 @@ export function getCommunicationLogs(): CommunicationLog[] {
   }
 }
 
-export function addCommunicationLog(log: Omit<CommunicationLog, 'id' | 'sentAt'>): CommunicationLog {
+export async function addCommunicationLog(log: Omit<CommunicationLog, 'id' | 'sentAt'>): Promise<CommunicationLog> {
   const newLog: CommunicationLog = {
     ...log,
     id: `log_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
     sentAt: new Date().toISOString()
   };
 
+  try {
+    const CommunicationLogModel = (await import('@/lib/models/CommunicationLog')).default;
+    
+    await CommunicationLogModel.create({
+      recipientEmail: log.recipientEmail,
+      recipientName: log.recipientName,
+      subject: log.subject,
+      body: log.body,
+      templateId: log.templateId,
+      templateName: log.templateName,
+      channel: log.channel,
+      status: log.status,
+      isAutomatic: log.isAutomatic,
+      eventType: log.eventType,
+      sentAt: new Date(),
+      error: log.error,
+      retryCount: 0,
+      nextRetryAt: null
+    });
+  } catch (error) {
+    console.error('[Notifications] Erro ao salvar log no MongoDB:', error);
+  }
+
+  // Manter localStorage como cache
   const current = getCommunicationLogs();
-  const updated = [newLog, ...current].slice(0, 500); // Guardar histórico das últimas 500 mensagens
+  const updated = [newLog, ...current].slice(0, 500);
   if (typeof window !== 'undefined') {
     localStorage.setItem(LOGS_STORAGE_KEY, JSON.stringify(updated));
   }
+  
   return newLog;
 }
 

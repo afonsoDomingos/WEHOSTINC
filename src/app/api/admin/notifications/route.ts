@@ -1,56 +1,144 @@
 import { NextResponse } from 'next/server';
-
-// Armazenamento em memória no servidor para sincronização do admin
-let serverAdminNotifications: any[] = [];
+import { connectDB } from '@/lib/mongodb';
 
 export async function GET() {
-  return NextResponse.json({
-    success: true,
-    notifications: serverAdminNotifications
-  });
+  try {
+    await connectDB();
+    
+    const AdminNotification = (await import('@/lib/models/AdminNotification')).default;
+    
+    const notifications = await AdminNotification.find({})
+      .sort({ createdAt: -1 })
+      .limit(200)
+      .lean();
+    
+    return NextResponse.json({
+      success: true,
+      notifications: notifications.map((n: any) => ({
+        id: n._id?.toString() || n.id,
+        title: n.title,
+        message: n.message,
+        type: n.type,
+        read: n.read,
+        createdAt: n.createdAt,
+        link: n.link,
+        userEmail: n.userEmail,
+        userName: n.userName,
+        metadata: n.metadata
+      }))
+    });
+  } catch (err: any) {
+    console.error('[Admin Notifications GET] Erro:', err);
+    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+  }
 }
 
 export async function POST(req: Request) {
   try {
+    await connectDB();
+    
+    const AdminNotification = (await import('@/lib/models/AdminNotification')).default;
     const body = await req.json();
 
     if (body.action === 'mark_all_read') {
-      serverAdminNotifications = serverAdminNotifications.map(n => ({ ...n, read: true }));
-      return NextResponse.json({ success: true, notifications: serverAdminNotifications });
+      await AdminNotification.updateMany({}, { read: true });
+      const notifications = await AdminNotification.find({})
+        .sort({ createdAt: -1 })
+        .limit(200)
+        .lean();
+      
+      return NextResponse.json({ 
+        success: true, 
+        notifications: notifications.map((n: any) => ({
+          id: n._id?.toString() || n.id,
+          title: n.title,
+          message: n.message,
+          type: n.type,
+          read: n.read,
+          createdAt: n.createdAt,
+          link: n.link,
+          userEmail: n.userEmail,
+          userName: n.userName,
+          metadata: n.metadata
+        }))
+      });
     }
 
     if (body.action === 'mark_read' && body.id) {
-      serverAdminNotifications = serverAdminNotifications.map(n => n.id === body.id ? { ...n, read: true } : n);
-      return NextResponse.json({ success: true, notifications: serverAdminNotifications });
+      await AdminNotification.findByIdAndUpdate(body.id, { read: true });
+      const notifications = await AdminNotification.find({})
+        .sort({ createdAt: -1 })
+        .limit(200)
+        .lean();
+      
+      return NextResponse.json({ 
+        success: true, 
+        notifications: notifications.map((n: any) => ({
+          id: n._id?.toString() || n.id,
+          title: n.title,
+          message: n.message,
+          type: n.type,
+          read: n.read,
+          createdAt: n.createdAt,
+          link: n.link,
+          userEmail: n.userEmail,
+          userName: n.userName,
+          metadata: n.metadata
+        }))
+      });
     }
 
     if (body.action === 'clear') {
-      serverAdminNotifications = [];
+      await AdminNotification.deleteMany({});
       return NextResponse.json({ success: true, notifications: [] });
     }
 
     // Adicionar nova notificação
-    const newNotif = {
-      id: body.id || `notif_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+    const newNotif = await AdminNotification.create({
       title: body.title || 'Notificação do Sistema',
       message: body.message || '',
       type: body.type || 'system',
       read: false,
-      createdAt: body.createdAt || new Date().toISOString(),
       link: body.link,
       userEmail: body.userEmail,
       userName: body.userName,
       metadata: body.metadata || {}
-    };
+    });
 
-    serverAdminNotifications = [newNotif, ...serverAdminNotifications].slice(0, 200);
+    const notifications = await AdminNotification.find({})
+      .sort({ createdAt: -1 })
+      .limit(200)
+      .lean();
 
     return NextResponse.json({
       success: true,
-      notification: newNotif,
-      notifications: serverAdminNotifications
+      notification: {
+        id: newNotif._id.toString(),
+        title: newNotif.title,
+        message: newNotif.message,
+        type: newNotif.type,
+        read: newNotif.read,
+        createdAt: newNotif.createdAt,
+        link: newNotif.link,
+        userEmail: newNotif.userEmail,
+        userName: newNotif.userName,
+        metadata: newNotif.metadata
+      },
+      notifications: notifications.map((n: any) => ({
+        id: n._id?.toString() || n.id,
+        title: n.title,
+        message: n.message,
+        type: n.type,
+        read: n.read,
+        createdAt: n.createdAt,
+        link: n.link,
+        userEmail: n.userEmail,
+        userName: n.userName,
+        metadata: n.metadata
+      }))
     });
   } catch (err: any) {
+    console.error('[Admin Notifications POST] Erro:', err);
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
 }
