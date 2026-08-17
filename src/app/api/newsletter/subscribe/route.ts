@@ -151,15 +151,15 @@ export async function GET(req: Request) {
   try {
     await connectDB();
     
-    // Importar modelo dinamicamente
-    const NewsletterModel = (await import('@/lib/models/Newsletter')).default;
-    
     const { searchParams } = new URL(req.url);
     const email = searchParams.get('email');
     
     if (!email) {
       return NextResponse.json({ error: 'Email parameter is required' }, { status: 400 });
     }
+    
+    // Importar modelo dinamicamente
+    const NewsletterModel = (await import('@/lib/models/Newsletter')).default;
     
     const subscription = await NewsletterModel.findOne({ email: email.toLowerCase() });
     
