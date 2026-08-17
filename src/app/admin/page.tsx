@@ -290,7 +290,7 @@ export default function AdminPage() {
   const [systems, setSystems] = useState<SystemForRent[]>([]);
   const [rentalRequests, setRentalRequests] = useState<RentalRequest[]>([]);
   const [systemAccesses, setSystemAccesses] = useState<SystemAccess[]>([]);
-  const [activeAdminTab, setActiveAdminTab] = useState<'overview' | 'users' | 'sites' | 'emails' | 'orders' | 'tickets' | 'security' | 'systems'>('overview');
+  const [activeAdminTab, setActiveAdminTab] = useState<'overview' | 'users' | 'sites' | 'emails' | 'orders' | 'tickets' | 'security' | 'systems' | 'newsletter'>('overview');
   const [showSystemModal, setShowSystemModal] = useState(false);
   const [editingSystem, setEditingSystem] = useState<SystemForRent | null>(null);
 
@@ -300,6 +300,15 @@ export default function AdminPage() {
   const [newProofLocation, setNewProofLocation] = useState('Maputo');
   const [newProofAction, setNewProofAction] = useState('contratou o plano Profissional SSD');
   const [newProofTime, setNewProofTime] = useState('há 5 min');
+  
+  // Newsletter State
+  const [newsletterSubscribers, setNewsletterSubscribers] = useState<any[]>([]);
+  const [newsletterSubject, setNewsletterSubject] = useState('');
+  const [newsletterContent, setNewsletterContent] = useState('');
+  const [sendingNewsletter, setSendingNewsletter] = useState(false);
+  const [newsletterMessage, setNewsletterMessage] = useState('');
+  const [newsletterSearchTerm, setNewsletterSearchTerm] = useState('');
+  const [newsletterFilterStatus, setNewsletterFilterStatus] = useState<'all' | 'active' | 'unsubscribed' | 'bounced'>('all');
   
   // Anexos Admin
   const [adminReplyAttachments, setAdminReplyAttachments] = useState<TicketAttachment[]>([]);
@@ -398,6 +407,74 @@ export default function AdminPage() {
     }
   };
 
+  // Newsletter functions
+  const fetchNewsletterSubscribers = async () => {
+    try {
+      const response = await fetch('/api/admin/newsletter/send');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setNewsletterSubscribers(data.subscribers || []);
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao carregar subscritores:', error);
+    }
+  };
+
+  const handleSendNewsletter = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newsletterSubject.trim() || !newsletterContent.trim()) {
+      setNewsletterMessage('Por favor, preencha o assunto e conteúdo.');
+      return;
+    }
+
+    setSendingNewsletter(true);
+    setNewsletterMessage('');
+
+    try {
+      const response = await fetch('/api/admin/newsletter/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subject: newsletterSubject,
+          content: newsletterContent
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setNewsletterMessage(data.message || 'Newsletter enviada com sucesso!');
+        setNewsletterSubject('');
+        setNewsletterContent('');
+      } else {
+        setNewsletterMessage(data.error || 'Erro ao enviar newsletter.');
+      }
+    } catch (error) {
+      setNewsletterMessage('Erro ao conectar com servidor.');
+    } finally {
+      setSendingNewsletter(false);
+    }
+  };
+
+  const handleDeleteSubscriber = async (email: string) => {
+    try {
+      const response = await fetch('/api/newsletter/unsubscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+
+      if (response.ok) {
+        await fetchNewsletterSubscribers();
+        setToastMsg({ title: 'Subscritor Removido', message: 'Subscritor removido com sucesso.', type: 'success' });
+      }
+    } catch (error) {
+      setToastMsg({ title: 'Erro', message: 'Erro ao remover subscritor.', type: 'error' });
+    }
+  };
+
   useEffect(() => {
     // Simulação de admin check
     const currentUser = auth.getCurrentUser();
@@ -423,6 +500,7 @@ export default function AdminPage() {
     setSystemAccesses(dataManager.getSystemAccesses());
     setSocialProofs(dataManager.getSocialProofs());
     fetchAnalytics();
+    fetchNewsletterSubscribers();
     setLoading(false);
 
     // Buscar dados atualizados do servidor via API
@@ -980,6 +1058,13 @@ export default function AdminPage() {
               >
                 <BookOpen className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500" />
                 <span className="hidden sm:inline">Academia</span>
+              </Link>
+              <Link
+                href="/admin/newsletter"
+                className="flex items-center space-x-1.5 sm:space-x-2 text-gray-600 hover:text-purple-600 font-medium transition text-[10px] sm:text-xs sm:text-sm"
+              >
+                <Mail className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-500" />
+                <span className="hidden sm:inline">Newsletter</span>
               </Link>
               <AdminNotificationCenter onNavigate={(url) => router.push(url)} />
               <button
