@@ -12,6 +12,7 @@ import DomainSearch from '@/components/DomainSearch';
 import VirtualAssistant from '@/components/VirtualAssistant';
 import InteractiveSteps from '@/components/InteractiveSteps';
 import PartnersSection from '@/components/PartnersSection';
+import NewsletterForm from '@/components/NewsletterForm';
 
 export default function Home() {
   const [durationMonths, setDurationMonths] = useState<number>(1);
@@ -504,7 +505,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/75 to-slate-950/80" />
 
         <div className="relative z-10 max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 sm:gap-8">
             <div>
               <div className="flex items-center space-x-2 mb-3 sm:mb-4 group cursor-default">
                 <Server className="h-6 w-6 sm:h-8 sm:w-8 text-primary-400 group-hover:scale-110 group-hover:text-primary-300 transition-all duration-300" />
@@ -569,6 +570,13 @@ export default function Home() {
                 <li className="hover:text-primary-300 transition cursor-pointer hover:translate-x-1 hover:translate-y-[-2px] duration-300">Tutoriais & Documentação</li>
                 <li className="hover:text-primary-300 transition cursor-pointer hover:translate-x-1 hover:translate-y-[-2px] duration-300">Status do Sistema</li>
               </ul>
+            </div>
+            <div>
+              <h4 className="font-bold text-white mb-3 sm:mb-4 uppercase tracking-wider text-[10px] sm:text-xs">Newsletter</h4>
+              <p className="text-slate-400 text-[10px] sm:text-xs mb-3 sm:mb-4">
+                Receba novidades e promoções exclusivas.
+              </p>
+              <NewsletterForm />
             </div>
             <div>
               <h4 className="font-bold text-white mb-3 sm:mb-4 uppercase tracking-wider text-[10px] sm:text-xs">Legal & Garantias</h4>

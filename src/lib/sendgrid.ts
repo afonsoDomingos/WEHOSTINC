@@ -323,3 +323,31 @@ export async function sendLoginNotificationEmail(toEmail: string, userName: stri
       </div>`,
   });
 }
+
+/** Email de newsletter */
+export async function sendNewsletterEmail(toEmail: string, subject: string, content: string, unsubscribeUrl: string) {
+  return sendEmail({
+    to: toEmail,
+    subject: subject,
+    html: `
+      <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;">
+        <div style="background:linear-gradient(135deg,#8b5cf6,#6366f1);padding:40px 32px;border-radius:16px 16px 0 0;text-align:center;">
+          <img src="${SITE_URL}/logo.png" alt="WEHOSTHERE Logo" style="width:180px;height:auto;margin:0 auto 16px;display:block;" />
+          <p style="color:#e9d5ff;margin:8px 0 0;font-size:13px;">Newsletter</p>
+        </div>
+        <div style="background:#f8fafc;padding:40px 32px;border-radius:0 0 16px 16px;border:1px solid #e2e8f0;">
+          ${content}
+          
+          <div style="text-align:center;margin:32px 0;padding-top:24px;border-top:1px solid #e2e8f0;">
+            <p style="color:#94a3b8;font-size:12px;margin:0;">
+              Recebe este email porque subscreveu à newsletter WEHOSTHERE.
+            </p>
+            <a href="${unsubscribeUrl}" style="color:#64748b;font-size:12px;text-decoration:underline;margin-top:8px;display:inline-block;">
+              Cancelar subscrição
+            </a>
+          </div>
+          <p style="color:#94a3b8;font-size:12px;margin:16px 0 0;">Equipa WEHOSTHERE — Hospedagem Profissional em Moçambique</p>
+        </div>
+      </div>`,
+  });
+}
