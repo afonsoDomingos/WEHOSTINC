@@ -95,18 +95,19 @@ export default function NewsletterPopup() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-r from-purple-600 to-indigo-600 shadow-2xl animate-in slide-in-from-bottom-10 duration-500">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-3 sm:py-4">
+        {/* Primeira linha: Texto e botão de fechar */}
+        <div className="flex items-center justify-between gap-2 sm:gap-4">
           {/* Texto de incentivo */}
-          <div className="flex items-center space-x-3 text-white flex-1">
-            <div className="p-2 bg-white/20 rounded-full">
-              <Mail className="h-5 w-5" />
+          <div className="flex items-center space-x-2 sm:space-x-3 text-white flex-1 min-w-0">
+            <div className="p-1.5 sm:p-2 bg-white/20 rounded-full flex-shrink-0">
+              <Mail className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
-            <div>
-              <p className="font-semibold text-sm sm:text-base">
-                🎁 Receba ofertas exclusivas e novidades!
+            <div className="min-w-0">
+              <p className="font-semibold text-xs sm:text-sm sm:text-base truncate">
+                🎁 Receba ofertas exclusivas!
               </p>
-              <p className="text-xs text-purple-100 hidden sm:block">
+              <p className="text-[10px] sm:text-xs text-purple-100 hidden sm:block">
                 Subscreva à newsletter WEHOSTHERE
               </p>
             </div>
@@ -115,39 +116,39 @@ export default function NewsletterPopup() {
           {/* Botão de fechar */}
           <button
             onClick={handleClose}
-            className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition"
+            className="p-1.5 sm:p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition flex-shrink-0"
             title="Fechar"
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4 sm:h-5 sm:w-5" />
           </button>
         </div>
 
-        {/* Formulário de subscrição */}
+        {/* Formulário de subscrição - layout responsivo */}
         {status !== 'success' && (
-          <div className="mt-4 flex items-center space-x-2">
-            <form onSubmit={handleSubscribe} className="flex items-center space-x-2 w-full">
+          <div className="mt-3 sm:mt-4">
+            <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2">
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Seu email"
-                className="flex-1 px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-purple-200 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent transition text-sm"
+                className="flex-1 px-3 sm:px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-purple-200 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent transition text-xs sm:text-sm"
                 disabled={loading}
                 required
               />
               <button
                 type="submit"
                 disabled={loading}
-                className="px-4 py-2 bg-white text-purple-600 font-semibold rounded-lg hover:bg-purple-50 transition flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                className="px-3 sm:px-4 py-2 bg-white text-purple-600 font-semibold rounded-lg hover:bg-purple-50 transition flex items-center justify-center space-x-1.5 sm:space-x-2 disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm whitespace-nowrap"
               >
                 {loading ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" />
                     <span className="hidden sm:inline">...</span>
                   </>
                 ) : (
                   <>
-                    <Sparkles className="h-4 w-4" />
+                    <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     <span>Subscrever</span>
                   </>
                 )}
@@ -158,14 +159,14 @@ export default function NewsletterPopup() {
 
         {/* Mensagem de sucesso */}
         {status === 'success' && (
-          <div className="mt-4 flex items-center space-x-2 text-white">
-            <CheckCircle className="h-5 w-5" />
-            <span className="font-semibold text-sm">Subscrito com sucesso!</span>
+          <div className="mt-3 sm:mt-4 flex items-center space-x-2 text-white">
+            <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5" />
+            <span className="font-semibold text-xs sm:text-sm">Subscrito com sucesso!</span>
           </div>
         )}
 
         {message && status !== 'idle' && (
-          <p className={`text-xs mt-2 text-center ${
+          <p className={`text-[10px] sm:text-xs mt-2 text-center ${
             status === 'success' ? 'text-emerald-200' : status === 'error' ? 'text-red-200' : 'text-white'
           }`}>
             {message}
