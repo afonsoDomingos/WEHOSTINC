@@ -177,8 +177,103 @@ export default function NewBlogPostPage() {
           ))}
         </div>
 
-        <div className="max-w-3xl mx-auto">
-          <div className="bg-white rounded-lg shadow-sm p-6">
+        <div className="max-w-5xl mx-auto flex gap-6">
+          {/* Sidebar Navigation */}
+          <div className="w-64 flex-shrink-0">
+            <div className="bg-white rounded-lg shadow-sm p-4 sticky top-24">
+              <h3 className="font-bold text-gray-900 mb-4">Passos</h3>
+              <nav className="space-y-2">
+                <button
+                  onClick={() => setCurrentStep(1)}
+                  className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
+                    currentStep === 1
+                      ? 'bg-blue-600 text-white'
+                      : currentStep > 1
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="w-6 h-6 rounded-full bg-current text-white flex items-center justify-center text-xs font-bold">
+                      {currentStep > 1 ? '✓' : '1'}
+                    </span>
+                    <span className="font-medium">Informações Básicas</span>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => setCurrentStep(2)}
+                  className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
+                    currentStep === 2
+                      ? 'bg-blue-600 text-white'
+                      : currentStep > 2
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="w-6 h-6 rounded-full bg-current text-white flex items-center justify-center text-xs font-bold">
+                      {currentStep > 2 ? '✓' : '2'}
+                    </span>
+                    <span className="font-medium">Imagem de Capa</span>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => setCurrentStep(3)}
+                  className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
+                    currentStep === 3
+                      ? 'bg-blue-600 text-white'
+                      : currentStep > 3
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="w-6 h-6 rounded-full bg-current text-white flex items-center justify-center text-xs font-bold">
+                      {currentStep > 3 ? '✓' : '3'}
+                    </span>
+                    <span className="font-medium">Conteúdo</span>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => setCurrentStep(4)}
+                  className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
+                    currentStep === 4
+                      ? 'bg-blue-600 text-white'
+                      : currentStep > 4
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="w-6 h-6 rounded-full bg-current text-white flex items-center justify-center text-xs font-bold">
+                      {currentStep > 4 ? '✓' : '4'}
+                    </span>
+                    <span className="font-medium">SEO e Publicação</span>
+                  </div>
+                </button>
+              </nav>
+
+              <div className="mt-6 pt-6 border-t">
+                <div className="text-sm text-gray-600">
+                  <p className="font-medium mb-2">Progresso</p>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className="bg-blue-600 h-2 rounded-full transition-all"
+                      style={{ width: `${(currentStep / 4) * 100}%` }}
+                    />
+                  </div>
+                  <p className="text-xs mt-1">{currentStep} de 4 passos concluídos</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Main Content */}
+          <div className="flex-1">
+            <div className="bg-white rounded-lg shadow-sm p-6">
             {/* Step 1: Informações Básicas */}
             {currentStep === 1 && (
               <div className="space-y-6">
@@ -454,6 +549,7 @@ export default function NewBlogPostPage() {
                   {loading ? 'Salvando...' : 'Publicar Post'}
                 </button>
               )}
+            </div>
             </div>
           </div>
         </div>
