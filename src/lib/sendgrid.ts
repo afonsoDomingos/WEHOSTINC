@@ -241,7 +241,9 @@ export async function sendAccountDeletionEmail(toEmail: string, userName: string
           <div style="background:#eff6ff;padding:16px;border-radius:8px;margin:16px 0;">
             <p style="margin:0;color:#1e3a8a;font-weight:700;">Email:</p>
             <p style="margin:4px 0 0;color:#475569;">info@wehosthere.com</p>
-            <p style="margin:8px 0 0;color:#1e3a8a;font-weight:700;">Telefone:</p>
+            <p style="margin:8px 0 0;color:#1e3a8a;font-weight:700;">Telefone Principal:</p>
+            <p style="margin:4px 0 0;color:#475569;">+258 84 833 5618</p>
+            <p style="margin:8px 0 0;color:#1e3a8a;font-weight:700;">Telefone Secundário:</p>
             <p style="margin:4px 0 0;color:#475569;">+258 84 438 4702</p>
           </div>
           <p style="color:#94a3b8;font-size:12px;margin:16px 0 0;">Equipa WEHOSTHERE — Hospedagem Profissional em Moçambique</p>
