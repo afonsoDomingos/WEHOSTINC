@@ -147,7 +147,7 @@ export default function NewsletterPopup() {
 
         {message && status !== 'idle' && (
           <p className={`text-xs mt-2 text-center ${
-            status === 'success' ? 'text-emerald-200' : 'text-red-200'
+            status === 'success' ? 'text-emerald-200' : status === 'error' ? 'text-red-200' : 'text-white'
           }`}>
             {message}
           </p>
