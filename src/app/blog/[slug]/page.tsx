@@ -297,10 +297,14 @@ export default function BlogPostPage() {
 
         {/* Post Content */}
         <div className="prose prose-lg max-w-none bg-white p-8 rounded-lg shadow-sm overflow-visible">
-          <div 
-            dangerouslySetInnerHTML={{ __html: post.content }} 
-            className="whitespace-pre-wrap break-words"
-          />
+          {post.content ? (
+            <div 
+              dangerouslySetInnerHTML={{ __html: post.content }} 
+              className="whitespace-pre-wrap break-words"
+            />
+          ) : (
+            <div className="text-gray-500">Conteúdo não disponível</div>
+          )}
         </div>
 
         {/* Excerpt */}

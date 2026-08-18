@@ -42,6 +42,7 @@ export async function GET(req: Request) {
         title: post.title,
         slug: post.slug,
         excerpt: post.excerpt,
+        content: post.content,
         coverImage: post.coverImage,
         author: post.author,
         category: post.category,
