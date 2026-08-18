@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useSession, signOut } from 'next-auth/react';
 import { 
   Globe, Plus, Trash2, Settings, CheckCircle, Clock, XCircle,
   LayoutDashboard, Mail, Database, Settings as SettingsIcon, LogOut, Server, Sparkles, ArrowRight, Search, X, ShoppingBag
@@ -18,6 +19,7 @@ import Toast from '@/components/Toast';
 
 export default function SitesPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [user, setUser] = useState<User | null>(null);
   const [sites, setSites] = useState<Site[]>([]);
   const [showModal, setShowModal] = useState(false);
@@ -26,15 +28,36 @@ export default function SitesPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const currentUser = auth.getCurrentUser();
+    let currentUser: User | null = null;
+    
+    // Tentar NextAuth primeiro
+    if (status === 'authenticated' && session?.user) {
+      currentUser = {
+        id: (session.user as any)?.id || session.user.email || '',
+        name: session.user.name || '',
+        email: session.user.email || '',
+        plan: (session.user as any)?.plan || 'none',
+        status: (session.user as any)?.status || 'active',
+        role: (session.user as any)?.role || 'user',
+        avatar: session.user.image || undefined,
+        dueDate: (session.user as any)?.dueDate,
+        createdAt: (session.user as any)?.createdAt || new Date().toISOString()
+      };
+    } else if (status === 'unauthenticated') {
+      // Fallback para sistema customizado
+      currentUser = auth.getCurrentUser();
+    }
+    
     if (!currentUser) {
       router.push('/login');
       return;
     }
+    
     if (currentUser.role === 'admin' || currentUser.email.toLowerCase() === 'admin@wehosthere.com') {
       router.push('/admin');
       return;
     }
+    
     setUser(currentUser);
     setSites(dataManager.getSites(currentUser.email));
     setLoading(false);
@@ -52,7 +75,7 @@ export default function SitesPage() {
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [router]);
+  }, [session, status, router]);
 
   const handleAddSite = (e: React.FormEvent) => {
     e.preventDefault();
@@ -148,7 +171,7 @@ export default function SitesPage() {
 
   const handleLogout = () => {
     auth.logout();
-    router.push('/');
+    signOut({ callbackUrl: '/' });
   };
 
   return (

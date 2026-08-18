@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useSession, signOut } from 'next-auth/react';
 import { 
   Mail, Plus, Trash2, Settings, CheckCircle, Clock, XCircle,
   LayoutDashboard, Globe, Database, Settings as SettingsIcon, LogOut, Server, ExternalLink,
@@ -21,6 +22,7 @@ import Toast from '@/components/Toast';
 
 export default function EmailPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [user, setUser] = useState<User | null>(null);
   const [emails, setEmails] = useState<EmailAccount[]>([]);
   const [sites, setSites] = useState<Site[]>([]);
@@ -53,15 +55,36 @@ export default function EmailPage() {
   const prevEmailStatusRef = useRef<Record<string, string>>({});
 
   useEffect(() => {
-    const currentUser = auth.getCurrentUser();
+    let currentUser: User | null = null;
+    
+    // Tentar NextAuth primeiro
+    if (status === 'authenticated' && session?.user) {
+      currentUser = {
+        id: (session.user as any)?.id || session.user.email || '',
+        name: session.user.name || '',
+        email: session.user.email || '',
+        plan: (session.user as any)?.plan || 'none',
+        status: (session.user as any)?.status || 'active',
+        role: (session.user as any)?.role || 'user',
+        avatar: session.user.image || undefined,
+        dueDate: (session.user as any)?.dueDate,
+        createdAt: (session.user as any)?.createdAt || new Date().toISOString()
+      };
+    } else if (status === 'unauthenticated') {
+      // Fallback para sistema customizado
+      currentUser = auth.getCurrentUser();
+    }
+    
     if (!currentUser) {
       router.push('/login');
       return;
     }
+    
     if (currentUser.role === 'admin' || currentUser.email.toLowerCase() === 'admin@wehosthere.com') {
       router.push('/admin');
       return;
     }
+    
     setUser(currentUser);
     const userEmailFilter = currentUser.email;
 
@@ -108,7 +131,7 @@ export default function EmailPage() {
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [router]);
+  }, [session, status, router]);
 
   const copyToClipboard = (text: string) => {
     if (typeof navigator !== 'undefined') {
@@ -266,7 +289,7 @@ export default function EmailPage() {
 
   const handleLogout = () => {
     auth.logout();
-    router.push('/');
+    signOut({ callbackUrl: '/' });
   };
 
   return (

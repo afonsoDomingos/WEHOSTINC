@@ -111,10 +111,12 @@ export const GET = NextAuth({
             return true;
           }
           
-          // Se o usuário estiver pendente, redirecionar para confirmação
+          // Se o usuário estiver pendente, negar login (será tratado no redirect callback)
           if (existingUser.status === 'pending') {
             console.warn('[Google OAuth] Conta pendente de confirmação:', user.email);
-            return `/confirm-email?email=${encodeURIComponent(user.email)}`;
+            // Armazenar no objeto user para uso no redirect callback
+            (user as any).needsConfirmation = true;
+            return true;
           }
           
           // Para outros status (suspended), negar login
@@ -159,8 +161,9 @@ export const GET = NextAuth({
           console.error('[Google OAuth] Erro ao enviar email de boas-vindas:', err);
         });
 
-        // Conta criada mas precisa de confirmação — redirecionar para confirm-email
-        return `/confirm-email?email=${encodeURIComponent(user.email)}`;
+        // Conta criada mas precisa de confirmação — permitir login mas marcar para redirecionamento
+        (user as any).needsConfirmation = true;
+        return true;
       } catch (error) {
         console.error('[Google OAuth] ERRO ao processar login:', error instanceof Error ? error.message : 'Erro desconhecido');
         return false;
@@ -197,6 +200,44 @@ export const GET = NextAuth({
         token.loginNotified = true;
       }
       
+      // Sincronizar com sistema customizado de autenticação
+      if (session.user && session.user.email) {
+        try {
+          const baseUrl = process.env.NEXTAUTH_URL || 'https://wehosthere.com';
+          const apiUrl = `${baseUrl}/api/users`;
+          
+          // Buscar dados completos do usuário do servidor
+          const usersResponse = await fetch(apiUrl, {
+            headers: getInternalHeaders(),
+          });
+          
+          if (usersResponse.ok) {
+            const usersData = await usersResponse.json();
+            const users = usersData.users || [];
+            const existingUser = users.find(
+              (u: any) => u.email.toLowerCase() === session.user.email.toLowerCase()
+            );
+            
+            if (existingUser) {
+              // Adicionar dados do usuário à sessão para compatibilidade
+              session.user.plan = existingUser.plan || 'none';
+              session.user.status = existingUser.status || 'active';
+              session.user.role = existingUser.role || 'user';
+              session.user.dueDate = existingUser.dueDate;
+              session.user.createdAt = existingUser.createdAt;
+              
+              console.log('[NextAuth Session] Usuário sincronizado com sistema customizado:', {
+                email: session.user.email,
+                plan: session.user.plan,
+                status: session.user.status
+              });
+            }
+          }
+        } catch (error) {
+          console.error('[NextAuth Session] Erro ao sincronizar com sistema customizado:', error);
+        }
+      }
+      
       return session;
     },
 
@@ -207,14 +248,24 @@ export const GET = NextAuth({
         token.email = user.email;
         token.name = user.name;
         token.picture = user.image;
+        // Preservar flag de confirmação necessária
+        token.needsConfirmation = (user as any).needsConfirmation || false;
       }
       console.log('[NextAuth JWT] Token final:', token);
       return token;
     },
 
     // 🔒 Validar callbackUrl para prevenir Open Redirect
-    async redirect({ url, baseUrl }: any) {
-      console.log('[NextAuth Redirect] url:', url, 'baseUrl:', baseUrl);
+    async redirect({ url, baseUrl, token }: any) {
+      console.log('[NextAuth Redirect] url:', url, 'baseUrl:', baseUrl, 'token:', token);
+      
+      // Verificar se o usuário precisa de confirmação de email
+      if (token?.needsConfirmation && token?.email) {
+        const confirmUrl = `/confirm-email?email=${encodeURIComponent(token.email)}`;
+        console.log('[NextAuth Redirect] Redirecionando para confirmação de email:', confirmUrl);
+        return `${baseUrl}${confirmUrl}`;
+      }
+      
       // Permitir apenas URLs relativas ou do mesmo domínio
       if (url.startsWith('/')) {
         const finalUrl = `${baseUrl}${url}`;

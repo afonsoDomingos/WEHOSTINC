@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useSession, signOut } from 'next-auth/react';
 import { 
   Settings as SettingsIcon, LayoutDashboard, Globe, Mail, Database, LogOut, Server,
   User as UserIcon, Lock, Bell, Shield, Key, Camera, Upload

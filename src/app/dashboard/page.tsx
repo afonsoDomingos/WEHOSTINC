@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useSession, signOut } from 'next-auth/react';
 import { 
   Server, Mail, LayoutDashboard, Settings, LogOut, 
   Plus, Globe, Database, TrendingUp, Users, CheckCircle, Sparkles, ArrowRight, Link2, Loader2, ShoppingBag,
@@ -52,6 +53,7 @@ function CircularProgress({ percentage, colorClass, size = 64, strokeWidth = 6 }
 
 export default function DashboardPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSyncingCounts, setIsSyncingCounts] = useState(true);
@@ -65,15 +67,39 @@ export default function DashboardPage() {
   const [ramTotal, setRamTotal] = useState(2);
 
   useEffect(() => {
-    const currentUser = auth.getCurrentUser();
+    // Primeiro verificar NextAuth (Google Login)
+    if (status === 'loading') return;
+    
+    let currentUser: User | null = null;
+    
+    // Tentar NextAuth primeiro
+    if (status === 'authenticated' && session?.user) {
+      currentUser = {
+        id: (session.user as any)?.id || session.user.email || '',
+        name: session.user.name || '',
+        email: session.user.email || '',
+        plan: (session.user as any)?.plan || 'none',
+        status: (session.user as any)?.status || 'active',
+        role: (session.user as any)?.role || 'user',
+        avatar: session.user.image || undefined,
+        dueDate: (session.user as any)?.dueDate,
+        createdAt: (session.user as any)?.createdAt || new Date().toISOString()
+      };
+    } else {
+      // Fallback para sistema customizado
+      currentUser = auth.getCurrentUser();
+    }
+    
     if (!currentUser) {
       router.push('/login');
       return;
     }
+    
     if (currentUser.role === 'admin' || currentUser.email.toLowerCase() === 'admin@wehosthere.com') {
       router.push('/admin');
       return;
     }
+    
     setUser(currentUser);
     
     // Carregar contadores iniciais
@@ -119,15 +145,16 @@ export default function DashboardPage() {
     }).catch(() => {
       setIsSyncingCounts(false);
     });
-  }, [router]);
+  }, [session, status, router]);
 
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleLogout = () => {
     setIsLoggingOut(true);
     setTimeout(() => {
+      // Fazer logout de ambos os sistemas
       auth.logout();
-      router.push('/');
+      signOut({ callbackUrl: '/' });
     }, 400);
   };
 
