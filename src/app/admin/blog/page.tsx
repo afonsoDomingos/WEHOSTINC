@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { Plus, Edit, Trash2, Eye, Calendar, Tag, Filter } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, Calendar, Tag, Filter, BarChart3 } from 'lucide-react';
 
 interface BlogPost {
   id: string;
@@ -113,13 +113,22 @@ export default function AdminBlogPage() {
               <h1 className="text-2xl font-bold text-gray-900">Gerenciar Blog</h1>
               <p className="text-gray-600">Criar e gerenciar posts do blog</p>
             </div>
-            <Link
-              href="/admin/blog/new"
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              <Plus size={20} />
-              Novo Post
-            </Link>
+            <div className="flex gap-2">
+              <Link
+                href="/admin/blog/analytics"
+                className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              >
+                <BarChart3 size={20} />
+                Analytics
+              </Link>
+              <Link
+                href="/admin/blog/new"
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <Plus size={20} />
+                Novo Post
+              </Link>
+            </div>
           </div>
         </div>
       </div>

@@ -125,6 +125,14 @@ export default function BlogPostPage() {
     }
   };
 
+  const incrementClick = async (slug: string) => {
+    try {
+      await fetch(`/api/blog/${slug}/click`, { method: 'POST' });
+    } catch (error) {
+      console.error('Erro ao incrementar cliques:', error);
+    }
+  };
+
   const fetchPost = async (slug: string) => {
     try {
       setLoading(true);
@@ -452,6 +460,7 @@ export default function BlogPostPage() {
                 <Link 
                   key={relatedPost.id} 
                   href={`/blog/${relatedPost.slug}`}
+                  onClick={() => incrementClick(relatedPost.slug)}
                   className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow group"
                 >
                   {relatedPost.coverImage && (
