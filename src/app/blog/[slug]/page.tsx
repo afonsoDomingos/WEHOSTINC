@@ -112,8 +112,18 @@ export default function BlogPostPage() {
   useEffect(() => {
     if (params.slug) {
       fetchPost(params.slug as string);
+      // Incrementar views quando o post é carregado
+      incrementViews(params.slug as string);
     }
   }, [params.slug]);
+
+  const incrementViews = async (slug: string) => {
+    try {
+      await fetch(`/api/blog/${slug}/view`, { method: 'POST' });
+    } catch (error) {
+      console.error('Erro ao incrementar views:', error);
+    }
+  };
 
   const fetchPost = async (slug: string) => {
     try {
@@ -323,13 +333,13 @@ export default function BlogPostPage() {
               <Calendar size={18} />
               {new Date(post.publishedAt).toLocaleDateString('pt-MZ', {
                 day: '2-digit',
-                month: 'long',
-                year: 'numeric'
+                month: '2-digit',
+                year: '2-digit'
               })}
             </span>
             <span className="flex items-center gap-2">
               <Eye size={18} />
-              {post.views} visualizações
+              <span className="font-semibold">{post.views}</span>
             </span>
           </div>
 
