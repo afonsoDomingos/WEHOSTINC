@@ -6,7 +6,8 @@ import { useSession } from 'next-auth/react';
 import { BookOpen, Play, Lock, CheckCircle, Clock, DollarSign, Eye, Unlock, ChevronRight, ArrowRight } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 import { dataManager, Course, Module, Lesson, CourseProgress, CourseEnrollment } from '@/lib/data';
-import BrandLogo from '@/components/BrandLogo';
+import DashboardNav from '@/components/DashboardNav';
+import DashboardSidebar from '@/components/DashboardSidebar';
 import PageLoader from '@/components/PageLoader';
 import Toast from '@/components/Toast';
 
@@ -116,18 +117,16 @@ export default function DashboardAcademyPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <BrandLogo />
-              <h1 className="text-xl font-bold text-gray-900">Academia Web</h1>
-            </div>
-          </div>
-        </div>
-      </header>
-
+      <DashboardNav 
+        userName={user?.name} 
+        userAvatar={user?.avatar}
+        onLogout={() => {
+          auth.logout();
+          router.push('/');
+        }}
+      />
+      <DashboardSidebar />
+      
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
