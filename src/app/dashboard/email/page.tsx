@@ -133,7 +133,7 @@ export default function EmailPage() {
     const interval = setInterval(() => {
       dataManager.fetchEmailsAsync(userEmailFilter).then(emails => refreshData(emails));
       dataManager.fetchSitesAsync().then(() => refreshData());
-    }, 3000);
+    }, 30000);
 
     return () => clearInterval(interval);
   }, [session, status, router]);

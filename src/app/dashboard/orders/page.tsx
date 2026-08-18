@@ -72,15 +72,15 @@ export default function OrdersPage() {
       setOrders(myOrders);
     });
 
-    // Polling a cada 5s para sincronizar alterações de status do Admin em tempo real
+    // Polling a cada 30s para sincronizar alterações de status do Admin em tempo real
     const interval = setInterval(() => {
       dataManager.fetchOrdersAsync().then((fetched) => {
         const myOrders = fetched.filter(o => 
-          !o.clientEmail || o.clientEmail.toLowerCase() === currentUser.email.toLowerCase()
+          !o.userEmail || o.userEmail.toLowerCase() === currentUser.email.toLowerCase()
         );
         setOrders(myOrders);
       });
-    }, 5000);
+    }, 30000);
 
     return () => clearInterval(interval);
   }, [router]);
@@ -161,15 +161,15 @@ export default function OrdersPage() {
       {/* Header Responsivo */}
       <DashboardNav userName={user.name} userAvatar={user.avatar} onLogout={handleLogout} />
 
-      <div className="w-full px-2 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 md:py-6">
-        <div className="grid lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 w-full">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
+        <div className="grid lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
           {/* Sidebar (Desktop) */}
           <div className="hidden lg:block lg:col-span-1">
             <DashboardSidebar />
           </div>
 
           {/* Main Content */}
-          <div className="col-span-1 lg:col-span-3 space-y-3 sm:space-y-4 md:space-y-6 w-full min-w-0">
+          <div className="lg:col-span-3 space-y-4 sm:space-y-6">
             <div className="bg-white rounded-xl shadow-sm p-2 sm:p-3 md:p-4 lg:p-6 w-full overflow-x-hidden">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 mb-3 sm:mb-4 md:mb-5">
                 <div className="min-w-0 flex-1">

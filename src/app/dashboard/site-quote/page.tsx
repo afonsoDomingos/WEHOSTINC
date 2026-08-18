@@ -131,11 +131,11 @@ function SiteQuoteContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+    <div className="min-h-screen bg-gray-50">
       <DashboardNav userName={user?.name} userAvatar={user?.avatar} onLogout={handleLogout} />
 
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6">
-        <div className="grid lg:grid-cols-4 gap-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
+        <div className="grid lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
           {/* Sidebar (Desktop) */}
           <div className="hidden lg:block lg:col-span-1">
             <DashboardSidebar />

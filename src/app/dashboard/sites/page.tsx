@@ -72,12 +72,12 @@ export default function SitesPage() {
       setSites(fetched);
     });
 
-    // Polling a cada 3s para sincronizar alterações de status do Admin em tempo real
+    // Polling a cada 30s para sincronizar alterações de status do Admin em tempo real
     const interval = setInterval(() => {
       dataManager.fetchSitesAsync(currentUser.email).then((fetched) => {
         setSites(fetched);
       });
-    }, 3000);
+    }, 30000);
 
     return () => clearInterval(interval);
   }, [session, status, router]);

@@ -80,7 +80,7 @@ export default function BillingPage() {
 
     const interval = setInterval(() => {
       dataManager.fetchOrdersAsync().then((fetched) => refreshOrders(fetched));
-    }, 3000);
+    }, 30000);
 
     return () => clearInterval(interval);
   }, [session, status, router]);

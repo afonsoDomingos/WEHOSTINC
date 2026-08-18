@@ -209,15 +209,15 @@ export default function DashboardSystemsPage() {
     <div className="min-h-screen bg-gray-50">
       <DashboardNav userName={user.name} userAvatar={user.avatar} onLogout={handleLogout} />
 
-      <div className="w-full px-2 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 md:py-6">
-        <div className="grid lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 w-full">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
+        <div className="grid lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
           {/* Sidebar (Desktop) */}
           <div className="hidden lg:block lg:col-span-1">
             <DashboardSidebar />
           </div>
 
           {/* Main Content */}
-          <div className="col-span-1 lg:col-span-3 space-y-4 sm:space-y-6 w-full min-w-0">
+          <div className="lg:col-span-3 space-y-4 sm:space-y-6">
             {/* Header Banner Interno */}
             <div className="bg-gradient-to-r from-primary-600 via-purple-600 to-indigo-700 rounded-2xl p-4 sm:p-6 text-white shadow-md">
               <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
