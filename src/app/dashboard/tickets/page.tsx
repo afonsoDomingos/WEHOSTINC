@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { 
   LifeBuoy, Plus, Search, Filter, MessageSquare, Clock, CheckCircle2, 
   AlertCircle, ChevronRight, X, Send, User as UserIcon, ShieldCheck, Tag,
@@ -55,6 +56,7 @@ const CLIENT_TICKET_TEMPLATES = [
 
 export default function ClientTicketsPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [user, setUser] = useState<User | null>(null);
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [loading, setLoading] = useState(true);
@@ -76,6 +78,54 @@ export default function ClientTicketsPage() {
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
   const [replyMessage, setReplyMessage] = useState('');
   const [replying, setReplying] = useState(false);
+
+  useEffect(() => {
+    // Aguardar NextAuth carregar
+    if (status === 'loading') return;
+    
+    let currentUser: User | null = null;
+    
+    // Tentar NextAuth primeiro
+    if (status === 'authenticated' && session?.user) {
+      currentUser = {
+        id: (session.user as any)?.id || session.user.email || '',
+        name: session.user.name || '',
+        email: session.user.email || '',
+        plan: (session.user as any)?.plan || 'none',
+        status: (session.user as any)?.status || 'active',
+        role: (session.user as any)?.role || 'user',
+        avatar: session.user.image || undefined,
+        dueDate: (session.user as any)?.dueDate,
+        createdAt: (session.user as any)?.createdAt || new Date().toISOString()
+      };
+    }
+    
+    // Fallback para sistema customizado (se NextAuth falhar ou não estiver autenticado)
+    if (!currentUser) {
+      currentUser = auth.getCurrentUser();
+    }
+    
+    if (!currentUser) {
+      router.push('/login');
+      return;
+    }
+    if (currentUser.role === 'admin' || currentUser.email.toLowerCase() === 'admin@wehosthere.com') {
+      router.push('/admin');
+      return;
+    }
+    setUser(currentUser);
+    setLoading(false);
+
+    // Carregar tickets do usuário
+    const loadTickets = async () => {
+      const allTickets = await dataManager.fetchTicketsAsync();
+      const myTickets = allTickets.filter(t => 
+        t.clientEmail.toLowerCase() === currentUser.email.toLowerCase()
+      );
+      setTickets(myTickets);
+    };
+    loadTickets();
+  }, [session, status, router]);
 
   // Anexos
   const [createAttachments, setCreateAttachments] = useState<TicketAttachment[]>([]);

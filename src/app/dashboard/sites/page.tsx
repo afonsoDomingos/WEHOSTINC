@@ -28,6 +28,9 @@ export default function SitesPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Aguardar NextAuth carregar
+    if (status === 'loading') return;
+    
     let currentUser: User | null = null;
     
     // Tentar NextAuth primeiro
@@ -43,8 +46,10 @@ export default function SitesPage() {
         dueDate: (session.user as any)?.dueDate,
         createdAt: (session.user as any)?.createdAt || new Date().toISOString()
       };
-    } else if (status === 'unauthenticated') {
-      // Fallback para sistema customizado
+    }
+    
+    // Fallback para sistema customizado (se NextAuth falhar ou não estiver autenticado)
+    if (!currentUser) {
       currentUser = auth.getCurrentUser();
     }
     

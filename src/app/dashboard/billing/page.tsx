@@ -27,6 +27,9 @@ export default function BillingPage() {
   const [toastMsg, setToastMsg] = useState<{ type: 'success' | 'error' | 'info'; title?: string; message: string } | null>(null);
 
   useEffect(() => {
+    // Aguardar NextAuth carregar
+    if (status === 'loading') return;
+    
     let currentUser: User | null = null;
     
     // Tentar NextAuth primeiro
@@ -42,8 +45,10 @@ export default function BillingPage() {
         dueDate: (session.user as any)?.dueDate,
         createdAt: (session.user as any)?.createdAt || new Date().toISOString()
       };
-    } else if (status === 'unauthenticated') {
-      // Fallback para sistema customizado
+    }
+    
+    // Fallback para sistema customizado (se NextAuth falhar ou não estiver autenticado)
+    if (!currentUser) {
       currentUser = auth.getCurrentUser();
     }
     

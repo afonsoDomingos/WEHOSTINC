@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { 
   ShoppingBag, Clock, CheckCircle, XCircle, AlertCircle, 
   FileText, ExternalLink, Play, Star, ArrowRight, Upload, Search, Filter, Sparkles, Check
@@ -17,6 +18,7 @@ export default function DashboardSystemsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const rentSystemId = searchParams.get('rent');
+  const { data: session, status } = useSession();
   
   const [user, setUser] = useState<User | null>(null);
   const [systems, setSystems] = useState<SystemForRent[]>([]);
@@ -33,7 +35,31 @@ export default function DashboardSystemsPage() {
   const [selectedCategory, setSelectedCategory] = useState('all');
 
   useEffect(() => {
-    const currentUser = auth.getCurrentUser();
+    // Aguardar NextAuth carregar
+    if (status === 'loading') return;
+    
+    let currentUser: User | null = null;
+    
+    // Tentar NextAuth primeiro
+    if (status === 'authenticated' && session?.user) {
+      currentUser = {
+        id: (session.user as any)?.id || session.user.email || '',
+        name: session.user.name || '',
+        email: session.user.email || '',
+        plan: (session.user as any)?.plan || 'none',
+        status: (session.user as any)?.status || 'active',
+        role: (session.user as any)?.role || 'user',
+        avatar: session.user.image || undefined,
+        dueDate: (session.user as any)?.dueDate,
+        createdAt: (session.user as any)?.createdAt || new Date().toISOString()
+      };
+    }
+    
+    // Fallback para sistema customizado (se NextAuth falhar ou não estiver autenticado)
+    if (!currentUser) {
+      currentUser = auth.getCurrentUser();
+    }
+    
     if (!currentUser) {
       router.push('/login');
       return;

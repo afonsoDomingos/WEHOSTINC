@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import {
   Globe, Plus, Copy, CheckCircle, Clock, XCircle,
   ExternalLink, ShieldCheck, AlertTriangle, RefreshCw,
@@ -24,6 +25,7 @@ const NS2 = 'ns2.wehosthere.com';
 
 export default function DomainsPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [user, setUser] = useState<User | null>(null);
   const [sites, setSites] = useState<Site[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,7 +36,31 @@ export default function DomainsPage() {
   const prevSiteStatusRef = useRef<Record<string, string>>({});
 
   useEffect(() => {
-    const currentUser = auth.getCurrentUser();
+    // Aguardar NextAuth carregar
+    if (status === 'loading') return;
+    
+    let currentUser: User | null = null;
+    
+    // Tentar NextAuth primeiro
+    if (status === 'authenticated' && session?.user) {
+      currentUser = {
+        id: (session.user as any)?.id || session.user.email || '',
+        name: session.user.name || '',
+        email: session.user.email || '',
+        plan: (session.user as any)?.plan || 'none',
+        status: (session.user as any)?.status || 'active',
+        role: (session.user as any)?.role || 'user',
+        avatar: session.user.image || undefined,
+        dueDate: (session.user as any)?.dueDate,
+        createdAt: (session.user as any)?.createdAt || new Date().toISOString()
+      };
+    }
+    
+    // Fallback para sistema customizado (se NextAuth falhar ou não estiver autenticado)
+    if (!currentUser) {
+      currentUser = auth.getCurrentUser();
+    }
+    
     if (!currentUser) {
       router.push('/login');
       return;
