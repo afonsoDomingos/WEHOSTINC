@@ -101,6 +101,7 @@ export default function BlogPostPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [scrollRevealEnabled, setScrollRevealEnabled] = useState(true);
+  const [relatedPosts, setRelatedPosts] = useState<BlogPost[]>([]);
   
   // Efeito de digitação no título
   const { displayText: typedTitle, isComplete: titleComplete } = useTypingEffect(post?.title || '', 30);
@@ -128,6 +129,17 @@ export default function BlogPostPage() {
         
         if (foundPost) {
           setPost(foundPost);
+          
+          // Buscar posts relacionados
+          const related = data.posts
+            .filter((p: BlogPost) => 
+              p.slug !== slug && // Excluir o post atual
+              (p.category === foundPost.category || // Mesma categoria
+               p.tags?.some((tag: string) => foundPost.tags?.includes(tag))) // Tags em comum
+            )
+            .slice(0, 3); // Limitar a 3 posts
+          
+          setRelatedPosts(related);
         } else {
           setError('Post não encontrado');
         }
@@ -422,18 +434,41 @@ export default function BlogPostPage() {
         </div>
 
         {/* Related Posts */}
-        <div className="mt-12">
-          <h2 className="text-2xl font-bold mb-6 text-gray-800">Posts Relacionados</h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white rounded-lg shadow-sm p-6">
-                <div className="h-32 bg-gray-200 rounded mb-4"></div>
-                <h3 className="font-bold mb-2">Post relacionado {i}</h3>
-                <p className="text-gray-600 text-sm">Breve descrição do post relacionado...</p>
-              </div>
-            ))}
+        {relatedPosts.length > 0 && (
+          <div className="mt-12">
+            <h2 className="text-2xl font-bold mb-6 text-gray-800">Posts Relacionados</h2>
+            <div className="grid md:grid-cols-3 gap-6">
+              {relatedPosts.map((relatedPost) => (
+                <Link 
+                  key={relatedPost.id} 
+                  href={`/blog/${relatedPost.slug}`}
+                  className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow group"
+                >
+                  {relatedPost.coverImage && (
+                    <img 
+                      src={relatedPost.coverImage} 
+                      alt={relatedPost.title}
+                      className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  )}
+                  <div className="p-6">
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${getCategoryColor(relatedPost.category)}`}>
+                      {getCategoryLabel(relatedPost.category)}
+                    </span>
+                    <h3 className="font-bold mt-3 mb-2 text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                      {relatedPost.title}
+                    </h3>
+                    <p className="text-gray-600 text-sm line-clamp-3">{relatedPost.excerpt}</p>
+                    <div className="flex items-center gap-2 mt-4 text-xs text-gray-500">
+                      <Eye size={14} />
+                      <span>{relatedPost.views}</span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </article>
     </div>
   );
