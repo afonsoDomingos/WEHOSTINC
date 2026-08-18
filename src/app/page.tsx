@@ -42,7 +42,7 @@ export default function Home() {
       try {
         setBlogLoading(true);
         console.log('[Home] Buscando posts do blog...');
-        const response = await fetch('/api/admin/blog/posts?status=published&limit=3');
+        const response = await fetch('/api/blog/posts?status=published&limit=3');
         const data = await response.json();
         
         console.log('[Home] Resposta da API:', data);
