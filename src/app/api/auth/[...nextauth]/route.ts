@@ -250,6 +250,12 @@ export const GET = NextAuth({
         token.picture = user.image;
         // Preservar flag de confirmação necessária
         token.needsConfirmation = (user as any).needsConfirmation || false;
+        // Propagar campos adicionais do usuário
+        token.role = (user as any).role || 'user';
+        token.plan = (user as any).plan || 'none';
+        token.status = (user as any).status || 'active';
+        token.dueDate = (user as any).dueDate;
+        token.createdAt = (user as any).createdAt;
       }
       console.log('[NextAuth JWT] Token final:', token);
       return token;

@@ -72,7 +72,7 @@ export default function DashboardAcademyPage() {
 
     setCourses(dataManager.getCourses().filter(c => c.active));
     setModules(dataManager.getModules());
-    setEnrollments(dataManager.getEnrollments(user.email));
+    setEnrollments(dataManager.getEnrollments(currentUser.email));
     setLoading(false);
   };
 

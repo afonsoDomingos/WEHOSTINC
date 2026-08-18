@@ -98,7 +98,7 @@ export default function DashboardSystemsPage() {
     };
 
     loadData();
-  }, [router, rentSystemId]);
+  }, [router, rentSystemId, session, status]);
 
   // Filtragem de sistemas
   useEffect(() => {
