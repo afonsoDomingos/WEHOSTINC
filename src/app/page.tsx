@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from "next/link";
-import { Server, Mail, Shield, Zap, Globe, Users, Search, Sparkles, CheckCircle, Facebook, Phone, Linkedin, Star, ArrowRight, Play } from "lucide-react";
+import { Server, Mail, Shield, Zap, Globe, Users, Search, Sparkles, CheckCircle, Facebook, Phone, Linkedin, Star, ArrowRight, Play, Calendar } from "lucide-react";
 import { websiteTypes } from '@/lib/data';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 
@@ -41,14 +41,20 @@ export default function Home() {
     const fetchBlogPosts = async () => {
       try {
         setBlogLoading(true);
+        console.log('[Home] Buscando posts do blog...');
         const response = await fetch('/api/admin/blog/posts?status=published&limit=3');
         const data = await response.json();
         
+        console.log('[Home] Resposta da API:', data);
+        
         if (data.success) {
+          console.log('[Home] Posts encontrados:', data.posts.length);
           setBlogPosts(data.posts);
+        } else {
+          console.error('[Home] Erro na API:', data.error);
         }
       } catch (error) {
-        console.error('Erro ao buscar posts do blog:', error);
+        console.error('[Home] Erro ao buscar posts do blog:', error);
       } finally {
         setBlogLoading(false);
       }
