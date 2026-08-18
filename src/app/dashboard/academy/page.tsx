@@ -14,6 +14,7 @@ import Toast from '@/components/Toast';
 export default function DashboardAcademyPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
+  const [user, setUser] = useState<User | null>(null);
   const [courses, setCourses] = useState<Course[]>([]);
   const [modules, setModules] = useState<Module[]>([]);
   const [enrollments, setEnrollments] = useState<CourseEnrollment[]>([]);
@@ -55,6 +56,7 @@ export default function DashboardAcademyPage() {
       router.push('/admin');
       return;
     }
+    setUser(currentUser);
     loadData(currentUser);
   }, [session, status, router]);
 

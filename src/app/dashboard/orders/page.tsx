@@ -83,7 +83,7 @@ export default function OrdersPage() {
     }, 30000);
 
     return () => clearInterval(interval);
-  }, [router]);
+  }, [router, session, status]);
 
   const getStatusIcon = (status: ServiceOrder['status']) => {
     switch (status) {
