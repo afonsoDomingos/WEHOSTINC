@@ -11,7 +11,7 @@ const AdminNotificationSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['user_signup', 'order_new', 'order_updated', 'order_approved', 'order_rejected', 'order_cancelled', 'payment_success', 'payment_failed', 'payment_pending', 'support_ticket', 'system'],
+    enum: ['user_signup', 'order_new', 'order_updated', 'order_approved', 'order_rejected', 'order_cancelled', 'payment_success', 'payment_failed', 'payment_pending', 'support_ticket', 'system', 'blog_post'],
     default: 'system'
   },
   read: {

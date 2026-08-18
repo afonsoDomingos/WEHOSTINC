@@ -17,7 +17,8 @@ export interface AdminNotification {
     | 'payment_failed'
     | 'payment_pending'
     | 'support_ticket'
-    | 'system';
+    | 'system'
+    | 'blog_post';
   read: boolean;
   createdAt: string;
   link?: string;
@@ -388,6 +389,31 @@ Se tiver qualquer questão na configuração dos seus e-mails corporativos, a no
 
 Atenciosamente,
 Equipa Técnica {{nome_empresa}}`,
+    channel: 'email',
+    isSystem: true,
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'new-blog-post',
+    name: 'Nova Publicação no Blog',
+    category: 'Blog',
+    subject: '📰 Nova Publicação: {{titulo_post}} - {{nome_empresa}}',
+    body: `Olá {{nome_cliente}},
+
+Temos uma nova publicação no blog que pode ser do seu interesse!
+
+📝 {{titulo_post}}
+
+{{resumo_post}}
+
+🔗 Ler artigo completo: {{link_post}}
+
+Publicado em: {{data_publicacao}}
+
+Não perca as novidades e dicas que partilhamos regularmente no nosso blog!
+
+Atenciosamente,
+Equipa {{nome_empresa}}`,
     channel: 'email',
     isSystem: true,
     createdAt: new Date().toISOString()
@@ -823,5 +849,63 @@ export async function dispatchMessage(payload: SendMessagePayload): Promise<{ su
       error: errorMsg
     });
     return { success: false, error: errorMsg };
+  }
+}
+
+// Função para enviar notificações de novo post do blog para todos os usuários
+export async function notifyAllUsersAboutNewPost(post: {
+  title: string;
+  slug: string;
+  excerpt: string;
+  publishedAt: Date;
+}): Promise<{ success: number; failed: number }> {
+  try {
+    const User = (await import('@/lib/models/User')).default;
+    
+    // Buscar todos os usuários ativos
+    const users = await User.find({ 
+      status: 'active',
+      email: { $exists: true, $ne: null, $nin: ['', null] }
+    }).select('name email').lean();
+
+    let successCount = 0;
+    let failedCount = 0;
+
+    const postUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://wehosthere.com'}/blog/${post.slug}`;
+    const publishDate = post.publishedAt.toLocaleDateString('pt-MZ', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric'
+    });
+
+    // Enviar email para cada usuário
+    for (const user of users) {
+      try {
+        await dispatchMessage({
+          recipientEmail: user.email,
+          recipientName: user.name || 'Cliente',
+          templateId: 'new-blog-post',
+          variables: {
+            titulo_post: post.title,
+            resumo_post: post.excerpt,
+            link_post: postUrl,
+            data_publicacao: publishDate
+          },
+          isAutomatic: true,
+          eventType: 'blog_post_published',
+          channel: 'email'
+        });
+        successCount++;
+      } catch (error) {
+        console.error(`[Blog Notification] Erro ao enviar email para ${user.email}:`, error);
+        failedCount++;
+      }
+    }
+
+    console.log(`[Blog Notification] Enviados: ${successCount}, Falhados: ${failedCount}`);
+    return { success: successCount, failed: failedCount };
+  } catch (error) {
+    console.error('[Blog Notification] Erro ao buscar usuários:', error);
+    return { success: 0, failed: 0 };
   }
 }

@@ -116,22 +116,34 @@ export async function POST(req: Request) {
       seo: seo || {}
     });
 
-    // Se post foi publicado, criar notificação
+    // Se post foi publicado, criar notificação e enviar emails para todos os usuários
     if (status === 'published') {
       try {
-        const { addAdminNotification } = await import('@/lib/notifications');
+        const { addAdminNotification, notifyAllUsersAboutNewPost } = await import('@/lib/notifications');
+        
+        // Notificação para admin
         await addAdminNotification({
           title: 'Novo Post Publicado no Blog',
           message: `O post "${title}" foi publicado no blog.`,
-          type: 'system',
+          type: 'blog_post',
           link: `/blog/${post.slug}`,
           metadata: {
             postId: post._id.toString(),
             category: post.category
           }
         });
+
+        // Enviar emails para todos os usuários ativos
+        const notificationResult = await notifyAllUsersAboutNewPost({
+          title: post.title,
+          slug: post.slug,
+          excerpt: post.excerpt,
+          publishedAt: post.publishedAt || new Date()
+        });
+
+        console.log('[Blog] Notificações enviadas:', notificationResult);
       } catch (error) {
-        console.error('[Blog] Erro ao criar notificação:', error);
+        console.error('[Blog] Erro ao criar notificação ou enviar emails:', error);
       }
     }
     
