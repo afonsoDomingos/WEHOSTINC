@@ -129,8 +129,12 @@ export default function NewBlogPostPage() {
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Link href="/admin/blog" className="text-gray-600 hover:text-gray-900">
-                <ArrowLeft size={24} />
+              <Link 
+                href="/admin/blog" 
+                className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors text-gray-700 hover:text-gray-900"
+              >
+                <ArrowLeft size={20} />
+                <span className="font-medium">Voltar</span>
               </Link>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">Novo Post</h1>
