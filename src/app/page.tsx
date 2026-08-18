@@ -528,6 +528,14 @@ export default function Home() {
       <section className="py-10 sm:py-16 px-3 sm:px-6 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-6 sm:mb-10">
+            <div className="flex items-center justify-center gap-2 mb-3 sm:mb-4">
+              <Link
+                href="/"
+                className="text-sm text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1"
+              >
+                ← Voltar ao Início
+              </Link>
+            </div>
             <h2 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-gray-900 mb-2 sm:mb-3">
               Notícias e Atualizações
             </h2>

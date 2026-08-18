@@ -93,6 +93,14 @@ export default function BlogPage() {
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-16">
         <div className="container mx-auto px-4">
+          <div className="flex items-center gap-2 mb-4">
+            <Link
+              href="/"
+              className="text-sm text-blue-200 hover:text-white font-semibold flex items-center gap-1 transition-colors"
+            >
+              ← Voltar ao Início
+            </Link>
+          </div>
           <h1 className="text-4xl font-bold mb-4">Blog WEHOSTHERE</h1>
           <p className="text-xl text-blue-100">Notícias, tutoriais e atualizações sobre hospedagem e tecnologia</p>
         </div>
