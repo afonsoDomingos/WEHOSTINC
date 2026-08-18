@@ -120,7 +120,7 @@ export default function ClientTicketsPage() {
     const loadTickets = async () => {
       const allTickets = await dataManager.fetchTicketsAsync();
       const myTickets = allTickets.filter(t => 
-        t.clientEmail.toLowerCase() === currentUser.email.toLowerCase()
+        t.userEmail.toLowerCase() === currentUser.email.toLowerCase()
       );
       setTickets(myTickets);
     };
