@@ -106,12 +106,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   // Adicionar posts individuais do blog ao sitemap
-  const blogPostUrls = blogPosts.map((post) => ({
+  const blogPostUrls: Array<{
+    url: string;
+    lastModified: Date;
+    changeFrequency: 'weekly';
+    priority: number;
+  }> = blogPosts.map((post) => ({
     url: `${BASE_URL}/blog/${post.slug}`,
     lastModified: new Date(post.publishedAt || post.createdAt),
-    changeFrequency: 'weekly' as const,
+    changeFrequency: 'weekly',
     priority: 0.7,
-  })) as MetadataRoute.Sitemap;
+  }));
 
   return [...staticUrls, ...blogPostUrls];
 }
