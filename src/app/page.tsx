@@ -573,7 +573,49 @@ export default function Home() {
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
             </div>
           ) : blogPosts.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+            <div className="md:hidden">
+              {/* Mobile: 3 posts em coluna única com scroll */}
+              <div className="max-h-[600px] overflow-y-auto space-y-4">
+                {blogPosts.slice(0, 3).map((post) => (
+                  <Link 
+                    key={post.id} 
+                    href={`/blog/${post.slug}`}
+                    className="group bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200 hover:border-blue-300 block"
+                  >
+                    {post.coverImage && (
+                      <div className="relative h-48 overflow-hidden">
+                        <img
+                          src={post.coverImage}
+                          alt={post.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
+                    )}
+                    <div className="p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
+                          {post.category}
+                        </span>
+                      </div>
+                      <h3 className="font-bold text-gray-900 mb-2 line-clamp-2">{post.title}</h3>
+                      <p className="text-sm text-gray-600 line-clamp-2">{post.excerpt}</p>
+                      <div className="mt-3 text-xs text-gray-500">
+                        {new Date(post.publishedAt).toLocaleDateString('pt-MZ', {
+                          day: '2-digit',
+                          month: 'short',
+                          year: 'numeric'
+                        })}
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {/* Desktop: Grid normal */}
+          {blogPosts.length > 0 && (
+            <div className="hidden md:grid md:grid-cols-3 gap-6 sm:gap-8">
               {blogPosts.map((post) => (
                 <Link 
                   key={post.id} 
@@ -620,7 +662,9 @@ export default function Home() {
                 </Link>
               ))}
             </div>
-          ) : (
+          )}
+          
+          {!blogLoading && blogPosts.length === 0 && (
             <div className="text-center py-12">
               <p className="text-gray-500">Nenhuma notícia publicada ainda.</p>
             </div>

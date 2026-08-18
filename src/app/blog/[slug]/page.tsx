@@ -135,7 +135,7 @@ export default function BlogPostPage() {
             <img
               src={post.coverImage}
               alt={post.title}
-              className="w-full h-96 object-cover"
+              className="w-full h-auto object-contain max-h-96 mx-auto"
             />
           </div>
         )}
