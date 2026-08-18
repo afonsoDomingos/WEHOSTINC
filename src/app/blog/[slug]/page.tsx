@@ -5,6 +5,32 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Calendar, User, Tag, ArrowLeft, Share2, Eye, Facebook, Twitter, Linkedin, MessageCircle } from 'lucide-react';
 
+// Hook de efeito de digitação
+function useTypingEffect(text: string, speed: number = 50) {
+  const [displayText, setDisplayText] = useState('');
+  const [isComplete, setIsComplete] = useState(false);
+
+  useEffect(() => {
+    setDisplayText('');
+    setIsComplete(false);
+
+    let index = 0;
+    const interval = setInterval(() => {
+      if (index < text.length) {
+        setDisplayText((prev) => prev + text.charAt(index));
+        index++;
+      } else {
+        clearInterval(interval);
+        setIsComplete(true);
+      }
+    }, speed);
+
+    return () => clearInterval(interval);
+  }, [text, speed]);
+
+  return { displayText, isComplete };
+}
+
 interface BlogPost {
   id: string;
   title: string;
@@ -26,6 +52,9 @@ export default function BlogPostPage() {
   const [post, setPost] = useState<BlogPost | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Efeito de digitação no título
+  const { displayText: typedTitle, isComplete: titleComplete } = useTypingEffect(post?.title || '', 30);
 
   useEffect(() => {
     if (params.slug) {
@@ -184,7 +213,10 @@ export default function BlogPostPage() {
             )}
           </div>
 
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">{post.title}</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            {typedTitle}
+            <span className="inline-block w-0.5 h-8 bg-blue-600 ml-1 animate-pulse" />
+          </h1>
 
           <div className="flex items-center gap-6 text-gray-600">
             <span className="flex items-center gap-2">
