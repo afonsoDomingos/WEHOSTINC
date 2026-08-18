@@ -583,7 +583,7 @@ export default function Home() {
                     className="group bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200 hover:border-blue-300 block"
                   >
                     {post.coverImage && (
-                      <div className="relative h-48 overflow-hidden">
+                      <div className="relative h-40 overflow-hidden">
                         <img
                           src={post.coverImage}
                           alt={post.title}
@@ -591,20 +591,28 @@ export default function Home() {
                         />
                       </div>
                     )}
-                    <div className="p-4">
+                    <div className="p-3">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
+                        <span className="text-[10px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
                           {post.category}
                         </span>
                       </div>
-                      <h3 className="font-bold text-gray-900 mb-2 line-clamp-2">{post.title}</h3>
-                      <p className="text-sm text-gray-600 line-clamp-2">{post.excerpt}</p>
-                      <div className="mt-3 text-xs text-gray-500">
-                        {new Date(post.publishedAt).toLocaleDateString('pt-MZ', {
-                          day: '2-digit',
-                          month: 'short',
-                          year: 'numeric'
-                        })}
+                      <h3 className="font-bold text-gray-900 mb-2 text-sm line-clamp-2">{post.title}</h3>
+                      <p className="text-xs text-gray-600 line-clamp-3 mb-2">{post.excerpt}</p>
+                      <div className="flex items-center justify-between text-[10px] text-gray-500">
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          <span>
+                            {new Date(post.publishedAt).toLocaleDateString('pt-MZ', {
+                              day: '2-digit',
+                              month: 'short'
+                            })}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Eye className="h-3 w-3" />
+                          <span>{post.views}</span>
+                        </div>
                       </div>
                     </div>
                   </Link>
