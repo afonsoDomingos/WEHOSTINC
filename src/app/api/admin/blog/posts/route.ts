@@ -108,7 +108,7 @@ export async function POST(req: Request) {
       excerpt,
       content,
       coverImage,
-      author: author || { name: 'WEHOSTHERE', email: 'info@wehosthere.com' },
+      author: author || { name: 'Afonso Domingos', email: 'afonso@wehosthere.com' },
       category: category || 'news',
       tags: tags || [],
       status: status || 'draft',

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from "next/link";
-import { Server, Mail, Shield, Zap, Globe, Users, Search, Sparkles, CheckCircle, Facebook, Phone, Linkedin, Star, ArrowRight, Play, Calendar } from "lucide-react";
+import { Server, Mail, Shield, Zap, Globe, Users, Search, Sparkles, CheckCircle, Facebook, Phone, Linkedin, Star, ArrowRight, Play, Calendar, Eye } from "lucide-react";
 import { websiteTypes } from '@/lib/data';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 
@@ -611,7 +611,7 @@ export default function Home() {
                         </div>
                         <div className="flex items-center gap-1">
                           <Eye className="h-3 w-3" />
-                          <span>{post.views}</span>
+                          <span className="font-semibold">{post.views}</span>
                         </div>
                       </div>
                     </div>
