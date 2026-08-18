@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Calendar, User, Tag, ArrowLeft, Share2, Eye, Facebook, Twitter, Linkedin, MessageCircle } from 'lucide-react';
+import { Calendar, User, Tag, ArrowLeft, Share2, Eye, Facebook, Twitter, Linkedin, MessageCircle, EyeOff } from 'lucide-react';
 
 // Hook de efeito de digitação
 function useTypingEffect(text: string, speed: number = 50) {
@@ -31,6 +31,46 @@ function useTypingEffect(text: string, speed: number = 50) {
   return { displayText, isComplete };
 }
 
+// Hook de efeito de scroll reveal
+function useScrollReveal(enabled: boolean = true) {
+  const [visibleSections, setVisibleSections] = useState<Set<number>>(new Set());
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!enabled) {
+      // Se desabilitado, mostrar tudo imediatamente
+      const sections = contentRef.current?.querySelectorAll('.scroll-section');
+      if (sections) {
+        const allIndices = Array.from({ length: sections.length }, (_, i) => i);
+        setVisibleSections(new Set(allIndices));
+      }
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const index = parseInt(entry.target.getAttribute('data-index') || '0');
+            setVisibleSections((prev) => new Set([...prev, index]));
+          }
+        });
+      },
+      {
+        threshold: 0.1,
+        rootMargin: '0px 0px -100px 0px'
+      }
+    );
+
+    const sections = contentRef.current?.querySelectorAll('.scroll-section');
+    sections?.forEach((section) => observer.observe(section));
+
+    return () => observer.disconnect();
+  }, [enabled]);
+
+  return { contentRef, visibleSections };
+}
+
 interface BlogPost {
   id: string;
   title: string;
@@ -52,9 +92,13 @@ export default function BlogPostPage() {
   const [post, setPost] = useState<BlogPost | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [scrollRevealEnabled, setScrollRevealEnabled] = useState(true);
   
   // Efeito de digitação no título
   const { displayText: typedTitle, isComplete: titleComplete } = useTypingEffect(post?.title || '', 30);
+  
+  // Efeito de scroll reveal
+  const { contentRef, visibleSections } = useScrollReveal(scrollRevealEnabled);
 
   useEffect(() => {
     if (params.slug) {
@@ -148,6 +192,30 @@ export default function BlogPostPage() {
       const text = encodeURIComponent(`${post.title} - ${window.location.href}`);
       window.open(`https://wa.me/?text=${text}`, '_blank');
     }
+  };
+
+  // Dividir conteúdo em seções para scroll reveal
+  const splitContentIntoSections = (content: string): string[] => {
+    // Dividir por parágrafos, headings, ou blocos de conteúdo
+    const sections = content.split(/(<\/?[a-z][a-z0-9]*[^>]*>)/gi);
+    const result: string[] = [];
+    let currentSection = '';
+    
+    for (let i = 0; i < sections.length; i++) {
+      currentSection += sections[i];
+      
+      // Se atingir um tamanho razoável ou encontrar um fechamento de tag importante
+      if (currentSection.length > 300 || (sections[i].match(/<\/[ph][1-6]>/i))) {
+        result.push(currentSection.trim());
+        currentSection = '';
+      }
+    }
+    
+    if (currentSection.trim()) {
+      result.push(currentSection.trim());
+    }
+    
+    return result.filter(s => s.length > 0);
   };
 
   if (loading) {
@@ -293,15 +361,39 @@ export default function BlogPostPage() {
             <MessageCircle size={18} />
             <span className="hidden sm:inline">WhatsApp</span>
           </button>
+          <button
+            onClick={() => setScrollRevealEnabled(!scrollRevealEnabled)}
+            className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+            title={scrollRevealEnabled ? "Mostrar todo o conteúdo" : "Ativar efeito de scroll"}
+          >
+            {scrollRevealEnabled ? <EyeOff size={18} /> : <Eye size={18} />}
+            <span className="hidden sm:inline">{scrollRevealEnabled ? "Ver Tudo" : "Scroll Reveal"}</span>
+          </button>
         </div>
 
         {/* Post Content */}
         <div className="prose prose-lg max-w-none bg-white p-8 rounded-lg shadow-sm overflow-visible">
           {post.content ? (
-            <div 
-              dangerouslySetInnerHTML={{ __html: post.content }} 
-              className="whitespace-pre-wrap break-words"
-            />
+            <div ref={contentRef} className="whitespace-pre-wrap break-words">
+              {scrollRevealEnabled ? (
+                // Modo scroll reveal - conteúdo dividido em seções
+                splitContentIntoSections(post.content).map((section, index) => (
+                  <div
+                    key={index}
+                    data-index={index}
+                    className={`scroll-section transition-all duration-700 ease-out ${
+                      visibleSections.has(index)
+                        ? 'opacity-100 translate-y-0'
+                        : 'opacity-0 translate-y-8'
+                    }`}
+                    dangerouslySetInnerHTML={{ __html: section }}
+                  />
+                ))
+              ) : (
+                // Modo normal - conteúdo completo
+                <div dangerouslySetInnerHTML={{ __html: post.content }} />
+              )}
+            </div>
           ) : (
             <div className="text-gray-500">Conteúdo não disponível</div>
           )}
