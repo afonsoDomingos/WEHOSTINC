@@ -47,6 +47,9 @@ function useScrollReveal(enabled: boolean = true) {
       return;
     }
 
+    // Mostrar primeira seção imediatamente
+    setVisibleSections([0]);
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -201,26 +204,34 @@ export default function BlogPostPage() {
 
   // Dividir conteúdo em seções para scroll reveal
   const splitContentIntoSections = (content: string): string[] => {
-    // Dividir por parágrafos, headings, ou blocos de conteúdo
-    const sections = content.split(/(<\/?[a-z][a-z0-9]*[^>]*>)/gi);
+    // Dividir por parágrafos para seções mais naturais
+    const paragraphs = content.split(/<\/p>|<br\s*\/?>|<\/h[1-6]>|<\/div>/i);
     const result: string[] = [];
     let currentSection = '';
     
-    for (let i = 0; i < sections.length; i++) {
-      currentSection += sections[i];
+    for (let i = 0; i < paragraphs.length; i++) {
+      const para = paragraphs[i].trim();
+      if (!para) continue;
       
-      // Se atingir um tamanho razoável ou encontrar um fechamento de tag importante
-      if (currentSection.length > 300 || (sections[i].match(/<\/[ph][1-6]>/i))) {
-        result.push(currentSection.trim());
+      currentSection += para;
+      
+      // Se atingir um tamanho razoável, criar nova seção
+      if (currentSection.length > 500) {
+        result.push(currentSection);
         currentSection = '';
       }
     }
     
     if (currentSection.trim()) {
-      result.push(currentSection.trim());
+      result.push(currentSection);
     }
     
-    return result.filter(s => s.length > 0);
+    // Se não conseguiu dividir bem, retorna o conteúdo completo como uma seção
+    if (result.length === 0 || result.length === 1 && result[0].length < 100) {
+      return [content];
+    }
+    
+    return result;
   };
 
   if (loading) {
