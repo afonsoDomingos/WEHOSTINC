@@ -19,6 +19,7 @@ export default function Home() {
   const [durationMonths, setDurationMonths] = useState<number>(1);
   const [blogPosts, setBlogPosts] = useState<any[]>([]);
   const [blogLoading, setBlogLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState('all');
 
   // Ticker animado pelos tipos de sites e seus preços
   const tickerTypes = websiteTypes.filter(t => t.basePrice < 100000);
@@ -42,7 +43,8 @@ export default function Home() {
       try {
         setBlogLoading(true);
         console.log('[Home] Buscando posts do blog...');
-        const response = await fetch('/api/blog/posts?status=published&limit=3');
+        const categoryParam = selectedCategory !== 'all' ? `&category=${selectedCategory}` : '';
+        const response = await fetch(`/api/blog/posts?status=published&limit=3${categoryParam}`);
         const data = await response.json();
         
         console.log('[Home] Resposta da API:', data);
@@ -61,7 +63,7 @@ export default function Home() {
     };
 
     fetchBlogPosts();
-  }, []);
+  }, [selectedCategory]);
 
   // Refs de animação de scroll do Hero (callback refs)
   const badgeRef = useScrollAnimation<HTMLDivElement>();
@@ -532,6 +534,30 @@ export default function Home() {
             <p className="text-sm sm:text-base text-gray-600 max-w-2xl mx-auto">
               Fique por dentro das últimas novidades sobre hospedagem, tecnologia e dicas para o seu negócio online.
             </p>
+          </div>
+
+          {/* Menu de Categorias */}
+          <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mb-8 sm:mb-10">
+            {[
+              { id: 'all', label: 'Todas' },
+              { id: 'news', label: 'Notícias' },
+              { id: 'tutorial', label: 'Tutoriais' },
+              { id: 'announcement', label: 'Anúncios' },
+              { id: 'update', label: 'Atualizações' },
+              { id: 'feature', label: 'Funcionalidades' }
+            ].map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setSelectedCategory(cat.id)}
+                className={`px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all duration-300 ${
+                  selectedCategory === cat.id
+                    ? 'bg-blue-600 text-white shadow-lg scale-105'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                {cat.label}
+              </button>
+            ))}
           </div>
 
           {blogLoading ? (
