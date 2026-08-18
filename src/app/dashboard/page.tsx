@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useSession, signOut } from 'next-auth/react';
 import { 
   Server, Mail, LayoutDashboard, Settings, LogOut, 
   Plus, Globe, Database, TrendingUp, Users, CheckCircle, Sparkles, ArrowRight, Link2, Loader2, ShoppingBag,
@@ -53,7 +52,6 @@ function CircularProgress({ percentage, colorClass, size = 64, strokeWidth = 6 }
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { data: session, status } = useSession();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSyncingCounts, setIsSyncingCounts] = useState(true);
@@ -67,97 +65,69 @@ export default function DashboardPage() {
   const [ramTotal, setRamTotal] = useState(2);
 
   useEffect(() => {
-    if (status === 'loading') return;
-    
-    if (status === 'unauthenticated' || !session?.user) {
+    const currentUser = auth.getCurrentUser();
+    if (!currentUser) {
       router.push('/login');
       return;
     }
-
-    // Criar objeto User compatível com o sistema existente
-    const currentUser: User = {
-      id: (session.user as any)?.id || session.user.email || '',
-      name: session.user.name || '',
-      email: session.user.email || '',
-      plan: 'none', // Será buscado do servidor
-      status: 'active',
-      role: 'user',
-      avatar: session.user.image || undefined,
-      createdAt: new Date().toISOString()
+    if (currentUser.role === 'admin' || currentUser.email.toLowerCase() === 'admin@wehosthere.com') {
+      router.push('/admin');
+      return;
+    }
+    setUser(currentUser);
+    
+    // Carregar contadores iniciais
+    const userEmail = currentUser.email;
+    const sites = dataManager.getSites(userEmail);
+    const emails = dataManager.getEmails(userEmail);
+    setSiteCount(sites.length);
+    setEmailCount(emails.length);
+    const usedStorage = sites.reduce((sum, s) => sum + (s.storage || 0), 0)
+      + emails.reduce((sum, e) => sum + (e.storage || 0), 0);
+    setStorageUsed(usedStorage);
+    const planLimits: Record<string, { storage: number; bandwidth: number; ram: number }> = {
+      basic: { storage: 10, bandwidth: 100, ram: 2 },
+      pro: { storage: 50, bandwidth: 500, ram: 8 },
+      enterprise: { storage: 200, bandwidth: 2000, ram: 16 }
     };
+    const limits = planLimits[currentUser.plan] || planLimits.basic;
+    setStorageTotal(limits.storage);
+    setBandwidthTotal(limits.bandwidth);
+    setRamTotal(limits.ram);
 
-    // Buscar dados completos do usuário do servidor
-    fetch(`${process.env.NEXTAUTH_URL || 'https://wehosthere.com'}/api/users`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.users && Array.isArray(data.users)) {
-          const serverUser = data.users.find((u: any) => u.email.toLowerCase() === currentUser.email.toLowerCase());
-          if (serverUser) {
-            currentUser.plan = serverUser.plan || 'none';
-            currentUser.status = serverUser.status || 'active';
-            currentUser.role = serverUser.role || 'user';
-            currentUser.dueDate = serverUser.dueDate;
-          }
-        }
-        setUser(currentUser);
-        
-        // Carregar contadores iniciais
-        const userEmail = currentUser.email;
-        const sites = dataManager.getSites(userEmail);
-        const emails = dataManager.getEmails(userEmail);
-        setSiteCount(sites.length);
-        setEmailCount(emails.length);
-        const usedStorage = sites.reduce((sum, s) => sum + (s.storage || 0), 0)
-          + emails.reduce((sum, e) => sum + (e.storage || 0), 0);
-        setStorageUsed(usedStorage);
-        const planLimits: Record<string, { storage: number; bandwidth: number; ram: number }> = {
-          basic: { storage: 10, bandwidth: 100, ram: 2 },
-          pro: { storage: 50, bandwidth: 500, ram: 8 },
-          enterprise: { storage: 200, bandwidth: 2000, ram: 16 }
-        };
-        const limits = planLimits[currentUser.plan] || planLimits.basic;
-        setStorageTotal(limits.storage);
-        setBandwidthTotal(limits.bandwidth);
-        setRamTotal(limits.ram);
+    const initialBw = Math.min(limits.bandwidth, Math.round((sites.length * 4.2 + emails.length * 0.5 + 1.2) * 10) / 10);
+    const initialRam = Math.min(limits.ram, Math.round((0.4 + sites.length * 0.3) * 10) / 10);
+    setBandwidthUsed(initialBw);
+    setRamUsed(initialRam);
+    setLoading(false);
 
-        const initialBw = Math.min(limits.bandwidth, Math.round((sites.length * 4.2 + emails.length * 0.5 + 1.2) * 10) / 10);
-        const initialRam = Math.min(limits.ram, Math.round((0.4 + sites.length * 0.3) * 10) / 10);
-        setBandwidthUsed(initialBw);
-        setRamUsed(initialRam);
-        setLoading(false);
-
-        // Sincronizar assincronamente os contadores via API MongoDB
-        Promise.all([
-          dataManager.fetchSitesAsync(userEmail),
-          dataManager.fetchEmailsAsync(userEmail)
-        ]).then(([fetchedSites, fetchedEmails]) => {
-          setSiteCount(fetchedSites.length);
-          setEmailCount(fetchedEmails.length);
-          const used = fetchedSites.reduce((sum, s) => sum + (s.storage || 0), 0)
-            + fetchedEmails.reduce((sum, e) => sum + (e.storage || 0), 0);
-          setStorageUsed(used);
-          const bw = Math.min(limits.bandwidth, Math.round((fetchedSites.length * 4.2 + fetchedEmails.length * 0.5 + 1.2) * 10) / 10);
-          const r = Math.min(limits.ram, Math.round((0.4 + fetchedSites.length * 0.3) * 10) / 10);
-          setBandwidthUsed(bw);
-          setRamUsed(r);
-          setIsSyncingCounts(false);
-        }).catch(() => {
-          setIsSyncingCounts(false);
-        });
-      })
-      .catch(err => {
-        console.error('Erro ao buscar usuário:', err);
-        setUser(currentUser);
-        setLoading(false);
-      });
-  }, [session, status, router]);
+    // Sincronizar assincronamente os contadores via API MongoDB
+    Promise.all([
+      dataManager.fetchSitesAsync(userEmail),
+      dataManager.fetchEmailsAsync(userEmail)
+    ]).then(([fetchedSites, fetchedEmails]) => {
+      setSiteCount(fetchedSites.length);
+      setEmailCount(fetchedEmails.length);
+      const used = fetchedSites.reduce((sum, s) => sum + (s.storage || 0), 0)
+        + fetchedEmails.reduce((sum, e) => sum + (e.storage || 0), 0);
+      setStorageUsed(used);
+      const bw = Math.min(limits.bandwidth, Math.round((fetchedSites.length * 4.2 + fetchedEmails.length * 0.5 + 1.2) * 10) / 10);
+      const r = Math.min(limits.ram, Math.round((0.4 + fetchedSites.length * 0.3) * 10) / 10);
+      setBandwidthUsed(bw);
+      setRamUsed(r);
+      setIsSyncingCounts(false);
+    }).catch(() => {
+      setIsSyncingCounts(false);
+    });
+  }, [router]);
 
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleLogout = () => {
     setIsLoggingOut(true);
     setTimeout(() => {
-      signOut({ callbackUrl: '/' });
+      auth.logout();
+      router.push('/');
     }, 400);
   };
 
