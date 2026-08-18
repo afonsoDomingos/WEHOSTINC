@@ -3,12 +3,11 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useSession, signOut } from 'next-auth/react';
 import { 
-  Settings as SettingsIcon, LayoutDashboard, Globe, Mail, Database, LogOut, Server,
   User as UserIcon, Lock, Bell, Shield, Key, Camera, Upload
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
+import { useAuth } from '@/lib/useAuth';
 import DashboardNav from '@/components/DashboardNav';
 import DashboardSidebar from '@/components/DashboardSidebar';
 import PageLoader from '@/components/PageLoader';
@@ -16,9 +15,7 @@ import ConfirmModal from '@/components/ConfirmModal';
 
 export default function SettingsPage() {
   const router = useRouter();
-  const { data: session, status } = useSession();
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, loading } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [currentPassword, setCurrentPassword] = useState('');
@@ -30,44 +27,11 @@ export default function SettingsPage() {
   const [avatarUploading, setAvatarUploading] = useState(false);
 
   useEffect(() => {
-    // Aguardar NextAuth carregar
-    if (status === 'loading') return;
-    
-    let currentUser: User | null = null;
-    
-    // Tentar NextAuth primeiro
-    if (status === 'authenticated' && session?.user) {
-      currentUser = {
-        id: (session.user as any)?.id || session.user.email || '',
-        name: session.user.name || '',
-        email: session.user.email || '',
-        plan: (session.user as any)?.plan || 'none',
-        status: (session.user as any)?.status || 'active',
-        role: (session.user as any)?.role || 'user',
-        avatar: session.user.image || undefined,
-        dueDate: (session.user as any)?.dueDate,
-        createdAt: (session.user as any)?.createdAt || new Date().toISOString()
-      };
+    if (user && !loading) {
+      setName(user.name);
+      setEmail(user.email);
     }
-    
-    // Fallback para sistema customizado (se NextAuth falhar ou não estiver autenticado)
-    if (!currentUser) {
-      currentUser = auth.getCurrentUser();
-    }
-    
-    if (!currentUser) {
-      router.push('/login');
-      return;
-    }
-    if (currentUser.role === 'admin' || currentUser.email.toLowerCase() === 'admin@wehosthere.com') {
-      router.push('/admin');
-      return;
-    }
-    setUser(currentUser);
-    setName(currentUser.name);
-    setEmail(currentUser.email);
-    setLoading(false);
-  }, [session, status, router]);
+  }, [user, loading]);
 
   const handleProfileUpdate = (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,7 +51,6 @@ export default function SettingsPage() {
         localStorage.setItem('wehosthere_auth', JSON.stringify(parsed));
       }
 
-      setUser({ ...user, name, email });
       showMessage('Perfil atualizado com sucesso!', 'success');
     }
   };
@@ -124,7 +87,6 @@ export default function SettingsPage() {
         if (data.url) {
           // Atualizar avatar no usuário
           auth.updateUserAvatar(user.id, data.url);
-          setUser({ ...user, avatar: data.url });
           showMessage('Foto de perfil atualizada com sucesso!', 'success');
         }
       } else {
