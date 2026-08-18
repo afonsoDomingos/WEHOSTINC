@@ -17,6 +17,8 @@ import NewsletterPopup from '@/components/NewsletterPopup';
 
 export default function Home() {
   const [durationMonths, setDurationMonths] = useState<number>(1);
+  const [blogPosts, setBlogPosts] = useState<any[]>([]);
+  const [blogLoading, setBlogLoading] = useState(true);
 
   // Ticker animado pelos tipos de sites e seus preços
   const tickerTypes = websiteTypes.filter(t => t.basePrice < 100000);
@@ -33,6 +35,27 @@ export default function Home() {
     }, 2500);
     return () => clearInterval(interval);
   }, [tickerTypes.length]);
+
+  // Buscar posts do blog
+  useEffect(() => {
+    const fetchBlogPosts = async () => {
+      try {
+        setBlogLoading(true);
+        const response = await fetch('/api/admin/blog/posts?status=published&limit=3');
+        const data = await response.json();
+        
+        if (data.success) {
+          setBlogPosts(data.posts);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar posts do blog:', error);
+      } finally {
+        setBlogLoading(false);
+      }
+    };
+
+    fetchBlogPosts();
+  }, []);
 
   // Refs de animação de scroll do Hero (callback refs)
   const badgeRef = useScrollAnimation<HTMLDivElement>();
@@ -489,6 +512,88 @@ export default function Home() {
             <p className="text-[10px] sm:text-xs text-gray-500 mt-2 sm:mt-3">
               Ciclo mensal ou anual • Suporte incluído
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Blog/News Section */}
+      <section className="py-10 sm:py-16 px-3 sm:px-6 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-6 sm:mb-10">
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-gray-900 mb-2 sm:mb-3">
+              Notícias e Atualizações
+            </h2>
+            <p className="text-sm sm:text-base text-gray-600 max-w-2xl mx-auto">
+              Fique por dentro das últimas novidades sobre hospedagem, tecnologia e dicas para o seu negócio online.
+            </p>
+          </div>
+
+          {blogLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            </div>
+          ) : blogPosts.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+              {blogPosts.map((post) => (
+                <Link 
+                  key={post.id} 
+                  href={`/blog/${post.slug}`}
+                  className="group bg-white rounded-xl sm:rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200 hover:border-blue-300"
+                >
+                  {post.coverImage && (
+                    <div className="relative h-48 sm:h-56 overflow-hidden">
+                      <img
+                        src={post.coverImage}
+                        alt={post.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                      <div className="absolute top-3 left-3">
+                        <span className="bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full">
+                          {post.category}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  <div className="p-4 sm:p-6">
+                    <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                      {post.title}
+                    </h3>
+                    <p className="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4 line-clamp-3">
+                      {post.excerpt}
+                    </p>
+                    <div className="flex items-center justify-between text-xs sm:text-sm text-gray-500">
+                      <div className="flex items-center space-x-2">
+                        <Calendar className="h-4 w-4" />
+                        <span>
+                          {new Date(post.publishedAt).toLocaleDateString('pt-PT', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric'
+                          })}
+                        </span>
+                      </div>
+                      <span className="text-blue-600 font-semibold group-hover:underline">
+                        Ler mais →
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-gray-500">Nenhuma notícia publicada ainda.</p>
+            </div>
+          )}
+
+          <div className="text-center mt-8 sm:mt-10">
+            <Link
+              href="/blog"
+              className="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm px-6 sm:px-8 py-3 sm:py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95"
+            >
+              <span>Ver Todas as Notícias</span>
+              <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
+            </Link>
           </div>
         </div>
       </section>
