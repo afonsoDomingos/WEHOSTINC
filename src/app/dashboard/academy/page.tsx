@@ -62,11 +62,10 @@ export default function DashboardAcademyPage() {
     if (!currentUser) return;
 
     try {
-      await Promise.all([
-        dataManager.fetchCoursesAsync(),
-        dataManager.fetchModulesAsync(),
-        dataManager.fetchLessonsAsync()
-      ]);
+      // Carregar dados sequencialmente para evitar sobrecarga
+      await dataManager.fetchCoursesAsync();
+      await dataManager.fetchModulesAsync();
+      await dataManager.fetchLessonsAsync();
     } catch (e) {
       console.error('Erro ao buscar dados do servidor, usando dados locais:', e);
     }
