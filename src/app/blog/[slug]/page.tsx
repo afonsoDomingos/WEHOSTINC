@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Calendar, User, Tag, ArrowLeft, Share2, Eye } from 'lucide-react';
+import { Calendar, User, Tag, ArrowLeft, Share2, Eye, Facebook, Twitter, Linkedin, MessageCircle } from 'lucide-react';
 
 interface BlogPost {
   id: string;
@@ -87,6 +87,37 @@ export default function BlogPostPage() {
     if (typeof window !== 'undefined' && post) {
       navigator.clipboard.writeText(window.location.href);
       alert('Link copiado para a área de transferência!');
+    }
+  };
+
+  const shareToFacebook = () => {
+    if (typeof window !== 'undefined' && post) {
+      const url = encodeURIComponent(window.location.href);
+      window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+    }
+  };
+
+  const shareToTwitter = () => {
+    if (typeof window !== 'undefined' && post) {
+      const url = encodeURIComponent(window.location.href);
+      const text = encodeURIComponent(post.title);
+      window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank');
+    }
+  };
+
+  const shareToLinkedIn = () => {
+    if (typeof window !== 'undefined' && post) {
+      const url = encodeURIComponent(window.location.href);
+      const title = encodeURIComponent(post.title);
+      window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}&title=${title}`, '_blank');
+    }
+  };
+
+  const shareToWhatsApp = () => {
+    if (typeof window !== 'undefined' && post) {
+      const url = encodeURIComponent(window.location.href);
+      const text = encodeURIComponent(`${post.title} - ${window.location.href}`);
+      window.open(`https://wa.me/?text=${text}`, '_blank');
     }
   };
 
@@ -188,14 +219,47 @@ export default function BlogPostPage() {
           )}
         </div>
 
-        {/* Share Button */}
-        <div className="mb-8 flex justify-end">
+        {/* Share Buttons */}
+        <div className="mb-8 flex flex-wrap items-center justify-end gap-3">
           <button
             onClick={sharePost}
             className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+            title="Copiar link"
           >
             <Share2 size={18} />
-            Compartilhar
+            <span className="hidden sm:inline">Copiar Link</span>
+          </button>
+          <button
+            onClick={shareToFacebook}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+            title="Compartilhar no Facebook"
+          >
+            <Facebook size={18} />
+            <span className="hidden sm:inline">Facebook</span>
+          </button>
+          <button
+            onClick={shareToTwitter}
+            className="flex items-center gap-2 px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-lg transition-colors"
+            title="Compartilhar no Twitter"
+          >
+            <Twitter size={18} />
+            <span className="hidden sm:inline">Twitter</span>
+          </button>
+          <button
+            onClick={shareToLinkedIn}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-lg transition-colors"
+            title="Compartilhar no LinkedIn"
+          >
+            <Linkedin size={18} />
+            <span className="hidden sm:inline">LinkedIn</span>
+          </button>
+          <button
+            onClick={shareToWhatsApp}
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+            title="Compartilhar no WhatsApp"
+          >
+            <MessageCircle size={18} />
+            <span className="hidden sm:inline">WhatsApp</span>
           </button>
         </div>
 
