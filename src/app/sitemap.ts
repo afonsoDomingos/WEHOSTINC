@@ -3,27 +3,13 @@ import { SITE_URL } from '@/lib/siteConfig';
 
 const BASE_URL = SITE_URL;
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
   const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
   const oneMonthAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
   const threeMonthsAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
 
-  // Buscar posts publicados do blog via API
-  let blogPosts: any[] = [];
-  try {
-    const response = await fetch(`${BASE_URL}/api/blog/posts?status=published&limit=100`, {
-      cache: 'no-store'
-    });
-    const data = await response.json();
-    if (data.success) {
-      blogPosts = data.posts;
-    }
-  } catch (error) {
-    console.error('Erro ao buscar posts para sitemap:', error);
-  }
-
-  const staticUrls = [
+  return [
     // Página principal - mais importante
     {
       url: BASE_URL,
@@ -104,19 +90,4 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     },
   ];
-
-  // Adicionar posts individuais do blog ao sitemap
-  const blogPostUrls: Array<{
-    url: string;
-    lastModified: Date;
-    changeFrequency: 'weekly';
-    priority: number;
-  }> = blogPosts.map((post) => ({
-    url: `${BASE_URL}/blog/${post.slug}`,
-    lastModified: new Date(post.publishedAt || post.createdAt),
-    changeFrequency: 'weekly',
-    priority: 0.7,
-  }));
-
-  return [...staticUrls, ...blogPostUrls];
 }
