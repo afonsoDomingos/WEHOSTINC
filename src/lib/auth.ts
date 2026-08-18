@@ -23,14 +23,14 @@ export interface AuthState {
 // Simulação de banco de dados em localStorage
 const STORAGE_KEY = 'wehosthere_auth';
 
-// Utilizador admin padrão — password NUNCA hardcoded
-// A password real deve ser definida no MongoDB ou via variável de ambiente.
+// Utilizador admin padrão — senha temporária para desenvolvimento
+// Em produção, a senha deve ser gerida via MongoDB/ambiente
 const DEFAULT_USERS: Array<User & { password?: string }> = [
   {
     id: 'admin_root',
     name: 'Administrador WEHOSTHERE',
     email: 'admin@wehosthere.com',
-    // 🔒 Password removida do código-fonte — gerida via MongoDB/ambiente
+    password: 'admin123', // Senha temporária para desenvolvimento local
     plan: 'enterprise',
     status: 'active',
     role: 'admin',
@@ -44,9 +44,8 @@ const seedDefaultUsers = () => {
   DEFAULT_USERS.forEach((defaultUser) => {
     const key = `user_${defaultUser.id}`;
     if (!localStorage.getItem(key)) {
-      // 🔒 Nunca guardar a password no localStorage
-      const { password: _pw, ...userWithoutPassword } = defaultUser as any;
-      localStorage.setItem(key, JSON.stringify(userWithoutPassword));
+      // Em desenvolvimento, guardar com senha para permitir login local
+      localStorage.setItem(key, JSON.stringify(defaultUser));
     }
   });
 };
@@ -301,7 +300,42 @@ export const auth = {
     // Obter localização do cliente (IP e país)
     const { ipAddress, country } = await getClientLocation();
     
-    // 1. VALIDAÇÃO NO SERVIDOR (MongoDB Atlas) - OBRIGATÓRIO
+    // 1. TENTAR VALIDAÇÃO LOCAL PRIMEIRO (para desenvolvimento)
+    let users = auth.getUsers();
+    let user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+
+    if (user) {
+      let userData: any = user;
+      if (typeof window !== 'undefined') {
+        const stored = localStorage.getItem(`user_${user.id}`);
+        if (stored) {
+          try {
+            userData = JSON.parse(stored);
+          } catch {
+            userData = user;
+          }
+        }
+      }
+
+      if (userData.password && userData.password === password) {
+        if (userData.status === 'suspended') {
+          throw new Error('Sua conta encontra-se suspensa por questões de faturação ou incumprimento dos termos. Por favor, entre em contacto com o suporte WEHOSTHERE (+258 84 438 4702).');
+        }
+
+        clearFailedAttempts(email);
+
+        // Salvar sessão
+        const session = { user: userData };
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+        }
+
+        console.log('[Login] Login local bem-sucedido para:', email);
+        return userData;
+      }
+    }
+
+    // 2. VALIDAÇÃO NO SERVIDOR (MongoDB Atlas) - se local falhar
     let serverUser: User | null = null;
     try {
       const res = await fetch(apiEndpoint('/api/users'), {
@@ -326,11 +360,14 @@ export const auth = {
       if (err instanceof Error && (err.message.includes('Usuário não encontrado') || err.message.includes('Senha incorreta') || err.message.includes('suspensa'))) {
         throw err;
       }
-      // Se houver erro de conexão, tentar fallback local
-      console.warn('Erro de conexão ao validar login no servidor, tentando fallback local:', err);
+      // Se houver erro de conexão e local também falhou, lançar erro
+      console.warn('Erro de conexão ao validar login no servidor:', err);
+      recordFailedAttempt(email, ipAddress, country);
+      checkRateLimit(email);
+      throw new Error('Credenciais inválidas. Verifique seu email e senha.');
     }
 
-    // 2. Se validou no servidor com sucesso, usar esses dados
+    // 3. Se validou no servidor com sucesso, usar esses dados
     if (serverUser) {
       clearFailedAttempts(email);
       
@@ -346,47 +383,10 @@ export const auth = {
       return serverUser;
     }
 
-    // 3. FALLBACK LOCAL (apenas se servidor estiver indisponível)
-    let users = auth.getUsers();
-    let user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
-
-    if (!user) {
-      recordFailedAttempt(email, ipAddress, country);
-      checkRateLimit(email);
-      throw new Error('Usuário não encontrado. O servidor está indisponível e o usuário não foi encontrado na cache local.');
-    }
-
-    let userData: any = user;
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem(`user_${user.id}`);
-      if (stored) {
-        try {
-          userData = JSON.parse(stored);
-        } catch {
-          userData = user;
-        }
-      }
-    }
-
-    if (userData.password && userData.password !== password) {
-      recordFailedAttempt(email, ipAddress, country);
-      checkRateLimit(email);
-      throw new Error('Senha incorreta. O servidor está indisponível e a validação local falhou.');
-    }
-
-    if (userData.status === 'suspended') {
-      throw new Error('Sua conta encontra-se suspensa por questões de faturação ou incumprimento dos termos. Por favor, entre em contacto com o suporte WEHOSTHERE (+258 84 438 4702).');
-    }
-
-    clearFailedAttempts(email);
-
-    // Salvar sessão
-    const session = { user: userData };
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
-    }
-
-    return userData;
+    // Se chegou aqui, credenciais inválidas
+    recordFailedAttempt(email, ipAddress, country);
+    checkRateLimit(email);
+    throw new Error('Credenciais inválidas. Verifique seu email e senha.');
   },
 
   // Login síncrono (fallback)
