@@ -200,8 +200,11 @@ export default function BlogPostPage() {
         </div>
 
         {/* Post Content */}
-        <div className="prose prose-lg max-w-none bg-white p-8 rounded-lg shadow-sm">
-          <div dangerouslySetInnerHTML={{ __html: post.content }} />
+        <div className="prose prose-lg max-w-none bg-white p-8 rounded-lg shadow-sm overflow-visible">
+          <div 
+            dangerouslySetInnerHTML={{ __html: post.content }} 
+            className="whitespace-pre-wrap break-words"
+          />
         </div>
 
         {/* Excerpt */}
