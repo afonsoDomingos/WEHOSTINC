@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { Server, ArrowLeft, ArrowRight, CheckCircle2, Clock, Search, SlidersHorizontal, X } from 'lucide-react';
 import { websiteTypes, WebsiteType } from '@/lib/data';
@@ -47,6 +48,7 @@ function SiteQuoteContent() {
   const searchParams = useSearchParams();
   const domainParam = searchParams.get('domain');
   const domainPriceParam = searchParams.get('domainPrice');
+  const { data: session, status } = useSession();
 
   const [selected, setSelected] = useState<WebsiteType | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -57,7 +59,31 @@ function SiteQuoteContent() {
 
   // Check if user is logged in
   useEffect(() => {
-    const currentUser = auth.getCurrentUser();
+    // Aguardar NextAuth carregar
+    if (status === 'loading') return;
+    
+    let currentUser: User | null = null;
+    
+    // Tentar NextAuth primeiro
+    if (status === 'authenticated' && session?.user) {
+      currentUser = {
+        id: (session.user as any)?.id || session.user.email || '',
+        name: session.user.name || '',
+        email: session.user.email || '',
+        plan: (session.user as any)?.plan || 'none',
+        status: (session.user as any)?.status || 'active',
+        role: (session.user as any)?.role || 'user',
+        avatar: session.user.image || undefined,
+        dueDate: (session.user as any)?.dueDate,
+        createdAt: (session.user as any)?.createdAt || new Date().toISOString()
+      };
+    }
+    
+    // Fallback para sistema customizado (se NextAuth falhar ou não estiver autenticado)
+    if (!currentUser) {
+      currentUser = auth.getCurrentUser();
+    }
+    
     if (currentUser) {
       setUser(currentUser);
       // Only redirect admin users - regular users can access the quote page
@@ -68,7 +94,7 @@ function SiteQuoteContent() {
       // Redirect to login if not authenticated
       router.push('/login');
     }
-  }, [router]);
+  }, [router, session, status]);
 
   const handleLogout = () => {
     auth.logout();
