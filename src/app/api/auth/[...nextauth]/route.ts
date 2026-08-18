@@ -105,6 +105,14 @@ export const GET = NextAuth({
         if (existingUser) {
           console.log('[Google OAuth] Usuário encontrado:', { email: user.email, status: existingUser.status, plan: existingUser.plan });
           
+          // Propagar dados do usuário para o objeto user
+          (user as any).id = existingUser.id;
+          (user as any).role = existingUser.role || 'user';
+          (user as any).plan = existingUser.plan || 'none';
+          (user as any).status = existingUser.status || 'active';
+          (user as any).dueDate = existingUser.dueDate;
+          (user as any).createdAt = existingUser.createdAt;
+          
           // Se o usuário já estiver ativo, permitir login diretamente
           if (existingUser.status === 'active') {
             console.log('[Google OAuth] Login permitido para utilizador ativo:', user.email);
@@ -161,6 +169,13 @@ export const GET = NextAuth({
           console.error('[Google OAuth] Erro ao enviar email de boas-vindas:', err);
         });
 
+        // Propagar dados do novo usuário para o objeto user
+        (user as any).id = newUser.id;
+        (user as any).role = newUser.role;
+        (user as any).plan = newUser.plan;
+        (user as any).status = newUser.status;
+        (user as any).createdAt = newUser.createdAt;
+        
         // Conta criada mas precisa de confirmação — permitir login mas marcar para redirecionamento
         (user as any).needsConfirmation = true;
         return true;
