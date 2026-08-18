@@ -192,6 +192,12 @@ export const GET = NextAuth({
         session.user.email = token.email;
         session.user.name = token.name;
         session.user.image = token.picture;
+        // Propagar campos adicionais do token para a sessão
+        session.user.role = token.role || 'user';
+        session.user.plan = token.plan || 'none';
+        session.user.status = token.status || 'active';
+        session.user.dueDate = token.dueDate;
+        session.user.createdAt = token.createdAt;
       }
       console.log('[NextAuth Session] Session final:', session);
       
