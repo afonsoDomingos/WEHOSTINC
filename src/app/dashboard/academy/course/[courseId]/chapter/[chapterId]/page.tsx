@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { ArrowLeft, BookOpen, ChevronLeft, ChevronRight, CheckCircle, Menu, X, Video, FileText, Clock, Target, Award } from 'lucide-react';
-import { auth } from '@/lib/auth';
+import { auth, User } from '@/lib/auth';
 import { dataManager, Course, Module, Lesson, CourseProgress } from '@/lib/data';
 import BrandLogo from '@/components/BrandLogo';
 import PageLoader from '@/components/PageLoader';
@@ -14,6 +15,7 @@ export default function ChapterViewPage() {
   const params = useParams();
   const courseId = params.courseId as string;
   const chapterId = params.chapterId as string;
+  const { data: session, status } = useSession();
 
   const [course, setCourse] = useState<Course | null>(null);
   const [modules, setModules] = useState<Module[]>([]);
@@ -26,9 +28,8 @@ export default function ChapterViewPage() {
   const [showCelebration, setShowCelebration] = useState(false);
   const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' | 'info' | 'warning' }>({ show: false, message: '', type: 'success' });
 
-  const loadCourseData = useCallback(async () => {
-    const user = auth.getCurrentUser();
-    if (!user) {
+  const loadCourseData = useCallback(async (currentUser: User) => {
+    if (!currentUser) {
       console.error('[ChapterView] Usuário não autenticado');
       return;
     }
@@ -64,12 +65,12 @@ export default function ChapterViewPage() {
     
     // Fetch progress from server
     try {
-      const serverProgress = await dataManager.fetchCourseProgressAsync(user.email, courseId);
+      const serverProgress = await dataManager.fetchCourseProgressAsync(currentUser.email, courseId);
       console.log('[ChapterView] Progresso do servidor:', serverProgress);
       setProgress(serverProgress);
     } catch (e) {
       console.error('[ChapterView] Erro ao buscar progresso, usando local:', e);
-      const localProgress = dataManager.getCourseProgress(user.email, courseId);
+      const localProgress = dataManager.getCourseProgress(currentUser.email, courseId);
       setProgress(localProgress);
     }
 
@@ -77,13 +78,41 @@ export default function ChapterViewPage() {
   }, [courseId, chapterId, router]);
 
   useEffect(() => {
-    const user = auth.getCurrentUser();
-    if (!user) {
+    // Aguardar NextAuth carregar
+    if (status === 'loading') return;
+    
+    let currentUser: User | null = null;
+    
+    // Tentar NextAuth primeiro
+    if (status === 'authenticated' && session?.user) {
+      currentUser = {
+        id: (session.user as any)?.id || session.user.email || '',
+        name: session.user.name || '',
+        email: session.user.email || '',
+        plan: (session.user as any)?.plan || 'none',
+        status: (session.user as any)?.status || 'active',
+        role: (session.user as any)?.role || 'user',
+        avatar: session.user.image || undefined,
+        dueDate: (session.user as any)?.dueDate,
+        createdAt: (session.user as any)?.createdAt || new Date().toISOString()
+      };
+    }
+    
+    // Fallback para sistema customizado (se NextAuth falhar ou não estiver autenticado)
+    if (!currentUser) {
+      currentUser = auth.getCurrentUser();
+    }
+    
+    if (!currentUser) {
       router.push('/login');
       return;
     }
-    loadCourseData();
-  }, [courseId, router, loadCourseData]);
+    if (currentUser.role === 'admin' || currentUser.email.toLowerCase() === 'admin@wehosthere.com') {
+      router.push('/admin');
+      return;
+    }
+    loadCourseData(currentUser);
+  }, [courseId, router, loadCourseData, session, status]);
 
   const getCurrentChapter = () => {
     const chapterIndex = modules.findIndex(m => m.id === currentChapterId);

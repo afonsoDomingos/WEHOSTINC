@@ -16,6 +16,7 @@ import ConfirmModal from '@/components/ConfirmModal';
 
 export default function SettingsPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState('');
@@ -29,7 +30,31 @@ export default function SettingsPage() {
   const [avatarUploading, setAvatarUploading] = useState(false);
 
   useEffect(() => {
-    const currentUser = auth.getCurrentUser();
+    // Aguardar NextAuth carregar
+    if (status === 'loading') return;
+    
+    let currentUser: User | null = null;
+    
+    // Tentar NextAuth primeiro
+    if (status === 'authenticated' && session?.user) {
+      currentUser = {
+        id: (session.user as any)?.id || session.user.email || '',
+        name: session.user.name || '',
+        email: session.user.email || '',
+        plan: (session.user as any)?.plan || 'none',
+        status: (session.user as any)?.status || 'active',
+        role: (session.user as any)?.role || 'user',
+        avatar: session.user.image || undefined,
+        dueDate: (session.user as any)?.dueDate,
+        createdAt: (session.user as any)?.createdAt || new Date().toISOString()
+      };
+    }
+    
+    // Fallback para sistema customizado (se NextAuth falhar ou não estiver autenticado)
+    if (!currentUser) {
+      currentUser = auth.getCurrentUser();
+    }
+    
     if (!currentUser) {
       router.push('/login');
       return;
@@ -42,7 +67,7 @@ export default function SettingsPage() {
     setName(currentUser.name);
     setEmail(currentUser.email);
     setLoading(false);
-  }, [router]);
+  }, [session, status, router]);
 
   const handleProfileUpdate = (e: React.FormEvent) => {
     e.preventDefault();

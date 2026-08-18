@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { BookOpen, Play, Lock, CheckCircle, Clock, DollarSign, Eye, Unlock, ChevronRight, ArrowRight } from 'lucide-react';
-import { auth } from '@/lib/auth';
+import { auth, User } from '@/lib/auth';
 import { dataManager, Course, Module, Lesson, CourseProgress, CourseEnrollment } from '@/lib/data';
 import BrandLogo from '@/components/BrandLogo';
 import PageLoader from '@/components/PageLoader';
@@ -11,6 +12,7 @@ import Toast from '@/components/Toast';
 
 export default function DashboardAcademyPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [courses, setCourses] = useState<Course[]>([]);
   const [modules, setModules] = useState<Module[]>([]);
   const [enrollments, setEnrollments] = useState<CourseEnrollment[]>([]);
@@ -19,17 +21,44 @@ export default function DashboardAcademyPage() {
   const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' | 'info' | 'warning' }>({ show: false, message: '', type: 'success' });
 
   useEffect(() => {
-    const user = auth.getCurrentUser();
-    if (!user) {
+    // Aguardar NextAuth carregar
+    if (status === 'loading') return;
+    
+    let currentUser: User | null = null;
+    
+    // Tentar NextAuth primeiro
+    if (status === 'authenticated' && session?.user) {
+      currentUser = {
+        id: (session.user as any)?.id || session.user.email || '',
+        name: session.user.name || '',
+        email: session.user.email || '',
+        plan: (session.user as any)?.plan || 'none',
+        status: (session.user as any)?.status || 'active',
+        role: (session.user as any)?.role || 'user',
+        avatar: session.user.image || undefined,
+        dueDate: (session.user as any)?.dueDate,
+        createdAt: (session.user as any)?.createdAt || new Date().toISOString()
+      };
+    }
+    
+    // Fallback para sistema customizado (se NextAuth falhar ou não estiver autenticado)
+    if (!currentUser) {
+      currentUser = auth.getCurrentUser();
+    }
+    
+    if (!currentUser) {
       router.push('/login');
       return;
     }
-    loadData();
-  }, [router]);
+    if (currentUser.role === 'admin' || currentUser.email.toLowerCase() === 'admin@wehosthere.com') {
+      router.push('/admin');
+      return;
+    }
+    loadData(currentUser);
+  }, [session, status, router]);
 
-  const loadData = async () => {
-    const user = auth.getCurrentUser();
-    if (!user) return;
+  const loadData = async (currentUser: User) => {
+    if (!currentUser) return;
 
     try {
       await Promise.all([
