@@ -33,7 +33,7 @@ function useTypingEffect(text: string, speed: number = 50) {
 
 // Hook de efeito de scroll reveal
 function useScrollReveal(enabled: boolean = true) {
-  const [visibleSections, setVisibleSections] = useState<Set<number>>(new Set());
+  const [visibleSections, setVisibleSections] = useState<number[]>([]);
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -42,7 +42,7 @@ function useScrollReveal(enabled: boolean = true) {
       const sections = contentRef.current?.querySelectorAll('.scroll-section');
       if (sections) {
         const allIndices = Array.from({ length: sections.length }, (_, i) => i);
-        setVisibleSections(new Set(allIndices));
+        setVisibleSections(allIndices);
       }
       return;
     }
@@ -52,7 +52,12 @@ function useScrollReveal(enabled: boolean = true) {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             const index = parseInt(entry.target.getAttribute('data-index') || '0');
-            setVisibleSections((prev) => new Set([...prev, index]));
+            setVisibleSections((prev) => {
+              if (!prev.includes(index)) {
+                return [...prev, index];
+              }
+              return prev;
+            });
           }
         });
       },
@@ -382,7 +387,7 @@ export default function BlogPostPage() {
                     key={index}
                     data-index={index}
                     className={`scroll-section transition-all duration-700 ease-out ${
-                      visibleSections.has(index)
+                      visibleSections.includes(index)
                         ? 'opacity-100 translate-y-0'
                         : 'opacity-0 translate-y-8'
                     }`}

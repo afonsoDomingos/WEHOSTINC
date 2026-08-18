@@ -96,7 +96,7 @@ export default function DomainsPage() {
     }, 30000);
 
     return () => clearInterval(interval);
-  }, [router]);
+  }, [router, session, status]);
 
   const handleLogout = () => { auth.logout(); router.push('/'); };
 
