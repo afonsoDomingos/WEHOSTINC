@@ -144,10 +144,7 @@ export default function ScrollUpCards() {
                 return false;
               }
             }
-            // Skip PWA card if not installable
-            if (card.id === 'pwa' && !isInstallable) {
-              return false;
-            }
+            // PWA card always shows (with instructions if not installable)
             return !dismissedCards.includes(card.id) && index >= currentCardIndex;
           });
           
@@ -164,7 +161,7 @@ export default function ScrollUpCards() {
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [currentCardIndex, isInstallable, isSupported, subscription, permission]);
+  }, [currentCardIndex, isSupported, subscription, permission]);
 
   const handleClose = () => {
     const currentCard = CARDS[currentCardIndex];
@@ -196,9 +193,27 @@ export default function ScrollUpCards() {
       window.open(currentCard.actionUrl, '_blank');
       handleClose();
     } else if (currentCard.actionType === 'pwa') {
-      const success = await promptInstall();
-      if (success) {
-        handleClose();
+      if (isInstallable) {
+        const success = await promptInstall();
+        if (success) {
+          handleClose();
+        }
+      } else {
+        // Mostrar instruções manuais se prompt nativo não disponível
+        const userAgent = navigator.userAgent.toLowerCase();
+        let instructions = '';
+        
+        if (userAgent.includes('chrome') || userAgent.includes('edge')) {
+          instructions = 'Para instalar: Clique no menu (⋮) no canto superior direito → "Instalar WEHOSTHERE" ou "Instalar aplicativo"';
+        } else if (userAgent.includes('safari') && !userAgent.includes('chrome')) {
+          instructions = 'Para instalar: Clique no botão "Compartilhar" (⎙) → "Adicionar ao Ecrã Inicial"';
+        } else if (userAgent.includes('firefox')) {
+          instructions = 'Para instalar: Clique no menu (⋮) → "Instalar" ou "Adicionar à página inicial"';
+        } else {
+          instructions = 'Para instalar: Procure a opção "Instalar" no menu do seu navegador';
+        }
+        
+        alert(instructions);
       }
     } else if (currentCard.actionType === 'push') {
       const success = await requestPermission();
@@ -327,26 +342,10 @@ export default function ScrollUpCards() {
           <div className="mt-3 sm:mt-4">
             <button
               onClick={handleAction}
-              disabled={
-                (currentCard.actionType === 'pwa' && !isInstallable) ||
-                (currentCard.actionType === 'push' && (!isSupported || !!subscription || permission === 'granted'))
-              }
-              className={`w-full sm:w-auto px-3 sm:px-4 py-2 ${
-                (currentCard.actionType === 'pwa' && !isInstallable) ||
-                (currentCard.actionType === 'push' && (!isSupported || !!subscription || permission === 'granted'))
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-purple-600 hover:bg-purple-700'
-              } text-white font-semibold rounded-lg transition flex items-center justify-center space-x-1.5 sm:space-x-2 disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm whitespace-nowrap`}
+              className="w-full sm:w-auto px-3 sm:px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition flex items-center justify-center space-x-1.5 sm:space-x-2 text-xs sm:text-sm whitespace-nowrap"
             >
-              {(currentCard.actionType === 'pwa' && !isInstallable) ||
-               (currentCard.actionType === 'push' && (!isSupported || !!subscription || permission === 'granted')) ? (
-                <span>Não disponível</span>
-              ) : (
-                <>
-                  <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                  <span>{currentCard.buttonText}</span>
-                </>
-              )}
+              <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span>{currentCard.buttonText}</span>
             </button>
           </div>
         )}
