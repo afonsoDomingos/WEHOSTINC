@@ -93,6 +93,7 @@ import { LanguageProvider } from "@/context/LanguageContext";
 import OfflineDetector from "@/components/OfflineDetector";
 import MaintenanceGate from "@/components/MaintenanceGate";
 import Providers from "@/components/Providers";
+import ScrollUpCards from "@/components/ScrollUpCards";
 
 export default function RootLayout({
   children,
@@ -138,6 +139,7 @@ export default function RootLayout({
             <ScrollToTop />
             <AnalyticsTracker />
             <SocialProofToast />
+            <ScrollUpCards />
           </LanguageProvider>
         </Providers>
       </body>
