@@ -13,7 +13,7 @@ import Link from 'next/link';
 
 export default function AdminSettingsPage() {
   const router = useRouter();
-  const { user, loading } = useAuth();
+  const { user, loading } = useAuth({ redirectToAdmin: false, redirectToLogin: true });
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
   
@@ -109,6 +109,12 @@ export default function AdminSettingsPage() {
   }
 
   if (!user) return null;
+
+  // Verificar se é admin
+  if (user.role !== 'admin' && user.email.toLowerCase() !== 'admin@wehosthere.com') {
+    router.push('/dashboard');
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
