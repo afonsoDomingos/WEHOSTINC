@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react';
 import { 
   Bell, CheckCircle2, Archive, Trash2, RefreshCw, 
   ShoppingBag, RefreshCw as Renewal, ArrowUp, 
-  AlertCircle, DollarSign, Filter, X
+  AlertCircle, DollarSign, Filter, X, BellOff
 } from 'lucide-react';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
 
 interface SalesNotification {
   _id: string;
@@ -34,6 +35,14 @@ export default function SalesNotificationsPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'unread' | 'read'>('unread');
   const [unreadCount, setUnreadCount] = useState(0);
+  
+  const {
+    permission,
+    subscription,
+    requestPermission,
+    unsubscribe,
+    isSupported
+  } = usePushNotifications();
 
   useEffect(() => {
     fetchNotifications();
@@ -181,6 +190,28 @@ export default function SalesNotificationsPage() {
           </p>
         </div>
         <div className="flex items-center space-x-3">
+          {isSupported && (
+            <button
+              onClick={subscription ? unsubscribe : requestPermission}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition ${
+                subscription 
+                  ? 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200' 
+                  : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
+              }`}
+            >
+              {subscription ? (
+                <>
+                  <BellOff className="h-4 w-4" />
+                  <span>Desativar Push</span>
+                </>
+              ) : (
+                <>
+                  <Bell className="h-4 w-4" />
+                  <span>Ativar Push</span>
+                </>
+              )}
+            </button>
+          )}
           <button
             onClick={fetchNotifications}
             className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"

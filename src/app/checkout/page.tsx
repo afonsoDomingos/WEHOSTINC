@@ -282,7 +282,7 @@ function CheckoutContent() {
                 customerEmail: email,
                 paymentMethod: paymentMethod
               },
-              channels: { email: true, push: false, sms: false }
+              channels: { email: true, push: true, sms: false }
             })
           });
         }

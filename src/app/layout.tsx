@@ -113,6 +113,21 @@ export default function RootLayout({
             gtag('config', 'G-YR0M8T8ZBF');
           `}
         </Script>
+        <Script id="service-worker" strategy="afterInteractive">
+          {`
+            if ('serviceWorker' in navigator) {
+              window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                  .then((registration) => {
+                    console.log('Service Worker registrado com sucesso:', registration);
+                  })
+                  .catch((error) => {
+                    console.log('Erro ao registrar Service Worker:', error);
+                  });
+              });
+            }
+          `}
+        </Script>
         <Providers>
           <LanguageProvider>
             <MaintenanceGate>

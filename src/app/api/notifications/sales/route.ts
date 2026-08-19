@@ -81,10 +81,35 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Enviar notificação push se habilitado (implementação futura)
+    // Enviar notificação push se habilitado
     if (channels.push) {
-      // TODO: Implementar push notifications
-      notification.sentAt.push = new Date();
+      try {
+        const pushResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/push/send`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId,
+            title: title,
+            message: message,
+            data: {
+              orderId,
+              orderNumber,
+              type,
+              amount,
+              currency,
+              url: '/dashboard/notifications'
+            },
+            type
+          })
+        });
+
+        if (pushResponse.ok) {
+          notification.sentAt.push = new Date();
+          console.log(`[Sales Notification] Push notification sent for order ${orderNumber}`);
+        }
+      } catch (pushErr) {
+        console.error('[Sales Notification] Error sending push notification:', pushErr);
+      }
     }
 
     // Enviar SMS se habilitado (implementação futura)
