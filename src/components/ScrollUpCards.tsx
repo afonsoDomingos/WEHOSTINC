@@ -156,7 +156,6 @@ export default function ScrollUpCards() {
       title: 'Sistemas prontos para aluguer',
       description: 'E-commerce, ERP, CRM e muito mais',
       actionText: 'Ver Sistemas',
-      actionUrl: '/dashboard/systems',
       actionType: 'systems',
       bgColor: 'bg-cyan-50',
       borderColor: 'border-cyan-300',
@@ -198,7 +197,7 @@ export default function ScrollUpCards() {
       title: 'Sistemas Prontos',
       description: 'Veja os preços dos nossos sistemas para aluguer',
       actionText: 'Ver Preços',
-      actionUrl: '/dashboard/systems',
+      actionUrl: '/systems',
       actionType: 'link',
       bgColor: 'bg-amber-50',
       borderColor: 'border-amber-300',
@@ -422,8 +421,15 @@ export default function ScrollUpCards() {
       window.open(currentSocial.url, '_blank');
       setSocialIndex((prev) => (prev + 1) % SOCIAL_LINKS.length);
       handleClose();
-    } else if (currentCard.actionType === 'systems' && currentCard.actionUrl) {
-      window.location.href = currentCard.actionUrl;
+    } else if (currentCard.actionType === 'systems') {
+      // Redirecionar baseado no estado de login
+      if (user) {
+        // Usuário logado: vai para dashboard/systems
+        window.location.href = '/dashboard/systems';
+      } else {
+        // Usuário não logado: vai para página pública de sistemas
+        window.location.href = '/systems';
+      }
       handleClose();
     } else if (currentCard.actionType === 'assistant' && currentCard.actionUrl) {
       // Scroll to assistant or trigger assistant
@@ -437,6 +443,34 @@ export default function ScrollUpCards() {
         window.location.href = currentCard.actionUrl;
       }
       handleClose();
+    } else if (currentCard.actionType === 'link' && currentCard.actionUrl) {
+      // Para cards de link (como sites), verificar se é um link especial
+      if (currentCard.id === 'pricing' || currentCard.id === 'blog') {
+        // Links normais, redirecionam diretamente
+        window.location.href = currentCard.actionUrl;
+        handleClose();
+      } else {
+        // Para outros links, verificar estado de login
+        if (user) {
+          window.location.href = currentCard.actionUrl;
+          handleClose();
+        } else {
+          // Se não estiver logado e for um link de dashboard, redirecionar para página pública
+          if (currentCard.actionUrl.includes('/dashboard/')) {
+            // Extrair o tipo de página e redirecionar para versão pública
+            if (currentCard.actionUrl.includes('/dashboard/sites')) {
+              window.location.href = '/site-quote';
+            } else if (currentCard.actionUrl.includes('/dashboard/systems')) {
+              window.location.href = '/systems';
+            } else {
+              window.location.href = currentCard.actionUrl;
+            }
+          } else {
+            window.location.href = currentCard.actionUrl;
+          }
+          handleClose();
+        }
+      }
     } else if (currentCard.actionType === 'newsletter') {
       // Mostrar formulário de newsletter
       // O formulário já está visível no card
