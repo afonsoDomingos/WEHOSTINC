@@ -33,10 +33,6 @@ export default function BlogAnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState('30');
 
-  useEffect(() => {
-    fetchAnalytics();
-  }, [dateRange]);
-
   const fetchAnalytics = async () => {
     try {
       setLoading(true);
@@ -52,6 +48,11 @@ export default function BlogAnalyticsPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchAnalytics();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dateRange]);
 
   const exportReport = () => {
     if (!analytics) return;

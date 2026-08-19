@@ -81,6 +81,7 @@ export default function CourseRedirectPage() {
     };
 
     loadAndRedirect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [courseId, router]);
 
   if (loading) return <PageLoader text="A carregar curso..." />;

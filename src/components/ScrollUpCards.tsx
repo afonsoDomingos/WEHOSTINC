@@ -80,9 +80,6 @@ export default function ScrollUpCards() {
   const { data: session } = useSession();
   const user = session?.user;
 
-  // Não mostrar incentivos se não estiver na página inicial
-  if (pathname !== '/') return null;
-
   const CARDS: CardConfig[] = [
     {
       id: 'signup',
@@ -267,7 +264,10 @@ export default function ScrollUpCards() {
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [currentCardIndex, isSupported, subscription, permission, user]);
+  }, [currentCardIndex, isSupported, subscription, permission, user, CARDS]);
+
+  // Não mostrar incentivos se não estiver na página inicial
+  if (pathname !== '/') return null;
 
   const handleClose = () => {
     const currentCard = CARDS[currentCardIndex];

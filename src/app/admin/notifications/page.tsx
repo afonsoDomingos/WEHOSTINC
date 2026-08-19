@@ -44,10 +44,6 @@ export default function AdminNotificationsPage() {
     isSupported
   } = usePushNotifications();
 
-  useEffect(() => {
-    fetchNotifications();
-  }, [filter]);
-
   const fetchNotifications = async () => {
     try {
       setLoading(true);
@@ -58,14 +54,18 @@ export default function AdminNotificationsPage() {
       if (response.ok) {
         const data = await response.json();
         setNotifications(data.notifications || []);
-        setUnreadCount(data.unreadCount || 0);
       }
     } catch (error) {
-      console.error('[Admin Notifications] Erro ao buscar notificações:', error);
+      console.error('Erro ao buscar notificações:', error);
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchNotifications();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filter]);
 
   const markAsRead = async (id: string) => {
     try {

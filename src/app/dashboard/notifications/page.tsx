@@ -44,10 +44,6 @@ export default function SalesNotificationsPage() {
     isSupported
   } = usePushNotifications();
 
-  useEffect(() => {
-    fetchNotifications();
-  }, [filter]);
-
   const fetchNotifications = async () => {
     try {
       setLoading(true);
@@ -58,15 +54,19 @@ export default function SalesNotificationsPage() {
       const data = await response.json();
       
       if (data.success) {
-        setNotifications(data.notifications);
-        setUnreadCount(data.unreadCount);
+        setNotifications(data.notifications || []);
       }
-    } catch (err) {
-      console.error('Erro ao buscar notificações:', err);
+    } catch (error) {
+      console.error('Erro ao buscar notificações:', error);
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchNotifications();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filter]);
 
   const markAsRead = async (id: string) => {
     try {
