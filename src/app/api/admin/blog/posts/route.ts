@@ -139,6 +139,7 @@ export async function POST(req: Request) {
           title: post.title,
           slug: post.slug,
           excerpt: post.excerpt,
+          coverImage: post.coverImage,
           publishedAt: post.publishedAt || new Date()
         });
 

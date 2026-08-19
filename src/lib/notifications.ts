@@ -404,6 +404,8 @@ Temos uma nova publicação no blog que pode ser do seu interesse!
 
 📝 {{titulo_post}}
 
+{{imagem_capa}}
+
 {{resumo_post}}
 
 🔗 Ler artigo completo: {{link_post}}
@@ -857,6 +859,7 @@ export async function notifyAllUsersAboutNewPost(post: {
   title: string;
   slug: string;
   excerpt: string;
+  coverImage?: string;
   publishedAt: Date;
 }): Promise<{ success: number; failed: number }> {
   try {
@@ -878,6 +881,11 @@ export async function notifyAllUsersAboutNewPost(post: {
       year: 'numeric'
     });
 
+    // Criar HTML da imagem da capa se existir
+    const coverImageHtml = post.coverImage 
+      ? `<img src="${post.coverImage}" alt="${post.title}" style="max-width: 100%; height: auto; border-radius: 8px; margin: 16px 0;">`
+      : '';
+
     // Enviar email para cada usuário
     for (const user of users) {
       try {
@@ -889,7 +897,8 @@ export async function notifyAllUsersAboutNewPost(post: {
             titulo_post: post.title,
             resumo_post: post.excerpt,
             link_post: postUrl,
-            data_publicacao: publishDate
+            data_publicacao: publishDate,
+            imagem_capa: coverImageHtml
           },
           isAutomatic: true,
           eventType: 'blog_post_published',
