@@ -508,6 +508,34 @@ Equipa WEHOSTHERE`,
     channel: 'email',
     isSystem: true,
     createdAt: new Date().toISOString()
+  },
+  {
+    id: 'uptime-monthly-report',
+    name: 'Relatório Mensal de Uptime',
+    category: 'Uptime',
+    subject: 'Relatório Mensal de Disponibilidade - {{nome_site}}',
+    body: `Olá {{nome_cliente}},
+
+Aqui está o seu relatório mensal de disponibilidade do site {{nome_site}} ({{url_site}}).
+
+📊 **Estatísticas de {{mes_relatorio}} de {{ano_relatorio}}:**
+
+- **Uptime:** {{uptime_percentual}}%
+- **Total de verificações:** {{total_checks}}
+- **Verificações com sucesso:** {{checks_sucesso}}
+- **Verificações com falha:** {{checks_falha}}
+
+O uptime do seu site foi de {{uptime_percentual}}% durante o mês de {{mes_relatorio}}.
+
+Se tiver alguma dúvida ou precisar de ajuda, estamos aqui:
+📧 Email: info@wehosthere.com
+📱 WhatsApp: +258 84 833 5618
+
+Atenciosamente,
+Equipa WEHOSTHERE`,
+    channel: 'email',
+    isSystem: true,
+    createdAt: new Date().toISOString()
   }
 ];
 
