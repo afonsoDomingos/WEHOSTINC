@@ -9,7 +9,7 @@ import {
   LogOut, Settings, Home, CheckCircle, Clock, XCircle, Search,
   ShoppingBag, MessageSquare, ExternalLink, Trash2, LifeBuoy, Send, ShieldCheck, CheckCircle2, AlertCircle,
   Paperclip, FileText, Image as ImageIcon, Download, File, X, Loader2, Tag, Shield, AlertTriangle,
-  Activity, Eye, Globe, Wifi, WifiOff, BarChart2, RefreshCw, UserPlus, Star, Plus, Edit, BookOpen
+  Activity, Eye, Globe, Wifi, WifiOff, BarChart2, RefreshCw, UserPlus, Star, Plus, Edit, BookOpen, Bell
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 import { dataManager, ServiceOrder, SupportTicket, TicketMessage, TicketAttachment, SecurityLog, SystemForRent, RentalRequest, SystemAccess, SocialProof } from '@/lib/data';
@@ -1072,6 +1072,13 @@ export default function AdminPage() {
               >
                 <BookOpen className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-500" />
                 <span className="hidden sm:inline">Blog</span>
+              </Link>
+              <Link
+                href="/admin/notifications"
+                className="flex items-center space-x-1.5 sm:space-x-2 text-gray-600 hover:text-purple-600 font-medium transition text-[10px] sm:text-xs sm:text-sm"
+              >
+                <Bell className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-500" />
+                <span className="hidden sm:inline">Notificações</span>
               </Link>
               <AdminNotificationCenter onNavigate={(url) => router.push(url)} />
               <button
