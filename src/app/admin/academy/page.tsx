@@ -457,13 +457,13 @@ export default function AdminAcademyPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center space-x-3">
               <BrandLogo />
-              <h1 className="text-xl font-bold text-gray-900">Academia Web</h1>
+              <h1 className="text-lg sm:text-xl font-bold text-gray-900">Academia Web</h1>
             </div>
-            <div className="flex items-center space-x-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:space-x-3">
               <button
                 onClick={async () => {
                   try {
@@ -475,32 +475,34 @@ export default function AdminAcademyPage() {
                     setToast({ show: true, message: 'Erro ao carregar dados de exemplo', type: 'error' });
                   }
                 }}
-                className="flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium transition"
+                className="flex items-center justify-center space-x-1.5 sm:space-x-2 bg-emerald-600 hover:bg-emerald-700 text-white px-3 sm:px-4 py-2 rounded-lg font-medium transition text-xs sm:text-sm"
               >
-                <Database className="h-5 w-5" />
-                <span>Carregar Dados de Exemplo</span>
+                <Database className="h-4 w-4 sm:h-5 sm:w-5" />
+                <span className="hidden sm:inline">Carregar Dados</span>
+                <span className="sm:hidden">Dados</span>
               </button>
               <button
                 onClick={() => handleShowCourseModal()}
-                className="flex items-center space-x-2 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-medium transition"
+                className="flex items-center justify-center space-x-1.5 sm:space-x-2 bg-primary-600 hover:bg-primary-700 text-white px-3 sm:px-4 py-2 rounded-lg font-medium transition text-xs sm:text-sm"
               >
-                <Plus className="h-5 w-5" />
-                <span>Novo Curso</span>
+                <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
+                <span className="hidden sm:inline">Novo Curso</span>
+                <span className="sm:hidden">Novo</span>
               </button>
             </div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8">
         {courses.length === 0 ? (
-          <div className="text-center py-16 bg-white rounded-xl border border-gray-200">
-            <BookOpen className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhum curso encontrado</h3>
-            <p className="text-gray-600 mb-4">Comece criando o seu primeiro curso</p>
+          <div className="text-center py-12 sm:py-16 bg-white rounded-xl border border-gray-200">
+            <BookOpen className="h-12 w-12 sm:h-16 sm:w-16 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">Nenhum curso encontrado</h3>
+            <p className="text-gray-600 mb-4 text-sm sm:text-base">Comece criando o seu primeiro curso</p>
             <button
               onClick={() => handleShowCourseModal()}
-              className="px-4 py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition"
+              className="px-4 py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition text-sm sm:text-base"
             >
               Criar Curso
             </button>
@@ -514,11 +516,11 @@ export default function AdminAcademyPage() {
               return (
                 <div key={course.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
                   {/* Course Header */}
-                  <div className="p-6 border-b border-gray-100">
-                    <div className="flex items-start justify-between">
+                  <div className="p-4 sm:p-6 border-b border-gray-100">
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                       <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <h3 className="text-lg font-bold text-gray-900">{course.title}</h3>
+                        <div className="flex flex-wrap items-center gap-2 mb-2">
+                          <h3 className="text-base sm:text-lg font-bold text-gray-900">{course.title}</h3>
                           {course.accessType === 'paid' && (
                             <span className="flex items-center space-x-1 bg-amber-100 text-amber-800 px-2 py-1 rounded-full text-xs font-medium">
                               <DollarSign className="h-3 w-3" />
@@ -543,8 +545,8 @@ export default function AdminAcademyPage() {
                             </span>
                           )}
                         </div>
-                        <p className="text-gray-600 text-sm mb-2">{course.shortDescription}</p>
-                        <div className="flex items-center space-x-4 text-xs text-gray-500">
+                        <p className="text-gray-600 text-xs sm:text-sm mb-2">{course.shortDescription}</p>
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-gray-500">
                           <span>{courseModules.length} módulos</span>
                           <span>{course.duration}</span>
                           <span className="flex items-center space-x-1">
@@ -587,33 +589,33 @@ export default function AdminAcademyPage() {
 
                   {/* Modules */}
                   {isExpanded && (
-                    <div className="p-4 bg-gray-50">
-                      <div className="flex items-center justify-between mb-4">
-                        <h4 className="text-sm font-semibold text-gray-700">Módulos</h4>
+                    <div className="p-3 sm:p-4 bg-gray-50">
+                      <div className="flex items-center justify-between mb-3 sm:mb-4">
+                        <h4 className="text-xs sm:text-sm font-semibold text-gray-700">Módulos</h4>
                         <button
                           onClick={() => handleShowModuleModal(course)}
                           className="flex items-center space-x-1 text-xs font-medium text-primary-600 hover:text-primary-700"
                         >
-                          <Plus className="h-4 w-4" />
+                          <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                           <span>Adicionar Módulo</span>
                         </button>
                       </div>
 
                       {courseModules.length === 0 ? (
-                        <p className="text-sm text-gray-500 text-center py-4">Nenhum módulo criado</p>
+                        <p className="text-xs sm:text-sm text-gray-500 text-center py-4">Nenhum módulo criado</p>
                       ) : (
-                        <div className="space-y-3">
+                        <div className="space-y-2 sm:space-y-3">
                           {courseModules.map((module, index) => {
                             const moduleLessons = getModuleLessons(module.id).sort((a, b) => a.order - b.order);
                             const moduleExpanded = expandedCourse === `${course.id}-${module.id}`;
 
                             return (
                               <div key={module.id} className="bg-white rounded-lg border border-gray-200">
-                                <div className="p-4">
-                                  <div className="flex items-start justify-between">
+                                <div className="p-3 sm:p-4">
+                                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
                                     <div className="flex-1">
-                                      <div className="flex items-center space-x-2 mb-1">
-                                        <h5 className="font-semibold text-gray-900">{module.title}</h5>
+                                      <div className="flex flex-wrap items-center gap-2 mb-1">
+                                        <h5 className="text-sm sm:text-base font-semibold text-gray-900">{module.title}</h5>
                                         {!module.active && (
                                           <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-xs">Inativo</span>
                                         )}
@@ -621,7 +623,7 @@ export default function AdminAcademyPage() {
                                       <p className="text-xs text-gray-600">{module.objective}</p>
                                       <div className="text-xs text-gray-500 mt-1">{moduleLessons.length} lições</div>
                                     </div>
-                                    <div className="flex items-center space-x-2">
+                                    <div className="flex items-center space-x-1 sm:space-x-2">
                                       <div className="flex items-center space-x-1">
                                         <span className="text-xs text-gray-500">Pos:</span>
                                         <input
@@ -635,7 +637,7 @@ export default function AdminAcademyPage() {
                                               handleModuleOrderChange(course.id, module.id, newOrder);
                                             }
                                           }}
-                                          className="w-12 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                          className="w-10 sm:w-12 px-2 py-1 text-xs sm:text-sm border border-gray-300 rounded focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                                         />
                                       </div>
                                       <button
@@ -648,7 +650,7 @@ export default function AdminAcademyPage() {
                                         onClick={() => handleShowModuleModal(course, module)}
                                         className="p-1 hover:bg-gray-100 rounded transition"
                                       >
-                                        <Edit className="h-4 w-4 text-gray-600" />
+                                        <Edit className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-600" />
                                       </button>
                                       <button
                                         onClick={() => {
@@ -657,7 +659,7 @@ export default function AdminAcademyPage() {
                                         }}
                                         className="p-1 hover:bg-red-50 rounded transition"
                                       >
-                                        <Trash2 className="h-4 w-4 text-red-600" />
+                                        <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-red-600" />
                                       </button>
                                     </div>
                                   </div>
@@ -665,8 +667,8 @@ export default function AdminAcademyPage() {
 
                                 {/* Lessons */}
                                 {moduleExpanded && (
-                                  <div className="p-4 pt-0 border-t border-gray-100 mt-3">
-                                    <div className="flex items-center justify-between mb-3">
+                                  <div className="p-3 sm:p-4 pt-0 border-t border-gray-100 mt-3">
+                                    <div className="flex items-center justify-between mb-2 sm:mb-3">
                                       <span className="text-xs font-medium text-gray-600">Lições</span>
                                       <button
                                         onClick={() => handleShowLessonModal(module)}
@@ -680,18 +682,18 @@ export default function AdminAcademyPage() {
                                     {moduleLessons.length === 0 ? (
                                       <p className="text-xs text-gray-500 text-center py-2">Nenhuma lição criada</p>
                                     ) : (
-                                      <div className="space-y-2">
+                                      <div className="space-y-1.5 sm:space-y-2">
                                         {moduleLessons.map((lesson, index) => (
-                                          <div key={lesson.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                                          <div key={lesson.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-2 bg-gray-50 rounded gap-2">
                                             <div className="flex items-center space-x-2">
                                               {lesson.hasVideo && <Video className="h-3 w-3 text-primary-600" />}
                                               {lesson.hasMaterial && <FileText className="h-3 w-3 text-primary-600" />}
-                                              <span className="text-sm text-gray-900">{lesson.title}</span>
+                                              <span className="text-xs sm:text-sm text-gray-900">{lesson.title}</span>
                                               {!lesson.active && (
                                                 <span className="bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded text-xs">Inativo</span>
                                               )}
                                             </div>
-                                            <div className="flex items-center space-x-1">
+                                            <div className="flex items-center justify-between sm:justify-end space-x-2">
                                               <div className="flex items-center space-x-1">
                                                 <span className="text-xs text-gray-500">Pos:</span>
                                                 <input
@@ -705,24 +707,26 @@ export default function AdminAcademyPage() {
                                                       handleLessonOrderChange(module.id, lesson.id, newOrder);
                                                     }
                                                   }}
-                                                  className="w-10 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                                  className="w-8 sm:w-10 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                                                 />
                                               </div>
-                                              <button
-                                                onClick={() => handleShowLessonModal(module, lesson)}
-                                                className="p-1 hover:bg-gray-200 rounded transition"
-                                              >
-                                                <Edit className="h-3 w-3 text-gray-600" />
-                                              </button>
-                                              <button
-                                                onClick={() => {
-                                                  setDeleteTarget({ type: 'lesson', id: lesson.id });
-                                                  setShowDeleteModal(true);
-                                                }}
-                                                className="p-1 hover:bg-red-100 rounded transition"
-                                              >
-                                                <Trash2 className="h-3 w-3 text-red-600" />
-                                              </button>
+                                              <div className="flex items-center space-x-1">
+                                                <button
+                                                  onClick={() => handleShowLessonModal(module, lesson)}
+                                                  className="p-1 hover:bg-gray-200 rounded transition"
+                                                >
+                                                  <Edit className="h-3 w-3 text-gray-600" />
+                                                </button>
+                                                <button
+                                                  onClick={() => {
+                                                    setDeleteTarget({ type: 'lesson', id: lesson.id });
+                                                    setShowDeleteModal(true);
+                                                  }}
+                                                  className="p-1 hover:bg-red-100 rounded transition"
+                                                >
+                                                  <Trash2 className="h-3 w-3 text-red-600" />
+                                                </button>
+                                              </div>
                                             </div>
                                           </div>
                                         ))}
@@ -746,58 +750,58 @@ export default function AdminAcademyPage() {
 
       {/* Course Modal */}
       {showCourseModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3 sm:p-4">
           <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200">
-              <h2 className="text-xl font-bold text-gray-900">
+            <div className="p-4 sm:p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900">
                 {editingCourse ? 'Editar Curso' : 'Novo Curso'}
               </h2>
             </div>
-            <div className="p-6 space-y-4">
+            <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Título *</label>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Título *</label>
                 <input
                   type="text"
                   value={courseForm.title}
                   onChange={(e) => setCourseForm({ ...courseForm, title: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Descrição Curta</label>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Descrição Curta</label>
                 <input
                   type="text"
                   value={courseForm.shortDescription}
                   onChange={(e) => setCourseForm({ ...courseForm, shortDescription: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Descrição Completa *</label>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Descrição Completa *</label>
                 <textarea
                   value={courseForm.description}
                   onChange={(e) => setCourseForm({ ...courseForm, description: e.target.value })}
                   rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Duração</label>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Duração</label>
                   <input
                     type="text"
                     value={courseForm.duration}
                     onChange={(e) => setCourseForm({ ...courseForm, duration: e.target.value })}
                     placeholder="Ex: 8 horas"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de Acesso</label>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Tipo de Acesso</label>
                   <select
                     value={courseForm.accessType}
                     onChange={(e) => setCourseForm({ ...courseForm, accessType: e.target.value as 'free' | 'paid' | 'preview' })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   >
                     <option value="free">Gratuito</option>
                     <option value="paid">Pago</option>
@@ -806,22 +810,22 @@ export default function AdminAcademyPage() {
                 </div>
               </div>
               {courseForm.accessType === 'paid' && (
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Preço</label>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Preço</label>
                     <input
                       type="number"
                       value={courseForm.price}
                       onChange={(e) => setCourseForm({ ...courseForm, price: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Moeda</label>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Moeda</label>
                     <select
                       value={courseForm.currency}
                       onChange={(e) => setCourseForm({ ...courseForm, currency: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     >
                       <option value="MZN">MZN</option>
                       <option value="USD">USD</option>
@@ -831,21 +835,21 @@ export default function AdminAcademyPage() {
                 </div>
               )}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Resultado Final</label>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Resultado Final</label>
                 <textarea
                   value={courseForm.outcome}
                   onChange={(e) => setCourseForm({ ...courseForm, outcome: e.target.value })}
                   rows={2}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">URL da Thumbnail</label>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">URL da Thumbnail</label>
                 <input
                   type="text"
                   value={courseForm.thumbnail}
                   onChange={(e) => setCourseForm({ ...courseForm, thumbnail: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
               </div>
               <div className="flex items-center space-x-2">
@@ -856,19 +860,19 @@ export default function AdminAcademyPage() {
                   onChange={(e) => setCourseForm({ ...courseForm, active: e.target.checked })}
                   className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
                 />
-                <label htmlFor="courseActive" className="text-sm text-gray-700">Curso ativo</label>
+                <label htmlFor="courseActive" className="text-xs sm:text-sm text-gray-700">Curso ativo</label>
               </div>
             </div>
-            <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
+            <div className="p-4 sm:p-6 border-t border-gray-200 flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3">
               <button
                 onClick={handleCloseCourseModal}
-                className="px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition"
+                className="px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition text-sm sm:text-base"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleSaveCourse}
-                className="flex items-center space-x-2 px-4 py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition"
+                className="flex items-center justify-center space-x-2 px-4 py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition text-sm sm:text-base"
               >
                 <Save className="h-4 w-4" />
                 <span>Salvar</span>
@@ -880,42 +884,42 @@ export default function AdminAcademyPage() {
 
       {/* Module Modal */}
       {showModuleModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3 sm:p-4">
           <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
-              <h2 className="text-xl font-bold text-gray-900">
+            <div className="p-4 sm:p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900">
                 {editingModule ? 'Editar Módulo' : 'Novo Módulo'}
               </h2>
             </div>
-            <div className="p-6 space-y-4">
+            <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Título *</label>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Título *</label>
                 <input
                   type="text"
                   value={moduleForm.title}
                   onChange={(e) => setModuleForm({ ...moduleForm, title: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Descrição</label>
                 <textarea
                   value={moduleForm.description}
                   onChange={(e) => setModuleForm({ ...moduleForm, description: e.target.value })}
                   rows={2}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Objetivo</label>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Objetivo</label>
                 <textarea
                   value={moduleForm.objective}
                   onChange={(e) => setModuleForm({ ...moduleForm, objective: e.target.value })}
                   rows={2}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
               </div>
-              <div className="border-t border-gray-200 pt-4">
+              <div className="border-t border-gray-200 pt-3 sm:pt-4">
                 <div className="flex items-center space-x-2 mb-3">
                   <input
                     type="checkbox"
@@ -924,22 +928,22 @@ export default function AdminAcademyPage() {
                     onChange={(e) => setModuleForm({ ...moduleForm, hasVideo: e.target.checked })}
                     className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
                   />
-                  <label htmlFor="moduleHasVideo" className="text-sm font-medium text-gray-700">Incluir vídeo</label>
+                  <label htmlFor="moduleHasVideo" className="text-xs sm:text-sm font-medium text-gray-700">Incluir vídeo</label>
                 </div>
                 {moduleForm.hasVideo && (
-                  <div className="grid grid-cols-2 gap-3 ml-6">
-                    <div className="col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">URL do Vídeo</label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 ml-4 sm:ml-6">
+                    <div className="col-span-1 sm:col-span-2">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">URL do Vídeo</label>
                       <input
                         type="text"
                         value={moduleForm.videoUrl}
                         onChange={(e) => setModuleForm({ ...moduleForm, videoUrl: e.target.value })}
                         placeholder="https://..."
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       />
                     </div>
-                    <div className="col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Ou fazer upload de vídeo</label>
+                    <div className="col-span-1 sm:col-span-2">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Ou fazer upload de vídeo</label>
                       <input
                         type="file"
                         accept="video/*"
@@ -950,31 +954,31 @@ export default function AdminAcademyPage() {
                             // TODO: Implementar upload do arquivo
                           }
                         }}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Título do Vídeo</label>
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Título do Vídeo</label>
                       <input
                         type="text"
                         value={moduleForm.videoTitle}
                         onChange={(e) => setModuleForm({ ...moduleForm, videoTitle: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Descrição</label>
                       <textarea
                         value={moduleForm.videoDescription}
                         onChange={(e) => setModuleForm({ ...moduleForm, videoDescription: e.target.value })}
                         rows={2}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       />
                     </div>
                   </div>
                 )}
               </div>
-              <div className="border-t border-gray-200 pt-4">
+              <div className="border-t border-gray-200 pt-3 sm:pt-4">
                 <div className="flex items-center space-x-2 mb-3">
                   <input
                     type="checkbox"
@@ -983,50 +987,50 @@ export default function AdminAcademyPage() {
                     onChange={(e) => setModuleForm({ ...moduleForm, hasMaterial: e.target.checked })}
                     className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
                   />
-                  <label htmlFor="moduleHasMaterial" className="text-sm font-medium text-gray-700">Incluir material de apoio</label>
+                  <label htmlFor="moduleHasMaterial" className="text-xs sm:text-sm font-medium text-gray-700">Incluir material</label>
                 </div>
                 {moduleForm.hasMaterial && (
-                  <div className="grid grid-cols-2 gap-3 ml-6">
-                    <div className="col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">URL do Material</label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 ml-4 sm:ml-6">
+                    <div className="col-span-1 sm:col-span-2">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">URL do Material</label>
                       <input
                         type="text"
                         value={moduleForm.materialUrl}
                         onChange={(e) => setModuleForm({ ...moduleForm, materialUrl: e.target.value })}
                         placeholder="https://..."
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       />
                     </div>
-                    <div className="col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Ou fazer upload de material (PDF, documento)</label>
+                    <div className="col-span-1 sm:col-span-2">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Ou fazer upload de arquivo</label>
                       <input
                         type="file"
                         accept=".pdf,.doc,.docx,.txt"
                         onChange={(e) => {
                           const file = e.target.files?.[0];
                           if (file) {
-                            console.log('[Module] Material selecionado:', file.name);
+                            console.log('[Module] Arquivo selecionado:', file.name);
                             // TODO: Implementar upload do arquivo
                           }
                         }}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Título do Material</label>
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Título do Material</label>
                       <input
                         type="text"
                         value={moduleForm.materialTitle}
                         onChange={(e) => setModuleForm({ ...moduleForm, materialTitle: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Tipo</label>
                       <select
                         value={moduleForm.materialType}
                         onChange={(e) => setModuleForm({ ...moduleForm, materialType: e.target.value as 'pdf' | 'document' | 'link' })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       >
                         <option value="pdf">PDF</option>
                         <option value="document">Documento</option>
@@ -1044,19 +1048,19 @@ export default function AdminAcademyPage() {
                   onChange={(e) => setModuleForm({ ...moduleForm, active: e.target.checked })}
                   className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
                 />
-                <label htmlFor="moduleActive" className="text-sm text-gray-700">Módulo ativo</label>
+                <label htmlFor="moduleActive" className="text-xs sm:text-sm text-gray-700">Módulo ativo</label>
               </div>
             </div>
-            <div className="p-6 border-t border-gray-200 flex justify-end space-x-3 sticky bottom-0 bg-white">
+            <div className="p-4 sm:p-6 border-t border-gray-200 flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3">
               <button
                 onClick={handleCloseModuleModal}
-                className="px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition"
+                className="px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition text-sm sm:text-base"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleSaveModule}
-                className="flex items-center space-x-2 px-4 py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition"
+                className="flex items-center justify-center space-x-2 px-4 py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition text-sm sm:text-base"
               >
                 <Save className="h-4 w-4" />
                 <span>Salvar</span>
@@ -1068,34 +1072,34 @@ export default function AdminAcademyPage() {
 
       {/* Lesson Modal */}
       {showLessonModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3 sm:p-4">
           <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200">
-              <h2 className="text-xl font-bold text-gray-900">
+            <div className="p-4 sm:p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900">
                 {editingLesson ? 'Editar Lição' : 'Nova Lição'}
               </h2>
             </div>
-            <div className="p-6 space-y-4">
+            <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Título *</label>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Título *</label>
                 <input
                   type="text"
                   value={lessonForm.title}
                   onChange={(e) => setLessonForm({ ...lessonForm, title: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Conteúdo</label>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Conteúdo</label>
                 <textarea
                   value={lessonForm.content}
                   onChange={(e) => setLessonForm({ ...lessonForm, content: e.target.value })}
                   rows={6}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
               </div>
-              <div className="border-t border-gray-200 pt-4">
-                <div className="flex items-center space-x-2 mb-4">
+              <div className="border-t border-gray-200 pt-3 sm:pt-4">
+                <div className="flex items-center space-x-2 mb-3 sm:mb-4">
                   <input
                     type="checkbox"
                     id="hasVideo"
@@ -1103,22 +1107,22 @@ export default function AdminAcademyPage() {
                     onChange={(e) => setLessonForm({ ...lessonForm, hasVideo: e.target.checked })}
                     className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
                   />
-                  <label htmlFor="hasVideo" className="text-sm font-medium text-gray-700">Incluir vídeo</label>
+                  <label htmlFor="hasVideo" className="text-xs sm:text-sm font-medium text-gray-700">Incluir vídeo</label>
                 </div>
                 {lessonForm.hasVideo && (
-                  <div className="space-y-3 ml-6">
+                  <div className="space-y-3 ml-4 sm:ml-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">URL do Vídeo</label>
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">URL do Vídeo</label>
                       <input
                         type="text"
                         value={lessonForm.videoUrl}
                         onChange={(e) => setLessonForm({ ...lessonForm, videoUrl: e.target.value })}
                         placeholder="https://..."
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Ou fazer upload de vídeo</label>
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Ou fazer upload de vídeo</label>
                       <input
                         type="file"
                         accept="video/*"
@@ -1129,32 +1133,32 @@ export default function AdminAcademyPage() {
                             // TODO: Implementar upload do arquivo
                           }
                         }}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Título do Vídeo</label>
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Título do Vídeo</label>
                       <input
                         type="text"
                         value={lessonForm.videoTitle}
                         onChange={(e) => setLessonForm({ ...lessonForm, videoTitle: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Descrição do Vídeo</label>
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Descrição do Vídeo</label>
                       <textarea
                         value={lessonForm.videoDescription}
                         onChange={(e) => setLessonForm({ ...lessonForm, videoDescription: e.target.value })}
                         rows={2}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       />
                     </div>
                   </div>
                 )}
               </div>
-              <div className="border-t border-gray-200 pt-4">
-                <div className="flex items-center space-x-2 mb-4">
+              <div className="border-t border-gray-200 pt-3 sm:pt-4">
+                <div className="flex items-center space-x-2 mb-3 sm:mb-4">
                   <input
                     type="checkbox"
                     id="hasMaterial"
@@ -1162,50 +1166,50 @@ export default function AdminAcademyPage() {
                     onChange={(e) => setLessonForm({ ...lessonForm, hasMaterial: e.target.checked })}
                     className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
                   />
-                  <label htmlFor="hasMaterial" className="text-sm font-medium text-gray-700">Incluir material de apoio</label>
+                  <label htmlFor="hasMaterial" className="text-xs sm:text-sm font-medium text-gray-700">Incluir material de apoio</label>
                 </div>
                 {lessonForm.hasMaterial && (
-                  <div className="space-y-3 ml-6">
+                  <div className="space-y-3 ml-4 sm:ml-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">URL do Material</label>
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">URL do Material</label>
                       <input
                         type="text"
                         value={lessonForm.materialUrl}
                         onChange={(e) => setLessonForm({ ...lessonForm, materialUrl: e.target.value })}
                         placeholder="https://..."
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Ou fazer upload de material (PDF, documento)</label>
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Ou fazer upload de arquivo</label>
                       <input
                         type="file"
                         accept=".pdf,.doc,.docx,.txt"
                         onChange={(e) => {
                           const file = e.target.files?.[0];
                           if (file) {
-                            console.log('[Lesson] Material selecionado:', file.name);
+                            console.log('[Lesson] Arquivo selecionado:', file.name);
                             // TODO: Implementar upload do arquivo
                           }
                         }}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Título do Material</label>
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Título do Material</label>
                       <input
                         type="text"
                         value={lessonForm.materialTitle}
                         onChange={(e) => setLessonForm({ ...lessonForm, materialTitle: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de Material</label>
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Tipo</label>
                       <select
                         value={lessonForm.materialType}
                         onChange={(e) => setLessonForm({ ...lessonForm, materialType: e.target.value as 'pdf' | 'document' | 'link' })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       >
                         <option value="pdf">PDF</option>
                         <option value="document">Documento</option>
@@ -1223,19 +1227,19 @@ export default function AdminAcademyPage() {
                   onChange={(e) => setLessonForm({ ...lessonForm, active: e.target.checked })}
                   className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
                 />
-                <label htmlFor="lessonActive" className="text-sm text-gray-700">Lição ativa</label>
+                <label htmlFor="lessonActive" className="text-xs sm:text-sm text-gray-700">Lição ativa</label>
               </div>
             </div>
-            <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
+            <div className="p-4 sm:p-6 border-t border-gray-200 flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3">
               <button
                 onClick={handleCloseLessonModal}
-                className="px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition"
+                className="px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition text-sm sm:text-base"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleSaveLesson}
-                className="flex items-center space-x-2 px-4 py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition"
+                className="flex items-center justify-center space-x-2 px-4 py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition text-sm sm:text-base"
               >
                 <Save className="h-4 w-4" />
                 <span>Salvar</span>

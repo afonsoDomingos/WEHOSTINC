@@ -107,52 +107,54 @@ export default function AdminBlogPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
+        <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Gerenciar Blog</h1>
-              <p className="text-gray-600">Criar e gerenciar posts do blog</p>
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Gerenciar Blog</h1>
+              <p className="text-gray-600 text-sm sm:text-base">Criar e gerenciar posts do blog</p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <Link
                 href="/admin/blog/analytics"
-                className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm sm:text-base"
               >
-                <BarChart3 size={20} />
-                Analytics
+                <BarChart3 size={16} className="hidden sm:block" />
+                <span className="hidden sm:inline">Analytics</span>
+                <span className="sm:hidden">Stats</span>
               </Link>
               <Link
                 href="/admin/blog/new"
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm sm:text-base"
               >
-                <Plus size={20} />
-                Novo Post
+                <Plus size={16} className="hidden sm:block" />
+                <span className="hidden sm:inline">Novo Post</span>
+                <span className="sm:hidden">Novo</span>
               </Link>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8">
         {/* Filters */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <div className="flex flex-col md:flex-row gap-4">
+        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-4 sm:mb-6">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             <div className="flex-1 relative">
-              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
               <input
                 type="text"
                 placeholder="Buscar posts..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {['all', 'draft', 'published', 'archived'].map(status => (
                 <button
                   key={status}
                   onClick={() => setFilter(status)}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors text-xs sm:text-sm ${
                     filter === status
                       ? 'bg-blue-600 text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -168,113 +170,115 @@ export default function AdminBlogPage() {
         {/* Posts List */}
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
           {filteredPosts.length === 0 ? (
-            <div className="p-12 text-center">
-              <p className="text-gray-500 mb-4">Nenhum post encontrado</p>
+            <div className="p-8 sm:p-12 text-center">
+              <p className="text-gray-500 mb-4 text-sm sm:text-base">Nenhum post encontrado</p>
               <Link
                 href="/admin/blog/new"
-                className="text-blue-600 hover:text-blue-700"
+                className="text-blue-600 hover:text-blue-700 text-sm sm:text-base"
               >
                 Criar primeiro post
               </Link>
             </div>
           ) : (
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Post
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Categoria
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Data
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Visualizações
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Ações
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredPosts.map((post) => (
-                  <tr key={post.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
-                      <div className="flex items-start">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <p className="text-sm font-medium text-gray-900">{post.title}</p>
-                            {post.featured && (
-                              <span className="px-2 py-0.5 rounded-full text-xs bg-yellow-100 text-yellow-800">
-                                Destaque
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[600px]">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Post
+                    </th>
+                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Categoria
+                    </th>
+                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Data
+                    </th>
+                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Visualizações
+                    </th>
+                    <th className="px-4 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Ações
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredPosts.map((post) => (
+                    <tr key={post.id} className="hover:bg-gray-50">
+                      <td className="px-4 sm:px-6 py-3 sm:py-4">
+                        <div className="flex items-start">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <p className="text-xs sm:text-sm font-medium text-gray-900">{post.title}</p>
+                              {post.featured && (
+                                <span className="px-2 py-0.5 rounded-full text-xs bg-yellow-100 text-yellow-800">
+                                  Destaque
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs sm:text-sm text-gray-500 line-clamp-1">{post.excerpt}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-xs text-gray-400 flex items-center gap-1">
+                                <Tag size={12} />
+                                {post.slug}
                               </span>
-                            )}
-                          </div>
-                          <p className="text-sm text-gray-500 line-clamp-1">{post.excerpt}</p>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="text-xs text-gray-400 flex items-center gap-1">
-                              <Tag size={12} />
-                              {post.slug}
-                            </span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm text-gray-900">{getCategoryLabel(post.category)}</span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(post.status)}`}>
-                        {getStatusLabel(post.status)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <div className="flex items-center gap-1">
-                        <Calendar size={14} />
-                        {new Date(post.publishedAt || post.createdAt).toLocaleDateString('pt-MZ')}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <div className="flex items-center gap-1">
-                        <Eye size={14} />
-                        {post.views}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex items-center justify-end gap-2">
-                        <Link
-                          href={`/blog/${post.slug}`}
-                          target="_blank"
-                          className="text-gray-600 hover:text-gray-900"
-                          title="Visualizar"
-                        >
-                          <Eye size={18} />
-                        </Link>
-                        <Link
-                          href={`/admin/blog/edit/${post.id}`}
-                          className="text-blue-600 hover:text-blue-900"
-                          title="Editar"
-                        >
-                          <Edit size={18} />
-                        </Link>
-                        <button
-                          onClick={() => handleDelete(post.id)}
-                          className="text-red-600 hover:text-red-900"
-                          title="Remover"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      </td>
+                      <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
+                        <span className="text-xs sm:text-sm text-gray-900">{getCategoryLabel(post.category)}</span>
+                      </td>
+                      <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(post.status)}`}>
+                          {getStatusLabel(post.status)}
+                        </span>
+                      </td>
+                      <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
+                        <div className="flex items-center gap-1">
+                          <Calendar size={12} />
+                          {new Date(post.publishedAt || post.createdAt).toLocaleDateString('pt-MZ')}
+                        </div>
+                      </td>
+                      <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
+                        <div className="flex items-center gap-1">
+                          <Eye size={12} />
+                          {post.views}
+                        </div>
+                      </td>
+                      <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-right text-xs sm:text-sm font-medium">
+                        <div className="flex items-center justify-end gap-2">
+                          <Link
+                            href={`/blog/${post.slug}`}
+                            target="_blank"
+                            className="text-gray-600 hover:text-gray-900"
+                            title="Visualizar"
+                          >
+                            <Eye size={16} />
+                          </Link>
+                          <Link
+                            href={`/admin/blog/edit/${post.id}`}
+                            className="text-blue-600 hover:text-blue-900"
+                            title="Editar"
+                          >
+                            <Edit size={16} />
+                          </Link>
+                          <button
+                            onClick={() => handleDelete(post.id)}
+                            className="text-red-600 hover:text-red-900"
+                            title="Remover"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       </div>
