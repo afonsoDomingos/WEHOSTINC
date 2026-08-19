@@ -255,6 +255,40 @@ function CheckoutContent() {
       setPushModal(false);
       setLoading(false);
       setSuccess(true);
+
+      // Enviar notificação de venda realizada
+      try {
+        const currentUser = auth.getCurrentUser();
+        if (currentUser) {
+          await fetch('/api/notifications/sales', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userId: currentUser.id,
+              orderId: orderId,
+              orderNumber: orderId,
+              type: 'new_sale',
+              title: 'Nova Venda Realizada',
+              message: `Pedido #${orderId} confirmado com sucesso. Valor: ${grandTotal.toLocaleString('pt-MZ')} MZN`,
+              amount: grandTotal,
+              currency: 'MZN',
+              items: selectedPlan ? [{
+                name: serviceName,
+                quantity: 1,
+                price: grandTotal
+              }] : [],
+              metadata: {
+                customerName: name,
+                customerEmail: email,
+                paymentMethod: paymentMethod
+              },
+              channels: { email: true, push: false, sms: false }
+            })
+          });
+        }
+      } catch (notificationErr) {
+        console.error('[Checkout] Erro ao enviar notificação de venda:', notificationErr);
+      }
     } catch (err) {
       setPushModal(false);
       setLoading(false);

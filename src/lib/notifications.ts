@@ -536,6 +536,143 @@ Equipa WEHOSTHERE`,
     channel: 'email',
     isSystem: true,
     createdAt: new Date().toISOString()
+  },
+  {
+    id: 'sale-notification',
+    name: 'Notificação de Venda',
+    category: 'Vendas',
+    subject: '🎉 Nova Venda Realizada - Pedido #{{numero_pedido}}',
+    body: `Olá {{nome_cliente}},
+
+Temos uma ótima notícia! Uma nova venda foi realizada com sucesso.
+
+📦 **Detalhes do Pedido #{{numero_pedido}}:**
+
+- **Valor Total:** {{valor_total}}
+- **Itens:** {{itens}}
+- **Data:** {{data_venda}}
+
+O pagamento foi confirmado e o pedido está sendo processado.
+
+Se tiver alguma dúvida, estamos aqui:
+📧 Email: info@wehosthere.com
+📱 WhatsApp: +258 84 833 5618
+
+Obrigado pela confiança!
+
+Atenciosamente,
+Equipa WEHOSTHERE`,
+    channel: 'email',
+    isSystem: true,
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'subscription-renewal',
+    name: 'Renovação de Assinatura',
+    category: 'Vendas',
+    subject: '🔄 Renovação de Assinatura - {{nome_plano}}',
+    body: `Olá {{nome_cliente}},
+
+A sua assinatura foi renovada com sucesso!
+
+📋 **Detalhes da Renovação:**
+
+- **Plano:** {{nome_plano}}
+- **Valor:** {{valor_total}}
+- **Próxima Renovação:** {{proxima_renovacao}}
+
+Os serviços continuarão disponíveis sem interrupções.
+
+Se tiver alguma dúvida, estamos aqui:
+📧 Email: info@wehosthere.com
+📱 WhatsApp: +258 84 833 5618
+
+Atenciosamente,
+Equipa WEHOSTHERE`,
+    channel: 'email',
+    isSystem: true,
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'upgrade-notification',
+    name: 'Notificação de Upgrade',
+    category: 'Vendas',
+    subject: '⬆️ Upgrade Realizado - {{nome_plano}}',
+    body: `Olá {{nome_cliente}},
+
+Parabéns! Você fez um upgrade no seu plano com sucesso.
+
+🚀 **Detalhes do Upgrade:**
+
+- **Novo Plano:** {{nome_plano}}
+- **Valor:** {{valor_total}}
+- **Benefícios Ativados:** {{beneficios}}
+
+Aproveite os novos recursos e funcionalidades!
+
+Se tiver alguma dúvida, estamos aqui:
+📧 Email: info@wehosthere.com
+📱 WhatsApp: +258 84 833 5618
+
+Atenciosamente,
+Equipa WEHOSTHERE`,
+    channel: 'email',
+    isSystem: true,
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'refund-notification',
+    name: 'Notificação de Reembolso',
+    category: 'Vendas',
+    subject: '💰 Reembolso Processado - Pedido #{{numero_pedido}}',
+    body: `Olá {{nome_cliente}},
+
+O reembolso do pedido #{{numero_pedido}} foi processado com sucesso.
+
+💵 **Detalhes do Reembolso:**
+
+- **Valor Reembolsado:** {{valor_total}}
+- **Motivo:** {{motivo}}
+- **Pedido:** #{{numero_pedido}}
+
+O valor será creditado na sua forma de pagamento em até 5-10 dias úteis.
+
+Se tiver alguma dúvida, estamos aqui:
+📧 Email: info@wehosthere.com
+📱 WhatsApp: +258 84 833 5618
+
+Atenciosamente,
+Equipa WEHOSTHERE`,
+    channel: 'email',
+    isSystem: true,
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'payment-failed',
+    name: 'Falha no Pagamento',
+    category: 'Vendas',
+    subject: '⚠️ Falha no Pagamento - Pedido #{{numero_pedido}}',
+    body: `Olá {{nome_cliente}},
+
+Houve uma falha no processamento do pagamento do pedido #{{numero_pedido}}.
+
+❌ **Detalhes:**
+
+- **Valor:** {{valor_total}}
+- **Motivo:** {{motivo_falha}}
+- **Pedido:** #{{numero_pedido}}
+
+Por favor, tente novamente ou entre em contato conosco para resolver o problema.
+
+Se tiver alguma dúvida, estamos aqui:
+📧 Email: info@wehosthere.com
+📱 WhatsApp: +258 84 833 5618
+
+Atenciosamente,
+Equipa WEHOSTHERE`,
+    channel: 'email',
+    isSystem: true,
+    createdAt: new Date().toISOString()
   }
 ];
 
