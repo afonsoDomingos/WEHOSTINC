@@ -7,10 +7,11 @@ import { useSession, signOut } from 'next-auth/react';
 import { 
   Server, Mail, LayoutDashboard, Settings, LogOut, 
   Plus, Globe, Database, TrendingUp, Users, CheckCircle, Sparkles, ArrowRight, Link2, Loader2, ShoppingBag,
-  Activity, Cpu, HardDrive, Wifi, ShieldCheck, Zap, Star
+  Activity, Cpu, HardDrive, Wifi, ShieldCheck, Zap, Star, Bell, X
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 import { dataManager } from '@/lib/data';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
 
 import DashboardNav from '@/components/DashboardNav';
 import DashboardSidebar from '@/components/DashboardSidebar';
@@ -65,6 +66,15 @@ export default function DashboardPage() {
   const [bandwidthTotal, setBandwidthTotal] = useState(100);
   const [ramUsed, setRamUsed] = useState(0.5);
   const [ramTotal, setRamTotal] = useState(2);
+  const [showPushBanner, setShowPushBanner] = useState(false);
+  
+  const {
+    permission,
+    subscription,
+    requestPermission,
+    unsubscribe,
+    isSupported
+  } = usePushNotifications();
 
   useEffect(() => {
     // Primeiro verificar NextAuth (Google Login)
@@ -146,6 +156,37 @@ export default function DashboardPage() {
       setIsSyncingCounts(false);
     });
   }, [session, status, router]);
+
+  // Check if should show push notification banner
+  useEffect(() => {
+    if (!user || !isSupported) return;
+    
+    // Check if user is new (created within last 7 days) and hasn't activated push
+    const isNewUser = user.createdAt && 
+      (new Date(user.createdAt).getTime() > Date.now() - 7 * 24 * 60 * 60 * 1000);
+    
+    const hasNotActivated = !subscription && permission === 'default';
+    
+    // Check if user has already dismissed the banner
+    const hasDismissedBanner = localStorage.getItem('pushBannerDismissed');
+    
+    if (isNewUser && hasNotActivated && !hasDismissedBanner) {
+      setShowPushBanner(true);
+    }
+  }, [user, subscription, permission, isSupported]);
+
+  const handleDismissPushBanner = () => {
+    setShowPushBanner(false);
+    localStorage.setItem('pushBannerDismissed', 'true');
+  };
+
+  const handleActivatePush = async () => {
+    const success = await requestPermission();
+    if (success) {
+      setShowPushBanner(false);
+      localStorage.setItem('pushBannerDismissed', 'true');
+    }
+  };
 
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -252,6 +293,37 @@ export default function DashboardPage() {
                 >
                   Renovar Plano →
                 </Link>
+              </div>
+            )}
+
+            {/* Banner de Incentivo para Ativar Notificações Push */}
+            {showPushBanner && (
+              <div className="bg-blue-50 border-2 border-blue-300 rounded-xl sm:rounded-2xl p-3 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 text-blue-900 shadow-sm">
+                <div className="flex items-start gap-2 sm:gap-3">
+                  <div className="bg-blue-100 p-2 rounded-lg">
+                    <Bell className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-blue-950 text-xs sm:text-base">Ative as Notificações Push</h3>
+                    <p className="text-[10px] sm:text-sm text-blue-800 mt-0.5">
+                      Receba alertas importantes sobre seus sites, pagamentos e atualizações mesmo quando estiver offline.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleActivatePush}
+                    className="px-3 sm:px-4 py-2 sm:py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold whitespace-nowrap shadow transition"
+                  >
+                    Ativar Agora
+                  </button>
+                  <button
+                    onClick={handleDismissPushBanner}
+                    className="p-2 hover:bg-blue-200 rounded-lg transition"
+                  >
+                    <X className="h-4 w-4 text-blue-600" />
+                  </button>
+                </div>
               </div>
             )}
 
