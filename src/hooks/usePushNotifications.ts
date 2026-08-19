@@ -16,18 +16,20 @@ export function usePushNotifications() {
   });
 
   useEffect(() => {
-    // Verificar permissão inicial
-    if ('Notification' in window) {
+    // Verificar permissão inicial apenas no browser
+    if (typeof window !== 'undefined' && 'Notification' in window) {
       setState(prev => ({ ...prev, permission: Notification.permission }));
     }
 
-    // Verificar subscription existente
-    checkExistingSubscription();
+    // Verificar subscription existente apenas no browser
+    if (typeof window !== 'undefined') {
+      checkExistingSubscription();
+    }
   }, []);
 
   const checkExistingSubscription = async () => {
     try {
-      if ('serviceWorker' in navigator && 'PushManager' in window) {
+      if (typeof window !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window) {
         const registration = await navigator.serviceWorker.ready;
         const subscription = await registration.pushManager.getSubscription();
         setState(prev => ({ ...prev, subscription }));
@@ -38,7 +40,7 @@ export function usePushNotifications() {
   };
 
   const requestPermission = async (): Promise<boolean> => {
-    if (!('Notification' in window)) {
+    if (typeof window === 'undefined' || !('Notification' in window)) {
       setState(prev => ({ ...prev, error: 'Este navegador não suporta notificações' }));
       return false;
     }
@@ -68,7 +70,7 @@ export function usePushNotifications() {
 
   const subscribeToPush = async () => {
     try {
-      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      if (typeof window === 'undefined' || !('serviceWorker' in navigator) || !('PushManager' in window)) {
         throw new Error('Service Worker ou Push API não suportado');
       }
 
@@ -113,7 +115,7 @@ export function usePushNotifications() {
 
   const sendSubscriptionToServer = async (subscription: PushSubscription) => {
     try {
-      const userId = localStorage.getItem('userId');
+      const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
       if (!userId) {
         console.warn('[Push Notifications] User ID não encontrado');
         return;
@@ -143,7 +145,7 @@ export function usePushNotifications() {
         await state.subscription.unsubscribe();
         
         // Remover do servidor
-        const userId = localStorage.getItem('userId');
+        const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
         if (userId) {
           await fetch('/api/push/unsubscribe', {
             method: 'POST',
@@ -166,7 +168,7 @@ export function usePushNotifications() {
     requestPermission,
     subscribeToPush,
     unsubscribe,
-    isSupported: 'Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window
+    isSupported: typeof window !== 'undefined' && 'Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window
   };
 }
 
@@ -174,7 +176,7 @@ export function usePushNotifications() {
 function urlBase64ToUint8Array(base64String: string) {
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
   const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-  const rawData = window.atob(base64);
+  const rawData = typeof window !== 'undefined' ? window.atob(base64) : Buffer.from(base64, 'base64').toString('binary');
   const outputArray = new Uint8Array(rawData.length);
 
   for (let i = 0; i < rawData.length; ++i) {
