@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { X, Mail, MessageCircle, Download, BookOpen, DollarSign, Sparkles, CheckCircle, Loader2, Bell, UserPlus, Share2, Box, HelpCircle } from 'lucide-react';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
@@ -62,6 +63,7 @@ const WHATSAPP_NUMBERS = [
 ];
 
 export default function ScrollUpCards() {
+  const pathname = usePathname();
   const [isVisible, setIsVisible] = useState(false);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [email, setEmail] = useState('');
@@ -77,6 +79,9 @@ export default function ScrollUpCards() {
   const { subscription, permission, requestPermission, isSupported } = usePushNotifications();
   const { data: session } = useSession();
   const user = session?.user;
+
+  // Não mostrar incentivos se não estiver na página inicial
+  if (pathname !== '/') return null;
 
   const CARDS: CardConfig[] = [
     {
@@ -485,21 +490,21 @@ export default function ScrollUpCards() {
 
   return (
     <div className={`fixed bottom-0 left-0 right-0 z-50 ${currentCard.bgColor} border-t ${currentCard.borderColor} shadow-2xl animate-in slide-in-from-bottom-10 duration-500`}>
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-3 sm:py-4">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-2 sm:py-3">
         {/* Primeira linha: Texto e botão de fechar */}
         <div className="flex items-center justify-between gap-2 sm:gap-4">
           {/* Texto de incentivo */}
           <div className="flex items-center space-x-2 sm:space-x-3 text-gray-900 flex-1 min-w-0">
-            <div className={`p-1.5 sm:p-2 ${currentCard.iconBg} rounded-full flex-shrink-0`}>
+            <div className={`p-1 sm:p-1.5 ${currentCard.iconBg} rounded-full flex-shrink-0`}>
               <div className={currentCard.iconColor}>
                 {currentCard.icon}
               </div>
             </div>
             <div className="min-w-0">
-              <p className="font-semibold text-xs sm:text-sm sm:text-base truncate">
+              <p className="font-semibold text-xs sm:text-sm truncate">
                 {currentCard.title}
               </p>
-              <p className="text-[10px] sm:text-xs text-gray-600 hidden sm:block">
+              <p className="text-[10px] text-gray-600 hidden sm:block">
                 {currentCard.description}
               </p>
             </div>
@@ -508,39 +513,39 @@ export default function ScrollUpCards() {
           {/* Botão de fechar */}
           <button
             onClick={handleClose}
-            className="p-1.5 sm:p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition flex-shrink-0"
+            className="p-1 sm:p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition flex-shrink-0"
             title="Fechar"
           >
-            <X className="h-4 w-4 sm:h-5 sm:w-5" />
+            <X className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           </button>
         </div>
 
         {/* Formulário de subscrição (apenas para newsletter) */}
         {isNewsletterCard && status !== 'success' && (
-          <div className="mt-3 sm:mt-4">
+          <div className="mt-2 sm:mt-3">
             <form onSubmit={handleSubscribe} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Seu email"
-                className="w-full px-3 sm:px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition text-xs sm:text-sm"
+                className="w-full px-3 sm:px-4 py-1.5 sm:py-2 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition text-xs sm:text-sm"
                 disabled={loading}
                 required
               />
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full sm:w-auto px-3 sm:px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition flex items-center justify-center space-x-1.5 sm:space-x-2 disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm whitespace-nowrap"
+                className="w-full sm:w-auto px-3 sm:px-4 py-1.5 sm:py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition flex items-center justify-center space-x-1.5 sm:space-x-2 disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm whitespace-nowrap"
               >
                 {loading ? (
                   <>
-                    <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" />
+                    <Loader2 className="h-3 w-3 sm:h-3.5 sm:w-3.5 animate-spin" />
                     <span className="hidden sm:inline">...</span>
                   </>
                 ) : (
                   <>
-                    <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    <Sparkles className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                     <span>Subscrever</span>
                   </>
                 )}
@@ -551,12 +556,12 @@ export default function ScrollUpCards() {
 
         {/* Botão de ação (para não-newsletter) */}
         {!isNewsletterCard && (
-          <div className="mt-3 sm:mt-4">
+          <div className="mt-2 sm:mt-3">
             <button
               onClick={handleAction}
-              className="w-full sm:w-auto px-3 sm:px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition flex items-center justify-center space-x-1.5 sm:space-x-2 text-xs sm:text-sm whitespace-nowrap"
+              className="w-full sm:w-auto px-3 sm:px-4 py-1.5 sm:py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition flex items-center justify-center space-x-1.5 sm:space-x-2 text-xs sm:text-sm whitespace-nowrap"
             >
-              <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <Sparkles className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
               <span>{currentCard.buttonText}</span>
             </button>
           </div>
@@ -564,8 +569,8 @@ export default function ScrollUpCards() {
 
         {/* Mensagem de sucesso */}
         {isNewsletterCard && status === 'success' && (
-          <div className="mt-3 sm:mt-4 flex items-center space-x-2 text-emerald-600">
-            <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5" />
+          <div className="mt-2 sm:mt-3 flex items-center space-x-2 text-emerald-600">
+            <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             <span className="font-semibold text-xs sm:text-sm">Subscrito com sucesso!</span>
           </div>
         )}
