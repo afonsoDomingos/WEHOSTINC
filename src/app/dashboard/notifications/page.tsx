@@ -251,21 +251,21 @@ export default function SalesNotificationsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Notificações de Vendas</h1>
           <p className="text-gray-600 mt-1">
             {unreadCount > 0 ? `${unreadCount} notificação(ões) não lida(s)` : 'Todas as notificações lidas'}
           </p>
         </div>
-        <div className="flex items-center space-x-3">
+        <div className="flex flex-wrap items-center gap-2">
           {isSupported && (
             <button
               onClick={subscription ? unsubscribe : requestPermission}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition ${
+              className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg transition font-semibold ${
                 subscription 
                   ? 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200' 
-                  : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
+                  : 'bg-emerald-500 text-white hover:bg-emerald-600 border border-emerald-600 shadow-md'
               }`}
             >
               {subscription ? (

@@ -178,12 +178,12 @@ export default function AdminNotificationCenter({ onNavigate }: AdminNotificatio
       {/* Botão de Sino */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-1.5 sm:p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/60 text-slate-300 hover:text-white transition-all shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+        className="relative p-1 sm:p-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/60 text-slate-300 hover:text-white transition-all shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500/50"
         title="Central de Notificações"
       >
-        <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
+        <Bell className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 sm:-top-1.5 sm:-right-1.5 flex h-4 w-4 sm:h-5 sm:min-w-[20px] items-center justify-center rounded-full bg-gradient-to-r from-rose-500 to-red-600 px-1 text-[9px] sm:text-[11px] font-bold text-white shadow-lg animate-pulse">
+          <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 flex h-3 w-3 sm:h-4 sm:w-4 items-center justify-center rounded-full bg-gradient-to-r from-rose-500 to-red-600 px-0.5 text-[8px] sm:text-[9px] font-bold text-white shadow-lg animate-pulse">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
