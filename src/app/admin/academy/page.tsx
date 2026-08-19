@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Edit, Trash2, BookOpen, Video, FileText, ChevronRight, ChevronDown, ChevronUp, Save, X, Lock, Unlock, DollarSign, Eye, Database } from 'lucide-react';
+import { Plus, Edit, Trash2, BookOpen, Video, FileText, ChevronRight, ChevronDown, ChevronUp, Save, X, Lock, Unlock, DollarSign, Eye, Database, ArrowLeft, Home } from 'lucide-react';
 import { auth } from '@/lib/auth';
 import { dataManager, Course, Module, Lesson } from '@/lib/data';
 import BrandLogo from '@/components/BrandLogo';
@@ -10,6 +10,7 @@ import PageLoader from '@/components/PageLoader';
 import ConfirmModal from '@/components/ConfirmModal';
 import Toast from '@/components/Toast';
 import { seedAcademyData } from '@/lib/seedAcademy';
+import Link from 'next/link';
 
 export default function AdminAcademyPage() {
   const router = useRouter();
@@ -460,7 +461,11 @@ export default function AdminAcademyPage() {
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center space-x-3">
-              <BrandLogo />
+              <Link href="/admin" className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition">
+                <Home className="h-4 w-4 sm:h-5 sm:w-5" />
+                <span className="text-sm sm:text-base font-medium">Admin</span>
+              </Link>
+              <span className="text-gray-400">/</span>
               <h1 className="text-lg sm:text-xl font-bold text-gray-900">Academia Web</h1>
             </div>
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:space-x-3">

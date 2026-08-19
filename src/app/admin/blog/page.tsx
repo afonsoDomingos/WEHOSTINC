@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { Plus, Edit, Trash2, Eye, Calendar, Tag, Filter, BarChart3 } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, Calendar, Tag, Filter, BarChart3, Home } from 'lucide-react';
 
 interface BlogPost {
   id: string;
@@ -109,9 +109,16 @@ export default function AdminBlogPage() {
       <div className="bg-white border-b">
         <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Gerenciar Blog</h1>
-              <p className="text-gray-600 text-sm sm:text-base">Criar e gerenciar posts do blog</p>
+            <div className="flex items-center space-x-3">
+              <Link href="/admin" className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition">
+                <Home className="h-4 w-4 sm:h-5 sm:w-5" />
+                <span className="text-sm sm:text-base font-medium">Admin</span>
+              </Link>
+              <span className="text-gray-400">/</span>
+              <div>
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Gerenciar Blog</h1>
+                <p className="text-gray-600 text-sm sm:text-base">Criar e gerenciar posts do blog</p>
+              </div>
             </div>
             <div className="flex flex-col sm:flex-row gap-2">
               <Link

@@ -33,9 +33,9 @@ export default function AdminSettingsPage() {
 
   const testPushNotification = async () => {
     try {
-      const userId = localStorage.getItem('userId');
-      if (!userId) {
-        showMessage('User ID não encontrado', 'error');
+      const currentUser = auth.getCurrentUser();
+      if (!currentUser) {
+        showMessage('Usuário não autenticado', 'error');
         return;
       }
 
@@ -43,7 +43,7 @@ export default function AdminSettingsPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId,
+          userId: currentUser.id,
           title: '🔔 Teste de Notificação',
           message: 'Se você recebeu esta notificação, o sistema push está funcionando!'
         })
@@ -64,9 +64,9 @@ export default function AdminSettingsPage() {
 
   const simulatePayment = async () => {
     try {
-      const userId = localStorage.getItem('userId');
-      if (!userId) {
-        showMessage('User ID não encontrado', 'error');
+      const currentUser = auth.getCurrentUser();
+      if (!currentUser) {
+        showMessage('Usuário não autenticado', 'error');
         return;
       }
 
@@ -80,7 +80,7 @@ export default function AdminSettingsPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId,
+          userId: currentUser.id,
           amount: parseInt(amount),
           planName
         })
