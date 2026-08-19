@@ -4,15 +4,19 @@ import User from '@/lib/models/User';
 import webpush from 'web-push';
 
 // Configurar VAPID (em produção, usar variáveis de ambiente)
-const VAPID_PUBLIC_KEY = 'BCpK8T8ZBF1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-const VAPID_PRIVATE_KEY = 'YOUR_PRIVATE_KEY_HERE';
+const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
 const VAPID_EMAIL = 'info@wehosthere.com';
 
-webpush.setVapidDetails(
-  'mailto:' + VAPID_EMAIL,
-  VAPID_PUBLIC_KEY,
-  VAPID_PRIVATE_KEY
-);
+if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
+  webpush.setVapidDetails(
+    'mailto:' + VAPID_EMAIL,
+    VAPID_PUBLIC_KEY,
+    VAPID_PRIVATE_KEY
+  );
+} else {
+  console.warn('[Push Send] Chaves VAPID não configuradas. As notificações push podem não funcionar.');
+}
 
 export async function POST(request: NextRequest) {
   try {
