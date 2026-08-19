@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Mail, MessageCircle, Download, BookOpen, DollarSign, Sparkles, CheckCircle, Loader2 } from 'lucide-react';
+import { X, Mail, MessageCircle, Download, BookOpen, DollarSign, Sparkles, CheckCircle, Loader2, Bell } from 'lucide-react';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
 
 interface CardConfig {
   id: string;
@@ -11,7 +12,7 @@ interface CardConfig {
   description: string;
   actionText: string;
   actionUrl?: string;
-  actionType: 'link' | 'whatsapp' | 'pwa' | 'newsletter';
+  actionType: 'link' | 'whatsapp' | 'pwa' | 'newsletter' | 'push';
   bgColor: string;
   borderColor: string;
   iconBg: string;
@@ -20,6 +21,19 @@ interface CardConfig {
 }
 
 const CARDS: CardConfig[] = [
+  {
+    id: 'push',
+    icon: <Bell className="h-5 w-5" />,
+    title: 'Ative as Notificações Push',
+    description: 'Receba alertas importantes sobre seus sites e pagamentos',
+    actionText: 'Ativar Agora',
+    actionType: 'push',
+    bgColor: 'bg-blue-50',
+    borderColor: 'border-blue-300',
+    iconBg: 'bg-blue-100',
+    iconColor: 'text-blue-600',
+    buttonText: 'Ativar'
+  },
   {
     id: 'whatsapp',
     icon: <MessageCircle className="h-5 w-5" />,
@@ -101,6 +115,7 @@ export default function ScrollUpCards() {
   const [scrollUpCount, setScrollUpCount] = useState(0);
   
   const { isInstallable, promptInstall } = usePWAInstall();
+  const { subscription, permission, requestPermission, isSupported } = usePushNotifications();
 
   useEffect(() => {
     // Verificar se o usuário já fechou todos os cards
@@ -121,10 +136,20 @@ export default function ScrollUpCards() {
         
         // Mostrar card a cada 3 scrolls para cima
         if (scrollUpThreshold >= 3) {
-          // Encontrar o próximo card não dispensado
-          const nextCardIndex = CARDS.findIndex((card, index) => 
-            !dismissedCards.includes(card.id) && index >= currentCardIndex
-          );
+          // Encontrar o próximo card não dispensado e aplicável
+          const nextCardIndex = CARDS.findIndex((card, index) => {
+            // Skip push card if already activated or not supported
+            if (card.id === 'push') {
+              if (!isSupported || subscription || permission === 'granted') {
+                return false;
+              }
+            }
+            // Skip PWA card if not installable
+            if (card.id === 'pwa' && !isInstallable) {
+              return false;
+            }
+            return !dismissedCards.includes(card.id) && index >= currentCardIndex;
+          });
           
           if (nextCardIndex !== -1) {
             setCurrentCardIndex(nextCardIndex);
@@ -139,7 +164,7 @@ export default function ScrollUpCards() {
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [currentCardIndex]);
+  }, [currentCardIndex, isInstallable, isSupported, subscription, permission]);
 
   const handleClose = () => {
     const currentCard = CARDS[currentCardIndex];
@@ -172,6 +197,11 @@ export default function ScrollUpCards() {
       handleClose();
     } else if (currentCard.actionType === 'pwa') {
       const success = await promptInstall();
+      if (success) {
+        handleClose();
+      }
+    } else if (currentCard.actionType === 'push') {
+      const success = await requestPermission();
       if (success) {
         handleClose();
       }
@@ -297,14 +327,19 @@ export default function ScrollUpCards() {
           <div className="mt-3 sm:mt-4">
             <button
               onClick={handleAction}
-              disabled={currentCard.actionType === 'pwa' && !isInstallable}
+              disabled={
+                (currentCard.actionType === 'pwa' && !isInstallable) ||
+                (currentCard.actionType === 'push' && (!isSupported || !!subscription || permission === 'granted'))
+              }
               className={`w-full sm:w-auto px-3 sm:px-4 py-2 ${
-                currentCard.actionType === 'pwa' && !isInstallable
+                (currentCard.actionType === 'pwa' && !isInstallable) ||
+                (currentCard.actionType === 'push' && (!isSupported || !!subscription || permission === 'granted'))
                   ? 'bg-gray-400 cursor-not-allowed'
                   : 'bg-purple-600 hover:bg-purple-700'
               } text-white font-semibold rounded-lg transition flex items-center justify-center space-x-1.5 sm:space-x-2 disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm whitespace-nowrap`}
             >
-              {currentCard.actionType === 'pwa' && !isInstallable ? (
+              {(currentCard.actionType === 'pwa' && !isInstallable) ||
+               (currentCard.actionType === 'push' && (!isSupported || !!subscription || permission === 'granted')) ? (
                 <span>Não disponível</span>
               ) : (
                 <>
