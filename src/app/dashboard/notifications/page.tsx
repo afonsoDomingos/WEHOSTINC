@@ -130,6 +130,37 @@ export default function SalesNotificationsPage() {
     }
   };
 
+  const testPushNotification = async () => {
+    try {
+      const userId = localStorage.getItem('userId');
+      if (!userId) {
+        alert('User ID não encontrado');
+        return;
+      }
+
+      const response = await fetch('/api/push/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          title: '🔔 Teste de Notificação',
+          message: 'Se você recebeu esta notificação, o sistema push está funcionando!'
+        })
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        alert('Notificação de teste enviada! Verifique seu dispositivo.');
+      } else {
+        alert('Erro ao enviar notificação: ' + data.error);
+      }
+    } catch (err) {
+      alert('Erro ao enviar notificação de teste');
+      console.error(err);
+    }
+  };
+
   const getIconForType = (type: string) => {
     switch (type) {
       case 'new_sale':
@@ -210,6 +241,15 @@ export default function SalesNotificationsPage() {
                   <span>Ativar Push</span>
                 </>
               )}
+            </button>
+          )}
+          {subscription && (
+            <button
+              onClick={testPushNotification}
+              className="flex items-center space-x-2 px-4 py-2 bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 rounded-lg transition"
+            >
+              <RefreshCw className="h-4 w-4" />
+              <span>Testar Push</span>
             </button>
           )}
           <button
