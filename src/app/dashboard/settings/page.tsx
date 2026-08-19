@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
-  User as UserIcon, Lock, Bell, Shield, Key, Camera, Upload
+  User as UserIcon, Lock, Bell, Shield, Key, Camera, Upload, BellOff, RefreshCw, ShoppingBag
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 import { useAuth } from '@/lib/useAuth';
@@ -12,6 +12,7 @@ import DashboardNav from '@/components/DashboardNav';
 import DashboardSidebar from '@/components/DashboardSidebar';
 import PageLoader from '@/components/PageLoader';
 import ConfirmModal from '@/components/ConfirmModal';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -25,6 +26,14 @@ export default function SettingsPage() {
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
   const [deleteAccountConfirm, setDeleteAccountConfirm] = useState(false);
   const [avatarUploading, setAvatarUploading] = useState(false);
+  
+  const {
+    permission,
+    subscription,
+    requestPermission,
+    unsubscribe,
+    isSupported
+  } = usePushNotifications();
 
   useEffect(() => {
     if (user && !loading) {
@@ -136,6 +145,74 @@ export default function SettingsPage() {
     setMessage(msg);
     setMessageType(type);
     setTimeout(() => setMessage(''), 3000);
+  };
+
+  const testPushNotification = async () => {
+    try {
+      const userId = localStorage.getItem('userId');
+      if (!userId) {
+        showMessage('User ID não encontrado', 'error');
+        return;
+      }
+
+      const response = await fetch('/api/push/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          title: '🔔 Teste de Notificação',
+          message: 'Se você recebeu esta notificação, o sistema push está funcionando!'
+        })
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        showMessage('Notificação de teste enviada! Verifique seu dispositivo.', 'success');
+      } else {
+        showMessage('Erro ao enviar notificação: ' + data.error, 'error');
+      }
+    } catch (err) {
+      showMessage('Erro ao enviar notificação de teste', 'error');
+      console.error(err);
+    }
+  };
+
+  const simulatePayment = async () => {
+    try {
+      const userId = localStorage.getItem('userId');
+      if (!userId) {
+        showMessage('User ID não encontrado', 'error');
+        return;
+      }
+
+      const amount = prompt('Valor do pagamento (MZN):', '5000');
+      if (!amount) return;
+
+      const planName = prompt('Nome do plano:', 'Plano Pro');
+      if (!planName) return;
+
+      const response = await fetch('/api/test/simulate-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          amount: parseInt(amount),
+          planName
+        })
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        showMessage(`Pagamento simulado com sucesso! Pedido: ${data.simulationDetails.orderNumber}`, 'success');
+      } else {
+        showMessage('Erro ao simular pagamento: ' + data.error, 'error');
+      }
+    } catch (err) {
+      showMessage('Erro ao simular pagamento', 'error');
+      console.error(err);
+    }
   };
 
   if (loading) {
@@ -313,6 +390,83 @@ export default function SettingsPage() {
                   Atualizar Senha
                 </button>
               </form>
+            </div>
+
+            {/* Notification Settings */}
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <div className="flex items-center space-x-4 mb-6">
+                <div className="bg-purple-100 p-3 rounded-lg">
+                  <Bell className="h-6 w-6 text-purple-600" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">Notificações Push</h2>
+                  <p className="text-gray-600">Receba notificações no seu dispositivo mesmo com a plataforma fechada</p>
+                </div>
+              </div>
+              
+              {isSupported ? (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div>
+                      <p className="font-medium text-gray-900">Status das Notificações</p>
+                      <p className="text-sm text-gray-600">
+                        {subscription ? 'Ativado' : 'Desativado'}
+                      </p>
+                    </div>
+                    <button
+                      onClick={subscription ? unsubscribe : requestPermission}
+                      className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg transition font-semibold ${
+                        subscription 
+                          ? 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200' 
+                          : 'bg-emerald-500 text-white hover:bg-emerald-600 border border-emerald-600 shadow-md'
+                      }`}
+                    >
+                      {subscription ? (
+                        <>
+                          <BellOff className="h-4 w-4" />
+                          <span>Desativar</span>
+                        </>
+                      ) : (
+                        <>
+                          <Bell className="h-4 w-4" />
+                          <span>Ativar</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {subscription && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <button
+                        onClick={testPushNotification}
+                        className="flex items-center justify-center space-x-2 px-4 py-2 bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 rounded-lg transition"
+                      >
+                        <RefreshCw className="h-4 w-4" />
+                        <span>Testar Push</span>
+                      </button>
+                      <button
+                        onClick={simulatePayment}
+                        className="flex items-center justify-center space-x-2 px-4 py-2 bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 rounded-lg transition"
+                      >
+                        <ShoppingBag className="h-4 w-4" />
+                        <span>Simular Pagamento</span>
+                      </button>
+                    </div>
+                  )}
+
+                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-sm text-blue-800">
+                      <strong>Como funciona:</strong> As notificações push aparecem no seu dispositivo mesmo com a plataforma fechada, similar ao Utmify e outras grandes plataformas.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                  <p className="text-sm text-gray-600">
+                    Seu navegador não suporta notificações push. Por favor, use um navegador moderno como Chrome, Firefox ou Safari.
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Account Info */}
