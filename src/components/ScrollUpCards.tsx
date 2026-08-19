@@ -169,7 +169,6 @@ export default function ScrollUpCards() {
       title: 'Saiba mais sobre nossos serviços',
       description: 'Converse com nosso assistente virtual',
       actionText: 'Falar com Assistente',
-      actionUrl: '#assistant',
       actionType: 'assistant',
       bgColor: 'bg-indigo-50',
       borderColor: 'border-indigo-300',
@@ -431,17 +430,10 @@ export default function ScrollUpCards() {
         window.location.href = '/systems';
       }
       handleClose();
-    } else if (currentCard.actionType === 'assistant' && currentCard.actionUrl) {
-      // Scroll to assistant or trigger assistant
-      const assistantElement = document.querySelector('[data-assistant]') || document.querySelector('#assistant');
-      if (assistantElement) {
-        assistantElement.scrollIntoView({ behavior: 'smooth' });
-        // Trigger assistant if it has a click handler
-        (assistantElement as HTMLElement).click();
-      } else {
-        // Fallback: open a page with assistant
-        window.location.href = currentCard.actionUrl;
-      }
+    } else if (currentCard.actionType === 'assistant') {
+      // Abrir assistente virtual usando evento customizado
+      const event = new CustomEvent('openVirtualAssistant');
+      window.dispatchEvent(event);
       handleClose();
     } else if (currentCard.actionType === 'link' && currentCard.actionUrl) {
       // Para cards de link (como sites), verificar se é um link especial

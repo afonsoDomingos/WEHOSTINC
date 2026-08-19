@@ -176,6 +176,17 @@ export default function VirtualAssistant() {
         console.error('Error parsing auth data:', e);
       }
     }
+
+    // Listen for custom event to open assistant
+    const handleOpenAssistant = () => {
+      setIsOpen(true);
+    };
+
+    window.addEventListener('openVirtualAssistant', handleOpenAssistant);
+
+    return () => {
+      window.removeEventListener('openVirtualAssistant', handleOpenAssistant);
+    };
   }, []);
 
   const filteredFAQs = faqData.filter(faq => {
