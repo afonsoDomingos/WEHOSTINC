@@ -161,6 +161,44 @@ export default function SalesNotificationsPage() {
     }
   };
 
+  const simulatePayment = async () => {
+    try {
+      const userId = localStorage.getItem('userId');
+      if (!userId) {
+        alert('User ID não encontrado');
+        return;
+      }
+
+      const amount = prompt('Valor do pagamento (MZN):', '5000');
+      if (!amount) return;
+
+      const planName = prompt('Nome do plano:', 'Plano Pro');
+      if (!planName) return;
+
+      const response = await fetch('/api/test/simulate-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          amount: parseInt(amount),
+          planName
+        })
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        alert(`Pagamento simulado com sucesso!\n\nPedido: ${data.simulationDetails.orderNumber}\nValor: ${data.simulationDetails.amount.toLocaleString('pt-MZ')} MZN\n\nVerifique suas notificações (email e push).`);
+        fetchNotifications(); // Atualizar lista de notificações
+      } else {
+        alert('Erro ao simular pagamento: ' + data.error);
+      }
+    } catch (err) {
+      alert('Erro ao simular pagamento');
+      console.error(err);
+    }
+  };
+
   const getIconForType = (type: string) => {
     switch (type) {
       case 'new_sale':
@@ -252,6 +290,13 @@ export default function SalesNotificationsPage() {
               <span>Testar Push</span>
             </button>
           )}
+          <button
+            onClick={simulatePayment}
+            className="flex items-center space-x-2 px-4 py-2 bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 rounded-lg transition"
+          >
+            <ShoppingBag className="h-4 w-4" />
+            <span>Simular Pagamento</span>
+          </button>
           <button
             onClick={fetchNotifications}
             className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
