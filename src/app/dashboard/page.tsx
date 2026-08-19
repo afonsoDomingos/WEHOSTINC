@@ -7,11 +7,12 @@ import { useSession, signOut } from 'next-auth/react';
 import { 
   Server, Mail, LayoutDashboard, Settings, LogOut, 
   Plus, Globe, Database, TrendingUp, Users, CheckCircle, Sparkles, ArrowRight, Link2, Loader2, ShoppingBag,
-  Activity, Cpu, HardDrive, Wifi, ShieldCheck, Zap, Star, Bell, X
+  Activity, Cpu, HardDrive, Wifi, ShieldCheck, Zap, Star, Bell, X, Download
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 import { dataManager } from '@/lib/data';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
+import { usePWAInstall } from '@/hooks/usePWAInstall';
 
 import DashboardNav from '@/components/DashboardNav';
 import DashboardSidebar from '@/components/DashboardSidebar';
@@ -67,6 +68,7 @@ export default function DashboardPage() {
   const [ramUsed, setRamUsed] = useState(0.5);
   const [ramTotal, setRamTotal] = useState(2);
   const [showPushBanner, setShowPushBanner] = useState(false);
+  const [showPWAInstallBanner, setShowPWAInstallBanner] = useState(false);
   
   const {
     permission,
@@ -75,6 +77,13 @@ export default function DashboardPage() {
     unsubscribe,
     isSupported
   } = usePushNotifications();
+
+  const {
+    isInstallable,
+    isInstalled,
+    promptInstall,
+    dismissInstall
+  } = usePWAInstall();
 
   useEffect(() => {
     // Primeiro verificar NextAuth (Google Login)
@@ -175,6 +184,18 @@ export default function DashboardPage() {
     }
   }, [user, subscription, permission, isSupported]);
 
+  // Check if should show PWA install banner
+  useEffect(() => {
+    if (!user) return;
+    
+    // Check if user has already dismissed the PWA install banner
+    const hasDismissedPWA = localStorage.getItem('pwaInstallDismissed');
+    
+    if (isInstallable && !isInstalled && !hasDismissedPWA) {
+      setShowPWAInstallBanner(true);
+    }
+  }, [isInstallable, isInstalled, user]);
+
   const handleDismissPushBanner = () => {
     setShowPushBanner(false);
     localStorage.setItem('pushBannerDismissed', 'true');
@@ -185,6 +206,19 @@ export default function DashboardPage() {
     if (success) {
       setShowPushBanner(false);
       localStorage.setItem('pushBannerDismissed', 'true');
+    }
+  };
+
+  const handleDismissPWAInstallBanner = () => {
+    setShowPWAInstallBanner(false);
+    localStorage.setItem('pwaInstallDismissed', 'true');
+  };
+
+  const handleInstallPWA = async () => {
+    const success = await promptInstall();
+    if (success) {
+      setShowPWAInstallBanner(false);
+      localStorage.removeItem('pwaInstallDismissed');
     }
   };
 
@@ -322,6 +356,37 @@ export default function DashboardPage() {
                     className="p-2 hover:bg-blue-200 rounded-lg transition"
                   >
                     <X className="h-4 w-4 text-blue-600" />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Banner de Instalação PWA */}
+            {showPWAInstallBanner && (
+              <div className="bg-purple-50 border-2 border-purple-300 rounded-xl sm:rounded-2xl p-3 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 text-purple-900 shadow-sm">
+                <div className="flex items-start gap-2 sm:gap-3">
+                  <div className="bg-purple-100 p-2 rounded-lg">
+                    <Download className="h-5 w-5 text-purple-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-purple-950 text-xs sm:text-base">Instale a WEHOSTHERE App</h3>
+                    <p className="text-[10px] sm:text-sm text-purple-800 mt-0.5">
+                      Instale a plataforma no seu dispositivo para acesso rápido, notificações e uso offline.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleInstallPWA}
+                    className="px-3 sm:px-4 py-2 sm:py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold whitespace-nowrap shadow transition"
+                  >
+                    Instalar App
+                  </button>
+                  <button
+                    onClick={handleDismissPWAInstallBanner}
+                    className="p-2 hover:bg-purple-200 rounded-lg transition"
+                  >
+                    <X className="h-4 w-4 text-purple-600" />
                   </button>
                 </div>
               </div>

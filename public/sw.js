@@ -1,9 +1,13 @@
-// Service Worker para notificações push
-const CACHE_NAME = 'wehosthere-v1';
+// Service Worker para WEHOSTHERE PWA
+const CACHE_NAME = 'wehosthere-v2';
 const urlsToCache = [
   '/',
   '/dashboard',
-  '/dashboard/notifications'
+  '/dashboard/notifications',
+  '/dashboard/settings',
+  '/admin',
+  '/admin/settings',
+  '/manifest.json'
 ];
 
 // Instalação do Service Worker
@@ -14,6 +18,10 @@ self.addEventListener('install', (event) => {
       .then((cache) => {
         console.log('[Service Worker] Cache aberto');
         return cache.addAll(urlsToCache);
+      })
+      .then(() => {
+        // Forçar ativação imediata do novo service worker
+        return self.skipWaiting();
       })
   );
 });
@@ -31,12 +39,38 @@ self.addEventListener('activate', (event) => {
           }
         })
       );
+    }).then(() => {
+      // Reclamar clientes imediatamente
+      return self.clients.claim();
     })
   );
 });
 
-// Interceptação de requisições
+// Interceptação de requisições - Network First para navegação, Cache First para assets
 self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url);
+  
+  // Para requisições de navegação, usar Network First
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          // Clonar resposta e adicionar ao cache
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseClone);
+          });
+          return response;
+        })
+        .catch(() => {
+          // Se falhar, tentar do cache
+          return caches.match(event.request);
+        })
+    );
+    return;
+  }
+  
+  // Para outros recursos, usar Cache First
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
@@ -48,18 +82,17 @@ self.addEventListener('fetch', (event) => {
         const fetchRequest = event.request.clone();
 
         return fetch(fetchRequest).then((response) => {
-          // Verifica se resposta válida
+          // Verificar se resposta válida
           if (!response || response.status !== 200 || response.type !== 'basic') {
             return response;
           }
 
-          // Clone da resposta
+          // Clonar resposta
           const responseToCache = response.clone();
 
-          caches.open(CACHE_NAME)
-            .then((cache) => {
-              cache.put(event.request, responseToCache);
-            });
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
 
           return response;
         });
@@ -67,25 +100,23 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// Recebimento de notificações push
+// Push notification handler
 self.addEventListener('push', (event) => {
   console.log('[Service Worker] Push recebido:', event);
-
-  const data = event.data.json();
   
   const options = {
-    body: data.message || 'Nova notificação',
+    body: event.data ? event.data.text() : 'Nova notificação da WEHOSTHERE',
     icon: '/logo.png',
     badge: '/logo.png',
-    vibrate: [200, 100, 200],
+    vibrate: [100, 50, 100],
     data: {
-      url: data.url || '/dashboard/notifications',
-      notificationId: data.notificationId
+      dateOfArrival: Date.now(),
+      primaryKey: 1
     },
     actions: [
       {
-        action: 'view',
-        title: 'Ver',
+        action: 'explore',
+        title: 'Ver Detalhes',
         icon: '/logo.png'
       },
       {
@@ -93,99 +124,30 @@ self.addEventListener('push', (event) => {
         title: 'Fechar',
         icon: '/logo.png'
       }
-    ],
-    tag: data.orderId || 'sales-notification',
-    requireInteraction: true,
-    renotify: true
+    ]
   };
 
-  // Personalização baseada no tipo de notificação
-  if (data.type === 'new_sale') {
-    options.title = '🎉 Nova Venda Realizada';
-    options.badge = '/badge-sale.png';
-  } else if (data.type === 'subscription_renewal') {
-    options.title = '🔄 Renovação de Assinatura';
-    options.badge = '/badge-renewal.png';
-  } else if (data.type === 'upgrade') {
-    options.title = '⬆️ Upgrade Realizado';
-    options.badge = '/badge-upgrade.png';
-  } else if (data.type === 'refund') {
-    options.title = '💰 Reembolso Processado';
-    options.badge = '/badge-refund.png';
-  } else if (data.type === 'payment_failed') {
-    options.title = '⚠️ Falha no Pagamento';
-    options.badge = '/badge-error.png';
-  } else {
-    options.title = data.title || 'Nova Notificação';
-  }
-
   event.waitUntil(
-    self.registration.showNotification(options.title, options)
+    self.registration.showNotification('WEHOSTHERE', options)
   );
 });
 
-// Clique na notificação
+// Notification click handler
 self.addEventListener('notificationclick', (event) => {
   console.log('[Service Worker] Notificação clicada:', event);
-
+  
   event.notification.close();
 
-  if (event.action === 'view') {
-    const data = event.notification.data;
-    const urlToOpen = data.url || '/dashboard/notifications';
-
+  if (event.action === 'explore') {
     event.waitUntil(
-      clients.matchAll({ type: 'window' }).then((clientList) => {
-        // Verifica se já existe uma janela aberta
-        for (const client of clientList) {
-          if (client.url === urlToOpen && 'focus' in client) {
-            return client.focus();
-          }
-        }
-        // Se não, abre uma nova janela
-        if (clients.openWindow) {
-          return clients.openWindow(urlToOpen);
-        }
-      })
+      clients.openWindow('/dashboard/notifications')
     );
   } else if (event.action === 'close') {
-    // Apenas fecha a notificação
+    // Fechar notificação
   } else {
-    // Comportamento padrão: abrir URL
-    const data = event.notification.data;
-    const urlToOpen = data.url || '/dashboard/notifications';
-
+    // Ação padrão - abrir dashboard
     event.waitUntil(
-      clients.matchAll({ type: 'window' }).then((clientList) => {
-        for (const client of clientList) {
-          if (client.url === urlToOpen && 'focus' in client) {
-            return client.focus();
-          }
-        }
-        if (clients.openWindow) {
-          return clients.openWindow(urlToOpen);
-        }
-      })
+      clients.openWindow('/dashboard')
     );
   }
 });
-
-// Sincronização em background
-self.addEventListener('sync', (event) => {
-  console.log('[Service Worker] Background sync:', event);
-  if (event.tag === 'sync-notifications') {
-    event.waitUntil(syncNotifications());
-  }
-});
-
-async function syncNotifications() {
-  try {
-    // Sincroniza notificações não lidas
-    const response = await fetch('/api/notifications/sync');
-    if (response.ok) {
-      console.log('[Service Worker] Notificações sincronizadas');
-    }
-  } catch (error) {
-    console.error('[Service Worker] Erro ao sincronizar:', error);
-  }
-}
