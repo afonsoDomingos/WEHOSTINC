@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
   Server, LayoutDashboard, Globe, Mail, 
-  Database, Settings as SettingsIcon, LogOut, Menu, X, User, LifeBuoy, Sparkles, Link2, RefreshCw, FileText, Star, Package, BookOpen
+  Database, Settings as SettingsIcon, LogOut, Menu, X, User, LifeBuoy, Sparkles, Link2, RefreshCw, FileText, Star, Package, BookOpen, Bell
 } from 'lucide-react';
 
 import BrandLogo from '@/components/BrandLogo';
@@ -41,6 +41,7 @@ export default function DashboardNav({ userName, userAvatar, onLogout, onRefresh
     { href: '/dashboard/site-quote', label: 'Solicitar Site', icon: Sparkles },
     { href: '/dashboard/domains', label: 'Comprar Domínio', icon: Link2 },
     { href: '/dashboard/email', label: 'Email', icon: Mail },
+    { href: '/dashboard/notifications', label: 'Notificações', icon: Bell },
     { href: '/dashboard/billing', label: 'Faturamento', icon: Database },
     { href: '/dashboard/tickets', label: 'Suporte', icon: LifeBuoy },
     { href: '/dashboard/settings', label: 'Configurações', icon: SettingsIcon },
@@ -57,8 +58,17 @@ export default function DashboardNav({ userName, userAvatar, onLogout, onRefresh
             {/* Logo */}
             <BrandLogo />
 
-            {/* Desktop User Info, Refresh & Logout */}
+            {/* Desktop User Info, Refresh, Notifications & Logout */}
             <div className="hidden md:flex items-center space-x-3.5">
+              <Link
+                href="/dashboard/notifications"
+                className="relative flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200/80 rounded-lg transition shadow-sm cursor-pointer"
+                title="Notificações"
+              >
+                <Bell className="h-3.5 w-3.5 text-purple-600" />
+                <span>Notificações</span>
+              </Link>
+
               <button
                 type="button"
                 onClick={handleRefreshClick}
@@ -67,7 +77,7 @@ export default function DashboardNav({ userName, userAvatar, onLogout, onRefresh
                 title="Atualizar dados do servidor"
               >
                 <RefreshCw className={`h-3.5 w-3.5 text-primary-600 ${isRefreshing ? 'animate-spin' : ''}`} />
-                <span>{isRefreshing ? 'A atualizar...' : 'Atualizar Dados'}</span>
+                <span>{isRefreshing ? 'A atualizar...' : 'Atualizar'}</span>
               </button>
 
               {userName && (
@@ -181,14 +191,14 @@ export default function DashboardNav({ userName, userAvatar, onLogout, onRefresh
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center space-x-1.5 px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition flex-shrink-0 ${
+                  className={`flex items-center space-x-1.5 px-2 py-1.5 rounded-lg text-[10px] font-semibold whitespace-nowrap transition flex-shrink-0 ${
                     isActive
                       ? 'bg-primary-600 text-white shadow-sm'
                       : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200/80'
                   }`}
                 >
-                  <Icon className={`h-3.5 w-3.5 ${isActive ? 'text-white' : 'text-gray-500'}`} />
-                  <span>{item.label}</span>
+                  <Icon className={`h-3 w-3 ${isActive ? 'text-white' : 'text-gray-500'}`} />
+                  <span className="hidden sm:inline">{item.label}</span>
                 </Link>
               );
             })}
