@@ -75,8 +75,8 @@ self.addEventListener('push', (event) => {
   
   const options = {
     body: data.message || 'Nova notificação',
-    icon: '/icon-192x192.png',
-    badge: '/badge-72x72.png',
+    icon: '/logo.png',
+    badge: '/logo.png',
     vibrate: [200, 100, 200],
     data: {
       url: data.url || '/dashboard/notifications',
@@ -86,12 +86,12 @@ self.addEventListener('push', (event) => {
       {
         action: 'view',
         title: 'Ver',
-        icon: '/icon-192x192.png'
+        icon: '/logo.png'
       },
       {
         action: 'close',
         title: 'Fechar',
-        icon: '/icon-192x192.png'
+        icon: '/logo.png'
       }
     ],
     tag: data.orderId || 'sales-notification',
