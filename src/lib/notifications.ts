@@ -472,6 +472,42 @@ Equipa WEHOSTHERE`,
     channel: 'email',
     isSystem: true,
     createdAt: new Date().toISOString()
+  },
+  {
+    id: 'client-reactivation',
+    name: 'Reativação de Cliente Inativo',
+    category: 'Marketing',
+    subject: 'Sentimos a sua falta! Oferta especial para você voltar',
+    body: `Olá {{nome_cliente}},
+
+Notámos que já faz algum tempo desde a sua última interação com a WEHOSTHERE.
+
+📊 Seu histórico:
+- Total gasto: {{total_gasto}} MZN
+- Pedidos realizados: {{total_pedidos}}
+- Plano atual: {{plano_atual}}
+
+Como cliente valioso, preparamos uma oferta especial para você:
+
+🎁 **Desconto exclusivo de 20%** em todos os serviços!
+
+Use o código: {{codigo_desconto}}
+
+Oferta válida até: {{data_validade}}
+
+🔗 Ver serviços: {{link_servicos}}
+
+Se tiver alguma dúvida ou precisar de ajuda, estamos aqui:
+📧 Email: info@wehosthere.com
+📱 WhatsApp: +258 84 833 5618
+
+Esperamos vê-lo em breve!
+
+Atenciosamente,
+Equipa WEHOSTHERE`,
+    channel: 'email',
+    isSystem: true,
+    createdAt: new Date().toISOString()
   }
 ];
 
