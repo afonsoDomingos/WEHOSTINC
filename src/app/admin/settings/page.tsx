@@ -115,49 +115,49 @@ export default function AdminSettingsPage() {
       {/* Header */}
       <DashboardNav userName={user.name} userAvatar={user.avatar} onLogout={handleLogout} />
 
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
         {/* Back Button */}
         <button
           onClick={() => router.push('/admin')}
-          className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-6 transition"
+          className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-4 sm:mb-6 transition"
         >
-          <ArrowLeft className="h-5 w-5" />
-          <span>Voltar ao Painel Admin</span>
+          <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+          <span className="text-sm sm:text-base">Voltar ao Painel Admin</span>
         </button>
 
         {message && (
-          <div className={`p-4 rounded-lg mb-6 ${
+          <div className={`p-3 sm:p-4 rounded-lg mb-4 sm:mb-6 ${
             messageType === 'success' ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-red-50 border border-red-200 text-red-700'
           }`}>
             {message}
           </div>
         )}
 
-        <div className="max-w-3xl space-y-6">
+        <div className="max-w-3xl space-y-4 sm:space-y-6">
           {/* Notification Settings */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <div className="flex items-center space-x-4 mb-6">
-              <div className="bg-purple-100 p-3 rounded-lg">
-                <Bell className="h-6 w-6 text-purple-600" />
+          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+            <div className="flex items-center space-x-3 sm:space-x-4 mb-4 sm:mb-6">
+              <div className="bg-purple-100 p-2 sm:p-3 rounded-lg">
+                <Bell className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-gray-900">Notificações Push</h2>
-                <p className="text-gray-600">Receba notificações administrativas no seu dispositivo mesmo com a plataforma fechada</p>
+                <h2 className="text-lg sm:text-xl font-bold text-gray-900">Notificações Push</h2>
+                <p className="text-xs sm:text-sm text-gray-600">Receba notificações administrativas no seu dispositivo mesmo com a plataforma fechada</p>
               </div>
             </div>
             
             {isSupported ? (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div className="space-y-3 sm:space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-gray-50 rounded-lg gap-3">
                   <div>
-                    <p className="font-medium text-gray-900">Status das Notificações</p>
-                    <p className="text-sm text-gray-600">
+                    <p className="font-medium text-gray-900 text-sm sm:text-base">Status das Notificações</p>
+                    <p className="text-xs sm:text-sm text-gray-600">
                       {subscription ? 'Ativado' : 'Desativado'}
                     </p>
                   </div>
                   <button
                     onClick={subscription ? unsubscribe : requestPermission}
-                    className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg transition font-semibold ${
+                    className={`flex items-center justify-center space-x-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg transition font-semibold text-xs sm:text-sm ${
                       subscription 
                         ? 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200' 
                         : 'bg-emerald-500 text-white hover:bg-emerald-600 border border-emerald-600 shadow-md'
@@ -165,12 +165,12 @@ export default function AdminSettingsPage() {
                   >
                     {subscription ? (
                       <>
-                        <BellOff className="h-4 w-4" />
+                        <BellOff className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                         <span>Desativar</span>
                       </>
                     ) : (
                       <>
-                        <Bell className="h-4 w-4" />
+                        <Bell className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                         <span>Ativar</span>
                       </>
                     )}
@@ -178,33 +178,33 @@ export default function AdminSettingsPage() {
                 </div>
 
                 {subscription && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                     <button
                       onClick={testPushNotification}
-                      className="flex items-center justify-center space-x-2 px-4 py-2 bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 rounded-lg transition"
+                      className="flex items-center justify-center space-x-2 px-3 sm:px-4 py-2 bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 rounded-lg transition text-xs sm:text-sm"
                     >
-                      <RefreshCw className="h-4 w-4" />
+                      <RefreshCw className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       <span>Testar Push</span>
                     </button>
                     <button
                       onClick={simulatePayment}
-                      className="flex items-center justify-center space-x-2 px-4 py-2 bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 rounded-lg transition"
+                      className="flex items-center justify-center space-x-2 px-3 sm:px-4 py-2 bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 rounded-lg transition text-xs sm:text-sm"
                     >
-                      <ShoppingBag className="h-4 w-4" />
+                      <ShoppingBag className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       <span>Simular Pagamento</span>
                     </button>
                   </div>
                 )}
 
-                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <p className="text-sm text-blue-800">
+                <div className="p-3 sm:p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-xs sm:text-sm text-blue-800">
                     <strong>Como funciona:</strong> As notificações push aparecem no seu dispositivo mesmo com a plataforma fechada, similar ao Utmify e outras grandes plataformas. Como admin, você recebe notificações de todo o sistema.
                   </p>
                 </div>
               </div>
             ) : (
-              <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                <p className="text-sm text-gray-600">
+              <div className="p-3 sm:p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                <p className="text-xs sm:text-sm text-gray-600">
                   Seu navegador não suporta notificações push. Por favor, use um navegador moderno como Chrome, Firefox ou Safari.
                 </p>
               </div>
@@ -212,33 +212,33 @@ export default function AdminSettingsPage() {
           </div>
 
           {/* Account Info */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <div className="flex items-center space-x-4 mb-6">
-              <div className="bg-primary-100 p-3 rounded-lg">
-                <Shield className="h-6 w-6 text-primary-600" />
+          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+            <div className="flex items-center space-x-3 sm:space-x-4 mb-4 sm:mb-6">
+              <div className="bg-primary-100 p-2 sm:p-3 rounded-lg">
+                <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-gray-900">Informações da Conta</h2>
-                <p className="text-gray-600">Detalhes da sua conta administrativa</p>
+                <h2 className="text-lg sm:text-xl font-bold text-gray-900">Informações da Conta</h2>
+                <p className="text-xs sm:text-sm text-gray-600">Detalhes da sua conta administrativa</p>
               </div>
             </div>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-3 sm:space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <p className="text-sm text-gray-600">Nome</p>
-                  <p className="font-semibold text-gray-900">{user.name}</p>
+                  <p className="text-xs sm:text-sm text-gray-600">Nome</p>
+                  <p className="font-semibold text-gray-900 text-sm sm:text-base">{user.name}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Email</p>
-                  <p className="font-semibold text-gray-900">{user.email}</p>
+                  <p className="text-xs sm:text-sm text-gray-600">Email</p>
+                  <p className="font-semibold text-gray-900 text-sm sm:text-base">{user.email}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Função</p>
-                  <p className="font-semibold text-purple-600">Administrador</p>
+                  <p className="text-xs sm:text-sm text-gray-600">Função</p>
+                  <p className="font-semibold text-purple-600 text-sm sm:text-base">Administrador</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Status</p>
-                  <p className="font-semibold text-green-600">Ativo</p>
+                  <p className="text-xs sm:text-sm text-gray-600">Status</p>
+                  <p className="font-semibold text-green-600 text-sm sm:text-base">Ativo</p>
                 </div>
               </div>
             </div>
