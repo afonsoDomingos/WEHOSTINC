@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
   LayoutDashboard, Globe, Mail, Database, Settings as SettingsIcon, 
-  LifeBuoy, Sparkles, Link2, FileText, Star, Package, BookOpen
+  LifeBuoy, Sparkles, Link2, FileText, Star, Package, BookOpen, Activity
 } from 'lucide-react';
 
 interface DashboardSidebarProps {
@@ -23,6 +23,7 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
     { href: '/dashboard/academy', label: 'Academia Web', icon: BookOpen },
     { href: '/dashboard/domains', label: 'Comprar Domínio', icon: Link2 },
     { href: '/dashboard/email', label: 'Email', icon: Mail },
+    { href: '/dashboard/uptime', label: 'Monitorar Uptime', icon: Activity },
     { href: '/dashboard/billing', label: 'Faturamento', icon: Database },
     { href: '/dashboard/tickets', label: 'Suporte', icon: LifeBuoy },
     { href: '/dashboard/settings', label: 'Configurações', icon: SettingsIcon },

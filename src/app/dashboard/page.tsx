@@ -297,6 +297,13 @@ export default function DashboardPage() {
                   <Mail className="h-4 w-4 sm:h-5 sm:w-5" />
                   <span>Configurar Email</span>
                 </Link>
+                <Link
+                  href="/dashboard/uptime"
+                  className="flex items-center space-x-1.5 sm:space-x-2 bg-emerald-500 text-white px-3 sm:px-5 py-2 sm:py-3 rounded-lg hover:bg-emerald-400 transition font-semibold text-[10px] sm:text-sm"
+                >
+                  <Activity className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <span>Monitorar Uptime</span>
+                </Link>
                 </div>
               </div>
             </div>
