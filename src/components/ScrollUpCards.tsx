@@ -55,7 +55,7 @@ const CARDS: CardConfig[] = [
     title: 'Precisa de ajuda?',
     description: 'Fale com o nosso suporte por WhatsApp',
     actionText: 'Falar no WhatsApp',
-    actionUrl: 'https://wa.me/258841234567?text=Olá, preciso de ajuda com a WEHOSTHERE',
+    actionUrl: 'https://wa.me/258848335618?text=Olá, preciso de ajuda com a WEHOSTHERE',
     actionType: 'whatsapp',
     bgColor: 'bg-green-50',
     borderColor: 'border-green-300',
