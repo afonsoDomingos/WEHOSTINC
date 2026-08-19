@@ -1,15 +1,16 @@
 import { MetadataRoute } from 'next';
 import { SITE_URL } from '@/lib/siteConfig';
+import { connectDB } from '@/lib/mongodb';
 
 const BASE_URL = SITE_URL;
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
   const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
   const oneMonthAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
   const threeMonthsAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
 
-  return [
+  const staticPages: MetadataRoute.Sitemap = [
     // Página principal - mais importante
     {
       url: BASE_URL,
@@ -85,9 +86,30 @@ export default function sitemap(): MetadataRoute.Sitemap {
     // Blog principal
     {
       url: `${BASE_URL}/blog`,
-      lastModified: oneWeekAgo,
+      lastModified: now,
       changeFrequency: 'daily',
       priority: 0.8,
     },
   ];
+
+  // Buscar posts do blog dinamicamente
+  let blogPosts: MetadataRoute.Sitemap = [];
+  try {
+    await connectDB();
+    const BlogPost = (await import('@/lib/models/BlogPost')).default;
+    const posts = await BlogPost.find({ status: 'published' })
+      .select('slug updatedAt publishedAt')
+      .lean();
+
+    blogPosts = posts.map((post) => ({
+      url: `${BASE_URL}/blog/${post.slug}`,
+      lastModified: post.updatedAt || post.publishedAt || now,
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
+    }));
+  } catch (error) {
+    console.error('[Sitemap] Erro ao buscar posts do blog:', error);
+  }
+
+  return [...staticPages, ...blogPosts];
 }
