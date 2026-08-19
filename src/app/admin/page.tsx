@@ -1008,9 +1008,6 @@ export default function AdminPage() {
           <div className="flex justify-between items-center py-3 sm:py-4">
             <div className="flex items-center space-x-3 sm:space-x-4">
               <BrandLogo />
-              <span className="bg-purple-100 text-purple-700 text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full border border-purple-200">
-                ADMIN
-              </span>
             </div>
             <div className="flex items-center space-x-2 sm:space-x-3 sm:space-x-4">
               <button
