@@ -9,7 +9,7 @@ import {
   LogOut, Settings, Home, CheckCircle, Clock, XCircle, Search,
   ShoppingBag, MessageSquare, ExternalLink, Trash2, LifeBuoy, Send, ShieldCheck, CheckCircle2, AlertCircle,
   Paperclip, FileText, Image as ImageIcon, Download, File, X, Loader2, Tag, Shield, AlertTriangle,
-  Activity, Eye, Globe, Wifi, WifiOff, BarChart2, RefreshCw, UserPlus, Star, Plus, Edit, BookOpen, Bell
+  Activity, Eye, EyeOff, Globe, Wifi, WifiOff, BarChart2, RefreshCw, UserPlus, Star, Plus, Edit, BookOpen, Bell
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 import { dataManager, ServiceOrder, SupportTicket, TicketMessage, TicketAttachment, SecurityLog, SystemForRent, RentalRequest, SystemAccess, SocialProof } from '@/lib/data';
@@ -323,6 +323,14 @@ export default function AdminPage() {
     onConfirm: () => void;
     variant?: 'danger' | 'warning' | 'info' | 'success';
   } | null>(null);
+  const [hideSensitiveValues, setHideSensitiveValues] = useState(false);
+
+  const formatSensitiveValue = (value: number | string) => {
+    if (hideSensitiveValues) {
+      return '***';
+    }
+    return typeof value === 'number' ? value.toLocaleString('pt-MZ') : value;
+  };
 
   const handleAdminFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -1021,6 +1029,20 @@ export default function AdminPage() {
                 <span className="hidden sm:inline">{isRefreshingAdmin ? 'A atualizar...' : 'Atualizar Dados'}</span>
               </button>
 
+              <button
+                type="button"
+                onClick={() => setHideSensitiveValues(!hideSensitiveValues)}
+                className="flex items-center space-x-1 sm:space-x-1.5 px-2 sm:px-3 py-1.5 text-[10px] sm:text-xs font-semibold text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-200/80 rounded-lg transition shadow-sm cursor-pointer"
+                title={hideSensitiveValues ? 'Mostrar valores sensíveis' : 'Esconder valores sensíveis'}
+              >
+                {hideSensitiveValues ? (
+                  <EyeOff className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-gray-600" />
+                ) : (
+                  <Eye className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-gray-600" />
+                )}
+                <span className="hidden sm:inline">{hideSensitiveValues ? 'Mostrar' : 'Esconder'}</span>
+              </button>
+
               <Link
                 href="/"
                 className="flex items-center space-x-1.5 sm:space-x-2 text-gray-600 hover:text-primary-600 font-medium transition text-[10px] sm:text-xs sm:text-sm"
@@ -1075,7 +1097,7 @@ export default function AdminPage() {
                 className="flex items-center space-x-1.5 sm:space-x-2 text-gray-600 hover:text-purple-600 font-medium transition text-[10px] sm:text-xs sm:text-sm"
               >
                 <Settings className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-500" />
-                <span>Configurações</span>
+                <span className="hidden sm:inline">Configurações</span>
               </Link>
               <AdminNotificationCenter onNavigate={(url) => router.push(url)} />
               <button
@@ -1196,7 +1218,7 @@ export default function AdminPage() {
                     <span className="text-[10px] sm:text-xs text-primary-500 font-semibold">Atualizando...</span>
                   </div>
                 ) : (
-                  <p className="text-2xl sm:text-3xl font-extrabold text-primary-700">{visitStats.total.toLocaleString('pt-MZ')}</p>
+                  <p className="text-2xl sm:text-3xl font-extrabold text-primary-700">{formatSensitiveValue(visitStats.total)}</p>
                 )}
                 <p className="text-[10px] sm:text-xs text-primary-500 mt-0.5">páginas vistas</p>
               </div>
@@ -1211,7 +1233,7 @@ export default function AdminPage() {
                     <span className="text-[10px] sm:text-xs text-emerald-500 font-semibold">Atualizando...</span>
                   </div>
                 ) : (
-                  <p className="text-2xl sm:text-3xl font-extrabold text-emerald-700">{visitStats.uniqueVisitors.toLocaleString('pt-MZ')}</p>
+                  <p className="text-2xl sm:text-3xl font-extrabold text-emerald-700">{formatSensitiveValue(visitStats.uniqueVisitors)}</p>
                 )}
                 <p className="text-[10px] sm:text-xs text-emerald-500 mt-0.5">sessões distintas</p>
               </div>
@@ -1319,7 +1341,7 @@ export default function AdminPage() {
                 <span className="text-[10px] sm:text-sm text-gray-500">A processar...</span>
               </div>
             ) : (
-              <p className="text-2xl sm:text-3xl font-bold text-gray-900">{totalRevenue.toLocaleString('pt-MZ')} MT</p>
+              <p className="text-2xl sm:text-3xl font-bold text-gray-900">{formatSensitiveValue(totalRevenue)} MT</p>
             )}
             <p className="text-gray-500 text-[10px] sm:text-sm mt-1">Receita Total</p>
           </div>
@@ -1336,7 +1358,7 @@ export default function AdminPage() {
               <p className="text-gray-500 text-[10px] sm:text-sm mt-0.5">Métricas de faturamento em Meticais, ticket médio e liquidação via M-Pesa / eMola</p>
             </div>
             <span className="bg-emerald-100 text-emerald-800 text-[10px] sm:text-xs font-extrabold px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border border-emerald-300">
-              Projeção Anual: {(mrr * 12).toLocaleString('pt-MZ')} MT
+              Projeção Anual: {formatSensitiveValue(mrr * 12)} MT
             </span>
           </div>
 
@@ -1350,7 +1372,7 @@ export default function AdminPage() {
                   <span className="text-[10px] sm:text-xs font-semibold text-gray-500">A processar...</span>
                 </div>
               ) : (
-                <span className="text-xl sm:text-2xl font-black text-gray-900 block mt-1">{averageTicket.toLocaleString('pt-MZ')} MT</span>
+                <span className="text-xl sm:text-2xl font-black text-gray-900 block mt-1">{formatSensitiveValue(averageTicket)} MT</span>
               )}
               <span className="text-[10px] sm:text-xs text-gray-500 mt-1 block">Média de gasto por contratação na plataforma</span>
             </div>
@@ -1364,7 +1386,7 @@ export default function AdminPage() {
                   <span className="text-[10px] sm:text-xs font-semibold text-red-600">A processar...</span>
                 </div>
               ) : (
-                <span className="text-xl sm:text-2xl font-black text-red-700 block mt-1">{mpesaRevenue.toLocaleString('pt-MZ')} MT</span>
+                <span className="text-xl sm:text-2xl font-black text-red-700 block mt-1">{formatSensitiveValue(mpesaRevenue)} MT</span>
               )}
               <div className="w-full bg-red-200 h-1.5 sm:h-2 rounded-full mt-2 overflow-hidden">
                 <div className="bg-red-600 h-1.5 sm:h-2 rounded-full transition-all duration-700 animate-pulse" style={{ width: `${Math.round((mpesaRevenue / validOrdersTotal) * 100)}%` }}></div>
@@ -1381,7 +1403,7 @@ export default function AdminPage() {
                   <span className="text-[10px] sm:text-xs font-semibold text-orange-600">A processar...</span>
                 </div>
               ) : (
-                <span className="text-xl sm:text-2xl font-black text-orange-700 block mt-1">{(emolaRevenue + cardRevenue).toLocaleString('pt-MZ')} MT</span>
+                <span className="text-xl sm:text-2xl font-black text-orange-700 block mt-1">{formatSensitiveValue(emolaRevenue + cardRevenue)} MT</span>
               )}
               <div className="w-full bg-orange-200 h-1.5 sm:h-2 rounded-full mt-2 overflow-hidden">
                 <div className="bg-orange-600 h-1.5 sm:h-2 rounded-full transition-all duration-700 animate-pulse" style={{ width: `${Math.round(((emolaRevenue + cardRevenue) / validOrdersTotal) * 100)}%` }}></div>
