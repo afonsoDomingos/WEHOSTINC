@@ -21,6 +21,46 @@ interface CardConfig {
   buttonText: string;
 }
 
+const SOCIAL_LINKS = [
+  {
+    name: 'Facebook',
+    url: 'https://www.facebook.com/profile.php?id=61592497206566&locale=pt_BR',
+    color: 'bg-blue-600',
+    borderColor: 'border-blue-300',
+    iconBg: 'bg-blue-100',
+    iconColor: 'text-blue-600'
+  },
+  {
+    name: 'LinkedIn',
+    url: 'https://www.linkedin.com/company/wehosthere',
+    color: 'bg-blue-700',
+    borderColor: 'border-blue-300',
+    iconBg: 'bg-blue-100',
+    iconColor: 'text-blue-700'
+  },
+  {
+    name: 'X (Twitter)',
+    url: 'https://x.com/wehosthere',
+    color: 'bg-black',
+    borderColor: 'border-gray-300',
+    iconBg: 'bg-gray-100',
+    iconColor: 'text-black'
+  },
+  {
+    name: 'Instagram',
+    url: 'https://www.instagram.com/wehosthere',
+    color: 'bg-gradient-to-r from-purple-600 to-pink-600',
+    borderColor: 'border-pink-300',
+    iconBg: 'bg-pink-100',
+    iconColor: 'text-pink-600'
+  }
+];
+
+const WHATSAPP_NUMBERS = [
+  { number: '258848335618', display: '+258 84 833 5618' },
+  { number: '258844384702', display: '+258 84 438 4702' }
+];
+
 const CARDS: CardConfig[] = [
   {
     id: 'signup',
@@ -55,7 +95,6 @@ const CARDS: CardConfig[] = [
     title: 'Precisa de ajuda?',
     description: 'Fale com o nosso suporte por WhatsApp',
     actionText: 'Falar no WhatsApp',
-    actionUrl: 'https://wa.me/258848335618?text=Olá, preciso de ajuda com a WEHOSTHERE',
     actionType: 'whatsapp',
     bgColor: 'bg-green-50',
     borderColor: 'border-green-300',
@@ -82,7 +121,6 @@ const CARDS: CardConfig[] = [
     title: 'Siga-nos nas redes sociais',
     description: 'Fique por dentro das novidades e promoções',
     actionText: 'Seguir Redes',
-    actionUrl: 'https://www.facebook.com/wehosthere',
     actionType: 'social',
     bgColor: 'bg-pink-50',
     borderColor: 'border-pink-300',
@@ -170,6 +208,8 @@ export default function ScrollUpCards() {
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [lastScrollY, setLastScrollY] = useState(0);
   const [scrollUpCount, setScrollUpCount] = useState(0);
+  const [socialIndex, setSocialIndex] = useState(0);
+  const [whatsappIndex, setWhatsappIndex] = useState(0);
   
   const { isInstallable, promptInstall } = usePWAInstall();
   const { subscription, permission, requestPermission, isSupported } = usePushNotifications();
@@ -252,8 +292,12 @@ export default function ScrollUpCards() {
     if (currentCard.actionType === 'link' && currentCard.actionUrl) {
       window.location.href = currentCard.actionUrl;
       handleClose();
-    } else if (currentCard.actionType === 'whatsapp' && currentCard.actionUrl) {
-      window.open(currentCard.actionUrl, '_blank');
+    } else if (currentCard.actionType === 'whatsapp') {
+      // Rotate between WhatsApp numbers
+      const currentNumber = WHATSAPP_NUMBERS[whatsappIndex];
+      const whatsappUrl = `https://wa.me/${currentNumber.number}?text=Olá, preciso de ajuda com a WEHOSTHERE`;
+      window.open(whatsappUrl, '_blank');
+      setWhatsappIndex((prev) => (prev + 1) % WHATSAPP_NUMBERS.length);
       handleClose();
     } else if (currentCard.actionType === 'pwa') {
       if (isInstallable) {
@@ -286,8 +330,11 @@ export default function ScrollUpCards() {
     } else if (currentCard.actionType === 'signup' && currentCard.actionUrl) {
       window.location.href = currentCard.actionUrl;
       handleClose();
-    } else if (currentCard.actionType === 'social' && currentCard.actionUrl) {
-      window.open(currentCard.actionUrl, '_blank');
+    } else if (currentCard.actionType === 'social') {
+      // Rotate between social links
+      const currentSocial = SOCIAL_LINKS[socialIndex];
+      window.open(currentSocial.url, '_blank');
+      setSocialIndex((prev) => (prev + 1) % SOCIAL_LINKS.length);
       handleClose();
     } else if (currentCard.actionType === 'systems' && currentCard.actionUrl) {
       window.location.href = currentCard.actionUrl;
