@@ -419,6 +419,31 @@ Equipa {{nome_empresa}}`,
     channel: 'email',
     isSystem: true,
     createdAt: new Date().toISOString()
+  },
+  {
+    id: 'site-offline-alert',
+    name: 'Alerta de Site Offline',
+    category: 'Uptime',
+    subject: '⚠️ Alerta: {{nome_site}} está offline',
+    body: `Olá {{nome_cliente}},
+
+Detectamos que o seu site {{nome_site}} está offline.
+
+📍 URL: {{url_site}}
+🕐 Horário: {{horario_offline}}
+⏱️ Tempo de resposta: {{tempo_resposta}}ms
+
+A nossa equipa de suporte já foi notificada e está a investigar o problema.
+
+Se precisar de assistência imediata, contacte-nos:
+📧 Email: info@wehosthere.com
+📱 WhatsApp: +258 84 833 5618
+
+Atenciosamente,
+Equipa WEHOSTHERE`,
+    channel: 'email',
+    isSystem: true,
+    createdAt: new Date().toISOString()
   }
 ];
 
