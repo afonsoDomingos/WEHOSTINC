@@ -444,6 +444,34 @@ Equipa WEHOSTHERE`,
     channel: 'email',
     isSystem: true,
     createdAt: new Date().toISOString()
+  },
+  {
+    id: 'abandoned-cart-recovery',
+    name: 'Recuperação de Carrinho Abandonado',
+    category: 'Marketing',
+    subject: '🛒 Ainda está interessado nos seus serviços?',
+    body: `Olá {{nome_cliente}},
+
+Notámos que adicionou serviços ao seu carrinho mas ainda não concluiu a compra.
+
+📋 Itens no seu carrinho:
+{{lista_itens}}
+
+💰 Total: {{total_valor}} MZN
+
+Não perca esta oportunidade de ter os seus serviços online com a WEHOSTHERE!
+
+🔗 Voltar ao carrinho: {{link_carrinho}}
+
+Se tiver alguma dúvida, estamos aqui para ajudar:
+📧 Email: info@wehosthere.com
+📱 WhatsApp: +258 84 833 5618
+
+Atenciosamente,
+Equipa WEHOSTHERE`,
+    channel: 'email',
+    isSystem: true,
+    createdAt: new Date().toISOString()
   }
 ];
 
