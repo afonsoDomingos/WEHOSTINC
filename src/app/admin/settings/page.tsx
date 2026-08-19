@@ -3,13 +3,13 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
-  Bell, BellOff, RefreshCw, ShoppingBag, User as UserIcon, Lock, Shield, ArrowLeft
+  Bell, BellOff, RefreshCw, ShoppingBag, User as UserIcon, Lock, Shield, ArrowLeft, Home
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 import { useAuth } from '@/lib/useAuth';
-import DashboardNav from '@/components/DashboardNav';
 import PageLoader from '@/components/PageLoader';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
+import Link from 'next/link';
 
 export default function AdminSettingsPage() {
   const router = useRouter();
@@ -112,19 +112,31 @@ export default function AdminSettingsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <DashboardNav userName={user.name} userAvatar={user.avatar} onLogout={handleLogout} />
+      {/* Simple Admin Header */}
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <Link href="/admin" className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition">
+                <Home className="h-4 w-4 sm:h-5 sm:w-5" />
+                <span className="text-sm sm:text-base font-medium">Admin</span>
+              </Link>
+              <span className="text-gray-400">/</span>
+              <h1 className="text-base sm:text-lg font-bold text-gray-900">Configurações</h1>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="flex items-center space-x-2 px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+            >
+              <UserIcon className="h-4 w-4" />
+              <span className="hidden sm:inline">Sair</span>
+              <span className="sm:hidden">Sair</span>
+            </button>
+          </div>
+        </div>
+      </header>
 
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
-        {/* Back Button */}
-        <button
-          onClick={() => router.push('/admin')}
-          className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-4 sm:mb-6 transition"
-        >
-          <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
-          <span className="text-sm sm:text-base">Voltar ao Painel Admin</span>
-        </button>
-
         {message && (
           <div className={`p-3 sm:p-4 rounded-lg mb-4 sm:mb-6 ${
             messageType === 'success' ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-red-50 border border-red-200 text-red-700'

@@ -325,8 +325,8 @@ export default function AdminPage() {
   } | null>(null);
   const [hideSensitiveValues, setHideSensitiveValues] = useState(false);
 
-  const formatSensitiveValue = (value: number | string) => {
-    if (hideSensitiveValues) {
+  const formatSensitiveValue = (value: number | string, isSensitive: boolean = true) => {
+    if (hideSensitiveValues && isSensitive) {
       return '***';
     }
     return typeof value === 'number' ? value.toLocaleString('pt-MZ') : value;
@@ -1218,7 +1218,7 @@ export default function AdminPage() {
                     <span className="text-[10px] sm:text-xs text-primary-500 font-semibold">Atualizando...</span>
                   </div>
                 ) : (
-                  <p className="text-2xl sm:text-3xl font-extrabold text-primary-700">{formatSensitiveValue(visitStats.total)}</p>
+                  <p className="text-2xl sm:text-3xl font-extrabold text-primary-700">{formatSensitiveValue(visitStats.total, false)}</p>
                 )}
                 <p className="text-[10px] sm:text-xs text-primary-500 mt-0.5">páginas vistas</p>
               </div>
@@ -1233,7 +1233,7 @@ export default function AdminPage() {
                     <span className="text-[10px] sm:text-xs text-emerald-500 font-semibold">Atualizando...</span>
                   </div>
                 ) : (
-                  <p className="text-2xl sm:text-3xl font-extrabold text-emerald-700">{formatSensitiveValue(visitStats.uniqueVisitors)}</p>
+                  <p className="text-2xl sm:text-3xl font-extrabold text-emerald-700">{formatSensitiveValue(visitStats.uniqueVisitors, false)}</p>
                 )}
                 <p className="text-[10px] sm:text-xs text-emerald-500 mt-0.5">sessões distintas</p>
               </div>
@@ -1293,7 +1293,7 @@ export default function AdminPage() {
                 <span className="text-[10px] sm:text-sm text-gray-500">A processar...</span>
               </div>
             ) : (
-              <p className="text-2xl sm:text-3xl font-bold text-gray-900">{users.length}</p>
+              <p className="text-2xl sm:text-3xl font-bold text-gray-900">{formatSensitiveValue(users.length)}</p>
             )}
             <p className="text-gray-500 text-[10px] sm:text-sm mt-1">Usuários cadastrados</p>
           </div>
@@ -1309,7 +1309,7 @@ export default function AdminPage() {
                 <span className="text-[10px] sm:text-sm text-gray-500">A processar...</span>
               </div>
             ) : (
-              <p className="text-2xl sm:text-3xl font-bold text-gray-900">{sites.length}</p>
+              <p className="text-2xl sm:text-3xl font-bold text-gray-900">{formatSensitiveValue(sites.length)}</p>
             )}
             <p className="text-gray-500 text-[10px] sm:text-sm mt-1">Sites & Domínios</p>
           </div>
@@ -1325,7 +1325,7 @@ export default function AdminPage() {
                 <span className="text-[10px] sm:text-sm text-gray-500">A processar...</span>
               </div>
             ) : (
-              <p className="text-2xl sm:text-3xl font-bold text-gray-900">{emails.length}</p>
+              <p className="text-2xl sm:text-3xl font-bold text-gray-900">{formatSensitiveValue(emails.length)}</p>
             )}
             <p className="text-gray-500 text-[10px] sm:text-sm mt-1">Contas de Email</p>
           </div>
