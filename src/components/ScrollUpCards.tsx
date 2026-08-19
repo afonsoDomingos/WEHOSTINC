@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Mail, MessageCircle, Download, BookOpen, DollarSign, Sparkles, CheckCircle, Loader2, Bell } from 'lucide-react';
+import { X, Mail, MessageCircle, Download, BookOpen, DollarSign, Sparkles, CheckCircle, Loader2, Bell, UserPlus, Share2, Box, HelpCircle } from 'lucide-react';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
+import { useSession } from 'next-auth/react';
 
 interface CardConfig {
   id: string;
@@ -12,7 +13,7 @@ interface CardConfig {
   description: string;
   actionText: string;
   actionUrl?: string;
-  actionType: 'link' | 'whatsapp' | 'pwa' | 'newsletter' | 'push';
+  actionType: 'link' | 'whatsapp' | 'pwa' | 'newsletter' | 'push' | 'signup' | 'social' | 'systems' | 'assistant';
   bgColor: string;
   borderColor: string;
   iconBg: string;
@@ -21,6 +22,20 @@ interface CardConfig {
 }
 
 const CARDS: CardConfig[] = [
+  {
+    id: 'signup',
+    icon: <UserPlus className="h-5 w-5" />,
+    title: 'Crie sua conta grátis',
+    description: 'Comece a hospedar seus sites hoje mesmo',
+    actionText: 'Criar Conta',
+    actionUrl: '/register',
+    actionType: 'signup',
+    bgColor: 'bg-emerald-50',
+    borderColor: 'border-emerald-300',
+    iconBg: 'bg-emerald-100',
+    iconColor: 'text-emerald-600',
+    buttonText: 'Criar Conta'
+  },
   {
     id: 'push',
     icon: <Bell className="h-5 w-5" />,
@@ -60,6 +75,48 @@ const CARDS: CardConfig[] = [
     iconBg: 'bg-purple-100',
     iconColor: 'text-purple-600',
     buttonText: 'Instalar'
+  },
+  {
+    id: 'social',
+    icon: <Share2 className="h-5 w-5" />,
+    title: 'Siga-nos nas redes sociais',
+    description: 'Fique por dentro das novidades e promoções',
+    actionText: 'Seguir Redes',
+    actionUrl: 'https://facebook.com/wehosthere',
+    actionType: 'social',
+    bgColor: 'bg-pink-50',
+    borderColor: 'border-pink-300',
+    iconBg: 'bg-pink-100',
+    iconColor: 'text-pink-600',
+    buttonText: 'Seguir'
+  },
+  {
+    id: 'systems',
+    icon: <Box className="h-5 w-5" />,
+    title: 'Sistemas prontos para aluguer',
+    description: 'E-commerce, ERP, CRM e muito mais',
+    actionText: 'Ver Sistemas',
+    actionUrl: '/dashboard/systems',
+    actionType: 'systems',
+    bgColor: 'bg-cyan-50',
+    borderColor: 'border-cyan-300',
+    iconBg: 'bg-cyan-100',
+    iconColor: 'text-cyan-600',
+    buttonText: 'Ver Sistemas'
+  },
+  {
+    id: 'assistant',
+    icon: <HelpCircle className="h-5 w-5" />,
+    title: 'Saiba mais sobre nossos serviços',
+    description: 'Converse com nosso assistente virtual',
+    actionText: 'Falar com Assistente',
+    actionUrl: '#assistant',
+    actionType: 'assistant',
+    bgColor: 'bg-indigo-50',
+    borderColor: 'border-indigo-300',
+    iconBg: 'bg-indigo-100',
+    iconColor: 'text-indigo-600',
+    buttonText: 'Saiba Mais'
   },
   {
     id: 'blog',
@@ -116,6 +173,8 @@ export default function ScrollUpCards() {
   
   const { isInstallable, promptInstall } = usePWAInstall();
   const { subscription, permission, requestPermission, isSupported } = usePushNotifications();
+  const { data: session } = useSession();
+  const user = session?.user;
 
   useEffect(() => {
     // Verificar se o usuário já fechou todos os cards
@@ -138,6 +197,10 @@ export default function ScrollUpCards() {
         if (scrollUpThreshold >= 3) {
           // Encontrar o próximo card não dispensado e aplicável
           const nextCardIndex = CARDS.findIndex((card, index) => {
+            // Skip signup card if user is logged in
+            if (card.id === 'signup' && user) {
+              return false;
+            }
             // Skip push card if already activated or not supported
             if (card.id === 'push') {
               if (!isSupported || subscription || permission === 'granted') {
@@ -161,7 +224,7 @@ export default function ScrollUpCards() {
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [currentCardIndex, isSupported, subscription, permission]);
+  }, [currentCardIndex, isSupported, subscription, permission, user]);
 
   const handleClose = () => {
     const currentCard = CARDS[currentCardIndex];
@@ -220,6 +283,27 @@ export default function ScrollUpCards() {
       if (success) {
         handleClose();
       }
+    } else if (currentCard.actionType === 'signup' && currentCard.actionUrl) {
+      window.location.href = currentCard.actionUrl;
+      handleClose();
+    } else if (currentCard.actionType === 'social' && currentCard.actionUrl) {
+      window.open(currentCard.actionUrl, '_blank');
+      handleClose();
+    } else if (currentCard.actionType === 'systems' && currentCard.actionUrl) {
+      window.open(currentCard.actionUrl, '_blank');
+      handleClose();
+    } else if (currentCard.actionType === 'assistant' && currentCard.actionUrl) {
+      // Scroll to assistant or trigger assistant
+      const assistantElement = document.querySelector('[data-assistant]') || document.querySelector('#assistant');
+      if (assistantElement) {
+        assistantElement.scrollIntoView({ behavior: 'smooth' });
+        // Trigger assistant if it has a click handler
+        (assistantElement as HTMLElement).click();
+      } else {
+        // Fallback: open a page with assistant
+        window.location.href = currentCard.actionUrl;
+      }
+      handleClose();
     } else if (currentCard.actionType === 'newsletter') {
       // Mostrar formulário de newsletter
       // O formulário já está visível no card
