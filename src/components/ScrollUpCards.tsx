@@ -61,144 +61,6 @@ const WHATSAPP_NUMBERS = [
   { number: '258844384702', display: '+258 84 438 4702' }
 ];
 
-const CARDS: CardConfig[] = [
-  {
-    id: 'signup',
-    icon: <UserPlus className="h-5 w-5" />,
-    title: 'Crie sua conta grátis',
-    description: 'Comece a hospedar seus sites hoje mesmo',
-    actionText: 'Criar Conta',
-    actionUrl: '/register',
-    actionType: 'signup',
-    bgColor: 'bg-emerald-50',
-    borderColor: 'border-emerald-300',
-    iconBg: 'bg-emerald-100',
-    iconColor: 'text-emerald-600',
-    buttonText: 'Criar Conta'
-  },
-  {
-    id: 'push',
-    icon: <Bell className="h-5 w-5" />,
-    title: 'Ative as Notificações Push',
-    description: 'Receba alertas importantes sobre seus sites e pagamentos',
-    actionText: 'Ativar Agora',
-    actionType: 'push',
-    bgColor: 'bg-blue-50',
-    borderColor: 'border-blue-300',
-    iconBg: 'bg-blue-100',
-    iconColor: 'text-blue-600',
-    buttonText: 'Ativar'
-  },
-  {
-    id: 'whatsapp',
-    icon: <MessageCircle className="h-5 w-5" />,
-    title: 'Precisa de ajuda?',
-    description: 'Fale com o nosso suporte por WhatsApp',
-    actionText: 'Falar no WhatsApp',
-    actionType: 'whatsapp',
-    bgColor: 'bg-green-50',
-    borderColor: 'border-green-300',
-    iconBg: 'bg-green-100',
-    iconColor: 'text-green-600',
-    buttonText: 'WhatsApp'
-  },
-  {
-    id: 'pwa',
-    icon: <Download className="h-5 w-5" />,
-    title: 'Instale a WEHOSTHERE App',
-    description: 'Acesso rápido, notificações e uso offline',
-    actionText: 'Instalar Agora',
-    actionType: 'pwa',
-    bgColor: 'bg-purple-50',
-    borderColor: 'border-purple-300',
-    iconBg: 'bg-purple-100',
-    iconColor: 'text-purple-600',
-    buttonText: 'Instalar'
-  },
-  {
-    id: 'social',
-    icon: <Share2 className="h-5 w-5" />,
-    title: 'Siga-nos nas redes sociais',
-    description: 'Fique por dentro das novidades e promoções',
-    actionText: 'Seguir Redes',
-    actionType: 'social',
-    bgColor: 'bg-pink-50',
-    borderColor: 'border-pink-300',
-    iconBg: 'bg-pink-100',
-    iconColor: 'text-pink-600',
-    buttonText: 'Seguir'
-  },
-  {
-    id: 'systems',
-    icon: <Box className="h-5 w-5" />,
-    title: 'Sistemas prontos para aluguer',
-    description: 'E-commerce, ERP, CRM e muito mais',
-    actionText: 'Ver Sistemas',
-    actionUrl: '/dashboard/systems',
-    actionType: 'systems',
-    bgColor: 'bg-cyan-50',
-    borderColor: 'border-cyan-300',
-    iconBg: 'bg-cyan-100',
-    iconColor: 'text-cyan-600',
-    buttonText: 'Ver Sistemas'
-  },
-  {
-    id: 'assistant',
-    icon: <HelpCircle className="h-5 w-5" />,
-    title: 'Saiba mais sobre nossos serviços',
-    description: 'Converse com nosso assistente virtual',
-    actionText: 'Falar com Assistente',
-    actionUrl: '#assistant',
-    actionType: 'assistant',
-    bgColor: 'bg-indigo-50',
-    borderColor: 'border-indigo-300',
-    iconBg: 'bg-indigo-100',
-    iconColor: 'text-indigo-600',
-    buttonText: 'Saiba Mais'
-  },
-  {
-    id: 'blog',
-    icon: <BookOpen className="h-5 w-5" />,
-    title: 'Novidades no Blog',
-    description: 'Artigos sobre hospedagem, SEO e tecnologia',
-    actionText: 'Ler Artigos',
-    actionUrl: '/blog',
-    actionType: 'link',
-    bgColor: 'bg-blue-50',
-    borderColor: 'border-blue-300',
-    iconBg: 'bg-blue-100',
-    iconColor: 'text-blue-600',
-    buttonText: 'Blog'
-  },
-  {
-    id: 'pricing',
-    icon: <DollarSign className="h-5 w-5" />,
-    title: 'Sistemas Prontos',
-    description: 'Veja os preços dos nossos sistemas para aluguer',
-    actionText: 'Ver Preços',
-    actionUrl: '/dashboard/systems',
-    actionType: 'link',
-    bgColor: 'bg-amber-50',
-    borderColor: 'border-amber-300',
-    iconBg: 'bg-amber-100',
-    iconColor: 'text-amber-600',
-    buttonText: 'Preços'
-  },
-  {
-    id: 'newsletter',
-    icon: <Mail className="h-5 w-5" />,
-    title: '📰 Mantenha-se atualizado!',
-    description: 'Receba novidades e atualizações da WEHOSTHERE',
-    actionText: 'Subscrever',
-    actionType: 'newsletter',
-    bgColor: 'bg-purple-50',
-    borderColor: 'border-purple-300',
-    iconBg: 'bg-purple-100',
-    iconColor: 'text-purple-600',
-    buttonText: 'Subscrever'
-  }
-];
-
 export default function ScrollUpCards() {
   const [isVisible, setIsVisible] = useState(false);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
@@ -215,6 +77,144 @@ export default function ScrollUpCards() {
   const { subscription, permission, requestPermission, isSupported } = usePushNotifications();
   const { data: session } = useSession();
   const user = session?.user;
+
+  const CARDS: CardConfig[] = [
+    {
+      id: 'signup',
+      icon: <UserPlus className="h-5 w-5" />,
+      title: 'Crie sua conta grátis',
+      description: 'Comece a hospedar seus sites hoje mesmo',
+      actionText: 'Criar Conta',
+      actionUrl: '/register',
+      actionType: 'signup',
+      bgColor: 'bg-emerald-50',
+      borderColor: 'border-emerald-300',
+      iconBg: 'bg-emerald-100',
+      iconColor: 'text-emerald-600',
+      buttonText: 'Criar Conta'
+    },
+    {
+      id: 'push',
+      icon: <Bell className="h-5 w-5" />,
+      title: 'Ative as Notificações Push',
+      description: 'Receba alertas importantes sobre seus sites e pagamentos',
+      actionText: 'Ativar Agora',
+      actionType: 'push',
+      bgColor: 'bg-blue-50',
+      borderColor: 'border-blue-300',
+      iconBg: 'bg-blue-100',
+      iconColor: 'text-blue-600',
+      buttonText: 'Ativar'
+    },
+    {
+      id: 'whatsapp',
+      icon: <MessageCircle className="h-5 w-5" />,
+      title: 'Precisa de ajuda?',
+      description: `Fale com o nosso suporte por WhatsApp (${WHATSAPP_NUMBERS[whatsappIndex].display})`,
+      actionText: 'Falar no WhatsApp',
+      actionType: 'whatsapp',
+      bgColor: 'bg-green-50',
+      borderColor: 'border-green-300',
+      iconBg: 'bg-green-100',
+      iconColor: 'text-green-600',
+      buttonText: 'WhatsApp'
+    },
+    {
+      id: 'pwa',
+      icon: <Download className="h-5 w-5" />,
+      title: 'Instale a WEHOSTHERE App',
+      description: 'Acesso rápido, notificações e uso offline',
+      actionText: 'Instalar Agora',
+      actionType: 'pwa',
+      bgColor: 'bg-purple-50',
+      borderColor: 'border-purple-300',
+      iconBg: 'bg-purple-100',
+      iconColor: 'text-purple-600',
+      buttonText: 'Instalar'
+    },
+    {
+      id: 'social',
+      icon: <Share2 className="h-5 w-5" />,
+      title: 'Siga-nos nas redes sociais',
+      description: `Fique por dentro das novidades e promoções (${SOCIAL_LINKS[socialIndex].name})`,
+      actionText: 'Seguir Redes',
+      actionType: 'social',
+      bgColor: 'bg-pink-50',
+      borderColor: 'border-pink-300',
+      iconBg: 'bg-pink-100',
+      iconColor: 'text-pink-600',
+      buttonText: 'Seguir'
+    },
+    {
+      id: 'systems',
+      icon: <Box className="h-5 w-5" />,
+      title: 'Sistemas prontos para aluguer',
+      description: 'E-commerce, ERP, CRM e muito mais',
+      actionText: 'Ver Sistemas',
+      actionUrl: '/dashboard/systems',
+      actionType: 'systems',
+      bgColor: 'bg-cyan-50',
+      borderColor: 'border-cyan-300',
+      iconBg: 'bg-cyan-100',
+      iconColor: 'text-cyan-600',
+      buttonText: 'Ver Sistemas'
+    },
+    {
+      id: 'assistant',
+      icon: <HelpCircle className="h-5 w-5" />,
+      title: 'Saiba mais sobre nossos serviços',
+      description: 'Converse com nosso assistente virtual',
+      actionText: 'Falar com Assistente',
+      actionUrl: '#assistant',
+      actionType: 'assistant',
+      bgColor: 'bg-indigo-50',
+      borderColor: 'border-indigo-300',
+      iconBg: 'bg-indigo-100',
+      iconColor: 'text-indigo-600',
+      buttonText: 'Saiba Mais'
+    },
+    {
+      id: 'blog',
+      icon: <BookOpen className="h-5 w-5" />,
+      title: 'Novidades no Blog',
+      description: 'Artigos sobre hospedagem, SEO e tecnologia',
+      actionText: 'Ler Artigos',
+      actionUrl: '/blog',
+      actionType: 'link',
+      bgColor: 'bg-blue-50',
+      borderColor: 'border-blue-300',
+      iconBg: 'bg-blue-100',
+      iconColor: 'text-blue-600',
+      buttonText: 'Blog'
+    },
+    {
+      id: 'pricing',
+      icon: <DollarSign className="h-5 w-5" />,
+      title: 'Sistemas Prontos',
+      description: 'Veja os preços dos nossos sistemas para aluguer',
+      actionText: 'Ver Preços',
+      actionUrl: '/dashboard/systems',
+      actionType: 'link',
+      bgColor: 'bg-amber-50',
+      borderColor: 'border-amber-300',
+      iconBg: 'bg-amber-100',
+      iconColor: 'text-amber-600',
+      buttonText: 'Preços'
+    },
+    {
+      id: 'newsletter',
+      icon: <Mail className="h-5 w-5" />,
+      title: '📰 Mantenha-se atualizado!',
+      description: 'Receba novidades e atualizações da WEHOSTHERE',
+      actionText: 'Subscrever',
+      actionType: 'newsletter',
+      bgColor: 'bg-purple-50',
+      borderColor: 'border-purple-300',
+      iconBg: 'bg-purple-100',
+      iconColor: 'text-purple-600',
+      buttonText: 'Subscrever'
+    }
+  ];
 
   useEffect(() => {
     // Verificar se o usuário já fechou todos os cards
@@ -306,21 +306,102 @@ export default function ScrollUpCards() {
           handleClose();
         }
       } else {
-        // Mostrar instruções manuais se prompt nativo não disponível
+        // Mostrar instruções manuais detalhadas se prompt nativo não disponível
         const userAgent = navigator.userAgent.toLowerCase();
+        let browserName = '';
         let instructions = '';
+        let icon = '';
         
         if (userAgent.includes('chrome') || userAgent.includes('edge')) {
-          instructions = 'Para instalar: Clique no menu (⋮) no canto superior direito → "Instalar WEHOSTHERE" ou "Instalar aplicativo"';
+          browserName = userAgent.includes('edge') ? 'Microsoft Edge' : 'Google Chrome';
+          instructions = `
+📱 Como instalar no ${browserName}:
+
+1. Clique no menu (⋮) no canto superior direito
+2. Procure por "Instalar WEHOSTHERE" ou "Instalar aplicativo"
+3. Clique na opção de instalação
+4. Confirme a instalação
+
+✅ Pronto! A WEHOSTHERE estará instalada no seu dispositivo.
+          `;
+          icon = '🌐';
         } else if (userAgent.includes('safari') && !userAgent.includes('chrome')) {
-          instructions = 'Para instalar: Clique no botão "Compartilhar" (⎙) → "Adicionar ao Ecrã Inicial"';
+          browserName = 'Safari';
+          instructions = `
+📱 Como instalar no Safari:
+
+1. Clique no botão "Compartilhar" (⎙) na barra inferior
+2. Role para baixo e selecione "Adicionar ao Ecrã Inicial"
+3. Clique em "Adicionar" no canto superior direito
+4. A WEHOSTHERE aparecerá no seu ecrã inicial
+
+✅ Pronto! A WEHOSTHERE estará instalada no seu dispositivo.
+          `;
+          icon = '🧭';
         } else if (userAgent.includes('firefox')) {
-          instructions = 'Para instalar: Clique no menu (⋮) → "Instalar" ou "Adicionar à página inicial"';
+          browserName = 'Firefox';
+          instructions = `
+📱 Como instalar no Firefox:
+
+1. Clique no menu (⋮) no canto superior direito
+2. Procure por "Instalar" ou "Adicionar à página inicial"
+3. Siga as instruções na tela
+4. Confirme a instalação
+
+✅ Pronto! A WEHOSTHERE estará instalada no seu dispositivo.
+          `;
+          icon = '🦊';
         } else {
-          instructions = 'Para instalar: Procure a opção "Instalar" no menu do seu navegador';
+          browserName = 'Navegador';
+          instructions = `
+📱 Como instalar:
+
+1. Procure pelo menu do seu navegador
+2. Busque por opções de "Instalar" ou "Adicionar ao ecrã inicial"
+3. Siga as instruções específicas do seu navegador
+4. Confirme a instalação
+
+💡 Dica: Se precisar de ajuda, entre em contato pelo WhatsApp!
+          `;
+          icon = '🔍';
         }
         
-        alert(instructions);
+        // Criar modal com instruções detalhadas
+        const modal = document.createElement('div');
+        modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4';
+        modal.innerHTML = `
+          <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-300">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-2">
+                <span class="text-2xl">${icon}</span>
+                <h3 class="text-lg font-bold text-gray-900">Instalar WEHOSTHERE</h3>
+              </div>
+              <button id="close-modal" class="text-gray-400 hover:text-gray-600 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
+            <p class="text-sm text-gray-600 mb-4">Detectado: <span class="font-semibold text-gray-900">${browserName}</span></p>
+            <pre class="text-sm text-gray-700 bg-gray-50 p-4 rounded-xl whitespace-pre-wrap leading-relaxed font-sans">${instructions}</pre>
+            <button id="close-modal-btn" class="w-full mt-4 bg-primary-600 hover:bg-primary-700 text-white font-bold py-3 rounded-xl transition">
+              Entendi
+            </button>
+          </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        const closeModal = () => {
+          modal.remove();
+          handleClose();
+        };
+        
+        document.getElementById('close-modal')?.addEventListener('click', closeModal);
+        document.getElementById('close-modal-btn')?.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => {
+          if (e.target === modal) closeModal();
+        });
       }
     } else if (currentCard.actionType === 'push') {
       const success = await requestPermission();
