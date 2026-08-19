@@ -131,8 +131,33 @@ export async function POST(request: NextRequest) {
               channel: 'email'
             });
 
-            console.log(`[Uptime Alert] Alert sent to ${user.email} for ${monitor.url}`);
+            console.log(`[Uptime Alert] Alert sent to client ${user.email} for ${monitor.url}`);
           }
+
+          // Enviar notificação para a equipe de suporte
+          const supportEmail = 'info@wehosthere.com';
+          await dispatchMessage({
+            recipientEmail: supportEmail,
+            recipientName: 'Equipe de Suporte WEHOSTHERE',
+            templateId: 'site-offline-alert',
+            variables: {
+              nome_site: monitor.name,
+              url_site: monitor.url,
+              horario_offline: now.toLocaleString('pt-MZ', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              }),
+              tempo_resposta: responseTime.toString()
+            },
+            isAutomatic: true,
+            eventType: 'site_offline_support',
+            channel: 'email'
+          });
+
+          console.log(`[Uptime Alert] Alert sent to support ${supportEmail} for ${monitor.url}`);
         } catch (err) {
           console.error('[Uptime Alert] Error sending notification:', err);
         }
