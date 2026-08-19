@@ -82,7 +82,7 @@ const CARDS: CardConfig[] = [
     title: 'Siga-nos nas redes sociais',
     description: 'Fique por dentro das novidades e promoções',
     actionText: 'Seguir Redes',
-    actionUrl: 'https://facebook.com/wehosthere',
+    actionUrl: 'https://www.facebook.com/wehosthere',
     actionType: 'social',
     bgColor: 'bg-pink-50',
     borderColor: 'border-pink-300',
@@ -250,7 +250,7 @@ export default function ScrollUpCards() {
     const currentCard = CARDS[currentCardIndex];
     
     if (currentCard.actionType === 'link' && currentCard.actionUrl) {
-      window.open(currentCard.actionUrl, '_blank');
+      window.location.href = currentCard.actionUrl;
       handleClose();
     } else if (currentCard.actionType === 'whatsapp' && currentCard.actionUrl) {
       window.open(currentCard.actionUrl, '_blank');
@@ -290,7 +290,7 @@ export default function ScrollUpCards() {
       window.open(currentCard.actionUrl, '_blank');
       handleClose();
     } else if (currentCard.actionType === 'systems' && currentCard.actionUrl) {
-      window.open(currentCard.actionUrl, '_blank');
+      window.location.href = currentCard.actionUrl;
       handleClose();
     } else if (currentCard.actionType === 'assistant' && currentCard.actionUrl) {
       // Scroll to assistant or trigger assistant
