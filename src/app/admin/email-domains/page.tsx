@@ -15,7 +15,8 @@ import {
   Globe,
   Zap,
   CloudDownload,
-  Rocket
+  Rocket,
+  Trash2
 } from 'lucide-react';
 import Link from 'next/link';
 import { auth } from '@/lib/auth';
@@ -158,6 +159,29 @@ export default function EmailDomainsPage() {
       setToast({ type: 'error', message: 'Erro ao sincronizar domínios.' });
     } finally {
       setIsSyncing(false);
+    }
+  };
+
+  const handleDeleteDomain = async (domainName: string) => {
+    if (!window.confirm(`Tem a certeza que deseja apagar o domínio ${domainName}? Esta ação é irreversível e apagará todas as caixas de correio associadas.`)) {
+      return;
+    }
+    
+    try {
+      const response = await fetch(`/api/email-providers/migadu/domains/${domainName}`, {
+        method: 'DELETE'
+      });
+      const data = await response.json();
+      
+      if (data.success) {
+        setToast({ type: 'success', message: 'Domínio apagado com sucesso.' });
+        fetchDomains();
+      } else {
+        setToast({ type: 'error', message: data.error || 'Erro ao apagar o domínio.' });
+      }
+    } catch (error) {
+      console.error('Delete domain error:', error);
+      setToast({ type: 'error', message: 'Erro ao apagar o domínio.' });
     }
   };
 
@@ -532,8 +556,12 @@ export default function EmailDomainsPage() {
                       >
                         Manage
                       </Link>
-                      <button className="text-gray-400 hover:text-gray-600">
-                        <MoreVertical className="h-5 w-5" />
+                      <button 
+                        onClick={() => handleDeleteDomain(domain.domainName)}
+                        className="text-red-400 hover:text-red-600"
+                        title="Delete Domain"
+                      >
+                        <Trash2 className="h-5 w-5" />
                       </button>
                     </td>
                   </tr>
