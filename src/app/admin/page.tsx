@@ -1058,53 +1058,11 @@ export default function AdminPage() {
                 <span className="hidden sm:inline">Comunicação</span>
               </Link>
               <Link
-                href="/admin/systems"
-                className="flex items-center space-x-1.5 sm:space-x-2 text-gray-600 hover:text-primary-600 font-medium transition text-[10px] sm:text-xs sm:text-sm"
-              >
-                <Star className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500" />
-                <span className="hidden sm:inline">Sistemas</span>
-              </Link>
-              <Link
-                href="/admin/partners"
-                className="flex items-center space-x-1.5 sm:space-x-2 text-gray-600 hover:text-primary-600 font-medium transition text-[10px] sm:text-xs sm:text-sm"
-              >
-                <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500" />
-                <span className="hidden sm:inline">Parceiros</span>
-              </Link>
-              <Link
-                href="/admin/academy"
-                className="flex items-center space-x-1.5 sm:space-x-2 text-gray-600 hover:text-primary-600 font-medium transition text-[10px] sm:text-xs sm:text-sm"
-              >
-                <BookOpen className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500" />
-                <span className="hidden sm:inline">Academia</span>
-              </Link>
-              <Link
-                href="/admin/newsletter"
-                className="flex items-center space-x-1.5 sm:space-x-2 text-gray-600 hover:text-purple-600 font-medium transition text-[10px] sm:text-xs sm:text-sm"
-              >
-                <Mail className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-500" />
-                <span className="hidden sm:inline">Newsletter</span>
-              </Link>
-              <Link
-                href="/admin/email-accounts"
-                className="flex items-center space-x-1.5 sm:space-x-2 text-gray-600 hover:text-blue-600 font-medium transition text-[10px] sm:text-xs sm:text-sm"
-              >
-                <Mail className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-500" />
-                <span className="hidden sm:inline">Contas Email</span>
-              </Link>
-              <Link
                 href="/admin/email-domains"
                 className="flex items-center space-x-1.5 sm:space-x-2 text-gray-600 hover:text-purple-600 font-medium transition text-[10px] sm:text-xs sm:text-sm"
               >
                 <Globe className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-500" />
-                <span className="hidden sm:inline">Domínios Email</span>
-              </Link>
-              <Link
-                href="/webmail"
-                className="flex items-center space-x-1.5 sm:space-x-2 text-gray-600 hover:text-indigo-600 font-medium transition text-[10px] sm:text-xs sm:text-sm"
-              >
-                <Mail className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-indigo-500" />
-                <span className="hidden sm:inline">Webmail</span>
+                <span className="hidden sm:inline">Email</span>
               </Link>
               <Link
                 href="/admin/blog"
