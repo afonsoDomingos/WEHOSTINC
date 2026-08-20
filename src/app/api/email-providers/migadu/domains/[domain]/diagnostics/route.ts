@@ -14,25 +14,125 @@ export async function GET(
     const domainName = params.domain;
 
     let domain = await EmailDomain.findOne({ domainName });
-    if (!domain) {
-      return NextResponse.json({ error: 'Domain not found' }, { status: 404 });
-    }
 
     const provider = getEmailProvider();
-    const diagnostics = await provider.runDNSDiagnostics(domainName);
 
-    // Update domain with fresh diagnostics
-    domain.diagnostics = diagnostics;
-    await domain.save();
+    let diagnostics: any = null;
+    let activatedDomain: any = null;
+
+    if (provider.isConfigured()) {
+      try {
+        // Run DNS diagnostics via Migadu API
+        diagnostics = await provider.runDNSDiagnostics(domainName);
+      } catch (err) {
+        console.warn('[Diagnostics] Could not run DNS diagnostics from provider:', err);
+      }
+
+      // If DNS passed, also try to activate via Migadu
+      if (diagnostics && (diagnostics.overall === 'passed' || diagnostics.overall === 'ok')) {
+        try {
+          activatedDomain = await provider.activateDomain(domainName);
+        } catch (err) {
+          console.warn('[Diagnostics] Could not auto-activate domain via provider:', err);
+        }
+      }
+    }
+
+    // Update or create the domain record in MongoDB
+    const statusFromDiagnostics = 
+      diagnostics?.overall === 'passed' || diagnostics?.overall === 'ok' 
+        ? 'active' 
+        : (domain?.status || 'pending_dns');
+
+    if (domain) {
+      domain.diagnostics = diagnostics;
+      if (statusFromDiagnostics === 'active') {
+        domain.status = 'active';
+        domain.canSend = true;
+        domain.canReceive = true;
+        domain.activatedAt = domain.activatedAt || new Date();
+      }
+      await domain.save();
+    } else {
+      // Domain only registered in Migadu, create a local record
+      domain = await EmailDomain.create({
+        domainName,
+        customerId: 'system',
+        status: statusFromDiagnostics,
+        provider: 'migadu',
+        canSend: statusFromDiagnostics === 'active',
+        canReceive: statusFromDiagnostics === 'active',
+        diagnostics,
+        activatedAt: statusFromDiagnostics === 'active' ? new Date() : undefined,
+      });
+    }
 
     return NextResponse.json({
       success: true,
-      diagnostics
+      diagnostics,
+      domain: {
+        domainName: domain.domainName,
+        status: domain.status,
+        canSend: domain.canSend,
+        canReceive: domain.canReceive,
+        activatedAt: domain.activatedAt,
+      }
     });
   } catch (error) {
     console.error('[Migadu DNS Diagnostics GET] Error:', error);
     return NextResponse.json(
       { error: 'Failed to run DNS diagnostics' },
+      { status: 500 }
+    );
+  }
+}
+
+// POST - Force-mark domain as active (admin override)
+export async function POST(
+  request: NextRequest,
+  { params }: { params: { domain: string } }
+) {
+  try {
+    await connectDB();
+    const domainName = params.domain;
+    const body = await request.json().catch(() => ({}));
+    const { forceActive } = body;
+
+    let domain = await EmailDomain.findOne({ domainName });
+
+    if (!domain) {
+      domain = await EmailDomain.create({
+        domainName,
+        customerId: 'system',
+        status: 'active',
+        provider: 'migadu',
+        canSend: true,
+        canReceive: true,
+        activatedAt: new Date(),
+      });
+    } else {
+      domain.status = 'active';
+      domain.canSend = true;
+      domain.canReceive = true;
+      domain.activatedAt = domain.activatedAt || new Date();
+      await domain.save();
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: 'Domain marked as active',
+      domain: {
+        domainName: domain.domainName,
+        status: domain.status,
+        canSend: domain.canSend,
+        canReceive: domain.canReceive,
+        activatedAt: domain.activatedAt,
+      }
+    });
+  } catch (error) {
+    console.error('[Migadu DNS Diagnostics POST] Error:', error);
+    return NextResponse.json(
+      { error: 'Failed to force-activate domain' },
       { status: 500 }
     );
   }

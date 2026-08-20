@@ -12,7 +12,8 @@ import {
   Mail,
   Globe,
   Copy,
-  ExternalLink
+  ExternalLink,
+  Zap
 } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
@@ -58,6 +59,7 @@ export default function EmailDomainDetailPage() {
   const [loading, setLoading] = useState(true);
   const [isCheckingDNS, setIsCheckingDNS] = useState(false);
   const [isActivating, setIsActivating] = useState(false);
+  const [isForcingActive, setIsForcingActive] = useState(false);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   useEffect(() => {
@@ -115,6 +117,30 @@ export default function EmailDomainDetailPage() {
       setToast({ type: 'error', message: 'Failed to activate domain' });
     } finally {
       setIsActivating(false);
+    }
+  };
+
+  // Force-mark domain as active (admin override - bypasses Migadu DNS check)
+  const handleForceActive = async () => {
+    if (!confirm(`Tem certeza que quer marcar ${domainName} como ATIVO sem verificação DNS? Use apenas se você já confirmou que o DNS está correto no seu provedor.`)) return;
+    setIsForcingActive(true);
+    try {
+      const response = await fetch(`/api/email-providers/migadu/domains/${domainName}/diagnostics`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ forceActive: true })
+      });
+      const data = await response.json();
+      if (data.success) {
+        setToast({ type: 'success', message: `${domainName} marcado como ATIVO com sucesso!` });
+        fetchDomain();
+      } else {
+        setToast({ type: 'error', message: data.error || 'Falhou ao ativar' });
+      }
+    } catch (error) {
+      setToast({ type: 'error', message: 'Erro ao ativar domínio' });
+    } finally {
+      setIsForcingActive(false);
     }
   };
 
@@ -187,17 +213,28 @@ export default function EmailDomainDetailPage() {
                 className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition disabled:opacity-50"
               >
                 <RefreshCw className={`h-5 w-5 ${isCheckingDNS ? 'animate-spin' : ''}`} />
-                <span>Check DNS</span>
+                <span>{isCheckingDNS ? 'A verificar...' : 'Check DNS'}</span>
               </button>
-              {domain.status === 'pending_dns' && (
-                <button
-                  onClick={handleActivateDomain}
-                  disabled={isActivating}
-                  className="flex items-center space-x-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition disabled:opacity-50"
-                >
-                  <CheckCircle className="h-5 w-5" />
-                  <span>{isActivating ? 'Activating...' : 'Activate Domain'}</span>
-                </button>
+              {domain.status !== 'active' && (
+                <>
+                  <button
+                    onClick={handleActivateDomain}
+                    disabled={isActivating}
+                    className="flex items-center space-x-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition disabled:opacity-50"
+                  >
+                    <CheckCircle className="h-5 w-5" />
+                    <span>{isActivating ? 'Activating...' : 'Activate Domain'}</span>
+                  </button>
+                  <button
+                    onClick={handleForceActive}
+                    disabled={isForcingActive}
+                    title="Forçar ativação sem verificação DNS (use se os registos já estão configurados no seu provedor)"
+                    className="flex items-center space-x-2 bg-amber-500 text-white px-4 py-2 rounded-lg hover:bg-amber-600 transition disabled:opacity-50 text-sm"
+                  >
+                    <Zap className="h-4 w-4" />
+                    <span>{isForcingActive ? '...' : 'Forçar Ativo'}</span>
+                  </button>
+                </>
               )}
             </div>
           </div>
