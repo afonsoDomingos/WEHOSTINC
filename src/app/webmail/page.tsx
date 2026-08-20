@@ -441,44 +441,49 @@ function WebmailContent() {
     }
   }, [selectedAccountEmail, mailboxPassword]);
 
+  // Load messages whenever account, password, or folder changes
   useEffect(() => {
     if (selectedAccountEmail && mailboxPassword) {
+      const folder = currentFolder === 'starred' ? 'inbox' : currentFolder as 'inbox' | 'sent' | 'drafts' | 'trash';
       setIsLoadingMessages(true);
-      // Load messages when password is available
-      setTimeout(async () => {
+      setSelectedMessage(null);
+      (async () => {
         try {
-          const allMsgs = await webmailManager.getMessages(selectedAccountEmail, mailboxPassword);
-          setMessages(allMsgs);
-          if (allMsgs.length > 0) {
-            setSelectedMessage(allMsgs[0]);
-          } else {
-            setSelectedMessage(null);
-          }
+          const msgs = await webmailManager.getMessages(selectedAccountEmail, mailboxPassword, folder);
+          // If viewing starred, filter from inbox result
+          const filtered = currentFolder === 'starred' ? msgs.filter(m => m.starred) : msgs;
+          setMessages(filtered);
+          setSelectedMessage(filtered.length > 0 ? filtered[0] : null);
         } catch (error) {
           console.error('[Webmail] Error loading messages:', error);
           setMessages([]);
           setSelectedMessage(null);
         }
         setIsLoadingMessages(false);
-      }, 300);
+      })();
     }
-  }, [selectedAccountEmail, mailboxPassword]);
+  }, [selectedAccountEmail, mailboxPassword, currentFolder]);
 
   const refreshMessages = async () => {
-    if (selectedAccountEmail) {
+    if (selectedAccountEmail && mailboxPassword) {
+      setIsRefreshingWebmail(true);
       try {
-        const msgs = await webmailManager.getMessages(selectedAccountEmail, mailboxPassword);
-        setMessages(msgs);
+        const folder = currentFolder === 'starred' ? 'inbox' : currentFolder as 'inbox' | 'sent' | 'drafts' | 'trash';
+        const msgs = await webmailManager.getMessages(selectedAccountEmail, mailboxPassword, folder);
+        const filtered = currentFolder === 'starred' ? msgs.filter(m => m.starred) : msgs;
+        setMessages(filtered);
       } catch (error) {
         console.error('[Webmail] Error refreshing messages:', error);
       }
+      setIsRefreshingWebmail(false);
     }
   };
 
   const handleSelectMessage = async (msg: WebmailMessage) => {
     setSelectedMessage(msg);
     if (!msg.isRead) {
-      await webmailManager.markAsRead(msg.id, true, selectedAccountEmail, mailboxPassword);
+      const imapFolder = msg.folder === 'sent' ? 'Sent' : msg.folder === 'trash' ? 'Trash' : 'INBOX';
+      await webmailManager.markAsRead(msg.id, true, selectedAccountEmail, mailboxPassword, msg.uid, imapFolder);
       setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, isRead: true } : m));
     }
     
@@ -495,7 +500,9 @@ function WebmailContent() {
 
   const handleToggleStar = async (msgId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    await webmailManager.toggleStar(msgId, selectedAccountEmail, mailboxPassword);
+    const msg = messages.find(m => m.id === msgId);
+    const imapFolder = msg?.folder === 'sent' ? 'Sent' : msg?.folder === 'trash' ? 'Trash' : 'INBOX';
+    await webmailManager.toggleStar(msgId, selectedAccountEmail, mailboxPassword, msg?.uid, imapFolder);
     setMessages(prev => prev.map(m => m.id === msgId ? { ...m, starred: !m.starred } : m));
     if (selectedMessage?.id === msgId) {
       setSelectedMessage(prev => prev ? { ...prev, starred: !prev.starred } : null);
@@ -504,13 +511,16 @@ function WebmailContent() {
 
   const handleDeleteMessage = async (msgId: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
+    const msg = messages.find(m => m.id === msgId);
+    const imapFolder = msg?.folder === 'sent' ? 'Sent' : msg?.folder === 'trash' ? 'Trash' : 'INBOX';
     if (currentFolder === 'trash') {
-      await webmailManager.deletePermanently(msgId, selectedAccountEmail, mailboxPassword);
+      await webmailManager.deletePermanently(msgId, selectedAccountEmail, mailboxPassword, msg?.uid, imapFolder);
       setMessages(prev => prev.filter(m => m.id !== msgId));
       if (selectedMessage?.id === msgId) setSelectedMessage(null);
     } else {
-      await webmailManager.moveFolder(msgId, 'trash', selectedAccountEmail, mailboxPassword);
-      setMessages(prev => prev.map(m => m.id === msgId ? { ...m, folder: 'trash' } : m));
+      await webmailManager.moveFolder(msgId, 'trash', selectedAccountEmail, mailboxPassword, msg?.uid, imapFolder);
+      setMessages(prev => prev.filter(m => m.id !== msgId));
+      if (selectedMessage?.id === msgId) setSelectedMessage(null);
     }
   };
 
@@ -673,31 +683,39 @@ function WebmailContent() {
   const currentAccountObj = accounts.find(a => a.email.toLowerCase() === selectedAccountEmail.toLowerCase());
   const isAccountPending = currentAccountObj ? (currentAccountObj.status === 'pending' || !currentAccountObj.status) : false;
 
-  const unreadInboxCount = messages.filter(m => m.folder === 'inbox' && !m.isRead).length;
+  const unreadCount = messages.filter(m => !m.isRead).length;
   const draftsCount = messages.filter(m => m.folder === 'drafts').length;
+  // For inbox badge — shows unread count only when in inbox
+  const unreadInboxCount = currentFolder === 'inbox' ? messages.filter(m => !m.isRead).length : 0;
 
-  // Calcular armazenamento real baseado no plano do usuário
-  const getStorageInfo = () => {
-    const planLimits: Record<string, number> = {
-      basic: 10,
-      pro: 50,
-      enterprise: 200
-    };
-    
-    const limit = planLimits[user?.plan || 'basic'] || 10;
-    const used = accounts.reduce((total, acc) => total + (acc.storage || 0), 0);
-    const percentage = (used / limit) * 100;
-    
-    return {
-      used,
-      limit,
-      percentage,
-      remaining: Math.max(0, limit - used),
-      isUnlimited: user?.plan === 'enterprise'
-    };
+  // Armazenamento real via Migadu (busca ao iniciar sessão)
+  const [migaduStorageUsedMB, setMigaduStorageUsedMB] = useState<number>(0);
+
+  useEffect(() => {
+    if (selectedAccountEmail && mailboxPassword) {
+      // Fetch real storage usage from Migadu
+      const domain = selectedAccountEmail.split('@')[1];
+      fetch(`/api/email-providers/migadu/domains/${domain}/mailboxes`)
+        .then(r => r.json())
+        .then(data => {
+          const mailboxes: Array<{usage_bytes?: number; local_part?: string}> = data.mailboxes || data || [];
+          const localPart = selectedAccountEmail.split('@')[0];
+          const box = mailboxes.find((m: {local_part?: string}) => m.local_part === localPart);
+          if (box && box.usage_bytes) {
+            setMigaduStorageUsedMB(box.usage_bytes / (1024 * 1024));
+          }
+        })
+        .catch(() => {/* silently ignore */});
+    }
+  }, [selectedAccountEmail, mailboxPassword]);
+
+  const storageInfo = {
+    usedMB: migaduStorageUsedMB,
+    usedDisplay: migaduStorageUsedMB < 1024
+      ? `${migaduStorageUsedMB.toFixed(1)} MB`
+      : `${(migaduStorageUsedMB / 1024).toFixed(2)} GB`,
   };
 
-  const storageInfo = getStorageInfo();
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
@@ -1003,27 +1021,18 @@ function WebmailContent() {
               <>
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-gray-600">
-                    {storageInfo.isUnlimited 
-                      ? `${storageInfo.used.toFixed(1)} / ∞ GB` 
-                      : `${storageInfo.used.toFixed(1)} / ${storageInfo.limit} GB`
-                    }
+                    {storageInfo.usedDisplay} Usado
                   </span>
+                  <span className="text-gray-400 text-[10px]">Pool Migadu</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
                   <div 
-                    className={`h-full transition-all ${
-                      storageInfo.percentage > 90 ? 'bg-red-500' :
-                      storageInfo.percentage > 70 ? 'bg-amber-500' :
-                      'bg-primary-500'
-                    }`}
-                    style={{ width: `${storageInfo.isUnlimited ? Math.min(storageInfo.percentage, 100) : storageInfo.percentage}%` }}
+                    className="h-full bg-primary-500 transition-all"
+                    style={{ width: `${Math.min((storageInfo.usedMB / 8192) * 100, 100)}%` }}
                   />
                 </div>
                 <p className="text-[10px] text-gray-400 text-center">
-                  {storageInfo.isUnlimited 
-                    ? 'Plano Empresarial - Armazenamento Ilimitado' 
-                    : `${storageInfo.remaining.toFixed(1)} GB disponíveis`
-                  }
+                  Armazenamento partilhado Migadu
                 </p>
               </>
             )}
