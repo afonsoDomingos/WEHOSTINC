@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { usePathname } from 'next/navigation';
 import { X, Mail, MessageCircle, Download, BookOpen, DollarSign, Sparkles, CheckCircle, Loader2, Bell, UserPlus, Share2, Box, HelpCircle } from 'lucide-react';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
@@ -80,7 +80,7 @@ export default function ScrollUpCards() {
   const { data: session } = useSession();
   const user = session?.user;
 
-  const CARDS: CardConfig[] = [
+  const CARDS: CardConfig[] = useMemo(() => [
     {
       id: 'signup',
       icon: <UserPlus className="h-5 w-5" />,
@@ -214,7 +214,7 @@ export default function ScrollUpCards() {
       iconColor: 'text-purple-600',
       buttonText: 'Subscrever'
     }
-  ];
+  ], [whatsappIndex, socialIndex]);
 
   useEffect(() => {
     // Verificar se o usuário já fechou todos os cards
@@ -264,6 +264,7 @@ export default function ScrollUpCards() {
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentCardIndex, isSupported, subscription, permission, user, CARDS]);
 
   // Não mostrar incentivos se não estiver na página inicial

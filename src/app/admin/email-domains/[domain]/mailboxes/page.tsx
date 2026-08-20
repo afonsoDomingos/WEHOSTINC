@@ -58,6 +58,7 @@ export default function DomainMailboxesPage() {
 
   useEffect(() => {
     fetchMailboxes();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [domainName]);
 
   const fetchMailboxes = async () => {

@@ -62,6 +62,7 @@ export default function EmailDomainDetailPage() {
 
   useEffect(() => {
     fetchDomain();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [domainName]);
 
   const fetchDomain = async () => {

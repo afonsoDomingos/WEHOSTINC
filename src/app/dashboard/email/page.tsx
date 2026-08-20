@@ -160,6 +160,7 @@ export default function EmailPage() {
     }, 30000);
 
     return () => clearInterval(interval);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session, status, router]);
 
   const copyToClipboard = (text: string) => {

@@ -103,6 +103,7 @@ export default function EmailDomainsPage() {
     }, 10000);
 
     return () => clearInterval(interval);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchEmailAccounts = async () => {
@@ -676,7 +677,7 @@ export default function EmailDomainsPage() {
             <div className="text-center py-12 text-gray-500">
               <Mail className="h-12 w-12 text-gray-300 mx-auto mb-2" />
               <p className="font-semibold text-gray-700">Nenhuma conta de e-mail criada ainda.</p>
-              <p className="text-xs text-gray-400 mt-1">Use o botão "Quick Create" para criar o primeiro e-mail corporativo.</p>
+              <p className="text-xs text-gray-400 mt-1">Use o botão &quot;Quick Create&quot; para criar o primeiro e-mail corporativo.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -727,7 +728,7 @@ export default function EmailDomainsPage() {
                             {acc.userEmail || (isAdminEmail ? 'Administrador' : 'Cliente Plataforma')}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-700">
-                            {acc.storage || acc.quotaGB || 5} GB
+                            {acc.storage || (acc as any).quotaGB || 5} GB
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${
