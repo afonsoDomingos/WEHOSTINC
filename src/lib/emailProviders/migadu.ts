@@ -58,6 +58,10 @@ export class MigaduEmailProvider extends EmailProvider {
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
     
+    console.log('[Migadu API Request] URL:', url);
+    console.log('[Migadu API Request] Method:', options.method || 'GET');
+    console.log('[Migadu API Request] Auth header length:', this.authHeader.length);
+    
     const defaultOptions: RequestInit = {
       headers: {
         'Authorization': this.authHeader,
@@ -68,23 +72,31 @@ export class MigaduEmailProvider extends EmailProvider {
     };
 
     try {
+      console.log('[Migadu API Request] Starting fetch...');
       const response = await fetch(url, defaultOptions);
+      
+      console.log('[Migadu API Request] Response status:', response.status);
+      console.log('[Migadu API Request] Response ok:', response.ok);
       
       // Handle different status codes
       if (response.status === 401) {
+        console.error('[Migadu API Request] Authentication failed');
         throw new AuthenticationError();
       }
       
       if (response.status === 429) {
+        console.error('[Migadu API Request] Rate limit exceeded');
         throw new RateLimitError();
       }
       
       if (response.status === 503 || response.status >= 500) {
+        console.error('[Migadu API Request] Provider unavailable');
         throw new ProviderUnavailableError();
       }
 
       if (!response.ok) {
         const error = await response.json().catch(() => ({ message: 'Unknown error' }));
+        console.error('[Migadu API Request] API error:', error);
         throw new EmailProviderError(
           error.message || `API request failed with status ${response.status}`,
           `API_ERROR_${response.status}`,
@@ -93,8 +105,11 @@ export class MigaduEmailProvider extends EmailProvider {
         );
       }
 
-      return await response.json();
+      const data = await response.json();
+      console.log('[Migadu API Request] Success, data type:', typeof data);
+      return data;
     } catch (error) {
+      console.error('[Migadu API Request] Fetch error:', error);
       if (error instanceof EmailProviderError) {
         throw error;
       }
@@ -152,8 +167,18 @@ export class MigaduEmailProvider extends EmailProvider {
 
   async listDomains(customerId?: string): Promise<EmailDomain[]> {
     return this.withErrorHandling('list domains', async () => {
-      const response = await this.apiRequest<any[]>('/domains');
-      return response.map(domain => this.mapMigaduDomainToEmailDomain(domain, domain.name));
+      console.log('[Migadu Provider] Listing domains, customerId:', customerId);
+      console.log('[Migadu Provider] Auth header exists:', !!this.authHeader);
+      console.log('[Migadu Provider] Base URL:', this.baseUrl);
+      
+      try {
+        const response = await this.apiRequest<any[]>('/domains');
+        console.log('[Migadu Provider] Domains response received, count:', response.length);
+        return response.map(domain => this.mapMigaduDomainToEmailDomain(domain, domain.name));
+      } catch (error) {
+        console.error('[Migadu Provider] Error listing domains:', error);
+        throw error;
+      }
     });
   }
 
