@@ -280,8 +280,11 @@ export class MigaduEmailProvider extends EmailProvider {
 
   async listMailboxes(domainName: string): Promise<EmailMailbox[]> {
     return this.withErrorHandling('list mailboxes', async () => {
-      const response = await this.apiRequest<any[]>(`/domains/${domainName}/mailboxes`);
-      return response.map(mailbox => this.mapMigaduMailboxToEmailMailbox(mailbox, domainName));
+      const response = await this.apiRequest<any>(`/domains/${domainName}/mailboxes`);
+      const mailboxesArray = Array.isArray(response) 
+        ? response 
+        : (response.mailboxes || response.data || response.items || []);
+      return mailboxesArray.map((mailbox: any) => this.mapMigaduMailboxToEmailMailbox(mailbox, domainName));
     });
   }
 
@@ -423,26 +426,28 @@ export class MigaduEmailProvider extends EmailProvider {
   }
 
   private mapMigaduMailboxToEmailMailbox(migaduMailbox: any, domainName: string): EmailMailbox {
+    const localPart = migaduMailbox.local_part || (migaduMailbox.address ? migaduMailbox.address.split('@')[0] : '');
+    const email = migaduMailbox.email || migaduMailbox.address || `${localPart}@${domainName}`;
     return {
       id: migaduMailbox.id || this.generateId(),
       domainId: migaduMailbox.domain_id || this.generateId(),
       customerId: migaduMailbox.customer_id || 'system',
-      localPart: migaduMailbox.local_part,
-      email: migaduMailbox.email || `${migaduMailbox.local_part}@${domainName}`,
-      name: migaduMailbox.name,
+      localPart: localPart,
+      email: email,
+      name: migaduMailbox.name || localPart || 'Mailbox',
       status: migaduMailbox.suspended ? 'suspended' : 'active',
       provider: 'migadu',
       providerMailboxId: migaduMailbox.id,
-      maySend: migaduMailbox.may_send || false,
-      mayReceive: migaduMailbox.may_receive || false,
-      mayAccessImap: migaduMailbox.may_access_imap || false,
+      maySend: migaduMailbox.may_send !== false,
+      mayReceive: migaduMailbox.may_receive !== false,
+      mayAccessImap: migaduMailbox.may_access_imap !== false,
       mayAccessPop3: migaduMailbox.may_access_pop3 || false,
       passwordMethod: migaduMailbox.password_method,
       passwordRecoveryEmail: migaduMailbox.password_recovery_email,
       createdAt: migaduMailbox.created_at ? new Date(migaduMailbox.created_at) : new Date(),
       updatedAt: migaduMailbox.updated_at ? new Date(migaduMailbox.updated_at) : new Date(),
       lastLoginAt: migaduMailbox.last_login_at ? new Date(migaduMailbox.last_login_at) : undefined,
-      storageUsed: migaduMailbox.storage_used,
+      storageUsed: migaduMailbox.storage_used || 0,
       storageLimit: migaduMailbox.storage_limit
     };
   }

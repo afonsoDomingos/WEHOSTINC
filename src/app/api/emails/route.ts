@@ -14,11 +14,76 @@ async function tryMongo() {
   }
 }
 
+import { EmailMailbox } from '@/models/EmailMailbox';
+import { EmailDomain } from '@/models/EmailDomain';
+import { getEmailProvider } from '@/lib/emailProviders/base';
+
 export async function GET() {
   try {
     if (await tryMongo()) {
-      const emails = await EmailAccountModel.find({}).lean();
-      return NextResponse.json({ emails });
+      const [emailAccounts, dbMailboxes, dbDomains] = await Promise.all([
+        EmailAccountModel.find({}).lean(),
+        EmailMailbox.find({}).lean(),
+        EmailDomain.find({}).lean()
+      ]);
+
+      const existingEmails = new Set(emailAccounts.map(e => (e.email || '').toLowerCase().trim()));
+      const allEmails: any[] = [...emailAccounts];
+
+      // Try fetching live mailboxes for Migadu domains if provider configured
+      try {
+        const provider = getEmailProvider();
+        if (provider.isConfigured()) {
+          const migaduDomainNames = dbDomains.map(d => d.domainName).filter(Boolean);
+          if (!migaduDomainNames.includes('wehosthere.com')) {
+            migaduDomainNames.push('wehosthere.com');
+          }
+          for (const dName of migaduDomainNames) {
+            try {
+              const liveMbs = await provider.listMailboxes(dName);
+              for (const mb of liveMbs) {
+                const em = (mb.email || `${mb.localPart}@${dName}`).toLowerCase().trim();
+                if (em && !existingEmails.has(em)) {
+                  existingEmails.add(em);
+                  const newEmailObj = {
+                    id: `email_${mb.localPart}_${dName.replace(/[^a-zA-Z0-9]/g, '_')}`,
+                    email: em,
+                    domain: dName,
+                    status: mb.status || 'active',
+                    userEmail: 'admin@wehosthere.com',
+                    createdAt: new Date().toISOString()
+                  };
+                  allEmails.push(newEmailObj);
+                  // Save to EmailAccountModel in background
+                  EmailAccountModel.findOneAndUpdate({ email: em }, newEmailObj, { upsert: true }).catch(() => {});
+                }
+              }
+            } catch (dErr) {
+              // Ignore single domain errors
+            }
+          }
+        }
+      } catch (provErr) {
+        console.warn('[Emails GET] Could not sync live provider mailboxes:', provErr);
+      }
+
+      // Merge any mailboxes from EmailMailbox
+      dbMailboxes.forEach((mb: any) => {
+        const em = (mb.email || '').toLowerCase().trim();
+        if (em && !existingEmails.has(em)) {
+          existingEmails.add(em);
+          allEmails.push({
+            id: mb._id?.toString() || mb.id || `mb_${Date.now()}`,
+            email: em,
+            domain: em.split('@')[1] || '',
+            status: mb.status || 'active',
+            userEmail: mb.customerId === 'system' ? 'admin@wehosthere.com' : (mb.customerId || 'Cliente'),
+            createdAt: mb.createdAt || new Date().toISOString()
+          });
+        }
+      });
+
+      return NextResponse.json({ emails: allEmails });
     }
   } catch (e) { console.error('MongoDB indisponível (emails):', e); }
   return NextResponse.json({ emails: FALLBACK_EMAILS });
