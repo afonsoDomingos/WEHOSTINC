@@ -1051,13 +1051,6 @@ export default function AdminPage() {
                 <span className="hidden sm:inline">Ver Site</span>
               </Link>
               <Link
-                href="/admin/comunicacao"
-                className="flex items-center space-x-1.5 sm:space-x-2 text-gray-600 hover:text-blue-600 font-medium transition text-[10px] sm:text-xs sm:text-sm"
-              >
-                <MessageSquare className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-500" />
-                <span className="hidden sm:inline">Comunicação</span>
-              </Link>
-              <Link
                 href="/admin/email-domains"
                 className="flex items-center space-x-1.5 sm:space-x-2 text-gray-600 hover:text-purple-600 font-medium transition text-[10px] sm:text-xs sm:text-sm"
               >
