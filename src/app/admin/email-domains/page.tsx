@@ -12,7 +12,8 @@ import {
   RefreshCw,
   Settings,
   Mail,
-  Globe
+  Globe,
+  Zap
 } from 'lucide-react';
 import Link from 'next/link';
 import { auth } from '@/lib/auth';
@@ -40,10 +41,20 @@ export default function EmailDomainsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showQuickCreateModal, setShowQuickCreateModal] = useState(false);
   const [newDomainName, setNewDomainName] = useState('');
   const [newCustomerId, setNewCustomerId] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  
+  // Quick Create State
+  const [quickCreateData, setQuickCreateData] = useState({
+    domainName: '',
+    mailboxName: '', // e.g., info, suporte
+    mailboxPassword: '',
+    mailboxFullName: ''
+  });
+  const [isQuickCreating, setIsQuickCreating] = useState(false);
 
   useEffect(() => {
     fetchDomains();
@@ -94,6 +105,80 @@ export default function EmailDomainsPage() {
       setToast({ type: 'error', message: 'Failed to create domain' });
     } finally {
       setIsCreating(false);
+    }
+  };
+
+  // Generate automatic customer ID
+  const generateCustomerId = (domainName: string) => {
+    const cleanDomain = domainName.replace(/\./g, '-').toLowerCase();
+    const timestamp = Date.now().toString(36);
+    return `${cleanDomain}-${timestamp}`;
+  };
+
+  const handleQuickCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsQuickCreating(true);
+
+    try {
+      const customerId = generateCustomerId(quickCreateData.domainName);
+      
+      // Step 1: Create Domain
+      const domainResponse = await fetch('/api/email-providers/migadu/domains', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          domainName: quickCreateData.domainName,
+          customerId,
+          createDefaultAddresses: false
+        })
+      });
+
+      const domainData = await domainResponse.json();
+      
+      if (!domainData.success) {
+        setToast({ type: 'error', message: domainData.error || 'Failed to create domain' });
+        setIsQuickCreating(false);
+        return;
+      }
+
+      // Step 2: Create Mailbox
+      const mailboxResponse = await fetch(
+        `/api/email-providers/migadu/domains/${quickCreateData.domainName}/mailboxes`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            localPart: quickCreateData.mailboxName,
+            password: quickCreateData.mailboxPassword,
+            name: quickCreateData.mailboxFullName,
+            customerId,
+            passwordMethod: 'generated'
+          })
+        }
+      );
+
+      const mailboxData = await mailboxResponse.json();
+      
+      if (mailboxData.success) {
+        setToast({ 
+          type: 'success', 
+          message: `Domain ${quickCreateData.domainName} and mailbox ${quickCreateData.mailboxName}@${quickCreateData.domainName} created successfully!` 
+        });
+        setShowQuickCreateModal(false);
+        setQuickCreateData({
+          domainName: '',
+          mailboxName: '',
+          mailboxPassword: '',
+          mailboxFullName: ''
+        });
+        fetchDomains();
+      } else {
+        setToast({ type: 'error', message: mailboxData.error || 'Failed to create mailbox' });
+      }
+    } catch (error) {
+      setToast({ type: 'error', message: 'Failed to create domain and mailbox' });
+    } finally {
+      setIsQuickCreating(false);
     }
   };
 
@@ -155,6 +240,13 @@ export default function EmailDomainsPage() {
                 <Settings className="h-5 w-5" />
                 <span className="hidden sm:inline">Admin Dashboard</span>
               </Link>
+              <button
+                onClick={() => setShowQuickCreateModal(true)}
+                className="flex items-center space-x-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-indigo-700 transition shadow-md"
+              >
+                <Zap className="h-5 w-5" />
+                <span>Quick Create</span>
+              </button>
               <button
                 onClick={() => setShowCreateModal(true)}
                 className="flex items-center space-x-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition"
@@ -340,6 +432,98 @@ export default function EmailDomainsPage() {
                     className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition disabled:opacity-50"
                   >
                     {isCreating ? 'Creating...' : 'Create Domain'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Quick Create Modal */}
+      {showQuickCreateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4">
+            <div className="p-6">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-2 rounded-lg">
+                  <Zap className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">Quick Create Email</h2>
+                  <p className="text-sm text-gray-500">Create domain + mailbox in one step</p>
+                </div>
+              </div>
+              <form onSubmit={handleQuickCreate}>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Domain Name
+                  </label>
+                  <input
+                    type="text"
+                    value={quickCreateData.domainName}
+                    onChange={(e) => setQuickCreateData({...quickCreateData, domainName: e.target.value})}
+                    placeholder="empresa.co.mz"
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Mailbox Name (e.g., info, suporte, admin)
+                  </label>
+                  <input
+                    type="text"
+                    value={quickCreateData.mailboxName}
+                    onChange={(e) => setQuickCreateData({...quickCreateData, mailboxName: e.target.value})}
+                    placeholder="info"
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Email will be: {quickCreateData.mailboxName}@{quickCreateData.domainName || 'dominio.com'}</p>
+                </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Full Name
+                  </label>
+                  <input
+                    type="text"
+                    value={quickCreateData.mailboxFullName}
+                    onChange={(e) => setQuickCreateData({...quickCreateData, mailboxFullName: e.target.value})}
+                    placeholder="João Silva"
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  />
+                </div>
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Password
+                  </label>
+                  <input
+                    type="password"
+                    value={quickCreateData.mailboxPassword}
+                    onChange={(e) => setQuickCreateData({...quickCreateData, mailboxPassword: e.target.value})}
+                    placeholder="••••••••"
+                    required
+                    minLength={8}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Minimum 8 characters</p>
+                </div>
+                <div className="flex justify-end space-x-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowQuickCreateModal(false)}
+                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isQuickCreating}
+                    className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 transition disabled:opacity-50 shadow-md"
+                  >
+                    {isQuickCreating ? 'Creating...' : 'Create Email'}
                   </button>
                 </div>
               </form>
