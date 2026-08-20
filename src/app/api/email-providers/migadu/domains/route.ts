@@ -59,12 +59,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    console.log('[Migadu Domains POST] Creating domain:', domainName, 'for customer:', customerId);
+    
     const provider = getEmailProvider();
+    console.log('[Migadu Domains POST] Provider configured:', provider.isConfigured());
+    
+    if (!provider.isConfigured()) {
+      return NextResponse.json(
+        { error: 'Email provider not configured. Please check MIGADU_USERNAME and MIGADU_API_KEY environment variables.' },
+        { status: 500 }
+      );
+    }
+
     const domain = await provider.createDomain({
       domainName,
       createDefaultAddresses,
       hostedDns: false
     });
+
+    console.log('[Migadu Domains POST] Domain created in Migadu:', domain);
 
     // Save to MongoDB
     const newDomain = new EmailDomain({
@@ -74,14 +87,17 @@ export async function POST(request: NextRequest) {
     });
     await newDomain.save();
 
+    console.log('[Migadu Domains POST] Domain saved to MongoDB:', newDomain._id);
+
     return NextResponse.json({
       success: true,
       domain: newDomain
     });
   } catch (error) {
     console.error('[Migadu Domains POST] Error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
-      { error: 'Failed to create domain' },
+      { error: `Failed to create domain: ${errorMessage}`, details: String(error) },
       { status: 500 }
     );
   }
