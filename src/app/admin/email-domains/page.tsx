@@ -14,7 +14,8 @@ import {
   Mail,
   Globe,
   Zap,
-  CloudDownload
+  CloudDownload,
+  Rocket
 } from 'lucide-react';
 import Link from 'next/link';
 import { auth } from '@/lib/auth';
@@ -57,6 +58,7 @@ export default function EmailDomainsPage() {
   });
   const [isQuickCreating, setIsQuickCreating] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(false);
 
   useEffect(() => {
     fetchDomains();
@@ -132,6 +134,37 @@ export default function EmailDomainsPage() {
       setToast({ type: 'error', message: 'Erro ao sincronizar domínios.' });
     } finally {
       setIsSyncing(false);
+    }
+  };
+
+  const handleInitializeDefault = async () => {
+    setIsInitializing(true);
+    try {
+      const response = await fetch('/api/email-providers/migadu/initialize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          domainName: 'wehosthere.com',
+          createDefaultEmails: true
+        })
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        setToast({ 
+          type: 'success', 
+          message: `Domínio wehosthere.com inicializado com sucesso! ${data.emails.length} emails criados.` 
+        });
+        fetchDomains();
+      } else {
+        setToast({ type: 'error', message: data.error || 'Failed to initialize' });
+      }
+    } catch (error) {
+      console.error('Initialize error:', error);
+      setToast({ type: 'error', message: 'Erro ao inicializar domínio padrão.' });
+    } finally {
+      setIsInitializing(false);
     }
   };
 
@@ -326,6 +359,14 @@ export default function EmailDomainsPage() {
                 <Settings className="h-5 w-5" />
                 <span className="hidden sm:inline">Admin Dashboard</span>
               </Link>
+              <button
+                onClick={handleInitializeDefault}
+                disabled={isInitializing}
+                className="flex items-center space-x-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white px-4 py-2 rounded-lg hover:from-green-700 hover:to-emerald-700 transition shadow-md"
+              >
+                <Rocket className={`h-5 w-5 ${isInitializing ? 'animate-pulse' : ''}`} />
+                <span>{isInitializing ? 'Inicializando...' : 'Inicializar wehosthere.com'}</span>
+              </button>
               <button
                 onClick={handleSyncFromMigadu}
                 disabled={isSyncing}
