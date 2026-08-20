@@ -31,9 +31,6 @@ export const ATTACHMENT_TOTAL_MAX_SIZE = 25 * 1024 * 1024; // 25MB total por ema
 
 const WEBMAIL_STORAGE_KEY = 'wehosthere_webmail_messages';
 
-// Import Migadu IMAP/SMTP service
-import { migaduImapSmtp } from './migaduImapSmtp';
-
 export const INITIAL_WEBMAIL_MESSAGES: WebmailMessage[] = [
   {
     id: 'wm-1',
@@ -438,15 +435,5 @@ export const webmailManager = {
   getDrafts: async (accountEmail?: string, password?: string): Promise<WebmailMessage[]> => {
     const messages = await webmailManager.getMessages(accountEmail, password);
     return messages.filter(m => m.folder === 'drafts');
-  },
-
-  // Get IMAP configuration for a mailbox
-  getIMAPConfig: (email: string) => {
-    return migaduImapSmtp.getIMAPConfig(email);
-  },
-
-  // Get SMTP configuration for a mailbox
-  getSMTPConfig: (email: string) => {
-    return migaduImapSmtp.getSMTPConfig(email);
   }
 };
