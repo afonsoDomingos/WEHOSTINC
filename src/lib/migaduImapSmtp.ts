@@ -51,20 +51,10 @@ export class MigaduImapSmtpService {
 
   /**
    * Authenticate a mailbox via IMAP
-   * This validates that the credentials are correct
+   * This validates that the credentials are correct directly with Migadu IMAP
    */
   async authenticateIMAP(email: string, password: string): Promise<boolean> {
     try {
-      const mailbox = await EmailMailbox.findOne({ email });
-      
-      if (!mailbox) {
-        return false;
-      }
-
-      if (mailbox.status !== 'active') {
-        return false;
-      }
-
       // Create IMAP connection to authenticate
       const client = new ImapFlow({
         host: this.imapHost,
@@ -82,7 +72,7 @@ export class MigaduImapSmtpService {
         await client.logout();
         return true;
       } catch (error) {
-        console.error('[MigaduIMAP] Authentication failed for:', email);
+        console.error('[MigaduIMAP] Authentication failed for:', email, error);
         return false;
       }
     } catch (error) {
@@ -350,16 +340,6 @@ export class MigaduImapSmtpService {
    */
   async sendEmail(options: SMTPSendOptions, password: string): Promise<void> {
     try {
-      const mailbox = await EmailMailbox.findOne({ email: options.from });
-      
-      if (!mailbox) {
-        throw new Error('Mailbox not found');
-      }
-
-      if (mailbox.status !== 'active') {
-        throw new Error('Mailbox is not active');
-      }
-
       const transporter = nodemailer.createTransport({
         host: this.smtpHost,
         port: this.smtpPort,
@@ -379,7 +359,7 @@ export class MigaduImapSmtpService {
         attachments: options.attachments
       });
     } catch (error) {
-      console.error('[MigaduSMTP] Failed to send email from:', options.from);
+      console.error('[MigaduSMTP] Failed to send email from:', options.from, error);
       throw error;
     }
   }
