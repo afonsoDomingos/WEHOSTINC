@@ -3,6 +3,7 @@ import { getEmailProvider } from '@/lib/emailProviders/base';
 import { EmailMailbox } from '@/models/EmailMailbox';
 import { EmailDomain } from '@/models/EmailDomain';
 import { auth } from '@/lib/auth';
+import { connectDB } from '@/lib/mongodb';
 
 // GET - List mailboxes for a domain
 export async function GET(
@@ -16,6 +17,7 @@ export async function GET(
     //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     // }
 
+    await connectDB();
     const domainName = params.domain;
 
     const domain = await EmailDomain.findOne({ domainName });
@@ -51,6 +53,7 @@ export async function POST(
     //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     // }
 
+    await connectDB();
     const domainName = params.domain;
     const body = await request.json();
     const { 
