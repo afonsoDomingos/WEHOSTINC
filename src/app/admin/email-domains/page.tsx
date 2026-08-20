@@ -62,6 +62,30 @@ export default function EmailDomainsPage() {
 
   useEffect(() => {
     fetchDomains();
+    
+    // Auto-initialize wehosthere.com for admin if it doesn't exist
+    const autoInitialize = async () => {
+      const user = auth.getCurrentUser();
+      if (user && user.role === 'admin') {
+        // Check if wehosthere.com already exists
+        try {
+          const response = await fetch('/api/email-providers/migadu/domains');
+          const data = await response.json();
+          if (data.success && data.domains) {
+            const hasWehosthere = data.domains.some((d: any) => d.domainName === 'wehosthere.com');
+            if (!hasWehosthere) {
+              console.log('[Auto-init] wehosthere.com not found, initializing...');
+              await handleInitializeDefault();
+            }
+          }
+        } catch (error) {
+          console.error('[Auto-init] Error checking for wehosthere.com:', error);
+        }
+      }
+    };
+    
+    // Delay auto-init to avoid conflicts with initial fetch
+    setTimeout(autoInitialize, 2000);
   }, []);
 
   const fetchDomains = async () => {
