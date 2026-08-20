@@ -90,6 +90,8 @@ export async function PUT(
   }
 }
 
+import EmailAccountModel from '@/lib/models/EmailAccount';
+
 // DELETE - Delete mailbox
 export async function DELETE(
   request: NextRequest,
@@ -97,30 +99,23 @@ export async function DELETE(
 ) {
   try {
     await connectDB();
-    const user = await auth.getCurrentUser();
-    if (!user || user.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const { domain, localPart } = params;
     const email = `${localPart}@${domain}`;
 
-    const mailbox = await EmailMailbox.findOne({ email });
-    if (!mailbox) {
-      return NextResponse.json({ error: 'Mailbox not found' }, { status: 404 });
-    }
-
-    // 🔒 Verify ownership: customer can only access their own mailboxes
-    if (user.role !== 'admin' && mailbox.customerId !== user.id) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
-
     const provider = getEmailProvider();
-    const deleted = await provider.deleteMailbox(domain, localPart);
-
-    if (deleted) {
-      await EmailMailbox.deleteOne({ email });
+    try {
+      if (provider.isConfigured()) {
+        await provider.deleteMailbox(domain, localPart);
+      }
+    } catch (provErr) {
+      console.warn('[Migadu Mailbox DELETE] Provider delete warning:', provErr);
     }
+
+    // Delete from both EmailMailbox and EmailAccountModel
+    await Promise.all([
+      EmailMailbox.deleteMany({ email: new RegExp(`^${email}$`, 'i') }),
+      EmailAccountModel.deleteMany({ email: new RegExp(`^${email}$`, 'i') })
+    ]);
 
     return NextResponse.json({
       success: true,

@@ -11,7 +11,9 @@ import {
   RefreshCw,
   Mail,
   User,
-  Key
+  Key,
+  ExternalLink,
+  Trash2
 } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
@@ -373,7 +375,10 @@ export default function DomainMailboxesPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {formatStorage(mailbox.storageUsed)} / {formatStorage(mailbox.storageLimit)}
+                      <div>
+                        <span className="font-semibold text-gray-700">Partilhado</span>
+                        <div className="text-[10px] text-gray-400">Pool da conta Migadu</div>
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {mailbox.lastLoginAt 
@@ -383,38 +388,48 @@ export default function DomainMailboxesPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex items-center justify-end space-x-2">
+                        <a
+                          href={`/webmail?email=${encodeURIComponent(mailbox.email)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 px-3 py-1.5 bg-primary-50 text-primary-700 hover:bg-primary-100 font-bold rounded-lg text-xs border border-primary-200 transition"
+                          title="Abrir Webmail"
+                        >
+                          <ExternalLink className="h-3.5 w-3.5" />
+                          <span>Webmail</span>
+                        </a>
                         {mailbox.status === 'active' ? (
                           <>
                             <button
                               onClick={() => handleResetPassword(mailbox.localPart)}
-                              className="text-gray-400 hover:text-gray-600"
-                              title="Reset Password"
+                              className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition"
+                              title="Redefinir Senha"
                             >
                               <Key className="h-4 w-4" />
                             </button>
                             <button
                               onClick={() => handleSuspendMailbox(mailbox.localPart)}
-                              className="text-gray-400 hover:text-red-600"
-                              title="Suspend"
+                              className="px-2.5 py-1 text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg text-xs font-semibold transition"
+                              title="Suspender Caixa"
                             >
-                              <XCircle className="h-4 w-4" />
+                              Suspender
                             </button>
                           </>
                         ) : (
                           <button
                             onClick={() => handleActivateMailbox(mailbox.localPart)}
-                            className="text-gray-400 hover:text-emerald-600"
-                            title="Activate"
+                            className="px-2.5 py-1 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg text-xs font-semibold transition"
+                            title="Ativar Caixa"
                           >
-                            <CheckCircle className="h-4 w-4" />
+                            Ativar
                           </button>
                         )}
                         <button
                           onClick={() => handleDeleteMailbox(mailbox.localPart)}
-                          className="text-gray-400 hover:text-red-600"
-                          title="Delete"
+                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                          title="Eliminar Caixa"
                         >
-                          <XCircle className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
                     </td>

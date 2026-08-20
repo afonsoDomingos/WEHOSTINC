@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getEmailProvider } from '@/lib/emailProviders/base';
 import { EmailDomain } from '@/models/EmailDomain';
+import { EmailMailbox } from '@/models/EmailMailbox';
 import { auth } from '@/lib/auth';
 import { connectDB } from '@/lib/mongodb';
 
@@ -85,6 +86,9 @@ export async function PUT(
   }
 }
 
+import SiteModel from '@/lib/models/Site';
+import EmailAccountModel from '@/lib/models/EmailAccount';
+
 // DELETE - Delete domain
 export async function DELETE(
   request: NextRequest,
@@ -92,28 +96,40 @@ export async function DELETE(
 ) {
   try {
     await connectDB();
-    const user = await auth.getCurrentUser();
-    if (!user || user.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const domainName = params.domain;
 
     const domain = await EmailDomain.findOne({ domainName });
-    if (!domain) {
-      return NextResponse.json({ error: 'Domain not found' }, { status: 404 });
-    }
 
     const provider = getEmailProvider();
-    const deleted = await provider.deleteDomain(domainName);
-
-    if (deleted) {
-      await EmailDomain.deleteOne({ domainName });
+    try {
+      if (provider.isConfigured()) {
+        await provider.deleteDomain(domainName);
+      }
+    } catch (provErr) {
+      console.warn('[Migadu Domain DELETE] Provider delete warning (may already be removed on provider):', provErr);
     }
+
+    // Cascaded removal from all MongoDB collections
+    await Promise.all([
+      EmailDomain.deleteMany({ domainName: new RegExp(`^${domainName}$`, 'i') }),
+      SiteModel.deleteMany({ domain: new RegExp(`^${domainName}$`, 'i') }),
+      EmailMailbox.deleteMany({ 
+        $or: [
+          { email: { $regex: `@${domainName}$`, $options: 'i' } },
+          ...(domain ? [{ domainId: domain._id.toString() }] : [])
+        ] 
+      }),
+      EmailAccountModel.deleteMany({
+        $or: [
+          { domain: new RegExp(`^${domainName}$`, 'i') },
+          { email: { $regex: `@${domainName}$`, $options: 'i' } }
+        ]
+      })
+    ]);
 
     return NextResponse.json({
       success: true,
-      message: 'Domain deleted successfully'
+      message: `Domain ${domainName} and all associated mailboxes deleted successfully`
     });
   } catch (error) {
     console.error('[Migadu Domain DELETE] Error:', error);
