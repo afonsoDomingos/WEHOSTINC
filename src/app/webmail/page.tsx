@@ -21,6 +21,20 @@ import dynamic from 'next/dynamic';
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
 import 'react-quill/dist/quill.snow.css';
 
+function stripRawHeaders(raw: string): string {
+  if (!raw) return '';
+  if (raw.includes('Delivered-To:') || raw.includes('Received:') || raw.includes('X-Envelope-To:') || raw.includes('Content-Type: multipart/')) {
+    const parts = raw.split(/\r?\n\r?\n/);
+    if (parts.length > 1) {
+      const contentParts = parts.filter(p => !/^(Delivered-To|Received|X-|ARC-|DKIM|Authentication|From|To|Subject|Message-ID|MIME-Version|Content-Type):/i.test(p.trim()));
+      if (contentParts.length > 0) {
+        return contentParts.join('\n\n').replace(/--[a-zA-Z0-9_-]+(--)?/g, '').trim();
+      }
+    }
+  }
+  return raw;
+}
+
 function WebmailContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -1298,16 +1312,19 @@ function WebmailContent() {
 
               {/* Body card */}
               <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-200 flex-1 space-y-4">
-                {selectedMessage.body && selectedMessage.body.includes('<') && (selectedMessage.body.includes('</') || selectedMessage.body.includes('/>') || selectedMessage.body.includes('<br')) ? (
-                  <div 
-                    className="prose prose-sm max-w-none text-gray-800 font-sans break-words overflow-x-auto leading-relaxed"
-                    dangerouslySetInnerHTML={{ __html: selectedMessage.body }}
-                  />
-                ) : (
-                  <div className="whitespace-pre-line text-sm text-gray-800 leading-relaxed font-sans">
-                    {selectedMessage.body}
-                  </div>
-                )}
+                {(() => {
+                  const cleanBody = stripRawHeaders(selectedMessage.body);
+                  return cleanBody && cleanBody.includes('<') && (cleanBody.includes('</') || cleanBody.includes('/>') || cleanBody.includes('<br')) ? (
+                    <div 
+                      className="prose prose-sm max-w-none text-gray-800 font-sans break-words overflow-x-auto leading-relaxed"
+                      dangerouslySetInnerHTML={{ __html: cleanBody }}
+                    />
+                  ) : (
+                    <div className="whitespace-pre-line text-sm text-gray-800 leading-relaxed font-sans">
+                      {cleanBody}
+                    </div>
+                  );
+                })()}
 
                 {/* Exibição de Ficheiros Anexados */}
                 {selectedMessage.attachments && selectedMessage.attachments.length > 0 && (

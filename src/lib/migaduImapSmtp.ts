@@ -158,11 +158,18 @@ export class MigaduImapSmtpService {
           url?: string;
         }> = [];
 
+        let cleanSubject = '';
+        let cleanFromName = '';
+        let cleanFromEmail = '';
+
         if (msg.source) {
           try {
             const parsed = await simpleParser(msg.source);
             cleanBody = (parsed.html as string) || parsed.textAsHtml || parsed.text || '';
             cleanText = (parsed.text || '').replace(/\s+/g, ' ').trim();
+            cleanSubject = parsed.subject || '';
+            cleanFromName = parsed.from?.value?.[0]?.name || '';
+            cleanFromEmail = parsed.from?.value?.[0]?.address || '';
 
             if (parsed.attachments && parsed.attachments.length > 0) {
               for (const att of parsed.attachments) {
@@ -182,19 +189,35 @@ export class MigaduImapSmtpService {
           }
         }
 
+        // Final safety check: if cleanBody still contains raw headers, extract the body section
+        if (cleanBody.includes('Delivered-To:') || cleanBody.includes('Received:') || cleanBody.includes('Content-Type: multipart/')) {
+          const parts = cleanBody.split(/\r?\n\r?\n/);
+          if (parts.length > 1) {
+            const contentParts = parts.filter(p => !/^(Delivered-To|Received|X-|ARC-|DKIM|Authentication|From|To|Subject|Message-ID|MIME-Version|Content-Type):/i.test(p.trim()));
+            if (contentParts.length > 0) {
+              cleanBody = contentParts.join('\n\n').replace(/--[a-zA-Z0-9_-]+(--)?/g, '').trim();
+              cleanText = cleanBody.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+            }
+          }
+        }
+
         const envelope = msg.envelope;
+        const fromName = cleanFromName || envelope?.from?.[0]?.name || envelope?.from?.[0]?.address?.split('@')[0] || '';
+        const fromAddress = cleanFromEmail || envelope?.from?.[0]?.address || '';
+        const subject = cleanSubject || envelope?.subject || '(Sem assunto)';
+
         messages.push({
           id: msg.uid.toString(),
           uid: msg.uid,
           from: {
-            name: envelope?.from?.[0]?.name || envelope?.from?.[0]?.address || '',
-            address: envelope?.from?.[0]?.address || ''
+            name: fromName,
+            address: fromAddress
           },
           to: envelope?.to?.map(t => ({
             name: t.name || t.address || '',
             address: t.address || ''
           })) || [],
-          subject: envelope?.subject || '(Sem assunto)',
+          subject: subject,
           date: envelope?.date || new Date(),
           body: cleanBody || '(Mensagem vazia)',
           textPreview: cleanText,
@@ -257,11 +280,18 @@ export class MigaduImapSmtpService {
           url?: string;
         }> = [];
 
+        let cleanSubject = '';
+        let cleanFromName = '';
+        let cleanFromEmail = '';
+
         if (msg.source) {
           try {
             const parsed = await simpleParser(msg.source);
             cleanBody = (parsed.html as string) || parsed.textAsHtml || parsed.text || '';
             cleanText = (parsed.text || '').replace(/\s+/g, ' ').trim();
+            cleanSubject = parsed.subject || '';
+            cleanFromName = parsed.from?.value?.[0]?.name || '';
+            cleanFromEmail = parsed.from?.value?.[0]?.address || '';
 
             if (parsed.attachments && parsed.attachments.length > 0) {
               for (const att of parsed.attachments) {
@@ -280,19 +310,35 @@ export class MigaduImapSmtpService {
           }
         }
 
+        // Final safety check: if cleanBody still contains raw headers, extract the body section
+        if (cleanBody.includes('Delivered-To:') || cleanBody.includes('Received:') || cleanBody.includes('Content-Type: multipart/')) {
+          const parts = cleanBody.split(/\r?\n\r?\n/);
+          if (parts.length > 1) {
+            const contentParts = parts.filter(p => !/^(Delivered-To|Received|X-|ARC-|DKIM|Authentication|From|To|Subject|Message-ID|MIME-Version|Content-Type):/i.test(p.trim()));
+            if (contentParts.length > 0) {
+              cleanBody = contentParts.join('\n\n').replace(/--[a-zA-Z0-9_-]+(--)?/g, '').trim();
+              cleanText = cleanBody.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+            }
+          }
+        }
+
         const envelope = msg.envelope;
+        const fromName = cleanFromName || envelope?.from?.[0]?.name || envelope?.from?.[0]?.address?.split('@')[0] || '';
+        const fromAddress = cleanFromEmail || envelope?.from?.[0]?.address || '';
+        const subject = cleanSubject || envelope?.subject || '(Sem assunto)';
+
         message = {
           id: msg.uid.toString(),
           uid: msg.uid,
           from: {
-            name: envelope?.from?.[0]?.name || envelope?.from?.[0]?.address || '',
-            address: envelope?.from?.[0]?.address || ''
+            name: fromName,
+            address: fromAddress
           },
           to: envelope?.to?.map(t => ({
             name: t.name || t.address || '',
             address: t.address || ''
           })) || [],
-          subject: envelope?.subject || '(Sem assunto)',
+          subject: subject,
           date: envelope?.date || new Date(),
           body: cleanBody || '(Mensagem vazia)',
           textPreview: cleanText,
