@@ -1,6 +1,6 @@
 'use client';
-
 import { useState, useEffect } from 'react';
+
 import { 
   Plus, 
   Search, 
@@ -8,18 +8,22 @@ import {
   CheckCircle, 
   Clock, 
   XCircle, 
-  AlertCircle,
-  RefreshCw,
-  Settings,
-  Mail,
-  Globe,
-  Zap,
-  CloudDownload,
-  Rocket,
-  Trash2
+  AlertCircle, 
+  RefreshCw, 
+  Settings, 
+  Mail, 
+  Globe, 
+  Zap, 
+  CloudDownload, 
+  Rocket, 
+  Trash2, 
+  ExternalLink, 
+  Inbox, 
+  Lock 
 } from 'lucide-react';
 import Link from 'next/link';
 import { auth } from '@/lib/auth';
+import { dataManager, EmailAccount } from '@/lib/data';
 
 interface EmailDomain {
   _id: string;
@@ -61,8 +65,13 @@ export default function EmailDomainsPage() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [isInitializing, setIsInitializing] = useState(false);
 
+  const [emailAccounts, setEmailAccounts] = useState<EmailAccount[]>([]);
+  const [emailSearchTerm, setEmailSearchTerm] = useState('');
+  const [loadingEmails, setLoadingEmails] = useState(true);
+
   useEffect(() => {
     fetchDomains();
+    fetchEmailAccounts();
     
     // Auto-initialize wehosthere.com for admin if it doesn't exist
     const autoInitialize = async () => {
@@ -87,7 +96,54 @@ export default function EmailDomainsPage() {
     
     // Delay auto-init to avoid conflicts with initial fetch
     setTimeout(autoInitialize, 2000);
+
+    const interval = setInterval(() => {
+      fetchDomains();
+      fetchEmailAccounts();
+    }, 10000);
+
+    return () => clearInterval(interval);
   }, []);
+
+  const fetchEmailAccounts = async () => {
+    try {
+      const res = await fetch('/api/emails');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.emails && Array.isArray(data.emails)) {
+          setEmailAccounts(data.emails);
+        }
+      }
+    } catch (e) {
+      console.error('Erro ao buscar contas de email:', e);
+    } finally {
+      setLoadingEmails(false);
+    }
+  };
+
+  const handleApproveEmail = async (emailAcc: EmailAccount) => {
+    try {
+      dataManager.updateEmailStatus(emailAcc.id, 'active');
+      setEmailAccounts(prev => prev.map(e => e.id === emailAcc.id ? { ...e, status: 'active' } : e));
+      setToast({ type: 'success', message: `E-mail ${emailAcc.email} ativado com sucesso!` });
+    } catch (err) {
+      setToast({ type: 'error', message: 'Erro ao ativar e-mail.' });
+    }
+  };
+
+  const handleToggleEmailStatus = (emailAcc: EmailAccount) => {
+    const newStatus = emailAcc.status === 'active' ? 'pending' : 'active';
+    dataManager.updateEmailStatus(emailAcc.id, newStatus);
+    setEmailAccounts(prev => prev.map(e => e.id === emailAcc.id ? { ...e, status: newStatus } : e));
+    setToast({ type: 'success', message: `Status de ${emailAcc.email} atualizado para ${newStatus}.` });
+  };
+
+  const handleDeleteEmailAccount = (emailAcc: EmailAccount) => {
+    if (!window.confirm(`Tem a certeza que deseja eliminar a conta de e-mail ${emailAcc.email}?`)) return;
+    dataManager.deleteEmail(emailAcc.id, emailAcc.userEmail, emailAcc.email);
+    setEmailAccounts(prev => prev.filter(e => e.id !== emailAcc.id));
+    setToast({ type: 'success', message: `Conta ${emailAcc.email} eliminada.` });
+  };
 
   const fetchDomains = async () => {
     try {
@@ -549,19 +605,27 @@ export default function EmailDomainsPage() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {new Date(domain.createdAt).toLocaleDateString()}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                      <Link
+                        href={`/admin/email-domains/${domain.domainName}/mailboxes`}
+                        className="inline-flex items-center space-x-1 px-2.5 py-1 bg-purple-50 text-purple-700 hover:bg-purple-100 rounded-lg text-xs font-semibold border border-purple-200 transition"
+                      >
+                        <Mail className="h-3.5 w-3.5" />
+                        <span>Caixas ({emailAccounts.filter(e => e.email.toLowerCase().endsWith(`@${domain.domainName.toLowerCase()}`)).length})</span>
+                      </Link>
                       <Link
                         href={`/admin/email-domains/${domain.domainName}`}
-                        className="text-primary-600 hover:text-primary-900 mr-4"
+                        className="inline-flex items-center space-x-1 px-2.5 py-1 bg-gray-50 text-gray-700 hover:bg-gray-100 rounded-lg text-xs font-semibold border border-gray-200 transition"
                       >
-                        Manage
+                        <Settings className="h-3.5 w-3.5" />
+                        <span>DNS & Config</span>
                       </Link>
                       <button 
                         onClick={() => handleDeleteDomain(domain.domainName)}
-                        className="text-red-400 hover:text-red-600"
-                        title="Delete Domain"
+                        className="p-1 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                        title="Eliminar Domínio"
                       >
-                        <Trash2 className="h-5 w-5" />
+                        <Trash2 className="h-4 w-4" />
                       </button>
                     </td>
                   </tr>
@@ -570,6 +634,154 @@ export default function EmailDomainsPage() {
             </table>
           </div>
         )}
+
+        {/* ───── TABELA COMPLETA DE CAIXAS DE E-MAIL (ADMIN & CLIENTES) ───── */}
+        <div className="mt-12 bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          <div className="p-6 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center space-x-2">
+                <Inbox className="h-6 w-6 text-primary-600" />
+                <h2 className="text-xl font-bold text-gray-900">Todas as Contas de E-mail Criadas</h2>
+              </div>
+              <p className="text-sm text-gray-500 mt-1">
+                Acesse o Webmail, altere senhas, aprove ou suspenda contas de e-mail de todos os domínios
+              </p>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Buscar e-mail..."
+                  value={emailSearchTerm}
+                  onChange={(e) => setEmailSearchTerm(e.target.value)}
+                  className="pl-9 pr-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                />
+              </div>
+              <button
+                onClick={() => setShowQuickCreateModal(true)}
+                className="flex items-center space-x-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow hover:from-purple-700 hover:to-indigo-700 transition"
+              >
+                <Plus className="h-4 w-4" />
+                <span>Nova Caixa</span>
+              </button>
+            </div>
+          </div>
+
+          {loadingEmails ? (
+            <div className="flex items-center justify-center py-12">
+              <RefreshCw className="h-6 w-6 text-primary-600 animate-spin" />
+            </div>
+          ) : emailAccounts.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              <Mail className="h-12 w-12 text-gray-300 mx-auto mb-2" />
+              <p className="font-semibold text-gray-700">Nenhuma conta de e-mail criada ainda.</p>
+              <p className="text-xs text-gray-400 mt-1">Use o botão "Quick Create" para criar o primeiro e-mail corporativo.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Endereço de E-mail
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Dono / Cliente
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Espaço
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Estado
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Ações Rápidas
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {emailAccounts
+                    .filter(e => !emailSearchTerm || e.email.toLowerCase().includes(emailSearchTerm.toLowerCase()) || (e.userEmail && e.userEmail.toLowerCase().includes(emailSearchTerm.toLowerCase())))
+                    .map((acc) => {
+                      const isPending = acc.status === 'pending' || !acc.status;
+                      const isAdminEmail = acc.email.toLowerCase().includes('wehosthere.com');
+                      return (
+                        <tr key={acc.id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center space-x-2">
+                              <div className={`p-1.5 rounded-lg ${isAdminEmail ? 'bg-amber-100 text-amber-800' : 'bg-primary-50 text-primary-600'}`}>
+                                <Mail className="h-4 w-4" />
+                              </div>
+                              <div>
+                                <span className="font-mono font-bold text-gray-900 text-sm">{acc.email}</span>
+                                {isAdminEmail && (
+                                  <span className="ml-2 px-1.5 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-extrabold rounded">
+                                    ADMIN
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {acc.userEmail || (isAdminEmail ? 'Administrador' : 'Cliente Plataforma')}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-700">
+                            {acc.storage || acc.quotaGB || 5} GB
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${
+                              acc.status === 'active'
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                : acc.status === 'suspended'
+                                ? 'bg-red-50 text-red-700 border-red-200'
+                                : 'bg-amber-50 text-amber-700 border-amber-200'
+                            }`}>
+                              {acc.status === 'active' ? '✓ Ativo' : acc.status === 'suspended' ? '🛑 Suspenso' : '⏰ Pendente'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                            {isPending && (
+                              <button
+                                onClick={() => handleApproveEmail(acc)}
+                                className="inline-flex items-center space-x-1 px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-xs transition"
+                              >
+                                <CheckCircle className="h-3.5 w-3.5" />
+                                <span>Aprovar</span>
+                              </button>
+                            )}
+                            <a
+                              href="https://webmail.wehosthere.com"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center space-x-1 px-2.5 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg text-xs font-semibold border border-blue-200 transition"
+                              title="Abrir Webmail Oficial"
+                            >
+                              <ExternalLink className="h-3.5 w-3.5" />
+                              <span>Webmail</span>
+                            </a>
+                            <button
+                              onClick={() => handleToggleEmailStatus(acc)}
+                              className="px-2 py-1 text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg border border-gray-200 transition"
+                            >
+                              {acc.status === 'active' ? 'Suspender' : 'Ativar'}
+                            </button>
+                            <button
+                              onClick={() => handleDeleteEmailAccount(acc)}
+                              className="p-1 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                              title="Eliminar Conta de E-mail"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Create Domain Modal */}
