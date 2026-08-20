@@ -50,6 +50,23 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   
+  // Ignorar requisições POST, PUT, DELETE, etc.
+  if (event.request.method !== 'GET') {
+    return;
+  }
+  
+  // Ignorar requisições para Cloudinary e outros domínios externos
+  if (url.hostname.includes('cloudinary.com') || 
+      url.hostname.includes('res.cloudinary.com') ||
+      url.hostname !== self.location.hostname) {
+    return;
+  }
+  
+  // Ignorar requisições para API
+  if (url.pathname.startsWith('/api/')) {
+    return;
+  }
+  
   // Para requisições de navegação, usar Network First
   if (event.request.mode === 'navigate') {
     event.respondWith(
