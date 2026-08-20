@@ -72,14 +72,23 @@ export default function SitesPage() {
       setSites(fetched);
     });
 
-    // Polling a cada 30s para sincronizar alterações de status do Admin em tempo real
-    const interval = setInterval(() => {
-      dataManager.fetchSitesAsync(currentUser.email).then((fetched) => {
-        setSites(fetched);
-      });
-    }, 30000);
+    // Polling a cada 10s e em foco para sincronizar alterações de status do Admin em tempo real
+    const refreshSites = () => {
+      if (currentUser?.email) {
+        dataManager.fetchSitesAsync(currentUser.email).then((fetched) => {
+          setSites(fetched);
+        });
+      }
+    };
 
-    return () => clearInterval(interval);
+    const interval = setInterval(refreshSites, 10000);
+    window.addEventListener('focus', refreshSites);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', refreshSites);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session, status, router]);
 
   const handleAddSite = (e: React.FormEvent) => {

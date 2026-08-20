@@ -153,13 +153,19 @@ export default function EmailPage() {
     dataManager.fetchEmailsAsync(userEmailFilter).then(emails => refreshData(emails));
     dataManager.fetchSitesAsync().then(() => refreshData());
 
-    const interval = setInterval(() => {
+    const syncAllData = () => {
       dataManager.fetchEmailsAsync(userEmailFilter).then(emails => refreshData(emails));
       dataManager.fetchSitesAsync().then(() => refreshData());
-      fetchMigaduDomains(); // Refresh Migadu domains periodically
-    }, 30000);
+      fetchMigaduDomains();
+    };
 
-    return () => clearInterval(interval);
+    const interval = setInterval(syncAllData, 10000);
+    window.addEventListener('focus', syncAllData);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', syncAllData);
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session, status, router]);
 
