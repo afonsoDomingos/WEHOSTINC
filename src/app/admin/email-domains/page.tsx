@@ -140,7 +140,9 @@ export default function EmailDomainsPage() {
     setIsQuickCreating(true);
 
     try {
-      const customerId = generateCustomerId(quickCreateData.domainName);
+      // Use user's ID as customerId if user is logged in
+      const currentUser = auth.getCurrentUser();
+      const customerId = currentUser?.id || generateCustomerId(quickCreateData.domainName);
       
       // Step 1: Check if domain already exists in our database
       const checkDomainResponse = await fetch('/api/email-providers/migadu/domains');

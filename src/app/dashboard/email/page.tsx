@@ -27,6 +27,7 @@ export default function EmailPage() {
   const [emails, setEmails] = useState<EmailAccount[]>([]);
   const [sites, setSites] = useState<Site[]>([]);
   const [userDomains, setUserDomains] = useState<string[]>([]);
+  const [migaduDomains, setMigaduDomains] = useState<any[]>([]); // Domains from Migadu
   const [loading, setLoading] = useState(true);
 
   // Modal para Criar Nova Conta
@@ -96,6 +97,25 @@ export default function EmailPage() {
     // Clean up stale shared localStorage data and migrate to per-user key
     dataManager.initUserEmails(userEmailFilter);
 
+    // Fetch Migadu domains for this user
+    const fetchMigaduDomains = async () => {
+      try {
+        const response = await fetch('/api/email-providers/migadu/domains');
+        const data = await response.json();
+        if (data.success) {
+          setMigaduDomains(data.domains);
+          // Update user domains with Migadu domains
+          const migaduDomainNames = data.domains.map((d: any) => d.domainName);
+          setUserDomains(migaduDomainNames);
+          if (migaduDomainNames.length > 0 && !selectedDomain) {
+            setSelectedDomain(migaduDomainNames[0]);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch Migadu domains:', error);
+      }
+    };
+
     const refreshData = (newEmails?: EmailAccount[]) => {
       // Use user-specific key - strictly isolated per user
       const loadedEmails = newEmails || dataManager.getEmails(userEmailFilter);
@@ -127,12 +147,16 @@ export default function EmailPage() {
     }
     setLoading(false);
 
+    // Fetch Migadu domains
+    fetchMigaduDomains();
+
     dataManager.fetchEmailsAsync(userEmailFilter).then(emails => refreshData(emails));
     dataManager.fetchSitesAsync().then(() => refreshData());
 
     const interval = setInterval(() => {
       dataManager.fetchEmailsAsync(userEmailFilter).then(emails => refreshData(emails));
       dataManager.fetchSitesAsync().then(() => refreshData());
+      fetchMigaduDomains(); // Refresh Migadu domains periodically
     }, 30000);
 
     return () => clearInterval(interval);

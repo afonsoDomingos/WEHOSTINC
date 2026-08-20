@@ -6,9 +6,10 @@ import { auth } from '@/lib/auth';
 // GET - List domains
 export async function GET(request: NextRequest) {
   try {
+    const user = await auth.getCurrentUser();
+    
     // Temporarily disabled auth check for testing
-    // const user = await auth.getCurrentUser();
-    // if (!user || user.role !== 'admin') {
+    // if (!user) {
     //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     // }
 
@@ -16,11 +17,23 @@ export async function GET(request: NextRequest) {
     const customerId = searchParams.get('customerId');
 
     const provider = getEmailProvider();
-    const domains = await provider.listDomains(customerId || undefined);
+    
+    // Get all domains from provider
+    const allDomains = await provider.listDomains(customerId || undefined);
+    
+    // If user is not admin, filter domains by customerId
+    if (user && user.role !== 'admin') {
+      const userDomains = allDomains.filter(domain => domain.customerId === user.id);
+      return NextResponse.json({
+        success: true,
+        domains: userDomains
+      });
+    }
 
+    // Admin sees all domains
     return NextResponse.json({
       success: true,
-      domains
+      domains: allDomains
     });
   } catch (error) {
     console.error('[Migadu Domains GET] Error:', error);
