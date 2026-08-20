@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getEmailProvider } from '@/lib/emailProviders/base';
 import { EmailMailbox } from '@/models/EmailMailbox';
 import { auth } from '@/lib/auth';
+import { connectDB } from '@/lib/mongodb';
 
 // POST - Reset mailbox password
 export async function POST(
@@ -9,6 +10,7 @@ export async function POST(
   { params }: { params: { domain: string; localPart: string } }
 ) {
   try {
+    await connectDB();
     const user = await auth.getCurrentUser();
     if (!user || user.role !== 'admin') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

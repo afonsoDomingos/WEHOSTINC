@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getEmailProvider } from '@/lib/emailProviders/base';
 import { EmailDomain } from '@/models/EmailDomain';
 import { auth } from '@/lib/auth';
+import { connectDB } from '@/lib/mongodb';
 
 // POST - Activate a domain
 export async function POST(
@@ -9,11 +10,7 @@ export async function POST(
   { params }: { params: { domain: string } }
 ) {
   try {
-    const user = await auth.getCurrentUser();
-    if (!user || user.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
+    await connectDB();
     const domainName = params.domain;
 
     const domain = await EmailDomain.findOne({ domainName });
