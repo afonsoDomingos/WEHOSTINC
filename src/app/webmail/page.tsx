@@ -29,6 +29,12 @@ function WebmailContent() {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [accounts, setAccounts] = useState<EmailAccount[]>([]);
   const [selectedAccountEmail, setSelectedAccountEmail] = useState<string>('');
+  const [mailboxPassword, setMailboxPassword] = useState<string>(''); // Password da mailbox Migadu
+  const [showWebmailLogin, setShowWebmailLogin] = useState<boolean>(false); // Modal de login webmail
+  const [webmailLoginEmail, setWebmailLoginEmail] = useState<string>(''); // Email para login webmail
+  const [webmailLoginPassword, setWebmailLoginPassword] = useState<string>(''); // Password para login webmail
+  const [webmailLoginError, setWebmailLoginError] = useState<string>(''); // Erro de login
+  const [webmailLoginLoading, setWebmailLoginLoading] = useState<boolean>(false); // Loading de login
 
   const [currentFolder, setCurrentFolder] = useState<'inbox' | 'sent' | 'starred' | 'trash' | 'drafts'>('inbox');
   const [messages, setMessages] = useState<WebmailMessage[]>([]);
@@ -428,33 +434,51 @@ function WebmailContent() {
   }, [router, initialUserParam]);
 
   useEffect(() => {
-    if (selectedAccountEmail) {
+    if (selectedAccountEmail && !mailboxPassword) {
+      // Se há email selecionado mas não há password, mostrar modal de login
+      setShowWebmailLogin(true);
+      setWebmailLoginEmail(selectedAccountEmail);
+    }
+  }, [selectedAccountEmail, mailboxPassword]);
+
+  useEffect(() => {
+    if (selectedAccountEmail && mailboxPassword) {
       setIsLoadingMessages(true);
-      // Simulate loading delay for skeleton
-      setTimeout(() => {
-        const allMsgs = webmailManager.getMessages(selectedAccountEmail);
-        setMessages(allMsgs);
-        if (allMsgs.length > 0) {
-          setSelectedMessage(allMsgs[0]);
-        } else {
+      // Load messages when password is available
+      setTimeout(async () => {
+        try {
+          const allMsgs = await webmailManager.getMessages(selectedAccountEmail, mailboxPassword);
+          setMessages(allMsgs);
+          if (allMsgs.length > 0) {
+            setSelectedMessage(allMsgs[0]);
+          } else {
+            setSelectedMessage(null);
+          }
+        } catch (error) {
+          console.error('[Webmail] Error loading messages:', error);
+          setMessages([]);
           setSelectedMessage(null);
         }
         setIsLoadingMessages(false);
       }, 300);
     }
-  }, [selectedAccountEmail]);
+  }, [selectedAccountEmail, mailboxPassword]);
 
-  const refreshMessages = () => {
+  const refreshMessages = async () => {
     if (selectedAccountEmail) {
-      const msgs = webmailManager.getMessages(selectedAccountEmail);
-      setMessages(msgs);
+      try {
+        const msgs = await webmailManager.getMessages(selectedAccountEmail, mailboxPassword);
+        setMessages(msgs);
+      } catch (error) {
+        console.error('[Webmail] Error refreshing messages:', error);
+      }
     }
   };
 
-  const handleSelectMessage = (msg: WebmailMessage) => {
+  const handleSelectMessage = async (msg: WebmailMessage) => {
     setSelectedMessage(msg);
     if (!msg.isRead) {
-      webmailManager.markAsRead(msg.id, true);
+      await webmailManager.markAsRead(msg.id, true, selectedAccountEmail, mailboxPassword);
       setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, isRead: true } : m));
     }
     
@@ -469,23 +493,23 @@ function WebmailContent() {
     }
   };
 
-  const handleToggleStar = (msgId: string, e: React.MouseEvent) => {
+  const handleToggleStar = async (msgId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    webmailManager.toggleStar(msgId);
+    await webmailManager.toggleStar(msgId, selectedAccountEmail, mailboxPassword);
     setMessages(prev => prev.map(m => m.id === msgId ? { ...m, starred: !m.starred } : m));
     if (selectedMessage?.id === msgId) {
       setSelectedMessage(prev => prev ? { ...prev, starred: !prev.starred } : null);
     }
   };
 
-  const handleDeleteMessage = (msgId: string, e?: React.MouseEvent) => {
+  const handleDeleteMessage = async (msgId: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     if (currentFolder === 'trash') {
-      webmailManager.deletePermanently(msgId);
+      await webmailManager.deletePermanently(msgId, selectedAccountEmail, mailboxPassword);
       setMessages(prev => prev.filter(m => m.id !== msgId));
       if (selectedMessage?.id === msgId) setSelectedMessage(null);
     } else {
-      webmailManager.moveFolder(msgId, 'trash');
+      await webmailManager.moveFolder(msgId, 'trash', selectedAccountEmail, mailboxPassword);
       setMessages(prev => prev.map(m => m.id === msgId ? { ...m, folder: 'trash' } : m));
     }
   };
@@ -513,46 +537,24 @@ function WebmailContent() {
     setShowPlaceholderWarning(false);
 
     try {
-      // 1. Chamar a API real do SendGrid
-      const res = await fetch(apiEndpoint('/api/send-email'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'webmail',
-          from: selectedAccountEmail,
-          to: composeTo,
-          cc: composeCc,
-          bcc: composeBcc,
-          subject: composeSubject || '(Sem assunto)',
-          body: composeBody,
-        }),
-      });
-      const data = await res.json();
-
-      // 2. Guardar na pasta Enviados (localStorage) independente do resultado real
-      webmailManager.sendMessage(
+      // 1. Enviar via Migadu SMTP usando webmailManager
+      await webmailManager.sendMessage(
         selectedAccountEmail,
+        mailboxPassword,
         composeTo,
         composeSubject || '(Sem assunto)',
         composeBody,
         composeAttachments
       );
 
-      // 3. Remover rascunho se existir
+      // 2. Remover rascunho se existir
       if (editingDraftId) {
-        webmailManager.deletePermanently(editingDraftId);
+        await webmailManager.deletePermanently(editingDraftId, selectedAccountEmail, mailboxPassword);
         setEditingDraftId(null);
       }
 
       setSendingMsg(false);
-
-      if (data.success) {
-        setSentSuccessMsg('✅ E-mail enviado com sucesso via SendGrid!');
-      } else if (data.fallback) {
-        setSentSuccessMsg('📤 E-mail guardado localmente. Configura SENDGRID_API_KEY para envio real.');
-      } else {
-        setSentSuccessMsg(`⚠️ Erro: ${data.error || 'Falha no envio. Verifica a API Key.'}`);
-      }
+      setSentSuccessMsg('✅ E-mail enviado com sucesso via Migadu!');
 
       setTimeout(() => {
         setShowCompose(false);
@@ -568,12 +570,55 @@ function WebmailContent() {
     } catch (err) {
       console.error('Erro ao enviar e-mail:', err);
       setSendingMsg(false);
-      setSentSuccessMsg('❌ Erro de rede. Verifica a ligação e tenta novamente.');
+      setSentSuccessMsg('❌ Erro ao enviar. Verifique as credenciais e tente novamente.');
     }
   };
 
   const [quickReplySending, setQuickReplySending] = useState(false);
   const [quickReplyStatus, setQuickReplyStatus] = useState<'idle' | 'sent' | 'error'>('idle');
+
+  const handleWebmailLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setWebmailLoginLoading(true);
+    setWebmailLoginError('');
+
+    try {
+      const res = await fetch(apiEndpoint('/api/webmail/auth'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: webmailLoginEmail,
+          password: webmailLoginPassword
+        })
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        // Login bem-sucedido
+        setSelectedAccountEmail(webmailLoginEmail);
+        setMailboxPassword(webmailLoginPassword);
+        setShowWebmailLogin(false);
+        setWebmailLoginEmail('');
+        setWebmailLoginPassword('');
+      } else {
+        setWebmailLoginError(data.error || 'Erro ao autenticar');
+      }
+    } catch (err) {
+      console.error('[Webmail] Login error:', err);
+      setWebmailLoginError('Erro de conexão. Tente novamente.');
+    } finally {
+      setWebmailLoginLoading(false);
+    }
+  };
+
+  const handleWebmailLogout = () => {
+    setSelectedAccountEmail('');
+    setMailboxPassword('');
+    setMessages([]);
+    setSelectedMessage(null);
+    setShowWebmailLogin(true);
+  };
 
   const handleSendQuickReply = async () => {
     if (!replyText || !selectedMessage) return;
@@ -581,22 +626,10 @@ function WebmailContent() {
     setQuickReplySending(true);
 
     try {
-      const res = await fetch(apiEndpoint('/api/send-email'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'webmail',
-          from: selectedAccountEmail,
-          to: selectedMessage.fromEmail,
-          subject: `Re: ${selectedMessage.subject}`,
-          body: replyText,
-        }),
-      });
-      const data = await res.json();
-
-      // Guardar na pasta Enviados localmente
-      webmailManager.sendMessage(
+      // Enviar via Migadu SMTP
+      await webmailManager.sendMessage(
         selectedAccountEmail,
+        mailboxPassword,
         selectedMessage.fromEmail,
         `Re: ${selectedMessage.subject}`,
         replyText
@@ -604,7 +637,7 @@ function WebmailContent() {
 
       setReplyText('');
       refreshMessages();
-      setQuickReplyStatus(data.success ? 'sent' : 'error');
+      setQuickReplyStatus('sent');
     } catch {
       setQuickReplyStatus('error');
     } finally {
@@ -717,6 +750,17 @@ function WebmailContent() {
           >
             {isRefreshingWebmail ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
           </button>
+
+          {/* Logout Button */}
+          {mailboxPassword && (
+            <button
+              onClick={handleWebmailLogout}
+              className="p-2 hover:bg-gray-100 rounded-xl text-gray-500 transition cursor-pointer shrink-0"
+              title="Sair do Webmail"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
+          )}
 
           {/* Current Date/Time */}
           {currentDateTime && (
@@ -1827,6 +1871,93 @@ function WebmailContent() {
               >
                 Enviar Mesmo Assim
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Webmail Login */}
+      {showWebmailLogin && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center shrink-0">
+                  <Mail className="h-6 w-6 text-primary-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-gray-900">Login Webmail</h3>
+                  <p className="text-sm text-gray-600">Acesse sua mailbox Migadu</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowWebmailLogin(false);
+                  setWebmailLoginEmail('');
+                  setWebmailLoginPassword('');
+                  setWebmailLoginError('');
+                }}
+                className="p-2 hover:bg-gray-100 text-gray-400 hover:text-gray-600 rounded-xl transition cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleWebmailLogin} className="space-y-4">
+              {webmailLoginError && (
+                <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl">
+                  <p className="text-xs font-bold text-rose-700">{webmailLoginError}</p>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Email da Mailbox</label>
+                <input
+                  type="email"
+                  value={webmailLoginEmail}
+                  onChange={(e) => setWebmailLoginEmail(e.target.value)}
+                  placeholder="info@wehosthere.com"
+                  required
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Password da Mailbox</label>
+                <input
+                  type="password"
+                  value={webmailLoginPassword}
+                  onChange={(e) => setWebmailLoginPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={webmailLoginLoading}
+                className="w-full py-3 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-300 text-white font-black text-sm rounded-xl transition cursor-pointer shadow-md flex items-center justify-center space-x-2"
+              >
+                {webmailLoginLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Autenticando...</span>
+                  </>
+                ) : (
+                  <>
+                    <ShieldCheck className="h-4 w-4" />
+                    <span>Entrar</span>
+                  </>
+                )}
+              </button>
+            </form>
+
+            <div className="mt-4 text-center">
+              <p className="text-xs text-gray-500">
+                Use as credenciais da sua mailbox Migadu
+              </p>
             </div>
           </div>
         </div>
