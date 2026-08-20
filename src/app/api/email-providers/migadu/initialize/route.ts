@@ -3,6 +3,7 @@ import { getEmailProvider } from '@/lib/emailProviders/base';
 import { EmailDomain } from '@/models/EmailDomain';
 import { EmailMailbox } from '@/models/EmailMailbox';
 import { auth } from '@/lib/auth';
+import { connectDB } from '@/lib/mongodb';
 
 // Initialize default domain and emails for admin
 export async function POST(request: NextRequest) {
@@ -30,6 +31,7 @@ export async function POST(request: NextRequest) {
     console.log('[Initialize] Starting initialization for domain:', domainName);
 
     // Step 1: Check if domain already exists in our database
+    await connectDB();
     const existingDomain = await EmailDomain.findOne({ domainName });
     
     let domain;
@@ -37,39 +39,41 @@ export async function POST(request: NextRequest) {
     const customerId = 'admin_default'; // Will be replaced with user.id when auth is re-enabled
 
     if (existingDomain) {
-      console.log('[Initialize] Domain already exists:', domainName);
+      console.log('[Initialize] Domain already exists in DB:', domainName);
       domain = existingDomain;
     } else {
-      // Step 2: Create domain in Migadu
-      console.log('[Initialize] Creating domain in Migadu:', domainName);
+      // Step 2: Create domain in Migadu or fetch if it already exists there
+      console.log('[Initialize] Checking if domain exists in Migadu:', domainName);
       try {
-        const migaduDomain = await provider.createDomain({
-          domainName,
-          createDefaultAddresses: false,
-          hostedDns: false
-        });
-
-        // Save to MongoDB
+        const existingMigadu = await provider.getDomain(domainName);
+        console.log('[Initialize] Domain already exists in Migadu, saving to DB');
         domain = new EmailDomain({
-          ...migaduDomain,
+          ...existingMigadu,
           customerId,
-          id: migaduDomain.id
+          id: existingMigadu.id
         });
         await domain.save();
-        console.log('[Initialize] Domain created and saved:', domain._id);
-      } catch (error: any) {
-        if (error.message && error.message.includes('already exists')) {
-          console.log('[Initialize] Domain already exists in Migadu, fetching existing domain');
-          // Domain exists in Migadu but not in our DB, fetch it
-          const migaduDomain = await provider.getDomain(domainName);
+      } catch (checkError: any) {
+        // If it's a 404, it doesn't exist, so we can create it
+        console.log('[Initialize] Domain not found in Migadu, attempting to create');
+        try {
+          const migaduDomain = await provider.createDomain({
+            domainName,
+            createDefaultAddresses: false,
+            hostedDns: false
+          });
+
+          // Save to MongoDB
           domain = new EmailDomain({
             ...migaduDomain,
             customerId,
             id: migaduDomain.id
           });
           await domain.save();
-        } else {
-          throw error;
+          console.log('[Initialize] Domain created and saved:', domain._id);
+        } catch (createError: any) {
+          // If we still get a 400 (perhaps already exists but getDomain failed, or rate limited)
+          throw createError;
         }
       }
     }
