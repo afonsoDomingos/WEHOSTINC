@@ -2,7 +2,7 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
 import { EmailAlias as EmailAliasInterface } from '../lib/emailProviders/types';
 
 export interface EmailAliasDocument extends Omit<EmailAliasInterface, 'id'>, Document {
-  _id: string;
+  // _id is inherited from Document
 }
 
 const EmailAliasSchema = new Schema<EmailAliasDocument>({

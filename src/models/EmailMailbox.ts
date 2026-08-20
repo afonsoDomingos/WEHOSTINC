@@ -2,7 +2,7 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
 import { EmailMailbox as EmailMailboxInterface, MailboxStatus } from '../lib/emailProviders/types';
 
 export interface EmailMailboxDocument extends Omit<EmailMailboxInterface, 'id'>, Document {
-  _id: string;
+  // _id is inherited from Document
 }
 
 const EmailMailboxSchema = new Schema<EmailMailboxDocument>({

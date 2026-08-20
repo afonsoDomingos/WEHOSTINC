@@ -2,7 +2,7 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
 import { EmailForwarding as EmailForwardingInterface } from '../lib/emailProviders/types';
 
 export interface EmailForwardingDocument extends Omit<EmailForwardingInterface, 'id'>, Document {
-  _id: string;
+  // _id is inherited from Document
 }
 
 const EmailForwardingSchema = new Schema<EmailForwardingDocument>({

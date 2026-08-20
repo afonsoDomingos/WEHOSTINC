@@ -2,7 +2,7 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
 import { AuditLog as AuditLogInterface } from '../lib/emailProviders/types';
 
 export interface EmailAuditLogDocument extends Omit<AuditLogInterface, 'id'>, Document {
-  _id: string;
+  // _id is inherited from Document
 }
 
 const EmailAuditLogSchema = new Schema<EmailAuditLogDocument>({
