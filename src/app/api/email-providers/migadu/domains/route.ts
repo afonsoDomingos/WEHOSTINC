@@ -16,10 +16,25 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const customerId = searchParams.get('customerId');
 
+    console.log('[Migadu Domains GET] Fetching domains, customerId:', customerId);
+
     const provider = getEmailProvider();
+    console.log('[Migadu Domains GET] Provider configured:', provider.isConfigured());
+    console.log('[Migadu Domains GET] EMAIL_PROVIDER:', process.env.EMAIL_PROVIDER);
+    console.log('[Migadu Domains GET] MIGADU_USERNAME set:', !!process.env.MIGADU_USERNAME);
+    console.log('[Migadu Domains GET] MIGADU_API_KEY set:', !!process.env.MIGADU_API_KEY);
+    
+    if (!provider.isConfigured()) {
+      console.error('[Migadu Domains GET] Provider not configured');
+      return NextResponse.json(
+        { error: 'Email provider not configured. Please check MIGADU_USERNAME and MIGADU_API_KEY environment variables.' },
+        { status: 500 }
+      );
+    }
     
     // Get all domains from provider
     const allDomains = await provider.listDomains(customerId || undefined);
+    console.log('[Migadu Domains GET] Domains fetched:', allDomains.length);
     
     // If user is not admin, filter domains by customerId
     if (user && user.role !== 'admin') {
@@ -37,8 +52,13 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('[Migadu Domains GET] Error:', error);
+    console.error('[Migadu Domains GET] Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      name: error instanceof Error ? error.name : undefined
+    });
     return NextResponse.json(
-      { error: 'Failed to list domains' },
+      { error: 'Failed to list domains', details: String(error) },
       { status: 500 }
     );
   }
