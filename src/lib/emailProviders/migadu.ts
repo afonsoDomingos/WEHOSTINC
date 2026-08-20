@@ -539,6 +539,12 @@ export class MigaduEmailProvider extends EmailProvider {
 
 // Factory function to create Migadu provider
 export function createMigaduProvider(): MigaduEmailProvider {
+  console.log('[Migadu Provider] Creating provider with config:');
+  console.log('[Migadu Provider] EMAIL_PROVIDER:', process.env.EMAIL_PROVIDER);
+  console.log('[Migadu Provider] MIGADU_USERNAME:', process.env.MIGADU_USERNAME ? 'SET' : 'NOT SET');
+  console.log('[Migadu Provider] MIGADU_API_KEY:', process.env.MIGADU_API_KEY ? 'SET' : 'NOT SET');
+  console.log('[Migadu Provider] MIGADU_API_URL:', process.env.MIGADU_API_URL);
+  
   const config: MigaduConfig = {
     provider: 'migadu',
     apiUrl: process.env.MIGADU_API_URL || 'https://api.migadu.com/v1',
@@ -550,5 +556,11 @@ export function createMigaduProvider(): MigaduEmailProvider {
     smtpPort: parseInt(process.env.MIGADU_SMTP_PORT || '465')
   };
 
-  return new MigaduEmailProvider(config);
+  console.log('[Migadu Provider] Config created, username length:', config.username.length);
+  console.log('[Migadu Provider] Config created, apiKey length:', config.apiKey.length);
+  
+  const provider = new MigaduEmailProvider(config);
+  console.log('[Migadu Provider] Provider isConfigured:', provider.isConfigured());
+  
+  return provider;
 }
