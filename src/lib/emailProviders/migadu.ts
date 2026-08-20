@@ -261,9 +261,27 @@ export class MigaduEmailProvider extends EmailProvider {
 
   async updateMailbox(domainName: string, localPart: string, request: UpdateMailboxRequest): Promise<EmailMailbox> {
     return this.withErrorHandling('update mailbox', async () => {
+      const body: Record<string, any> = {};
+      if (request.name !== undefined) body.name = request.name;
+      if (request.password !== undefined) body.password = request.password;
+      if (request.maySend !== undefined) body.may_send = request.maySend;
+      if (request.mayReceive !== undefined) body.may_receive = request.mayReceive;
+      if (request.mayAccessImap !== undefined) body.may_access_imap = request.mayAccessImap;
+      if (request.mayAccessPop3 !== undefined) body.may_access_pop3 = request.mayAccessPop3;
+      if ((request as any).is_disabled !== undefined) body.is_disabled = (request as any).is_disabled;
+      if ((request as any).status === 'suspended') {
+        body.may_send = false;
+        body.may_receive = false;
+        body.is_disabled = true;
+      } else if ((request as any).status === 'active') {
+        body.may_send = true;
+        body.may_receive = true;
+        body.is_disabled = false;
+      }
+
       const response = await this.apiRequest<any>(`/domains/${domainName}/mailboxes/${localPart}`, {
         method: 'PUT',
-        body: JSON.stringify(request)
+        body: JSON.stringify(body)
       });
       return this.mapMigaduMailboxToEmailMailbox(response, domainName);
     });
@@ -436,6 +454,11 @@ export class MigaduEmailProvider extends EmailProvider {
   private mapMigaduMailboxToEmailMailbox(migaduMailbox: any, domainName: string): EmailMailbox {
     const localPart = migaduMailbox.local_part || (migaduMailbox.address ? migaduMailbox.address.split('@')[0] : '');
     const email = migaduMailbox.email || migaduMailbox.address || `${localPart}@${domainName}`;
+    const isSuspended = migaduMailbox.suspended === true || 
+      migaduMailbox.is_disabled === true || 
+      migaduMailbox.may_send === false || 
+      migaduMailbox.may_receive === false;
+
     return {
       id: migaduMailbox.id || this.generateId(),
       domainId: migaduMailbox.domain_id || this.generateId(),
@@ -443,7 +466,7 @@ export class MigaduEmailProvider extends EmailProvider {
       localPart: localPart,
       email: email,
       name: migaduMailbox.name || localPart || 'Mailbox',
-      status: migaduMailbox.suspended ? 'suspended' : 'active',
+      status: isSuspended ? 'suspended' : 'active',
       provider: 'migadu',
       providerMailboxId: migaduMailbox.id,
       maySend: migaduMailbox.may_send !== false,

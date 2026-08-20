@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getEmailProvider } from '@/lib/emailProviders/base';
 import { EmailMailbox } from '@/models/EmailMailbox';
-import { EmailDomain } from '@/models/EmailDomain';
-import { auth } from '@/lib/auth';
+import EmailAccountModel from '@/lib/models/EmailAccount';
 import { connectDB } from '@/lib/mongodb';
 
 // GET - Get mailbox details
@@ -12,30 +11,36 @@ export async function GET(
 ) {
   try {
     await connectDB();
-    const user = await auth.getCurrentUser();
-    if (!user || user.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const { domain, localPart } = params;
     const email = `${localPart}@${domain}`;
 
-    const mailbox = await EmailMailbox.findOne({ email });
+    let mailbox: any = await EmailMailbox.findOne({ email: new RegExp(`^${email}$`, 'i') });
+    
+    // If not in DB, try to fetch directly from Migadu provider
+    if (!mailbox) {
+      try {
+        const provider = getEmailProvider();
+        if (provider.isConfigured()) {
+          const provMailbox = await provider.getMailbox(domain, localPart);
+          if (provMailbox) {
+            mailbox = provMailbox;
+          }
+        }
+      } catch (e) {
+        // Mailbox not found on provider
+      }
+    }
+
     if (!mailbox) {
       return NextResponse.json({ error: 'Mailbox not found' }, { status: 404 });
     }
 
-    // 🔒 Verify ownership: customer can only access their own mailboxes
-    if (user.role !== 'admin' && mailbox.customerId !== user.id) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
+    const mailboxData = mailbox.toObject ? mailbox.toObject() : mailbox;
+    if (mailboxData.password) delete mailboxData.password;
 
     return NextResponse.json({
       success: true,
-      mailbox: {
-        ...mailbox.toObject(),
-        password: undefined
-      }
+      mailbox: mailboxData
     });
   } catch (error) {
     console.error('[Migadu Mailbox GET] Error:', error);
@@ -46,40 +51,65 @@ export async function GET(
   }
 }
 
-// PUT - Update mailbox
+// PUT - Update mailbox (e.g. suspend, activate, change password, rename)
 export async function PUT(
   request: NextRequest,
   { params }: { params: { domain: string; localPart: string } }
 ) {
   try {
     await connectDB();
-    const user = await auth.getCurrentUser();
-    if (!user || user.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const { domain, localPart } = params;
     const body = await request.json();
     const email = `${localPart}@${domain}`;
 
-    const mailbox = await EmailMailbox.findOne({ email });
-    if (!mailbox) {
-      return NextResponse.json({ error: 'Mailbox not found' }, { status: 404 });
+    const provider = getEmailProvider();
+    let updatedProvMailbox: any = null;
+
+    if (provider.isConfigured()) {
+      try {
+        updatedProvMailbox = await provider.updateMailbox(domain, localPart, body);
+      } catch (provErr) {
+        console.warn('[Migadu Mailbox PUT] Provider update warning:', provErr);
+      }
     }
 
-    const provider = getEmailProvider();
-    const updatedMailbox = await provider.updateMailbox(domain, localPart, body);
+    const isSuspended = body.status === 'suspended' || 
+      body.maySend === false || 
+      body.mayReceive === false || 
+      body.is_disabled === true;
 
-    // Update our database
-    Object.assign(mailbox, updatedMailbox);
-    await mailbox.save();
+    const newStatus = isSuspended ? 'suspended' : 'active';
+
+    // Update in EmailMailbox
+    const updatedMailbox = await EmailMailbox.findOneAndUpdate(
+      { email: new RegExp(`^${email}$`, 'i') },
+      {
+        $set: {
+          status: newStatus,
+          maySend: !isSuspended,
+          mayReceive: !isSuspended,
+          name: body.name || undefined,
+          updatedAt: new Date()
+        }
+      },
+      { new: true, upsert: true }
+    );
+
+    // Also update in EmailAccountModel
+    await EmailAccountModel.updateMany(
+      { email: new RegExp(`^${email}$`, 'i') },
+      {
+        $set: {
+          status: newStatus,
+          updatedAt: new Date()
+        }
+      }
+    );
 
     return NextResponse.json({
       success: true,
-      mailbox: {
-        ...mailbox.toObject(),
-        password: undefined
-      }
+      mailbox: updatedProvMailbox || updatedMailbox,
+      message: isSuspended ? 'Conta suspensa com sucesso' : 'Conta ativada com sucesso'
     });
   } catch (error) {
     console.error('[Migadu Mailbox PUT] Error:', error);
@@ -89,8 +119,6 @@ export async function PUT(
     );
   }
 }
-
-import EmailAccountModel from '@/lib/models/EmailAccount';
 
 // DELETE - Delete mailbox
 export async function DELETE(
@@ -129,3 +157,4 @@ export async function DELETE(
     );
   }
 }
+

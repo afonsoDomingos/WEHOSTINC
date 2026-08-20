@@ -140,7 +140,7 @@ export default function DomainMailboxesPage() {
   };
 
   const handleSuspendMailbox = async (localPart: string) => {
-    if (!confirm('Are you sure you want to suspend this mailbox?')) {
+    if (!confirm('Tem a certeza que deseja suspender esta caixa de correio?')) {
       return;
     }
 
@@ -150,20 +150,20 @@ export default function DomainMailboxesPage() {
         {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ maySend: false, mayReceive: false })
+          body: JSON.stringify({ maySend: false, mayReceive: false, status: 'suspended', is_disabled: true })
         }
       );
 
       const data = await response.json();
       
       if (data.success) {
-        setToast({ type: 'success', message: 'Mailbox suspended successfully' });
+        setToast({ type: 'success', message: 'Caixa de correio suspensa com sucesso!' });
         fetchMailboxes();
       } else {
-        setToast({ type: 'error', message: data.error || 'Failed to suspend mailbox' });
+        setToast({ type: 'error', message: data.error || 'Falha ao suspender caixa de correio' });
       }
     } catch (error) {
-      setToast({ type: 'error', message: 'Failed to suspend mailbox' });
+      setToast({ type: 'error', message: 'Erro ao suspender caixa de correio' });
     }
   };
 
@@ -174,20 +174,20 @@ export default function DomainMailboxesPage() {
         {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ maySend: true, mayReceive: true })
+          body: JSON.stringify({ maySend: true, mayReceive: true, status: 'active', is_disabled: false })
         }
       );
 
       const data = await response.json();
       
       if (data.success) {
-        setToast({ type: 'success', message: 'Mailbox activated successfully' });
+        setToast({ type: 'success', message: 'Caixa de correio reativada com sucesso!' });
         fetchMailboxes();
       } else {
-        setToast({ type: 'error', message: data.error || 'Failed to activate mailbox' });
+        setToast({ type: 'error', message: data.error || 'Falha ao ativar caixa de correio' });
       }
     } catch (error) {
-      setToast({ type: 'error', message: 'Failed to activate mailbox' });
+      setToast({ type: 'error', message: 'Erro ao ativar caixa de correio' });
     }
   };
 

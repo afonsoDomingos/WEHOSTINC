@@ -24,7 +24,7 @@ import 'react-quill/dist/quill.snow.css';
 function WebmailContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const initialUserParam = searchParams.get('user');
+  const initialEmailParam = searchParams.get('email') || searchParams.get('user') || searchParams.get('account');
 
   const [user, setUser] = useState<AuthUser | null>(null);
   const [accounts, setAccounts] = useState<EmailAccount[]>([]);
@@ -407,10 +407,12 @@ function WebmailContent() {
 
     const refreshAccounts = (emailList: EmailAccount[]) => {
       setAccounts(emailList);
-      if (!initialUserParam && emailList.length > 0) {
+      if (initialEmailParam) {
+        setSelectedAccountEmail(initialEmailParam);
+        setWebmailLoginEmail(initialEmailParam);
+      } else if (emailList.length > 0) {
         setSelectedAccountEmail(prev => prev || emailList[0].email);
-      } else if (initialUserParam) {
-        setSelectedAccountEmail(initialUserParam);
+        setWebmailLoginEmail(prev => prev || emailList[0].email);
       }
     };
 
@@ -431,7 +433,7 @@ function WebmailContent() {
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [router, initialUserParam]);
+  }, [router, initialEmailParam]);
 
   useEffect(() => {
     if (selectedAccountEmail && !mailboxPassword) {
@@ -738,7 +740,13 @@ function WebmailContent() {
               <User className="h-3.5 w-3.5 text-primary-500 shrink-0" />
               <select
                 value={selectedAccountEmail}
-                onChange={(e) => setSelectedAccountEmail(e.target.value)}
+                onChange={(e) => {
+                  const newEmail = e.target.value;
+                  setSelectedAccountEmail(newEmail);
+                  setWebmailLoginEmail(newEmail);
+                  setMailboxPassword('');
+                  setShowWebmailLogin(true);
+                }}
                 className="bg-transparent text-xs font-bold text-gray-700 outline-none cursor-pointer truncate w-full"
               >
                 {accounts.map(acc => {
@@ -761,14 +769,13 @@ function WebmailContent() {
             onClick={() => {
               setIsRefreshingWebmail(true);
               refreshMessages();
-              setTimeout(() => setIsRefreshingWebmail(false), 600);
+              setTimeout(() => setIsRefreshingWebmail(false), 800);
             }}
             className="p-2 hover:bg-gray-100 rounded-xl text-gray-500 transition cursor-pointer shrink-0"
-            title="Atualizar Caixa Postal"
+            title="Sincronizar com Migadu"
           >
-            {isRefreshingWebmail ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+            {isRefreshingWebmail ? <Loader2 className="h-4 w-4 animate-spin text-primary-600" /> : <RefreshCw className="h-4 w-4" />}
           </button>
-
           {/* Logout Button */}
           {mailboxPassword && (
             <button
@@ -824,6 +831,17 @@ function WebmailContent() {
           </button>
         </div>
       </header>
+
+      {/* Sincronização em tempo real Indicator */}
+      {(isLoadingMessages || isRefreshingWebmail) && (
+        <div className="bg-primary-50 border-b border-primary-200 px-4 py-2 flex items-center justify-between text-xs text-primary-800 font-medium">
+          <div className="flex items-center space-x-2">
+            <Loader2 className="h-4 w-4 animate-spin text-primary-600 shrink-0" />
+            <span>Sincronizando com o servidor Migadu... ({currentFolder === 'inbox' ? 'Caixa de Entrada' : currentFolder === 'sent' ? 'Enviados' : currentFolder === 'drafts' ? 'Rascunhos' : currentFolder === 'trash' ? 'Lixeira' : 'Com Estrela'})</span>
+          </div>
+          <span className="text-[11px] text-primary-600 font-mono hidden sm:inline-block">IMAP SSL 993 / migadu.com</span>
+        </div>
+      )}
 
       {/* Banner Informativo de Aprovação Pendente (Se a conta estiver a processar) */}
       {isAccountPending && (
