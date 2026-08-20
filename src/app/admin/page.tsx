@@ -1940,7 +1940,8 @@ export default function AdminPage() {
                           <span className="font-semibold text-gray-900 block">{emailAcc.userEmail || 'Cliente Plataforma'}</span>
                         </td>
                         <td className="py-2.5 sm:py-3.5 px-2 sm:px-4">
-                          <span className="font-bold text-gray-700 text-[10px] sm:text-xs">{emailAcc.quotaGB || 5} GB</span>
+                          <span className="font-bold text-gray-700 text-[10px] sm:text-xs">Partilhado</span>
+                          <div className="text-[9px] text-gray-400">Pool Migadu</div>
                         </td>
                         <td className="py-2.5 sm:py-3.5 px-2 sm:px-4 text-[10px] sm:text-xs text-gray-500 hidden sm:table-cell">
                           {emailAcc.createdAt ? new Date(emailAcc.createdAt).toLocaleDateString('pt-BR') : 'Hoje'}

@@ -578,18 +578,15 @@ export default function EmailPage() {
 
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1">
-                    Cota de Armazenamento (GB)
+                    Armazenamento
                   </label>
-                  <select
-                    value={editStorage}
-                    onChange={(e) => setEditStorage(Number(e.target.value))}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm text-gray-900 outline-none focus:ring-2 focus:ring-primary-500 font-semibold"
-                  >
-                    <option value={2}>2 GB</option>
-                    <option value={5}>5 GB (Padrão)</option>
-                    <option value={10}>10 GB</option>
-                    <option value={25}>25 GB</option>
-                  </select>
+                  <div className="w-full px-4 py-3 bg-blue-50 border border-blue-200 rounded-2xl text-sm text-blue-800 font-semibold flex items-center gap-2">
+                    <span>&#9432;</span>
+                    <div>
+                      <div>Armazenamento partilhado</div>
+                      <div className="text-[10px] font-normal text-blue-600">Pool total da conta Migadu (sem limite por caixa)</div>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="p-3 bg-gray-50 rounded-2xl border border-gray-200 space-y-1.5 text-xs text-gray-700">
@@ -735,17 +732,15 @@ export default function EmailPage() {
 
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1">
-                  Cota de Armazenamento Inicial
+                  Armazenamento
                 </label>
-                <select
-                  value={newStorage}
-                  onChange={(e) => setNewStorage(Number(e.target.value))}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm text-gray-900 outline-none focus:ring-2 focus:ring-primary-500 font-semibold"
-                >
-                  <option value={2}>2 GB</option>
-                  <option value={5}>5 GB (Recomendado)</option>
-                  <option value={10}>10 GB</option>
-                </select>
+                <div className="w-full px-4 py-3 bg-blue-50 border border-blue-200 rounded-2xl text-sm text-blue-800 font-semibold flex items-center gap-2">
+                  <span>&#9432;</span>
+                  <div>
+                    <div>Armazenamento partilhado</div>
+                    <div className="text-[10px] font-normal text-blue-600">Pool total da conta Migadu (sem limite por caixa)</div>
+                  </div>
+                </div>
               </div>
 
               <div className="flex gap-3 pt-2">

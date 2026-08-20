@@ -46,7 +46,7 @@ A sua conta de e-mail corporativo (ericaguelume@msservices.co.mz) foi ativada co
 A partir de agora pode enviar e receber mensagens de forma profissional com os parâmetros SSL do seu próprio domínio.
 
 Recursos incluídos na sua conta:
-- 5 GB de Armazenamento Seguro
+- Armazenamento partilhado via pool Migadu
 - Proteção Anti-Spam e Anti-Phishing Ativa
 - Suporte IMAP, POP3 e SMTP para Outlook/Smartphone
 

@@ -691,7 +691,7 @@ export default function EmailDomainsPage() {
                       Dono / Cliente
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Espaço
+                      Armazenamento
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Estado
@@ -727,8 +727,11 @@ export default function EmailDomainsPage() {
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {acc.userEmail || (isAdminEmail ? 'Administrador' : 'Cliente Plataforma')}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-700">
-                            {acc.storage || (acc as any).quotaGB || 5} GB
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-xs text-gray-500">
+                              <span className="font-semibold text-gray-700">Partilhado</span>
+                              <div className="text-[10px] text-gray-400">Pool da conta Migadu</div>
+                            </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${
