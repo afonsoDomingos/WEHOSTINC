@@ -44,6 +44,7 @@ export default function AdminSettingsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: currentUser.id,
+          email: currentUser.email,
           title: '🔔 Teste de Notificação',
           message: 'Se você recebeu esta notificação, o sistema push está funcionando!'
         })
@@ -81,6 +82,7 @@ export default function AdminSettingsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: currentUser.id,
+          email: currentUser.email,
           amount: parseInt(amount),
           planName
         })

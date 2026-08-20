@@ -7,14 +7,22 @@ export async function POST(request: NextRequest) {
     await connectDB();
     
     const body = await request.json();
-    const { userId, amount = 5000, planName = 'Plano Pro', items = [] } = body;
+    const { userId, email, amount = 5000, planName = 'Plano Pro', items = [] } = body;
 
-    if (!userId) {
-      return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
+    if (!userId && !email) {
+      return NextResponse.json({ error: 'User ID or email is required' }, { status: 400 });
     }
 
-    // Buscar usuário
-    const user = await User.findById(userId);
+    // Buscar usuário por ID ou email
+    let user;
+    if (userId) {
+      user = await User.findById(userId);
+    }
+    
+    if (!user && email) {
+      user = await User.findOne({ email: email.toLowerCase() });
+    }
+    
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
