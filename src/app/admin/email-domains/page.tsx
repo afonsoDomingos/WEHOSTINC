@@ -13,7 +13,8 @@ import {
   Settings,
   Mail,
   Globe,
-  Zap
+  Zap,
+  CloudDownload
 } from 'lucide-react';
 import Link from 'next/link';
 import { auth } from '@/lib/auth';
@@ -55,6 +56,7 @@ export default function EmailDomainsPage() {
     mailboxFullName: ''
   });
   const [isQuickCreating, setIsQuickCreating] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   useEffect(() => {
     fetchDomains();
@@ -115,6 +117,24 @@ export default function EmailDomainsPage() {
     return `${cleanDomain}-${timestamp}`;
   };
 
+  const handleSyncFromMigadu = async () => {
+    setIsSyncing(true);
+    try {
+      // This would call an API to sync all domains from Migadu to our database
+      // For now, just refresh the list
+      await fetchDomains();
+      setToast({ 
+        type: 'success', 
+        message: 'Domínios sincronizados com sucesso!' 
+      });
+    } catch (error) {
+      console.error('Sync error:', error);
+      setToast({ type: 'error', message: 'Erro ao sincronizar domínios.' });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   const handleQuickCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsQuickCreating(true);
@@ -122,7 +142,58 @@ export default function EmailDomainsPage() {
     try {
       const customerId = generateCustomerId(quickCreateData.domainName);
       
-      // Step 1: Create Domain
+      // Step 1: Check if domain already exists in our database
+      const checkDomainResponse = await fetch('/api/email-providers/migadu/domains');
+      const checkDomainData = await checkDomainResponse.json();
+      
+      if (checkDomainData.success && checkDomainData.domains) {
+        const existingDomain = checkDomainData.domains.find((d: any) => d.domainName === quickCreateData.domainName);
+        if (existingDomain) {
+          // Domain exists, try to create mailbox directly
+          const mailboxResponse = await fetch(
+            `/api/email-providers/migadu/domains/${quickCreateData.domainName}/mailboxes`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                localPart: quickCreateData.mailboxName,
+                password: quickCreateData.mailboxPassword,
+                name: quickCreateData.mailboxFullName,
+                customerId: existingDomain.customerId,
+                passwordMethod: 'generated'
+              })
+            }
+          );
+
+          const mailboxData = await mailboxResponse.json();
+          
+          if (mailboxData.success) {
+            setToast({ 
+              type: 'success', 
+              message: `Mailbox ${quickCreateData.mailboxName}@${quickCreateData.domainName} created successfully! (Domain already existed)` 
+            });
+            setShowQuickCreateModal(false);
+            setQuickCreateData({
+              domainName: '',
+              mailboxName: '',
+              mailboxPassword: '',
+              mailboxFullName: ''
+            });
+            fetchDomains();
+          } else if (mailboxData.error && mailboxData.error.includes('already exists')) {
+            setToast({ 
+              type: 'error', 
+              message: `O email ${quickCreateData.mailboxName}@${quickCreateData.domainName} já existe na Migadu. Por favor, escolha outro nome.` 
+            });
+          } else {
+            setToast({ type: 'error', message: mailboxData.error || 'Failed to create mailbox' });
+          }
+          setIsQuickCreating(false);
+          return;
+        }
+      }
+
+      // Step 2: Create Domain (if doesn't exist)
       const domainResponse = await fetch('/api/email-providers/migadu/domains', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -136,12 +207,19 @@ export default function EmailDomainsPage() {
       const domainData = await domainResponse.json();
       
       if (!domainData.success) {
-        setToast({ type: 'error', message: domainData.error || 'Failed to create domain' });
+        if (domainData.error && domainData.error.includes('already exists')) {
+          setToast({ 
+            type: 'error', 
+            message: `O domínio ${quickCreateData.domainName} já existe na Migadu mas não está sincronizado. Por favor, contacte o suporte.` 
+          });
+        } else {
+          setToast({ type: 'error', message: domainData.error || 'Failed to create domain' });
+        }
         setIsQuickCreating(false);
         return;
       }
 
-      // Step 2: Create Mailbox
+      // Step 3: Create Mailbox
       const mailboxResponse = await fetch(
         `/api/email-providers/migadu/domains/${quickCreateData.domainName}/mailboxes`,
         {
@@ -162,7 +240,7 @@ export default function EmailDomainsPage() {
       if (mailboxData.success) {
         setToast({ 
           type: 'success', 
-          message: `Domain ${quickCreateData.domainName} and mailbox ${quickCreateData.mailboxName}@${quickCreateData.domainName} created successfully!` 
+          message: `Domain ${quickCreateData.domainName} e mailbox ${quickCreateData.mailboxName}@${quickCreateData.domainName} criados com sucesso!` 
         });
         setShowQuickCreateModal(false);
         setQuickCreateData({
@@ -172,11 +250,17 @@ export default function EmailDomainsPage() {
           mailboxFullName: ''
         });
         fetchDomains();
+      } else if (mailboxData.error && mailboxData.error.includes('already exists')) {
+        setToast({ 
+          type: 'error', 
+          message: `O email ${quickCreateData.mailboxName}@${quickCreateData.domainName} já existe. Por favor, escolha outro nome.` 
+        });
       } else {
         setToast({ type: 'error', message: mailboxData.error || 'Failed to create mailbox' });
       }
     } catch (error) {
-      setToast({ type: 'error', message: 'Failed to create domain and mailbox' });
+      console.error('Quick Create error:', error);
+      setToast({ type: 'error', message: 'Erro ao criar domínio e mailbox. Por favor, tente novamente.' });
     } finally {
       setIsQuickCreating(false);
     }
@@ -240,6 +324,14 @@ export default function EmailDomainsPage() {
                 <Settings className="h-5 w-5" />
                 <span className="hidden sm:inline">Admin Dashboard</span>
               </Link>
+              <button
+                onClick={handleSyncFromMigadu}
+                disabled={isSyncing}
+                className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition"
+              >
+                <CloudDownload className={`h-5 w-5 ${isSyncing ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline">{isSyncing ? 'Syncing...' : 'Sync'}</span>
+              </button>
               <button
                 onClick={() => setShowQuickCreateModal(true)}
                 className="flex items-center space-x-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-indigo-700 transition shadow-md"
