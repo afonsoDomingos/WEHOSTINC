@@ -204,16 +204,21 @@ export default function EmailDomainsPage() {
   const handleSyncFromMigadu = async () => {
     setIsSyncing(true);
     try {
-      // This would call an API to sync all domains from Migadu to our database
-      // For now, just refresh the list
+      const res = await fetch('/api/email-providers/migadu/sync-all', { method: 'POST' });
+      const data = await res.json();
       await fetchDomains();
-      setToast({ 
-        type: 'success', 
-        message: 'Domínios sincronizados com sucesso!' 
-      });
+      await fetchEmailAccounts();
+      if (data.success) {
+        setToast({ 
+          type: 'success', 
+          message: data.message || 'Todos os domínios e caixas foram sincronizados com a Migadu!' 
+        });
+      } else {
+        setToast({ type: 'error', message: data.error || 'Erro ao sincronizar com a Migadu.' });
+      }
     } catch (error) {
       console.error('Sync error:', error);
-      setToast({ type: 'error', message: 'Erro ao sincronizar domínios.' });
+      setToast({ type: 'error', message: 'Erro ao sincronizar domínios com a Migadu.' });
     } finally {
       setIsSyncing(false);
     }
@@ -475,10 +480,11 @@ export default function EmailDomainsPage() {
               <button
                 onClick={handleSyncFromMigadu}
                 disabled={isSyncing}
-                className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition"
+                title="Provisionar todos os domínios e caixas da plataforma diretamente na Migadu"
+                className="flex items-center space-x-2 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 px-4 py-2 rounded-lg font-semibold transition shadow-xs disabled:opacity-50"
               >
                 <CloudDownload className={`h-5 w-5 ${isSyncing ? 'animate-spin' : ''}`} />
-                <span className="hidden sm:inline">{isSyncing ? 'Syncing...' : 'Sync'}</span>
+                <span>{isSyncing ? 'Sincronizando com Migadu...' : 'Sincronizar com Migadu'}</span>
               </button>
               <button
                 onClick={() => setShowQuickCreateModal(true)}
