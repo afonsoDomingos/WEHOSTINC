@@ -528,31 +528,31 @@ export default function AdminPage() {
     // Polling a cada 5s para sincronizar usuários, pedidos, sites, e-mails, tickets, sistemas em tempo real
     const interval = setInterval(() => {
       auth.fetchUsersAsync().then((fetched) => {
-        if (fetched && fetched.length > 0) setUsers(fetched);
+        if (fetched) setUsers(fetched);
       });
       dataManager.fetchOrdersAsync().then((fetched) => {
-        if (fetched && fetched.length > 0) setOrders(fetched);
+        if (fetched) setOrders(fetched);
       });
       dataManager.fetchSitesAsync().then((fetched) => {
-        if (fetched && fetched.length > 0) setSites(fetched);
+        if (fetched) setSites(fetched);
       });
       dataManager.fetchEmailsAsync().then((fetched) => {
-        if (fetched && fetched.length > 0) setEmails(fetched);
+        if (fetched) setEmails(fetched);
       });
       dataManager.fetchTicketsAsync().then((fetched) => {
-        if (fetched && fetched.length > 0) {
+        if (fetched) {
           setTickets(fetched);
           setSelectedTicket(prev => prev ? fetched.find(t => t.id === prev.id) || prev : null);
         }
       });
       dataManager.fetchSystemsForRentAsync().then((fetched) => {
-        if (fetched && fetched.length > 0) setSystems(fetched);
+        if (fetched) setSystems(fetched);
       });
       dataManager.fetchRentalRequestsAsync().then((fetched) => {
-        if (fetched && fetched.length > 0) setRentalRequests(fetched);
+        if (fetched) setRentalRequests(fetched);
       });
       dataManager.fetchSystemAccessesAsync().then((fetched) => {
-        if (fetched && fetched.length > 0) setSystemAccesses(fetched);
+        if (fetched) setSystemAccesses(fetched);
       });
       fetchAnalytics();
       dataManager.fetchSecurityLogsAsync().then((fetched) => {
@@ -1961,7 +1961,9 @@ export default function AdminPage() {
                             {isPending && (
                               <button
                                 onClick={() => {
+                                  dataManager.updateEmailStatus(emailAcc.id, 'active');
                                   setEmails(prev => prev.map(e => e.id === emailAcc.id ? { ...e, status: 'active' } : e));
+                                  setToastMsg({ title: 'E-mail Aprovado', message: `A conta ${emailAcc.email} foi ativada com sucesso.`, type: 'success' });
                                 }}
                                 className="px-1.5 sm:px-3 py-1 sm:py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[9px] sm:text-xs font-bold rounded-lg shadow-2xs transition flex items-center space-x-1 sm:space-x-1.5 cursor-pointer"
                                 title="Aprovar e Ativar Conta de Email"
@@ -1973,7 +1975,9 @@ export default function AdminPage() {
 
                             <button
                               onClick={() => {
+                                dataManager.deleteEmail(emailAcc.id, emailAcc.userEmail, emailAcc.email);
                                 setEmails(prev => prev.filter(e => e.id !== emailAcc.id));
+                                setToastMsg({ title: 'E-mail Removido', message: `A conta ${emailAcc.email} foi removida.`, type: 'info' });
                               }}
                               className="p-1 sm:p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
                               title="Eliminar Conta de E-mail"
@@ -2209,7 +2213,9 @@ export default function AdminPage() {
                           {site.status === 'pending' ? (
                             <button
                               onClick={() => {
+                                dataManager.updateSiteStatus(site.id, 'active');
                                 setSites(prev => prev.map(s => s.id === site.id ? { ...s, status: 'active' } : s));
+                                setToastMsg({ title: 'Domínio Ativado', message: `O domínio ${site.domain} foi ativado com sucesso.`, type: 'success' });
                               }}
                               className="px-1.5 sm:px-3 py-1 sm:py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[9px] sm:text-xs rounded-lg shadow transition flex items-center space-x-1 sm:space-x-1.5 cursor-pointer"
                             >
@@ -2226,7 +2232,9 @@ export default function AdminPage() {
                           )}
                           <button
                             onClick={() => {
+                              dataManager.deleteSite(site.id, site.domain);
                               setSites(prev => prev.filter(s => s.id !== site.id));
+                              setToastMsg({ title: 'Domínio Removido', message: `O domínio ${site.domain} foi removido.`, type: 'info' });
                             }}
                             title="Eliminar Domínio"
                             className="p-1 sm:p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
@@ -2294,7 +2302,9 @@ export default function AdminPage() {
                           <button
                             onClick={() => {
                               const newStatus = item.status === 'active' ? 'pending' : 'active';
+                              dataManager.updateEmailStatus(item.id, newStatus);
                               setEmails(prev => prev.map(e => e.id === item.id ? { ...e, status: newStatus } : e));
+                              setToastMsg({ title: 'Status Atualizado', message: `A conta ${item.email} está agora ${newStatus === 'active' ? 'ativa' : 'pendente'}.`, type: 'info' });
                             }}
                             className="px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-md text-[9px] sm:text-xs font-semibold transition cursor-pointer bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300"
                           >
@@ -2302,7 +2312,9 @@ export default function AdminPage() {
                           </button>
                           <button
                             onClick={() => {
+                              dataManager.deleteEmail(item.id, item.userEmail, item.email);
                               setEmails(prev => prev.filter(e => e.id !== item.id));
+                              setToastMsg({ title: 'E-mail Removido', message: `A conta ${item.email} foi removida.`, type: 'info' });
                             }}
                             className="p-1 sm:p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
                           >
