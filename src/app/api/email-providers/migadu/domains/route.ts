@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getEmailProvider } from '@/lib/emailProviders/base';
 import { EmailDomain } from '@/models/EmailDomain';
 import { auth } from '@/lib/auth';
+import { connectDB } from '@/lib/mongodb';
+import SiteModel from '@/lib/models/Site';
+import EmailAccountModel from '@/lib/models/EmailAccount';
 
 // GET - List domains
 export async function GET(request: NextRequest) {
@@ -24,21 +27,94 @@ export async function GET(request: NextRequest) {
     console.log('[Migadu Domains GET] MIGADU_USERNAME set:', !!process.env.MIGADU_USERNAME);
     console.log('[Migadu Domains GET] MIGADU_API_KEY set:', !!process.env.MIGADU_API_KEY);
     
-    if (!provider.isConfigured()) {
-      console.error('[Migadu Domains GET] Provider not configured');
-      return NextResponse.json(
-        { error: 'Email provider not configured. Please check MIGADU_USERNAME and MIGADU_API_KEY environment variables.' },
-        { status: 500 }
-      );
+    let allDomains: any[] = [];
+    if (provider.isConfigured()) {
+      try {
+        allDomains = await provider.listDomains(customerId || undefined);
+        console.log('[Migadu Domains GET] Domains fetched from provider:', allDomains.length);
+      } catch (providerError) {
+        console.warn('[Migadu Domains GET] Failed to fetch from provider, falling back to database:', providerError);
+      }
     }
-    
-    // Get all domains from provider
-    const allDomains = await provider.listDomains(customerId || undefined);
-    console.log('[Migadu Domains GET] Domains fetched:', allDomains.length);
+
+    // Merge with platform registered domains from MongoDB
+    try {
+      await connectDB();
+      const existingDomainNames = new Set(allDomains.map(d => (d.domainName || d.name || '').toLowerCase()));
+
+      const [sites, emailAccounts, dbDomains] = await Promise.all([
+        SiteModel.find({}).lean(),
+        EmailAccountModel.find({}).lean(),
+        EmailDomain.find({}).lean()
+      ]);
+
+      // 1. Add domains stored directly in EmailDomain
+      dbDomains.forEach((dbDom: any) => {
+        const dName = (dbDom.domainName || '').toLowerCase();
+        if (dName && !existingDomainNames.has(dName)) {
+          existingDomainNames.add(dName);
+          allDomains.push({
+            _id: dbDom._id?.toString() || dbDom.id,
+            domainName: dbDom.domainName,
+            customerId: dbDom.customerId || 'system',
+            status: dbDom.status || 'pending_dns',
+            provider: dbDom.provider || 'migadu',
+            canSend: !!dbDom.canSend,
+            canReceive: !!dbDom.canReceive,
+            diagnostics: dbDom.diagnostics,
+            createdAt: dbDom.createdAt || new Date().toISOString(),
+            updatedAt: dbDom.updatedAt || new Date().toISOString()
+          });
+        }
+      });
+
+      // 2. Add domains from SiteModel
+      sites.forEach((site: any) => {
+        const dName = (site.domain || '').trim().toLowerCase();
+        if (dName && !existingDomainNames.has(dName)) {
+          existingDomainNames.add(dName);
+          allDomains.push({
+            _id: site.id || site._id?.toString(),
+            domainName: site.domain,
+            customerId: site.userEmail || 'cliente',
+            status: site.status === 'active' ? 'active' : 'pending_dns',
+            provider: 'platform',
+            canSend: site.status === 'active',
+            canReceive: site.status === 'active',
+            createdAt: site.createdAt || new Date().toISOString(),
+            updatedAt: site.createdAt || new Date().toISOString()
+          });
+        }
+      });
+
+      // 3. Add domains extracted from EmailAccountModel (e.g. user@domain.com)
+      emailAccounts.forEach((acc: any) => {
+        let dName = (acc.domain || '').trim().toLowerCase();
+        if (!dName && acc.email && acc.email.includes('@')) {
+          dName = acc.email.split('@')[1].trim().toLowerCase();
+        }
+        if (dName && !existingDomainNames.has(dName)) {
+          existingDomainNames.add(dName);
+          allDomains.push({
+            _id: acc.id || acc._id?.toString(),
+            domainName: dName,
+            customerId: acc.userEmail || 'cliente',
+            status: acc.status === 'active' ? 'active' : 'pending_dns',
+            provider: 'platform',
+            canSend: acc.status === 'active',
+            canReceive: acc.status === 'active',
+            createdAt: acc.createdAt || new Date().toISOString(),
+            updatedAt: acc.createdAt || new Date().toISOString()
+          });
+        }
+      });
+    } catch (dbError) {
+      console.error('[Migadu Domains GET] Error fetching platform domains from DB:', dbError);
+    }
     
     // If user is not admin, filter domains by customerId
     if (user && user.role !== 'admin') {
-      const userDomains = allDomains.filter(domain => domain.customerId === user.id);
+      const userDomains = allDomains.filter(domain => domain.customerId === user.id || domain.customerId === user.email);
       return NextResponse.json({
         success: true,
         domains: userDomains
@@ -84,6 +160,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if domain already exists in our database
+    await connectDB();
     const existingDomain = await EmailDomain.findOne({ domainName });
     if (existingDomain) {
       return NextResponse.json(
