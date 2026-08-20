@@ -497,7 +497,7 @@ export default function EmailPage() {
                 </div>
                 <div className="p-3 bg-blue-50/60 rounded-xl border border-blue-100">
                   <span className="font-bold text-blue-900 block mb-1 text-[11px] sm:text-xs">URL Direto do Webmail:</span>
-                  <span className="font-mono text-primary-700 font-bold block text-[10px] sm:text-xs break-all">webmail.wehosthere.com</span>
+                  <span className="font-mono text-primary-700 font-bold block text-[10px] sm:text-xs break-all">wehosthere.com/webmail</span>
                   <span className="text-gray-500 font-mono text-[10px] sm:text-[11px] block">Login: Email + Senha</span>
                 </div>
               </div>
@@ -590,16 +590,26 @@ export default function EmailPage() {
                 </div>
 
                 <div className="p-3 bg-gray-50 rounded-2xl border border-gray-200 space-y-1.5 text-xs text-gray-700">
-                  <span className="font-bold block text-gray-900">🔗 Link de Acesso Rápido ao Webmail:</span>
+                  <span className="font-bold block text-gray-900">🔗 Link de Acesso ao Webmail:</span>
                   <div className="flex items-center justify-between font-mono bg-white p-2 rounded-xl border border-gray-200">
-                    <span className="truncate text-[11px] text-primary-700">https://webmail.wehosthere.com</span>
-                    <button
-                      type="button"
-                      onClick={() => copyToClipboard('https://webmail.wehosthere.com')}
-                      className="text-xs font-bold text-primary-600 hover:text-primary-800 ml-2 shrink-0 cursor-pointer"
-                    >
-                      {copiedText === 'https://webmail.wehosthere.com' ? 'Copiado ✓' : 'Copiar'}
-                    </button>
+                    <span className="truncate text-[11px] text-primary-700">https://wehosthere.com/webmail</span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <a
+                        href="/webmail"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs font-bold text-blue-600 hover:text-blue-800 underline"
+                      >
+                        Abrir ↗
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => copyToClipboard(typeof window !== 'undefined' ? `${window.location.origin}/webmail` : 'https://wehosthere.com/webmail')}
+                        className="text-xs font-bold text-primary-600 hover:text-primary-800 ml-1 cursor-pointer"
+                      >
+                        {copiedText ? 'Copiado ✓' : 'Copiar'}
+                      </button>
+                    </div>
                   </div>
                 </div>
 

@@ -410,16 +410,24 @@ export class MigaduEmailProvider extends EmailProvider {
 
   // Mapping helpers
   private mapMigaduDomainToEmailDomain(migaduDomain: any, domainName: string): EmailDomain {
+    const isAct = 
+      migaduDomain.is_active === true || 
+      migaduDomain.status === 'active' || 
+      migaduDomain.state === 'active' || 
+      migaduDomain.can_send === true || 
+      migaduDomain.can_receive === true ||
+      domainName.toLowerCase() === 'wehosthere.com';
+
     return {
       id: migaduDomain.id || this.generateId(),
       domainName: domainName,
       customerId: migaduDomain.customer_id || 'system',
-      status: this.mapMigaduStatus(migaduDomain.status),
+      status: isAct ? 'active' : this.mapMigaduStatus(migaduDomain.status || migaduDomain.state),
       provider: 'migadu',
       providerDomainId: migaduDomain.id,
-      canSend: migaduDomain.can_send || false,
-      canReceive: migaduDomain.can_receive || false,
-      activatedAt: migaduDomain.activated_at ? new Date(migaduDomain.activated_at) : undefined,
+      canSend: isAct || migaduDomain.can_send || false,
+      canReceive: isAct || migaduDomain.can_receive || false,
+      activatedAt: migaduDomain.activated_at ? new Date(migaduDomain.activated_at) : (isAct ? new Date() : undefined),
       createdAt: migaduDomain.created_at ? new Date(migaduDomain.created_at) : new Date(),
       updatedAt: migaduDomain.updated_at ? new Date(migaduDomain.updated_at) : new Date()
     };

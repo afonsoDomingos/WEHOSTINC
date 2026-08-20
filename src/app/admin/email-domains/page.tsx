@@ -691,7 +691,7 @@ export default function EmailDomainsPage() {
                       Dono / Cliente
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Armazenamento
+                      Espaço Usado
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Estado
@@ -727,11 +727,8 @@ export default function EmailDomainsPage() {
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {acc.userEmail || (isAdminEmail ? 'Administrador' : 'Cliente Plataforma')}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-xs text-gray-500">
-                              <span className="font-semibold text-gray-700">Partilhado</span>
-                              <div className="text-[10px] text-gray-400">Pool da conta Migadu</div>
-                            </div>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-700">
+                            {(acc as any).usedGB ? `${(acc as any).usedGB} GB Usado` : (acc as any).storageUsed ? `${(((acc as any).storageUsed) / (1024 * 1024)).toFixed(1)} MB Usado` : '0.0 MB Usado'}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${
@@ -755,7 +752,7 @@ export default function EmailDomainsPage() {
                               </button>
                             )}
                             <a
-                              href="https://webmail.wehosthere.com"
+                              href={`/webmail?email=${encodeURIComponent(acc.email)}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="inline-flex items-center space-x-1 px-2.5 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg text-xs font-semibold border border-blue-200 transition"

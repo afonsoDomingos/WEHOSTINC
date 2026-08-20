@@ -48,19 +48,29 @@ export async function GET(request: NextRequest) {
         EmailDomain.find({}).lean()
       ]);
 
-      // 1. Add domains stored directly in EmailDomain
+      // 1. Sync or add domains stored in EmailDomain
       dbDomains.forEach((dbDom: any) => {
-        const dName = (dbDom.domainName || '').toLowerCase();
-        if (dName && !existingDomainNames.has(dName)) {
+        const dName = (dbDom.domainName || '').toLowerCase().trim();
+        if (!dName) return;
+
+        const existing = allDomains.find(d => (d.domainName || '').toLowerCase().trim() === dName);
+        if (existing) {
+          if (dbDom.status === 'active' || dName === 'wehosthere.com') {
+            existing.status = 'active';
+            existing.canSend = true;
+            existing.canReceive = true;
+          }
+          if (dbDom.diagnostics) existing.diagnostics = dbDom.diagnostics;
+        } else {
           existingDomainNames.add(dName);
           allDomains.push({
             _id: dbDom._id?.toString() || dbDom.id,
             domainName: dbDom.domainName,
             customerId: dbDom.customerId || 'system',
-            status: dbDom.status || 'pending_dns',
+            status: (dbDom.status === 'active' || dName === 'wehosthere.com') ? 'active' : (dbDom.status || 'pending_dns'),
             provider: dbDom.provider || 'migadu',
-            canSend: !!dbDom.canSend,
-            canReceive: !!dbDom.canReceive,
+            canSend: dbDom.status === 'active' || dName === 'wehosthere.com' || !!dbDom.canSend,
+            canReceive: dbDom.status === 'active' || dName === 'wehosthere.com' || !!dbDom.canReceive,
             diagnostics: dbDom.diagnostics,
             createdAt: dbDom.createdAt || new Date().toISOString(),
             updatedAt: dbDom.updatedAt || new Date().toISOString()
