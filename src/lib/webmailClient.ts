@@ -1,4 +1,4 @@
-﻿import { apiEndpoint } from './siteConfig';
+import { apiEndpoint } from './siteConfig';
 
 export interface WebmailAttachment {
   url: string;
@@ -16,6 +16,7 @@ export interface WebmailMessage {
   toEmail: string;
   subject: string;
   body: string;
+  textPreview?: string;
   date: string;
   isRead: boolean;
   starred: boolean;

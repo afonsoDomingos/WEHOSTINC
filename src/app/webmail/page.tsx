@@ -1194,7 +1194,7 @@ function WebmailContent() {
                         {msg.subject}
                       </h4>
                       <p className="text-xs text-gray-500 truncate mt-0.5 leading-relaxed">
-                        {msg.body}
+                        {msg.textPreview || msg.body.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 120)}
                       </p>
                       {imageAttachment && (
                         <div className="mt-2 flex items-center space-x-2">
@@ -1298,9 +1298,16 @@ function WebmailContent() {
 
               {/* Body card */}
               <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-200 flex-1 space-y-4">
-                <div className="whitespace-pre-line text-sm text-gray-800 leading-relaxed font-sans">
-                  {selectedMessage.body}
-                </div>
+                {selectedMessage.body && selectedMessage.body.includes('<') && (selectedMessage.body.includes('</') || selectedMessage.body.includes('/>') || selectedMessage.body.includes('<br')) ? (
+                  <div 
+                    className="prose prose-sm max-w-none text-gray-800 font-sans break-words overflow-x-auto leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: selectedMessage.body }}
+                  />
+                ) : (
+                  <div className="whitespace-pre-line text-sm text-gray-800 leading-relaxed font-sans">
+                    {selectedMessage.body}
+                  </div>
+                )}
 
                 {/* Exibição de Ficheiros Anexados */}
                 {selectedMessage.attachments && selectedMessage.attachments.length > 0 && (

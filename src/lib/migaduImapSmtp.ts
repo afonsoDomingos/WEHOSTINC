@@ -1,9 +1,9 @@
 // Migadu IMAP/SMTP Service
-// This service handles real IMAP/SMTP connections to Migadu servers
+// Handles real IMAP/SMTP connections to Migadu servers with clean email MIME parsing
 
 import { ImapFlow } from 'imapflow';
 import nodemailer from 'nodemailer';
-import { EmailMailbox } from '../models/EmailMailbox';
+import { simpleParser } from 'mailparser';
 
 export interface IMAPMessage {
   id: string;
@@ -13,6 +13,7 @@ export interface IMAPMessage {
   subject: string;
   date: Date;
   body: string;
+  textPreview?: string;
   isRead: boolean;
   starred: boolean;
   folder: string;
@@ -20,6 +21,7 @@ export interface IMAPMessage {
     filename: string;
     size: number;
     contentType: string;
+    url?: string;
   }>;
 }
 
@@ -51,11 +53,9 @@ export class MigaduImapSmtpService {
 
   /**
    * Authenticate a mailbox via IMAP
-   * This validates that the credentials are correct directly with Migadu IMAP
    */
   async authenticateIMAP(email: string, password: string): Promise<boolean> {
     try {
-      // Create IMAP connection to authenticate
       const client = new ImapFlow({
         host: this.imapHost,
         port: this.imapPort,
@@ -82,6 +82,38 @@ export class MigaduImapSmtpService {
   }
 
   /**
+   * Open mailbox with smart folder name resolution
+   */
+  private async openMailboxSmart(client: ImapFlow, folder: string) {
+    const target = folder.toUpperCase();
+    const candidateFolders = [folder];
+
+    if (target === 'SENT' || target === 'ENVIADOS') {
+      candidateFolders.push('Sent', 'Sent Messages', 'INBOX.Sent', 'Sent Items');
+    } else if (target === 'TRASH' || target === 'LIXEIRA') {
+      candidateFolders.push('Trash', 'Deleted Messages', 'INBOX.Trash', 'Deleted Items');
+    } else if (target === 'DRAFTS' || target === 'RASCUNHOS') {
+      candidateFolders.push('Drafts', 'INBOX.Drafts');
+    } else if (target === 'JUNK' || target === 'SPAM') {
+      candidateFolders.push('Junk', 'Spam', 'INBOX.Junk');
+    } else {
+      candidateFolders.push('INBOX');
+    }
+
+    for (const f of candidateFolders) {
+      try {
+        const mb = await client.mailboxOpen(f);
+        if (mb) return mb;
+      } catch {
+        // Try next candidate
+      }
+    }
+
+    // Fallback to INBOX
+    return await client.mailboxOpen('INBOX');
+  }
+
+  /**
    * List messages from a folder (INBOX, Sent, etc.)
    */
   async listMessages(
@@ -90,61 +122,103 @@ export class MigaduImapSmtpService {
     folder: string = 'INBOX',
     limit: number = 50
   ): Promise<IMAPMessage[]> {
+    const client = new ImapFlow({
+      host: this.imapHost,
+      port: this.imapPort,
+      secure: this.imapPort === 993,
+      auth: {
+        user: email,
+        pass: password
+      },
+      logger: false
+    });
+
     try {
-      const authenticated = await this.authenticateIMAP(email, password);
-      if (!authenticated) {
-        throw new Error('Authentication failed');
+      await client.connect();
+      const mailbox = await this.openMailboxSmart(client, folder);
+
+      if (!mailbox || mailbox.exists === 0) {
+        await client.logout();
+        return [];
       }
 
-      const client = new ImapFlow({
-        host: this.imapHost,
-        port: this.imapPort,
-        secure: this.imapPort === 993,
-        auth: {
-          user: email,
-          pass: password
-        },
-        logger: false
-      });
-
-      await client.connect();
-      
-      const mailbox = await client.mailboxOpen(folder);
       const messages: IMAPMessage[] = [];
       let count = 0;
 
-      for await (const msg of client.fetch(mailbox.exists, { envelope: true, source: true })) {
-        if (count >= limit) break;
-        
-        const envelope = msg.envelope;
-        if (envelope) {
-          messages.push({
-            id: msg.uid.toString(),
-            uid: msg.uid,
-            from: {
-              name: envelope.from?.[0]?.name || '',
-              address: envelope.from?.[0]?.address || ''
-            },
-            to: envelope.to?.map(t => ({
-              name: t.name || '',
-              address: t.address || ''
-            })) || [],
-            subject: envelope.subject || '',
-            date: envelope.date || new Date(),
-            body: msg.source?.toString() || '',
-            isRead: msg.flags?.has('\\Seen') || false,
-            starred: msg.flags?.has('\\Flagged') || false,
-            folder: folder.toLowerCase()
-          });
-          count++;
+      // Fetch all messages in the folder (or up to limit)
+      const range = mailbox.exists > limit ? `${mailbox.exists - limit + 1}:*` : '1:*';
+
+      for await (const msg of client.fetch(range, { envelope: true, source: true, flags: true, uid: true })) {
+        let cleanBody = '';
+        let cleanText = '';
+        const parsedAttachments: Array<{
+          filename: string;
+          size: number;
+          contentType: string;
+          url?: string;
+        }> = [];
+
+        if (msg.source) {
+          try {
+            const parsed = await simpleParser(msg.source);
+            cleanBody = (parsed.html as string) || parsed.textAsHtml || parsed.text || '';
+            cleanText = (parsed.text || '').replace(/\s+/g, ' ').trim();
+
+            if (parsed.attachments && parsed.attachments.length > 0) {
+              for (const att of parsed.attachments) {
+                const b64 = att.content ? att.content.toString('base64') : '';
+                parsedAttachments.push({
+                  filename: att.filename || 'anexo',
+                  size: att.size || (att.content ? att.content.length : 0),
+                  contentType: att.contentType || 'application/octet-stream',
+                  url: b64 ? `data:${att.contentType || 'application/octet-stream'};base64,${b64}` : ''
+                });
+              }
+            }
+          } catch (parseError) {
+            console.warn('[MigaduIMAP] Error parsing MIME with simpleParser:', parseError);
+            cleanBody = msg.source.toString();
+            cleanText = cleanBody.replace(/<[^>]+>/g, ' ').slice(0, 150);
+          }
         }
+
+        const envelope = msg.envelope;
+        messages.push({
+          id: msg.uid.toString(),
+          uid: msg.uid,
+          from: {
+            name: envelope?.from?.[0]?.name || envelope?.from?.[0]?.address || '',
+            address: envelope?.from?.[0]?.address || ''
+          },
+          to: envelope?.to?.map(t => ({
+            name: t.name || t.address || '',
+            address: t.address || ''
+          })) || [],
+          subject: envelope?.subject || '(Sem assunto)',
+          date: envelope?.date || new Date(),
+          body: cleanBody || '(Mensagem vazia)',
+          textPreview: cleanText,
+          isRead: msg.flags?.has('\\Seen') || false,
+          starred: msg.flags?.has('\\Flagged') || false,
+          folder: folder.toLowerCase(),
+          attachments: parsedAttachments
+        });
+
+        count++;
+        if (count >= limit) break;
       }
 
       await client.logout();
+
+      // Sort newest first
+      messages.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       return messages;
     } catch (error) {
-      console.error('[MigaduIMAP] Failed to list messages for:', email);
-      throw error;
+      console.error('[MigaduIMAP] Failed to list messages for:', email, error);
+      try {
+        await client.logout();
+      } catch {}
+      return [];
     }
   }
 
@@ -157,56 +231,86 @@ export class MigaduImapSmtpService {
     uid: number,
     folder: string = 'INBOX'
   ): Promise<IMAPMessage | null> {
+    const client = new ImapFlow({
+      host: this.imapHost,
+      port: this.imapPort,
+      secure: this.imapPort === 993,
+      auth: {
+        user: email,
+        pass: password
+      },
+      logger: false
+    });
+
     try {
-      const authenticated = await this.authenticateIMAP(email, password);
-      if (!authenticated) {
-        throw new Error('Authentication failed');
-      }
-
-      const client = new ImapFlow({
-        host: this.imapHost,
-        port: this.imapPort,
-        secure: this.imapPort === 993,
-        auth: {
-          user: email,
-          pass: password
-        },
-        logger: false
-      });
-
       await client.connect();
-      await client.mailboxOpen(folder);
+      await this.openMailboxSmart(client, folder);
 
       let message: IMAPMessage | null = null;
-      for await (const msg of client.fetch(uid, { envelope: true, source: true })) {
-        const envelope = msg.envelope;
-        if (envelope) {
-          message = {
-            id: msg.uid.toString(),
-            uid: msg.uid,
-            from: {
-              name: envelope.from?.[0]?.name || '',
-              address: envelope.from?.[0]?.address || ''
-            },
-            to: envelope.to?.map(t => ({
-              name: t.name || '',
-              address: t.address || ''
-            })) || [],
-            subject: envelope.subject || '',
-            date: envelope.date || new Date(),
-            body: msg.source?.toString() || '',
-            isRead: msg.flags?.has('\\Seen') || false,
-            starred: msg.flags?.has('\\Flagged') || false,
-            folder: folder.toLowerCase()
-          };
+      for await (const msg of client.fetch(uid, { envelope: true, source: true, flags: true, uid: true })) {
+        let cleanBody = '';
+        let cleanText = '';
+        const parsedAttachments: Array<{
+          filename: string;
+          size: number;
+          contentType: string;
+          url?: string;
+        }> = [];
+
+        if (msg.source) {
+          try {
+            const parsed = await simpleParser(msg.source);
+            cleanBody = (parsed.html as string) || parsed.textAsHtml || parsed.text || '';
+            cleanText = (parsed.text || '').replace(/\s+/g, ' ').trim();
+
+            if (parsed.attachments && parsed.attachments.length > 0) {
+              for (const att of parsed.attachments) {
+                const b64 = att.content ? att.content.toString('base64') : '';
+                parsedAttachments.push({
+                  filename: att.filename || 'anexo',
+                  size: att.size || (att.content ? att.content.length : 0),
+                  contentType: att.contentType || 'application/octet-stream',
+                  url: b64 ? `data:${att.contentType || 'application/octet-stream'};base64,${b64}` : ''
+                });
+              }
+            }
+          } catch {
+            cleanBody = msg.source.toString();
+            cleanText = cleanBody.replace(/<[^>]+>/g, ' ').slice(0, 150);
+          }
         }
+
+        const envelope = msg.envelope;
+        message = {
+          id: msg.uid.toString(),
+          uid: msg.uid,
+          from: {
+            name: envelope?.from?.[0]?.name || envelope?.from?.[0]?.address || '',
+            address: envelope?.from?.[0]?.address || ''
+          },
+          to: envelope?.to?.map(t => ({
+            name: t.name || t.address || '',
+            address: t.address || ''
+          })) || [],
+          subject: envelope?.subject || '(Sem assunto)',
+          date: envelope?.date || new Date(),
+          body: cleanBody || '(Mensagem vazia)',
+          textPreview: cleanText,
+          isRead: msg.flags?.has('\\Seen') || false,
+          starred: msg.flags?.has('\\Flagged') || false,
+          folder: folder.toLowerCase(),
+          attachments: parsedAttachments
+        };
       }
 
       await client.logout();
       return message;
     } catch (error) {
-      console.error('[MigaduIMAP] Failed to get message for:', email);
-      throw error;
+      console.error('[MigaduIMAP] Failed to get message for:', email, error);
+      try {
+        await client.logout();
+      } catch {}
+      return null;
     }
   }
 
@@ -220,25 +324,20 @@ export class MigaduImapSmtpService {
     isRead: boolean,
     folder: string = 'INBOX'
   ): Promise<void> {
+    const client = new ImapFlow({
+      host: this.imapHost,
+      port: this.imapPort,
+      secure: this.imapPort === 993,
+      auth: {
+        user: email,
+        pass: password
+      },
+      logger: false
+    });
+
     try {
-      const authenticated = await this.authenticateIMAP(email, password);
-      if (!authenticated) {
-        throw new Error('Authentication failed');
-      }
-
-      const client = new ImapFlow({
-        host: this.imapHost,
-        port: this.imapPort,
-        secure: this.imapPort === 993,
-        auth: {
-          user: email,
-          pass: password
-        },
-        logger: false
-      });
-
       await client.connect();
-      await client.mailboxOpen(folder);
+      await this.openMailboxSmart(client, folder);
 
       const target = await client.fetchOne(uid, { flags: true });
       if (target) {
@@ -253,8 +352,55 @@ export class MigaduImapSmtpService {
 
       await client.logout();
     } catch (error) {
-      console.error('[MigaduIMAP] Failed to mark as read for:', email);
-      throw error;
+      console.error('[MigaduIMAP] Failed to mark as read for:', email, error);
+      try {
+        await client.logout();
+      } catch {}
+    }
+  }
+
+  /**
+   * Toggle star / flagged
+   */
+  async toggleStar(
+    email: string,
+    password: string,
+    uid: number,
+    starred: boolean,
+    folder: string = 'INBOX'
+  ): Promise<void> {
+    const client = new ImapFlow({
+      host: this.imapHost,
+      port: this.imapPort,
+      secure: this.imapPort === 993,
+      auth: {
+        user: email,
+        pass: password
+      },
+      logger: false
+    });
+
+    try {
+      await client.connect();
+      await this.openMailboxSmart(client, folder);
+
+      const target = await client.fetchOne(uid, { flags: true });
+      if (target) {
+        const flags = new Set(target.flags);
+        if (starred) {
+          flags.add('\\Flagged');
+        } else {
+          flags.delete('\\Flagged');
+        }
+        await client.messageFlagsSet(uid, Array.from(flags));
+      }
+
+      await client.logout();
+    } catch (error) {
+      console.error('[MigaduIMAP] Failed to toggle star for:', email, error);
+      try {
+        await client.logout();
+      } catch {}
     }
   }
 
@@ -268,32 +414,27 @@ export class MigaduImapSmtpService {
     fromFolder: string,
     toFolder: string
   ): Promise<void> {
+    const client = new ImapFlow({
+      host: this.imapHost,
+      port: this.imapPort,
+      secure: this.imapPort === 993,
+      auth: {
+        user: email,
+        pass: password
+      },
+      logger: false
+    });
+
     try {
-      const authenticated = await this.authenticateIMAP(email, password);
-      if (!authenticated) {
-        throw new Error('Authentication failed');
-      }
-
-      const client = new ImapFlow({
-        host: this.imapHost,
-        port: this.imapPort,
-        secure: this.imapPort === 993,
-        auth: {
-          user: email,
-          pass: password
-        },
-        logger: false
-      });
-
       await client.connect();
-      await client.mailboxOpen(fromFolder);
-
+      await this.openMailboxSmart(client, fromFolder);
       await client.messageMove(uid, toFolder);
-
       await client.logout();
     } catch (error) {
-      console.error('[MigaduIMAP] Failed to move message for:', email);
-      throw error;
+      console.error('[MigaduIMAP] Failed to move message for:', email, error);
+      try {
+        await client.logout();
+      } catch {}
     }
   }
 
@@ -306,96 +447,95 @@ export class MigaduImapSmtpService {
     uid: number,
     folder: string = 'INBOX'
   ): Promise<void> {
-    try {
-      const authenticated = await this.authenticateIMAP(email, password);
-      if (!authenticated) {
-        throw new Error('Authentication failed');
-      }
+    const client = new ImapFlow({
+      host: this.imapHost,
+      port: this.imapPort,
+      secure: this.imapPort === 993,
+      auth: {
+        user: email,
+        pass: password
+      },
+      logger: false
+    });
 
+    try {
+      await client.connect();
+      await this.openMailboxSmart(client, folder);
+      await client.messageDelete(uid);
+      await client.logout();
+    } catch (error) {
+      console.error('[MigaduIMAP] Failed to delete message for:', email, error);
+      try {
+        await client.logout();
+      } catch {}
+    }
+  }
+
+  /**
+   * Send an email via SMTP and save a copy to the IMAP Sent folder
+   */
+  async sendEmail(options: SMTPSendOptions, password: string): Promise<void> {
+    const transporter = nodemailer.createTransport({
+      host: this.smtpHost,
+      port: this.smtpPort,
+      secure: this.smtpPort === 465,
+      auth: {
+        user: options.from,
+        pass: password
+      }
+    });
+
+    const info = await transporter.sendMail({
+      from: options.from,
+      to: options.to.join(', '),
+      subject: options.subject,
+      text: options.text,
+      html: options.html,
+      attachments: options.attachments
+    });
+
+    // Save a copy to Sent folder on IMAP
+    try {
       const client = new ImapFlow({
         host: this.imapHost,
         port: this.imapPort,
         secure: this.imapPort === 993,
         auth: {
-          user: email,
+          user: options.from,
           pass: password
         },
         logger: false
       });
 
       await client.connect();
-      await client.mailboxOpen(folder);
-
-      await client.messageDelete(uid);
-
-      await client.logout();
-    } catch (error) {
-      console.error('[MigaduIMAP] Failed to delete message for:', email);
-      throw error;
-    }
-  }
-
-  /**
-   * Send an email via SMTP
-   */
-  async sendEmail(options: SMTPSendOptions, password: string): Promise<void> {
-    try {
-      const transporter = nodemailer.createTransport({
-        host: this.smtpHost,
-        port: this.smtpPort,
-        secure: this.smtpPort === 465,
-        auth: {
-          user: options.from,
-          pass: password
-        }
-      });
-
-      await transporter.sendMail({
+      const sentFolder = 'Sent';
+      
+      // Build raw message buffer
+      const mailGen = nodemailer.createTransport({ streamTransport: true, newline: 'windows' });
+      mailGen.sendMail({
         from: options.from,
         to: options.to.join(', '),
         subject: options.subject,
         text: options.text,
         html: options.html,
         attachments: options.attachments
+      }, async (err, result) => {
+        if (!err && result && result.message) {
+          try {
+            await client.append(sentFolder, result.message as any, ['\\Seen']);
+          } catch {
+            try {
+              await client.append('INBOX.Sent', result.message as any, ['\\Seen']);
+            } catch {}
+          }
+        }
+        try {
+          await client.logout();
+        } catch {}
       });
-    } catch (error) {
-      console.error('[MigaduSMTP] Failed to send email from:', options.from, error);
-      throw error;
+    } catch {
+      // Append warning ignored - email was sent via SMTP successfully
     }
-  }
-
-  /**
-   * Get IMAP connection configuration for a mailbox
-   */
-  getIMAPConfig(email: string): {
-    host: string;
-    port: number;
-    secure: boolean;
-    user: string;
-  } {
-    return {
-      host: this.imapHost,
-      port: this.imapPort,
-      secure: this.imapPort === 993,
-      user: email
-    };
-  }
-
-  /**
-   * Get SMTP connection configuration for a mailbox
-   */
-  getSMTPConfig(email: string): {
-    host: string;
-    port: number;
-    secure: boolean;
-    user: string;
-  } {
-    return {
-      host: this.smtpHost,
-      port: this.smtpPort,
-      secure: this.smtpPort === 465,
-      user: email
-    };
   }
 }
 
