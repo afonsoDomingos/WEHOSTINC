@@ -46,11 +46,11 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' https://accounts.google.com",
+              "script-src 'self' 'unsafe-inline' https://accounts.google.com https://www.googletagmanager.com",
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https: blob: https://res.cloudinary.com",
               "font-src 'self' data:",
-              "connect-src 'self' https://api.resend.com https://ipapi.co https://wehosthere.com https://res.cloudinary.com",
+              "connect-src 'self' https://api.resend.com https://ipapi.co https://wehosthere.com https://res.cloudinary.com https://www.google-analytics.com https://analytics.google.com https://www.googletagmanager.com",
               "frame-src https://accounts.google.com",
               "frame-ancestors 'self'",
               "base-uri 'self'",

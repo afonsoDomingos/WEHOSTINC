@@ -172,9 +172,16 @@ export class MigaduEmailProvider extends EmailProvider {
       console.log('[Migadu Provider] Base URL:', this.baseUrl);
       
       try {
-        const response = await this.apiRequest<any[]>('/domains');
-        console.log('[Migadu Provider] Domains response received, count:', response.length);
-        return response.map(domain => this.mapMigaduDomainToEmailDomain(domain, domain.name));
+        const response = await this.apiRequest<any>('/domains');
+        const domainsArray = Array.isArray(response) ? response : (response.domains || response.data);
+        
+        if (!Array.isArray(domainsArray)) {
+          console.error('[Migadu Provider] Unexpected API response structure. Response:', JSON.stringify(response, null, 2));
+          throw new EmailProviderError('Unexpected API response structure when fetching domains', 'API_RESPONSE_ERROR', 500, response);
+        }
+        
+        console.log('[Migadu Provider] Domains response received, count:', domainsArray.length);
+        return domainsArray.map((domain: any) => this.mapMigaduDomainToEmailDomain(domain, domain.name));
       } catch (error) {
         console.error('[Migadu Provider] Error listing domains:', error);
         throw error;
