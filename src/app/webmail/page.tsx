@@ -173,20 +173,22 @@ function WebmailContent() {
     formData.append('file', file);
 
     try {
-      const res = await fetch(apiEndpoint('/api/upload'), {
+      const res = await fetch(apiEndpoint('/api/webmail/upload-attachment'), {
         method: 'POST',
         body: formData
       });
       if (res.ok) {
         const data = await res.json();
-        if (data.url) {
+        if (data.success && data.content) {
+          // Store base64 content in the URL field for later processing
+          const base64Url = `data:${data.type};base64,${data.content}`;
           setComposeAttachments(prev => [
             ...prev,
             {
-              url: data.url,
+              url: base64Url,
               name: data.name || file.name,
-              size: data.bytes || file.size,
-              type: file.type
+              size: data.size || file.size,
+              type: data.type || file.type
             }
           ]);
         }

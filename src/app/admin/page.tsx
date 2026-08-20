@@ -1086,6 +1086,27 @@ export default function AdminPage() {
                 <span className="hidden sm:inline">Newsletter</span>
               </Link>
               <Link
+                href="/admin/email-accounts"
+                className="flex items-center space-x-1.5 sm:space-x-2 text-gray-600 hover:text-blue-600 font-medium transition text-[10px] sm:text-xs sm:text-sm"
+              >
+                <Mail className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-500" />
+                <span className="hidden sm:inline">Contas Email</span>
+              </Link>
+              <Link
+                href="/admin/email-domains"
+                className="flex items-center space-x-1.5 sm:space-x-2 text-gray-600 hover:text-purple-600 font-medium transition text-[10px] sm:text-xs sm:text-sm"
+              >
+                <Globe className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-500" />
+                <span className="hidden sm:inline">Domínios Email</span>
+              </Link>
+              <Link
+                href="/webmail"
+                className="flex items-center space-x-1.5 sm:space-x-2 text-gray-600 hover:text-indigo-600 font-medium transition text-[10px] sm:text-xs sm:text-sm"
+              >
+                <Mail className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-indigo-500" />
+                <span className="hidden sm:inline">Webmail</span>
+              </Link>
+              <Link
                 href="/admin/blog"
                 className="flex items-center space-x-1.5 sm:space-x-2 text-gray-600 hover:text-green-600 font-medium transition text-[10px] sm:text-xs sm:text-sm"
               >

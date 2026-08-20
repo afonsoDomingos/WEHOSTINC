@@ -7,6 +7,7 @@ export interface WebmailAttachment {
 
 export interface WebmailMessage {
   id: string;
+  uid?: number;
   accountEmail: string;
   fromName: string;
   fromEmail: string;
@@ -27,6 +28,9 @@ export const ATTACHMENT_MAX_COUNT = 5; // Máximo de 5 anexos por email
 export const ATTACHMENT_TOTAL_MAX_SIZE = 25 * 1024 * 1024; // 25MB total por email
 
 const WEBMAIL_STORAGE_KEY = 'wehosthere_webmail_messages';
+
+// Import Migadu IMAP/SMTP service
+import { migaduImapSmtp } from './migaduImapSmtp';
 
 export const INITIAL_WEBMAIL_MESSAGES: WebmailMessage[] = [
   {
@@ -102,7 +106,63 @@ WEHOSTHERE Security System`,
 ];
 
 export const webmailManager = {
-  getMessages: (accountEmail?: string): WebmailMessage[] => {
+  // Check if real IMAP/SMTP is available
+  isRealEmailAvailable: (email: string, password: string): boolean => {
+    // Check if email belongs to a domain managed by Migadu
+    // This would check against our database in production
+    return !!(email && password);
+  },
+
+  getMessages: async (accountEmail?: string, password?: string): Promise<WebmailMessage[]> => {
+    const isProduction = process.env.NODE_ENV === 'production';
+    
+    // In production, require real credentials
+    if (isProduction && (!accountEmail || !password)) {
+      throw new Error('Credenciais de email são obrigatórias');
+    }
+
+    // If real credentials provided and available, use IMAP
+    if (accountEmail && password && webmailManager.isRealEmailAvailable(accountEmail, password)) {
+      try {
+        const imapMessages = await migaduImapSmtp.listMessages(accountEmail, password, 'INBOX');
+        
+        // Convert IMAP messages to WebmailMessage format
+        return imapMessages.map(msg => ({
+          id: msg.id,
+          uid: msg.uid,
+          accountEmail,
+          fromName: msg.from.name,
+          fromEmail: msg.from.address,
+          toEmail: msg.to[0]?.address || '',
+          subject: msg.subject,
+          body: msg.body,
+          date: msg.date.toISOString(),
+          isRead: msg.isRead,
+          starred: msg.starred,
+          folder: 'inbox' as const,
+          avatarColor: 'bg-primary-600',
+          attachments: msg.attachments?.map(att => ({
+            url: '',
+            name: att.filename,
+            size: att.size,
+            type: att.contentType
+          }))
+        }));
+      } catch (error) {
+        console.error('[Webmail] IMAP fetch failed:', error);
+        // In production, throw error instead of falling back
+        if (isProduction) {
+          throw new Error('Não foi possível conectar ao servidor de email. Verifique as suas credenciais ou tente novamente.');
+        }
+        // In development, fall back to simulation
+      }
+    }
+
+    // Fallback to localStorage simulation (only in development)
+    if (isProduction) {
+      throw new Error('Não foi possível conectar ao servidor de email. Verifique as suas credenciais ou tente novamente.');
+    }
+    
     if (typeof window === 'undefined') return INITIAL_WEBMAIL_MESSAGES;
     const stored = localStorage.getItem(WEBMAIL_STORAGE_KEY);
     let messages: WebmailMessage[] = stored ? JSON.parse(stored) : INITIAL_WEBMAIL_MESSAGES;
@@ -115,8 +175,91 @@ export const webmailManager = {
     return messages;
   },
 
-  sendMessage: (accountEmail: string, toEmail: string, subject: string, body: string, attachments?: WebmailAttachment[]): WebmailMessage => {
-    const messages = webmailManager.getMessages();
+  sendMessage: async (accountEmail: string, password: string, toEmail: string, subject: string, body: string, attachments?: WebmailAttachment[]): Promise<WebmailMessage> => {
+    const isProduction = process.env.NODE_ENV === 'production';
+    
+    // In production, require real credentials
+    if (isProduction && (!accountEmail || !password)) {
+      throw new Error('Credenciais de email são obrigatórias');
+    }
+
+    // If real credentials provided, use SMTP
+    if (password && webmailManager.isRealEmailAvailable(accountEmail, password)) {
+      try {
+        // Fetch real attachment content if attachments are provided
+        const attachmentContents = await Promise.all(
+          (attachments || []).map(async (att) => {
+            if (att.url && att.url.startsWith('data:')) {
+              // If already has base64 content, decode it
+              const base64Data = att.url.split(',')[1];
+              return {
+                filename: att.name,
+                content: Buffer.from(base64Data, 'base64'),
+                contentType: att.type
+              };
+            } else if (att.url) {
+              // If URL is provided, fetch the content
+              try {
+                const res = await fetch(att.url);
+                const buffer = await res.arrayBuffer();
+                return {
+                  filename: att.name,
+                  content: Buffer.from(buffer),
+                  contentType: att.type
+                };
+              } catch (err) {
+                console.error('[Webmail] Failed to fetch attachment:', att.name);
+                return null;
+              }
+            }
+            return null;
+          })
+        );
+
+        // Filter out failed attachments
+        const validAttachments = attachmentContents.filter(a => a !== null);
+
+        await migaduImapSmtp.sendEmail({
+          from: accountEmail,
+          to: [toEmail],
+          subject,
+          text: body,
+          html: body,
+          attachments: validAttachments
+        }, password);
+
+        // Return a sent message representation
+        return {
+          id: `smtp-${Date.now()}`,
+          accountEmail,
+          fromName: accountEmail.split('@')[0],
+          fromEmail: accountEmail,
+          toEmail,
+          subject,
+          body,
+          date: new Date().toISOString(),
+          isRead: true,
+          starred: false,
+          folder: 'sent',
+          avatarColor: 'bg-primary-600',
+          attachments: attachments && attachments.length > 0 ? attachments : undefined
+        };
+      } catch (error) {
+        console.error('[Webmail] SMTP send failed:', error);
+        // In production, throw error instead of falling back
+        if (isProduction) {
+          throw new Error('Não foi possível enviar o email. O servidor de email não está disponível neste momento.');
+        }
+        // In development, fall back to simulation
+      }
+    }
+
+    // Fallback to localStorage simulation (only in development)
+    if (isProduction) {
+      throw new Error('Não foi possível enviar o email. O servidor de email não está disponível neste momento.');
+    }
+    
+    const messages = await webmailManager.getMessages();
     const newMsg: WebmailMessage = {
       id: `wm-${Date.now()}`,
       accountEmail,
@@ -139,8 +282,39 @@ export const webmailManager = {
     return newMsg;
   },
 
-  toggleStar: (id: string): void => {
-    const messages = webmailManager.getMessages();
+  toggleStar: async (id: string, accountEmail?: string, password?: string): Promise<void> => {
+    const isProduction = process.env.NODE_ENV === 'production';
+    
+    // In production, require real credentials
+    if (isProduction && (!accountEmail || !password)) {
+      throw new Error('Credenciais de email são obrigatórias');
+    }
+
+    // If real credentials provided, use IMAP
+    if (accountEmail && password && webmailManager.isRealEmailAvailable(accountEmail, password)) {
+      try {
+        const messages = await webmailManager.getMessages(accountEmail, password);
+        const msg = messages.find(m => m.id === id);
+        if (msg && msg.uid) {
+          // In production, you would update the flags on the IMAP server
+          // For now, this is a placeholder
+        }
+      } catch (error) {
+        console.error('[Webmail] IMAP toggle star failed:', error);
+        // In production, throw error instead of falling back
+        if (isProduction) {
+          throw new Error('Não foi possível atualizar a mensagem. O servidor de email não está disponível.');
+        }
+        // In development, fall back to simulation
+      }
+    }
+
+    // Fallback to localStorage simulation (only in development)
+    if (isProduction) {
+      throw new Error('Não foi possível atualizar a mensagem. O servidor de email não está disponível.');
+    }
+    
+    const messages = await webmailManager.getMessages();
     const msg = messages.find(m => m.id === id);
     if (msg) {
       msg.starred = !msg.starred;
@@ -150,8 +324,38 @@ export const webmailManager = {
     }
   },
 
-  markAsRead: (id: string, isRead = true): void => {
-    const messages = webmailManager.getMessages();
+  markAsRead: async (id: string, isRead = true, accountEmail?: string, password?: string): Promise<void> => {
+    const isProduction = process.env.NODE_ENV === 'production';
+    
+    // In production, require real credentials
+    if (isProduction && (!accountEmail || !password)) {
+      throw new Error('Credenciais de email são obrigatórias');
+    }
+
+    // If real credentials provided, use IMAP
+    if (accountEmail && password && webmailManager.isRealEmailAvailable(accountEmail, password)) {
+      try {
+        const messages = await webmailManager.getMessages(accountEmail, password);
+        const msg = messages.find(m => m.id === id);
+        if (msg && msg.uid) {
+          await migaduImapSmtp.markAsRead(accountEmail, password, msg.uid, isRead);
+        }
+      } catch (error) {
+        console.error('[Webmail] IMAP mark as read failed:', error);
+        // In production, throw error instead of falling back
+        if (isProduction) {
+          throw new Error('Não foi possível atualizar a mensagem. O servidor de email não está disponível.');
+        }
+        // In development, fall back to simulation
+      }
+    }
+
+    // Fallback to localStorage simulation (only in development)
+    if (isProduction) {
+      throw new Error('Não foi possível atualizar a mensagem. O servidor de email não está disponível.');
+    }
+    
+    const messages = await webmailManager.getMessages();
     const msg = messages.find(m => m.id === id);
     if (msg) {
       msg.isRead = isRead;
@@ -161,8 +365,44 @@ export const webmailManager = {
     }
   },
 
-  moveFolder: (id: string, newFolder: 'inbox' | 'sent' | 'drafts' | 'trash'): void => {
-    const messages = webmailManager.getMessages();
+  moveFolder: async (id: string, newFolder: 'inbox' | 'sent' | 'drafts' | 'trash', accountEmail?: string, password?: string): Promise<void> => {
+    const isProduction = process.env.NODE_ENV === 'production';
+    
+    // In production, require real credentials
+    if (isProduction && (!accountEmail || !password)) {
+      throw new Error('Credenciais de email são obrigatórias');
+    }
+
+    // If real credentials provided, use IMAP
+    if (accountEmail && password && webmailManager.isRealEmailAvailable(accountEmail, password)) {
+      try {
+        const messages = await webmailManager.getMessages(accountEmail, password);
+        const msg = messages.find(m => m.id === id);
+        if (msg && msg.uid) {
+          const folderMap = {
+            'inbox': 'INBOX',
+            'sent': 'Sent',
+            'drafts': 'Drafts',
+            'trash': 'Trash'
+          };
+          await migaduImapSmtp.moveMessage(accountEmail, password, msg.uid, msg.folder, folderMap[newFolder]);
+        }
+      } catch (error) {
+        console.error('[Webmail] IMAP move folder failed:', error);
+        // In production, throw error instead of falling back
+        if (isProduction) {
+          throw new Error('Não foi possível mover a mensagem. O servidor de email não está disponível.');
+        }
+        // In development, fall back to simulation
+      }
+    }
+
+    // Fallback to localStorage simulation (only in development)
+    if (isProduction) {
+      throw new Error('Não foi possível mover a mensagem. O servidor de email não está disponível.');
+    }
+    
+    const messages = await webmailManager.getMessages();
     const msg = messages.find(m => m.id === id);
     if (msg) {
       msg.folder = newFolder;
@@ -172,16 +412,48 @@ export const webmailManager = {
     }
   },
 
-  deletePermanently: (id: string): void => {
-    const messages = webmailManager.getMessages();
+  deletePermanently: async (id: string, accountEmail?: string, password?: string): Promise<void> => {
+    const isProduction = process.env.NODE_ENV === 'production';
+    
+    // In production, require real credentials
+    if (isProduction && (!accountEmail || !password)) {
+      throw new Error('Credenciais de email são obrigatórias');
+    }
+
+    // If real credentials provided, use IMAP
+    if (accountEmail && password && webmailManager.isRealEmailAvailable(accountEmail, password)) {
+      try {
+        const messages = await webmailManager.getMessages(accountEmail, password);
+        const msg = messages.find(m => m.id === id);
+        if (msg && msg.uid) {
+          await migaduImapSmtp.deleteMessage(accountEmail, password, msg.uid, msg.folder);
+        }
+      } catch (error) {
+        console.error('[Webmail] IMAP delete failed:', error);
+        // In production, throw error instead of falling back
+        if (isProduction) {
+          throw new Error('Não foi possível apagar a mensagem. O servidor de email não está disponível.');
+        }
+        // In development, fall back to simulation
+      }
+    }
+
+    // Fallback to localStorage simulation (only in development)
+    if (isProduction) {
+      throw new Error('Não foi possível apagar a mensagem. O servidor de email não está disponível.');
+    }
+    
+    const messages = await webmailManager.getMessages();
     const filtered = messages.filter(m => m.id !== id);
     if (typeof window !== 'undefined') {
       localStorage.setItem(WEBMAIL_STORAGE_KEY, JSON.stringify(filtered));
     }
   },
 
-  saveDraft: (accountEmail: string, toEmail: string, subject: string, body: string, attachments?: WebmailAttachment[]): WebmailMessage => {
-    const messages = webmailManager.getMessages();
+  saveDraft: async (accountEmail: string, toEmail: string, subject: string, body: string, attachments?: WebmailAttachment[], password?: string): Promise<WebmailMessage> => {
+    // For drafts, we always use localStorage for now
+    // In production, you might want to save drafts on the IMAP server
+    const messages = await webmailManager.getMessages();
     const existingDraftIndex = messages.findIndex(m => 
       m.folder === 'drafts' && 
       m.accountEmail.toLowerCase() === accountEmail.toLowerCase() &&
@@ -227,8 +499,18 @@ export const webmailManager = {
     return existingDraftIndex !== -1 ? messages[existingDraftIndex] : messages[0];
   },
 
-  getDrafts: (accountEmail?: string): WebmailMessage[] => {
-    const messages = webmailManager.getMessages(accountEmail);
+  getDrafts: async (accountEmail?: string, password?: string): Promise<WebmailMessage[]> => {
+    const messages = await webmailManager.getMessages(accountEmail, password);
     return messages.filter(m => m.folder === 'drafts');
+  },
+
+  // Get IMAP configuration for a mailbox
+  getIMAPConfig: (email: string) => {
+    return migaduImapSmtp.getIMAPConfig(email);
+  },
+
+  // Get SMTP configuration for a mailbox
+  getSMTPConfig: (email: string) => {
+    return migaduImapSmtp.getSMTPConfig(email);
   }
 };

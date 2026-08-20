@@ -1,0 +1,554 @@
+// Migadu Email Provider Implementation
+// This file implements the EmailProvider interface for Migadu
+
+import {
+  EmailProvider
+} from './base';
+import {
+  EmailProviderConfig,
+  EmailDomain,
+  EmailMailbox,
+  EmailAlias,
+  EmailForwarding,
+  EmailIdentity,
+  DNSRecord,
+  DNSDiagnostics,
+  CreateDomainRequest,
+  CreateMailboxRequest,
+  UpdateMailboxRequest,
+  EmailProviderError,
+  DomainNotFoundError,
+  MailboxNotFoundError,
+  DNSConfigurationError,
+  AuthenticationError,
+  RateLimitError,
+  ProviderUnavailableError
+} from './types';
+
+export interface MigaduConfig extends EmailProviderConfig {
+  provider: 'migadu';
+}
+
+export class MigaduEmailProvider extends EmailProvider {
+  private readonly baseUrl: string;
+  private readonly authHeader: string;
+
+  constructor(config: MigaduConfig) {
+    super(config);
+    this.baseUrl = config.apiUrl || 'https://api.migadu.com/v1';
+    this.authHeader = this.createAuthHeader(config.username, config.apiKey);
+  }
+
+  getProviderType(): string {
+    return 'migadu';
+  }
+
+  isConfigured(): boolean {
+    return !!(this.config.username && this.config.apiKey);
+  }
+
+  private createAuthHeader(username: string, apiKey: string): string {
+    const credentials = Buffer.from(`${username}:${apiKey}`).toString('base64');
+    return `Basic ${credentials}`;
+  }
+
+  private async apiRequest<T>(
+    endpoint: string,
+    options: RequestInit = {}
+  ): Promise<T> {
+    const url = `${this.baseUrl}${endpoint}`;
+    
+    const defaultOptions: RequestInit = {
+      headers: {
+        'Authorization': this.authHeader,
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+      ...options,
+    };
+
+    try {
+      const response = await fetch(url, defaultOptions);
+      
+      // Handle different status codes
+      if (response.status === 401) {
+        throw new AuthenticationError();
+      }
+      
+      if (response.status === 429) {
+        throw new RateLimitError();
+      }
+      
+      if (response.status === 503 || response.status >= 500) {
+        throw new ProviderUnavailableError();
+      }
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'Unknown error' }));
+        throw new EmailProviderError(
+          error.message || `API request failed with status ${response.status}`,
+          `API_ERROR_${response.status}`,
+          response.status,
+          error
+        );
+      }
+
+      return await response.json();
+    } catch (error) {
+      if (error instanceof EmailProviderError) {
+        throw error;
+      }
+      throw new ProviderUnavailableError();
+    }
+  }
+
+  // Domain Management
+  async createDomain(request: CreateDomainRequest): Promise<EmailDomain> {
+    return this.withErrorHandling('create domain', async () => {
+      const response = await this.apiRequest<any>('/domains', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: request.domainName,
+          create_default_addresses: request.createDefaultAddresses || false,
+          hosted_dns: request.hostedDns || false
+        })
+      });
+
+      return this.mapMigaduDomainToEmailDomain(response, request.domainName);
+    });
+  }
+
+  async getDomain(domainName: string): Promise<EmailDomain> {
+    return this.withErrorHandling('get domain', async () => {
+      try {
+        const response = await this.apiRequest<any>(`/domains/${domainName}`);
+        return this.mapMigaduDomainToEmailDomain(response, domainName);
+      } catch (error) {
+        if (error instanceof EmailProviderError && error.statusCode === 404) {
+          throw new DomainNotFoundError(domainName);
+        }
+        throw error;
+      }
+    });
+  }
+
+  async updateDomain(domainName: string, updates: Partial<EmailDomain>): Promise<EmailDomain> {
+    return this.withErrorHandling('update domain', async () => {
+      // Note: Migadu API may not support direct domain updates
+      // This might need to be implemented differently based on actual API capabilities
+      const current = await this.getDomain(domainName);
+      return { ...current, ...updates, updatedAt: new Date() };
+    });
+  }
+
+  async deleteDomain(domainName: string): Promise<boolean> {
+    return this.withErrorHandling('delete domain', async () => {
+      await this.apiRequest(`/domains/${domainName}`, {
+        method: 'DELETE'
+      });
+      return true;
+    });
+  }
+
+  async listDomains(customerId?: string): Promise<EmailDomain[]> {
+    return this.withErrorHandling('list domains', async () => {
+      const response = await this.apiRequest<any[]>('/domains');
+      return response.map(domain => this.mapMigaduDomainToEmailDomain(domain, domain.name));
+    });
+  }
+
+  async getDNSRecords(domainName: string): Promise<DNSRecord[]> {
+    return this.withErrorHandling('get DNS records', async () => {
+      const response = await this.apiRequest<any>(`/domains/${domainName}/records`);
+      return this.mapMigaduDNSRecords(response);
+    });
+  }
+
+  async runDNSDiagnostics(domainName: string): Promise<DNSDiagnostics> {
+    return this.withErrorHandling('run DNS diagnostics', async () => {
+      const response = await this.apiRequest<any>(`/domains/${domainName}/diagnostics`);
+      return this.mapMigaduDiagnostics(response);
+    });
+  }
+
+  async activateDomain(domainName: string): Promise<EmailDomain> {
+    return this.withErrorHandling('activate domain', async () => {
+      const response = await this.apiRequest<any>(`/domains/${domainName}/activate`, {
+        method: 'POST'
+      });
+      
+      if (response.status === 'error' || !response.success) {
+        throw new DNSConfigurationError(response.message || 'DNS check failed');
+      }
+
+      return this.getDomain(domainName);
+    });
+  }
+
+  // Mailbox Management
+  async createMailbox(domainName: string, request: CreateMailboxRequest): Promise<EmailMailbox> {
+    return this.withErrorHandling('create mailbox', async () => {
+      const body: any = {
+        name: request.name,
+        local_part: request.localPart,
+        may_send: request.maySend !== false,
+        may_receive: request.mayReceive !== false,
+        may_access_imap: request.mayAccessImap !== false,
+        may_access_pop3: request.mayAccessPop3 || false
+      };
+
+      if (request.passwordMethod === 'invitation') {
+        body.password_method = 'invitation';
+        body.password_recovery_email = request.passwordRecoveryEmail;
+      } else {
+        body.password = request.password || this.generatePassword();
+      }
+
+      const response = await this.apiRequest<any>(`/domains/${domainName}/mailboxes`, {
+        method: 'POST',
+        body: JSON.stringify(body)
+      });
+
+      return this.mapMigaduMailboxToEmailMailbox(response, domainName);
+    });
+  }
+
+  async getMailbox(domainName: string, localPart: string): Promise<EmailMailbox> {
+    return this.withErrorHandling('get mailbox', async () => {
+      try {
+        const response = await this.apiRequest<any>(`/domains/${domainName}/mailboxes/${localPart}`);
+        return this.mapMigaduMailboxToEmailMailbox(response, domainName);
+      } catch (error) {
+        if (error instanceof EmailProviderError && error.statusCode === 404) {
+          throw new MailboxNotFoundError(`${localPart}@${domainName}`);
+        }
+        throw error;
+      }
+    });
+  }
+
+  async updateMailbox(domainName: string, localPart: string, request: UpdateMailboxRequest): Promise<EmailMailbox> {
+    return this.withErrorHandling('update mailbox', async () => {
+      const response = await this.apiRequest<any>(`/domains/${domainName}/mailboxes/${localPart}`, {
+        method: 'PUT',
+        body: JSON.stringify(request)
+      });
+      return this.mapMigaduMailboxToEmailMailbox(response, domainName);
+    });
+  }
+
+  async deleteMailbox(domainName: string, localPart: string): Promise<boolean> {
+    return this.withErrorHandling('delete mailbox', async () => {
+      await this.apiRequest(`/domains/${domainName}/mailboxes/${localPart}`, {
+        method: 'DELETE'
+      });
+      return true;
+    });
+  }
+
+  async listMailboxes(domainName: string): Promise<EmailMailbox[]> {
+    return this.withErrorHandling('list mailboxes', async () => {
+      const response = await this.apiRequest<any[]>(`/domains/${domainName}/mailboxes`);
+      return response.map(mailbox => this.mapMigaduMailboxToEmailMailbox(mailbox, domainName));
+    });
+  }
+
+  async resetMailboxPassword(domainName: string, localPart: string, newPassword?: string): Promise<string> {
+    return this.withErrorHandling('reset mailbox password', async () => {
+      const password = newPassword || this.generatePassword();
+      await this.updateMailbox(domainName, localPart, { password });
+      return password;
+    });
+  }
+
+  async suspendMailbox(domainName: string, localPart: string): Promise<EmailMailbox> {
+    return this.withErrorHandling('suspend mailbox', async () => {
+      return this.updateMailbox(domainName, localPart, {
+        maySend: false,
+        mayReceive: false
+      });
+    });
+  }
+
+  async activateMailbox(domainName: string, localPart: string): Promise<EmailMailbox> {
+    return this.withErrorHandling('activate mailbox', async () => {
+      return this.updateMailbox(domainName, localPart, {
+        maySend: true,
+        mayReceive: true
+      });
+    });
+  }
+
+  // Alias Management
+  async createAlias(domainName: string, alias: string, destination: string): Promise<EmailAlias> {
+    return this.withErrorHandling('create alias', async () => {
+      const response = await this.apiRequest<any>(`/domains/${domainName}/aliases`, {
+        method: 'POST',
+        body: JSON.stringify({ alias, destination })
+      });
+      return this.mapMigaduAliasToEmailAlias(response, domainName);
+    });
+  }
+
+  async getAlias(domainName: string, alias: string): Promise<EmailAlias> {
+    return this.withErrorHandling('get alias', async () => {
+      const response = await this.apiRequest<any>(`/domains/${domainName}/aliases/${alias}`);
+      return this.mapMigaduAliasToEmailAlias(response, domainName);
+    });
+  }
+
+  async deleteAlias(domainName: string, alias: string): Promise<boolean> {
+    return this.withErrorHandling('delete alias', async () => {
+      await this.apiRequest(`/domains/${domainName}/aliases/${alias}`, {
+        method: 'DELETE'
+      });
+      return true;
+    });
+  }
+
+  async listAliases(domainName: string): Promise<EmailAlias[]> {
+    return this.withErrorHandling('list aliases', async () => {
+      const response = await this.apiRequest<any[]>(`/domains/${domainName}/aliases`);
+      return response.map(alias => this.mapMigaduAliasToEmailAlias(alias, domainName));
+    });
+  }
+
+  // Forwarding Management
+  async createForwarding(domainName: string, localPart: string, destination: string): Promise<EmailForwarding> {
+    return this.withErrorHandling('create forwarding', async () => {
+      const response = await this.apiRequest<any>(`/domains/${domainName}/forwardings`, {
+        method: 'POST',
+        body: JSON.stringify({ local_part: localPart, destination })
+      });
+      return this.mapMigaduForwardingToEmailForwarding(response, domainName);
+    });
+  }
+
+  async getForwarding(domainName: string, localPart: string): Promise<EmailForwarding> {
+    return this.withErrorHandling('get forwarding', async () => {
+      const response = await this.apiRequest<any>(`/domains/${domainName}/forwardings/${localPart}`);
+      return this.mapMigaduForwardingToEmailForwarding(response, domainName);
+    });
+  }
+
+  async deleteForwarding(domainName: string, localPart: string): Promise<boolean> {
+    return this.withErrorHandling('delete forwarding', async () => {
+      await this.apiRequest(`/domains/${domainName}/forwardings/${localPart}`, {
+        method: 'DELETE'
+      });
+      return true;
+    });
+  }
+
+  async listForwardings(domainName: string): Promise<EmailForwarding[]> {
+    return this.withErrorHandling('list forwardings', async () => {
+      const response = await this.apiRequest<any[]>(`/domains/${domainName}/forwardings`);
+      return response.map(fwd => this.mapMigaduForwardingToEmailForwarding(fwd, domainName));
+    });
+  }
+
+  // Identity Management
+  async createIdentity(mailboxId: string, email: string, name: string): Promise<EmailIdentity> {
+    return this.withErrorHandling('create identity', async () => {
+      // Note: This might need to be implemented based on actual Migadu API capabilities
+      throw new EmailProviderError('Identity management not yet implemented for Migadu', 'NOT_IMPLEMENTED');
+    });
+  }
+
+  async getIdentity(mailboxId: string, identityId: string): Promise<EmailIdentity> {
+    return this.withErrorHandling('get identity', async () => {
+      throw new EmailProviderError('Identity management not yet implemented for Migadu', 'NOT_IMPLEMENTED');
+    });
+  }
+
+  async deleteIdentity(mailboxId: string, identityId: string): Promise<boolean> {
+    return this.withErrorHandling('delete identity', async () => {
+      throw new EmailProviderError('Identity management not yet implemented for Migadu', 'NOT_IMPLEMENTED');
+    });
+  }
+
+  async listIdentities(mailboxId: string): Promise<EmailIdentity[]> {
+    return this.withErrorHandling('list identities', async () => {
+      throw new EmailProviderError('Identity management not yet implemented for Migadu', 'NOT_IMPLEMENTED');
+    });
+  }
+
+  // Mapping helpers
+  private mapMigaduDomainToEmailDomain(migaduDomain: any, domainName: string): EmailDomain {
+    return {
+      id: migaduDomain.id || this.generateId(),
+      domainName: domainName,
+      customerId: migaduDomain.customer_id || 'system',
+      status: this.mapMigaduStatus(migaduDomain.status),
+      provider: 'migadu',
+      providerDomainId: migaduDomain.id,
+      canSend: migaduDomain.can_send || false,
+      canReceive: migaduDomain.can_receive || false,
+      activatedAt: migaduDomain.activated_at ? new Date(migaduDomain.activated_at) : undefined,
+      createdAt: migaduDomain.created_at ? new Date(migaduDomain.created_at) : new Date(),
+      updatedAt: migaduDomain.updated_at ? new Date(migaduDomain.updated_at) : new Date()
+    };
+  }
+
+  private mapMigaduMailboxToEmailMailbox(migaduMailbox: any, domainName: string): EmailMailbox {
+    return {
+      id: migaduMailbox.id || this.generateId(),
+      domainId: migaduMailbox.domain_id || this.generateId(),
+      customerId: migaduMailbox.customer_id || 'system',
+      localPart: migaduMailbox.local_part,
+      email: migaduMailbox.email || `${migaduMailbox.local_part}@${domainName}`,
+      name: migaduMailbox.name,
+      status: migaduMailbox.suspended ? 'suspended' : 'active',
+      provider: 'migadu',
+      providerMailboxId: migaduMailbox.id,
+      maySend: migaduMailbox.may_send || false,
+      mayReceive: migaduMailbox.may_receive || false,
+      mayAccessImap: migaduMailbox.may_access_imap || false,
+      mayAccessPop3: migaduMailbox.may_access_pop3 || false,
+      passwordMethod: migaduMailbox.password_method,
+      passwordRecoveryEmail: migaduMailbox.password_recovery_email,
+      createdAt: migaduMailbox.created_at ? new Date(migaduMailbox.created_at) : new Date(),
+      updatedAt: migaduMailbox.updated_at ? new Date(migaduMailbox.updated_at) : new Date(),
+      lastLoginAt: migaduMailbox.last_login_at ? new Date(migaduMailbox.last_login_at) : undefined,
+      storageUsed: migaduMailbox.storage_used,
+      storageLimit: migaduMailbox.storage_limit
+    };
+  }
+
+  private mapMigaduAliasToEmailAlias(migaduAlias: any, domainName: string): EmailAlias {
+    return {
+      id: migaduAlias.id || this.generateId(),
+      domainId: this.generateId(),
+      customerId: 'system',
+      alias: migaduAlias.alias,
+      destination: migaduAlias.destination,
+      provider: 'migadu',
+      createdAt: migaduAlias.created_at ? new Date(migaduAlias.created_at) : new Date(),
+      updatedAt: migaduAlias.updated_at ? new Date(migaduAlias.updated_at) : new Date()
+    };
+  }
+
+  private mapMigaduForwardingToEmailForwarding(migaduForwarding: any, domainName: string): EmailForwarding {
+    return {
+      id: migaduForwarding.id || this.generateId(),
+      domainId: this.generateId(),
+      customerId: 'system',
+      localPart: migaduForwarding.local_part,
+      destination: migaduForwarding.destination,
+      provider: 'migadu',
+      createdAt: migaduForwarding.created_at ? new Date(migaduForwarding.created_at) : new Date(),
+      updatedAt: migaduForwarding.updated_at ? new Date(migaduForwarding.updated_at) : new Date()
+    };
+  }
+
+  private mapMigaduDNSRecords(migaduRecords: any): DNSRecord[] {
+    const records: DNSRecord[] = [];
+    
+    if (migaduRecords.mx) {
+      migaduRecords.mx.forEach((mx: any) => {
+        records.push({
+          type: 'MX',
+          name: mx.name || '@',
+          value: mx.value,
+          priority: mx.priority,
+          ttl: mx.ttl,
+          status: 'correct'
+        });
+      });
+    }
+
+    if (migaduRecords.spf) {
+      records.push({
+        type: 'SPF',
+        name: migaduRecords.spf.name || '@',
+        value: migaduRecords.spf.value,
+        ttl: migaduRecords.spf.ttl,
+        status: 'correct'
+      });
+    }
+
+    if (migaduRecords.dkim) {
+      migaduRecords.dkim.forEach((dkim: any) => {
+        records.push({
+          type: 'DKIM',
+          name: dkim.name,
+          value: dkim.value,
+          ttl: dkim.ttl,
+          status: 'correct'
+        });
+      });
+    }
+
+    if (migaduRecords.dmarc) {
+      records.push({
+        type: 'DMARC',
+        name: migaduRecords.dmarc.name || '_dmarc',
+        value: migaduRecords.dmarc.value,
+        ttl: migaduRecords.dmarc.ttl,
+        status: 'correct'
+      });
+    }
+
+    return records;
+  }
+
+  private mapMigaduDiagnostics(migaduDiagnostics: any): DNSDiagnostics {
+    return {
+      mx: {
+        status: migaduDiagnostics.mx?.status || 'pending',
+        message: migaduDiagnostics.mx?.message || 'Not checked'
+      },
+      spf: {
+        status: migaduDiagnostics.spf?.status || 'pending',
+        message: migaduDiagnostics.spf?.message || 'Not checked'
+      },
+      dkim: {
+        status: migaduDiagnostics.dkim?.status || 'pending',
+        message: migaduDiagnostics.dkim?.message || 'Not checked'
+      },
+      dmarc: {
+        status: migaduDiagnostics.dmarc?.status || 'pending',
+        message: migaduDiagnostics.dmarc?.message || 'Not checked'
+      },
+      overall: migaduDiagnostics.overall || 'pending',
+      checkedAt: new Date()
+    };
+  }
+
+  private mapMigaduStatus(migaduStatus: string): 'active' | 'pending_dns' | 'provisioning' | 'provisioning_failed' | 'suspended' | 'cancelled' {
+    const statusMap: Record<string, any> = {
+      'active': 'active',
+      'pending': 'pending_dns',
+      'provisioning': 'provisioning',
+      'failed': 'provisioning_failed',
+      'suspended': 'suspended',
+      'cancelled': 'cancelled'
+    };
+    return statusMap[migaduStatus] || 'pending_dns';
+  }
+
+  private generatePassword(length: number = 16): string {
+    const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{}|;:,.<>?';
+    let password = '';
+    for (let i = 0; i < length; i++) {
+      password += charset.charAt(Math.floor(Math.random() * charset.length));
+    }
+    return password;
+  }
+}
+
+// Factory function to create Migadu provider
+export function createMigaduProvider(): MigaduEmailProvider {
+  const config: MigaduConfig = {
+    provider: 'migadu',
+    apiUrl: process.env.MIGADU_API_URL || 'https://api.migadu.com/v1',
+    username: process.env.MIGADU_USERNAME || '',
+    apiKey: process.env.MIGADU_API_KEY || '',
+    imapHost: process.env.MIGADU_IMAP_HOST || 'imap.migadu.com',
+    imapPort: parseInt(process.env.MIGADU_IMAP_PORT || '993'),
+    smtpHost: process.env.MIGADU_SMTP_HOST || 'smtp.migadu.com',
+    smtpPort: parseInt(process.env.MIGADU_SMTP_PORT || '465')
+  };
+
+  return new MigaduEmailProvider(config);
+}

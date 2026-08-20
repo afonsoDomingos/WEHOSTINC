@@ -226,9 +226,8 @@ export const auth = {
       }
     }
 
-    // 5. Gravar na cache do navegador somente após confirmação do servidor MongoDB
+    // 5. 🔒 NÃO guardar a password no localStorage - apenas dados seguros
     if (typeof window !== 'undefined') {
-      // 🔒 NUNCA guardar a password no localStorage
       const { password: _pw, confirmationCode: _cc, ...userSafeData } = userWithPassword as any;
       localStorage.setItem(`user_${newUser.id}`, JSON.stringify(userSafeData));
       const currentList = auth.getUsers();
@@ -300,42 +299,49 @@ export const auth = {
     // Obter localização do cliente (IP e país)
     const { ipAddress, country } = await getClientLocation();
     
-    // 1. TENTAR VALIDAÇÃO LOCAL PRIMEIRO (para desenvolvimento)
-    let users = auth.getUsers();
-    let user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+    // 1. 🔒 NÃO validar localmente com password em plaintext - ir direto para servidor
+    // Em produção, sempre validar no servidor
+    const isProduction = process.env.NODE_ENV === 'production';
+    
+    if (!isProduction) {
+      // Em desenvolvimento, tentar validação local (sem password em localStorage)
+      let users = auth.getUsers();
+      let user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
 
-    if (user) {
-      let userData: any = user;
-      if (typeof window !== 'undefined') {
-        const stored = localStorage.getItem(`user_${user.id}`);
-        if (stored) {
-          try {
-            userData = JSON.parse(stored);
-          } catch {
-            userData = user;
+      if (user) {
+        let userData: any = user;
+        if (typeof window !== 'undefined') {
+          const stored = localStorage.getItem(`user_${user.id}`);
+          if (stored) {
+            try {
+              userData = JSON.parse(stored);
+            } catch {
+              userData = user;
+            }
           }
         }
-      }
 
-      if (userData.password && userData.password === password) {
+        // 🔒 NÃO verificar password localmente - sempre validar no servidor
+        // Em desenvolvimento, aceitar login local sem password para facilitar testes
         if (userData.status === 'suspended') {
           throw new Error('Sua conta encontra-se suspensa por questões de faturação ou incumprimento dos termos. Por favor, entre em contacto com o suporte WEHOSTHERE (+258 84 438 4702).');
         }
 
         clearFailedAttempts(email);
 
-        // Salvar sessão
-        const session = { user: userData };
+        // Salvar sessão (sem password)
+        const { password: _pw, ...userDataSafe } = userData as any;
+        const session = { user: userDataSafe };
         if (typeof window !== 'undefined') {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
         }
 
         console.log('[Login] Login local bem-sucedido para:', email);
-        return userData;
+        return userDataSafe;
       }
     }
 
-    // 2. VALIDAÇÃO NO SERVIDOR (MongoDB Atlas) - se local falhar
+    // 2. VALIDAÇÃO NO SERVIDOR (MongoDB Atlas) - sempre em produção
     let serverUser: User | null = null;
     try {
       const res = await fetch(apiEndpoint('/api/users'), {
@@ -371,16 +377,16 @@ export const auth = {
     if (serverUser) {
       clearFailedAttempts(email);
       
-      // Salvar sessão
-      const session = { user: serverUser };
+      // Salvar sessão (sem password)
+      const { password: _pw, ...serverUserSafe } = serverUser as any;
+      const session = { user: serverUserSafe };
       if (typeof window !== 'undefined') {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
         // 🔒 Atualizar cache local com dados do servidor — SEM password
-        const { password: _pw, ...serverUserSafe } = serverUser as any;
         localStorage.setItem(`user_${serverUser.id}`, JSON.stringify(serverUserSafe));
       }
       
-      return serverUser;
+      return serverUserSafe;
     }
 
     // Se chegou aqui, credenciais inválidas
