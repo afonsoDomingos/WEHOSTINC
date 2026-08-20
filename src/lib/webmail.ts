@@ -1,3 +1,5 @@
+import { apiEndpoint } from './siteConfig';
+
 export interface WebmailAttachment {
   url: string;
   name: string;
@@ -64,44 +66,16 @@ Equipa de Engenharia WEHOSTHERE`,
   {
     id: 'wm-2',
     accountEmail: 'ericaguelume@msservices.co.mz',
-    fromName: 'Carlos Tembe (Cliente)',
-    fromEmail: 'carlos.tembe@empresa.co.mz',
-    toEmail: 'ericaguelume@msservices.co.mz',
-    subject: 'Pedido de Orçamento para Prestação de Serviços',
-    body: `Boa tarde Senhora Erica,
-
-Encontrei o contacto da MS Services e gostaria de solicitar uma cotação para a prestação de serviços de consultoria técnica para a nossa empresa em Maputo.
-
-Agradeço se puder enviar o vosso portfólio e proposta financeira preliminar.
-
-Atenciosamente,
-Carlos Tembe
-Director Geral - MozTech Services`,
-    date: new Date(Date.now() - 3600000 * 18).toISOString(),
-    isRead: true,
+    fromName: 'Erica Guélume',
+    fromEmail: 'ericaguelume@msservices.co.mz',
+    toEmail: 'info@wehosthere.com',
+    subject: 'Solicitação de Serviço',
+    body: '<p>Olá,</p><p>Gostaria de solicitar informações sobre os serviços de hospedagem.</p>',
+    date: new Date(Date.now() - 3600000).toISOString(),
+    isRead: false,
     starred: false,
     folder: 'inbox',
-    avatarColor: 'bg-emerald-600'
-  },
-  {
-    id: 'wm-3',
-    accountEmail: 'anayagrachane@msservices.co.mz',
-    fromName: 'WEHOSTHERE Cloud Services',
-    fromEmail: 'info@wehosthere.com',
-    toEmail: 'anayagrachane@msservices.co.mz',
-    subject: 'Confirmada a Configuração de Segurança SSL/TLS',
-    body: `Olá Anaya Grachane,
-
-O certificado SSL para a sua caixa postal anayagrachane@msservices.co.mz foi renovado automaticamente com encriptação RSA 4096-bit.
-
-O seu e-mail está 100% protegido contra acessos não autorizados.
-
-WEHOSTHERE Security System`,
-    date: new Date(Date.now() - 86400000).toISOString(),
-    isRead: false,
-    starred: true,
-    folder: 'inbox',
-    avatarColor: 'bg-indigo-600'
+    avatarColor: 'bg-primary-600'
   }
 ];
 
@@ -121,40 +95,24 @@ export const webmailManager = {
       throw new Error('Credenciais de email são obrigatórias');
     }
 
-    // If real credentials provided and available, use IMAP
+    // Try to fetch from API
     if (accountEmail && password && webmailManager.isRealEmailAvailable(accountEmail, password)) {
       try {
-        const imapMessages = await migaduImapSmtp.listMessages(accountEmail, password, 'INBOX');
+        const res = await fetch(apiEndpoint('/api/webmail/messages'), {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: accountEmail, password })
+        });
         
-        // Convert IMAP messages to WebmailMessage format
-        return imapMessages.map(msg => ({
-          id: msg.id,
-          uid: msg.uid,
-          accountEmail,
-          fromName: msg.from.name,
-          fromEmail: msg.from.address,
-          toEmail: msg.to[0]?.address || '',
-          subject: msg.subject,
-          body: msg.body,
-          date: msg.date.toISOString(),
-          isRead: msg.isRead,
-          starred: msg.starred,
-          folder: 'inbox' as const,
-          avatarColor: 'bg-primary-600',
-          attachments: msg.attachments?.map(att => ({
-            url: '',
-            name: att.filename,
-            size: att.size,
-            type: att.contentType
-          }))
-        }));
+        if (res.ok) {
+          const data = await res.json();
+          return data.messages || [];
+        }
       } catch (error) {
-        console.error('[Webmail] IMAP fetch failed:', error);
-        // In production, throw error instead of falling back
+        console.error('[Webmail] API fetch failed:', error);
         if (isProduction) {
           throw new Error('Não foi possível conectar ao servidor de email. Verifique as suas credenciais ou tente novamente.');
         }
-        // In development, fall back to simulation
       }
     }
 
@@ -163,7 +121,6 @@ export const webmailManager = {
       throw new Error('Não foi possível conectar ao servidor de email. Verifique as suas credenciais ou tente novamente.');
     }
     
-    if (typeof window === 'undefined') return INITIAL_WEBMAIL_MESSAGES;
     const stored = localStorage.getItem(WEBMAIL_STORAGE_KEY);
     let messages: WebmailMessage[] = stored ? JSON.parse(stored) : INITIAL_WEBMAIL_MESSAGES;
     if (!stored) {
@@ -183,74 +140,44 @@ export const webmailManager = {
       throw new Error('Credenciais de email são obrigatórias');
     }
 
-    // If real credentials provided, use SMTP
+    // Try to send via API
     if (password && webmailManager.isRealEmailAvailable(accountEmail, password)) {
       try {
-        // Fetch real attachment content if attachments are provided
-        const attachmentContents = await Promise.all(
-          (attachments || []).map(async (att) => {
-            if (att.url && att.url.startsWith('data:')) {
-              // If already has base64 content, decode it
-              const base64Data = att.url.split(',')[1];
-              return {
-                filename: att.name,
-                content: Buffer.from(base64Data, 'base64'),
-                contentType: att.type
-              };
-            } else if (att.url) {
-              // If URL is provided, fetch the content
-              try {
-                const res = await fetch(att.url);
-                const buffer = await res.arrayBuffer();
-                return {
-                  filename: att.name,
-                  content: Buffer.from(buffer),
-                  contentType: att.type
-                };
-              } catch (err) {
-                console.error('[Webmail] Failed to fetch attachment:', att.name);
-                return null;
-              }
-            }
-            return null;
+        const res = await fetch(apiEndpoint('/api/webmail/send'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: accountEmail,
+            password,
+            to: toEmail,
+            subject,
+            body,
+            attachments
           })
-        );
+        });
 
-        // Filter out failed attachments
-        const validAttachments = attachmentContents.filter(a => a !== null);
-
-        await migaduImapSmtp.sendEmail({
-          from: accountEmail,
-          to: [toEmail],
-          subject,
-          text: body,
-          html: body,
-          attachments: validAttachments
-        }, password);
-
-        // Return a sent message representation
-        return {
-          id: `smtp-${Date.now()}`,
-          accountEmail,
-          fromName: accountEmail.split('@')[0],
-          fromEmail: accountEmail,
-          toEmail,
-          subject,
-          body,
-          date: new Date().toISOString(),
-          isRead: true,
-          starred: false,
-          folder: 'sent',
-          avatarColor: 'bg-primary-600',
-          attachments: attachments && attachments.length > 0 ? attachments : undefined
-        };
+        if (res.ok) {
+          return {
+            id: `smtp-${Date.now()}`,
+            accountEmail,
+            fromName: accountEmail.split('@')[0],
+            fromEmail: accountEmail,
+            toEmail,
+            subject,
+            body,
+            date: new Date().toISOString(),
+            isRead: true,
+            starred: false,
+            folder: 'sent',
+            avatarColor: 'bg-primary-600',
+            attachments: attachments && attachments.length > 0 ? attachments : undefined
+          };
+        }
       } catch (error) {
-        console.error('[Webmail] SMTP send failed:', error);
-        // In production, throw error instead of falling back
+        console.error('[Webmail] API send failed:', error);
         if (isProduction) {
           throw new Error('Não foi possível enviar o email. O servidor de email não está disponível neste momento.');
         }
-        // In development, fall back to simulation
       }
     }
 
@@ -290,22 +217,22 @@ export const webmailManager = {
       throw new Error('Credenciais de email são obrigatórias');
     }
 
-    // If real credentials provided, use IMAP
+    // Try to toggle via API
     if (accountEmail && password && webmailManager.isRealEmailAvailable(accountEmail, password)) {
       try {
-        const messages = await webmailManager.getMessages(accountEmail, password);
-        const msg = messages.find(m => m.id === id);
+        const msg = (await webmailManager.getMessages(accountEmail, password)).find(m => m.id === id);
         if (msg && msg.uid) {
-          // In production, you would update the flags on the IMAP server
-          // For now, this is a placeholder
+          await fetch(apiEndpoint('/api/webmail/toggle-star'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: accountEmail, password, uid: msg.uid })
+          });
         }
       } catch (error) {
-        console.error('[Webmail] IMAP toggle star failed:', error);
-        // In production, throw error instead of falling back
+        console.error('[Webmail] API toggle star failed:', error);
         if (isProduction) {
           throw new Error('Não foi possível atualizar a mensagem. O servidor de email não está disponível.');
         }
-        // In development, fall back to simulation
       }
     }
 
@@ -332,21 +259,22 @@ export const webmailManager = {
       throw new Error('Credenciais de email são obrigatórias');
     }
 
-    // If real credentials provided, use IMAP
+    // Try to mark via API
     if (accountEmail && password && webmailManager.isRealEmailAvailable(accountEmail, password)) {
       try {
-        const messages = await webmailManager.getMessages(accountEmail, password);
-        const msg = messages.find(m => m.id === id);
+        const msg = (await webmailManager.getMessages(accountEmail, password)).find(m => m.id === id);
         if (msg && msg.uid) {
-          await migaduImapSmtp.markAsRead(accountEmail, password, msg.uid, isRead);
+          await fetch(apiEndpoint('/api/webmail/mark-read'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: accountEmail, password, uid: msg.uid, isRead })
+          });
         }
       } catch (error) {
-        console.error('[Webmail] IMAP mark as read failed:', error);
-        // In production, throw error instead of falling back
+        console.error('[Webmail] API mark as read failed:', error);
         if (isProduction) {
           throw new Error('Não foi possível atualizar a mensagem. O servidor de email não está disponível.');
         }
-        // In development, fall back to simulation
       }
     }
 
@@ -373,11 +301,10 @@ export const webmailManager = {
       throw new Error('Credenciais de email são obrigatórias');
     }
 
-    // If real credentials provided, use IMAP
+    // Try to move via API
     if (accountEmail && password && webmailManager.isRealEmailAvailable(accountEmail, password)) {
       try {
-        const messages = await webmailManager.getMessages(accountEmail, password);
-        const msg = messages.find(m => m.id === id);
+        const msg = (await webmailManager.getMessages(accountEmail, password)).find(m => m.id === id);
         if (msg && msg.uid) {
           const folderMap = {
             'inbox': 'INBOX',
@@ -385,15 +312,23 @@ export const webmailManager = {
             'drafts': 'Drafts',
             'trash': 'Trash'
           };
-          await migaduImapSmtp.moveMessage(accountEmail, password, msg.uid, msg.folder, folderMap[newFolder]);
+          await fetch(apiEndpoint('/api/webmail/move'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              email: accountEmail, 
+              password, 
+              uid: msg.uid, 
+              fromFolder: msg.folder, 
+              toFolder: folderMap[newFolder] 
+            })
+          });
         }
       } catch (error) {
-        console.error('[Webmail] IMAP move folder failed:', error);
-        // In production, throw error instead of falling back
+        console.error('[Webmail] API move folder failed:', error);
         if (isProduction) {
           throw new Error('Não foi possível mover a mensagem. O servidor de email não está disponível.');
         }
-        // In development, fall back to simulation
       }
     }
 
@@ -420,21 +355,22 @@ export const webmailManager = {
       throw new Error('Credenciais de email são obrigatórias');
     }
 
-    // If real credentials provided, use IMAP
+    // Try to delete via API
     if (accountEmail && password && webmailManager.isRealEmailAvailable(accountEmail, password)) {
       try {
-        const messages = await webmailManager.getMessages(accountEmail, password);
-        const msg = messages.find(m => m.id === id);
+        const msg = (await webmailManager.getMessages(accountEmail, password)).find(m => m.id === id);
         if (msg && msg.uid) {
-          await migaduImapSmtp.deleteMessage(accountEmail, password, msg.uid, msg.folder);
+          await fetch(apiEndpoint('/api/webmail/delete'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: accountEmail, password, uid: msg.uid, folder: msg.folder })
+          });
         }
       } catch (error) {
-        console.error('[Webmail] IMAP delete failed:', error);
-        // In production, throw error instead of falling back
+        console.error('[Webmail] API delete failed:', error);
         if (isProduction) {
           throw new Error('Não foi possível apagar a mensagem. O servidor de email não está disponível.');
         }
-        // In development, fall back to simulation
       }
     }
 
