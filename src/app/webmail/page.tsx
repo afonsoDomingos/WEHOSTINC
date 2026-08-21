@@ -532,11 +532,17 @@ function WebmailContent() {
 
   useEffect(() => {
     if (selectedAccountEmail && !mailboxPassword) {
-      // Se há email selecionado mas não há password, mostrar modal de login
-      setShowWebmailLogin(true);
-      setWebmailLoginEmail(selectedAccountEmail);
+      // Find the account to check status
+      const selectedAcc = accounts.find(a => a.email.toLowerCase() === selectedAccountEmail.toLowerCase());
+      const isPending = !selectedAcc || selectedAcc.status === 'pending' || !selectedAcc.status;
+      if (!isPending) {
+        // Only show login modal for ACTIVE accounts
+        setShowWebmailLogin(true);
+        setWebmailLoginEmail(selectedAccountEmail);
+      }
+      // Pending accounts: no login required — they see the interface with a warning
     }
-  }, [selectedAccountEmail, mailboxPassword]);
+  }, [selectedAccountEmail, mailboxPassword, accounts]);
 
   // Load messages whenever account, password, or folder changes
   useEffect(() => {
@@ -624,6 +630,17 @@ function WebmailContent() {
   const handleSendEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!composeTo || !composeBody) return;
+
+    // Block sending for pending accounts
+    const selectedAcc = accounts.find(a => a.email.toLowerCase() === selectedAccountEmail.toLowerCase());
+    const isPending = !selectedAcc || selectedAcc.status === 'pending' || !selectedAcc.status;
+    if (isPending) {
+      setSentSuccessMsg('');
+      setSendingMsg(false);
+      // Show error via sentSuccessMsg as error style (we'll use a different approach)
+      setWebmailLoginError('⏳ Esta conta ainda não foi aprovada pelo administrador. O envio de emails estará disponível após a aprovação.');
+      return;
+    }
 
     // Check for unfilled placeholders
     const subjectPlaceholders = detectUnfilledPlaceholders(composeSubject);
@@ -1115,15 +1132,22 @@ function WebmailContent() {
 
       {/* Banner Informativo de Aprovação Pendente (Se a conta estiver a processar) */}
       {isAccountPending && (
-        <div className="bg-amber-50 border-b border-amber-200 px-3.5 sm:px-4 py-2.5 text-amber-950 flex flex-wrap items-center justify-between gap-2 text-xs shadow-2xs animate-in fade-in duration-200">
-          <div className="flex items-center space-x-2.5">
-            <Clock className="h-4 w-4 text-amber-600 animate-pulse shrink-0" />
-            <span>
-              A conta <strong className="font-mono text-amber-900">{selectedAccountEmail}</strong> está <strong>em processamento de ativação</strong> pelo administrador (Prazo estimado de aprovação: <strong>em até 24 horas</strong>).
-            </span>
+        <div className="bg-amber-50 border-b-2 border-amber-300 px-3.5 sm:px-4 py-3 text-amber-950 flex flex-wrap items-start justify-between gap-3 animate-in fade-in duration-200">
+          <div className="flex items-start space-x-3">
+            <div className="bg-amber-200 rounded-full p-1.5 shrink-0 mt-0.5">
+              <Clock className="h-4 w-4 text-amber-700 animate-pulse" />
+            </div>
+            <div>
+              <p className="text-xs font-extrabold text-amber-950">⏳ Conta em Processo de Aprovação — Envio de E-mails Bloqueado</p>
+              <p className="text-[11px] text-amber-800 mt-0.5 leading-relaxed">
+                A conta <strong className="font-mono">{selectedAccountEmail}</strong> está a aguardar aprovação do administrador.
+                Pode visualizar a caixa de entrada, mas <strong>não é possível enviar e-mails</strong> até a conta ser ativada.
+                Prazo estimado: <strong>até 24 horas</strong>.
+              </p>
+            </div>
           </div>
-          <span className="text-[11px] font-extrabold bg-amber-200/80 text-amber-900 px-2.5 py-0.5 rounded-full border border-amber-300 shrink-0">
-            ⏳ Aguardando Validação
+          <span className="text-[11px] font-extrabold bg-amber-300 text-amber-950 px-3 py-1 rounded-full border border-amber-400 shrink-0 self-center whitespace-nowrap">
+            Aguardando Validação
           </span>
         </div>
       )}

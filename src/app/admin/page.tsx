@@ -951,11 +951,18 @@ export default function AdminPage() {
   const actualOrdersRevenue = orders.reduce((acc, order) => acc + (order.status !== 'cancelled' ? order.valorFaturado : 0), 0);
 
   const clientUsers = users.filter(u => u.role !== 'admin' && u.email.toLowerCase() !== 'admin@wehosthere.com');
-  const activeClients = clientUsers.filter(u => u.status === 'active');
+  const activeClients = clientUsers.filter(u => {
+    const isExplicitActive = u.status === 'active';
+    const hasActiveAssets = (u.plan && u.plan !== 'none') || 
+      sites.some(s => s.userEmail?.toLowerCase() === u.email?.toLowerCase()) ||
+      emails.some(e => e.userEmail?.toLowerCase() === u.email?.toLowerCase());
+    return isExplicitActive || hasActiveAssets;
+  });
 
   const mrr = activeClients.reduce((acc, user) => {
     const planPrices = { basic: 1200, pro: 3000, enterprise: 6200 };
-    return acc + (planPrices[user.plan as keyof typeof planPrices] || 0);
+    const effectivePlan = (user.plan && user.plan !== 'none') ? user.plan : 'basic';
+    return acc + (planPrices[effectivePlan as keyof typeof planPrices] || 1200);
   }, 0);
 
   const totalRevenue = actualOrdersRevenue > 0 ? actualOrdersRevenue : mrr;
@@ -971,6 +978,13 @@ export default function AdminPage() {
     // Respeitar decisão explícita do Administrador
     if (user.status === 'active') return 'active';
     if (user.status === 'suspended') return 'suspended';
+
+    // Se o cliente tem domínio vinculado ou conta de email, está ativo no plano básico
+    const hasAssets = (user.plan && user.plan !== 'none') ||
+      sites.some(s => s.userEmail?.toLowerCase() === user.email?.toLowerCase()) ||
+      emails.some(e => e.userEmail?.toLowerCase() === user.email?.toLowerCase());
+    if (hasAssets) return 'active';
+
     if (user.status === 'pending') return 'pending';
 
     const today = new Date();

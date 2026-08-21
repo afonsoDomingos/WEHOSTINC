@@ -288,8 +288,8 @@ export default function DashboardPage() {
 
           {/* Main Content */}
           <div className="lg:col-span-3 space-y-4 sm:space-y-6">
-            {/* Banner de Status Pendente - Só mostra se não tiver plano ativo */}
-            {user.status === 'pending' && user.plan === 'none' && (
+            {/* Banner de Status Pendente - Só mostra se não tiver plano ativo E não tiver sites/emails */}
+            {user.status === 'pending' && user.plan === 'none' && siteCount === 0 && emailCount === 0 && (
               <div className="bg-amber-50 border-2 border-amber-300 rounded-xl sm:rounded-2xl p-3 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 text-amber-900 shadow-sm">
                 <div className="flex items-start gap-2 sm:gap-3">
                   <span className="text-xl sm:text-2xl">⏳</span>
