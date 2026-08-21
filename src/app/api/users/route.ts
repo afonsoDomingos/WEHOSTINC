@@ -661,10 +661,24 @@ export async function POST(req: Request) {
                   { $set: { userEmail: cleanEmail } }
                 );
 
-                await SiteModel.updateMany(
+                await SiteModel.findOneAndUpdate(
                   { domain: new RegExp(`^${dName}$`, 'i') },
-                  { $set: { userEmail: cleanEmail } }
-                );
+                  {
+                    $set: {
+                      domain: dName.toLowerCase().trim(),
+                      name: dName,
+                      userEmail: cleanEmail,
+                      status: domDoc.status === 'active' ? 'active' : 'pending',
+                      storage: 10,
+                      bandwidth: 100,
+                      createdAt: domDoc.createdAt ? new Date(domDoc.createdAt).toISOString() : new Date().toISOString()
+                    },
+                    $setOnInsert: {
+                      id: `site_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`
+                    }
+                  },
+                  { upsert: true, new: true }
+                ).catch(() => {});
               }
 
               pendingInvite.status = 'accepted';

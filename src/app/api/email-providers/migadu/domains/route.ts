@@ -161,18 +161,20 @@ export async function POST(request: NextRequest) {
     // }
 
     const body = await request.json();
-    const { domainName, customerId, createDefaultAddresses = false } = body;
+    const { domainName, customerId = 'system', createDefaultAddresses = false } = body;
 
-    if (!domainName || !customerId) {
+    if (!domainName) {
       return NextResponse.json(
-        { error: 'domainName and customerId are required' },
+        { error: 'domainName is required' },
         { status: 400 }
       );
     }
 
+    const effectiveCustomerId = customerId || 'system';
+
     // Check if domain already exists in our database
     await connectDB();
-    const existingDomain = await EmailDomain.findOne({ domainName });
+    const existingDomain = await EmailDomain.findOne({ domainName: new RegExp(`^${domainName}$`, 'i') });
     if (existingDomain) {
       return NextResponse.json(
         { error: 'Domain already exists' },
@@ -180,7 +182,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('[Migadu Domains POST] Creating domain:', domainName, 'for customer:', customerId);
+    console.log('[Migadu Domains POST] Creating domain:', domainName, 'for customer:', effectiveCustomerId);
     
     const provider = getEmailProvider();
     console.log('[Migadu Domains POST] Provider configured:', provider.isConfigured());
@@ -203,10 +205,32 @@ export async function POST(request: NextRequest) {
     // Save to MongoDB
     const newDomain = new EmailDomain({
       ...domain,
-      customerId,
+      customerId: effectiveCustomerId,
       id: domain.id // Use the provider's ID
     });
     await newDomain.save();
+
+    // If assigned to a client, also ensure it's registered in SiteModel for dashboard/sites
+    if (effectiveCustomerId && effectiveCustomerId !== 'system' && effectiveCustomerId.includes('@')) {
+      await SiteModel.findOneAndUpdate(
+        { domain: new RegExp(`^${domainName}$`, 'i') },
+        {
+          $set: {
+            domain: domainName.toLowerCase().trim(),
+            name: domainName,
+            userEmail: effectiveCustomerId.toLowerCase().trim(),
+            status: newDomain.status === 'active' ? 'active' : 'pending',
+            storage: 10,
+            bandwidth: 100,
+            createdAt: new Date().toISOString()
+          },
+          $setOnInsert: {
+            id: `site_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`
+          }
+        },
+        { upsert: true, new: true }
+      ).catch(() => {});
+    }
 
     console.log('[Migadu Domains POST] Domain saved to MongoDB:', newDomain._id);
 

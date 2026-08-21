@@ -110,11 +110,25 @@ export async function POST(
         }
       );
 
-      // 4. Update SiteModel
-      await SiteModel.updateMany(
+      // 4. Update or Upsert SiteModel so it appears in "Meus Domínios" (dashboard/sites)
+      await SiteModel.findOneAndUpdate(
         { domain: new RegExp(`^${domainName}$`, 'i') },
-        { $set: { userEmail: cleanEmail } }
-      );
+        {
+          $set: {
+            domain: domainName.toLowerCase().trim(),
+            name: domainName,
+            userEmail: cleanEmail,
+            status: domain.status === 'active' ? 'active' : 'pending',
+            storage: 10,
+            bandwidth: 100,
+            createdAt: domain.createdAt ? new Date(domain.createdAt).toISOString() : new Date().toISOString()
+          },
+          $setOnInsert: {
+            id: `site_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`
+          }
+        },
+        { upsert: true, new: true }
+      ).catch(() => {});
     }
 
     // Mark invitation accepted

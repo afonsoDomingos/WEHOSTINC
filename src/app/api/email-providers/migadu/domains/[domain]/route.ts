@@ -34,7 +34,17 @@ export async function GET(
               canReceive: providerDomain.canReceive || false,
             });
           } else {
-            Object.assign(domain, providerDomain);
+            const preservedCustomerId = domain.customerId;
+            domain.status = providerDomain.status || domain.status;
+            domain.provider = providerDomain.provider || domain.provider;
+            domain.canSend = providerDomain.canSend ?? domain.canSend;
+            domain.canReceive = providerDomain.canReceive ?? domain.canReceive;
+            if (providerDomain.activatedAt) domain.activatedAt = providerDomain.activatedAt;
+            if (preservedCustomerId && preservedCustomerId !== 'system') {
+              domain.customerId = preservedCustomerId;
+            } else if (providerDomain.customerId && providerDomain.customerId !== 'system') {
+              domain.customerId = providerDomain.customerId;
+            }
             await domain.save();
           }
         }

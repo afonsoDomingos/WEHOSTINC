@@ -26,6 +26,8 @@ import {
   Shuffle,
   UserCheck,
   UserPlus,
+  UserX,
+  User,
   Send,
   Share2,
   Link2,
@@ -142,6 +144,32 @@ export default function EmailDomainDetailPage() {
         fetchDomain();
       } else {
         setToast({ type: 'error', message: data.error || 'Falha ao atribuir domínio' });
+      }
+    } catch (err) {
+      setToast({ type: 'error', message: 'Erro ao conectar ao servidor' });
+    } finally {
+      setIsAssigning(false);
+    }
+  };
+
+  const handleUnassignDomain = async () => {
+    if (!window.confirm(`Tem a certeza que deseja desvincular o domínio ${domainName} do cliente atual e torná-lo do sistema?`)) {
+      return;
+    }
+
+    setIsAssigning(true);
+    try {
+      const res = await fetch(`/api/email-domains/${domainName}/assign`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'unassign', targetUserEmail: 'system' })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setToast({ type: 'success', message: '✅ Domínio desvinculado com sucesso' });
+        fetchDomain();
+      } else {
+        setToast({ type: 'error', message: data.error || 'Falha ao desvincular domínio' });
       }
     } catch (err) {
       setToast({ type: 'error', message: 'Erro ao conectar ao servidor' });
@@ -477,13 +505,84 @@ export default function EmailDomainDetailPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-2 bg-white px-3.5 py-2 rounded-xl border border-indigo-100 shadow-2xs">
-                  <span className="text-[11px] text-gray-500 font-semibold">Proprietário Atual:</span>
-                  <span className="text-xs font-black text-indigo-700 font-mono">
-                    {domain.customerId || 'system'}
-                  </span>
+                <div className="flex items-center space-x-2">
+                  {domain.customerId && domain.customerId !== 'system' ? (
+                    <div className="flex items-center space-x-2 bg-emerald-50 px-3.5 py-1.5 rounded-xl border border-emerald-200 shadow-2xs">
+                      <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
+                      <span className="text-[11px] text-emerald-800 font-bold">Vinculado a Cliente</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center space-x-2 bg-gray-100 px-3.5 py-1.5 rounded-xl border border-gray-200 shadow-2xs">
+                      <span className="h-2 w-2 rounded-full bg-gray-400 shrink-0"></span>
+                      <span className="text-[11px] text-gray-600 font-semibold">Sistema (Não Vinculado)</span>
+                    </div>
+                  )}
                 </div>
               </div>
+
+              {/* Card de Destaque do Proprietário Atual */}
+              {domain.customerId && domain.customerId !== 'system' ? (
+                (() => {
+                  const assignedUser = users.find(u => 
+                    (u.email && u.email.toLowerCase() === domain.customerId?.toLowerCase()) ||
+                    u.id === domain.customerId ||
+                    u._id === domain.customerId
+                  );
+                  return (
+                    <div className="bg-white rounded-2xl p-4 sm:p-5 border-2 border-indigo-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div className="flex items-center space-x-3.5">
+                        <div className="h-12 w-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-white font-black text-lg flex items-center justify-center shadow-md shrink-0">
+                          {assignedUser?.name ? assignedUser.name.charAt(0).toUpperCase() : <User className="h-6 w-6" />}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center space-x-2 mb-0.5">
+                            <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-700">Cliente Vinculado</span>
+                            <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.2 rounded-full">
+                              Ativo no Painel
+                            </span>
+                          </div>
+                          <h4 className="text-sm sm:text-base font-extrabold text-gray-900 truncate">
+                            {assignedUser?.name || 'Cliente Registado'}
+                          </h4>
+                          <p className="text-xs font-mono text-indigo-700 font-semibold truncate">
+                            {assignedUser?.email || domain.customerId}
+                          </p>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleUnassignDomain}
+                        disabled={isAssigning}
+                        className="px-3.5 py-2 bg-red-50 hover:bg-red-100 text-red-700 font-bold text-xs rounded-xl border border-red-200 transition cursor-pointer flex items-center justify-center space-x-1.5 self-start sm:self-auto shrink-0 disabled:opacity-50"
+                        title="Desvincular domínio e retornar para o sistema"
+                      >
+                        <UserX className="h-3.5 w-3.5" />
+                        <span>Desvincular Domínio</span>
+                      </button>
+                    </div>
+                  );
+                })()
+              ) : (
+                <div className="bg-amber-50/90 rounded-2xl p-4 border border-amber-200/90 shadow-2xs flex items-center justify-between gap-3">
+                  <div className="flex items-center space-x-3">
+                    <div className="h-10 w-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center text-lg shrink-0">
+                      ⚠️
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-extrabold text-amber-950 uppercase tracking-wide">
+                        Domínio Pertencente ao Sistema
+                      </h4>
+                      <p className="text-xs text-amber-800">
+                        Este domínio não está associado a nenhum cliente. Selecione um utilizador abaixo para vinculá-lo.
+                      </p>
+                    </div>
+                  </div>
+                  <span className="bg-white text-amber-800 border border-amber-200 text-[11px] font-bold px-3 py-1 rounded-full shrink-0">
+                    Livre
+                  </span>
+                </div>
+              )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {/* 1. Atribuir a Utilizador Existente */}
@@ -519,7 +618,7 @@ export default function EmailDomainDetailPage() {
                       className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-md transition cursor-pointer flex items-center justify-center space-x-2"
                     >
                       <UserCheck className="h-4 w-4" />
-                      <span>{isAssigning ? 'A vincular...' : 'Atribuir Domínio e E-mails'}</span>
+                      <span>{isAssigning ? 'A vincular...' : (domain.customerId && domain.customerId !== 'system' ? 'Atualizar / Transferir Vínculo' : 'Atribuir Domínio e E-mails')}</span>
                     </button>
                   </div>
                 </div>
@@ -542,7 +641,7 @@ export default function EmailDomainDetailPage() {
                       placeholder="email.do.cliente@empresa.com"
                       value={invitedEmail}
                       onChange={(e) => setInvitedEmail(e.target.value)}
-                      className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium text-gray-800 outline-none focus:ring-2 focus:ring-purple-500"
+                      className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-800 outline-none focus:ring-2 focus:ring-purple-500"
                     />
 
                     <button
@@ -550,8 +649,8 @@ export default function EmailDomainDetailPage() {
                       disabled={!invitedEmail || isGeneratingInvite}
                       className="w-full py-2.5 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-md transition cursor-pointer flex items-center justify-center space-x-2"
                     >
-                      <Sparkles className="h-4 w-4 text-purple-200" />
-                      <span>{isGeneratingInvite ? 'A gerar convite...' : 'Gerar Link de Convite'}</span>
+                      <Share2 className="h-4 w-4" />
+                      <span>{isGeneratingInvite ? 'A gerar...' : 'Gerar Link de Convite'}</span>
                     </button>
                   </form>
                 </div>

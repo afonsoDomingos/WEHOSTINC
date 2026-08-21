@@ -68,10 +68,24 @@ export default function EmailDomainsPage() {
   const [emailAccounts, setEmailAccounts] = useState<EmailAccount[]>([]);
   const [emailSearchTerm, setEmailSearchTerm] = useState('');
   const [loadingEmails, setLoadingEmails] = useState(true);
+  const [users, setUsers] = useState<any[]>([]);
+
+  const fetchUsers = async () => {
+    try {
+      const res = await fetch('/api/users');
+      const data = await res.json();
+      if (data.users && Array.isArray(data.users)) {
+        setUsers(data.users);
+      }
+    } catch (e) {
+      console.warn('Erro ao carregar utilizadores:', e);
+    }
+  };
 
   useEffect(() => {
     fetchDomains();
     fetchEmailAccounts();
+    fetchUsers();
     
     // Auto-initialize wehosthere.com for admin if it doesn't exist
     const autoInitialize = async () => {
@@ -580,13 +594,33 @@ export default function EmailDomainsPage() {
                 {filteredDomains.map((domain) => (
                   <tr key={domain._id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <Globe className="h-5 w-5 text-gray-400 mr-3" />
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">{domain.domainName}</div>
-                          <div className="text-sm text-gray-500">{domain.customerId}</div>
-                        </div>
-                      </div>
+                      {(() => {
+                        const assignedUser = users.find(u => 
+                          (u.email && u.email.toLowerCase() === domain.customerId?.toLowerCase()) ||
+                          u.id === domain.customerId ||
+                          u._id === domain.customerId
+                        );
+                        return (
+                          <div className="flex items-center">
+                            <Globe className="h-5 w-5 text-gray-400 mr-3 shrink-0" />
+                            <div>
+                              <div className="text-sm font-bold text-gray-900">{domain.domainName}</div>
+                              {domain.customerId && domain.customerId !== 'system' ? (
+                                <div className="inline-flex items-center space-x-1 mt-0.5 px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-100 text-[11px] font-bold">
+                                  <span>👤</span>
+                                  <span className="truncate max-w-[220px]">
+                                    {assignedUser?.name ? `${assignedUser.name} (${assignedUser.email})` : domain.customerId}
+                                  </span>
+                                </div>
+                              ) : (
+                                <div className="text-[11px] text-gray-400 font-medium mt-0.5 flex items-center space-x-1">
+                                  <span>⚙️ Sistema / Não Vinculado</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
@@ -813,16 +847,23 @@ export default function EmailDomainsPage() {
                 </div>
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Customer ID
+                    Cliente / Proprietário (Opcional)
                   </label>
-                  <input
-                    type="text"
+                  <select
                     value={newCustomerId}
                     onChange={(e) => setNewCustomerId(e.target.value)}
-                    placeholder="customer-123"
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  />
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm font-medium"
+                  >
+                    <option value="system">⚙️ Sistema (Não Atribuído a Cliente)</option>
+                    {users.map((u) => (
+                      <option key={u.id || u.email} value={u.email}>
+                        👤 {u.name ? `${u.name} (${u.email})` : u.email}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-[11px] text-gray-500 mt-1">
+                    Selecione o cliente que terá este domínio no seu painel ou deixe como Sistema.
+                  </p>
                 </div>
                 <div className="flex justify-end space-x-3">
                   <button

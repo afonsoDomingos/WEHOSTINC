@@ -15,16 +15,17 @@ export async function POST(
     await connectDB();
     const domainName = params.domain;
     const body = await request.json();
-    const { targetUserEmail } = body;
+    const { targetUserEmail, action } = body;
+    const isUnassign = action === 'unassign' || targetUserEmail === 'system' || !targetUserEmail;
 
-    if (!targetUserEmail || !targetUserEmail.trim() || !targetUserEmail.includes('@')) {
+    if (!isUnassign && (!targetUserEmail.trim() || !targetUserEmail.includes('@'))) {
       return NextResponse.json(
         { error: 'Email de utilizador destinatário inválido ou não fornecido' },
         { status: 400 }
       );
     }
 
-    const cleanEmail = targetUserEmail.trim().toLowerCase();
+    const cleanEmail = isUnassign ? 'system' : targetUserEmail.trim().toLowerCase();
 
     // Check if domain exists
     const domain = await EmailDomain.findOne({ domainName: new RegExp(`^${domainName}$`, 'i') });
@@ -68,16 +69,37 @@ export async function POST(
       },
       {
         $set: {
-          userEmail: cleanEmail
+          userEmail: isUnassign ? '' : cleanEmail
         }
       }
     );
 
-    // 4. Update SiteModel if present
-    await SiteModel.updateMany(
-      { domain: new RegExp(`^${domainName}$`, 'i') },
-      { $set: { userEmail: cleanEmail } }
-    );
+    // 4. Update / Upsert SiteModel so it appears in "Meus Domínios" (dashboard/sites & dashboard/domains)
+    if (!isUnassign) {
+      await SiteModel.findOneAndUpdate(
+        { domain: new RegExp(`^${domainName}$`, 'i') },
+        {
+          $set: {
+            domain: domainName.toLowerCase().trim(),
+            name: domainName,
+            userEmail: cleanEmail,
+            status: domain.status === 'active' ? 'active' : 'pending',
+            storage: 10,
+            bandwidth: 100,
+            createdAt: domain.createdAt ? new Date(domain.createdAt).toISOString() : new Date().toISOString()
+          },
+          $setOnInsert: {
+            id: `site_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`
+          }
+        },
+        { upsert: true, new: true }
+      );
+    } else {
+      await SiteModel.updateMany(
+        { domain: new RegExp(`^${domainName}$`, 'i') },
+        { $unset: { userEmail: "" } }
+      );
+    }
 
     // 5. Log audit trail
     try {
@@ -98,24 +120,28 @@ export async function POST(
       console.warn('[Assign Domain] Audit log error:', auditErr);
     }
 
-    // 6. Enviar e-mail de notificação ao utilizador
-    try {
-      const { dispatchMessage } = await import('@/lib/notifications');
-      await dispatchMessage({
-        recipientEmail: cleanEmail,
-        recipientName: cleanEmail.split('@')[0],
-        subject: `🎉 O domínio ${domainName} e e-mails foram vinculados à sua conta!`,
-        body: `Olá,\n\nInformamos que o domínio corporativo ${domainName} e as suas respetivas caixas de e-mail foram vinculados com sucesso à sua conta WEHOSTHERE.\n\nPode agora aceder ao seu painel em https://wehosthere.com/dashboard/email e ao Webmail em https://wehosthere.com/webmail.\n\nCom os melhores cumprimentos,\nEquipa WEHOSTHERE`,
-        isAutomatic: true,
-        eventType: 'domain_assigned'
-      });
-    } catch (notifyErr) {
-      console.warn('[Assign Domain] Erro ao enviar email de notificação:', notifyErr);
+    // 6. Enviar e-mail de notificação ao utilizador (apenas se for atribuição a cliente real)
+    if (!isUnassign && cleanEmail.includes('@')) {
+      try {
+        const { dispatchMessage } = await import('@/lib/notifications');
+        await dispatchMessage({
+          recipientEmail: cleanEmail,
+          recipientName: cleanEmail.split('@')[0],
+          subject: `🎉 O domínio ${domainName} e e-mails foram vinculados à sua conta!`,
+          body: `Olá,\n\nInformamos que o domínio corporativo ${domainName} e as suas respetivas caixas de e-mail foram vinculados com sucesso à sua conta WEHOSTHERE.\n\nPode agora aceder ao seu painel em https://wehosthere.com/dashboard/email, à gestão de domínios em https://wehosthere.com/dashboard/sites e ao Webmail em https://wehosthere.com/webmail.\n\nCom os melhores cumprimentos,\nEquipa WEHOSTHERE`,
+          isAutomatic: true,
+          eventType: 'domain_assigned'
+        });
+      } catch (notifyErr) {
+        console.warn('[Assign Domain] Erro ao enviar email de notificação:', notifyErr);
+      }
     }
 
     return NextResponse.json({
       success: true,
-      message: `Domínio ${domainName} e todas as caixas de correio foram vinculados com sucesso a ${cleanEmail}`,
+      message: isUnassign 
+        ? `Domínio ${domainName} desvinculado com sucesso e retornado ao sistema.`
+        : `Domínio ${domainName} e todas as caixas de correio foram vinculados com sucesso a ${cleanEmail}`,
       assignedTo: cleanEmail,
       stats: {
         mailboxesUpdated: mailboxUpdateResult.modifiedCount,

@@ -1,6 +1,8 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import SiteModel from '@/lib/models/Site';
+import { EmailDomain } from '@/models/EmailDomain';
+import EmailAccountModel from '@/lib/models/EmailAccount';
 
 let FALLBACK_SITES: any[] = [];
 
@@ -14,11 +16,84 @@ async function tryMongo() {
   }
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const { searchParams } = new URL(req.url);
+    const filterUserEmail = searchParams.get('userEmail')?.toLowerCase().trim();
+
     if (await tryMongo()) {
-      const sites = await SiteModel.find({}).lean();
-      return NextResponse.json({ sites });
+      const [sites, emailDomains, emailAccounts] = await Promise.all([
+        SiteModel.find({}).lean(),
+        EmailDomain.find({}).lean().catch(() => []),
+        EmailAccountModel.find({}).lean().catch(() => [])
+      ]);
+
+      const siteMap = new Map<string, any>();
+      sites.forEach((s: any) => {
+        const d = (s.domain || s.id || '').toLowerCase().trim();
+        if (d) siteMap.set(d, s);
+      });
+
+      // Synchronize assigned EmailDomains into sites
+      if (Array.isArray(emailDomains)) {
+        for (const ed of emailDomains) {
+          const d = (ed.domainName || '').toLowerCase().trim();
+          if (!d) continue;
+          const owner = ed.customerId && ed.customerId !== 'system' ? ed.customerId.toLowerCase().trim() : undefined;
+
+          if (siteMap.has(d)) {
+            const existing = siteMap.get(d);
+            if (owner && (!existing.userEmail || existing.userEmail === 'cliente' || existing.userEmail === 'system')) {
+              existing.userEmail = owner;
+              if (ed.status === 'active') existing.status = 'active';
+              SiteModel.updateOne({ _id: existing._id }, { $set: { userEmail: owner, status: existing.status } }).exec().catch(() => {});
+            }
+          } else if (owner) {
+            const newSiteDoc = {
+              id: `site_ed_${ed._id?.toString() || Date.now()}`,
+              name: ed.domainName,
+              domain: d,
+              status: ed.status === 'active' ? 'active' : 'pending',
+              userEmail: owner,
+              storage: 10,
+              bandwidth: 100,
+              createdAt: ed.createdAt ? new Date(ed.createdAt).toISOString() : new Date().toISOString()
+            };
+            siteMap.set(d, newSiteDoc);
+            SiteModel.create(newSiteDoc).catch(() => {});
+          }
+        }
+      }
+
+      // Synchronize domains from EmailAccountModel if not yet present
+      if (Array.isArray(emailAccounts)) {
+        for (const acc of emailAccounts) {
+          if (!acc.email || !acc.email.includes('@') || !acc.userEmail) continue;
+          const d = acc.email.split('@')[1].toLowerCase().trim();
+          const owner = acc.userEmail.toLowerCase().trim();
+          if (d && !siteMap.has(d) && owner) {
+            const newSiteDoc = {
+              id: `site_acc_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+              name: d,
+              domain: d,
+              status: acc.status === 'active' ? 'active' : 'pending',
+              userEmail: owner,
+              storage: 10,
+              bandwidth: 100,
+              createdAt: new Date().toISOString()
+            };
+            siteMap.set(d, newSiteDoc);
+            SiteModel.create(newSiteDoc).catch(() => {});
+          }
+        }
+      }
+
+      let allMergedSites = Array.from(siteMap.values());
+      if (filterUserEmail) {
+        allMergedSites = allMergedSites.filter((s: any) => s.userEmail && s.userEmail.toLowerCase().trim() === filterUserEmail);
+      }
+
+      return NextResponse.json({ sites: allMergedSites });
     }
   } catch (e) { console.error('MongoDB indisponível (sites):', e); }
   return NextResponse.json({ sites: FALLBACK_SITES });
