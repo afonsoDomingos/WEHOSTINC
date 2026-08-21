@@ -21,18 +21,48 @@ import dynamic from 'next/dynamic';
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
 import 'react-quill/dist/quill.snow.css';
 
+function decodeHtmlEntities(str: string): string {
+  if (!str) return '';
+  return str
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, '&');
+}
+
 function stripRawHeaders(raw: string): string {
   if (!raw) return '';
-  if (raw.includes('Delivered-To:') || raw.includes('Received:') || raw.includes('X-Envelope-To:') || raw.includes('Content-Type: multipart/')) {
-    const parts = raw.split(/\r?\n\r?\n/);
+  let str = raw;
+  if (str.includes('Delivered-To:') || str.includes('Received:') || str.includes('X-Envelope-To:') || str.includes('Content-Type: multipart/')) {
+    const parts = str.split(/\r?\n\r?\n/);
     if (parts.length > 1) {
       const contentParts = parts.filter(p => !/^(Delivered-To|Received|X-|ARC-|DKIM|Authentication|From|To|Subject|Message-ID|MIME-Version|Content-Type):/i.test(p.trim()));
       if (contentParts.length > 0) {
-        return contentParts.join('\n\n').replace(/--[a-zA-Z0-9_-]+(--)?/g, '').trim();
+        str = contentParts.join('\n\n').replace(/--[a-zA-Z0-9_-]+(--)?/g, '').trim();
       }
     }
   }
-  return raw;
+  return str;
+}
+
+function getSnippetText(text?: string, body?: string): string {
+  const source = text || body || '';
+  if (!source) return '';
+  const noHeaders = stripRawHeaders(source);
+  return noHeaders
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 110);
 }
 
 function WebmailContent() {
@@ -1208,7 +1238,7 @@ function WebmailContent() {
                         {msg.subject}
                       </h4>
                       <p className="text-xs text-gray-500 truncate mt-0.5 leading-relaxed">
-                        {msg.textPreview || msg.body.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 120)}
+                        {getSnippetText(msg.textPreview, msg.body)}
                       </p>
                       {imageAttachment && (
                         <div className="mt-2 flex items-center space-x-2">
@@ -1313,10 +1343,14 @@ function WebmailContent() {
               {/* Body card */}
               <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-200 flex-1 space-y-4">
                 {(() => {
-                  const cleanBody = stripRawHeaders(selectedMessage.body);
-                  return cleanBody && cleanBody.includes('<') && (cleanBody.includes('</') || cleanBody.includes('/>') || cleanBody.includes('<br')) ? (
+                  let cleanBody = stripRawHeaders(selectedMessage.body);
+                  if (cleanBody.includes('&lt;') && cleanBody.includes('&gt;')) {
+                    cleanBody = decodeHtmlEntities(cleanBody);
+                  }
+                  const isHtml = /<[a-z][\s\S]*>/i.test(cleanBody);
+                  return isHtml ? (
                     <div 
-                      className="prose prose-sm max-w-none text-gray-800 font-sans break-words overflow-x-auto leading-relaxed"
+                      className="prose prose-sm max-w-none text-gray-800 font-sans break-words overflow-x-auto leading-relaxed [&_p]:my-1.5 [&_div]:my-1"
                       dangerouslySetInnerHTML={{ __html: cleanBody }}
                     />
                   ) : (
