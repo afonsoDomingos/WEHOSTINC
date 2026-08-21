@@ -7,7 +7,7 @@ import {
   Mail, Inbox, Send, Star, Trash2, Edit3, Search, RefreshCw, 
   ArrowLeft, CheckCircle2, ShieldCheck, User, Paperclip, Reply, Forward,
   FileText, LogOut, ChevronRight, X, AlertCircle, Sparkles, Clock, Printer, Download, Loader2, Filter, Maximize2, Minimize2, Bold, Italic, Underline, Type,
-  Wand2, Bot, FileSignature, Lightbulb, Check
+  Wand2, Bot, FileSignature, Lightbulb, Check, Wifi, WifiOff
 } from 'lucide-react';
 import { auth, User as AuthUser } from '@/lib/auth';
 import { dataManager, EmailAccount } from '@/lib/data';
@@ -164,18 +164,41 @@ function WebmailContent() {
   });
   const [isSavingSignature, setIsSavingSignature] = useState(false);
 
-  // Current date/time
+  // Current date/time & Network connectivity
   const [currentDateTime, setCurrentDateTime] = useState<Date | null>(null);
+  const [isOnline, setIsOnline] = useState<boolean>(true);
+  const [showReconnectedToast, setShowReconnectedToast] = useState<boolean>(false);
 
   useEffect(() => {
     // Initialize date only on client to avoid hydration mismatch
     setCurrentDateTime(new Date());
     
-    const timer = setInterval(() => {
-      setCurrentDateTime(new Date());
-    }, 60000); // Update every minute
+    if (typeof window !== 'undefined') {
+      setIsOnline(navigator.onLine);
 
-    return () => clearInterval(timer);
+      const handleOnline = () => {
+        setIsOnline(true);
+        setShowReconnectedToast(true);
+        setTimeout(() => setShowReconnectedToast(false), 4000);
+      };
+
+      const handleOffline = () => {
+        setIsOnline(false);
+      };
+
+      window.addEventListener('online', handleOnline);
+      window.addEventListener('offline', handleOffline);
+
+      const timer = setInterval(() => {
+        setCurrentDateTime(new Date());
+      }, 60000); // Update every minute
+
+      return () => {
+        clearInterval(timer);
+        window.removeEventListener('online', handleOnline);
+        window.removeEventListener('offline', handleOffline);
+      };
+    }
   }, []);
 
   // Auto-save draft
@@ -1031,6 +1054,34 @@ function WebmailContent() {
           </button>
         </div>
       </header>
+
+      {/* Alerta de Perda de Conexão à Internet (Offline) */}
+      {!isOnline && (
+        <div className="bg-rose-600 text-white px-4 py-2.5 flex items-center justify-between text-xs font-bold shadow-md animate-in slide-in-from-top-2 duration-200">
+          <div className="flex items-center space-x-2.5">
+            <WifiOff className="h-4 w-4 text-white animate-bounce shrink-0" />
+            <span>
+              Sem Conexão à Internet. O Webmail está a funcionar em modo offline — novas mensagens serão sincronizadas assim que a rede for restabelecida.
+            </span>
+          </div>
+          <span className="bg-rose-800/90 text-rose-100 text-[10px] px-2.5 py-0.5 rounded-full font-black uppercase shrink-0">
+            Offline
+          </span>
+        </div>
+      )}
+
+      {/* Toast de Reconexão Restabelecida */}
+      {showReconnectedToast && isOnline && (
+        <div className="bg-emerald-600 text-white px-4 py-2 flex items-center justify-between text-xs font-bold shadow-md animate-in fade-in duration-200">
+          <div className="flex items-center space-x-2">
+            <Wifi className="h-4 w-4 text-emerald-200 shrink-0" />
+            <span>Ligação à internet restabelecida com sucesso! A sincronizar as suas caixas de e-mail...</span>
+          </div>
+          <span className="bg-emerald-800/90 text-emerald-100 text-[10px] px-2.5 py-0.5 rounded-full font-black uppercase shrink-0">
+            Online ✓
+          </span>
+        </div>
+      )}
 
       {/* Sincronização em tempo real Indicator */}
       {(isLoadingMessages || isRefreshingWebmail) && (
