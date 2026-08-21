@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react';
 import { 
   Bell, CheckCircle2, Archive, Trash2, RefreshCw, 
   ShoppingBag, RefreshCw as Renewal, ArrowUp, 
-  AlertCircle, DollarSign, Filter, X, BellOff
+  AlertCircle, DollarSign, Filter, X, BellOff, ArrowLeft, ChevronRight
 } from 'lucide-react';
+import Link from 'next/link';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 
 interface SalesNotification {
@@ -237,10 +238,24 @@ export default function AdminNotificationsPage() {
 
   return (
     <div className="space-y-6">
+      {/* Navegação de Retorno */}
+      <div className="flex items-center space-x-2 text-xs">
+        <Link
+          href="/admin"
+          className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 rounded-xl font-bold transition cursor-pointer"
+          title="Voltar ao Painel de Administração"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          <span>Voltar ao Painel</span>
+        </Link>
+        <ChevronRight className="h-3.5 w-3.5 text-gray-400" />
+        <span className="text-gray-900 font-bold">Notificações</span>
+      </div>
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Notificações de Vendas (Admin)</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Notificações de Vendas</h1>
           <p className="text-gray-600 mt-1">
             {unreadCount > 0 ? `${unreadCount} notificação(ões) não lida(s)` : 'Todas as notificações lidas'}
           </p>

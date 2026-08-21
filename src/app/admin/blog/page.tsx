@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { Plus, Edit, Trash2, Eye, Calendar, Tag, Filter, BarChart3, Home } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, Calendar, Tag, Filter, BarChart3, Home, ArrowLeft, ChevronRight } from 'lucide-react';
 
 interface BlogPost {
   id: string;
@@ -106,36 +106,40 @@ export default function AdminBlogPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b">
-        <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6">
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-xs">
+        <div className="container mx-auto px-3 sm:px-4 py-4">
+          {/* Breadcrumb */}
+          <div className="flex items-center space-x-2 text-xs mb-3">
+            <Link
+              href="/admin"
+              className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 rounded-xl font-bold transition cursor-pointer"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span>Voltar ao Painel</span>
+            </Link>
+            <ChevronRight className="h-3.5 w-3.5 text-gray-400" />
+            <span className="text-gray-900 font-bold">Blog</span>
+          </div>
+
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-center space-x-3">
-              <Link href="/admin" className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition">
-                <Home className="h-4 w-4 sm:h-5 sm:w-5" />
-                <span className="text-sm sm:text-base font-medium">Admin</span>
-              </Link>
-              <span className="text-gray-400">/</span>
-              <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Gerenciar Blog</h1>
-                <p className="text-gray-600 text-sm sm:text-base">Criar e gerenciar posts do blog</p>
-              </div>
+            <div>
+              <h1 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">Gerenciar Blog</h1>
+              <p className="text-gray-500 text-xs mt-0.5">Criar, editar e publicar posts do blog da plataforma</p>
             </div>
             <div className="flex flex-col sm:flex-row gap-2">
               <Link
                 href="/admin/blog/analytics"
-                className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm sm:text-base"
+                className="inline-flex items-center justify-center gap-2 px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer"
               >
-                <BarChart3 size={16} className="hidden sm:block" />
-                <span className="hidden sm:inline">Analytics</span>
-                <span className="sm:hidden">Stats</span>
+                <BarChart3 size={14} />
+                <span>Analytics</span>
               </Link>
               <Link
                 href="/admin/blog/new"
-                className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm sm:text-base"
+                className="inline-flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer"
               >
-                <Plus size={16} className="hidden sm:block" />
-                <span className="hidden sm:inline">Novo Post</span>
-                <span className="sm:hidden">Novo</span>
+                <Plus size={14} />
+                <span>Novo Post</span>
               </Link>
             </div>
           </div>

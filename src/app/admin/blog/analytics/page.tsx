@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { TrendingUp, Eye, MousePointer2, Calendar, Download } from 'lucide-react';
+import Link from 'next/link';
+import { TrendingUp, Eye, MousePointer2, Calendar, Download, ArrowLeft, ChevronRight } from 'lucide-react';
 
 interface BlogAnalytics {
   totalViews: number;
@@ -102,29 +103,44 @@ export default function BlogAnalyticsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-white border-b">
-        <div className="container mx-auto px-4 py-6">
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-xs">
+        <div className="container mx-auto px-4 py-4">
+          {/* Breadcrumb */}
+          <div className="flex items-center space-x-2 text-xs mb-3">
+            <Link
+              href="/admin"
+              className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 rounded-xl font-bold transition cursor-pointer"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span>Voltar ao Painel</span>
+            </Link>
+            <ChevronRight className="h-3.5 w-3.5 text-gray-400" />
+            <Link href="/admin/blog" className="text-gray-500 hover:text-gray-900 font-medium transition">Blog</Link>
+            <ChevronRight className="h-3.5 w-3.5 text-gray-400" />
+            <span className="text-gray-900 font-bold">Analytics</span>
+          </div>
+
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Analytics do Blog</h1>
-              <p className="text-gray-600">Visualizações, cliques e impacto dos posts</p>
+              <h1 className="text-xl font-black text-gray-900">Analytics do Blog</h1>
+              <p className="text-gray-500 text-xs mt-0.5">Visualizações, cliques e impacto dos posts</p>
             </div>
             <div className="flex gap-2">
               <select
                 value={dateRange}
                 onChange={(e) => setDateRange(e.target.value)}
-                className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-3 py-2 border border-gray-200 rounded-xl text-xs font-bold text-gray-700 bg-gray-50 outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
               >
-                <option value="7">Últimos 7 dias</option>
-                <option value="30">Últimos 30 dias</option>
-                <option value="90">Últimos 90 dias</option>
-                <option value="365">Último ano</option>
+                <option value="7">Úiltimos 7 dias</option>
+                <option value="30">Úiltimos 30 dias</option>
+                <option value="90">Úiltimos 90 dias</option>
+                <option value="365">Úiltimo ano</option>
               </select>
               <button
                 onClick={exportReport}
-                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                className="inline-flex items-center gap-2 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition shadow-xs cursor-pointer"
               >
-                <Download size={20} />
+                <Download size={14} />
                 Exportar
               </button>
             </div>
