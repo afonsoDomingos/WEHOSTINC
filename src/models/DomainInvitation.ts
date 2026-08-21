@@ -15,14 +15,13 @@ export interface DomainInvitationDocument extends Document {
 }
 
 const DomainInvitationSchema = new Schema<DomainInvitationDocument>({
-  domainName: { type: String, required: true, index: true },
+  domainName: { type: String, required: true },
   invitedEmail: { type: String, required: true, lowercase: true, trim: true },
-  token: { type: String, required: true, unique: true, index: true },
+  token: { type: String, required: true, unique: true },
   status: {
     type: String,
     enum: ['pending', 'accepted', 'expired', 'revoked'],
-    default: 'pending',
-    index: true
+    default: 'pending'
   },
   createdBy: { type: String, default: 'admin@wehosthere.com' },
   expiresAt: { type: Date, required: true },
@@ -34,7 +33,6 @@ const DomainInvitationSchema = new Schema<DomainInvitationDocument>({
 });
 
 DomainInvitationSchema.index({ domainName: 1, status: 1 });
-DomainInvitationSchema.index({ token: 1 });
 
 export const DomainInvitation: Model<DomainInvitationDocument> =
   mongoose.models.DomainInvitation || mongoose.model<DomainInvitationDocument>('DomainInvitation', DomainInvitationSchema);

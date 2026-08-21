@@ -54,8 +54,6 @@ const EmailDomainSchema = new Schema<EmailDomainDocument>({
 });
 
 // Indexes for better query performance
-EmailDomainSchema.index({ domainName: 1 });
-EmailDomainSchema.index({ customerId: 1 });
 EmailDomainSchema.index({ status: 1 });
 EmailDomainSchema.index({ provider: 1 });
 
