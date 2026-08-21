@@ -98,7 +98,7 @@ export async function POST(
     const body = await request.json().catch(() => ({}));
     const { forceActive } = body;
 
-    let domain = await EmailDomain.findOne({ domainName });
+    let domain: any = await EmailDomain.findOne({ domainName: new RegExp(`^${domainName}$`, 'i') });
 
     if (!domain) {
       domain = await EmailDomain.create({

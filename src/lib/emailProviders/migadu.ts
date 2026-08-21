@@ -205,15 +205,30 @@ export class MigaduEmailProvider extends EmailProvider {
 
   async activateDomain(domainName: string): Promise<EmailDomain> {
     return this.withErrorHandling('activate domain', async () => {
-      const response = await this.apiRequest<any>(`/domains/${domainName}/activate`, {
-        method: 'POST'
-      });
-      
-      if (response.status === 'error' || !response.success) {
-        throw new DNSConfigurationError(response.message || 'DNS check failed');
+      try {
+        // Migadu activate endpoint - if DNS is correct it returns the domain object
+        const response = await this.apiRequest<any>(`/domains/${domainName}/activate`, {
+          method: 'POST'
+        });
+        
+        // If the response has an explicit error status, throw
+        if (response && response.status === 'error') {
+          throw new DNSConfigurationError(response.message || 'DNS check failed on Migadu');
+        }
+        
+        // Otherwise, consider it successful and fetch the updated domain
+        return this.getDomain(domainName);
+      } catch (err: any) {
+        // If activate endpoint itself fails (e.g. Migadu hasn't seen the DNS yet),
+        // try getting the domain - if it's already active, return it
+        try {
+          const currentDomain = await this.getDomain(domainName);
+          if (currentDomain && (currentDomain.status === 'active' || currentDomain.canSend)) {
+            return currentDomain;
+          }
+        } catch {}
+        throw err;
       }
-
-      return this.getDomain(domainName);
     });
   }
 
