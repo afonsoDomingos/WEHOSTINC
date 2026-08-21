@@ -82,35 +82,98 @@ export class MigaduImapSmtpService {
   }
 
   /**
+   * Resolve exact mailbox path on IMAP server (checking specialUse, standard names, and listing)
+   */
+  private async resolveMailboxPath(client: ImapFlow, folder: string): Promise<string> {
+    const target = folder.toUpperCase();
+    try {
+      const list = await client.list();
+      if (list && list.length > 0) {
+        for (const mb of list) {
+          const spec = (mb.specialUse || '').toUpperCase();
+          const name = (mb.name || '').toUpperCase();
+          const path = (mb.path || '').toUpperCase();
+
+          if (target === 'SENT' || target === 'ENVIADOS') {
+            if (spec === '\\SENT' || name === 'SENT' || name === 'SENT MESSAGES' || name === 'SENT ITEMS' || path.endsWith('.SENT') || path.endsWith('/SENT') || path === 'SENT') {
+              return mb.path;
+            }
+          } else if (target === 'TRASH' || target === 'LIXEIRA') {
+            if (spec === '\\TRASH' || name === 'TRASH' || name === 'DELETED MESSAGES' || name === 'DELETED ITEMS' || path.endsWith('.TRASH') || path.endsWith('/TRASH') || path === 'TRASH') {
+              return mb.path;
+            }
+          } else if (target === 'DRAFTS' || target === 'RASCUNHOS') {
+            if (spec === '\\DRAFTS' || name === 'DRAFTS' || path.endsWith('.DRAFTS') || path.endsWith('/DRAFTS') || path === 'DRAFTS') {
+              return mb.path;
+            }
+          } else if (target === 'JUNK' || target === 'SPAM') {
+            if (spec === '\\JUNK' || name === 'JUNK' || name === 'SPAM' || path.endsWith('.JUNK') || path.endsWith('.SPAM')) {
+              return mb.path;
+            }
+          } else if (target === 'INBOX' || target === 'ENTRADA') {
+            if (spec === '\\INBOX' || name === 'INBOX' || path === 'INBOX') {
+              return mb.path;
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('[MigaduIMAP] list mailboxes error:', e);
+    }
+
+    if (target === 'SENT' || target === 'ENVIADOS') return 'Sent';
+    if (target === 'TRASH' || target === 'LIXEIRA') return 'Trash';
+    if (target === 'DRAFTS' || target === 'RASCUNHOS') return 'Drafts';
+    if (target === 'JUNK' || target === 'SPAM') return 'Junk';
+    return 'INBOX';
+  }
+
+  /**
    * Open mailbox with smart folder name resolution
    */
   private async openMailboxSmart(client: ImapFlow, folder: string) {
     const target = folder.toUpperCase();
-    const candidateFolders = [folder];
+    const resolvedPath = await this.resolveMailboxPath(client, folder);
 
-    if (target === 'SENT' || target === 'ENVIADOS') {
-      candidateFolders.push('Sent', 'Sent Messages', 'INBOX.Sent', 'Sent Items');
-    } else if (target === 'TRASH' || target === 'LIXEIRA') {
-      candidateFolders.push('Trash', 'Deleted Messages', 'INBOX.Trash', 'Deleted Items');
-    } else if (target === 'DRAFTS' || target === 'RASCUNHOS') {
-      candidateFolders.push('Drafts', 'INBOX.Drafts');
-    } else if (target === 'JUNK' || target === 'SPAM') {
-      candidateFolders.push('Junk', 'Spam', 'INBOX.Junk');
-    } else {
-      candidateFolders.push('INBOX');
-    }
-
-    for (const f of candidateFolders) {
-      try {
-        const mb = await client.mailboxOpen(f);
-        if (mb) return mb;
-      } catch {
-        // Try next candidate
+    try {
+      const mb = await client.mailboxOpen(resolvedPath);
+      if (mb) return mb;
+    } catch {
+      // If non-inbox mailbox cannot be opened, try creating it first
+      if (target !== 'INBOX') {
+        try {
+          await client.mailboxCreate(resolvedPath);
+          return await client.mailboxOpen(resolvedPath);
+        } catch {}
       }
     }
 
-    // Fallback to INBOX
-    return await client.mailboxOpen('INBOX');
+    // Try candidate folder paths
+    let candidates: string[] = [];
+    if (target === 'SENT' || target === 'ENVIADOS') {
+      candidates = ['Sent', 'INBOX.Sent', 'Sent Messages', 'Sent Items', 'INBOX/Sent'];
+    } else if (target === 'TRASH' || target === 'LIXEIRA') {
+      candidates = ['Trash', 'INBOX.Trash', 'Deleted Messages', 'Deleted Items', 'INBOX/Trash'];
+    } else if (target === 'DRAFTS' || target === 'RASCUNHOS') {
+      candidates = ['Drafts', 'INBOX.Drafts', 'INBOX/Drafts'];
+    } else if (target === 'JUNK' || target === 'SPAM') {
+      candidates = ['Junk', 'Spam', 'INBOX.Junk'];
+    } else {
+      candidates = ['INBOX'];
+    }
+
+    for (const f of candidates) {
+      try {
+        const mb = await client.mailboxOpen(f);
+        if (mb) return mb;
+      } catch {}
+    }
+
+    if (target === 'INBOX' || target === 'ENTRADA') {
+      return await client.mailboxOpen('INBOX');
+    }
+
+    return null;
   }
 
   /**
@@ -474,7 +537,8 @@ export class MigaduImapSmtpService {
     try {
       await client.connect();
       await this.openMailboxSmart(client, fromFolder);
-      await client.messageMove(uid, toFolder);
+      const destPath = await this.resolveMailboxPath(client, toFolder);
+      await client.messageMove(uid, destPath);
       await client.logout();
     } catch (error) {
       console.error('[MigaduIMAP] Failed to move message for:', email, error);
@@ -531,7 +595,7 @@ export class MigaduImapSmtpService {
       }
     });
 
-    const info = await transporter.sendMail({
+    await transporter.sendMail({
       from: options.from,
       to: options.to.join(', '),
       subject: options.subject,
@@ -554,33 +618,50 @@ export class MigaduImapSmtpService {
       });
 
       await client.connect();
-      const sentFolder = 'Sent';
+      const sentFolder = await this.resolveMailboxPath(client, 'Sent');
       
       // Build raw message buffer
       const mailGen = nodemailer.createTransport({ streamTransport: true, newline: 'windows' });
-      mailGen.sendMail({
-        from: options.from,
-        to: options.to.join(', '),
-        subject: options.subject,
-        text: options.text,
-        html: options.html,
-        attachments: options.attachments
-      }, async (err, result) => {
-        if (!err && result && result.message) {
+      const rawMessage = await new Promise<Buffer>((resolve, reject) => {
+        mailGen.sendMail({
+          from: options.from,
+          to: options.to.join(', '),
+          subject: options.subject,
+          text: options.text,
+          html: options.html,
+          attachments: options.attachments
+        }, (err, info) => {
+          if (err) return reject(err);
+          const chunks: Buffer[] = [];
+          const stream = (info as any).message;
+          if (stream && typeof stream.on === 'function') {
+            stream.on('data', (chunk: Buffer) => chunks.push(chunk));
+            stream.on('end', () => resolve(Buffer.concat(chunks)));
+            stream.on('error', reject);
+          } else {
+            resolve(Buffer.from(''));
+          }
+        });
+      });
+
+      if (rawMessage && rawMessage.length > 0) {
+        try {
+          await client.append(sentFolder, rawMessage, ['\\Seen']);
+        } catch {
           try {
-            await client.append(sentFolder, result.message as any, ['\\Seen']);
+            await client.mailboxCreate(sentFolder);
+            await client.append(sentFolder, rawMessage, ['\\Seen']);
           } catch {
             try {
-              await client.append('INBOX.Sent', result.message as any, ['\\Seen']);
+              await client.append('INBOX.Sent', rawMessage, ['\\Seen']);
             } catch {}
           }
         }
-        try {
-          await client.logout();
-        } catch {}
-      });
-    } catch {
-      // Append warning ignored - email was sent via SMTP successfully
+      }
+
+      await client.logout();
+    } catch (appendErr) {
+      console.warn('[MigaduIMAP] Could not append sent message to IMAP:', appendErr);
     }
   }
 }

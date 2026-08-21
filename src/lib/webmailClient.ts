@@ -40,27 +40,54 @@ export const FOLDER_IMAP_MAP: Record<string, string> = {
   trash: 'Trash',
 };
 
+const WEBMAIL_SENT_KEY = 'wehosthere_webmail_sent_cache';
+
 export const webmailManager = {
   isRealEmailAvailable: (email: string, password: string): boolean => {
     return !!(email && password);
   },
 
   /**
-   * Busca mensagens de uma pasta especifica via IMAP (Migadu).
-   * Usa query string em GET para que os parametros cheguem ao servidor.
-   * Rascunhos ficam no localStorage (locais, nao sincronizados com IMAP).
+   * Busca mensagens de uma pasta especifica via IMAP (Migadu) com sincronização em tempo real.
    */
   getMessages: async (
     accountEmail?: string,
     password?: string,
     folder: 'inbox' | 'sent' | 'drafts' | 'trash' = 'inbox'
   ): Promise<WebmailMessage[]> => {
-    // Rascunhos - sempre localStorage local
+    // 1. Rascunhos (Local + IMAP se disponível)
     if (folder === 'drafts') {
-      return webmailManager.getDrafts(accountEmail);
+      const localDrafts = await webmailManager.getDrafts(accountEmail);
+      if (accountEmail && password) {
+        try {
+          const params = new URLSearchParams({
+            email: accountEmail,
+            password,
+            folder: 'Drafts',
+          });
+          const res = await fetch(apiEndpoint(`/api/webmail/messages?${params.toString()}`));
+          if (res.ok) {
+            const data = await res.json();
+            const imapDrafts = (data.messages || []).map((msg: WebmailMessage) => ({
+              ...msg,
+              folder: 'drafts' as const,
+              accountEmail,
+            }));
+            // Merge deduping by subject and date
+            const combined = [...localDrafts];
+            for (const idraft of imapDrafts) {
+              if (!combined.some(d => d.subject === idraft.subject && Math.abs(new Date(d.date).getTime() - new Date(idraft.date).getTime()) < 60000)) {
+                combined.push(idraft);
+              }
+            }
+            return combined;
+          }
+        } catch {}
+      }
+      return localDrafts;
     }
 
-    // Mensagens reais via IMAP
+    // 2. Mensagens via IMAP (Inbox, Sent, Trash)
     if (accountEmail && password) {
       try {
         const imapFolder = FOLDER_IMAP_MAP[folder] || 'INBOX';
@@ -74,21 +101,52 @@ export const webmailManager = {
           method: 'GET',
         });
 
+        let imapMsgs: WebmailMessage[] = [];
         if (res.ok) {
           const data = await res.json();
-          return (data.messages || []).map((msg: WebmailMessage) => ({
+          imapMsgs = (data.messages || []).map((msg: WebmailMessage) => ({
             ...msg,
             folder,
             accountEmail,
           }));
-        } else {
-          console.error('[Webmail] Server error fetching messages:', res.status);
-          return [];
         }
+
+        // Para pasta "Enviados" (sent), mesclar com cache local para exibição instantânea
+        if (folder === 'sent') {
+          const localSent = typeof window !== 'undefined' ? localStorage.getItem(`${WEBMAIL_SENT_KEY}_${accountEmail.toLowerCase()}`) : null;
+          const sentCache: WebmailMessage[] = localSent ? JSON.parse(localSent) : [];
+          
+          // Mesclar mensagens mantendo ordenação por data mais recente
+          const allSent = [...imapMsgs];
+          for (const localMsg of sentCache) {
+            const alreadyInImap = allSent.some(m => 
+              m.subject === localMsg.subject && 
+              m.toEmail === localMsg.toEmail &&
+              Math.abs(new Date(m.date).getTime() - new Date(localMsg.date).getTime()) < 120000
+            );
+            if (!alreadyInImap) {
+              allSent.push(localMsg);
+            }
+          }
+          allSent.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+          return allSent;
+        }
+
+        return imapMsgs;
       } catch (error) {
         console.error('[Webmail] API fetch failed:', error);
+        if (folder === 'sent') {
+          const localSent = typeof window !== 'undefined' ? localStorage.getItem(`${WEBMAIL_SENT_KEY}_${accountEmail.toLowerCase()}`) : null;
+          return localSent ? JSON.parse(localSent) : [];
+        }
         return [];
       }
+    }
+
+    // Fallback para sent local se sem credenciais
+    if (folder === 'sent' && accountEmail) {
+      const localSent = typeof window !== 'undefined' ? localStorage.getItem(`${WEBMAIL_SENT_KEY}_${accountEmail.toLowerCase()}`) : null;
+      return localSent ? JSON.parse(localSent) : [];
     }
 
     return [];
@@ -120,8 +178,8 @@ export const webmailManager = {
       throw new Error(err.error || 'Nao foi possivel enviar o email.');
     }
 
-    return {
-      id: `smtp-${Date.now()}`,
+    const sentMessage: WebmailMessage = {
+      id: `sent-${Date.now()}`,
       accountEmail,
       fromName: accountEmail.split('@')[0],
       fromEmail: accountEmail,
@@ -135,6 +193,19 @@ export const webmailManager = {
       avatarColor: 'bg-primary-600',
       attachments: attachments && attachments.length > 0 ? attachments : undefined,
     };
+
+    // Salvar no cache local de enviados
+    if (typeof window !== 'undefined') {
+      try {
+        const cacheKey = `${WEBMAIL_SENT_KEY}_${accountEmail.toLowerCase()}`;
+        const existing = localStorage.getItem(cacheKey);
+        const list: WebmailMessage[] = existing ? JSON.parse(existing) : [];
+        list.unshift(sentMessage);
+        localStorage.setItem(cacheKey, JSON.stringify(list.slice(0, 100)));
+      } catch {}
+    }
+
+    return sentMessage;
   },
 
   toggleStar: async (
