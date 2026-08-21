@@ -99,9 +99,25 @@ export async function POST(
     const baseUrl = process.env.NEXTAUTH_URL || 'https://wehosthere.com';
     const inviteLink = `${baseUrl}/register?inviteToken=${token}&email=${encodeURIComponent(cleanEmail)}`;
 
+    // Enviar e-mail com link de convite ao cliente
+    try {
+      const { dispatchMessage } = await import('@/lib/notifications');
+      await dispatchMessage({
+        recipientEmail: cleanEmail,
+        recipientName: cleanEmail.split('@')[0],
+        templateId: 'custom',
+        customSubject: `🎁 Convite para aceder ao domínio ${domain.domainName} - WEHOSTHERE`,
+        customBody: `Olá,\n\nFoi pré-configurado o domínio ${domain.domainName} e as respetivas caixas de e-mail corporativas para a sua organização na plataforma WEHOSTHERE.\n\nPara ativar o seu acesso e criar a sua conta já com o domínio vinculado, clique no link abaixo:\n${inviteLink}\n\nEste link é válido por 7 dias.\n\nCom os melhores cumprimentos,\nEquipa WEHOSTHERE`,
+        isAutomatic: true,
+        eventType: 'domain_invitation'
+      });
+    } catch (notifyErr) {
+      console.warn('[Domain Invite] Erro ao enviar email de convite:', notifyErr);
+    }
+
     return NextResponse.json({
       success: true,
-      message: 'Convite criado com sucesso!',
+      message: 'Convite criado e e-mail enviado com sucesso!',
       invitation,
       inviteLink,
       token
