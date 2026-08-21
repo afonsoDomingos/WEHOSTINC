@@ -960,9 +960,9 @@ export default function AdminPage() {
   });
 
   const mrr = activeClients.reduce((acc, user) => {
-    const planPrices = { basic: 1200, pro: 3000, enterprise: 6200 };
+    const planPrices = { basic: 550, pro: 2500, enterprise: 6200 };
     const effectivePlan = (user.plan && user.plan !== 'none') ? user.plan : 'basic';
-    return acc + (planPrices[effectivePlan as keyof typeof planPrices] || 1200);
+    return acc + (planPrices[effectivePlan as keyof typeof planPrices] || 550);
   }, 0);
 
   const totalRevenue = actualOrdersRevenue > 0 ? actualOrdersRevenue : mrr;
