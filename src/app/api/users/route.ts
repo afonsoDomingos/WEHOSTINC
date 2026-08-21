@@ -425,6 +425,26 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true, users: FALLBACK_USERS });
     }
 
+    if (action === 'update_due_date') {
+      const targetId = (userId || body.id || '').toLowerCase();
+      const targetEmail = (body.email || body.userEmail || '').trim().toLowerCase();
+      const newDueDate = Number(body.dueDate) || 29;
+
+      if (useMongo) {
+        const filter = targetEmail
+          ? { $or: [{ id: targetId }, { email: targetEmail }] }
+          : { id: targetId };
+        await UserModel.updateMany(filter, { dueDate: newDueDate });
+        const users = await UserModel.find({}).lean();
+        return NextResponse.json({ success: true, users, dueDate: newDueDate });
+      }
+      FALLBACK_USERS = FALLBACK_USERS.map(u =>
+        (targetId && u.id.toLowerCase() === targetId) || (targetEmail && u.email.toLowerCase() === targetEmail)
+          ? { ...u, dueDate: newDueDate } : u
+      );
+      return NextResponse.json({ success: true, users: FALLBACK_USERS, dueDate: newDueDate });
+    }
+
     if (action === 'update_avatar') {
       if (useMongo) {
         await UserModel.findOneAndUpdate({ id: userId }, { avatar });

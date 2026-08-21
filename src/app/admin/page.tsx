@@ -1724,7 +1724,26 @@ export default function AdminPage() {
                         )}
                       </td>
                       <td className="py-2.5 sm:py-3.5 px-2 sm:px-4 text-gray-600 text-[10px] sm:text-sm font-medium hidden sm:table-cell">
-                        {user.dueDate ? `Dia ${user.dueDate}` : 'Dia 29'}
+                        {user.role === 'admin' || user.email.toLowerCase() === 'admin@wehosthere.com' ? (
+                          <span className="text-gray-400 font-mono text-xs">N/A</span>
+                        ) : (
+                          <select
+                            value={user.dueDate || 29}
+                            onChange={(e) => {
+                              const newDay = Number(e.target.value);
+                              auth.updateUserDueDate(user.id, newDay);
+                              setUsers(prev => prev.map(u => u.id === user.id ? { ...u, dueDate: newDay } : u));
+                            }}
+                            className="bg-gray-50 hover:bg-gray-100 border border-gray-200 hover:border-gray-300 text-gray-800 text-[11px] sm:text-xs font-bold rounded-lg px-2 py-1 outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer"
+                            title="Alterar dia de vencimento mensal"
+                          >
+                            {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
+                              <option key={day} value={day}>
+                                Dia {day}
+                              </option>
+                            ))}
+                          </select>
+                        )}
                       </td>
                       <td className="py-2.5 sm:py-3.5 px-2 sm:px-4">
                         {user.role === 'admin' || user.email.toLowerCase() === 'admin@wehosthere.com' ? (

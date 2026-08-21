@@ -661,6 +661,35 @@ export const auth = {
     }
   },
 
+  // Atualizar dia de vencimento do usuário (ex: Dia 29)
+  updateUserDueDate: (userId: string, dueDate: number): void => {
+    if (typeof window === 'undefined') return;
+    const userData = JSON.parse(localStorage.getItem(`user_${userId}`) || '{}');
+    userData.dueDate = dueDate;
+    localStorage.setItem(`user_${userId}`, JSON.stringify(userData));
+
+    const currentList = auth.getUsers();
+    const updatedList = currentList.map(u => u.id === userId ? { ...u, dueDate } : u);
+    localStorage.setItem('wehosthere_all_users', JSON.stringify(updatedList));
+
+    fetch(apiEndpoint('/api/users'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'update_due_date', userId, email: userData.email, dueDate })
+    }).catch(err => console.error('Erro de sync de dueDate:', err));
+
+    const session = localStorage.getItem(STORAGE_KEY);
+    if (session) {
+      try {
+        const parsed = JSON.parse(session);
+        if (parsed.user.id === userId) {
+          parsed.user.dueDate = dueDate;
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+        }
+      } catch (e) {}
+    }
+  },
+
   // Atualizar avatar do usuário
   updateUserAvatar: (userId: string, avatarUrl: string): void => {
     if (typeof window === 'undefined') return;
