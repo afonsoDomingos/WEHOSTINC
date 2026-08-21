@@ -21,7 +21,9 @@ import {
   KeyRound,
   FileCheck,
   Smartphone,
-  Laptop
+  Laptop,
+  DownloadCloud,
+  Shuffle
 } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
@@ -662,12 +664,38 @@ export default function EmailDomainDetailPage() {
                 </Link>
 
                 <Link
+                  href={`/admin/email-domains/${domainName}/migration`}
+                  className="flex items-center justify-between p-3.5 rounded-xl bg-emerald-50/70 hover:bg-emerald-100 hover:text-emerald-900 text-emerald-800 font-semibold text-sm transition border border-emerald-200"
+                >
+                  <div className="flex items-center space-x-3">
+                    <DownloadCloud className="h-5 w-5 text-emerald-600" />
+                    <span>Importar E-mails Antigos</span>
+                  </div>
+                  <span className="text-xs bg-emerald-600 text-white px-2 py-0.5 rounded-md font-bold">
+                    Migrar
+                  </span>
+                </Link>
+
+                <Link
+                  href={`/admin/email-domains/${domainName}/aliases`}
+                  className="flex items-center justify-between p-3.5 rounded-xl bg-purple-50/70 hover:bg-purple-100 hover:text-purple-900 text-purple-800 font-semibold text-sm transition border border-purple-200"
+                >
+                  <div className="flex items-center space-x-3">
+                    <Shuffle className="h-5 w-5 text-purple-600" />
+                    <span>Pseudónimos &amp; Aliases</span>
+                  </div>
+                  <span className="text-xs bg-purple-600 text-white px-2 py-0.5 rounded-md font-bold">
+                    Novo
+                  </span>
+                </Link>
+
+                <Link
                   href={`/admin/email-domains/${domainName}/mailboxes`}
                   className="flex items-center justify-between p-3.5 rounded-xl bg-blue-50/70 hover:bg-blue-100 hover:text-blue-900 text-blue-800 font-semibold text-sm transition border border-blue-200"
                 >
                   <div className="flex items-center space-x-3">
                     <Smartphone className="h-5 w-5 text-blue-600" />
-                    <span>Conectar Outlook & Apps</span>
+                    <span>Conectar Outlook &amp; Apps</span>
                   </div>
                   <span className="text-xs bg-blue-600 text-white px-2 py-0.5 rounded-md font-bold">
                     Guia

@@ -6,7 +6,8 @@ import Link from 'next/link';
 import { 
   Mail, Inbox, Send, Star, Trash2, Edit3, Search, RefreshCw, 
   ArrowLeft, CheckCircle2, ShieldCheck, User, Paperclip, Reply, Forward,
-  FileText, LogOut, ChevronRight, X, AlertCircle, Sparkles, Clock, Printer, Download, Loader2, Filter, Maximize2, Minimize2, Bold, Italic, Underline, Type
+  FileText, LogOut, ChevronRight, X, AlertCircle, Sparkles, Clock, Printer, Download, Loader2, Filter, Maximize2, Minimize2, Bold, Italic, Underline, Type,
+  Wand2, Bot, FileSignature, Lightbulb, Check
 } from 'lucide-react';
 import { auth, User as AuthUser } from '@/lib/auth';
 import { dataManager, EmailAccount } from '@/lib/data';
@@ -140,6 +141,28 @@ function WebmailContent() {
 
   // Reply inline
   const [replyText, setReplyText] = useState('');
+  const [quickReplySending, setQuickReplySending] = useState(false);
+  const [quickReplyStatus, setQuickReplyStatus] = useState<'idle' | 'sent' | 'error'>('idle');
+
+  // AI Assistant states
+  const [aiSummary, setAiSummary] = useState<string | null>(null);
+  const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
+  const [isGeneratingReply, setIsGeneratingReply] = useState(false);
+  const [isImprovingDraft, setIsImprovingDraft] = useState(false);
+
+  // Signature states
+  const [showSignatureModal, setShowSignatureModal] = useState(false);
+  const [userSignature, setUserSignature] = useState<any | null>(null);
+  const [signatureForm, setSignatureForm] = useState({
+    fullName: '',
+    jobTitle: '',
+    companyName: '',
+    phone: '',
+    website: '',
+    logoUrl: '',
+    isEnabled: true
+  });
+  const [isSavingSignature, setIsSavingSignature] = useState(false);
 
   // Current date/time
   const [currentDateTime, setCurrentDateTime] = useState<Date | null>(null);
@@ -304,8 +327,12 @@ function WebmailContent() {
   };
 
   const handleInsertSignature = () => {
-    const sig = `\n\n--\nCumprimentos,\n${user?.name || 'Equipa'}\n${selectedAccountEmail}\nWEHOSTHERE Platform`;
-    setComposeBody(prev => prev + sig);
+    if (!signatureForm.fullName && !signatureForm.companyName) {
+      setShowSignatureModal(true);
+      return;
+    }
+    const sigText = `\n\n--\n${signatureForm.fullName || ''}\n${signatureForm.jobTitle ? signatureForm.jobTitle + ' | ' : ''}${signatureForm.companyName || ''}\n${signatureForm.phone ? 'Tel: ' + signatureForm.phone + '\n' : ''}${signatureForm.website ? 'Web: ' + signatureForm.website : ''}`;
+    setComposeBody(prev => prev + sigText);
   };
 
   const handleReplyMessage = () => {
@@ -630,9 +657,6 @@ function WebmailContent() {
     }
   };
 
-  const [quickReplySending, setQuickReplySending] = useState(false);
-  const [quickReplyStatus, setQuickReplyStatus] = useState<'idle' | 'sent' | 'error'>('idle');
-
   const handleWebmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setWebmailLoginLoading(true);
@@ -699,6 +723,129 @@ function WebmailContent() {
     } finally {
       setQuickReplySending(false);
       setTimeout(() => setQuickReplyStatus('idle'), 3000);
+    }
+  };
+
+  // Load signature for active account
+  useEffect(() => {
+    if (selectedAccountEmail) {
+      fetch(`/api/webmail/signature?email=${encodeURIComponent(selectedAccountEmail)}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.success && data.signature) {
+            setUserSignature(data.signature);
+            setSignatureForm({
+              fullName: data.signature.fullName || '',
+              jobTitle: data.signature.jobTitle || '',
+              companyName: data.signature.companyName || '',
+              phone: data.signature.phone || '',
+              website: data.signature.website || '',
+              logoUrl: data.signature.logoUrl || '',
+              isEnabled: data.signature.isEnabled !== false
+            });
+          }
+        })
+        .catch(() => {});
+    }
+  }, [selectedAccountEmail]);
+
+  // AI Assistant Handlers
+  const handleSummarizeWithAI = async () => {
+    if (!selectedMessage) return;
+    setIsGeneratingSummary(true);
+    try {
+      const res = await fetch('/api/ai/email-assistant', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'summarize',
+          content: selectedMessage.body,
+          subject: selectedMessage.subject,
+          from: selectedMessage.fromEmail
+        })
+      });
+      const data = await res.json();
+      if (data.success && data.result) {
+        setAiSummary(data.result);
+      }
+    } catch (err) {
+      console.error('Error generating summary:', err);
+    } finally {
+      setIsGeneratingSummary(false);
+    }
+  };
+
+  const handleGenerateAIReply = async (tone: string) => {
+    if (!selectedMessage) return;
+    setIsGeneratingReply(true);
+    try {
+      const res = await fetch('/api/ai/email-assistant', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'reply',
+          content: selectedMessage.body,
+          subject: selectedMessage.subject,
+          from: selectedMessage.fromEmail,
+          tone
+        })
+      });
+      const data = await res.json();
+      if (data.success && data.result) {
+        setReplyText(data.result);
+      }
+    } catch (err) {
+      console.error('Error generating AI reply:', err);
+    } finally {
+      setIsGeneratingReply(false);
+    }
+  };
+
+  const handleImproveWithAI = async () => {
+    if (!composeBody) return;
+    setIsImprovingDraft(true);
+    try {
+      const res = await fetch('/api/ai/email-assistant', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'improve',
+          content: composeBody,
+          tone: 'professional'
+        })
+      });
+      const data = await res.json();
+      if (data.success && data.result) {
+        setComposeBody(data.result);
+      }
+    } catch (err) {
+      console.error('Error improving draft:', err);
+    } finally {
+      setIsImprovingDraft(false);
+    }
+  };
+
+  const handleSaveSignature = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingSignature(true);
+    try {
+      const res = await fetch('/api/webmail/signature', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: selectedAccountEmail,
+          ...signatureForm
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setUserSignature(data.signature);
+        setShowSignatureModal(false);
+      }
+    } catch (err) {
+      console.error('Error saving signature:', err);
+    } finally {
+      setIsSavingSignature(false);
     }
   };
 
@@ -851,6 +998,15 @@ function WebmailContent() {
             title="Escrever E-mail"
           >
             <Edit3 className="h-4 w-4" />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setShowSignatureModal(true)}
+            className="p-2 hover:bg-purple-50 text-purple-600 rounded-xl transition cursor-pointer shrink-0"
+            title="Configurar Assinatura Profissional"
+          >
+            <FileSignature className="h-4 w-4" />
           </button>
 
           <button
@@ -1340,6 +1496,72 @@ function WebmailContent() {
                 </div>
               </div>
 
+              {/* AI Assistant Smart Bar */}
+              <div className="bg-gradient-to-r from-purple-900 via-indigo-900 to-primary-950 rounded-2xl p-4 text-white shadow-sm space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center space-x-2 text-xs font-bold">
+                    <Sparkles className="h-4 w-4 text-purple-300 animate-pulse" />
+                    <span>Assistente de IA Integrado</span>
+                  </div>
+
+                  <div className="flex items-center space-x-1.5">
+                    <button
+                      type="button"
+                      onClick={handleSummarizeWithAI}
+                      disabled={isGeneratingSummary}
+                      className="px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1 backdrop-blur-md disabled:opacity-50"
+                    >
+                      {isGeneratingSummary ? <Loader2 className="h-3 w-3 animate-spin" /> : <Lightbulb className="h-3 w-3 text-amber-300" />}
+                      <span>{isGeneratingSummary ? 'Resumindo...' : 'Resumir Mensagem'}</span>
+                    </button>
+
+                    <div className="relative inline-flex items-center space-x-1">
+                      <span className="text-[11px] text-purple-200 hidden sm:inline-block">Responder com IA:</span>
+                      <button
+                        type="button"
+                        onClick={() => handleGenerateAIReply('formal')}
+                        disabled={isGeneratingReply}
+                        className="px-2.5 py-1 bg-white/10 hover:bg-white/20 text-white rounded-lg text-[11px] font-semibold transition"
+                        title="Gerar resposta formal"
+                      >
+                        Formal
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleGenerateAIReply('friendly')}
+                        disabled={isGeneratingReply}
+                        className="px-2.5 py-1 bg-white/10 hover:bg-white/20 text-white rounded-lg text-[11px] font-semibold transition"
+                        title="Gerar resposta amigável"
+                      >
+                        Amigável
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleGenerateAIReply('quick_accept')}
+                        disabled={isGeneratingReply}
+                        className="px-2.5 py-1 bg-emerald-500/30 hover:bg-emerald-500/40 text-emerald-200 rounded-lg text-[11px] font-bold transition"
+                        title="Aceitar/Confirmar"
+                      >
+                        Confirmar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* AI Summary Box */}
+                {aiSummary && (
+                  <div className="p-3 bg-white/10 rounded-xl border border-white/15 text-xs text-purple-100 whitespace-pre-line relative">
+                    <button
+                      onClick={() => setAiSummary(null)}
+                      className="absolute top-2 right-2 text-white/50 hover:text-white"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                    {aiSummary}
+                  </div>
+                )}
+              </div>
+
               {/* Body card */}
               <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-200 flex-1 space-y-4">
                 {(() => {
@@ -1684,6 +1906,16 @@ function WebmailContent() {
                       Mensagem
                     </label>
                     <div className="flex items-center space-x-2">
+                      <button
+                        type="button"
+                        onClick={handleImproveWithAI}
+                        disabled={isImprovingDraft || !composeBody}
+                        className="text-[11px] font-bold text-purple-700 hover:text-purple-900 bg-purple-50 hover:bg-purple-100 px-2.5 py-1 rounded-lg border border-purple-200 transition cursor-pointer flex items-center space-x-1 disabled:opacity-50"
+                        title="Aprimorar redação com IA"
+                      >
+                        {isImprovingDraft ? <Loader2 className="w-3 h-3 animate-spin text-purple-600" /> : <Sparkles className="w-3 h-3 text-purple-600" />}
+                        <span>{isImprovingDraft ? 'Aprimorando...' : '✨ Melhorar com IA'}</span>
+                      </button>
                       <button
                         type="button"
                         onClick={handleInsertSignature}
@@ -2145,6 +2377,129 @@ function WebmailContent() {
                   className="flex-1 py-3 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-sm rounded-xl transition cursor-pointer shadow-md"
                 >
                   Alterar Senha
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Gerador e Gestor de Assinatura de E-mail */}
+      {showSignatureModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 animate-in fade-in zoom-in-95 duration-150 max-h-[92vh] overflow-y-auto border border-gray-100">
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-purple-100 text-purple-700 rounded-2xl flex items-center justify-center font-bold">
+                  <FileSignature className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-gray-900">Assinatura de E-mail Profissional</h3>
+                  <p className="text-xs text-gray-500">{selectedAccountEmail}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowSignatureModal(false)}
+                className="p-2 hover:bg-gray-100 text-gray-400 hover:text-gray-600 rounded-xl transition"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveSignature} className="space-y-3.5 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-gray-700 font-bold mb-1">Nome Completo</label>
+                  <input
+                    type="text"
+                    value={signatureForm.fullName}
+                    onChange={(e) => setSignatureForm({ ...signatureForm, fullName: e.target.value })}
+                    placeholder="Seu Nome"
+                    required
+                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-purple-500 font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-700 font-bold mb-1">Cargo / Função</label>
+                  <input
+                    type="text"
+                    value={signatureForm.jobTitle}
+                    onChange={(e) => setSignatureForm({ ...signatureForm, jobTitle: e.target.value })}
+                    placeholder="Diretor Geral, Comercial, etc."
+                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-purple-500 font-medium"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-gray-700 font-bold mb-1">Empresa</label>
+                  <input
+                    type="text"
+                    value={signatureForm.companyName}
+                    onChange={(e) => setSignatureForm({ ...signatureForm, companyName: e.target.value })}
+                    placeholder="Nome da sua Empresa"
+                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-purple-500 font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-700 font-bold mb-1">Telefone / WhatsApp</label>
+                  <input
+                    type="text"
+                    value={signatureForm.phone}
+                    onChange={(e) => setSignatureForm({ ...signatureForm, phone: e.target.value })}
+                    placeholder="+258 84 000 0000"
+                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-purple-500 font-medium"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-gray-700 font-bold mb-1">Website / Link</label>
+                <input
+                  type="text"
+                  value={signatureForm.website}
+                  onChange={(e) => setSignatureForm({ ...signatureForm, website: e.target.value })}
+                  placeholder="https://suaempresa.co.mz"
+                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-purple-500 font-medium"
+                />
+              </div>
+
+              {/* Live Signature Preview */}
+              <div className="pt-2">
+                <label className="block text-gray-700 font-bold mb-1">Pré-visualização da Assinatura:</label>
+                <div className="p-4 bg-gray-50 rounded-2xl border border-gray-200 space-y-1 text-gray-800 font-sans border-l-4 border-l-purple-600">
+                  <div className="font-bold text-sm text-gray-900">{signatureForm.fullName || 'Seu Nome'}</div>
+                  <div className="text-gray-600 text-xs">
+                    {signatureForm.jobTitle ? `${signatureForm.jobTitle} • ` : ''}{signatureForm.companyName || 'Sua Empresa'}
+                  </div>
+                  {signatureForm.phone && (
+                    <div className="text-gray-500 text-[11px]">📞 {signatureForm.phone}</div>
+                  )}
+                  {signatureForm.website && (
+                    <div className="text-purple-600 font-semibold text-[11px]">🌐 {signatureForm.website}</div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-3 pt-3">
+                <button
+                  type="button"
+                  onClick={() => setShowSignatureModal(false)}
+                  className="flex-1 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs rounded-xl transition"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSavingSignature || !signatureForm.fullName}
+                  className="flex-1 py-2.5 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl transition shadow-sm flex items-center justify-center space-x-1.5"
+                >
+                  {isSavingSignature ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                  <span>{isSavingSignature ? 'Salvando...' : 'Salvar Assinatura'}</span>
                 </button>
               </div>
             </form>
