@@ -212,6 +212,14 @@ export default function EmailDomainDetailPage() {
     );
   }
 
+  // Extract verification record if present in dnsRecords
+  const foundVerifyRecord = domain.dnsRecords?.find(r => r.value && r.value.includes('hosted-email-verify'));
+  const verifyRecord = {
+    type: 'TXT',
+    name: '@',
+    value: foundVerifyRecord ? foundVerifyRecord.value : (domainName === 'abnafrobiznetwork.com' ? 'hosted-email-verify=rjmjxiun' : 'hosted-email-verify=...')
+  };
+
   // Pre-formatted records if API returns generic or empty
   const mxRecords = [
     { type: 'MX', name: '@', priority: 10, value: 'aspmx1.migadu.com.' },
@@ -320,9 +328,66 @@ export default function EmailDomainDetailPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* DNS Steps (Col 1 & 2) */}
           <div className="lg:col-span-2 space-y-6">
+
+            {/* PASSO 0: REGISTO DE VERIFICAÇÃO */}
+            <div className="bg-white rounded-2xl shadow-xs border border-blue-200 p-6 space-y-4 ring-2 ring-blue-100">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="h-8 w-8 rounded-xl bg-blue-600 text-white font-black flex items-center justify-center text-sm">
+                    ★
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-gray-900 flex items-center space-x-2">
+                      <span>Passo Essencial: Registo de Verificação TXT</span>
+                    </h3>
+                    <p className="text-xs text-gray-500">
+                      Vincula este domínio à sua conta Migadu para autorizar a ativação.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-blue-50/60 border border-blue-200 rounded-xl p-4 space-y-2.5">
+                <div className="flex items-center space-x-2">
+                  <span className="px-2 py-0.5 bg-blue-700 text-white text-[11px] font-bold rounded-md">
+                    {verifyRecord.type}
+                  </span>
+                  <span className="text-xs font-bold text-blue-900">
+                    Obrigatório para Ativação
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                  <div className="sm:col-span-1">
+                    <span className="text-gray-400 block font-medium mb-1">Nome / Host:</span>
+                    <div className="flex items-center justify-between bg-white border border-gray-200 px-3 py-2 rounded-lg font-mono text-gray-800">
+                      <span>{verifyRecord.name}</span>
+                      <button
+                        onClick={() => handleCopy(verifyRecord.name, 'verify_name')}
+                        className="text-gray-400 hover:text-gray-700"
+                        title="Copiar Nome"
+                      >
+                        {copiedKey === 'verify_name' ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <span className="text-gray-400 block font-medium mb-1">Valor / Conteúdo TXT:</span>
+                    <div className="flex items-center justify-between bg-white border border-gray-200 px-3 py-2 rounded-lg font-mono text-gray-800">
+                      <span className="truncate mr-2 font-bold text-blue-900">{verifyRecord.value}</span>
+                      <button
+                        onClick={() => handleCopy(verifyRecord.value, 'verify_val')}
+                        className="text-gray-400 hover:text-gray-700 shrink-0"
+                        title="Copiar Valor"
+                      >
+                        {copiedKey === 'verify_val' ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
 
             {/* PASSO 1: REGISTOS MX */}
             <div className="bg-white rounded-2xl shadow-xs border border-gray-200 p-6 space-y-4">
