@@ -328,6 +328,7 @@ export default function EmailDomainDetailPage() {
           </div>
         </div>
 
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* DNS Steps (Col 1 & 2) */}
           <div className="lg:col-span-2 space-y-6">
 
