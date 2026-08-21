@@ -163,6 +163,34 @@ export async function POST(req: Request) {
 
     if (useMongo) {
       await EmailAccountModel.findOneAndUpdate({ $or: [{ id: emailData.id }, { email: targetKey }] }, emailData, { upsert: true, new: true });
+      
+      // Notificar Administrador sobre novo pedido de conta de e-mail
+      try {
+        const { addAdminNotification, dispatchMessage } = await import('@/lib/notifications');
+        const adminDestEmail = process.env.ADMIN_NOTIFICATION_EMAIL || 'admin@wehosthere.com';
+        
+        // 1. Notificação In-App no Sino / Painel Admin
+        addAdminNotification({
+          title: `📬 Novo Pedido de E-mail: ${emailData.email}`,
+          message: `O cliente ${emailData.userEmail || 'Cliente'} solicitou a ativação da conta ${emailData.email}.`,
+          type: 'system',
+          userEmail: emailData.userEmail,
+          link: `/admin/email-domains/${emailData.domain || emailData.email.split('@')[1] || 'abnafrobiznetwork.com'}/mailboxes`
+        });
+
+        // 2. Envio de E-mail de Alerta para a Caixa do Admin
+        await dispatchMessage({
+          recipientEmail: adminDestEmail,
+          recipientName: 'Administrador WEHOSTHERE',
+          subject: `📬 Novo Pedido de E-mail Corporativo: ${emailData.email}`,
+          body: `Olá Administrador,\n\nO cliente ${emailData.userEmail || 'utilizador da plataforma'} solicitou a criação da seguinte conta de e-mail:\n\n• Endereço: ${emailData.email}\n• Domínio: ${emailData.domain}\n• Solicitado por: ${emailData.userEmail}\n• Data: ${new Date().toLocaleString('pt-MZ')}\n\nPara aprovar e ativar esta caixa nos servidores, aceda ao painel:\nhttps://wehosthere.com/admin/email-domains/${emailData.domain}/mailboxes\n\nAtenciosamente,\nSistema de Notificações WEHOSTHERE`,
+          isAutomatic: true,
+          eventType: 'new_email_requested'
+        });
+      } catch (notifErr) {
+        console.warn('[Emails API] Erro ao disparar notificação ao admin:', notifErr);
+      }
+
       return NextResponse.json({ success: true, email: emailData, emails: await EmailAccountModel.find({}).lean() });
     }
     const idx = FALLBACK_EMAILS.findIndex(e => e.id === emailData.id || e.email?.toLowerCase() === targetKey);
