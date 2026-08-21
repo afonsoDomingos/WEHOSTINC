@@ -97,7 +97,7 @@ export default function EmailPage() {
     // Clean up stale shared localStorage data and migrate to per-user key
     dataManager.initUserEmails(userEmailFilter);
 
-    // Fetch Migadu domains for this user
+    // Fetch Migadu domains for this user and live mailboxes
     const fetchMigaduDomains = async () => {
       try {
         const response = await fetch('/api/email-providers/migadu/domains');
@@ -105,16 +105,43 @@ export default function EmailPage() {
         if (data.success) {
           setMigaduDomains(data.domains);
           const cleanUser = userEmailFilter.toLowerCase();
-          // Filter domains owned by this user or general platform domains
           const userDoms = data.domains.filter((d: any) => 
             !d.customerId || 
             d.customerId === 'system' || 
             d.customerId.toLowerCase() === cleanUser
           );
-          const migaduDomainNames = (userDoms.length > 0 ? userDoms : data.domains).map((d: any) => d.domainName);
-          setUserDomains(migaduDomainNames);
+          const migaduDomainNames: string[] = (userDoms.length > 0 ? userDoms : data.domains).map((d: any) => d.domainName).filter(Boolean);
+          setUserDomains(prev => Array.from(new Set([...prev, ...migaduDomainNames])));
           if (migaduDomainNames.length > 0 && !selectedDomain) {
             setSelectedDomain(migaduDomainNames[0]);
+          }
+
+          // Fetch mailboxes for each domain to ensure live sync
+          for (const dName of migaduDomainNames) {
+            try {
+              const mbRes = await fetch(`/api/email-providers/migadu/domains/${dName}/mailboxes`);
+              const mbData = await mbRes.json();
+              const mailboxes = mbData.mailboxes || mbData || [];
+              if (Array.isArray(mailboxes) && mailboxes.length > 0) {
+                const currentLocal = dataManager.getEmails(userEmailFilter);
+                for (const mb of mailboxes) {
+                  const fullEmail = (mb.email || `${mb.localPart || mb.local_part}@${dName}`).toLowerCase().trim();
+                  if (fullEmail && !currentLocal.some(e => e.email.toLowerCase() === fullEmail)) {
+                    const newAcc: EmailAccount = {
+                      id: `email_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+                      email: fullEmail,
+                      domain: dName,
+                      storage: 5,
+                      status: 'active',
+                      userEmail: userEmailFilter,
+                      createdAt: new Date().toISOString()
+                    };
+                    dataManager.addEmail(newAcc);
+                  }
+                }
+                refreshData();
+              }
+            } catch {}
           }
         }
       } catch (error) {
@@ -140,8 +167,8 @@ export default function EmailPage() {
         !s.userEmail || s.userEmail.toLowerCase() === userEmailFilter.toLowerCase()
       );
       setSites(loadedSites);
-      const domains = loadedSites.map(s => s.domain).filter(Boolean);
-      setUserDomains(domains);
+      const siteDomains = loadedSites.map(s => s.domain).filter(Boolean);
+      setUserDomains(prev => Array.from(new Set([...prev, ...siteDomains])));
     };
 
     refreshData();

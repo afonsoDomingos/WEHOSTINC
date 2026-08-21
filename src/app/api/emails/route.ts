@@ -27,8 +27,35 @@ export async function GET() {
         EmailDomain.find({}).lean()
       ]);
 
+      // Build domain -> customer email map from EmailDomain and Site
+      const domainOwnerMap = new Map<string, string>();
+      dbDomains.forEach((d: any) => {
+        if (d.domainName && d.customerId && d.customerId !== 'system') {
+          domainOwnerMap.set(d.domainName.toLowerCase().trim(), d.customerId.trim());
+        }
+      });
+
+      try {
+        const SiteModel = (await import('@/lib/models/Site')).default;
+        const dbSites = await SiteModel.find({}).lean();
+        dbSites.forEach((s: any) => {
+          if (s.domain && s.userEmail) {
+            domainOwnerMap.set(s.domain.toLowerCase().trim(), s.userEmail.trim());
+          }
+        });
+      } catch {}
+
       const existingEmails = new Set(emailAccounts.map(e => (e.email || '').toLowerCase().trim()));
-      const allEmails: any[] = [...emailAccounts];
+      const allEmails: any[] = emailAccounts.map(e => {
+        const domain = (e.domain || e.email?.split('@')[1] || '').toLowerCase().trim();
+        const owner = domainOwnerMap.get(domain);
+        if (owner && (!e.userEmail || e.userEmail === 'admin@wehosthere.com' || e.userEmail === 'Cliente')) {
+          // Update in memory and database
+          EmailAccountModel.updateOne({ _id: e._id }, { $set: { userEmail: owner } }).catch(() => {});
+          return { ...e, userEmail: owner };
+        }
+        return e;
+      });
 
       // Try fetching live mailboxes for Migadu domains if provider configured
       try {
@@ -40,6 +67,8 @@ export async function GET() {
           }
           for (const dName of migaduDomainNames) {
             try {
+              const cleanDName = dName.toLowerCase().trim();
+              const domainOwner = domainOwnerMap.get(cleanDName) || 'admin@wehosthere.com';
               const liveMbs = await provider.listMailboxes(dName);
               for (const mb of liveMbs) {
                 const em = (mb.email || `${mb.localPart}@${dName}`).toLowerCase().trim();
@@ -50,7 +79,7 @@ export async function GET() {
                     email: em,
                     domain: dName,
                     status: mb.status || 'active',
-                    userEmail: 'admin@wehosthere.com',
+                    userEmail: domainOwner,
                     createdAt: new Date().toISOString()
                   };
                   allEmails.push(newEmailObj);
@@ -70,14 +99,16 @@ export async function GET() {
       // Merge any mailboxes from EmailMailbox
       dbMailboxes.forEach((mb: any) => {
         const em = (mb.email || '').toLowerCase().trim();
+        const domain = em.split('@')[1] || '';
+        const domainOwner = domainOwnerMap.get(domain) || (mb.customerId === 'system' ? 'admin@wehosthere.com' : (mb.customerId || 'Cliente'));
         if (em && !existingEmails.has(em)) {
           existingEmails.add(em);
           allEmails.push({
             id: mb._id?.toString() || mb.id || `mb_${Date.now()}`,
             email: em,
-            domain: em.split('@')[1] || '',
+            domain: domain,
             status: mb.status || 'active',
-            userEmail: mb.customerId === 'system' ? 'admin@wehosthere.com' : (mb.customerId || 'Cliente'),
+            userEmail: domainOwner,
             createdAt: mb.createdAt || new Date().toISOString()
           });
         }

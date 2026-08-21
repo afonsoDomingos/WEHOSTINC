@@ -24,6 +24,8 @@ export default function BillingPage() {
   const [loading, setLoading] = useState(true);
   const [selectedReceipt, setSelectedReceipt] = useState<ReceiptData | null>(null);
   const [userOrders, setUserOrders] = useState<ServiceOrder[]>([]);
+  const [siteCount, setSiteCount] = useState(0);
+  const [emailCount, setEmailCount] = useState(0);
   const [toastMsg, setToastMsg] = useState<{ type: 'success' | 'error' | 'info'; title?: string; message: string } | null>(null);
 
   useEffect(() => {
@@ -64,6 +66,20 @@ export default function BillingPage() {
     
     setUser(currentUser);
 
+    const initialSites = dataManager.getSites(currentUser.email);
+    const initialEmails = dataManager.getEmails(currentUser.email);
+    setSiteCount(initialSites.length);
+    setEmailCount(initialEmails.length);
+
+    // Sync live from server
+    Promise.all([
+      dataManager.fetchSitesAsync(currentUser.email),
+      dataManager.fetchEmailsAsync(currentUser.email)
+    ]).then(([fetchedSites, fetchedEmails]) => {
+      setSiteCount(fetchedSites.length);
+      setEmailCount(fetchedEmails.length);
+    });
+
     const refreshOrders = (fetchedOrders?: ServiceOrder[]) => {
       const allOrders = fetchedOrders || dataManager.getOrders();
       const myOrders = allOrders.filter(
@@ -80,7 +96,9 @@ export default function BillingPage() {
 
     const interval = setInterval(() => {
       dataManager.fetchOrdersAsync().then((fetched) => refreshOrders(fetched));
-    }, 30000);
+      dataManager.fetchSitesAsync(currentUser.email).then(s => setSiteCount(s.length));
+      dataManager.fetchEmailsAsync(currentUser.email).then(e => setEmailCount(e.length));
+    }, 15000);
 
     return () => clearInterval(interval);
   }, [session, status, router]);
@@ -89,9 +107,17 @@ export default function BillingPage() {
     router.push(`/checkout?plan=${planId}`);
   };
 
+  const hasActiveService = userOrders.filter(o => o.status === 'completed' || o.status === 'in_progress').length > 0 || siteCount > 0 || emailCount > 0 || (user?.plan && user.plan !== 'none');
+
   const getCurrentPlan = () => {
     if (!user) return null;
-    return hostingPlans.find(p => p.id === user.plan) || hostingPlans[0];
+    if (user.plan && user.plan !== 'none') {
+      return hostingPlans.find(p => p.id === user.plan) || hostingPlans[0];
+    }
+    if (siteCount > 0 || emailCount > 0) {
+      return hostingPlans.find(p => p.id === 'basic') || hostingPlans[0];
+    }
+    return hostingPlans[0];
   };
 
   if (loading) {
@@ -126,13 +152,13 @@ export default function BillingPage() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 gap-2">
                 <div>
                   <h2 className="text-xl sm:text-2xl font-bold mb-1">
-                    {userOrders.filter(o => o.status === 'completed' || o.status === 'in_progress').length > 0
+                    {hasActiveService
                       ? 'Serviços & Assinaturas Contratadas'
                       : 'Sem Assinatura Ativa'}
                   </h2>
                   <p className="text-blue-100 text-sm">
-                    {userOrders.filter(o => o.status === 'completed' || o.status === 'in_progress').length > 0
-                      ? 'Consulte os serviços e produtos ativos na sua conta'
+                    {hasActiveService
+                      ? 'Plano Básico de Hospedagem & E-mail Corporativo Ativo'
                       : 'Adquira um plano de hospedagem ou solicite a criação de um website'}
                   </p>
                 </div>
@@ -146,12 +172,12 @@ export default function BillingPage() {
               <div className="grid md:grid-cols-3 gap-4">
                 <div className="bg-white/10 rounded-lg p-4">
                   <Globe className="h-6 w-6 mb-2 text-emerald-300" />
-                  <p className="font-semibold text-lg">{dataManager.getSites(user.email).length} Domínio(s)</p>
+                  <p className="font-semibold text-lg">{siteCount} Domínio(s)</p>
                   <p className="text-sm text-blue-100">Sites Registados</p>
                 </div>
                 <div className="bg-white/10 rounded-lg p-4">
                   <Mail className="h-6 w-6 mb-2 text-blue-300" />
-                  <p className="font-semibold text-lg">{dataManager.getEmails(user.email).length} Caixa(s)</p>
+                  <p className="font-semibold text-lg">{emailCount} Caixa(s)</p>
                   <p className="text-sm text-blue-100">E-mails Corporativos</p>
                 </div>
                 <div className="bg-white/10 rounded-lg p-4">

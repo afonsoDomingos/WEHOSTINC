@@ -868,12 +868,10 @@ export const dataManager = {
   getEmails: (userEmail?: string): EmailAccount[] => {
     if (typeof window === 'undefined') return [];
     if (userEmail) {
-      // Use user-specific key for strict isolation
       const userKey = getEmailsKey(userEmail);
       const data = localStorage.getItem(userKey);
       return data ? JSON.parse(data) : [];
     }
-    // Fallback: read from shared key (admin use)
     const data = localStorage.getItem(EMAILS_KEY);
     return data ? JSON.parse(data) : [];
   },
@@ -894,10 +892,15 @@ export const dataManager = {
 
           if (currentUserEmail) {
             const cleanUserEmail = currentUserEmail.trim().toLowerCase();
-            // STRICT ISOLATION: Only process emails that strictly belong to this user
-            const myServerEmails = serverEmails.filter(
-              e => e.userEmail && e.userEmail.trim().toLowerCase() === cleanUserEmail
-            );
+            const userSites = dataManager.getSites(currentUserEmail);
+            const userDomainNames = new Set(userSites.map(s => (s.domain || '').toLowerCase().trim()).filter(Boolean));
+
+            // Match emails by userEmail OR by user domains
+            const myServerEmails = serverEmails.filter(e => {
+              const u = (e.userEmail || '').trim().toLowerCase();
+              const d = (e.domain || e.email?.split('@')[1] || '').trim().toLowerCase();
+              return u === cleanUserEmail || (d && userDomainNames.has(d));
+            });
 
             const userKey = getEmailsKey(currentUserEmail);
             const localData = localStorage.getItem(userKey);
@@ -906,7 +909,7 @@ export const dataManager = {
             const updated: EmailAccount[] = [];
             const processedKeys = new Set<string>();
 
-            // 1. Preservar TODOS os e-mails locais criados (incluindo 'pending') e atualizar com dados do servidor
+            // 1. Preservar TODOS os e-mails locais criados e atualizar com dados do servidor
             localEmails.forEach(local => {
               const key = local.email.toLowerCase();
               processedKeys.add(key);
@@ -923,18 +926,17 @@ export const dataManager = {
                   userEmail: serverMatch.userEmail || local.userEmail || currentUserEmail
                 });
               } else {
-                // Preservar apenas e-mails criados muito recentemente (< 15s) que ainda não chegaram ao servidor
-                const createdAtTime = new Date(local.createdAt || '').getTime();
-                const isJustCreated = !isNaN(createdAtTime) && (Date.now() - createdAtTime < 15000);
-                if (isJustCreated) {
-                  updated.push(local);
+                // Preservar e-mails locais permanentemente e enviar ao servidor
+                updated.push({
+                  ...local,
+                  userEmail: local.userEmail || currentUserEmail
+                });
 
-                  fetch(apiEndpoint('/api/emails'), {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: local })
-                  }).catch(() => {});
-                }
+                fetch(apiEndpoint('/api/emails'), {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ email: { ...local, userEmail: local.userEmail || currentUserEmail } })
+                }).catch(() => {});
               }
             });
 
@@ -942,6 +944,7 @@ export const dataManager = {
             myServerEmails.forEach(serverEmail => {
               const key = serverEmail.email.toLowerCase();
               if (!processedKeys.has(key)) {
+                processedKeys.add(key);
                 updated.push(serverEmail);
               }
             });
