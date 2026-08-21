@@ -15,7 +15,7 @@ export async function GET(
     await connectDB();
     const domainName = params.domain;
 
-    let domain = await EmailDomain.findOne({ domainName });
+    let domain = await EmailDomain.findOne({ domainName: new RegExp(`^${domainName}$`, 'i') });
     if (!domain) {
       domain = await EmailDomain.create({
         domainName,
@@ -39,45 +39,71 @@ export async function GET(
       }
     }
 
-    // Upsert live provider mailboxes into MongoDB
-    for (const mb of providerMailboxes) {
+    // Sync live Migadu mailboxes into MongoDB (update existing, add new, remove deleted)
+    if (providerMailboxes.length > 0) {
+      const liveEmails = new Set<string>();
+
+      for (const mb of providerMailboxes) {
+        try {
+          // Safely extract localPart — strip @domain if Migadu returns full address
+          let rawLocal = mb.localPart || (mb.email ? mb.email.split('@')[0] : 'user');
+          // If localPart contains '@', only take what's before it
+          if (rawLocal.includes('@')) rawLocal = rawLocal.split('@')[0];
+          const localPart = rawLocal.toLowerCase();
+          const emailLower = `${localPart}@${domainName.toLowerCase()}`;
+          liveEmails.add(emailLower);
+
+          await EmailMailbox.findOneAndUpdate(
+            { email: emailLower },
+            {
+              domainId: domain._id.toString(),
+              customerId: mb.customerId || 'system',
+              localPart,
+              email: emailLower,
+              name: mb.name || localPart,
+              status: mb.status || 'active',
+              provider: 'migadu',
+              maySend: mb.maySend !== false,
+              mayReceive: mb.mayReceive !== false,
+              mayAccessImap: mb.mayAccessImap !== false,
+              updatedAt: new Date()
+            },
+            { upsert: true, new: true }
+          );
+
+          // Sync into EmailAccountModel
+          await EmailAccountModel.findOneAndUpdate(
+            { email: emailLower },
+            {
+              id: `email_${localPart}_${domainName.replace(/[^a-zA-Z0-9]/g, '_')}`,
+              email: emailLower,
+              domain: domainName,
+              status: mb.status || 'active',
+              userEmail: 'admin@wehosthere.com',
+              createdAt: new Date().toISOString()
+            },
+            { upsert: true, new: true }
+          );
+        } catch (upsertErr) {
+          console.error('[Migadu Mailboxes GET] Error syncing mailbox to DB:', upsertErr);
+        }
+      }
+
+      // Remove mailboxes from DB that no longer exist on Migadu
       try {
-        const localPart = mb.localPart || (mb.email ? mb.email.split('@')[0] : 'user');
-        const emailLower = (mb.email || `${localPart}@${domainName}`).toLowerCase();
-
-        await EmailMailbox.findOneAndUpdate(
-          { email: emailLower },
-          {
-            domainId: domain._id.toString(),
-            customerId: mb.customerId || 'system',
-            localPart: localPart,
-            email: emailLower,
-            name: mb.name || localPart,
-            status: mb.status || 'active',
-            provider: 'migadu',
-            maySend: mb.maySend !== false,
-            mayReceive: mb.mayReceive !== false,
-            mayAccessImap: mb.mayAccessImap !== false,
-            updatedAt: new Date()
-          },
-          { upsert: true, new: true }
-        );
-
-        // Also sync into EmailAccountModel for site-wide consistency
-        await EmailAccountModel.findOneAndUpdate(
-          { email: emailLower },
-          {
-            id: `email_${localPart}_${domainName.replace(/[^a-zA-Z0-9]/g, '_')}`,
-            email: emailLower,
-            domain: domainName,
-            status: mb.status || 'active',
-            userEmail: 'admin@wehosthere.com',
-            createdAt: new Date().toISOString()
-          },
-          { upsert: true, new: true }
-        );
-      } catch (upsertErr) {
-        console.error('[Migadu Mailboxes GET] Error syncing mailbox to DB:', upsertErr);
+        const dbOnlyMailboxes = await EmailMailbox.find({
+          email: { $regex: `@${domainName}$`, $options: 'i' }
+        }).lean();
+        for (const dbMb of dbOnlyMailboxes) {
+          const e = (dbMb as any).email?.toLowerCase();
+          if (e && !liveEmails.has(e)) {
+            await EmailMailbox.deleteOne({ email: e });
+            await EmailAccountModel.deleteMany({ email: e });
+            console.log(`[Migadu Mailboxes GET] Removed deleted mailbox from DB: ${e}`);
+          }
+        }
+      } catch (cleanErr) {
+        console.warn('[Migadu Mailboxes GET] Error cleaning stale mailboxes:', cleanErr);
       }
     }
 
