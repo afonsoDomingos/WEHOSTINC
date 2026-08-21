@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
@@ -13,6 +13,7 @@ import { auth, User as AuthUser } from '@/lib/auth';
 import { dataManager, EmailAccount } from '@/lib/data';
 import { webmailManager, WebmailMessage, WebmailAttachment, ATTACHMENT_MAX_SIZE, ATTACHMENT_MAX_COUNT, ATTACHMENT_TOTAL_MAX_SIZE } from '@/lib/webmailClient';
 import { emailTemplates, templateCategories, templateCategoriesEN, EmailTemplate } from '@/lib/emailTemplates';
+import { soundEffects } from '@/lib/soundEffects';
 import BrandLogo from '@/components/BrandLogo';
 import PageLoader from '@/components/PageLoader';
 import { apiEndpoint } from '@/lib/siteConfig';
@@ -85,6 +86,11 @@ function WebmailContent() {
   const [messages, setMessages] = useState<WebmailMessage[]>([]);
   const [selectedMessage, setSelectedMessage] = useState<WebmailMessage | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [deleteConfirmModal, setDeleteConfirmModal] = useState<{ isOpen: boolean; msgId: string; subject: string; isPermanent: boolean } | null>(null);
+
+  // New email sound detection
+  const knownInboxIdsRef = useRef<Set<string>>(new Set());
+  const isInitialLoadRef = useRef<boolean>(true);
 
   // Filter & Refresh State
   const [filterType, setFilterType] = useState<'all' | 'unread' | 'attachments' | 'starred'>('all');
@@ -582,6 +588,22 @@ function WebmailContent() {
     }
   };
 
+  // Detect new incoming emails in inbox and play chime sound
+  useEffect(() => {
+    if (currentFolder === 'inbox' && messages.length > 0) {
+      if (isInitialLoadRef.current) {
+        knownInboxIdsRef.current = new Set(messages.map(m => m.id));
+        isInitialLoadRef.current = false;
+      } else {
+        const hasNewIncoming = messages.some(m => !knownInboxIdsRef.current.has(m.id) && !m.isRead);
+        if (hasNewIncoming) {
+          soundEffects.playNewEmailSound();
+        }
+        knownInboxIdsRef.current = new Set(messages.map(m => m.id));
+      }
+    }
+  }, [messages, currentFolder]);
+
   const handleSelectMessage = async (msg: WebmailMessage) => {
     setSelectedMessage(msg);
     if (!msg.isRead) {
@@ -612,18 +634,37 @@ function WebmailContent() {
     }
   };
 
-  const handleDeleteMessage = async (msgId: string, e?: React.MouseEvent) => {
+  // Solicitar confirmação antes de eliminar
+  const handleDeleteMessage = (msgId: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     const msg = messages.find(m => m.id === msgId);
+    setDeleteConfirmModal({
+      isOpen: true,
+      msgId,
+      subject: msg?.subject || '(Sem assunto)',
+      isPermanent: currentFolder === 'trash'
+    });
+  };
+
+  // Executar eliminação após confirmação com feedback sonoro
+  const executeDeleteMessage = async (msgId: string) => {
+    const msg = messages.find(m => m.id === msgId);
     const imapFolder = msg?.folder === 'sent' ? 'Sent' : msg?.folder === 'trash' ? 'Trash' : 'INBOX';
-    if (currentFolder === 'trash') {
-      await webmailManager.deletePermanently(msgId, selectedAccountEmail, mailboxPassword, msg?.uid, imapFolder);
-      setMessages(prev => prev.filter(m => m.id !== msgId));
-      if (selectedMessage?.id === msgId) setSelectedMessage(null);
-    } else {
-      await webmailManager.moveFolder(msgId, 'trash', selectedAccountEmail, mailboxPassword, msg?.uid, imapFolder);
-      setMessages(prev => prev.filter(m => m.id !== msgId));
-      if (selectedMessage?.id === msgId) setSelectedMessage(null);
+    try {
+      if (currentFolder === 'trash') {
+        await webmailManager.deletePermanently(msgId, selectedAccountEmail, mailboxPassword, msg?.uid, imapFolder);
+        setMessages(prev => prev.filter(m => m.id !== msgId));
+        if (selectedMessage?.id === msgId) setSelectedMessage(null);
+      } else {
+        await webmailManager.moveFolder(msgId, 'trash', selectedAccountEmail, mailboxPassword, msg?.uid, imapFolder);
+        setMessages(prev => prev.filter(m => m.id !== msgId));
+        if (selectedMessage?.id === msgId) setSelectedMessage(null);
+      }
+      soundEffects.playDeleteEmailSound();
+    } catch (err) {
+      console.error('[Webmail] Error deleting message:', err);
+    } finally {
+      setDeleteConfirmModal(null);
     }
   };
 
@@ -637,7 +678,6 @@ function WebmailContent() {
     if (isPending) {
       setSentSuccessMsg('');
       setSendingMsg(false);
-      // Show error via sentSuccessMsg as error style (we'll use a different approach)
       setWebmailLoginError('⏳ Esta conta ainda não foi aprovada pelo administrador. O envio de emails estará disponível após a aprovação.');
       return;
     }
@@ -677,6 +717,7 @@ function WebmailContent() {
         setEditingDraftId(null);
       }
 
+      soundEffects.playSendEmailSound();
       setSendingMsg(false);
       setSentSuccessMsg('✅ E-mail enviado com sucesso via Migadu!');
 
@@ -756,6 +797,7 @@ function WebmailContent() {
         replyText
       );
 
+      soundEffects.playSendEmailSound();
       setReplyText('');
       refreshMessages();
       setQuickReplyStatus('sent');
@@ -2677,6 +2719,52 @@ function WebmailContent() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Confirmação de Eliminação de E-mail */}
+      {deleteConfirmModal?.isOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-150">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-5 sm:p-6 border border-gray-100 animate-in zoom-in-95 duration-150">
+            <div className="flex items-center space-x-3.5 mb-4">
+              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${deleteConfirmModal.isPermanent ? 'bg-rose-100 text-rose-600' : 'bg-amber-100 text-amber-600'}`}>
+                <Trash2 className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="text-base sm:text-lg font-black text-gray-900">
+                  {deleteConfirmModal.isPermanent ? 'Eliminar Permanentemente' : 'Mover para a Lixeira'}
+                </h3>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  {deleteConfirmModal.isPermanent ? 'Esta ação não pode ser desfeita' : 'Pode recuperar a mensagem na Lixeira'}
+                </p>
+              </div>
+            </div>
+
+            <div className="p-3.5 bg-gray-50 rounded-2xl border border-gray-200/80 mb-5">
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Assunto da Mensagem</span>
+              <p className="text-xs sm:text-sm font-bold text-gray-800 truncate mt-0.5">
+                {deleteConfirmModal.subject}
+              </p>
+            </div>
+
+            <div className="flex items-center space-x-2.5">
+              <button
+                type="button"
+                onClick={() => setDeleteConfirmModal(null)}
+                className="flex-1 py-3 border border-gray-200 text-gray-700 font-bold text-xs rounded-2xl hover:bg-gray-100 transition cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => executeDeleteMessage(deleteConfirmModal.msgId)}
+                className={`flex-1 py-3 text-white font-black text-xs rounded-2xl transition cursor-pointer shadow-md flex items-center justify-center space-x-2 ${deleteConfirmModal.isPermanent ? 'bg-rose-600 hover:bg-rose-700' : 'bg-amber-600 hover:bg-amber-700'}`}
+              >
+                <Trash2 className="h-4 w-4" />
+                <span>{deleteConfirmModal.isPermanent ? 'Sim, Eliminar' : 'Sim, Mover para Lixeira'}</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
