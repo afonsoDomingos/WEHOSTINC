@@ -19,7 +19,9 @@ import {
   HelpCircle,
   Server,
   KeyRound,
-  FileCheck
+  FileCheck,
+  Smartphone,
+  Laptop
 } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
@@ -656,6 +658,19 @@ export default function EmailDomainDetailPage() {
                   </div>
                   <span className="text-xs bg-white px-2 py-0.5 rounded-md border border-gray-200 font-bold">
                     Abrir
+                  </span>
+                </Link>
+
+                <Link
+                  href={`/admin/email-domains/${domainName}/mailboxes`}
+                  className="flex items-center justify-between p-3.5 rounded-xl bg-blue-50/70 hover:bg-blue-100 hover:text-blue-900 text-blue-800 font-semibold text-sm transition border border-blue-200"
+                >
+                  <div className="flex items-center space-x-3">
+                    <Smartphone className="h-5 w-5 text-blue-600" />
+                    <span>Conectar Outlook & Apps</span>
+                  </div>
+                  <span className="text-xs bg-blue-600 text-white px-2 py-0.5 rounded-md font-bold">
+                    Guia
                   </span>
                 </Link>
 
