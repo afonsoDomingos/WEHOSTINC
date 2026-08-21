@@ -117,6 +117,7 @@ function WebmailContent() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isStorageCollapsed, setIsStorageCollapsed] = useState(false);
   const [isFiltersCollapsed, setIsFiltersCollapsed] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   // Attachment preview state
   const [previewAttachment, setPreviewAttachment] = useState<WebmailAttachment | null>(null);
@@ -947,10 +948,11 @@ function WebmailContent() {
           </div>
         </div>
 
-        {/* Account Switcher & Refresh */}
-        <div className="flex items-center space-x-2 shrink-0">
+        {/* Account Switcher & Actions */}
+        <div className="flex items-center space-x-1.5 sm:space-x-2 shrink-0">
+          {/* Account Switcher */}
           {accounts.length > 0 ? (
-            <div className="flex items-center space-x-1.5 bg-gray-100 px-2.5 sm:px-3 py-1.5 rounded-xl border border-gray-200 max-w-[200px] sm:max-w-xs">
+            <div className="flex items-center space-x-1.5 bg-gray-100 px-2 sm:px-3 py-1.5 rounded-xl border border-gray-200 max-w-[130px] sm:max-w-xs">
               <User className="h-3.5 w-3.5 text-primary-500 shrink-0" />
               <select
                 value={selectedAccountEmail}
@@ -974,11 +976,12 @@ function WebmailContent() {
               </select>
             </div>
           ) : (
-            <span className="text-xs text-gray-600 font-mono font-bold bg-gray-100 px-2.5 py-1.5 rounded-xl border border-gray-200 truncate max-w-[180px]">
+            <span className="text-xs text-gray-600 font-mono font-bold bg-gray-100 px-2 py-1.5 rounded-xl border border-gray-200 truncate max-w-[110px] sm:max-w-[180px]">
               {selectedAccountEmail}
             </span>
           )}
 
+          {/* Refresh */}
           <button
             onClick={() => {
               setIsRefreshingWebmail(true);
@@ -990,7 +993,8 @@ function WebmailContent() {
           >
             {isRefreshingWebmail ? <Loader2 className="h-4 w-4 animate-spin text-primary-600" /> : <RefreshCw className="h-4 w-4" />}
           </button>
-          {/* Logout Button */}
+
+          {/* Mailbox Logout */}
           {mailboxPassword && (
             <button
               onClick={handleWebmailLogout}
@@ -1001,9 +1005,9 @@ function WebmailContent() {
             </button>
           )}
 
-          {/* Current Date/Time */}
+          {/* Desktop-only: Date/Time */}
           {currentDateTime && (
-            <div className="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 bg-gradient-to-r from-primary-50 to-indigo-50 rounded-xl border border-primary-200 shrink-0">
+            <div className="hidden lg:flex items-center space-x-1.5 px-3 py-1.5 bg-gradient-to-r from-primary-50 to-indigo-50 rounded-xl border border-primary-200 shrink-0">
               <Clock className="h-3.5 w-3.5 text-primary-600" />
               <span className="text-xs font-bold text-gray-700">
                 {currentDateTime.toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}
@@ -1014,10 +1018,11 @@ function WebmailContent() {
             </div>
           )}
 
+          {/* Desktop-only secondary actions */}
           <button
             type="button"
             onClick={() => setShowCompose(true)}
-            className="p-2 hover:bg-primary-50 text-primary-600 rounded-xl transition cursor-pointer shrink-0"
+            className="hidden sm:flex p-2 hover:bg-primary-50 text-primary-600 rounded-xl transition cursor-pointer shrink-0"
             title="Escrever E-mail"
           >
             <Edit3 className="h-4 w-4" />
@@ -1026,7 +1031,7 @@ function WebmailContent() {
           <button
             type="button"
             onClick={() => setShowSignatureModal(true)}
-            className="p-2 hover:bg-purple-50 text-purple-600 rounded-xl transition cursor-pointer shrink-0"
+            className="hidden sm:flex p-2 hover:bg-purple-50 text-purple-600 rounded-xl transition cursor-pointer shrink-0"
             title="Configurar Assinatura Profissional"
           >
             <FileSignature className="h-4 w-4" />
@@ -1035,7 +1040,7 @@ function WebmailContent() {
           <button
             type="button"
             onClick={() => setShowChangePasswordModal(true)}
-            className="p-2 hover:bg-primary-50 text-primary-600 rounded-xl transition cursor-pointer shrink-0"
+            className="hidden sm:flex p-2 hover:bg-primary-50 text-primary-600 rounded-xl transition cursor-pointer shrink-0"
             title="Alterar Senha"
           >
             <ShieldCheck className="h-4 w-4" />
@@ -1047,10 +1052,24 @@ function WebmailContent() {
               auth.logout();
               router.push('/login');
             }}
-            className="p-2 hover:bg-rose-50 text-rose-600 rounded-xl transition cursor-pointer shrink-0"
+            className="hidden sm:flex p-2 hover:bg-rose-50 text-rose-600 rounded-xl transition cursor-pointer shrink-0"
             title="Sair"
           >
             <LogOut className="h-4 w-4" />
+          </button>
+
+          {/* Mobile: More Options (⋯) */}
+          <button
+            type="button"
+            onClick={() => setShowMobileMenu(true)}
+            className="sm:hidden p-2 hover:bg-gray-100 text-gray-600 rounded-xl transition cursor-pointer shrink-0"
+            title="Mais opções"
+          >
+            <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+              <circle cx="12" cy="5" r="1.5" />
+              <circle cx="12" cy="12" r="1.5" />
+              <circle cx="12" cy="19" r="1.5" />
+            </svg>
           </button>
         </div>
       </header>
@@ -1497,7 +1516,7 @@ function WebmailContent() {
                 </div>
               </div>
               {/* Header card */}
-              <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-200 space-y-4">
+              <div className="bg-white rounded-3xl p-4 sm:p-6 shadow-sm border border-gray-200 space-y-4">
                 <div className="flex items-start justify-between gap-3">
                   <h2 className="text-lg sm:text-2xl font-extrabold text-gray-900 leading-tight flex-1 min-w-0 break-words">
                     {selectedMessage.subject}
@@ -1623,7 +1642,7 @@ function WebmailContent() {
               </div>
 
               {/* Body card */}
-              <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-200 flex-1 space-y-4">
+              <div className="bg-white rounded-3xl p-4 sm:p-6 shadow-sm border border-gray-200 flex-1 space-y-4">
                 {(() => {
                   let cleanBody = stripRawHeaders(selectedMessage.body);
                   if (cleanBody.includes('&lt;') && cleanBody.includes('&gt;')) {
@@ -1725,10 +1744,81 @@ function WebmailContent() {
         </main>
       </div>
 
+      {/* Mobile FAB: Escrever E-mail */}
+      {!showCompose && (
+        <button
+          type="button"
+          onClick={() => setShowCompose(true)}
+          className="sm:hidden fixed bottom-6 right-6 z-40 w-14 h-14 bg-gradient-to-br from-primary-600 to-indigo-600 text-white rounded-full shadow-2xl flex items-center justify-center transition-all duration-200 active:scale-95 border-2 border-white"
+          title="Escrever E-mail"
+        >
+          <Edit3 className="h-6 w-6" />
+        </button>
+      )}
+
+      {/* Mobile Bottom Sheet Menu */}
+      {showMobileMenu && (
+        <div
+          className="fixed inset-0 z-50 sm:hidden"
+          onClick={() => setShowMobileMenu(false)}
+        >
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-xs" />
+          <div
+            className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-6 shadow-2xl animate-in slide-in-from-bottom duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Handle bar */}
+            <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-5" />
+            <h3 className="text-sm font-black text-gray-900 mb-4">Ações do Webmail</h3>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => { setShowCompose(true); setShowMobileMenu(false); }}
+                className="flex items-center space-x-3 p-4 bg-primary-50 hover:bg-primary-100 rounded-2xl transition cursor-pointer border border-primary-200 active:scale-95"
+              >
+                <Edit3 className="h-5 w-5 text-primary-600 shrink-0" />
+                <span className="text-sm font-bold text-primary-700">Novo Email</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => { setShowSignatureModal(true); setShowMobileMenu(false); }}
+                className="flex items-center space-x-3 p-4 bg-purple-50 hover:bg-purple-100 rounded-2xl transition cursor-pointer border border-purple-200 active:scale-95"
+              >
+                <FileSignature className="h-5 w-5 text-purple-600 shrink-0" />
+                <span className="text-sm font-bold text-purple-700">Assinatura</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => { setShowChangePasswordModal(true); setShowMobileMenu(false); }}
+                className="flex items-center space-x-3 p-4 bg-blue-50 hover:bg-blue-100 rounded-2xl transition cursor-pointer border border-blue-200 active:scale-95"
+              >
+                <ShieldCheck className="h-5 w-5 text-blue-600 shrink-0" />
+                <span className="text-sm font-bold text-blue-700">Alterar Senha</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => { auth.logout(); router.push('/login'); }}
+                className="flex items-center space-x-3 p-4 bg-rose-50 hover:bg-rose-100 rounded-2xl transition cursor-pointer border border-rose-200 active:scale-95"
+              >
+                <LogOut className="h-5 w-5 text-rose-600 shrink-0" />
+                <span className="text-sm font-bold text-rose-700">Sair da App</span>
+              </button>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowMobileMenu(false)}
+              className="mt-4 w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-sm rounded-2xl transition cursor-pointer"
+            >
+              Fechar
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* MODAL: Escrever E-mail (Compose) */}
       {showCompose && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-2 sm:p-4">
-          <div className={`bg-white rounded-3xl shadow-2xl p-4 sm:p-6 ${isComposeExpanded ? 'max-w-4xl' : 'max-w-xl'} w-full border border-gray-100 animate-in fade-in zoom-in-95 duration-150 max-h-[98vh] sm:max-h-[90vh] overflow-y-auto`}>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center z-50">
+          <div className={`bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl p-4 sm:p-6 ${isComposeExpanded ? 'sm:max-w-4xl' : 'sm:max-w-xl'} w-full border border-gray-100 animate-in slide-in-from-bottom sm:zoom-in-95 duration-200 h-[92vh] sm:h-auto sm:max-h-[90vh] overflow-y-auto`}>
             {isAccountPending ? (
               <div className="text-center py-6 space-y-4">
                 <div className="w-14 h-14 bg-amber-100 rounded-full flex items-center justify-center mx-auto text-amber-600 border border-amber-200 shadow-2xs">
@@ -1757,11 +1847,11 @@ function WebmailContent() {
                     <Edit3 className="h-5 w-5 text-primary-600" />
                     <h2 className="text-lg font-extrabold text-gray-900">Novo E-mail</h2>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-1.5">
                     <button
                       type="button"
                       onClick={() => setShowTemplateSelector(!showTemplateSelector)}
-                      className={`flex items-center space-x-2 px-3 py-2 rounded-xl transition cursor-pointer ${
+                      className={`flex items-center space-x-1.5 px-2.5 py-2 rounded-xl transition cursor-pointer ${
                         showTemplateSelector 
                           ? 'bg-primary-600 text-white' 
                           : 'bg-primary-50 text-primary-600 hover:bg-primary-100'
@@ -1769,12 +1859,12 @@ function WebmailContent() {
                       title="Usar Template"
                     >
                       <Sparkles className="h-4 w-4" />
-                      <span className="text-xs font-bold">Templates</span>
+                      <span className="hidden sm:inline text-xs font-bold">Templates</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => setIsComposeExpanded(!isComposeExpanded)}
-                      className="p-2 hover:bg-gray-100 text-gray-600 rounded-xl transition cursor-pointer"
+                      className="hidden sm:flex p-2 hover:bg-gray-100 text-gray-600 rounded-xl transition cursor-pointer"
                       title={isComposeExpanded ? "Reduzir" : "Expandir"}
                     >
                       {isComposeExpanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
@@ -1782,7 +1872,7 @@ function WebmailContent() {
                     <button
                       type="button"
                       onClick={handleCloseCompose}
-                      className="p-1 text-gray-400 hover:text-gray-700 rounded-lg cursor-pointer"
+                      className="p-1.5 text-gray-400 hover:text-gray-700 rounded-lg cursor-pointer"
                     >
                       <X className="h-5 w-5" />
                     </button>
@@ -2108,11 +2198,11 @@ function WebmailContent() {
                   )}
                 </div>
 
-                <div className="flex gap-3 pt-2">
+                <div className="flex flex-col sm:flex-row gap-2 pt-2">
                   <button
                     type="button"
                     onClick={handleCloseCompose}
-                    className="flex-1 py-3 border border-gray-200 text-gray-700 font-bold text-xs rounded-2xl hover:bg-gray-50 transition cursor-pointer"
+                    className="sm:flex-1 py-3 border border-gray-200 text-gray-700 font-bold text-xs rounded-2xl hover:bg-gray-50 transition cursor-pointer"
                   >
                     Cancelar
                   </button>
@@ -2120,7 +2210,7 @@ function WebmailContent() {
                     type="button"
                     onClick={handleSaveDraftManually}
                     disabled={sendingMsg || uploadingAttachment}
-                    className="flex-1 py-3 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-bold text-xs rounded-2xl transition cursor-pointer shadow-md flex items-center justify-center space-x-2"
+                    className="sm:flex-1 py-3 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-bold text-xs rounded-2xl transition cursor-pointer shadow-md flex items-center justify-center space-x-2"
                   >
                     <FileText className="h-4 w-4" />
                     <span>Salvar Rascunho</span>
@@ -2128,7 +2218,7 @@ function WebmailContent() {
                   <button
                     type="submit"
                     disabled={sendingMsg || uploadingAttachment}
-                    className="flex-1 py-3 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white font-bold text-xs rounded-2xl transition cursor-pointer shadow-md flex items-center justify-center space-x-2"
+                    className="sm:flex-1 py-3 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white font-bold text-xs rounded-2xl transition cursor-pointer shadow-md flex items-center justify-center space-x-2"
                   >
                     <Send className="h-4 w-4" />
                     <span>{sendingMsg ? 'A Enviar...' : 'Enviar E-mail'}</span>
@@ -2205,20 +2295,20 @@ function WebmailContent() {
 
       {/* MODAL: Placeholder Warning */}
       {showPlaceholderWarning && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center z-50">
+          <div className="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl max-w-md w-full p-5 sm:p-6 animate-in slide-in-from-bottom sm:zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto sm:mx-4">
             <div className="flex items-center space-x-3 mb-4">
-              <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center shrink-0">
-                <AlertCircle className="h-6 w-6 text-amber-600" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-amber-100 rounded-full flex items-center justify-center shrink-0">
+                <AlertCircle className="h-5 w-5 sm:h-6 sm:w-6 text-amber-600" />
               </div>
               <div>
-                <h3 className="text-lg font-black text-gray-900">Campos Pendentes</h3>
-                <p className="text-sm text-gray-600">O modelo contém placeholders não preenchidos</p>
+                <h3 className="text-base sm:text-lg font-black text-gray-900">Campos Pendentes</h3>
+                <p className="text-xs sm:text-sm text-gray-600">O modelo contém placeholders não preenchidos</p>
               </div>
             </div>
 
             <div className="mb-6">
-              <p className="text-sm text-gray-700 mb-3">
+              <p className="text-xs sm:text-sm text-gray-700 mb-3">
                 Os seguintes campos precisam ser preenchidos antes de enviar:
               </p>
               <div className="bg-amber-50 rounded-xl p-3 space-y-2">
@@ -2237,14 +2327,14 @@ function WebmailContent() {
               <button
                 type="button"
                 onClick={() => setShowPlaceholderWarning(false)}
-                className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-black text-sm rounded-xl transition cursor-pointer"
+                className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-black text-xs sm:text-sm rounded-xl transition cursor-pointer"
               >
                 Voltar e Editar
               </button>
               <button
                 type="button"
                 onClick={proceedToSendEmail}
-                className="flex-1 py-3 bg-primary-600 hover:bg-primary-700 text-white font-black text-sm rounded-xl transition cursor-pointer shadow-md"
+                className="flex-1 py-3 bg-primary-600 hover:bg-primary-700 text-white font-black text-xs sm:text-sm rounded-xl transition cursor-pointer shadow-md"
               >
                 Enviar Mesmo Assim
               </button>
@@ -2255,16 +2345,16 @@ function WebmailContent() {
 
       {/* MODAL: Webmail Login */}
       {showWebmailLogin && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center z-50">
+          <div className="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl max-w-md w-full p-5 sm:p-6 animate-in slide-in-from-bottom sm:zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto sm:mx-4">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center shrink-0">
-                  <Mail className="h-6 w-6 text-primary-600" />
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary-100 rounded-full flex items-center justify-center shrink-0">
+                  <Mail className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-black text-gray-900">Login Webmail</h3>
-                  <p className="text-sm text-gray-600">Acesse sua mailbox Migadu</p>
+                  <h3 className="text-base sm:text-lg font-black text-gray-900">Login Webmail</h3>
+                  <p className="text-xs sm:text-sm text-gray-600">Acesse sua mailbox Migadu</p>
                 </div>
               </div>
               <button
@@ -2342,16 +2432,16 @@ function WebmailContent() {
 
       {/* MODAL: Change Password */}
       {showChangePasswordModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center z-50">
+          <div className="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl max-w-md w-full p-5 sm:p-6 animate-in slide-in-from-bottom sm:zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto sm:mx-4">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center shrink-0">
-                  <ShieldCheck className="h-6 w-6 text-primary-600" />
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary-100 rounded-full flex items-center justify-center shrink-0">
+                  <ShieldCheck className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-black text-gray-900">Alterar Senha</h3>
-                  <p className="text-sm text-gray-600">Atualize a sua senha de acesso</p>
+                  <h3 className="text-base sm:text-lg font-black text-gray-900">Alterar Senha</h3>
+                  <p className="text-xs sm:text-sm text-gray-600">Atualize a sua senha de acesso</p>
                 </div>
               </div>
               <button
@@ -2427,14 +2517,14 @@ function WebmailContent() {
                     setPasswordError('');
                     setPasswordSuccess('');
                   }}
-                  className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-black text-sm rounded-xl transition cursor-pointer"
+                  className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-black text-xs sm:text-sm rounded-xl transition cursor-pointer"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={!currentPassword || !newPassword || !confirmPassword}
-                  className="flex-1 py-3 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-sm rounded-xl transition cursor-pointer shadow-md"
+                  className="flex-1 py-3 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-xs sm:text-sm rounded-xl transition cursor-pointer shadow-md"
                 >
                   Alterar Senha
                 </button>
@@ -2446,16 +2536,16 @@ function WebmailContent() {
 
       {/* MODAL: Gerador e Gestor de Assinatura de E-mail */}
       {showSignatureModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 animate-in fade-in zoom-in-95 duration-150 max-h-[92vh] overflow-y-auto border border-gray-100">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center z-50">
+          <div className="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl max-w-lg w-full p-5 sm:p-6 animate-in slide-in-from-bottom sm:zoom-in-95 duration-200 max-h-[92vh] overflow-y-auto border border-gray-100 sm:mx-4">
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-purple-100 text-purple-700 rounded-2xl flex items-center justify-center font-bold">
-                  <FileSignature className="h-5 w-5" />
+                <div className="w-9 h-9 sm:w-10 sm:h-10 bg-purple-100 text-purple-700 rounded-2xl flex items-center justify-center font-bold">
+                  <FileSignature className="h-4 w-4 sm:h-5 sm:w-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-gray-900">Assinatura de E-mail Profissional</h3>
-                  <p className="text-xs text-gray-500">{selectedAccountEmail}</p>
+                  <h3 className="text-sm sm:text-base font-bold text-gray-900">Assinatura Profissional</h3>
+                  <p className="text-[11px] sm:text-xs text-gray-500 truncate max-w-[200px] sm:max-w-none">{selectedAccountEmail}</p>
                 </div>
               </div>
               <button
@@ -2467,8 +2557,8 @@ function WebmailContent() {
               </button>
             </div>
 
-            <form onSubmit={handleSaveSignature} className="space-y-3.5 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <form onSubmit={handleSaveSignature} className="space-y-3 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
                 <div>
                   <label className="block text-gray-700 font-bold mb-1">Nome Completo</label>
                   <input
@@ -2493,7 +2583,7 @@ function WebmailContent() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
                 <div>
                   <label className="block text-gray-700 font-bold mb-1">Empresa</label>
                   <input
@@ -2529,9 +2619,9 @@ function WebmailContent() {
               </div>
 
               {/* Live Signature Preview */}
-              <div className="pt-2">
-                <label className="block text-gray-700 font-bold mb-1">Pré-visualização da Assinatura:</label>
-                <div className="p-4 bg-gray-50 rounded-2xl border border-gray-200 space-y-1 text-gray-800 font-sans border-l-4 border-l-purple-600">
+              <div className="pt-1">
+                <label className="block text-gray-700 font-bold mb-1">Pré-visualização:</label>
+                <div className="p-3.5 bg-gray-50 rounded-2xl border border-gray-200 space-y-1 text-gray-800 font-sans border-l-4 border-l-purple-600">
                   <div className="font-bold text-sm text-gray-900">{signatureForm.fullName || 'Seu Nome'}</div>
                   <div className="text-gray-600 text-xs">
                     {signatureForm.jobTitle ? `${signatureForm.jobTitle} • ` : ''}{signatureForm.companyName || 'Sua Empresa'}
@@ -2545,7 +2635,7 @@ function WebmailContent() {
                 </div>
               </div>
 
-              <div className="flex items-center space-x-3 pt-3">
+              <div className="flex items-center space-x-3 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowSignatureModal(false)}

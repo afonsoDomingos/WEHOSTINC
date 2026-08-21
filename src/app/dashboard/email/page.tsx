@@ -514,8 +514,8 @@ export default function EmailPage() {
 
       {/* MODAL 1: Editar / Alterar Senha de Email */}
       {editEmailAccount && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl shadow-2xl p-6 max-w-lg w-full border border-gray-100 animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center z-50">
+          <div className="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl p-5 sm:p-6 max-w-lg w-full border border-gray-100 animate-in slide-in-from-bottom sm:zoom-in-95 duration-200 max-h-[92vh] overflow-y-auto sm:mx-4">
             <div className="flex items-center justify-between pb-4 border-b border-gray-100 mb-4">
               <div className="flex items-center space-x-3">
                 <div className="p-2.5 bg-primary-50 rounded-xl border border-primary-100 text-primary-600">
@@ -619,17 +619,17 @@ export default function EmailPage() {
                   </div>
                 </div>
 
-                <div className="flex gap-3 pt-2">
+                <div className="flex flex-col sm:flex-row gap-2.5 pt-2">
                   <button
                     type="button"
                     onClick={() => setEditEmailAccount(null)}
-                    className="flex-1 py-3 border border-gray-200 text-gray-700 font-bold text-sm rounded-2xl hover:bg-gray-50 transition cursor-pointer"
+                    className="sm:flex-1 py-3 border border-gray-200 text-gray-700 font-bold text-xs sm:text-sm rounded-2xl hover:bg-gray-50 transition cursor-pointer"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold text-sm rounded-2xl transition cursor-pointer shadow-md"
+                    className="sm:flex-1 py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs sm:text-sm rounded-2xl transition cursor-pointer shadow-md"
                   >
                     Salvar Alterações
                   </button>
@@ -759,18 +759,18 @@ export default function EmailPage() {
                 </div>
               </div>
 
-              <div className="flex gap-3 pt-2">
+              <div className="flex flex-col sm:flex-row gap-2.5 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="flex-1 py-3 border border-gray-200 text-gray-700 font-bold text-sm rounded-2xl hover:bg-gray-50 transition cursor-pointer"
+                  className="sm:flex-1 py-3 border border-gray-200 text-gray-700 font-bold text-xs sm:text-sm rounded-2xl hover:bg-gray-50 transition cursor-pointer"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={userDomains.length === 0}
-                  className="flex-1 py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold text-sm rounded-2xl transition cursor-pointer shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="sm:flex-1 py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs sm:text-sm rounded-2xl transition cursor-pointer shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Criar Conta de E-mail
                 </button>
