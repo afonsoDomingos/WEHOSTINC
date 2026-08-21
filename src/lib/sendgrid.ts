@@ -1,7 +1,7 @@
 import { SITE_URL } from '@/lib/siteConfig';
 
 // Remetente padrão da plataforma
-export const DEFAULT_FROM = process.env.EMAIL_USER || 'noreply@wehosthere.com';
+export const DEFAULT_FROM = process.env.EMAIL_USER || 'info@wehosthere.com';
 export const DEFAULT_FROM_NAME = 'WEHOSTHERE';
 
 export interface SendEmailOptions {

@@ -167,7 +167,7 @@ export async function POST(req: Request) {
       // Notificar Administrador sobre novo pedido de conta de e-mail
       try {
         const { addAdminNotification, dispatchMessage } = await import('@/lib/notifications');
-        const adminDestEmail = process.env.ADMIN_NOTIFICATION_EMAIL || 'admin@wehosthere.com';
+        const adminDestEmail = process.env.ADMIN_NOTIFICATION_EMAIL || 'info@wehosthere.com';
         
         // 1. Notificação In-App no Sino / Painel Admin
         addAdminNotification({
