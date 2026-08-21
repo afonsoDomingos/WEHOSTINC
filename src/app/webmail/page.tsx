@@ -746,7 +746,7 @@ function WebmailContent() {
 
       soundEffects.playSendEmailSound();
       setSendingMsg(false);
-      setSentSuccessMsg('✅ E-mail enviado com sucesso via Migadu!');
+      setSentSuccessMsg('✅ E-mail enviado com sucesso!');
 
       setTimeout(() => {
         setShowCompose(false);
@@ -1077,7 +1077,7 @@ function WebmailContent() {
               setTimeout(() => setIsRefreshingWebmail(false), 800);
             }}
             className="p-2 hover:bg-gray-100 rounded-xl text-gray-500 transition cursor-pointer shrink-0"
-            title="Sincronizar com Migadu"
+            title="Sincronizar caixa de entrada"
           >
             {isRefreshingWebmail ? <Loader2 className="h-4 w-4 animate-spin text-primary-600" /> : <RefreshCw className="h-4 w-4" />}
           </button>
@@ -1195,9 +1195,9 @@ function WebmailContent() {
         <div className="bg-primary-50 border-b border-primary-200 px-4 py-2 flex items-center justify-between text-xs text-primary-800 font-medium">
           <div className="flex items-center space-x-2">
             <Loader2 className="h-4 w-4 animate-spin text-primary-600 shrink-0" />
-            <span>Sincronizando com o servidor Migadu... ({currentFolder === 'inbox' ? 'Caixa de Entrada' : currentFolder === 'sent' ? 'Enviados' : currentFolder === 'drafts' ? 'Rascunhos' : currentFolder === 'trash' ? 'Lixeira' : 'Com Estrela'})</span>
+            <span>A sincronizar mensagens... ({currentFolder === 'inbox' ? 'Caixa de Entrada' : currentFolder === 'sent' ? 'Enviados' : currentFolder === 'drafts' ? 'Rascunhos' : currentFolder === 'trash' ? 'Lixeira' : 'Com Estrela'})</span>
           </div>
-          <span className="text-[11px] text-primary-600 font-mono hidden sm:inline-block">IMAP SSL 993 / migadu.com</span>
+          <span className="text-[11px] text-primary-600 font-mono hidden sm:inline-block">IMAP SSL · Servidor Seguro</span>
         </div>
       )}
 
@@ -1404,18 +1404,21 @@ function WebmailContent() {
               <>
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-gray-600">
-                    {storageInfo.usedDisplay} Usado
+                    {storageInfo.usedDisplay} / 1 GB
                   </span>
-                  <span className="text-gray-400 text-[10px]">Pool Migadu</span>
+                  <span className="text-gray-400 text-[10px]">Plano Básico</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
                   <div 
-                    className="h-full bg-primary-500 transition-all"
-                    style={{ width: `${Math.min((storageInfo.usedMB / 8192) * 100, 100)}%` }}
+                    className={`h-full transition-all ${
+                      (storageInfo.usedMB / 1024) > 0.9 ? 'bg-rose-500' :
+                      (storageInfo.usedMB / 1024) > 0.7 ? 'bg-amber-500' : 'bg-primary-500'
+                    }`}
+                    style={{ width: `${Math.min((storageInfo.usedMB / 1024) * 100, 100)}%` }}
                   />
                 </div>
                 <p className="text-[10px] text-gray-400 text-center">
-                  Armazenamento partilhado Migadu
+                  1 GB de armazenamento incluído no plano
                 </p>
               </>
             )}
@@ -2592,7 +2595,7 @@ function WebmailContent() {
                 </div>
                 <div>
                   <h3 className="text-base sm:text-lg font-black text-gray-900">Login Webmail</h3>
-                  <p className="text-xs sm:text-sm text-gray-600">Acesse sua mailbox Migadu</p>
+                  <p className="text-xs sm:text-sm text-gray-600">Aceda à sua caixa de correio</p>
                 </div>
               </div>
               <button
@@ -2661,7 +2664,7 @@ function WebmailContent() {
 
             <div className="mt-4 text-center">
               <p className="text-xs text-gray-500">
-                Use as credenciais da sua mailbox Migadu
+                Use o e-mail e a palavra-passe da sua conta de e-mail
               </p>
             </div>
           </div>

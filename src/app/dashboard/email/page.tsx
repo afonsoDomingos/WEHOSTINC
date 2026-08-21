@@ -35,13 +35,13 @@ export default function EmailPage() {
   const [newEmailPrefix, setNewEmailPrefix] = useState('');
   const [selectedDomain, setSelectedDomain] = useState('');
   const [newPassword, setNewPassword] = useState('');
-  const [newStorage, setNewStorage] = useState(5);
+  const [newStorage, setNewStorage] = useState(1);
 
   // Modal para Editar / Alterar Senha
   const [editEmailAccount, setEditEmailAccount] = useState<EmailAccount | null>(null);
   const [editPassword, setEditPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [editStorage, setEditStorage] = useState(5);
+  const [editStorage, setEditStorage] = useState(1);
   const [editSuccessMsg, setEditSuccessMsg] = useState('');
   const [editErrorMsg, setEditErrorMsg] = useState('');
 
@@ -131,7 +131,7 @@ export default function EmailPage() {
                       id: `email_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
                       email: fullEmail,
                       domain: dName,
-                      storage: 5,
+                      storage: 1,
                       status: 'active',
                       userEmail: userEmailFilter,
                       createdAt: new Date().toISOString()
@@ -271,7 +271,7 @@ export default function EmailPage() {
     setEditEmailAccount(email);
     setEditPassword('');
     setConfirmPassword('');
-    setEditStorage(email.storage || 5);
+    setEditStorage(email.storage || 1);
     setEditSuccessMsg('');
     setEditErrorMsg('');
   };
