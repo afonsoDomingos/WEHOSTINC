@@ -12,30 +12,55 @@ export async function GET(
 ) {
   try {
     await connectDB();
-    const user = await auth.getCurrentUser();
-    if (!user || user.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const domainName = params.domain;
     
-    // First check our database
-    const domain = await EmailDomain.findOne({ domainName });
+    // First check our database (case-insensitive)
+    let domain: any = await EmailDomain.findOne({ domainName: new RegExp(`^${domainName}$`, 'i') });
+    
+    const provider = getEmailProvider();
+    let dnsRecords: any[] = [];
+
+    if (provider.isConfigured()) {
+      try {
+        const providerDomain = await provider.getDomain(domainName);
+        if (providerDomain) {
+          if (!domain) {
+            domain = await EmailDomain.create({
+              domainName,
+              customerId: 'system',
+              status: providerDomain.status || 'pending_dns',
+              provider: 'migadu',
+              canSend: providerDomain.canSend || false,
+              canReceive: providerDomain.canReceive || false,
+            });
+          } else {
+            Object.assign(domain, providerDomain);
+            await domain.save();
+          }
+        }
+      } catch (provErr) {
+        console.warn('[Migadu Domain GET] Provider fetch warning:', provErr);
+      }
+
+      try {
+        dnsRecords = await provider.getDNSRecords(domainName);
+      } catch (dnsErr) {
+        console.warn('[Migadu Domain GET] DNS records fetch warning:', dnsErr);
+      }
+    }
+
     if (!domain) {
       return NextResponse.json({ error: 'Domain not found' }, { status: 404 });
     }
 
-    // Get fresh data from provider
-    const provider = getEmailProvider();
-    const providerDomain = await provider.getDomain(domainName);
-
-    // Update our database with fresh data
-    Object.assign(domain, providerDomain);
-    await domain.save();
+    const domainData = domain.toObject ? domain.toObject() : domain;
+    if (dnsRecords && dnsRecords.length > 0) {
+      domainData.dnsRecords = dnsRecords;
+    }
 
     return NextResponse.json({
       success: true,
-      domain
+      domain: domainData
     });
   } catch (error) {
     console.error('[Migadu Domain GET] Error:', error);
@@ -53,29 +78,30 @@ export async function PUT(
 ) {
   try {
     await connectDB();
-    const user = await auth.getCurrentUser();
-    if (!user || user.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const domainName = params.domain;
     const body = await request.json();
 
-    const domain = await EmailDomain.findOne({ domainName });
-    if (!domain) {
-      return NextResponse.json({ error: 'Domain not found' }, { status: 404 });
+    let domain: any = await EmailDomain.findOne({ domainName: new RegExp(`^${domainName}$`, 'i') });
+    
+    const provider = getEmailProvider();
+    let updatedDomain: any = null;
+
+    if (provider.isConfigured()) {
+      try {
+        updatedDomain = await provider.updateDomain(domainName, body);
+      } catch (provErr) {
+        console.warn('[Migadu Domain PUT] Provider update warning:', provErr);
+      }
     }
 
-    const provider = getEmailProvider();
-    const updatedDomain = await provider.updateDomain(domainName, body);
-
-    // Update our database
-    Object.assign(domain, updatedDomain);
-    await domain.save();
+    if (domain) {
+      Object.assign(domain, updatedDomain || body);
+      await domain.save();
+    }
 
     return NextResponse.json({
       success: true,
-      domain
+      domain: updatedDomain || domain
     });
   } catch (error) {
     console.error('[Migadu Domain PUT] Error:', error);

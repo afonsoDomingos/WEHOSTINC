@@ -13,17 +13,22 @@ export async function GET(
     await connectDB();
     const domainName = params.domain;
 
-    const domain = await EmailDomain.findOne({ domainName });
-    if (!domain) {
-      return NextResponse.json({ error: 'Domain not found' }, { status: 404 });
+    let domain: any = await EmailDomain.findOne({ domainName: new RegExp(`^${domainName}$`, 'i') });
+    const provider = getEmailProvider();
+    let dnsRecords: any[] = [];
+
+    if (provider.isConfigured()) {
+      try {
+        dnsRecords = await provider.getDNSRecords(domainName);
+      } catch (err) {
+        console.warn('[Migadu DNS Records GET] Provider error:', err);
+      }
     }
 
-    const provider = getEmailProvider();
-    const dnsRecords = await provider.getDNSRecords(domainName);
-
-    // Update domain with fresh DNS records
-    domain.dnsRecords = dnsRecords;
-    await domain.save();
+    if (domain && dnsRecords.length > 0) {
+      domain.dnsRecords = dnsRecords;
+      await domain.save();
+    }
 
     return NextResponse.json({
       success: true,

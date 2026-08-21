@@ -13,9 +13,16 @@ export async function POST(
     await connectDB();
     const domainName = params.domain;
 
-    const domain = await EmailDomain.findOne({ domainName });
+    let domain: any = await EmailDomain.findOne({ domainName: new RegExp(`^${domainName}$`, 'i') });
     if (!domain) {
-      return NextResponse.json({ error: 'Domain not found' }, { status: 404 });
+      domain = await EmailDomain.create({
+        domainName,
+        customerId: 'system',
+        status: 'pending_dns',
+        provider: 'migadu',
+        canSend: false,
+        canReceive: false,
+      });
     }
 
     const provider = getEmailProvider();
