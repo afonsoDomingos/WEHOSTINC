@@ -104,8 +104,14 @@ export default function EmailPage() {
         const data = await response.json();
         if (data.success) {
           setMigaduDomains(data.domains);
-          // Update user domains with Migadu domains
-          const migaduDomainNames = data.domains.map((d: any) => d.domainName);
+          const cleanUser = userEmailFilter.toLowerCase();
+          // Filter domains owned by this user or general platform domains
+          const userDoms = data.domains.filter((d: any) => 
+            !d.customerId || 
+            d.customerId === 'system' || 
+            d.customerId.toLowerCase() === cleanUser
+          );
+          const migaduDomainNames = (userDoms.length > 0 ? userDoms : data.domains).map((d: any) => d.domainName);
           setUserDomains(migaduDomainNames);
           if (migaduDomainNames.length > 0 && !selectedDomain) {
             setSelectedDomain(migaduDomainNames[0]);

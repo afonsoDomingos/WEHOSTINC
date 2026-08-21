@@ -55,6 +55,7 @@ export async function GET(request: NextRequest) {
 
         const existing = allDomains.find(d => (d.domainName || '').toLowerCase().trim() === dName);
         if (existing) {
+          if (dbDom.customerId) existing.customerId = dbDom.customerId;
           if (dbDom.status === 'active' || dName === 'wehosthere.com') {
             existing.status = 'active';
             existing.canSend = true;

@@ -33,6 +33,8 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [agreed, setAgreed] = useState(false);
+  const [inviteToken, setInviteToken] = useState<string | null>(null);
+  const [invitationInfo, setInvitationInfo] = useState<{ domainName: string; invitedEmail?: string; mailboxes?: string[] } | null>(null);
 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -43,8 +45,24 @@ export default function RegisterPage() {
       const params = new URLSearchParams(window.location.search);
       const emailParam = params.get('email');
       const nameParam = params.get('name');
+      const tokenParam = params.get('inviteToken') || params.get('token');
+      
       if (emailParam) setEmail(emailParam);
       if (nameParam) setName(nameParam);
+      if (tokenParam) {
+        setInviteToken(tokenParam);
+        fetch(`/api/invitations/${tokenParam}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data.success && data.invitation) {
+              setInvitationInfo(data.invitation);
+              if (data.invitation.invitedEmail) {
+                setEmail(data.invitation.invitedEmail);
+              }
+            }
+          })
+          .catch(err => console.warn('Falha ao verificar token de convite:', err));
+      }
 
       const errorParam = params.get('error');
       if (errorParam === 'AccessDenied') {
@@ -92,8 +110,8 @@ export default function RegisterPage() {
     if (!agreed) return setError('Aceite os Termos de Serviço para continuar.');
     setLoading(true);
     try {
-      console.log('[Register Page] Iniciando registro:', { name, email });
-      await auth.registerAsync(name, email, password);
+      console.log('[Register Page] Iniciando registro:', { name, email, inviteToken });
+      await auth.registerAsync(name, email, password, 'none', 'pending', 29, undefined, inviteToken || undefined);
       if (typeof window !== 'undefined') {
         localStorage.setItem('wehosthere_registered_email', email);
       }
@@ -187,6 +205,18 @@ export default function RegisterPage() {
           {error && (
             <div className="bg-red-500/15 border border-red-500/40 text-red-300 px-3 sm:px-3 py-2 rounded-lg sm:rounded-xl mb-3 sm:mb-4 text-[10px] sm:text-xs font-medium">
               {error}
+            </div>
+          )}
+
+          {invitationInfo && (
+            <div className="bg-gradient-to-r from-emerald-950/80 to-primary-950/80 border border-emerald-500/40 rounded-xl p-3 sm:p-3.5 mb-3 sm:mb-4 text-white shadow-md">
+              <div className="flex items-center space-x-2 text-xs font-bold text-emerald-400 mb-1">
+                <span>🎁 Convite de Domínio Ativo</span>
+              </div>
+              <p className="text-[11px] text-slate-300 leading-snug">
+                Ao criar a conta, você receberá acesso total e propriedade do domínio <strong className="text-emerald-300 font-mono">{invitationInfo.domainName}</strong>
+                {invitationInfo.mailboxes && invitationInfo.mailboxes.length > 0 && ` e ${invitationInfo.mailboxes.length} conta(s) de e-mail corporativo vinculadas`}.
+              </p>
             </div>
           )}
 

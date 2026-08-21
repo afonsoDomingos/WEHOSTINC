@@ -5,6 +5,11 @@ import { addAdminNotification, dispatchMessage } from '@/lib/notifications';
 import { rateLimit, getRateLimitIdentifier } from '@/lib/rateLimiter';
 import bcrypt from 'bcryptjs';
 import { sendAccountDeletionEmail } from '@/lib/sendgrid';
+import { DomainInvitation } from '@/models/DomainInvitation';
+import { EmailDomain } from '@/models/EmailDomain';
+import { EmailMailbox } from '@/models/EmailMailbox';
+import EmailAccountModel from '@/lib/models/EmailAccount';
+import SiteModel from '@/lib/models/Site';
 
 const DEFAULT_ADMIN_HASH = '$2a$12$uKp3eU0f.E8ZTuQJg2B3K.Ekqb7BqmPLoHdwmdu7pmtdIeUGaq7wG';
 
@@ -599,6 +604,58 @@ export async function POST(req: Request) {
             isAutomatic: true,
             eventType: 'user_signup'
           });
+
+          // 🎁 Auto-claim de convite de domínio pré-provisionado
+          try {
+            const inviteToken = body.inviteToken || body.user?.inviteToken;
+            const query: any = inviteToken 
+              ? { token: inviteToken, status: 'pending' }
+              : { invitedEmail: cleanEmail, status: 'pending' };
+
+            const pendingInvite = await DomainInvitation.findOne(query);
+            if (pendingInvite) {
+              const dName = pendingInvite.domainName;
+              const domDoc = await EmailDomain.findOne({ domainName: new RegExp(`^${dName}$`, 'i') });
+              if (domDoc) {
+                domDoc.customerId = cleanEmail;
+                domDoc.updatedAt = new Date();
+                await domDoc.save();
+
+                await EmailMailbox.updateMany(
+                  {
+                    $or: [
+                      { domainId: domDoc._id.toString() },
+                      { email: { $regex: `@${dName}$`, $options: 'i' } }
+                    ]
+                  },
+                  { $set: { customerId: cleanEmail, updatedAt: new Date() } }
+                );
+
+                await EmailAccountModel.updateMany(
+                  {
+                    $or: [
+                      { domain: new RegExp(`^${dName}$`, 'i') },
+                      { email: { $regex: `@${dName}$`, $options: 'i' } }
+                    ]
+                  },
+                  { $set: { userEmail: cleanEmail } }
+                );
+
+                await SiteModel.updateMany(
+                  { domain: new RegExp(`^${dName}$`, 'i') },
+                  { $set: { userEmail: cleanEmail } }
+                );
+              }
+
+              pendingInvite.status = 'accepted';
+              pendingInvite.acceptedByEmail = cleanEmail;
+              pendingInvite.acceptedAt = new Date();
+              await pendingInvite.save();
+              console.log(`[Registration] Domínio ${dName} atribuído com sucesso a ${cleanEmail} via convite`);
+            }
+          } catch (invErr) {
+            console.warn('[Registration] Erro ao processar auto-claim de convite de domínio:', invErr);
+          }
         }
       }
 

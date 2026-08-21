@@ -23,7 +23,15 @@ import {
   Smartphone,
   Laptop,
   DownloadCloud,
-  Shuffle
+  Shuffle,
+  UserCheck,
+  UserPlus,
+  Send,
+  Share2,
+  Link2,
+  Users,
+  Trash2,
+  Sparkles
 } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
@@ -73,10 +81,119 @@ export default function EmailDomainDetailPage() {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
+  // User Assignment State
+  const [users, setUsers] = useState<any[]>([]);
+  const [selectedUserEmail, setSelectedUserEmail] = useState('');
+  const [isAssigning, setIsAssigning] = useState(false);
+
+  // Invitation State
+  const [invitedEmail, setInvitedEmail] = useState('');
+  const [isGeneratingInvite, setIsGeneratingInvite] = useState(false);
+  const [invitations, setInvitations] = useState<any[]>([]);
+  const [generatedInviteLink, setGeneratedInviteLink] = useState<string | null>(null);
+
   useEffect(() => {
     fetchDomain();
+    fetchUsers();
+    fetchInvitations();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [domainName]);
+
+  const fetchUsers = async () => {
+    try {
+      const res = await fetch('/api/users');
+      const data = await res.json();
+      if (data.users && Array.isArray(data.users)) {
+        setUsers(data.users);
+      }
+    } catch (e) {
+      console.warn('Erro ao carregar lista de utilizadores:', e);
+    }
+  };
+
+  const fetchInvitations = async () => {
+    try {
+      const res = await fetch(`/api/email-domains/${domainName}/invite`);
+      const data = await res.json();
+      if (data.success && data.invitations) {
+        setInvitations(data.invitations);
+      }
+    } catch (e) {
+      console.warn('Erro ao carregar convites:', e);
+    }
+  };
+
+  const handleAssignDomain = async () => {
+    if (!selectedUserEmail || !selectedUserEmail.includes('@')) {
+      setToast({ type: 'error', message: 'Selecione ou insira um utilizador válido' });
+      return;
+    }
+
+    setIsAssigning(true);
+    try {
+      const res = await fetch(`/api/email-domains/${domainName}/assign`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetUserEmail: selectedUserEmail.trim() })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setToast({ type: 'success', message: `✅ ${data.message}` });
+        fetchDomain();
+      } else {
+        setToast({ type: 'error', message: data.error || 'Falha ao atribuir domínio' });
+      }
+    } catch (err) {
+      setToast({ type: 'error', message: 'Erro ao conectar ao servidor' });
+    } finally {
+      setIsAssigning(false);
+    }
+  };
+
+  const handleCreateInvite = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!invitedEmail || !invitedEmail.includes('@')) {
+      setToast({ type: 'error', message: 'Insira um email válido para convidar' });
+      return;
+    }
+
+    setIsGeneratingInvite(true);
+    try {
+      const res = await fetch(`/api/email-domains/${domainName}/invite`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ invitedEmail: invitedEmail.trim() })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setGeneratedInviteLink(data.inviteLink);
+        setToast({ type: 'success', message: 'Convite criado com sucesso!' });
+        setInvitedEmail('');
+        fetchInvitations();
+      } else {
+        setToast({ type: 'error', message: data.error || 'Falha ao criar convite' });
+      }
+    } catch (err) {
+      setToast({ type: 'error', message: 'Erro ao criar convite' });
+    } finally {
+      setIsGeneratingInvite(false);
+    }
+  };
+
+  const handleRevokeInvite = async (inviteId: string) => {
+    try {
+      const res = await fetch(`/api/email-domains/${domainName}/invite?id=${inviteId}`, {
+        method: 'DELETE'
+      });
+      const data = await res.json();
+      if (data.success) {
+        setToast({ type: 'success', message: 'Convite revogado' });
+        fetchInvitations();
+      }
+    } catch (err) {
+      setToast({ type: 'error', message: 'Erro ao revogar convite' });
+    }
+  };
 
   const fetchDomain = async () => {
     try {
@@ -339,6 +456,199 @@ export default function EmailDomainDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* DNS Steps (Col 1 & 2) */}
           <div className="lg:col-span-2 space-y-6">
+
+            {/* ───── VÍNCULO & ATRIBUIÇÃO DE PROPRIETÁRIO (ACESSO DO CLIENTE) ───── */}
+            <div className="bg-gradient-to-br from-indigo-50/70 via-white to-purple-50/50 rounded-3xl shadow-sm border border-indigo-200/80 p-6 sm:p-7 space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-indigo-100">
+                <div className="flex items-center space-x-3">
+                  <div className="h-10 w-10 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-white flex items-center justify-center shadow-md">
+                    <Users className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-gray-900 flex items-center space-x-2">
+                      <span>Propriedade &amp; Acesso do Cliente</span>
+                      <span className="bg-indigo-100 text-indigo-800 text-[10px] font-black px-2 py-0.5 rounded-full uppercase">
+                        Gestão de Acesso
+                      </span>
+                    </h3>
+                    <p className="text-xs text-gray-500 font-medium">
+                      Defina quem é o utilizador que terá acesso a este domínio e aos seus e-mails no painel.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-2 bg-white px-3.5 py-2 rounded-xl border border-indigo-100 shadow-2xs">
+                  <span className="text-[11px] text-gray-500 font-semibold">Proprietário Atual:</span>
+                  <span className="text-xs font-black text-indigo-700 font-mono">
+                    {domain.customerId || 'system'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {/* 1. Atribuir a Utilizador Existente */}
+                <div className="bg-white rounded-2xl p-5 border border-indigo-100 shadow-xs space-y-3.5 flex flex-col justify-between">
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2 text-xs font-extrabold text-indigo-950 uppercase tracking-wider">
+                      <UserCheck className="h-4 w-4 text-indigo-600" />
+                      <span>1. Vincular a Utilizador Existente</span>
+                    </div>
+                    <p className="text-[11px] text-gray-500 leading-relaxed">
+                      Se o cliente já tem conta criada no WEHOSTHERE, selecione-o abaixo para transferir o domínio e todas as caixas.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2.5">
+                    <select
+                      value={selectedUserEmail}
+                      onChange={(e) => setSelectedUserEmail(e.target.value)}
+                      className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-800 outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+                    >
+                      <option value="">Selecione um utilizador registado...</option>
+                      {users.map((u) => (
+                        <option key={u.id || u.email} value={u.email}>
+                          {u.name ? `${u.name} (${u.email})` : u.email}
+                        </option>
+                      ))}
+                    </select>
+
+                    <button
+                      type="button"
+                      onClick={handleAssignDomain}
+                      disabled={!selectedUserEmail || isAssigning}
+                      className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-md transition cursor-pointer flex items-center justify-center space-x-2"
+                    >
+                      <UserCheck className="h-4 w-4" />
+                      <span>{isAssigning ? 'A vincular...' : 'Atribuir Domínio e E-mails'}</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* 2. Convidar Novo Cliente (Pré-provisionamento) */}
+                <div className="bg-white rounded-2xl p-5 border border-purple-100 shadow-xs space-y-3.5 flex flex-col justify-between">
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2 text-xs font-extrabold text-purple-950 uppercase tracking-wider">
+                      <UserPlus className="h-4 w-4 text-purple-600" />
+                      <span>2. Convidar Novo Utilizador (Link)</span>
+                    </div>
+                    <p className="text-[11px] text-gray-500 leading-relaxed">
+                      Crie o domínio antes do cliente ter conta. Gere um link de convite exclusivo para ele se registar já com o domínio vinculado.
+                    </p>
+                  </div>
+
+                  <form onSubmit={handleCreateInvite} className="space-y-2.5">
+                    <input
+                      type="email"
+                      placeholder="email.do.cliente@empresa.com"
+                      value={invitedEmail}
+                      onChange={(e) => setInvitedEmail(e.target.value)}
+                      className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium text-gray-800 outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+
+                    <button
+                      type="submit"
+                      disabled={!invitedEmail || isGeneratingInvite}
+                      className="w-full py-2.5 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-md transition cursor-pointer flex items-center justify-center space-x-2"
+                    >
+                      <Sparkles className="h-4 w-4 text-purple-200" />
+                      <span>{isGeneratingInvite ? 'A gerar convite...' : 'Gerar Link de Convite'}</span>
+                    </button>
+                  </form>
+                </div>
+              </div>
+
+              {/* Link de Convite Gerado Recentemente */}
+              {generatedInviteLink && (
+                <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 space-y-2 animate-in fade-in duration-200">
+                  <div className="flex items-center justify-between text-xs font-bold text-emerald-900">
+                    <span className="flex items-center space-x-1.5">
+                      <CheckCircle className="h-4 w-4 text-emerald-600" />
+                      <span>Link de Convite Criado com Sucesso!</span>
+                    </span>
+                    <span className="text-[10px] text-emerald-700">Válido por 7 dias</span>
+                  </div>
+                  <div className="flex items-center justify-between bg-white border border-emerald-200 px-3.5 py-2 rounded-xl text-xs font-mono text-gray-800">
+                    <span className="truncate mr-2 text-[11px]">{generatedInviteLink}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleCopy(generatedInviteLink, 'invite_link_direct')}
+                      className="px-3 py-1 bg-emerald-600 text-white rounded-lg text-xs font-bold hover:bg-emerald-700 transition flex items-center space-x-1 shrink-0 cursor-pointer"
+                    >
+                      {copiedKey === 'invite_link_direct' ? (
+                        <>
+                          <Check className="h-3.5 w-3.5" />
+                          <span>Copiado!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="h-3.5 w-3.5" />
+                          <span>Copiar Link</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Tabela / Lista de Convites Ativos */}
+              {invitations.length > 0 && (
+                <div className="space-y-2.5 pt-2">
+                  <span className="text-xs font-bold text-gray-700 flex items-center space-x-1.5">
+                    <Link2 className="h-3.5 w-3.5 text-indigo-600" />
+                    <span>Convites Registados para este Domínio ({invitations.length})</span>
+                  </span>
+
+                  <div className="divide-y divide-gray-100 bg-white rounded-2xl border border-gray-200 overflow-hidden text-xs">
+                    {invitations.map((inv) => {
+                      const isPending = inv.status === 'pending';
+                      const link = `https://wehosthere.com/register?inviteToken=${inv.token}&email=${encodeURIComponent(inv.invitedEmail)}`;
+                      return (
+                        <div key={inv._id} className="p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                          <div>
+                            <div className="flex items-center space-x-2">
+                              <span className="font-bold text-gray-900">{inv.invitedEmail}</span>
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                inv.status === 'accepted'
+                                  ? 'bg-emerald-100 text-emerald-800'
+                                  : inv.status === 'pending'
+                                  ? 'bg-amber-100 text-amber-800'
+                                  : 'bg-gray-100 text-gray-600'
+                              }`}>
+                                {inv.status === 'accepted' ? '✓ Resgatado' : inv.status === 'pending' ? '⏳ Aguardando Registo' : inv.status}
+                              </span>
+                            </div>
+                            <span className="text-[10px] text-gray-400">
+                              Criado em {new Date(inv.createdAt).toLocaleDateString('pt-MZ')}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center space-x-2 self-end sm:self-center">
+                            {isPending && (
+                              <button
+                                type="button"
+                                onClick={() => handleCopy(link, `inv_table_${inv._id}`)}
+                                className="px-2.5 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-[11px] font-semibold transition flex items-center space-x-1 cursor-pointer"
+                              >
+                                {copiedKey === `inv_table_${inv._id}` ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
+                                <span>Copiar Link</span>
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => handleRevokeInvite(inv._id)}
+                              className="p-1 text-gray-400 hover:text-rose-600 rounded-lg transition cursor-pointer"
+                              title="Remover / Revogar"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* PASSO 0: REGISTO DE VERIFICAÇÃO */}
             <div className="bg-white rounded-2xl shadow-xs border border-blue-200 p-6 space-y-4 ring-2 ring-blue-100">

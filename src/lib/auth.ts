@@ -141,7 +141,7 @@ export const auth = {
   },
 
   // Registrar novo usuário assincronamente (com confirmação garantida no banco de dados do servidor)
-  registerAsync: async (name: string, email: string, password: string, plan: 'none' | 'basic' | 'pro' | 'enterprise' = 'none', status: 'active' | 'pending' | 'suspended' = 'pending', dueDate: number = 29, referralCode?: string): Promise<User> => {
+  registerAsync: async (name: string, email: string, password: string, plan: 'none' | 'basic' | 'pro' | 'enterprise' = 'none', status: 'active' | 'pending' | 'suspended' = 'pending', dueDate: number = 29, referralCode?: string, inviteToken?: string): Promise<User> => {
     console.log('[Register] Iniciando registro para:', email);
     seedDefaultUsers();
     
@@ -198,7 +198,7 @@ export const auth = {
       const res = await fetch(apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'register', user: userWithPassword, referralCode })
+        body: JSON.stringify({ action: 'register', user: userWithPassword, referralCode, inviteToken })
       });
       
       console.log('[Register] Resposta da API:', res.status, res.statusText);

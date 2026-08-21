@@ -1419,23 +1419,39 @@ function WebmailContent() {
             <div className="p-4 sm:p-6 max-w-4xl mx-auto w-full flex-1 flex flex-col space-y-4 sm:space-y-6">
               
               {/* Mobile Back Button */}
-              <div className="md:hidden">
+              <div className="md:hidden flex items-center justify-between">
                 <button
                   type="button"
                   onClick={() => setSelectedMessage(null)}
                   className="inline-flex items-center space-x-2 text-xs font-bold text-gray-700 bg-white border border-gray-200 px-3.5 py-2 rounded-xl shadow-2xs hover:bg-gray-50 transition cursor-pointer"
                 >
                   <ArrowLeft className="h-4 w-4 text-primary-600" />
-                  <span>Voltar às Mensagens</span>
+                  <span>Voltar</span>
                 </button>
+                <div className="flex items-center space-x-1">
+                  <button
+                    onClick={() => handleReplyMessage()}
+                    className="p-2.5 bg-primary-50 text-primary-600 rounded-xl border border-primary-200 cursor-pointer"
+                    title="Responder"
+                  >
+                    <Reply className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteMessage(selectedMessage.id)}
+                    className="p-2.5 bg-rose-50 text-rose-600 rounded-xl border border-rose-200 cursor-pointer"
+                    title="Eliminar"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
               {/* Header card */}
               <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-200 space-y-4">
-                <div className="flex items-start justify-between">
-                  <h2 className="text-2xl font-extrabold text-gray-900 leading-tight">
+                <div className="flex items-start justify-between gap-3">
+                  <h2 className="text-lg sm:text-2xl font-extrabold text-gray-900 leading-tight flex-1 min-w-0 break-words">
                     {selectedMessage.subject}
                   </h2>
-                  <div className="flex items-center space-x-2">
+                  <div className="hidden sm:flex items-center space-x-2 shrink-0">
                     <button
                       onClick={() => window.print()}
                       className="p-2.5 hover:bg-gray-100 text-gray-500 rounded-2xl transition cursor-pointer"
@@ -1480,71 +1496,64 @@ function WebmailContent() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between text-xs pt-2 border-t border-gray-100">
-                  <div className="flex items-center space-x-3">
-                    <div className={`w-10 h-10 rounded-full ${selectedMessage.avatarColor || 'bg-primary-600'} text-white flex items-center justify-center font-bold text-sm shadow-md`}>
+                <div className="flex flex-wrap items-center justify-between text-xs pt-2 border-t border-gray-100 gap-2">
+                  <div className="flex items-center space-x-2.5">
+                    <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full ${selectedMessage.avatarColor || 'bg-primary-600'} text-white flex items-center justify-center font-bold text-sm shadow-md shrink-0`}>
                       {selectedMessage.fromName.charAt(0).toUpperCase()}
                     </div>
                     <div>
                       <span className="font-bold text-gray-900 text-sm block">{selectedMessage.fromName}</span>
-                      <span className="text-gray-500 font-mono text-xs">&lt;{selectedMessage.fromEmail}&gt;</span>
+                      <span className="text-gray-500 font-mono text-[11px] truncate max-w-[180px] sm:max-w-none block">&lt;{selectedMessage.fromEmail}&gt;</span>
                     </div>
                   </div>
-                  <div className="text-right text-gray-400 font-medium text-xs">
-                    {new Date(selectedMessage.date).toLocaleDateString('pt-MZ', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                  <div className="text-right text-gray-400 font-medium text-[11px] sm:text-xs">
+                    {new Date(selectedMessage.date).toLocaleDateString('pt-MZ', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                   </div>
                 </div>
               </div>
 
               {/* AI Assistant Smart Bar */}
-              <div className="bg-gradient-to-r from-purple-900 via-indigo-900 to-primary-950 rounded-2xl p-4 text-white shadow-sm space-y-3">
+              <div className="bg-gradient-to-r from-purple-900 via-indigo-900 to-primary-950 rounded-2xl p-3 sm:p-4 text-white shadow-sm space-y-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center space-x-2 text-xs font-bold">
                     <Sparkles className="h-4 w-4 text-purple-300 animate-pulse" />
-                    <span>Assistente de IA Integrado</span>
+                    <span>IA Integrado</span>
                   </div>
 
-                  <div className="flex items-center space-x-1.5">
+                  <div className="flex flex-wrap items-center gap-1.5">
                     <button
                       type="button"
                       onClick={handleSummarizeWithAI}
                       disabled={isGeneratingSummary}
-                      className="px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1 backdrop-blur-md disabled:opacity-50"
+                      className="px-2.5 py-1.5 bg-white/20 hover:bg-white/30 text-white rounded-lg text-[11px] font-bold transition flex items-center space-x-1 disabled:opacity-50"
                     >
                       {isGeneratingSummary ? <Loader2 className="h-3 w-3 animate-spin" /> : <Lightbulb className="h-3 w-3 text-amber-300" />}
-                      <span>{isGeneratingSummary ? 'Resumindo...' : 'Resumir Mensagem'}</span>
+                      <span>{isGeneratingSummary ? 'Resumindo...' : 'Resumir'}</span>
                     </button>
-
-                    <div className="relative inline-flex items-center space-x-1">
-                      <span className="text-[11px] text-purple-200 hidden sm:inline-block">Responder com IA:</span>
-                      <button
-                        type="button"
-                        onClick={() => handleGenerateAIReply('formal')}
-                        disabled={isGeneratingReply}
-                        className="px-2.5 py-1 bg-white/10 hover:bg-white/20 text-white rounded-lg text-[11px] font-semibold transition"
-                        title="Gerar resposta formal"
-                      >
-                        Formal
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleGenerateAIReply('friendly')}
-                        disabled={isGeneratingReply}
-                        className="px-2.5 py-1 bg-white/10 hover:bg-white/20 text-white rounded-lg text-[11px] font-semibold transition"
-                        title="Gerar resposta amigável"
-                      >
-                        Amigável
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleGenerateAIReply('quick_accept')}
-                        disabled={isGeneratingReply}
-                        className="px-2.5 py-1 bg-emerald-500/30 hover:bg-emerald-500/40 text-emerald-200 rounded-lg text-[11px] font-bold transition"
-                        title="Aceitar/Confirmar"
-                      >
-                        Confirmar
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleGenerateAIReply('formal')}
+                      disabled={isGeneratingReply}
+                      className="px-2.5 py-1 bg-white/10 hover:bg-white/20 text-white rounded-lg text-[11px] font-semibold transition"
+                    >
+                      Formal
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleGenerateAIReply('friendly')}
+                      disabled={isGeneratingReply}
+                      className="px-2.5 py-1 bg-white/10 hover:bg-white/20 text-white rounded-lg text-[11px] font-semibold transition"
+                    >
+                      Amigável
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleGenerateAIReply('quick_accept')}
+                      disabled={isGeneratingReply}
+                      className="px-2.5 py-1 bg-emerald-500/30 hover:bg-emerald-500/40 text-emerald-200 rounded-lg text-[11px] font-bold transition"
+                    >
+                      Confirmar
+                    </button>
                   </div>
                 </div>
 
@@ -1615,29 +1624,29 @@ function WebmailContent() {
               </div>
 
               {/* Quick Reply Form */}
-              <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200 space-y-3">
+              <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-gray-200 space-y-3">
                 <span className="text-xs font-bold text-gray-700 flex items-center space-x-1.5">
                   <Reply className="h-4 w-4 text-primary-600" />
-                  <span>Resposta Rápida para {selectedMessage.fromEmail}</span>
+                  <span className="truncate">Resposta rápida para <span className="font-mono text-primary-700">{selectedMessage.fromEmail}</span></span>
                 </span>
                 <textarea
                   rows={3}
                   value={replyText}
                   onChange={(e) => setReplyText(e.target.value)}
                   placeholder="Escreva a sua resposta..."
-                  className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 outline-none focus:ring-2 focus:ring-primary-500 font-sans"
+                  className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 outline-none focus:ring-2 focus:ring-primary-500 font-sans resize-none"
                 />
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                   {quickReplyStatus !== 'idle' && (
                     <span className={`text-xs font-semibold ${quickReplyStatus === 'sent' ? 'text-emerald-600' : 'text-red-500'}`}>
-                      {quickReplyStatus === 'sent' ? '✅ Resposta enviada!' : '❌ Erro ao enviar. Tenta novamente.'}
+                      {quickReplyStatus === 'sent' ? '✅ Enviada!' : '❌ Erro ao enviar.'}
                     </span>
                   )}
                   <button
                     type="button"
                     onClick={handleSendQuickReply}
                     disabled={!replyText.trim() || quickReplySending}
-                    className="ml-auto px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow transition cursor-pointer flex items-center space-x-1.5"
+                    className="ml-auto px-5 py-2.5 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow transition cursor-pointer flex items-center space-x-1.5"
                   >
                     <Send className="h-3.5 w-3.5" />
                     <span>{quickReplySending ? 'A enviar...' : 'Enviar Resposta'}</span>
@@ -1667,8 +1676,8 @@ function WebmailContent() {
 
       {/* MODAL: Escrever E-mail (Compose) */}
       {showCompose && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-          <div className={`bg-white rounded-3xl shadow-2xl p-6 ${isComposeExpanded ? 'max-w-4xl' : 'max-w-xl'} w-full border border-gray-100 animate-in fade-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto`}>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-2 sm:p-4">
+          <div className={`bg-white rounded-3xl shadow-2xl p-4 sm:p-6 ${isComposeExpanded ? 'max-w-4xl' : 'max-w-xl'} w-full border border-gray-100 animate-in fade-in zoom-in-95 duration-150 max-h-[98vh] sm:max-h-[90vh] overflow-y-auto`}>
             {isAccountPending ? (
               <div className="text-center py-6 space-y-4">
                 <div className="w-14 h-14 bg-amber-100 rounded-full flex items-center justify-center mx-auto text-amber-600 border border-amber-200 shadow-2xs">
@@ -1901,11 +1910,11 @@ function WebmailContent() {
                 </div>
 
                 <div>
-                  <div className="flex items-center justify-between mb-1">
+                  <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
                     <label className="block text-xs font-bold uppercase tracking-wider text-gray-700">
                       Mensagem
                     </label>
-                    <div className="flex items-center space-x-2">
+                    <div className="flex flex-wrap items-center gap-1.5">
                       <button
                         type="button"
                         onClick={handleImproveWithAI}
