@@ -7,7 +7,7 @@ import {
   Mail, Inbox, Send, Star, Trash2, Edit3, Search, RefreshCw, 
   ArrowLeft, CheckCircle2, ShieldCheck, User, Paperclip, Reply, Forward,
   FileText, LogOut, ChevronRight, X, AlertCircle, Sparkles, Clock, Printer, Download, Loader2, Filter, Maximize2, Minimize2, Bold, Italic, Underline, Type,
-  Wand2, Bot, FileSignature, Lightbulb, Check, Wifi, WifiOff
+  Wand2, Bot, FileSignature, Lightbulb, Check, Wifi, WifiOff, Pin, PinOff, Flag, Flame
 } from 'lucide-react';
 import { auth, User as AuthUser } from '@/lib/auth';
 import { dataManager, EmailAccount } from '@/lib/data';
@@ -93,7 +93,7 @@ function WebmailContent() {
   const isInitialLoadRef = useRef<boolean>(true);
 
   // Filter & Refresh State
-  const [filterType, setFilterType] = useState<'all' | 'unread' | 'attachments' | 'starred'>('all');
+  const [filterType, setFilterType] = useState<'all' | 'unread' | 'attachments' | 'starred' | 'pinned' | 'priority'>('all');
   const [isRefreshingWebmail, setIsRefreshingWebmail] = useState(false);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
 
@@ -104,6 +104,7 @@ function WebmailContent() {
   const [composeBcc, setComposeBcc] = useState('');
   const [composeSubject, setComposeSubject] = useState('');
   const [composeBody, setComposeBody] = useState('');
+  const [composePriority, setComposePriority] = useState<'high' | 'normal' | 'low'>('normal');
   const [composeAttachments, setComposeAttachments] = useState<WebmailAttachment[]>([]);
   const [uploadingAttachment, setUploadingAttachment] = useState(false);
   const [sendingMsg, setSendingMsg] = useState(false);
@@ -634,6 +635,31 @@ function WebmailContent() {
     }
   };
 
+  const handleTogglePin = (msgId: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    const isPinned = webmailManager.togglePin(msgId, selectedAccountEmail);
+    setMessages(prev => {
+      const updated = prev.map(m => m.id === msgId ? { ...m, pinned: isPinned } : m);
+      return [...updated].sort((a, b) => {
+        if (a.pinned && !b.pinned) return -1;
+        if (!a.pinned && b.pinned) return 1;
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
+      });
+    });
+    if (selectedMessage?.id === msgId) {
+      setSelectedMessage(prev => prev ? { ...prev, pinned: isPinned } : null);
+    }
+  };
+
+  const handleChangePriority = (msgId: string, priority: 'high' | 'normal' | 'low', e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    webmailManager.setMessagePriority(msgId, priority, selectedAccountEmail);
+    setMessages(prev => prev.map(m => m.id === msgId ? { ...m, priority } : m));
+    if (selectedMessage?.id === msgId) {
+      setSelectedMessage(prev => prev ? { ...prev, priority } : null);
+    }
+  };
+
   // Solicitar confirmação antes de eliminar
   const handleDeleteMessage = (msgId: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
@@ -708,7 +734,8 @@ function WebmailContent() {
         composeTo,
         composeSubject || '(Sem assunto)',
         composeBody,
-        composeAttachments
+        composeAttachments,
+        composePriority
       );
 
       // 2. Remover rascunho se existir
@@ -945,6 +972,8 @@ function WebmailContent() {
     if (filterType === 'unread') matchesFilter = !m.isRead;
     if (filterType === 'attachments') matchesFilter = !!(m.attachments && m.attachments.length > 0);
     if (filterType === 'starred') matchesFilter = m.starred;
+    if (filterType === 'pinned') matchesFilter = !!m.pinned;
+    if (filterType === 'priority') matchesFilter = m.priority === 'high';
 
     const q = searchQuery.toLowerCase();
     const matchesSearch = q === '' ||
@@ -1460,6 +1489,26 @@ function WebmailContent() {
                     <Star className="w-3 h-3" />
                     <span>Estrela</span>
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => setFilterType('pinned')}
+                    className={`px-2.5 py-1 rounded-full whitespace-nowrap transition cursor-pointer flex items-center space-x-1 ${
+                      filterType === 'pinned' ? 'bg-purple-600 text-white font-bold' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    <Pin className="w-3 h-3" />
+                    <span>Fixados</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFilterType('priority')}
+                    className={`px-2.5 py-1 rounded-full whitespace-nowrap transition cursor-pointer flex items-center space-x-1 ${
+                      filterType === 'priority' ? 'bg-rose-600 text-white font-bold' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    <Flame className="w-3 h-3" />
+                    <span>Alta Prioridade</span>
+                  </button>
                 </div>
               )}
             </div>
@@ -1498,46 +1547,72 @@ function WebmailContent() {
                   <div
                     key={msg.id}
                     onClick={() => handleSelectMessage(msg)}
-                    className={`p-4 cursor-pointer transition-all duration-200 flex items-start space-x-3 rounded-2xl mx-2 my-2 ${
+                    className={`p-3.5 sm:p-4 cursor-pointer transition-all duration-200 flex items-start space-x-2.5 sm:space-x-3 rounded-2xl mx-2 my-1.5 ${
                       isSelected
                         ? 'bg-gradient-to-r from-primary-50 to-primary-100/50 border-2 border-primary-300 shadow-md'
+                        : msg.pinned
+                        ? 'bg-gradient-to-r from-purple-50/70 to-indigo-50/50 border border-purple-200 shadow-2xs hover:shadow-sm'
                         : msg.isRead
-                        ? 'bg-white hover:bg-gray-50 hover:shadow-sm border border-transparent'
-                        : 'bg-gradient-to-r from-blue-50/60 to-indigo-50/40 hover:from-blue-50/80 hover:to-indigo-50/60 border border-blue-200/50 shadow-sm'
+                        ? 'bg-white hover:bg-gray-50 hover:shadow-2xs border border-transparent'
+                        : 'bg-gradient-to-r from-blue-50/60 to-indigo-50/40 hover:from-blue-50/80 hover:to-indigo-50/60 border border-blue-200/50 shadow-2xs'
                     }`}
                   >
-                    <button
-                      type="button"
-                      onClick={(e) => handleToggleStar(msg.id, e)}
-                      className="pt-0.5 text-gray-300 hover:text-amber-400 transition shrink-0"
-                    >
-                      <Star className={`h-4 w-4 ${msg.starred ? 'fill-amber-400 text-amber-400' : ''}`} />
-                    </button>
+                    <div className="flex flex-col items-center space-y-2 shrink-0 pt-0.5">
+                      <button
+                        type="button"
+                        onClick={(e) => handleToggleStar(msg.id, e)}
+                        className="text-gray-300 hover:text-amber-400 transition"
+                        title={msg.starred ? 'Remover estrela' : 'Marcar com estrela'}
+                      >
+                        <Star className={`h-4 w-4 ${msg.starred ? 'fill-amber-400 text-amber-400' : ''}`} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => handleTogglePin(msg.id, e)}
+                        className={`transition ${msg.pinned ? 'text-purple-600 hover:text-purple-700' : 'text-gray-300 hover:text-purple-500'}`}
+                        title={msg.pinned ? 'Desafixar mensagem do topo' : 'Fixar mensagem no topo'}
+                      >
+                        <Pin className={`h-3.5 w-3.5 ${msg.pinned ? 'fill-purple-600 text-purple-600' : ''}`} />
+                      </button>
+                    </div>
 
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1.5">
-                        <span className={`text-sm truncate ${msg.isRead ? 'text-gray-700 font-semibold' : 'text-gray-900 font-extrabold'}`}>
-                          {msg.fromName}
-                        </span>
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center space-x-1.5 truncate">
+                          <span className={`text-xs sm:text-sm truncate ${msg.isRead ? 'text-gray-700 font-semibold' : 'text-gray-900 font-extrabold'}`}>
+                            {msg.fromName}
+                          </span>
+                          {msg.pinned && (
+                            <span className="bg-purple-100 text-purple-700 text-[10px] font-black px-1.5 py-0.2 rounded-md shrink-0 border border-purple-200">
+                              📌 Fixado
+                            </span>
+                          )}
+                          {msg.priority === 'high' && (
+                            <span className="bg-rose-100 text-rose-700 text-[10px] font-black px-1.5 py-0.2 rounded-md shrink-0 border border-rose-200 flex items-center space-x-0.5">
+                              <span>⚡</span>
+                              <span className="hidden sm:inline">Urgente</span>
+                            </span>
+                          )}
+                        </div>
                         <div className="flex items-center space-x-1.5 ml-2 shrink-0">
                           {hasAtt && <Paperclip className="h-3.5 w-3.5 text-gray-400" />}
-                          <span className="text-[11px] text-gray-400 whitespace-nowrap font-medium">
+                          <span className="text-[10px] sm:text-[11px] text-gray-400 whitespace-nowrap font-medium">
                             {new Date(msg.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </div>
                       </div>
-                      <h4 className={`text-sm truncate mb-1 ${msg.isRead ? 'text-gray-800 font-semibold' : 'text-gray-900 font-bold'}`}>
+                      <h4 className={`text-xs sm:text-sm truncate mb-0.5 ${msg.isRead ? 'text-gray-800 font-semibold' : 'text-gray-900 font-bold'}`}>
                         {msg.subject}
                       </h4>
-                      <p className="text-xs text-gray-500 truncate mt-0.5 leading-relaxed">
+                      <p className="text-[11px] sm:text-xs text-gray-500 truncate leading-relaxed">
                         {getSnippetText(msg.textPreview, msg.body)}
                       </p>
                       {imageAttachment && (
-                        <div className="mt-2 flex items-center space-x-2">
+                        <div className="mt-1.5 flex items-center space-x-2">
                           <img 
                             src={imageAttachment.url} 
                             alt="Preview" 
-                            className="h-8 w-8 rounded-lg object-cover border border-gray-200"
+                            className="h-7 w-7 rounded-lg object-cover border border-gray-200"
                           />
                         </div>
                       )}
@@ -1566,6 +1641,13 @@ function WebmailContent() {
                 </button>
                 <div className="flex items-center space-x-1">
                   <button
+                    onClick={(e) => handleTogglePin(selectedMessage.id, e)}
+                    className={`p-2.5 rounded-xl border transition cursor-pointer ${selectedMessage.pinned ? 'bg-purple-100 text-purple-700 border-purple-300' : 'bg-white text-gray-600 border-gray-200'}`}
+                    title={selectedMessage.pinned ? "Desafixar mensagem" : "Fixar mensagem"}
+                  >
+                    <Pin className={`h-4 w-4 ${selectedMessage.pinned ? 'fill-purple-600' : ''}`} />
+                  </button>
+                  <button
                     onClick={() => handleReplyMessage()}
                     className="p-2.5 bg-primary-50 text-primary-600 rounded-xl border border-primary-200 cursor-pointer"
                     title="Responder"
@@ -1584,10 +1666,38 @@ function WebmailContent() {
               {/* Header card */}
               <div className="bg-white rounded-3xl p-4 sm:p-6 shadow-sm border border-gray-200 space-y-4">
                 <div className="flex items-start justify-between gap-3">
-                  <h2 className="text-lg sm:text-2xl font-extrabold text-gray-900 leading-tight flex-1 min-w-0 break-words">
-                    {selectedMessage.subject}
-                  </h2>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                      {selectedMessage.pinned && (
+                        <span className="bg-purple-100 text-purple-800 text-xs font-black px-2.5 py-0.5 rounded-full border border-purple-200 flex items-center space-x-1 shrink-0">
+                          <Pin className="w-3 h-3 fill-purple-700 text-purple-700" />
+                          <span>Fixado no Topo</span>
+                        </span>
+                      )}
+                      {selectedMessage.priority === 'high' && (
+                        <span className="bg-rose-100 text-rose-800 text-xs font-black px-2.5 py-0.5 rounded-full border border-rose-200 flex items-center space-x-1 shrink-0">
+                          <span>⚡</span>
+                          <span>Alta Prioridade</span>
+                        </span>
+                      )}
+                      {selectedMessage.priority === 'low' && (
+                        <span className="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-0.5 rounded-full border border-blue-200 shrink-0">
+                          🔵 Baixa Prioridade
+                        </span>
+                      )}
+                    </div>
+                    <h2 className="text-lg sm:text-2xl font-extrabold text-gray-900 leading-tight break-words">
+                      {selectedMessage.subject}
+                    </h2>
+                  </div>
                   <div className="hidden sm:flex items-center space-x-2 shrink-0">
+                    <button
+                      onClick={(e) => handleTogglePin(selectedMessage.id, e)}
+                      className={`p-2.5 rounded-2xl transition cursor-pointer border ${selectedMessage.pinned ? 'bg-purple-100 text-purple-700 border-purple-300' : 'hover:bg-purple-50 text-gray-400 hover:text-purple-600 border-transparent'}`}
+                      title={selectedMessage.pinned ? "Desafixar mensagem" : "Fixar mensagem no topo"}
+                    >
+                      <Pin className={`h-4 w-4 ${selectedMessage.pinned ? 'fill-purple-600' : ''}`} />
+                    </button>
                     <button
                       onClick={() => window.print()}
                       className="p-2.5 hover:bg-gray-100 text-gray-500 rounded-2xl transition cursor-pointer"
@@ -1642,8 +1752,27 @@ function WebmailContent() {
                       <span className="text-gray-500 font-mono text-[11px] truncate max-w-[180px] sm:max-w-none block">&lt;{selectedMessage.fromEmail}&gt;</span>
                     </div>
                   </div>
-                  <div className="text-right text-gray-400 font-medium text-[11px] sm:text-xs">
-                    {new Date(selectedMessage.date).toLocaleDateString('pt-MZ', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+
+                  {/* Priority Selector Pill */}
+                  <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-1.5 bg-gray-100 px-2.5 py-1 rounded-xl border border-gray-200">
+                      <Flag className="w-3 h-3 text-gray-500" />
+                      <span className="text-[10px] font-bold text-gray-500">Prioridade:</span>
+                      <select
+                        value={selectedMessage.priority || 'normal'}
+                        onChange={(e) => handleChangePriority(selectedMessage.id, e.target.value as any)}
+                        className={`bg-transparent text-xs font-black outline-none cursor-pointer ${
+                          selectedMessage.priority === 'high' ? 'text-rose-700' : selectedMessage.priority === 'low' ? 'text-blue-700' : 'text-gray-700'
+                        }`}
+                      >
+                        <option value="normal">⚪ Normal</option>
+                        <option value="high">🔴 Alta Prioridade</option>
+                        <option value="low">🔵 Baixa</option>
+                      </select>
+                    </div>
+                    <div className="text-right text-gray-400 font-medium text-[11px] sm:text-xs">
+                      {new Date(selectedMessage.date).toLocaleDateString('pt-MZ', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -2262,6 +2391,49 @@ function WebmailContent() {
                       </div>
                     </>
                   )}
+                </div>
+
+                {/* Seletor de Prioridade da Mensagem */}
+                <div className="flex flex-wrap items-center justify-between gap-2 p-3 bg-gray-50 border border-gray-200 rounded-2xl">
+                  <div className="flex items-center space-x-2">
+                    <Flag className="w-4 h-4 text-gray-500" />
+                    <span className="text-xs font-bold text-gray-700">Prioridade da Mensagem:</span>
+                  </div>
+                  <div className="flex items-center space-x-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setComposePriority('normal')}
+                      className={`px-3 py-1.5 text-xs font-bold rounded-xl transition cursor-pointer border ${
+                        composePriority === 'normal'
+                          ? 'bg-white text-gray-900 border-gray-300 shadow-xs'
+                          : 'text-gray-500 hover:bg-gray-100 border-transparent'
+                      }`}
+                    >
+                      ⚪ Normal
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setComposePriority('high')}
+                      className={`px-3 py-1.5 text-xs font-bold rounded-xl transition cursor-pointer border ${
+                        composePriority === 'high'
+                          ? 'bg-rose-100 text-rose-800 border-rose-300 shadow-xs font-extrabold'
+                          : 'text-gray-500 hover:bg-rose-50 hover:text-rose-700 border-transparent'
+                      }`}
+                    >
+                      🔴 Alta Prioridade
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setComposePriority('low')}
+                      className={`px-3 py-1.5 text-xs font-bold rounded-xl transition cursor-pointer border ${
+                        composePriority === 'low'
+                          ? 'bg-blue-100 text-blue-800 border-blue-300 shadow-xs'
+                          : 'text-gray-500 hover:bg-blue-50 hover:text-blue-700 border-transparent'
+                      }`}
+                    >
+                      🔵 Baixa
+                    </button>
+                  </div>
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-2 pt-2">

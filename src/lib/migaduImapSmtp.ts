@@ -16,6 +16,7 @@ export interface IMAPMessage {
   textPreview?: string;
   isRead: boolean;
   starred: boolean;
+  priority?: 'high' | 'normal' | 'low';
   folder: string;
   attachments?: Array<{
     filename: string;
@@ -31,6 +32,7 @@ export interface SMTPSendOptions {
   subject: string;
   text?: string;
   html?: string;
+  priority?: 'high' | 'normal' | 'low';
   attachments?: Array<{
     filename: string;
     content: Buffer;
@@ -595,13 +597,26 @@ export class MigaduImapSmtpService {
       }
     });
 
+    const customHeaders: Record<string, string> = {};
+    if (options.priority === 'high') {
+      customHeaders['X-Priority'] = '1 (Highest)';
+      customHeaders['X-MSMail-Priority'] = 'High';
+      customHeaders['Importance'] = 'High';
+    } else if (options.priority === 'low') {
+      customHeaders['X-Priority'] = '5 (Lowest)';
+      customHeaders['X-MSMail-Priority'] = 'Low';
+      customHeaders['Importance'] = 'Low';
+    }
+
     await transporter.sendMail({
       from: options.from,
       to: options.to.join(', '),
       subject: options.subject,
       text: options.text,
       html: options.html,
-      attachments: options.attachments
+      attachments: options.attachments,
+      priority: options.priority === 'high' ? 'high' : options.priority === 'low' ? 'low' : 'normal',
+      headers: customHeaders
     });
 
     // Save a copy to Sent folder on IMAP

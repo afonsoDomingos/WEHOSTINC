@@ -5,7 +5,7 @@ import { migaduImapSmtp } from '@/lib/migaduImapSmtp';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, password, to, subject, body: emailBody, attachments } = body;
+    const { email, password, to, subject, body: emailBody, attachments, priority } = body;
 
     if (!email || !password || !to || !emailBody) {
       return NextResponse.json(
@@ -33,6 +33,7 @@ export async function POST(request: NextRequest) {
       subject,
       text: emailBody,
       html: emailBody,
+      priority: priority || 'normal',
       attachments: processedAttachments
     }, password);
 

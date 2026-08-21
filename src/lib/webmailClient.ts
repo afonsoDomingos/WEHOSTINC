@@ -20,6 +20,8 @@ export interface WebmailMessage {
   date: string;
   isRead: boolean;
   starred: boolean;
+  pinned?: boolean;
+  priority?: 'high' | 'normal' | 'low';
   folder: 'inbox' | 'sent' | 'drafts' | 'trash';
   avatarColor?: string;
   attachments?: WebmailAttachment[];
@@ -31,6 +33,8 @@ export const ATTACHMENT_MAX_COUNT = 5; // Maximo de 5 anexos por email
 export const ATTACHMENT_TOTAL_MAX_SIZE = 25 * 1024 * 1024; // 25MB total por email
 
 const WEBMAIL_STORAGE_KEY = 'wehosthere_webmail_drafts';
+const WEBMAIL_PINNED_KEY = 'wehosthere_webmail_pinned';
+const WEBMAIL_PRIORITY_KEY = 'wehosthere_webmail_priorities';
 
 // Mapeamento de pasta UI -> nome IMAP real (Migadu)
 export const FOLDER_IMAP_MAP: Record<string, string> = {
@@ -47,6 +51,58 @@ export const webmailManager = {
     return !!(email && password);
   },
 
+  getPinnedSet: (accountEmail?: string): Set<string> => {
+    if (typeof window === 'undefined') return new Set();
+    try {
+      const key = `${WEBMAIL_PINNED_KEY}_${(accountEmail || 'default').toLowerCase()}`;
+      const data = localStorage.getItem(key);
+      return data ? new Set(JSON.parse(data)) : new Set();
+    } catch {
+      return new Set();
+    }
+  },
+
+  togglePin: (msgId: string, accountEmail?: string): boolean => {
+    if (typeof window === 'undefined') return false;
+    try {
+      const key = `${WEBMAIL_PINNED_KEY}_${(accountEmail || 'default').toLowerCase()}`;
+      const pinnedSet = webmailManager.getPinnedSet(accountEmail);
+      let isPinned = false;
+      if (pinnedSet.has(msgId)) {
+        pinnedSet.delete(msgId);
+        isPinned = false;
+      } else {
+        pinnedSet.add(msgId);
+        isPinned = true;
+      }
+      localStorage.setItem(key, JSON.stringify(Array.from(pinnedSet)));
+      return isPinned;
+    } catch {
+      return false;
+    }
+  },
+
+  getPriorityMap: (accountEmail?: string): Record<string, 'high' | 'normal' | 'low'> => {
+    if (typeof window === 'undefined') return {};
+    try {
+      const key = `${WEBMAIL_PRIORITY_KEY}_${(accountEmail || 'default').toLowerCase()}`;
+      const data = localStorage.getItem(key);
+      return data ? JSON.parse(data) : {};
+    } catch {
+      return {};
+    }
+  },
+
+  setMessagePriority: (msgId: string, priority: 'high' | 'normal' | 'low', accountEmail?: string): void => {
+    if (typeof window === 'undefined') return;
+    try {
+      const key = `${WEBMAIL_PRIORITY_KEY}_${(accountEmail || 'default').toLowerCase()}`;
+      const map = webmailManager.getPriorityMap(accountEmail);
+      map[msgId] = priority;
+      localStorage.setItem(key, JSON.stringify(map));
+    } catch {}
+  },
+
   /**
    * Busca mensagens de uma pasta especifica via IMAP (Migadu) com sincronização em tempo real.
    */
@@ -55,6 +111,36 @@ export const webmailManager = {
     password?: string,
     folder: 'inbox' | 'sent' | 'drafts' | 'trash' = 'inbox'
   ): Promise<WebmailMessage[]> => {
+    const pinnedSet = webmailManager.getPinnedSet(accountEmail);
+    const priorityMap = webmailManager.getPriorityMap(accountEmail);
+
+    const enrichMessage = (msg: WebmailMessage): WebmailMessage => {
+      const isPinned = pinnedSet.has(msg.id) || !!msg.pinned;
+      const customPriority = priorityMap[msg.id];
+      let effectivePriority = customPriority || msg.priority || 'normal';
+      if (!customPriority && !msg.priority) {
+        const subj = (msg.subject || '').toUpperCase();
+        if (subj.includes('URGENTE') || subj.includes('PRIORIDADE ALTA') || subj.includes('[HIGH]') || subj.includes('[URGENT]')) {
+          effectivePriority = 'high';
+        }
+      }
+      return {
+        ...msg,
+        pinned: isPinned,
+        priority: effectivePriority
+      };
+    };
+
+    const sortMessages = (list: WebmailMessage[]) => {
+      return [...list].sort((a, b) => {
+        // Pinned messages first
+        if (a.pinned && !b.pinned) return -1;
+        if (!a.pinned && b.pinned) return 1;
+        // Then by date descending
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
+      });
+    };
+
     // 1. Rascunhos (Local + IMAP se disponível)
     if (folder === 'drafts') {
       const localDrafts = await webmailManager.getDrafts(accountEmail);
@@ -80,11 +166,11 @@ export const webmailManager = {
                 combined.push(idraft);
               }
             }
-            return combined;
+            return sortMessages(combined.map(enrichMessage));
           }
         } catch {}
       }
-      return localDrafts;
+      return sortMessages(localDrafts.map(enrichMessage));
     }
 
     // 2. Mensagens via IMAP (Inbox, Sent, Trash)
@@ -128,16 +214,16 @@ export const webmailManager = {
               allSent.push(localMsg);
             }
           }
-          allSent.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-          return allSent;
+          return sortMessages(allSent.map(enrichMessage));
         }
 
-        return imapMsgs;
+        return sortMessages(imapMsgs.map(enrichMessage));
       } catch (error) {
         console.error('[Webmail] API fetch failed:', error);
         if (folder === 'sent') {
           const localSent = typeof window !== 'undefined' ? localStorage.getItem(`${WEBMAIL_SENT_KEY}_${accountEmail.toLowerCase()}`) : null;
-          return localSent ? JSON.parse(localSent) : [];
+          const list = localSent ? JSON.parse(localSent) : [];
+          return sortMessages(list.map(enrichMessage));
         }
         return [];
       }
@@ -146,7 +232,8 @@ export const webmailManager = {
     // Fallback para sent local se sem credenciais
     if (folder === 'sent' && accountEmail) {
       const localSent = typeof window !== 'undefined' ? localStorage.getItem(`${WEBMAIL_SENT_KEY}_${accountEmail.toLowerCase()}`) : null;
-      return localSent ? JSON.parse(localSent) : [];
+      const list = localSent ? JSON.parse(localSent) : [];
+      return sortMessages(list.map(enrichMessage));
     }
 
     return [];
@@ -158,7 +245,8 @@ export const webmailManager = {
     toEmail: string,
     subject: string,
     body: string,
-    attachments?: WebmailAttachment[]
+    attachments?: WebmailAttachment[],
+    priority: 'high' | 'normal' | 'low' = 'normal'
   ): Promise<WebmailMessage> => {
     const res = await fetch(apiEndpoint('/api/webmail/send'), {
       method: 'POST',
@@ -169,6 +257,7 @@ export const webmailManager = {
         to: toEmail,
         subject,
         body,
+        priority,
         attachments,
       }),
     });
@@ -189,6 +278,7 @@ export const webmailManager = {
       date: new Date().toISOString(),
       isRead: true,
       starred: false,
+      priority,
       folder: 'sent',
       avatarColor: 'bg-primary-600',
       attachments: attachments && attachments.length > 0 ? attachments : undefined,
