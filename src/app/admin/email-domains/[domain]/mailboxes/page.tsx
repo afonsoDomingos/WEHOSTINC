@@ -292,13 +292,14 @@ export default function DomainMailboxesPage() {
       <div className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-center space-x-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
               <Link
                 href={`/admin/email-domains/${domainName}`}
-                className="p-2 hover:bg-gray-100 rounded-xl text-gray-500 hover:text-gray-900 transition"
-                title="Voltar ao Domínio"
+                className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 rounded-xl text-xs font-bold transition shadow-2xs w-fit cursor-pointer"
+                title="Voltar à configuração do domínio"
               >
-                <ArrowLeft className="h-5 w-5" />
+                <ArrowLeft className="h-4 w-4" />
+                <span>Voltar ao Domínio</span>
               </Link>
               <div>
                 <div className="flex items-center space-x-2">

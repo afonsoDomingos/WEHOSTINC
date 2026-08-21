@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react';
 
 import { 
+  ArrowLeft,
+  ChevronRight,
   Plus, 
   Search, 
   MoreVertical, 
@@ -466,53 +468,87 @@ export default function EmailDomainsPage() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Email Domains</h1>
-              <p className="text-sm text-gray-500 mt-1">Manage email domains and DNS configuration</p>
-            </div>
-            <div className="flex items-center space-x-3">
+    <div className="min-h-screen bg-gray-50/70">
+      {/* Header com Navegação Fácil e Botões Compactos */}
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-20 shadow-2xs">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4">
+          {/* Barra Superior de Navegação / Voltar */}
+          <div className="flex items-center justify-between gap-3 mb-3 pb-3 border-b border-gray-100">
+            <div className="flex items-center space-x-2 text-xs">
               <Link
                 href="/admin"
-                className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition"
+                className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 rounded-xl font-bold transition cursor-pointer"
+                title="Voltar ao Painel Geral de Administração"
               >
-                <Settings className="h-5 w-5" />
-                <span className="hidden sm:inline">Admin Dashboard</span>
+                <ArrowLeft className="h-4 w-4" />
+                <span>Voltar ao Painel</span>
               </Link>
+              <ChevronRight className="h-3.5 w-3.5 text-gray-400" />
+              <span className="text-gray-500 font-medium">Gestão de E-mails</span>
+              <ChevronRight className="h-3.5 w-3.5 text-gray-400" />
+              <span className="text-gray-900 font-bold">Domínios</span>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <span className="inline-flex items-center space-x-1 px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg text-xs font-black border border-indigo-100">
+                <Globe className="h-3.5 w-3.5" />
+                <span>{domains.length} Domínios Registados</span>
+              </span>
+            </div>
+          </div>
+
+          {/* Linha Principal: Título & Ações Compactas */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div>
+              <h1 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight flex items-center space-x-2">
+                <span>Domínios de E-mail</span>
+                <span className="text-xs bg-gray-100 text-gray-600 font-bold px-2.5 py-0.5 rounded-full">
+                  Admin
+                </span>
+              </h1>
+              <p className="text-xs text-gray-500 font-medium mt-0.5">
+                Gestão e atribuição de domínios corporativos a clientes, DNS e sincronização com o provedor.
+              </p>
+            </div>
+
+            {/* Ações Compactas e Proporcionais */}
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={handleInitializeDefault}
                 disabled={isInitializing}
-                className="flex items-center space-x-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white px-4 py-2 rounded-lg hover:from-green-700 hover:to-emerald-700 transition shadow-md"
+                title="Inicializar domínio padrão do sistema wehosthere.com"
+                className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-bold transition disabled:opacity-50 cursor-pointer shadow-2xs"
               >
-                <Rocket className={`h-5 w-5 ${isInitializing ? 'animate-pulse' : ''}`} />
-                <span>{isInitializing ? 'Inicializando...' : 'Inicializar wehosthere.com'}</span>
+                <Rocket className={`h-3.5 w-3.5 ${isInitializing ? 'animate-pulse text-emerald-600' : 'text-emerald-700'}`} />
+                <span>{isInitializing ? 'A inicializar...' : 'wehosthere.com'}</span>
               </button>
+
               <button
                 onClick={handleSyncFromMigadu}
                 disabled={isSyncing}
-                title="Provisionar todos os domínios e caixas da plataforma diretamente na Migadu"
-                className="flex items-center space-x-2 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 px-4 py-2 rounded-lg font-semibold transition shadow-xs disabled:opacity-50"
+                title="Provisionar e sincronizar todos os domínios da plataforma diretamente na Migadu"
+                className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 rounded-xl text-xs font-bold transition disabled:opacity-50 cursor-pointer shadow-2xs"
               >
-                <CloudDownload className={`h-5 w-5 ${isSyncing ? 'animate-spin' : ''}`} />
-                <span>{isSyncing ? 'Sincronizando com Migadu...' : 'Sincronizar com Migadu'}</span>
+                <CloudDownload className={`h-3.5 w-3.5 ${isSyncing ? 'animate-spin text-sky-600' : 'text-sky-700'}`} />
+                <span>{isSyncing ? 'A sincronizar...' : 'Sincronizar Migadu'}</span>
               </button>
+
               <button
                 onClick={() => setShowQuickCreateModal(true)}
-                className="flex items-center space-x-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-indigo-700 transition shadow-md"
+                title="Criar domínio e caixa de e-mail num único passo"
+                className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer"
               >
-                <Zap className="h-5 w-5" />
-                <span>Quick Create</span>
+                <Zap className="h-3.5 w-3.5" />
+                <span>Criação Rápida</span>
               </button>
+
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="flex items-center space-x-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition"
+                title="Adicionar um novo domínio de e-mail"
+                className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer"
               >
-                <Plus className="h-5 w-5" />
-                <span>Add Domain</span>
+                <Plus className="h-3.5 w-3.5" />
+                <span>+ Adicionar Domínio</span>
               </button>
             </div>
           </div>
@@ -521,72 +557,80 @@ export default function EmailDomainsPage() {
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Filters */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
+        {/* Filtros e Pesquisa */}
+        <div className="bg-white rounded-2xl shadow-xs border border-gray-200/80 p-4 mb-6">
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+            <div className="flex-1 w-full">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Search domains..."
+                  placeholder="Pesquisar por nome de domínio ou cliente..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="pl-10 pr-4 py-2.5 w-full border border-gray-200 rounded-xl text-xs font-semibold text-gray-800 placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-primary-500 bg-gray-50/50"
                 />
               </div>
             </div>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            >
-              <option value="all">All Status</option>
-              <option value="active">Active</option>
-              <option value="pending_dns">Pending DNS</option>
-              <option value="provisioning">Provisioning</option>
-              <option value="provisioning_failed">Failed</option>
-              <option value="suspended">Suspended</option>
-            </select>
+            <div className="w-full sm:w-auto">
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full sm:w-auto px-4 py-2.5 border border-gray-200 rounded-xl text-xs font-bold text-gray-700 bg-gray-50/50 outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer"
+              >
+                <option value="all">Todos os Status</option>
+                <option value="active">✅ Ativo (Active)</option>
+                <option value="pending_dns">⏳ Pendente DNS</option>
+                <option value="provisioning">⚡ Aprovisionando</option>
+                <option value="provisioning_failed">❌ Falha</option>
+                <option value="suspended">🔒 Suspenso</option>
+              </select>
+            </div>
           </div>
         </div>
 
-        {/* Domains List */}
+        {/* Lista de Domínios */}
         {loading ? (
-          <div className="flex items-center justify-center py-12">
+          <div className="flex flex-col items-center justify-center py-16 bg-white rounded-3xl border border-gray-200 shadow-2xs space-y-3">
             <RefreshCw className="h-8 w-8 text-primary-600 animate-spin" />
+            <p className="text-xs font-bold text-gray-500">A carregar domínios e configurações...</p>
           </div>
         ) : filteredDomains.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
-            <Globe className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No domains found</h3>
-            <p className="text-gray-500 mb-4">Get started by adding your first email domain</p>
+          <div className="bg-white rounded-3xl shadow-xs border border-gray-200/80 p-12 text-center max-w-lg mx-auto space-y-4">
+            <div className="h-16 w-16 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto">
+              <Globe className="h-8 w-8" />
+            </div>
+            <div>
+              <h3 className="text-base font-extrabold text-gray-900">Nenhum domínio encontrado</h3>
+              <p className="text-xs text-gray-500 mt-1">Comece por adicionar o seu primeiro domínio corporativo ou ajuste a pesquisa.</p>
+            </div>
             <button
               onClick={() => setShowCreateModal(true)}
-              className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition"
+              className="inline-flex items-center space-x-2 bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-xs transition cursor-pointer"
             >
-              Add Domain
+              <Plus className="h-4 w-4" />
+              <span>Adicionar Domínio Agora</span>
             </button>
           </div>
         ) : (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          <div className="bg-white rounded-3xl shadow-xs border border-gray-200/80 overflow-hidden">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-50/80">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Domain
+                  <th className="px-6 py-3.5 text-left text-[11px] font-black text-gray-500 uppercase tracking-wider">
+                    Domínio &amp; Cliente Vinculado
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3.5 text-left text-[11px] font-black text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    DNS Check
+                  <th className="px-6 py-3.5 text-left text-[11px] font-black text-gray-500 uppercase tracking-wider">
+                    Diagnóstico DNS
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Created
+                  <th className="px-6 py-3.5 text-left text-[11px] font-black text-gray-500 uppercase tracking-wider">
+                    Data de Criação
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
+                  <th className="px-6 py-3.5 text-right text-[11px] font-black text-gray-500 uppercase tracking-wider">
+                    Ações Rápidas
                   </th>
                 </tr>
               </thead>
