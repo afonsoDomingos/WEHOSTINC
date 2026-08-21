@@ -20,13 +20,8 @@ import {
   Server,
   Send,
   Inbox,
-  ShieldCheck,
-  HelpCircle,
-  ChevronRight,
   Info,
   Sparkles,
-  Lock,
-  Globe,
   Settings,
   X
 } from 'lucide-react';
@@ -322,7 +317,7 @@ export default function DomainMailboxesPage() {
                 className="flex items-center space-x-1.5 bg-white border border-gray-300 text-gray-700 px-3.5 py-2 rounded-xl text-sm font-semibold hover:bg-gray-50 hover:border-gray-400 transition shadow-xs"
               >
                 <Smartphone className="h-4 w-4 text-primary-600" />
-                <span>Configurar Outlook & Apps</span>
+                <span>Configurar Outlook &amp; Apps</span>
               </button>
 
               <button
@@ -468,7 +463,7 @@ export default function DomainMailboxesPage() {
                   <User className="h-4 w-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-gray-900">Autenticação & Login</h3>
+                  <h3 className="text-sm font-bold text-gray-900">Autenticação &amp; Login</h3>
                   <p className="text-[11px] text-gray-500">Regra de ouro para conectar</p>
                 </div>
               </div>
@@ -618,7 +613,7 @@ export default function DomainMailboxesPage() {
                             title="Ver dados de conexão para Outlook, iPhone ou Android"
                           >
                             <Smartphone className="h-3.5 w-3.5 text-primary-600" />
-                            <span>Outlook & Apps</span>
+                            <span>Outlook &amp; Apps</span>
                           </button>
 
                           {/* Open Webmail */}
@@ -683,7 +678,7 @@ export default function DomainMailboxesPage() {
       {/* MODAL: GUIA COMPLETO DE CONFIGURAÇÃO DE E-MAIL (OUTLOOK, IPHONE, ANDROID, THUNDERBIRD) */}
       {showConfigModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-3xl w-full max-h-[92vh] flex flex-col overflow-hidden border border-gray-100 animate-in fade-in zoom-in-95 duration-150">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-3xl w-full max-h-[92vh] flex flex-col overflow-hidden border border-gray-100">
             
             {/* Modal Header */}
             <div className="bg-gradient-to-r from-gray-900 via-primary-950 to-gray-900 text-white p-6 relative flex items-start justify-between">
@@ -905,7 +900,7 @@ export default function DomainMailboxesPage() {
                         <span>Configuração Manual</span>
                       </div>
                       <p className="text-gray-600 pl-7">
-                        Digite seu e-mail completo (<code className="bg-white px-1.5 py-0.5 rounded border border-gray-300 font-mono text-blue-700 font-bold">{currentEmailDisplay}</code>), marque a opção <strong>"Opções avançadas"</strong> &gt; <strong>"Configurar minha conta manualmente"</strong> e clique em Conectar.
+                        Digite seu e-mail completo (<code className="bg-white px-1.5 py-0.5 rounded border border-gray-300 font-mono text-blue-700 font-bold">{currentEmailDisplay}</code>), marque a opção <strong>&quot;Opções avançadas&quot;</strong> &gt; <strong>&quot;Configurar minha conta manualmente&quot;</strong> e clique em Conectar.
                       </p>
                     </div>
 
@@ -947,7 +942,7 @@ export default function DomainMailboxesPage() {
               {activeClientTab === 'apple' && (
                 <div className="space-y-4">
                   <div className="border-l-4 border-gray-900 pl-4 py-1">
-                    <h3 className="font-bold text-gray-900 text-base">Passo a Passo: iPhone & iPad (Apple Mail)</h3>
+                    <h3 className="font-bold text-gray-900 text-base">Passo a Passo: iPhone &amp; iPad (Apple Mail)</h3>
                     <p className="text-xs text-gray-500">Configuração direta no aplicativo Mail nativo do iOS:</p>
                   </div>
 
@@ -965,7 +960,7 @@ export default function DomainMailboxesPage() {
                     <div className="bg-gray-50 rounded-2xl p-4 border border-gray-200 space-y-1.5">
                       <div className="font-bold text-gray-900 flex items-center space-x-2">
                         <span className="h-5 w-5 rounded-full bg-gray-900 text-white flex items-center justify-center text-[10px]">2</span>
-                        <span>Selecionar "Outra"</span>
+                        <span>Selecionar &quot;Outra&quot;</span>
                       </div>
                       <p className="text-gray-600 pl-7">
                         Toque em <strong>Outra</strong> &gt; <strong>Adicionar Conta de E-mail</strong>.
@@ -1020,7 +1015,7 @@ export default function DomainMailboxesPage() {
               {activeClientTab === 'gmail' && (
                 <div className="space-y-4">
                   <div className="border-l-4 border-red-500 pl-4 py-1">
-                    <h3 className="font-bold text-gray-900 text-base">Passo a Passo: Android & App Gmail</h3>
+                    <h3 className="font-bold text-gray-900 text-base">Passo a Passo: Android &amp; App Gmail</h3>
                     <p className="text-xs text-gray-500">Como conectar no aplicativo Gmail oficial para Android:</p>
                   </div>
 
@@ -1038,7 +1033,7 @@ export default function DomainMailboxesPage() {
                     <div className="bg-gray-50 rounded-2xl p-4 border border-gray-200 space-y-1.5">
                       <div className="font-bold text-gray-900 flex items-center space-x-2">
                         <span className="h-5 w-5 rounded-full bg-red-600 text-white flex items-center justify-center text-[10px]">2</span>
-                        <span>Selecionar "Outra" e Configuração Manual</span>
+                        <span>Selecionar &quot;Outra&quot; e Configuração Manual</span>
                       </div>
                       <p className="text-gray-600 pl-7">
                         Escolha <strong>Outra</strong> &gt; Digite seu e-mail (<code className="bg-white px-1 rounded font-mono font-bold">{currentEmailDisplay}</code>) &gt; Toque em <strong>Configuração Manual</strong> no canto inferior &gt; Escolha <strong>Pessoal (IMAP)</strong>.
