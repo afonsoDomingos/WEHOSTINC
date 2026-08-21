@@ -104,9 +104,8 @@ export async function POST(
       await dispatchMessage({
         recipientEmail: cleanEmail,
         recipientName: cleanEmail.split('@')[0],
-        templateId: 'custom',
-        customSubject: `🎉 O domínio ${domainName} e e-mails foram vinculados à sua conta!`,
-        customBody: `Olá,\n\nInformamos que o domínio corporativo ${domainName} e as suas respetivas caixas de e-mail foram vinculados com sucesso à sua conta WEHOSTHERE.\n\nPode agora aceder ao seu painel em https://wehosthere.com/dashboard/email e ao Webmail em https://wehosthere.com/webmail.\n\nCom os melhores cumprimentos,\nEquipa WEHOSTHERE`,
+        subject: `🎉 O domínio ${domainName} e e-mails foram vinculados à sua conta!`,
+        body: `Olá,\n\nInformamos que o domínio corporativo ${domainName} e as suas respetivas caixas de e-mail foram vinculados com sucesso à sua conta WEHOSTHERE.\n\nPode agora aceder ao seu painel em https://wehosthere.com/dashboard/email e ao Webmail em https://wehosthere.com/webmail.\n\nCom os melhores cumprimentos,\nEquipa WEHOSTHERE`,
         isAutomatic: true,
         eventType: 'domain_assigned'
       });

@@ -105,9 +105,8 @@ export async function POST(
       await dispatchMessage({
         recipientEmail: cleanEmail,
         recipientName: cleanEmail.split('@')[0],
-        templateId: 'custom',
-        customSubject: `🎁 Convite para aceder ao domínio ${domain.domainName} - WEHOSTHERE`,
-        customBody: `Olá,\n\nFoi pré-configurado o domínio ${domain.domainName} e as respetivas caixas de e-mail corporativas para a sua organização na plataforma WEHOSTHERE.\n\nPara ativar o seu acesso e criar a sua conta já com o domínio vinculado, clique no link abaixo:\n${inviteLink}\n\nEste link é válido por 7 dias.\n\nCom os melhores cumprimentos,\nEquipa WEHOSTHERE`,
+        subject: `🎁 Convite para aceder ao domínio ${domain.domainName} - WEHOSTHERE`,
+        body: `Olá,\n\nFoi pré-configurado o domínio ${domain.domainName} e as respetivas caixas de e-mail corporativas para a sua organização na plataforma WEHOSTHERE.\n\nPara ativar o seu acesso e criar a sua conta já com o domínio vinculado, clique no link abaixo:\n${inviteLink}\n\nEste link é válido por 7 dias.\n\nCom os melhores cumprimentos,\nEquipa WEHOSTHERE`,
         isAutomatic: true,
         eventType: 'domain_invitation'
       });
