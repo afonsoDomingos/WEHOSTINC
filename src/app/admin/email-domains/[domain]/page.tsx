@@ -121,7 +121,11 @@ export default function EmailDomainDetailPage() {
       });
       const data = await response.json();
       if (data.success) {
-        setToast({ type: 'success', message: 'Domínio ativado com sucesso!' });
+        if (data.activated) {
+          setToast({ type: 'success', message: '✅ Domínio ativado com sucesso! Já pode criar caixas de e-mail.' });
+        } else {
+          setToast({ type: 'error', message: `⏳ ${data.message || 'DNS ainda não propagado. Aguarde 5-15 min e tente novamente.'}` });
+        }
         fetchDomain();
       } else {
         setToast({ type: 'error', message: data.error || 'Falha ao ativar domínio' });

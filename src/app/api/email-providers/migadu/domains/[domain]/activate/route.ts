@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getEmailProvider } from '@/lib/emailProviders/base';
 import { EmailDomain } from '@/models/EmailDomain';
-import { auth } from '@/lib/auth';
 import { connectDB } from '@/lib/mongodb';
 
-// POST - Activate a domain
+// POST - Activate a domain (with graceful fallback if Migadu DNS not yet propagated)
 export async function POST(
   request: NextRequest,
   { params }: { params: { domain: string } }
@@ -26,30 +25,52 @@ export async function POST(
     }
 
     const provider = getEmailProvider();
-    const activatedDomain = await provider.activateDomain(domainName);
+    let activatedSuccessfully = false;
+    let providerError = '';
 
-    // Update domain with activated status
-    Object.assign(domain, activatedDomain);
+    if (provider.isConfigured()) {
+      try {
+        const activatedDomain = await provider.activateDomain(domainName);
+        if (activatedDomain) {
+          Object.assign(domain, activatedDomain);
+          activatedSuccessfully = true;
+        }
+      } catch (provErr: any) {
+        // Migadu rejected activation because DNS isn't ready yet — that's OK
+        providerError = provErr?.message || 'DNS not yet propagated on Migadu';
+        console.warn('[Activate] Migadu activation deferred (DNS pending):', providerError);
+      }
+    }
+
+    if (activatedSuccessfully) {
+      domain.status = 'active';
+      domain.canSend = true;
+      domain.canReceive = true;
+      domain.activatedAt = domain.activatedAt || new Date();
+    } else {
+      // Keep as pending — don't force active when DNS isn't verified
+      domain.status = 'pending_dns';
+    }
+
     await domain.save();
 
     return NextResponse.json({
       success: true,
-      domain,
-      message: 'Domain activated successfully'
+      activated: activatedSuccessfully,
+      domain: {
+        domainName: domain.domainName,
+        status: domain.status,
+        canSend: domain.canSend,
+        canReceive: domain.canReceive,
+      },
+      message: activatedSuccessfully
+        ? 'Domínio ativado com sucesso!'
+        : `DNS ainda não propagado. Verifique os registos na TurboHost e tente novamente em 5-10 minutos. (${providerError})`
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('[Migadu Domain Activate POST] Error:', error);
-    
-    // Check if it's a DNS configuration error
-    if (error instanceof Error && error.message.includes('DNS')) {
-      return NextResponse.json(
-        { error: 'DNS configuration check failed. Please verify DNS records are correctly configured.' },
-        { status: 422 }
-      );
-    }
-
     return NextResponse.json(
-      { error: 'Failed to activate domain' },
+      { error: `Falha ao processar ativação: ${error?.message || 'Erro interno'}` },
       { status: 500 }
     );
   }
