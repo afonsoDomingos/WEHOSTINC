@@ -551,6 +551,22 @@ function WebmailContent() {
     }
   }, [selectedAccountEmail, mailboxPassword, accounts]);
 
+  // Dynamic folder counters across folder switches
+  const [folderStats, setFolderStats] = useState<{
+    inboxUnread: number;
+    starred: number;
+    drafts: number;
+    sent: number;
+    trash: number;
+  }>({
+    inboxUnread: 0,
+    starred: 0,
+    drafts: 0,
+    sent: 0,
+    trash: 0,
+  });
+  const [lastSyncedTime, setLastSyncedTime] = useState<Date | null>(null);
+
   // Load messages whenever account, password, or folder changes
   useEffect(() => {
     if (selectedAccountEmail && mailboxPassword) {
@@ -564,6 +580,20 @@ function WebmailContent() {
           const filtered = currentFolder === 'starred' ? msgs.filter(m => m.starred) : msgs;
           setMessages(filtered);
           setSelectedMessage(filtered.length > 0 ? filtered[0] : null);
+          setLastSyncedTime(new Date());
+
+          // Update folder stats dynamically
+          if (folder === 'inbox') {
+            const unread = msgs.filter(m => !m.isRead).length;
+            const starred = msgs.filter(m => m.starred).length;
+            setFolderStats(prev => ({ ...prev, inboxUnread: unread, starred }));
+          } else if (folder === 'sent') {
+            setFolderStats(prev => ({ ...prev, sent: msgs.length }));
+          } else if (folder === 'trash') {
+            setFolderStats(prev => ({ ...prev, trash: msgs.length }));
+          } else if (folder === 'drafts') {
+            setFolderStats(prev => ({ ...prev, drafts: msgs.length }));
+          }
         } catch (error) {
           console.error('[Webmail] Error loading messages:', error);
           setMessages([]);
@@ -574,6 +604,15 @@ function WebmailContent() {
     }
   }, [selectedAccountEmail, mailboxPassword, currentFolder]);
 
+  // Sync initial drafts count from local storage
+  useEffect(() => {
+    if (selectedAccountEmail) {
+      webmailManager.getDrafts(selectedAccountEmail).then(localDrafts => {
+        setFolderStats(prev => ({ ...prev, drafts: localDrafts.length }));
+      });
+    }
+  }, [selectedAccountEmail]);
+
   const refreshMessages = async () => {
     if (selectedAccountEmail && mailboxPassword) {
       setIsRefreshingWebmail(true);
@@ -582,6 +621,12 @@ function WebmailContent() {
         const msgs = await webmailManager.getMessages(selectedAccountEmail, mailboxPassword, folder);
         const filtered = currentFolder === 'starred' ? msgs.filter(m => m.starred) : msgs;
         setMessages(filtered);
+        setLastSyncedTime(new Date());
+        if (folder === 'inbox') {
+          const unread = msgs.filter(m => !m.isRead).length;
+          const starred = msgs.filter(m => m.starred).length;
+          setFolderStats(prev => ({ ...prev, inboxUnread: unread, starred }));
+        }
       } catch (error) {
         console.error('[Webmail] Error refreshing messages:', error);
       }
@@ -991,11 +1036,25 @@ function WebmailContent() {
   const isAccountPending = currentAccountObj ? (currentAccountObj.status === 'pending' || !currentAccountObj.status) : false;
 
   const unreadCount = messages.filter(m => !m.isRead).length;
-  const draftsCount = messages.filter(m => m.folder === 'drafts').length;
-  // For inbox badge — shows unread count only when in inbox
-  const unreadInboxCount = currentFolder === 'inbox' ? messages.filter(m => !m.isRead).length : 0;
+  
+  // Dynamic badge counters
+  const unreadInboxCount = currentFolder === 'inbox' 
+    ? messages.filter(m => !m.isRead).length 
+    : folderStats.inboxUnread;
 
-  // Armazenamento real via Migadu (busca ao iniciar sessão)
+  const starredCount = currentFolder === 'starred'
+    ? messages.length
+    : (currentFolder === 'inbox' ? messages.filter(m => m.starred).length : folderStats.starred);
+
+  const draftsCount = currentFolder === 'drafts'
+    ? messages.length
+    : folderStats.drafts;
+
+  const sentCount = currentFolder === 'sent'
+    ? messages.length
+    : folderStats.sent;
+
+  // Armazenamento real via Migadu + cálculo dinâmico por mensagens carregadas
   const [migaduStorageUsedMB, setMigaduStorageUsedMB] = useState<number>(0);
 
   useEffect(() => {
@@ -1016,11 +1075,65 @@ function WebmailContent() {
     }
   }, [selectedAccountEmail, mailboxPassword]);
 
+  // Dynamic storage calculation from messages and attachments
+  const calculatedStorageBytes = messages.reduce((acc, m) => {
+    let msgBytes = (m.body?.length || 0) + (m.subject?.length || 0) + 1024;
+    if (m.attachments) {
+      msgBytes += m.attachments.reduce((sum, att) => sum + (att.size || 0), 0);
+    }
+    return acc + msgBytes;
+  }, 0);
+
+  const effectiveStorageMB = migaduStorageUsedMB > 0 
+    ? migaduStorageUsedMB 
+    : (mailboxPassword ? Math.max(calculatedStorageBytes / (1024 * 1024), 0.15) : 0);
+
+  const storagePercentage = Math.min((effectiveStorageMB / 1024) * 100, 100);
+
   const storageInfo = {
-    usedMB: migaduStorageUsedMB,
-    usedDisplay: migaduStorageUsedMB < 1024
-      ? `${migaduStorageUsedMB.toFixed(1)} MB`
-      : `${(migaduStorageUsedMB / 1024).toFixed(2)} GB`,
+    usedMB: effectiveStorageMB,
+    percentage: storagePercentage,
+    usedDisplay: effectiveStorageMB < 1024
+      ? `${effectiveStorageMB.toFixed(1)} MB`
+      : `${(effectiveStorageMB / 1024).toFixed(2)} GB`,
+  };
+
+  // Gerador de Respostas Rápidas Inteligentes Contextuais
+  const getSmartReplies = (subject?: string, body?: string): string[] => {
+    const text = `${subject || ''} ${body || ''}`.toLowerCase();
+    if (text.includes('orçamento') || text.includes('preço') || text.includes('proposta') || text.includes('cotação')) {
+      return [
+        'Recebido! Vou analisar a proposta e retorno em breve.',
+        'Obrigado pelo envio. Podemos agendar uma reunião?',
+        'Proposta aprovada! Como podemos proceder?'
+      ];
+    }
+    if (text.includes('reunião') || text.includes('agendamento') || text.includes('horário') || text.includes('disponível') || text.includes('call')) {
+      return [
+        'Perfeito, estarei disponível no horário indicado.',
+        'Agradeço o convite. Poderíamos remarcar para a tarde?',
+        'Confirmado! Envie-me o link da chamada, por favor.'
+      ];
+    }
+    if (text.includes('obrigado') || text.includes('agradeço') || text.includes('agradecemos') || text.includes('parabéns')) {
+      return [
+        'De nada! Fico sempre à disposição.',
+        'Com certeza! Qualquer dúvida adicional, avise-me.',
+        'Obrigado pela parceria e confiança.'
+      ];
+    }
+    if (text.includes('urgente') || text.includes('prioridade') || text.includes('asap')) {
+      return [
+        'Recebido! Estou a tratar deste assunto com prioridade máxima.',
+        'Entendido. Darei retorno dentro de alguns minutos.',
+        'A trabalhar nisso agora mesmo!'
+      ];
+    }
+    return [
+      'Olá! Mensagem recebida com sucesso. Retornarei em breve.',
+      'Obrigado pela informação. Darei seguimento de imediato.',
+      'Perfeito, agradeço a rápida atualização!'
+    ];
   };
 
 
@@ -1110,6 +1223,46 @@ function WebmailContent() {
               <LogOut className="h-4 w-4" />
             </button>
           )}
+
+          {/* Live Connection & Sync Status Pill */}
+          <div 
+            className="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold shrink-0 transition-all duration-300"
+            style={{
+              backgroundColor: !isOnline ? '#FEF2F2' : (isLoadingMessages || isRefreshingWebmail) ? '#EFF6FF' : mailboxPassword ? '#ECFDF5' : '#FFFBEB',
+              borderColor: !isOnline ? '#FECACA' : (isLoadingMessages || isRefreshingWebmail) ? '#BFDBFE' : mailboxPassword ? '#A7F3D0' : '#FDE68A',
+              color: !isOnline ? '#991B1B' : (isLoadingMessages || isRefreshingWebmail) ? '#1E40AF' : mailboxPassword ? '#065F46' : '#92400E'
+            }}
+          >
+            {!isOnline ? (
+              <>
+                <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping shrink-0" />
+                <span className="text-[11px] font-bold">Offline</span>
+              </>
+            ) : (isLoadingMessages || isRefreshingWebmail) ? (
+              <>
+                <Loader2 className="h-3.5 w-3.5 animate-spin text-primary-600 shrink-0" />
+                <span className="text-[11px] font-bold">A sincronizar...</span>
+              </>
+            ) : mailboxPassword ? (
+              <>
+                <span className="relative flex h-2 w-2 shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span className="text-[11px] font-bold">IMAP Ativo</span>
+                {lastSyncedTime && (
+                  <span className="text-[10px] opacity-75 font-normal">
+                    ({lastSyncedTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})
+                  </span>
+                )}
+              </>
+            ) : (
+              <>
+                <Lock className="h-3 w-3 text-amber-600 shrink-0" />
+                <span className="text-[11px] font-bold">Sessão Fechada</span>
+              </>
+            )}
+          </div>
 
           {/* Desktop-only: Date/Time */}
           {currentDateTime && (
@@ -1270,6 +1423,11 @@ function WebmailContent() {
         >
           <Star className="h-3.5 w-3.5" />
           <span>Com Estrela</span>
+          {starredCount > 0 && (
+            <span className="bg-white text-amber-600 text-[10px] px-1.5 py-0.2 rounded-full font-black ml-1 shadow-sm">
+              {starredCount}
+            </span>
+          )}
         </button>
 
         <button
@@ -1282,6 +1440,11 @@ function WebmailContent() {
         >
           <Send className="h-3.5 w-3.5" />
           <span>Enviados</span>
+          {sentCount > 0 && (
+            <span className="bg-white text-emerald-600 text-[10px] px-1.5 py-0.2 rounded-full font-black ml-1 shadow-sm">
+              {sentCount}
+            </span>
+          )}
         </button>
 
         <button
@@ -1306,6 +1469,11 @@ function WebmailContent() {
         >
           <FileText className="h-3.5 w-3.5" />
           <span>Rascunhos</span>
+          {draftsCount > 0 && (
+            <span className="bg-white text-purple-600 text-[10px] px-1.5 py-0.2 rounded-full font-black ml-1 shadow-sm">
+              {draftsCount}
+            </span>
+          )}
         </button>
       </div>
 
@@ -1354,26 +1522,40 @@ function WebmailContent() {
 
             <button
               onClick={() => setCurrentFolder('starred')}
-              className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl transition-all duration-200 cursor-pointer border ${
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all duration-200 cursor-pointer border ${
                 currentFolder === 'starred' 
                   ? 'bg-amber-50 text-amber-700 border-amber-200 font-black shadow-sm' 
                   : 'hover:bg-gray-100 text-gray-600 border-transparent hover:border-gray-200'
               }`}
             >
-              <Star className="h-4 w-4 text-amber-400" />
-              <span className="font-bold">Com Estrela</span>
+              <div className="flex items-center space-x-2.5">
+                <Star className="h-4 w-4 text-amber-400" />
+                <span className="font-bold">Com Estrela</span>
+              </div>
+              {starredCount > 0 && (
+                <span className="bg-amber-500 text-white text-[10px] px-2 py-0.5 rounded-full font-black shadow-sm">
+                  {starredCount}
+                </span>
+              )}
             </button>
 
             <button
               onClick={() => setCurrentFolder('sent')}
-              className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl transition-all duration-200 cursor-pointer border ${
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all duration-200 cursor-pointer border ${
                 currentFolder === 'sent' 
                   ? 'bg-emerald-50 text-emerald-700 border-emerald-200 font-black shadow-sm' 
                   : 'hover:bg-gray-100 text-gray-600 border-transparent hover:border-gray-200'
               }`}
             >
-              <Send className="h-4 w-4 text-emerald-500" />
-              <span className="font-bold">Enviados</span>
+              <div className="flex items-center space-x-2.5">
+                <Send className="h-4 w-4 text-emerald-500" />
+                <span className="font-bold">Enviados</span>
+              </div>
+              {sentCount > 0 && (
+                <span className="bg-emerald-600 text-white text-[10px] px-2 py-0.5 rounded-full font-black shadow-sm">
+                  {sentCount}
+                </span>
+              )}
             </button>
 
             <button
@@ -1419,26 +1601,35 @@ function WebmailContent() {
             </button>
             
             {!isStorageCollapsed && (
-              <>
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-gray-600">
-                    {storageInfo.usedDisplay} / 1 GB
+              <div className="space-y-2 p-2.5 bg-gray-50/90 rounded-2xl border border-gray-200/80 shadow-2xs">
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="font-black text-gray-800">
+                    {storageInfo.usedDisplay} <span className="text-gray-400 font-normal">/ 1 GB</span>
                   </span>
-                  <span className="text-gray-400 text-[10px]">Plano Básico</span>
+                  <span className="text-primary-700 font-black text-[10px] bg-primary-100/80 px-2 py-0.5 rounded-md border border-primary-200">
+                    {storageInfo.percentage.toFixed(1)}%
+                  </span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden shadow-inner p-0.5">
                   <div 
-                    className={`h-full transition-all ${
-                      (storageInfo.usedMB / 1024) > 0.9 ? 'bg-rose-500' :
-                      (storageInfo.usedMB / 1024) > 0.7 ? 'bg-amber-500' : 'bg-primary-500'
+                    className={`h-full rounded-full transition-all duration-500 ${
+                      storageInfo.percentage > 90 
+                        ? 'bg-gradient-to-r from-rose-500 to-red-600 shadow-sm shadow-rose-500/50' 
+                        : storageInfo.percentage > 70 
+                        ? 'bg-gradient-to-r from-amber-400 to-amber-600 shadow-sm shadow-amber-500/50' 
+                        : 'bg-gradient-to-r from-primary-500 to-indigo-600 shadow-sm shadow-primary-500/40'
                     }`}
-                    style={{ width: `${Math.min((storageInfo.usedMB / 1024) * 100, 100)}%` }}
+                    style={{ width: `${Math.max(storageInfo.percentage, 2)}%` }}
                   />
                 </div>
-                <p className="text-[10px] text-gray-400 text-center">
-                  1 GB de armazenamento incluído no plano
-                </p>
-              </>
+                <div className="flex items-center justify-between text-[10px] text-gray-400 pt-0.5">
+                  <span className="font-semibold text-gray-500">Plano Corporativo</span>
+                  <span className="text-emerald-600 font-black flex items-center space-x-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+                    <span>Espaço Seguro</span>
+                  </span>
+                </div>
+              </div>
             )}
           </div>
         </aside>
@@ -1932,10 +2123,39 @@ function WebmailContent() {
 
               {/* Quick Reply Form */}
               <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-gray-200 space-y-3">
-                <span className="text-xs font-bold text-gray-700 flex items-center space-x-1.5">
-                  <Reply className="h-4 w-4 text-primary-600" />
-                  <span className="truncate">Resposta rápida para <span className="font-mono text-primary-700">{selectedMessage.fromEmail}</span></span>
-                </span>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-gray-700 flex items-center space-x-1.5">
+                    <Reply className="h-4 w-4 text-primary-600" />
+                    <span className="truncate">Resposta rápida para <span className="font-mono text-primary-700">{selectedMessage.fromEmail}</span></span>
+                  </span>
+                  <span className="text-[10px] text-gray-400 hidden sm:inline">Shift + Enter para nova linha</span>
+                </div>
+
+                {/* Sugestões Inteligentes de Resposta Rápida (1 Clique) */}
+                <div className="space-y-1.5 pt-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-black text-gray-700 flex items-center space-x-1.5">
+                      <Sparkles className="h-3.5 w-3.5 text-indigo-600 animate-pulse" />
+                      <span>Sugestões Rápidas:</span>
+                    </span>
+                    <span className="text-[10px] text-gray-400">Clique para preencher</span>
+                  </div>
+                  <div className="flex items-center space-x-1.5 overflow-x-auto pb-1 scrollbar-thin">
+                    {getSmartReplies(selectedMessage.subject, selectedMessage.body).map((sug, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setReplyText(sug)}
+                        className="px-3 py-1.5 bg-gradient-to-r from-indigo-50 to-primary-50 hover:from-indigo-100 hover:to-primary-100 text-indigo-800 text-[11px] font-bold rounded-xl border border-indigo-200/80 shadow-2xs whitespace-nowrap transition-all duration-150 cursor-pointer active:scale-95 flex items-center space-x-1 shrink-0"
+                        title="Usar esta resposta"
+                      >
+                        <span>💬</span>
+                        <span>{sug}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 <textarea
                   rows={3}
                   value={replyText}
