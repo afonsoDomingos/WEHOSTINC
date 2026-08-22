@@ -537,19 +537,23 @@ function WebmailContent() {
     return () => clearInterval(interval);
   }, [router, initialEmailParam]);
 
+  // Track whether the user has explicitly dismissed the login modal so polling doesn't reopen it
+  const loginModalDismissedRef = useRef<boolean>(false);
+
   useEffect(() => {
     if (selectedAccountEmail && !mailboxPassword) {
       // Find the account to check status
       const selectedAcc = accounts.find(a => a.email.toLowerCase() === selectedAccountEmail.toLowerCase());
       const isPending = !selectedAcc || selectedAcc.status === 'pending' || !selectedAcc.status;
-      if (!isPending) {
-        // Only show login modal for ACTIVE accounts
+      if (!isPending && !loginModalDismissedRef.current) {
+        // Only show login modal for ACTIVE accounts if user hasn't dismissed it
         setShowWebmailLogin(true);
         setWebmailLoginEmail(selectedAccountEmail);
       }
       // Pending accounts: no login required — they see the interface with a warning
     }
-  }, [selectedAccountEmail, mailboxPassword, accounts]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedAccountEmail, mailboxPassword]); // intentionally exclude 'accounts' to avoid polling reopening the modal
 
   // Dynamic folder counters across folder switches
   const [folderStats, setFolderStats] = useState<{
@@ -1164,6 +1168,7 @@ function WebmailContent() {
                   setSelectedAccountEmail(newEmail);
                   setWebmailLoginEmail(newEmail);
                   setMailboxPassword('');
+                  loginModalDismissedRef.current = false; // reset on account switch
                   setShowWebmailLogin(true);
                 }}
                 className="bg-transparent text-xs font-bold text-gray-700 outline-none cursor-pointer truncate w-full"
@@ -1203,6 +1208,7 @@ function WebmailContent() {
               type="button"
               onClick={() => {
                 setWebmailLoginEmail(selectedAccountEmail);
+                loginModalDismissedRef.current = false; // manual click always opens
                 setShowWebmailLogin(true);
               }}
               className="px-3.5 py-1.5 bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-700 hover:to-indigo-700 text-white text-xs font-black rounded-xl shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer flex items-center space-x-1.5 shrink-0 animate-pulse"
@@ -1758,6 +1764,7 @@ function WebmailContent() {
                   type="button"
                   onClick={() => {
                     setWebmailLoginEmail(selectedAccountEmail);
+                    loginModalDismissedRef.current = false; // manual click always opens
                     setShowWebmailLogin(true);
                   }}
                   className="px-4 py-2.5 bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-700 hover:to-indigo-700 text-white text-xs font-black rounded-xl shadow-md transition flex items-center space-x-2 cursor-pointer active:scale-95"
@@ -2209,6 +2216,7 @@ function WebmailContent() {
                 type="button"
                 onClick={() => {
                   setWebmailLoginEmail(selectedAccountEmail);
+                  loginModalDismissedRef.current = false; // manual click always opens
                   setShowWebmailLogin(true);
                 }}
                 className="px-6 py-3.5 bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-700 hover:to-indigo-700 text-white font-black text-sm rounded-2xl shadow-xl shadow-primary-500/25 hover:shadow-2xl hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer flex items-center space-x-2.5"
@@ -2890,6 +2898,7 @@ function WebmailContent() {
                   setWebmailLoginEmail('');
                   setWebmailLoginPassword('');
                   setWebmailLoginError('');
+                  loginModalDismissedRef.current = true; // prevent polling from reopening
                 }}
                 className="p-2 hover:bg-gray-100 text-gray-400 hover:text-gray-600 rounded-xl transition cursor-pointer"
               >
