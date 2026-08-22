@@ -151,7 +151,13 @@ export default function EmailPage() {
 
     const refreshData = (newEmails?: EmailAccount[]) => {
       // Use user-specific key - strictly isolated per user
-      const loadedEmails = newEmails || dataManager.getEmails(userEmailFilter);
+      const rawEmails = newEmails || dataManager.getEmails(userEmailFilter);
+      
+      // Ensure all standard mailboxes adhere to the 1 GB quota
+      const loadedEmails = rawEmails.map(email => ({
+        ...email,
+        storage: 1
+      }));
       
       // Detect pending → active transitions to trigger celebration
       loadedEmails.forEach(email => {
@@ -477,7 +483,7 @@ export default function EmailPage() {
                       <div className="mt-4 pt-3 border-t border-gray-100 grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 text-[10px] sm:text-xs text-gray-600">
                         <div>
                           <span className="text-gray-400 block font-medium">Armazenamento</span>
-                          <span className="font-bold text-gray-900">{email.storage} GB</span>
+                          <span className="font-bold text-gray-900">{email.storage || 1} GB</span>
                         </div>
                         <div>
                           <span className="text-gray-400 block font-medium">Criado em</span>
