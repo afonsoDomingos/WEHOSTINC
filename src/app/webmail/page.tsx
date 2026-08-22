@@ -735,7 +735,9 @@ function WebmailContent() {
         composeSubject || '(Sem assunto)',
         composeBody,
         composeAttachments,
-        composePriority
+        composePriority,
+        composeCc,
+        composeBcc
       );
 
       // 2. Remover rascunho se existir

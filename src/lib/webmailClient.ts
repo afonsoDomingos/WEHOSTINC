@@ -246,7 +246,9 @@ export const webmailManager = {
     subject: string,
     body: string,
     attachments?: WebmailAttachment[],
-    priority: 'high' | 'normal' | 'low' = 'normal'
+    priority: 'high' | 'normal' | 'low' = 'normal',
+    cc?: string,
+    bcc?: string
   ): Promise<WebmailMessage> => {
     const res = await fetch(apiEndpoint('/api/webmail/send'), {
       method: 'POST',
@@ -255,6 +257,8 @@ export const webmailManager = {
         email: accountEmail,
         password,
         to: toEmail,
+        cc,
+        bcc,
         subject,
         body,
         priority,

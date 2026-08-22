@@ -29,6 +29,8 @@ export interface IMAPMessage {
 export interface SMTPSendOptions {
   from: string;
   to: string[];
+  cc?: string[];
+  bcc?: string[];
   subject: string;
   text?: string;
   html?: string;
@@ -615,6 +617,8 @@ export class MigaduImapSmtpService {
     await transporter.sendMail({
       from: options.from,
       to: options.to.join(', '),
+      cc: options.cc && options.cc.length > 0 ? options.cc.join(', ') : undefined,
+      bcc: options.bcc && options.bcc.length > 0 ? options.bcc.join(', ') : undefined,
       subject: options.subject,
       text: options.text,
       html: options.html,
@@ -645,6 +649,8 @@ export class MigaduImapSmtpService {
         mailGen.sendMail({
           from: options.from,
           to: options.to.join(', '),
+          cc: options.cc && options.cc.length > 0 ? options.cc.join(', ') : undefined,
+          bcc: options.bcc && options.bcc.length > 0 ? options.bcc.join(', ') : undefined,
           subject: options.subject,
           text: options.text,
           html: options.html,

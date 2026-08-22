@@ -5,7 +5,7 @@ import { migaduImapSmtp } from '@/lib/migaduImapSmtp';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, password, to, subject, body: emailBody, attachments, priority } = body;
+    const { email, password, to, cc, bcc, subject, body: emailBody, attachments, priority } = body;
 
     if (!email || !password || !to || !emailBody) {
       return NextResponse.json(
@@ -27,9 +27,18 @@ export async function POST(request: NextRequest) {
       return null;
     }).filter((a: any) => a !== null);
 
+    const parseRecipients = (val: any): string[] => {
+      if (!val) return [];
+      if (Array.isArray(val)) return val.filter(Boolean);
+      if (typeof val === 'string') return val.split(',').map((s: string) => s.trim()).filter(Boolean);
+      return [];
+    };
+
     await migaduImapSmtp.sendEmail({
       from: email,
-      to: Array.isArray(to) ? to : [to],
+      to: parseRecipients(to),
+      cc: parseRecipients(cc),
+      bcc: parseRecipients(bcc),
       subject,
       text: emailBody,
       html: emailBody,
