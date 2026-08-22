@@ -116,6 +116,147 @@ class SoundEffectManager {
       console.warn('[SoundEffects] Error playing delete email sound:', e);
     }
   }
+
+  // ⭐ Som de estrela (Toggle favorito) - pop leve bidirecional
+  playStarSound(isStarring: boolean): void {
+    const ctx = this.getContext();
+    if (!ctx) return;
+    try {
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      // Adicionar estrela: tom sobe; remover: tom desce
+      osc.frequency.setValueAtTime(isStarring ? 440 : 600, now);
+      osc.frequency.exponentialRampToValueAtTime(isStarring ? 880 : 300, now + 0.1);
+      gain.gain.setValueAtTime(0.18, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.15);
+    } catch (e) {
+      console.warn('[SoundEffects] Error playing star sound:', e);
+    }
+  }
+
+  // 📌 Som de clique mecânico (Fixar / desafixar mensagem)
+  playPinSound(): void {
+    const ctx = this.getContext();
+    if (!ctx) return;
+    try {
+      const now = ctx.currentTime;
+      // Dois cliques rápidos como um "snap"
+      [0, 0.06].forEach((offset, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(i === 0 ? 900 : 700, now + offset);
+        gain.gain.setValueAtTime(0.07, now + offset);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.05);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + offset);
+        osc.stop(now + offset + 0.05);
+      });
+    } catch (e) {
+      console.warn('[SoundEffects] Error playing pin sound:', e);
+    }
+  }
+
+  // 🔔 Som de login com sucesso (Acorde triunfante de 3 tons)
+  playLoginSuccessSound(): void {
+    const ctx = this.getContext();
+    if (!ctx) return;
+    try {
+      const now = ctx.currentTime;
+      const freqs = [523.25, 659.25, 783.99]; // Dó - Mi - Sol (acorde maior)
+      freqs.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now + i * 0.1);
+        gain.gain.setValueAtTime(0, now + i * 0.1);
+        gain.gain.linearRampToValueAtTime(0.2, now + i * 0.1 + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.1 + 0.5);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + i * 0.1);
+        osc.stop(now + i * 0.1 + 0.5);
+      });
+    } catch (e) {
+      console.warn('[SoundEffects] Error playing login success sound:', e);
+    }
+  }
+
+  // 📁 Som de mudança de pasta (Swoosh neutro suave)
+  playFolderSwitchSound(): void {
+    const ctx = this.getContext();
+    if (!ctx) return;
+    try {
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(600, now);
+      osc.frequency.exponentialRampToValueAtTime(350, now + 0.12);
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.15);
+    } catch (e) {
+      console.warn('[SoundEffects] Error playing folder switch sound:', e);
+    }
+  }
+
+  // 🤖 Som de IA concluída (Tom positivo duplo ascendente)
+  playAICompleteSound(): void {
+    const ctx = this.getContext();
+    if (!ctx) return;
+    try {
+      const now = ctx.currentTime;
+      const pairs = [[440, 0], [660, 0.14]];
+      pairs.forEach(([freq, offset]) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now + offset);
+        gain.gain.setValueAtTime(0, now + offset);
+        gain.gain.linearRampToValueAtTime(0.2, now + offset + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.28);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + offset);
+        osc.stop(now + offset + 0.28);
+      });
+    } catch (e) {
+      console.warn('[SoundEffects] Error playing AI complete sound:', e);
+    }
+  }
+
+  // 📎 Som de ficheiro anexado (Clique seco curto)
+  playAttachSound(): void {
+    const ctx = this.getContext();
+    if (!ctx) return;
+    try {
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(1200, now);
+      osc.frequency.exponentialRampToValueAtTime(600, now + 0.04);
+      gain.gain.setValueAtTime(0.1, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.06);
+    } catch (e) {
+      console.warn('[SoundEffects] Error playing attach sound:', e);
+    }
+  }
 }
 
 export const soundEffects = new SoundEffectManager();

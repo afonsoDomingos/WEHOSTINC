@@ -287,6 +287,7 @@ function WebmailContent() {
         if (data.success && data.content) {
           // Store base64 content in the URL field for later processing
           const base64Url = `data:${data.type};base64,${data.content}`;
+          soundEffects.playAttachSound();
           setComposeAttachments(prev => [
             ...prev,
             {
@@ -323,7 +324,7 @@ function WebmailContent() {
     );
     setEditingDraftId(null);
     refreshMessages();
-    setSentSuccessMsg('ðŸ’¾ Rascunho guardado com sucesso!');
+    setSentSuccessMsg('Rascunho guardado com sucesso!');
     setTimeout(() => {
       setShowCompose(false);
       setSentSuccessMsg('');
@@ -528,7 +529,7 @@ function WebmailContent() {
       refreshAccounts(emails);
     });
 
-    // Polling a cada 3s para sincronizar status (pending â†’ active) quando Admin aprova
+    // Polling a cada 3s para sincronizar status (pending → active) quando Admin aprova
     const interval = setInterval(() => {
       dataManager.fetchEmailsAsync(userEmailFilter).then(emails => {
         setAccounts(emails);
@@ -678,6 +679,8 @@ function WebmailContent() {
     e.stopPropagation();
     const msg = messages.find(m => m.id === msgId);
     const imapFolder = msg?.folder === 'sent' ? 'Sent' : msg?.folder === 'trash' ? 'Trash' : 'INBOX';
+    const isCurrentlyStarred = !!msg?.starred;
+    soundEffects.playStarSound(!isCurrentlyStarred);
     await webmailManager.toggleStar(msgId, selectedAccountEmail, mailboxPassword, msg?.uid, imapFolder);
     setMessages(prev => prev.map(m => m.id === msgId ? { ...m, starred: !m.starred } : m));
     if (selectedMessage?.id === msgId) {
@@ -687,6 +690,7 @@ function WebmailContent() {
 
   const handleTogglePin = (msgId: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
+    soundEffects.playPinSound();
     const isPinned = webmailManager.togglePin(msgId, selectedAccountEmail);
     setMessages(prev => {
       const updated = prev.map(m => m.id === msgId ? { ...m, pinned: isPinned } : m);
@@ -710,25 +714,13 @@ function WebmailContent() {
     }
   };
 
-  // Eliminar mensagem: move diretamente para a Lixeira (ou pede confirmação se já estiver na Lixeira)
+  // Eliminar mensagem permanentemente com atualização instantânea
   const handleDeleteMessage = async (msgId: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     const msg = messages.find(m => m.id === msgId) || (selectedMessage?.id === msgId ? selectedMessage : null);
     if (!msg) return;
 
-    // Se já estiver na pasta Lixeira, pedir confirmação para eliminar permanentemente
-    if (currentFolder === 'trash') {
-      setDeleteConfirmModal({
-        isOpen: true,
-        msgId,
-        subject: msg.subject || '(Sem assunto)',
-        isPermanent: true
-      });
-      return;
-    }
-
-    // Se estiver em Entrada / Enviados / Com Estrela / Rascunhos: Mover diretamente para a Lixeira
-    const fromImapFolder = msg.folder === 'sent' ? 'Sent' : msg.folder === 'drafts' ? 'Drafts' : 'INBOX';
+    const fromImapFolder = msg.folder === 'sent' ? 'Sent' : msg.folder === 'trash' ? 'Trash' : msg.folder === 'drafts' ? 'Drafts' : 'INBOX';
     
     // Atualização otimista imediata na UI
     setMessages(prev => prev.filter(m => m.id !== msgId));
@@ -737,16 +729,19 @@ function WebmailContent() {
     }
     setFolderStats(prev => ({
       ...prev,
-      trash: prev.trash + 1,
-      inboxUnread: msg.folder === 'inbox' && !msg.isRead ? Math.max(prev.inboxUnread - 1, 0) : prev.inboxUnread
+      inboxUnread: msg.folder === 'inbox' && !msg.isRead ? Math.max(prev.inboxUnread - 1, 0) : prev.inboxUnread,
+      trash: msg.folder === 'trash' ? Math.max(prev.trash - 1, 0) : prev.trash,
+      sent: msg.folder === 'sent' ? Math.max(prev.sent - 1, 0) : prev.sent,
+      drafts: msg.folder === 'drafts' ? Math.max(prev.drafts - 1, 0) : prev.drafts,
+      starred: msg.starred ? Math.max(prev.starred - 1, 0) : prev.starred
     }));
     soundEffects.playDeleteEmailSound();
 
-    // Mover no servidor IMAP em background
+    // Eliminação definitiva no servidor IMAP
     try {
-      await webmailManager.moveFolder(msgId, 'trash', selectedAccountEmail, mailboxPassword, msg.uid, fromImapFolder);
+      await webmailManager.deletePermanently(msgId, selectedAccountEmail, mailboxPassword, msg.uid, fromImapFolder);
     } catch (err) {
-      console.error('[Webmail] Error moving message to trash:', err);
+      console.error('[Webmail] Error deleting message permanently:', err);
     }
   };
 
@@ -780,7 +775,7 @@ function WebmailContent() {
     if (isPending) {
       setSentSuccessMsg('');
       setSendingMsg(false);
-      setWebmailLoginError('â³ Esta conta ainda não foi aprovada pelo administrador. O envio de emails estará disponível após a aprovação.');
+      setWebmailLoginError('Esta conta ainda não foi aprovada pelo administrador. O envio de emails estará disponível após a aprovação.');
       return;
     }
 
@@ -824,7 +819,7 @@ function WebmailContent() {
 
       soundEffects.playSendEmailSound();
       setSendingMsg(false);
-      setSentSuccessMsg('âœ… E-mail enviado com sucesso!');
+      setSentSuccessMsg('✅ E-mail enviado com sucesso!');
 
       setTimeout(() => {
         setShowCompose(false);
@@ -840,7 +835,7 @@ function WebmailContent() {
     } catch (err) {
       console.error('Erro ao enviar e-mail:', err);
       setSendingMsg(false);
-      setSentSuccessMsg('âŒ Erro ao enviar. Verifique as credenciais e tente novamente.');
+      setSentSuccessMsg('Erro ao enviar. Verifique as credenciais e tente novamente.');
     }
   };
 
@@ -863,6 +858,7 @@ function WebmailContent() {
 
       if (data.success) {
         // Login bem-sucedido
+        soundEffects.playLoginSuccessSound();
         setSelectedAccountEmail(webmailLoginEmail);
         setMailboxPassword(webmailLoginPassword);
         setShowWebmailLogin(false);
@@ -1005,6 +1001,7 @@ function WebmailContent() {
       const data = await res.json();
       if (data.success && data.result) {
         setComposeBody(data.result);
+        soundEffects.playAICompleteSound();
       }
     } catch (err) {
       console.error('Error improving draft:', err);
@@ -1336,7 +1333,7 @@ function WebmailContent() {
             <LogOut className="h-4 w-4" />
           </button>
 
-          {/* Mobile: More Options (â‹¯) */}
+          {/* Mobile: More Options (⋯) */}
           <button
             type="button"
             onClick={() => setShowMobileMenu(true)}
@@ -1375,7 +1372,7 @@ function WebmailContent() {
             <span>Ligação à internet restabelecida com sucesso! A sincronizar as suas caixas de e-mail...</span>
           </div>
           <span className="bg-emerald-800/90 text-emerald-100 text-[10px] px-2.5 py-0.5 rounded-full font-black uppercase shrink-0">
-            Online âœ“
+            Online ✓
           </span>
         </div>
       )}
@@ -1399,7 +1396,7 @@ function WebmailContent() {
               <Clock className="h-4 w-4 text-amber-700 animate-pulse" />
             </div>
             <div>
-              <p className="text-xs font-extrabold text-amber-950">â³ Conta em Processo de Aprovação — Envio de E-mails Bloqueado</p>
+              <p className="text-xs font-extrabold text-amber-950">Conta em Processo de Aprovação — Envio de E-mails Bloqueado</p>
               <p className="text-[11px] text-amber-800 mt-0.5 leading-relaxed">
                 A conta <strong className="font-mono">{selectedAccountEmail}</strong> está a aguardar aprovação do administrador.
                 Pode visualizar a caixa de entrada, mas <strong>não é possível enviar e-mails</strong> até a conta ser ativada.
@@ -1416,7 +1413,7 @@ function WebmailContent() {
       {/* Mobile Folder Selector Tabs (Visível em Telas Pequenas) */}
       <div className="md:hidden bg-white border-b border-gray-200 px-2 py-2 flex items-center space-x-1 overflow-x-auto text-xs shrink-0">
         <button
-          onClick={() => { setCurrentFolder('inbox'); setSelectedMessage(null); }}
+          onClick={() => { soundEffects.playFolderSwitchSound(); setCurrentFolder('inbox'); setSelectedMessage(null); }}
           className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap font-black transition-all duration-200 shrink-0 border ${
             currentFolder === 'inbox' 
               ? 'bg-primary-600 text-white shadow-md border-primary-700' 
@@ -1433,7 +1430,7 @@ function WebmailContent() {
         </button>
 
         <button
-          onClick={() => { setCurrentFolder('starred'); setSelectedMessage(null); }}
+          onClick={() => { soundEffects.playFolderSwitchSound(); setCurrentFolder('starred'); setSelectedMessage(null); }}
           className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap font-black transition-all duration-200 shrink-0 border ${
             currentFolder === 'starred' 
               ? 'bg-amber-500 text-white shadow-md border-amber-600' 
@@ -1450,7 +1447,7 @@ function WebmailContent() {
         </button>
 
         <button
-          onClick={() => { setCurrentFolder('sent'); setSelectedMessage(null); }}
+          onClick={() => { soundEffects.playFolderSwitchSound(); setCurrentFolder('sent'); setSelectedMessage(null); }}
           className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap font-black transition-all duration-200 shrink-0 border ${
             currentFolder === 'sent' 
               ? 'bg-emerald-600 text-white shadow-md border-emerald-700' 
@@ -1467,7 +1464,7 @@ function WebmailContent() {
         </button>
 
         <button
-          onClick={() => { setCurrentFolder('trash'); setSelectedMessage(null); }}
+          onClick={() => { soundEffects.playFolderSwitchSound(); setCurrentFolder('trash'); setSelectedMessage(null); }}
           className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap font-black transition-all duration-200 shrink-0 border ${
             currentFolder === 'trash' 
               ? 'bg-rose-600 text-white shadow-md border-rose-700' 
@@ -1479,7 +1476,7 @@ function WebmailContent() {
         </button>
 
         <button
-          onClick={() => { setCurrentFolder('drafts'); setSelectedMessage(null); }}
+          onClick={() => { soundEffects.playFolderSwitchSound(); setCurrentFolder('drafts'); setSelectedMessage(null); }}
           className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg whitespace-nowrap font-black transition-all duration-200 shrink-0 border ${
             currentFolder === 'drafts' 
               ? 'bg-purple-600 text-white shadow-md border-purple-700' 
@@ -1521,7 +1518,7 @@ function WebmailContent() {
 
           <nav className={`space-y-1 text-xs font-semibold ${isSidebarCollapsed ? 'hidden' : ''}`}>
             <button
-              onClick={() => setCurrentFolder('inbox')}
+              onClick={() => { soundEffects.playFolderSwitchSound(); setCurrentFolder('inbox'); }}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all duration-200 cursor-pointer border ${
                 currentFolder === 'inbox' 
                   ? 'bg-primary-50 text-primary-700 border-primary-200 font-black shadow-sm' 
@@ -1540,7 +1537,7 @@ function WebmailContent() {
             </button>
 
             <button
-              onClick={() => setCurrentFolder('starred')}
+              onClick={() => { soundEffects.playFolderSwitchSound(); setCurrentFolder('starred'); }}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all duration-200 cursor-pointer border ${
                 currentFolder === 'starred' 
                   ? 'bg-amber-50 text-amber-700 border-amber-200 font-black shadow-sm' 
@@ -1559,7 +1556,7 @@ function WebmailContent() {
             </button>
 
             <button
-              onClick={() => setCurrentFolder('sent')}
+              onClick={() => { soundEffects.playFolderSwitchSound(); setCurrentFolder('sent'); }}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all duration-200 cursor-pointer border ${
                 currentFolder === 'sent' 
                   ? 'bg-emerald-50 text-emerald-700 border-emerald-200 font-black shadow-sm' 
@@ -1578,7 +1575,7 @@ function WebmailContent() {
             </button>
 
             <button
-              onClick={() => setCurrentFolder('trash')}
+              onClick={() => { soundEffects.playFolderSwitchSound(); setCurrentFolder('trash'); }}
               className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl transition-all duration-200 cursor-pointer border ${
                 currentFolder === 'trash' 
                   ? 'bg-rose-50 text-rose-700 border-rose-200 font-black shadow-sm' 
@@ -1590,7 +1587,7 @@ function WebmailContent() {
             </button>
 
             <button
-              onClick={() => setCurrentFolder('drafts')}
+              onClick={() => { soundEffects.playFolderSwitchSound(); setCurrentFolder('drafts'); }}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all duration-200 cursor-pointer border ${
                 currentFolder === 'drafts' 
                   ? 'bg-purple-50 text-purple-700 border-purple-200 font-black shadow-sm' 
@@ -1826,13 +1823,14 @@ function WebmailContent() {
                             {msg.fromName}
                           </span>
                           {msg.pinned && (
-                            <span className="bg-purple-100 text-purple-700 text-[10px] font-black px-1.5 py-0.2 rounded-md shrink-0 border border-purple-200">
-                              ðŸ“Œ Fixado
+                            <span className="bg-purple-100 text-purple-700 text-[10px] font-black px-1.5 py-0.2 rounded-md shrink-0 border border-purple-200 flex items-center space-x-1">
+                              <Pin className="w-2.5 h-2.5" />
+                              <span>Fixado</span>
                             </span>
                           )}
                           {msg.priority === 'high' && (
-                            <span className="bg-rose-100 text-rose-700 text-[10px] font-black px-1.5 py-0.2 rounded-md shrink-0 border border-rose-200 flex items-center space-x-0.5">
-                              <span>âš¡</span>
+                            <span className="bg-rose-100 text-rose-700 text-[10px] font-black px-1.5 py-0.2 rounded-md shrink-0 border border-rose-200 flex items-center space-x-1">
+                              <Flame className="w-2.5 h-2.5 text-rose-600" />
                               <span className="hidden sm:inline">Urgente</span>
                             </span>
                           )}
@@ -2008,9 +2006,9 @@ function WebmailContent() {
                           selectedMessage.priority === 'high' ? 'text-rose-700' : selectedMessage.priority === 'low' ? 'text-blue-700' : 'text-gray-700'
                         }`}
                       >
-                        <option value="normal">âšª Normal</option>
-                        <option value="high">ðŸ”´ Alta Prioridade</option>
-                        <option value="low">ðŸ”µ Baixa</option>
+                        <option value="normal">Normal</option>
+                        <option value="high">Alta Prioridade</option>
+                        <option value="low">Baixa Prioridade</option>
                       </select>
                     </div>
                     <div className="text-right text-gray-400 font-medium text-[11px] sm:text-xs">
@@ -2120,7 +2118,7 @@ function WebmailContent() {
                           </div>
                           <div className="flex items-center space-x-1">
                             {att.type?.startsWith('image/') && (
-                              <span className="text-[10px] text-gray-400">ðŸ“·</span>
+                              <span className="text-[10px] text-gray-400">📷</span>
                             )}
                             <Download className="h-3.5 w-3.5 text-gray-400 group-hover:text-primary-600 shrink-0" />
                           </div>
@@ -2159,7 +2157,7 @@ function WebmailContent() {
                         className="px-3 py-1.5 bg-gradient-to-r from-indigo-50 to-primary-50 hover:from-indigo-100 hover:to-primary-100 text-indigo-800 text-[11px] font-bold rounded-xl border border-indigo-200/80 shadow-2xs whitespace-nowrap transition-all duration-150 cursor-pointer active:scale-95 flex items-center space-x-1 shrink-0"
                         title="Usar esta resposta"
                       >
-                        <span>ðŸ’¬</span>
+                        <span>💬</span>
                         <span>{sug}</span>
                       </button>
                     ))}
@@ -2176,7 +2174,7 @@ function WebmailContent() {
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   {quickReplyStatus !== 'idle' && (
                     <span className={`text-xs font-semibold ${quickReplyStatus === 'sent' ? 'text-emerald-600' : 'text-red-500'}`}>
-                      {quickReplyStatus === 'sent' ? 'âœ… Enviada!' : 'âŒ Erro ao enviar.'}
+                      {quickReplyStatus === 'sent' ? '✅ Enviada!' : 'Erro ao enviar.'}
                     </span>
                   )}
                   <button
@@ -2446,7 +2444,7 @@ function WebmailContent() {
                           }}
                           className="px-2 py-1 rounded-lg text-xs font-bold transition cursor-pointer border border-gray-200 hover:border-primary-300 bg-white"
                         >
-                          {templateLanguage === 'pt' ? 'ðŸ‡µðŸ‡¹ PT' : 'ðŸ‡¬ðŸ‡§ EN'}
+                          {templateLanguage === 'pt' ? '🇵🇹 PT' : '🇬🇧 EN'}
                         </button>
                         <button
                           type="button"
@@ -2469,7 +2467,7 @@ function WebmailContent() {
                             : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
                         }`}
                       >
-                        {templateLanguage === 'pt' ? 'ðŸ“‹ Todas' : 'ðŸ“‹ All'}
+                        {templateLanguage === 'pt' ? '📋 Todas' : '📋 All'}
                       </button>
                       {getDisplayCategories().map(cat => (
                         <button
@@ -2610,14 +2608,15 @@ function WebmailContent() {
                         title="Aprimorar redação com IA"
                       >
                         {isImprovingDraft ? <Loader2 className="w-3 h-3 animate-spin text-purple-600" /> : <Sparkles className="w-3 h-3 text-purple-600" />}
-                        <span>{isImprovingDraft ? 'Aprimorando...' : 'âœ¨ Melhorar com IA'}</span>
+                        <span>{isImprovingDraft ? 'Aprimorando...' : '✨ Melhorar com IA'}</span>
                       </button>
                       <button
                         type="button"
                         onClick={handleInsertSignature}
                         className="text-[11px] font-bold text-primary-600 hover:text-primary-800 bg-primary-50 hover:bg-primary-100 px-2.5 py-1 rounded-lg border border-primary-200 transition cursor-pointer flex items-center space-x-1"
                       >
-                        <span>âœï¸ Assinatura</span>
+                        <FileSignature className="w-3 h-3 text-primary-600" />
+                        <span>Assinatura</span>
                       </button>
                       <button
                         type="button"
@@ -2683,7 +2682,7 @@ function WebmailContent() {
                       ) : (
                         <Paperclip className="w-3.5 h-3.5 text-emerald-600" />
                       )}
-                      <span>{uploadingAttachment ? 'A carregar anexo...' : 'ðŸ“Ž Anexar Ficheiro'}</span>
+                      <span>{uploadingAttachment ? 'A carregar anexo...' : '📎 Anexar Ficheiro'}</span>
                       <input
                         type="file"
                         className="hidden"
@@ -2754,35 +2753,38 @@ function WebmailContent() {
                     <button
                       type="button"
                       onClick={() => setComposePriority('normal')}
-                      className={`px-3 py-1.5 text-xs font-bold rounded-xl transition cursor-pointer border ${
+                      className={`px-3 py-1.5 text-xs font-bold rounded-xl transition cursor-pointer border flex items-center space-x-1.5 ${
                         composePriority === 'normal'
                           ? 'bg-white text-gray-900 border-gray-300 shadow-xs'
                           : 'text-gray-500 hover:bg-gray-100 border-transparent'
                       }`}
                     >
-                      âšª Normal
+                      <span className="w-2 h-2 rounded-full bg-gray-400"></span>
+                      <span>Normal</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => setComposePriority('high')}
-                      className={`px-3 py-1.5 text-xs font-bold rounded-xl transition cursor-pointer border ${
+                      className={`px-3 py-1.5 text-xs font-bold rounded-xl transition cursor-pointer border flex items-center space-x-1.5 ${
                         composePriority === 'high'
                           ? 'bg-rose-100 text-rose-800 border-rose-300 shadow-xs font-extrabold'
                           : 'text-gray-500 hover:bg-rose-50 hover:text-rose-700 border-transparent'
                       }`}
                     >
-                      ðŸ”´ Alta Prioridade
+                      <span className="w-2 h-2 rounded-full bg-rose-600 animate-pulse"></span>
+                      <span>Alta Prioridade</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => setComposePriority('low')}
-                      className={`px-3 py-1.5 text-xs font-bold rounded-xl transition cursor-pointer border ${
+                      className={`px-3 py-1.5 text-xs font-bold rounded-xl transition cursor-pointer border flex items-center space-x-1.5 ${
                         composePriority === 'low'
                           ? 'bg-blue-100 text-blue-800 border-blue-300 shadow-xs'
                           : 'text-gray-500 hover:bg-blue-50 hover:text-blue-700 border-transparent'
                       }`}
                     >
-                      ðŸ”µ Baixa
+                      <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                      <span>Baixa</span>
                     </button>
                   </div>
                 </div>
@@ -3229,7 +3231,7 @@ function WebmailContent() {
                     <div className="text-gray-500 text-[11px]">📞 {signatureForm.phone}</div>
                   )}
                   {signatureForm.website && (
-                    <div className="text-purple-600 font-semibold text-[11px]">ðŸŒ {signatureForm.website}</div>
+                    <div className="text-purple-600 font-semibold text-[11px]"> {signatureForm.website}</div>
                   )}
                 </div>
               </div>
