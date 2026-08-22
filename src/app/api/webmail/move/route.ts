@@ -7,20 +7,21 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { email, password, uid, fromFolder, toFolder } = body;
 
-    if (!email || !password || uid === undefined || !fromFolder || !toFolder) {
+    const numericUid = Number(uid);
+    if (!email || !password || isNaN(numericUid) || !fromFolder || !toFolder) {
       return NextResponse.json(
-        { error: 'Email, password, uid, fromFolder, and toFolder are required' },
+        { error: 'Email, password, valid numeric uid, fromFolder, and toFolder are required' },
         { status: 400 }
       );
     }
 
-    await migaduImapSmtp.moveMessage(email, password, uid, fromFolder, toFolder);
+    await migaduImapSmtp.moveMessage(email, password, numericUid, fromFolder, toFolder);
 
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('[Webmail Move] Error:', error);
     return NextResponse.json(
-      { error: 'Failed to move message' },
+      { error: error instanceof Error ? error.message : 'Failed to move message' },
       { status: 500 }
     );
   }

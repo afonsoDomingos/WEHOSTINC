@@ -7,20 +7,21 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { email, password, uid, folder } = body;
 
-    if (!email || !password || uid === undefined || !folder) {
+    const numericUid = Number(uid);
+    if (!email || !password || isNaN(numericUid) || !folder) {
       return NextResponse.json(
-        { error: 'Email, password, uid, and folder are required' },
+        { error: 'Email, password, valid numeric uid, and folder are required' },
         { status: 400 }
       );
     }
 
-    await migaduImapSmtp.deleteMessage(email, password, uid, folder);
+    await migaduImapSmtp.deleteMessage(email, password, numericUid, folder);
 
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('[Webmail Delete] Error:', error);
     return NextResponse.json(
-      { error: 'Failed to delete message' },
+      { error: error instanceof Error ? error.message : 'Failed to delete message' },
       { status: 500 }
     );
   }

@@ -95,11 +95,8 @@ export const webmailManager = {
     // Try to fetch from API
     if (accountEmail && password && webmailManager.isRealEmailAvailable(accountEmail, password)) {
       try {
-        const res = await fetch(apiEndpoint('/api/webmail/messages'), {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: accountEmail, password })
-        });
+        const params = new URLSearchParams({ email: accountEmail, password });
+        const res = await fetch(apiEndpoint(`/api/webmail/messages?${params.toString()}`));
         
         if (res.ok) {
           const data = await res.json();

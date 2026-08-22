@@ -335,7 +335,7 @@ export class MigaduImapSmtpService {
       await this.openMailboxSmart(client, folder);
 
       let message: IMAPMessage | null = null;
-      for await (const msg of client.fetch(uid, { envelope: true, source: true, flags: true, uid: true })) {
+      for await (const msg of client.fetch(uid.toString(), { envelope: true, source: true, flags: true, uid: true }, { uid: true })) {
         let cleanBody = '';
         let cleanText = '';
         const parsedAttachments: Array<{
@@ -450,7 +450,7 @@ export class MigaduImapSmtpService {
       await client.connect();
       await this.openMailboxSmart(client, folder);
 
-      const target = await client.fetchOne(uid, { flags: true });
+      const target = await client.fetchOne(uid.toString(), { flags: true }, { uid: true });
       if (target) {
         const flags = new Set(target.flags);
         if (isRead) {
@@ -458,7 +458,7 @@ export class MigaduImapSmtpService {
         } else {
           flags.delete('\\Seen');
         }
-        await client.messageFlagsSet(uid, Array.from(flags));
+        await client.messageFlagsSet(uid.toString(), Array.from(flags), { uid: true });
       }
 
       await client.logout();
@@ -467,6 +467,7 @@ export class MigaduImapSmtpService {
       try {
         await client.logout();
       } catch {}
+      throw error;
     }
   }
 
@@ -495,7 +496,7 @@ export class MigaduImapSmtpService {
       await client.connect();
       await this.openMailboxSmart(client, folder);
 
-      const target = await client.fetchOne(uid, { flags: true });
+      const target = await client.fetchOne(uid.toString(), { flags: true }, { uid: true });
       if (target) {
         const flags = new Set(target.flags);
         if (starred) {
@@ -503,7 +504,7 @@ export class MigaduImapSmtpService {
         } else {
           flags.delete('\\Flagged');
         }
-        await client.messageFlagsSet(uid, Array.from(flags));
+        await client.messageFlagsSet(uid.toString(), Array.from(flags), { uid: true });
       }
 
       await client.logout();
@@ -512,6 +513,7 @@ export class MigaduImapSmtpService {
       try {
         await client.logout();
       } catch {}
+      throw error;
     }
   }
 
@@ -540,13 +542,14 @@ export class MigaduImapSmtpService {
       await client.connect();
       await this.openMailboxSmart(client, fromFolder);
       const destPath = await this.resolveMailboxPath(client, toFolder);
-      await client.messageMove(uid, destPath);
+      await client.messageMove(uid.toString(), destPath, { uid: true });
       await client.logout();
     } catch (error) {
       console.error('[MigaduIMAP] Failed to move message for:', email, error);
       try {
         await client.logout();
       } catch {}
+      throw error;
     }
   }
 
@@ -573,13 +576,14 @@ export class MigaduImapSmtpService {
     try {
       await client.connect();
       await this.openMailboxSmart(client, folder);
-      await client.messageDelete(uid);
+      await client.messageDelete(uid.toString(), { uid: true });
       await client.logout();
     } catch (error) {
       console.error('[MigaduIMAP] Failed to delete message for:', email, error);
       try {
         await client.logout();
       } catch {}
+      throw error;
     }
   }
 

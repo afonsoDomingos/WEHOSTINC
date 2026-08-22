@@ -360,7 +360,7 @@ export const webmailManager = {
   ): Promise<void> => {
     if (accountEmail && password && uid) {
       try {
-        await fetch(apiEndpoint('/api/webmail/move'), {
+        const res = await fetch(apiEndpoint('/api/webmail/move'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -371,8 +371,22 @@ export const webmailManager = {
             toFolder: FOLDER_IMAP_MAP[newFolder] || 'Trash',
           }),
         });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          console.error('[Webmail] Move failed:', data.error);
+        }
       } catch (error) {
         console.error('[Webmail] API move folder failed:', error);
+      }
+    }
+    // If moving from sent, remove from local sent cache
+    if (typeof window !== 'undefined' && accountEmail && fromImapFolder === 'Sent') {
+      const sentKey = `${WEBMAIL_SENT_KEY}_${accountEmail.toLowerCase()}`;
+      const stored = localStorage.getItem(sentKey);
+      if (stored) {
+        const sentList: WebmailMessage[] = JSON.parse(stored);
+        const filtered = sentList.filter((m) => m.id !== msgId && (uid ? m.uid !== uid : true));
+        localStorage.setItem(sentKey, JSON.stringify(filtered));
       }
     }
   },
@@ -386,7 +400,7 @@ export const webmailManager = {
   ): Promise<void> => {
     if (accountEmail && password && uid) {
       try {
-        await fetch(apiEndpoint('/api/webmail/delete'), {
+        const res = await fetch(apiEndpoint('/api/webmail/delete'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -396,6 +410,10 @@ export const webmailManager = {
             folder: imapFolder || 'INBOX',
           }),
         });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          console.error('[Webmail] Delete failed:', data.error);
+        }
       } catch (error) {
         console.error('[Webmail] API delete failed:', error);
       }
@@ -407,6 +425,16 @@ export const webmailManager = {
         const drafts: WebmailMessage[] = JSON.parse(stored);
         const filtered = drafts.filter((m) => m.id !== msgId);
         localStorage.setItem(WEBMAIL_STORAGE_KEY, JSON.stringify(filtered));
+      }
+      // Remove from local sent cache
+      if (accountEmail) {
+        const sentKey = `${WEBMAIL_SENT_KEY}_${accountEmail.toLowerCase()}`;
+        const storedSent = localStorage.getItem(sentKey);
+        if (storedSent) {
+          const sentList: WebmailMessage[] = JSON.parse(storedSent);
+          const filteredSent = sentList.filter((m) => m.id !== msgId && (uid ? m.uid !== uid : true));
+          localStorage.setItem(sentKey, JSON.stringify(filteredSent));
+        }
       }
     }
   },
