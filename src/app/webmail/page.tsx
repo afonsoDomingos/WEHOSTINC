@@ -7,7 +7,7 @@ import {
   Mail, Inbox, Send, Star, Trash2, Edit3, Search, RefreshCw, 
   ArrowLeft, CheckCircle2, ShieldCheck, User, Paperclip, Reply, Forward,
   FileText, LogOut, ChevronRight, X, AlertCircle, Sparkles, Clock, Printer, Download, Loader2, Filter, Maximize2, Minimize2, Bold, Italic, Underline, Type,
-  Wand2, Bot, FileSignature, Lightbulb, Check, Wifi, WifiOff, Pin, PinOff, Flag, Flame, Lock, Key
+  Wand2, Bot, FileSignature, Lightbulb, Check, Wifi, WifiOff, Pin, PinOff, Flag, Flame, Lock, Key, Eye, EyeOff
 } from 'lucide-react';
 import { auth, User as AuthUser } from '@/lib/auth';
 import { dataManager, EmailAccount } from '@/lib/data';
@@ -79,6 +79,7 @@ function WebmailContent() {
   const [showWebmailLogin, setShowWebmailLogin] = useState<boolean>(false); // Modal de login webmail
   const [webmailLoginEmail, setWebmailLoginEmail] = useState<string>(''); // Email para login webmail
   const [webmailLoginPassword, setWebmailLoginPassword] = useState<string>(''); // Password para login webmail
+  const [showLoginPassword, setShowLoginPassword] = useState<boolean>(false); // Alternar visibilidade da senha
   const [webmailLoginError, setWebmailLoginError] = useState<string>(''); // Erro de login
   const [webmailLoginLoading, setWebmailLoginLoading] = useState<boolean>(false); // Loading de login
 
@@ -1206,7 +1207,7 @@ function WebmailContent() {
                   const pending = acc.status === 'pending' || !acc.status;
                   return (
                     <option key={acc.id} value={acc.email} className="bg-white text-gray-900">
-                      {acc.email} {pending ? 'â³ (Em Processamento)' : 'âœ“ (Ativo)'}
+                      {acc.email} {pending ? '⏳ (Em Processamento)' : '✓ (Ativo)'}
                     </option>
                   );
                 })}
@@ -2234,15 +2235,25 @@ function WebmailContent() {
 
                   <div>
                     <label className="block text-xs font-bold text-gray-700 mb-1.5">Palavra-passe da Caixa</label>
-                    <input
-                      type="password"
-                      value={webmailLoginPassword}
-                      onChange={(e) => setWebmailLoginPassword(e.target.value)}
-                      placeholder="••••••••"
-                      required
-                      autoFocus
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-xs sm:text-sm text-gray-900 font-medium focus:ring-2 focus:ring-primary-500 focus:bg-white transition outline-none"
-                    />
+                    <div className="relative">
+                      <input
+                        type={showLoginPassword ? 'text' : 'password'}
+                        value={webmailLoginPassword}
+                        onChange={(e) => setWebmailLoginPassword(e.target.value)}
+                        placeholder="••••••••"
+                        required
+                        autoFocus
+                        className="w-full pl-4 pr-11 py-3 bg-gray-50 border border-gray-200 rounded-xl text-xs sm:text-sm text-gray-900 font-medium focus:ring-2 focus:ring-primary-500 focus:bg-white transition outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowLoginPassword(!showLoginPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 transition cursor-pointer"
+                        title={showLoginPassword ? "Ocultar senha" : "Ver senha"}
+                      >
+                        {showLoginPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
                   </div>
 
                   <button
@@ -2970,14 +2981,24 @@ function WebmailContent() {
 
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-1">Password da Mailbox</label>
-                <input
-                  type="password"
-                  value={webmailLoginPassword}
-                  onChange={(e) => setWebmailLoginPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
-                />
+                <div className="relative">
+                  <input
+                    type={showLoginPassword ? 'text' : 'password'}
+                    value={webmailLoginPassword}
+                    onChange={(e) => setWebmailLoginPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    className="w-full pl-4 pr-11 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowLoginPassword(!showLoginPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 transition cursor-pointer"
+                    title={showLoginPassword ? "Ocultar senha" : "Ver senha"}
+                  >
+                    {showLoginPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </div>
 
               <button
