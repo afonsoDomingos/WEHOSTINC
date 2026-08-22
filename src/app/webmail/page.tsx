@@ -234,26 +234,26 @@ function WebmailContent() {
 
     setAttachmentError('');
 
-    // ValidaÃ§Ã£o de nÃºmero mÃ¡ximo de anexos
+    // Validação de número máximo de anexos
     if (composeAttachments.length >= ATTACHMENT_MAX_COUNT) {
-      setAttachmentError(`MÃ¡ximo de ${ATTACHMENT_MAX_COUNT} anexos permitidos por email.`);
+      setAttachmentError(`Máximo de ${ATTACHMENT_MAX_COUNT} anexos permitidos por email.`);
       return;
     }
 
-    // ValidaÃ§Ã£o de tamanho individual (mÃ¡ximo 10MB)
+    // Validação de tamanho individual (máximo 10MB)
     if (file.size > ATTACHMENT_MAX_SIZE) {
-      setAttachmentError(`O ficheiro Ã© muito grande! O tamanho mÃ¡ximo permitido Ã© ${ATTACHMENT_MAX_SIZE / (1024 * 1024)}MB.`);
+      setAttachmentError(`O ficheiro é muito grande! O tamanho máximo permitido é ${ATTACHMENT_MAX_SIZE / (1024 * 1024)}MB.`);
       return;
     }
 
-    // ValidaÃ§Ã£o de tamanho total
+    // Validação de tamanho total
     const currentTotalSize = composeAttachments.reduce((sum, att) => sum + (att.size || 0), 0);
     if (currentTotalSize + file.size > ATTACHMENT_TOTAL_MAX_SIZE) {
       setAttachmentError(`O tamanho total dos anexos excede o limite de ${ATTACHMENT_TOTAL_MAX_SIZE / (1024 * 1024)}MB.`);
       return;
     }
 
-    // ValidaÃ§Ã£o de tipo
+    // Validação de tipo
     const allowedTypes = [
       'application/pdf',
       'image/jpeg',
@@ -268,7 +268,7 @@ function WebmailContent() {
     ];
     
     if (!allowedTypes.includes(file.type) && !file.type.startsWith('image/')) {
-      setAttachmentError('Tipo de ficheiro nÃ£o permitido. Formatos aceitos: PDF, Imagens, Word, Excel, Texto, ZIP.');
+      setAttachmentError('Tipo de ficheiro não permitido. Formatos aceitos: PDF, Imagens, Word, Excel, Texto, ZIP.');
       return;
     }
 
@@ -301,7 +301,7 @@ function WebmailContent() {
       }
     } catch (err) {
       console.error('Erro no upload de anexo do webmail:', err);
-      setAttachmentError('Erro de conexÃ£o ao fazer upload. Verifique sua internet.');
+      setAttachmentError('Erro de conexão ao fazer upload. Verifique sua internet.');
     } finally {
       setUploadingAttachment(false);
       e.target.value = '';
@@ -336,7 +336,7 @@ function WebmailContent() {
   };
 
   const handleCloseCompose = () => {
-    // Se houver conteÃºdo, salvar como rascunho
+    // Se houver conteúdo, salvar como rascunho
     if (composeTo || composeSubject || composeBody) {
       webmailManager.saveDraft(
         selectedAccountEmail,
@@ -455,7 +455,7 @@ function WebmailContent() {
     }
 
     if (newPassword !== confirmPassword) {
-      setPasswordError('A nova senha e a confirmaÃ§Ã£o nÃ£o coincidem.');
+      setPasswordError('A nova senha e a confirmação não coincidem.');
       return;
     }
 
@@ -467,14 +467,14 @@ function WebmailContent() {
     try {
       const currentUser = auth.getCurrentUser();
       if (!currentUser) {
-        setPasswordError('UsuÃ¡rio nÃ£o autenticado.');
+        setPasswordError('Usuário não autenticado.');
         return;
       }
 
       // Verify current password
       const loginResult = auth.login(currentUser.email, currentPassword);
       if (!loginResult) {
-        setPasswordError('A senha atual estÃ¡ incorreta.');
+        setPasswordError('A senha atual está incorreta.');
         return;
       }
 
@@ -709,7 +709,7 @@ function WebmailContent() {
     }
   };
 
-  // Solicitar confirmaÃ§Ã£o antes de eliminar
+  // Solicitar confirmação antes de eliminar
   const handleDeleteMessage = (msgId: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     const msg = messages.find(m => m.id === msgId);
@@ -721,7 +721,7 @@ function WebmailContent() {
     });
   };
 
-  // Executar eliminaÃ§Ã£o apÃ³s confirmaÃ§Ã£o com feedback sonoro
+  // Executar eliminação após confirmação com feedback sonoro
   const executeDeleteMessage = async (msgId: string) => {
     const msg = messages.find(m => m.id === msgId);
     const imapFolder = msg?.folder === 'sent' ? 'Sent' : msg?.folder === 'trash' ? 'Trash' : 'INBOX';
@@ -753,7 +753,7 @@ function WebmailContent() {
     if (isPending) {
       setSentSuccessMsg('');
       setSendingMsg(false);
-      setWebmailLoginError('â³ Esta conta ainda nÃ£o foi aprovada pelo administrador. O envio de emails estarÃ¡ disponÃ­vel apÃ³s a aprovaÃ§Ã£o.');
+      setWebmailLoginError('â³ Esta conta ainda não foi aprovada pelo administrador. O envio de emails estará disponível após a aprovação.');
       return;
     }
 
@@ -846,7 +846,7 @@ function WebmailContent() {
       }
     } catch (err) {
       console.error('[Webmail] Login error:', err);
-      setWebmailLoginError('Erro de conexÃ£o. Tente novamente.');
+      setWebmailLoginError('Erro de conexão. Tente novamente.');
     } finally {
       setWebmailLoginLoading(false);
     }
@@ -1058,7 +1058,7 @@ function WebmailContent() {
     ? messages.length
     : folderStats.sent;
 
-  // Armazenamento real via Migadu + cÃ¡lculo dinÃ¢mico por mensagens carregadas
+  // Armazenamento real via Migadu + cálculo dinâmico por mensagens carregadas
   const [migaduStorageUsedMB, setMigaduStorageUsedMB] = useState<number>(0);
 
   useEffect(() => {
@@ -1102,41 +1102,41 @@ function WebmailContent() {
       : `${(effectiveStorageMB / 1024).toFixed(2)} GB`,
   };
 
-  // Gerador de Respostas RÃ¡pidas Inteligentes Contextuais
+  // Gerador de Respostas Rápidas Inteligentes Contextuais
   const getSmartReplies = (subject?: string, body?: string): string[] => {
     const text = `${subject || ''} ${body || ''}`.toLowerCase();
-    if (text.includes('orÃ§amento') || text.includes('preÃ§o') || text.includes('proposta') || text.includes('cotaÃ§Ã£o')) {
+    if (text.includes('orçamento') || text.includes('preço') || text.includes('proposta') || text.includes('cotação')) {
       return [
         'Recebido! Vou analisar a proposta e retorno em breve.',
-        'Obrigado pelo envio. Podemos agendar uma reuniÃ£o?',
+        'Obrigado pelo envio. Podemos agendar uma reunião?',
         'Proposta aprovada! Como podemos proceder?'
       ];
     }
-    if (text.includes('reuniÃ£o') || text.includes('agendamento') || text.includes('horÃ¡rio') || text.includes('disponÃ­vel') || text.includes('call')) {
+    if (text.includes('reunião') || text.includes('agendamento') || text.includes('horário') || text.includes('disponível') || text.includes('call')) {
       return [
-        'Perfeito, estarei disponÃ­vel no horÃ¡rio indicado.',
-        'AgradeÃ§o o convite. PoderÃ­amos remarcar para a tarde?',
+        'Perfeito, estarei disponível no horário indicado.',
+        'Agradeço o convite. Poderíamos remarcar para a tarde?',
         'Confirmado! Envie-me o link da chamada, por favor.'
       ];
     }
-    if (text.includes('obrigado') || text.includes('agradeÃ§o') || text.includes('agradecemos') || text.includes('parabÃ©ns')) {
+    if (text.includes('obrigado') || text.includes('agradeço') || text.includes('agradecemos') || text.includes('parabéns')) {
       return [
-        'De nada! Fico sempre Ã  disposiÃ§Ã£o.',
-        'Com certeza! Qualquer dÃºvida adicional, avise-me.',
-        'Obrigado pela parceria e confianÃ§a.'
+        'De nada! Fico sempre à disposição.',
+        'Com certeza! Qualquer dúvida adicional, avise-me.',
+        'Obrigado pela parceria e confiança.'
       ];
     }
     if (text.includes('urgente') || text.includes('prioridade') || text.includes('asap')) {
       return [
-        'Recebido! Estou a tratar deste assunto com prioridade mÃ¡xima.',
+        'Recebido! Estou a tratar deste assunto com prioridade máxima.',
         'Entendido. Darei retorno dentro de alguns minutos.',
         'A trabalhar nisso agora mesmo!'
       ];
     }
     return [
-      'OlÃ¡! Mensagem recebida com sucesso. Retornarei em breve.',
-      'Obrigado pela informaÃ§Ã£o. Darei seguimento de imediato.',
-      'Perfeito, agradeÃ§o a rÃ¡pida atualizaÃ§Ã£o!'
+      'Olá! Mensagem recebida com sucesso. Retornarei em breve.',
+      'Obrigado pela informação. Darei seguimento de imediato.',
+      'Perfeito, agradeço a rápida atualização!'
     ];
   };
 
@@ -1205,19 +1205,6 @@ function WebmailContent() {
             {isRefreshingWebmail ? <Loader2 className="h-4 w-4 animate-spin text-primary-600" /> : <RefreshCw className="h-4 w-4" />}
           </button>
 
-          {/* Login Button when not authenticated */}
-          {!mailboxPassword && !isAccountPending && (
-            <button
-              type="button"
-              onClick={openLoginModal}
-              className="px-3.5 py-1.5 bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-700 hover:to-indigo-700 text-white text-xs font-black rounded-xl shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer flex items-center space-x-1.5 shrink-0 animate-pulse"
-              title="Fazer Login na Conta de E-mail"
-            >
-              <Key className="h-3.5 w-3.5" />
-              <span>Fazer Login</span>
-            </button>
-          )}
-
           {/* Mailbox Logout */}
           {mailboxPassword && (
             <button
@@ -1264,7 +1251,7 @@ function WebmailContent() {
             ) : (
               <>
                 <Lock className="h-3 w-3 text-amber-600 shrink-0" />
-                <span className="text-[11px] font-bold">SessÃ£o Fechada</span>
+                <span className="text-[11px] font-bold">Sessão Fechada</span>
               </>
             )}
           </div>
@@ -1327,7 +1314,7 @@ function WebmailContent() {
             type="button"
             onClick={() => setShowMobileMenu(true)}
             className="sm:hidden p-2 hover:bg-gray-100 text-gray-600 rounded-xl transition cursor-pointer shrink-0"
-            title="Mais opÃ§Ãµes"
+            title="Mais opções"
           >
             <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
               <circle cx="12" cy="5" r="1.5" />
@@ -1338,13 +1325,13 @@ function WebmailContent() {
         </div>
       </header>
 
-      {/* Alerta de Perda de ConexÃ£o Ã  Internet (Offline) */}
+      {/* Alerta de Perda de Conexão à Internet (Offline) */}
       {!isOnline && (
         <div className="bg-rose-600 text-white px-4 py-2.5 flex items-center justify-between text-xs font-bold shadow-md animate-in slide-in-from-top-2 duration-200">
           <div className="flex items-center space-x-2.5">
             <WifiOff className="h-4 w-4 text-white animate-bounce shrink-0" />
             <span>
-              Sem ConexÃ£o Ã  Internet. O Webmail estÃ¡ a funcionar em modo offline â€” novas mensagens serÃ£o sincronizadas assim que a rede for restabelecida.
+              Sem Conexão à Internet. O Webmail está a funcionar em modo offline — novas mensagens serão sincronizadas assim que a rede for restabelecida.
             </span>
           </div>
           <span className="bg-rose-800/90 text-rose-100 text-[10px] px-2.5 py-0.5 rounded-full font-black uppercase shrink-0">
@@ -1353,12 +1340,12 @@ function WebmailContent() {
         </div>
       )}
 
-      {/* Toast de ReconexÃ£o Restabelecida */}
+      {/* Toast de Reconexão Restabelecida */}
       {showReconnectedToast && isOnline && (
         <div className="bg-emerald-600 text-white px-4 py-2 flex items-center justify-between text-xs font-bold shadow-md animate-in fade-in duration-200">
           <div className="flex items-center space-x-2">
             <Wifi className="h-4 w-4 text-emerald-200 shrink-0" />
-            <span>LigaÃ§Ã£o Ã  internet restabelecida com sucesso! A sincronizar as suas caixas de e-mail...</span>
+            <span>Ligação à internet restabelecida com sucesso! A sincronizar as suas caixas de e-mail...</span>
           </div>
           <span className="bg-emerald-800/90 text-emerald-100 text-[10px] px-2.5 py-0.5 rounded-full font-black uppercase shrink-0">
             Online âœ“
@@ -1366,7 +1353,7 @@ function WebmailContent() {
         </div>
       )}
 
-      {/* SincronizaÃ§Ã£o em tempo real Indicator */}
+      {/* Sincronização em tempo real Indicator */}
       {(isLoadingMessages || isRefreshingWebmail) && (
         <div className="bg-primary-50 border-b border-primary-200 px-4 py-2 flex items-center justify-between text-xs text-primary-800 font-medium">
           <div className="flex items-center space-x-2">
@@ -1377,7 +1364,7 @@ function WebmailContent() {
         </div>
       )}
 
-      {/* Banner Informativo de AprovaÃ§Ã£o Pendente (Se a conta estiver a processar) */}
+      {/* Banner Informativo de Aprovação Pendente (Se a conta estiver a processar) */}
       {isAccountPending && (
         <div className="bg-amber-50 border-b-2 border-amber-300 px-3.5 sm:px-4 py-3 text-amber-950 flex flex-wrap items-start justify-between gap-3 animate-in fade-in duration-200">
           <div className="flex items-start space-x-3">
@@ -1385,21 +1372,21 @@ function WebmailContent() {
               <Clock className="h-4 w-4 text-amber-700 animate-pulse" />
             </div>
             <div>
-              <p className="text-xs font-extrabold text-amber-950">â³ Conta em Processo de AprovaÃ§Ã£o â€” Envio de E-mails Bloqueado</p>
+              <p className="text-xs font-extrabold text-amber-950">â³ Conta em Processo de Aprovação — Envio de E-mails Bloqueado</p>
               <p className="text-[11px] text-amber-800 mt-0.5 leading-relaxed">
-                A conta <strong className="font-mono">{selectedAccountEmail}</strong> estÃ¡ a aguardar aprovaÃ§Ã£o do administrador.
-                Pode visualizar a caixa de entrada, mas <strong>nÃ£o Ã© possÃ­vel enviar e-mails</strong> atÃ© a conta ser ativada.
-                Prazo estimado: <strong>atÃ© 24 horas</strong>.
+                A conta <strong className="font-mono">{selectedAccountEmail}</strong> está a aguardar aprovação do administrador.
+                Pode visualizar a caixa de entrada, mas <strong>não é possível enviar e-mails</strong> até a conta ser ativada.
+                Prazo estimado: <strong>até 24 horas</strong>.
               </p>
             </div>
           </div>
           <span className="text-[11px] font-extrabold bg-amber-300 text-amber-950 px-3 py-1 rounded-full border border-amber-400 shrink-0 self-center whitespace-nowrap">
-            Aguardando ValidaÃ§Ã£o
+            Aguardando Validação
           </span>
         </div>
       )}
 
-      {/* Mobile Folder Selector Tabs (VisÃ­vel em Telas Pequenas) */}
+      {/* Mobile Folder Selector Tabs (Visível em Telas Pequenas) */}
       <div className="md:hidden bg-white border-b border-gray-200 px-2 py-2 flex items-center space-x-1 overflow-x-auto text-xs shrink-0">
         <button
           onClick={() => { setCurrentFolder('inbox'); setSelectedMessage(null); }}
@@ -1631,7 +1618,7 @@ function WebmailContent() {
                   <span className="font-semibold text-gray-500">Plano Corporativo</span>
                   <span className="text-emerald-600 font-black flex items-center space-x-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
-                    <span>EspaÃ§o Seguro</span>
+                    <span>Espaço Seguro</span>
                   </span>
                 </div>
               </div>
@@ -1684,7 +1671,7 @@ function WebmailContent() {
                       filterType === 'unread' ? 'bg-primary-600 text-white font-bold' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                     }`}
                   >
-                    NÃ£o lidas
+                    Não lidas
                   </button>
                   <button
                     type="button"
@@ -1751,22 +1738,16 @@ function WebmailContent() {
                 </div>
               ))
             ) : !mailboxPassword && !isAccountPending ? (
-              <div className="p-8 text-center flex flex-col items-center justify-center my-auto">
-                <div className="w-14 h-14 bg-gradient-to-br from-primary-100 to-indigo-100 text-primary-600 rounded-2xl flex items-center justify-center mb-3 shadow-inner border border-primary-200/60">
-                  <Lock className="h-7 w-7 text-primary-600" />
+              <div className="p-6 text-center flex flex-col items-center justify-center my-auto space-y-3">
+                <div className="w-12 h-12 bg-gradient-to-br from-primary-100 to-indigo-100 text-primary-600 rounded-2xl flex items-center justify-center mx-auto shadow-inner border border-primary-200/60">
+                  <Lock className="h-6 w-6 text-primary-600" />
                 </div>
-                <h4 className="font-extrabold text-gray-900 text-sm mb-1">Caixa de Correio Bloqueada</h4>
-                <p className="text-xs text-gray-500 mb-4 max-w-[220px] leading-relaxed">
-                  FaÃ§a login com a sua senha para sincronizar e ler as suas mensagens.
-                </p>
-                <button
-                  type="button"
-                  onClick={openLoginModal}
-                  className="px-4 py-2.5 bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-700 hover:to-indigo-700 text-white text-xs font-black rounded-xl shadow-md transition flex items-center space-x-2 cursor-pointer active:scale-95"
-                >
-                  <Key className="h-3.5 w-3.5" />
-                  <span>Fazer Login</span>
-                </button>
+                <div>
+                  <h4 className="font-extrabold text-gray-900 text-xs sm:text-sm">Caixa Bloqueada</h4>
+                  <p className="text-[11px] text-gray-500 mt-1 leading-relaxed max-w-[200px] mx-auto">
+                    Inicie sessão no painel ao lado para sincronizar e ler as suas mensagens.
+                  </p>
+                </div>
               </div>
             ) : displayMessages.length === 0 ? (
               <div className="p-8 text-center text-gray-400 text-xs">
@@ -2044,7 +2025,7 @@ function WebmailContent() {
                       disabled={isGeneratingReply}
                       className="px-2.5 py-1 bg-white/10 hover:bg-white/20 text-white rounded-lg text-[11px] font-semibold transition"
                     >
-                      AmigÃ¡vel
+                      Amigável
                     </button>
                     <button
                       type="button"
@@ -2091,7 +2072,7 @@ function WebmailContent() {
                   );
                 })()}
 
-                {/* ExibiÃ§Ã£o de Ficheiros Anexados */}
+                {/* Exibição de Ficheiros Anexados */}
                 {selectedMessage.attachments && selectedMessage.attachments.length > 0 && (
                   <div className="mt-6 pt-4 border-t border-gray-100 space-y-2">
                     <span className="text-xs font-bold text-gray-700 flex items-center space-x-1.5">
@@ -2128,17 +2109,17 @@ function WebmailContent() {
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-gray-700 flex items-center space-x-1.5">
                     <Reply className="h-4 w-4 text-primary-600" />
-                    <span className="truncate">Resposta rÃ¡pida para <span className="font-mono text-primary-700">{selectedMessage.fromEmail}</span></span>
+                    <span className="truncate">Resposta rápida para <span className="font-mono text-primary-700">{selectedMessage.fromEmail}</span></span>
                   </span>
                   <span className="text-[10px] text-gray-400 hidden sm:inline">Shift + Enter para nova linha</span>
                 </div>
 
-                {/* SugestÃµes Inteligentes de Resposta RÃ¡pida (1 Clique) */}
+                {/* Sugestões Inteligentes de Resposta Rápida (1 Clique) */}
                 <div className="space-y-1.5 pt-1">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-black text-gray-700 flex items-center space-x-1.5">
                       <Sparkles className="h-3.5 w-3.5 text-indigo-600 animate-pulse" />
-                      <span>SugestÃµes RÃ¡pidas:</span>
+                      <span>Sugestões Rápidas:</span>
                     </span>
                     <span className="text-[10px] text-gray-400">Clique para preencher</span>
                   </div>
@@ -2188,39 +2169,85 @@ function WebmailContent() {
               <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mb-4 border border-amber-200 shadow-2xs">
                 <Clock className="h-8 w-8 text-amber-600 animate-pulse" />
               </div>
-              <h3 className="font-extrabold text-gray-900 text-lg mb-1">Conta de E-mail em AtivaÃ§Ã£o (Aguarde AprovaÃ§Ã£o)</h3>
+              <h3 className="font-extrabold text-gray-900 text-lg mb-1">Conta de E-mail em Ativação (Aguarde Aprovação)</h3>
               <p className="text-xs sm:text-sm text-gray-600 max-w-md leading-relaxed">
-                O provisionamento do endereÃ§o <strong className="font-mono text-primary-700">{selectedAccountEmail}</strong> estÃ¡ em andamento. O envio, receÃ§Ã£o e ferramentas completas do Webmail estarÃ£o disponÃ­veis assim que o administrador validar a solicitaÃ§Ã£o (prazo estipulado: <strong>em atÃ© 24 horas</strong>).
+                O provisionamento do endereço <strong className="font-mono text-primary-700">{selectedAccountEmail}</strong> está em andamento. O envio, receção e ferramentas completas do Webmail estarão disponíveis assim que o administrador validar a solicitação (prazo estipulado: <strong>em até 24 horas</strong>).
               </p>
             </div>
           ) : !mailboxPassword && !isAccountPending ? (
-            <div className="flex-1 flex flex-col items-center justify-center text-center p-8 bg-gradient-to-b from-gray-50/60 via-white to-primary-50/20">
-              <div className="w-20 h-20 bg-gradient-to-tr from-primary-100 to-indigo-100 rounded-3xl flex items-center justify-center mb-5 border border-primary-200/80 shadow-md shadow-primary-500/10">
-                <Lock className="h-10 w-10 text-primary-600" />
+            <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-8 bg-gradient-to-b from-gray-50/60 via-white to-primary-50/20">
+              <div className="w-full max-w-md bg-white rounded-3xl p-6 sm:p-8 shadow-xl border border-gray-200/80 text-left space-y-5 animate-in zoom-in-95 duration-200">
+                <div className="flex items-center space-x-3.5 pb-4 border-b border-gray-100">
+                  <div className="w-12 h-12 bg-gradient-to-tr from-primary-100 to-indigo-100 rounded-2xl flex items-center justify-center shrink-0 border border-primary-200/80 shadow-xs">
+                    <Mail className="h-6 w-6 text-primary-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-base sm:text-lg font-black text-gray-900">Entrar no Webmail</h3>
+                    <p className="text-xs text-gray-500 font-medium">Autenticação Corporativa Segura</p>
+                  </div>
+                </div>
+
+                <form onSubmit={handleWebmailLogin} className="space-y-4">
+                  {webmailLoginError && (
+                    <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs font-bold text-rose-700">
+                      {webmailLoginError}
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1.5">Endereço de E-mail</label>
+                    <input
+                      type="email"
+                      value={webmailLoginEmail || selectedAccountEmail}
+                      onChange={(e) => setWebmailLoginEmail(e.target.value)}
+                      placeholder="info@seudominio.com"
+                      required
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-xs sm:text-sm text-gray-900 font-bold focus:ring-2 focus:ring-primary-500 focus:bg-white transition outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1.5">Palavra-passe da Caixa</label>
+                    <input
+                      type="password"
+                      value={webmailLoginPassword}
+                      onChange={(e) => setWebmailLoginPassword(e.target.value)}
+                      placeholder="••••••••"
+                      required
+                      autoFocus
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-xs sm:text-sm text-gray-900 font-medium focus:ring-2 focus:ring-primary-500 focus:bg-white transition outline-none"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={webmailLoginLoading}
+                    className="w-full py-3.5 bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-700 hover:to-indigo-700 disabled:opacity-50 text-white font-black text-xs sm:text-sm rounded-xl transition-all duration-200 cursor-pointer shadow-lg shadow-primary-500/20 flex items-center justify-center space-x-2 active:scale-98"
+                  >
+                    {webmailLoginLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>A autenticar...</span>
+                      </>
+                    ) : (
+                      <>
+                        <ShieldCheck className="h-4 w-4" />
+                        <span>Entrar no Webmail</span>
+                      </>
+                    )}
+                  </button>
+                </form>
+
+                <p className="text-[11px] text-gray-400 text-center pt-1">
+                  Protegido com encriptação SSL/TLS via servidores IMAP/SMTP dedicados.
+                </p>
               </div>
-              <span className="px-3.5 py-1 bg-primary-50 text-primary-700 text-[11px] font-extrabold rounded-full border border-primary-200 mb-3 shadow-2xs">
-                ðŸ”’ AutenticaÃ§Ã£o de E-mail Corporativo
-              </span>
-              <h3 className="font-black text-gray-900 text-xl sm:text-2xl mb-2">
-                Aceda Ã  sua Caixa de Entrada
-              </h3>
-              <p className="text-xs sm:text-sm text-gray-600 max-w-md leading-relaxed mb-6">
-                Para carregar a sua caixa de entrada, responder a mensagens e enviar e-mails com o endereÃ§o <strong className="text-primary-700 font-mono">{selectedAccountEmail}</strong>, autentique-se na sua conta.
-              </p>
-              <button
-                type="button"
-                onClick={openLoginModal}
-                className="px-6 py-3.5 bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-700 hover:to-indigo-700 text-white font-black text-sm rounded-2xl shadow-xl shadow-primary-500/25 hover:shadow-2xl hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer flex items-center space-x-2.5"
-              >
-                <Key className="h-4 w-4" />
-                <span>Fazer Login no Webmail</span>
-              </button>
             </div>
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center text-center p-8 text-gray-400">
               <Mail className="h-16 w-16 mb-3 text-gray-300 opacity-60" />
               <h3 className="font-bold text-gray-700 text-base mb-1">Nenhum e-mail selecionado</h3>
-              <p className="text-xs text-gray-400">Selecione uma mensagem na lista Ã  esquerda para visualizar.</p>
+              <p className="text-xs text-gray-400">Selecione uma mensagem na lista à esquerda para visualizar.</p>
             </div>
           )}
         </main>
@@ -2251,7 +2278,7 @@ function WebmailContent() {
           >
             {/* Handle bar */}
             <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-5" />
-            <h3 className="text-sm font-black text-gray-900 mb-4">AÃ§Ãµes do Webmail</h3>
+            <h3 className="text-sm font-black text-gray-900 mb-4">Ações do Webmail</h3>
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
@@ -2306,11 +2333,11 @@ function WebmailContent() {
                 <div className="w-14 h-14 bg-amber-100 rounded-full flex items-center justify-center mx-auto text-amber-600 border border-amber-200 shadow-2xs">
                   <Clock className="h-7 w-7 animate-pulse" />
                 </div>
-                <h3 className="text-lg font-extrabold text-gray-900">AprovaÃ§Ã£o em Processamento</h3>
+                <h3 className="text-lg font-extrabold text-gray-900">Aprovação em Processamento</h3>
                 <p className="text-xs sm:text-sm text-gray-600 leading-relaxed max-w-md mx-auto">
-                  A conta <strong className="font-mono text-primary-700">{selectedAccountEmail}</strong> foi criada e estÃ¡ a ser provisionada nos servidores pela equipa tÃ©cnica/administrador.
+                  A conta <strong className="font-mono text-primary-700">{selectedAccountEmail}</strong> foi criada e está a ser provisionada nos servidores pela equipa técnica/administrador.
                   <br /><br />
-                  <strong>Aviso de Envio:</strong> PoderÃ¡ escrever e enviar e-mails normalmente assim que a conta for aprovada pelo administrador (o processo Ã© concluÃ­do em <strong>atÃ© 24 horas</strong>).
+                  <strong>Aviso de Envio:</strong> Poderá escrever e enviar e-mails normalmente assim que a conta for aprovada pelo administrador (o processo é concluído em <strong>até 24 horas</strong>).
                 </p>
                 <div className="pt-2">
                   <button
@@ -2318,7 +2345,7 @@ function WebmailContent() {
                     onClick={() => setShowCompose(false)}
                     className="w-full sm:w-auto px-8 py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl shadow-md transition cursor-pointer"
                   >
-                    Entendido, Vou Aguardar a AtivaÃ§Ã£o (24h)
+                    Entendido, Vou Aguardar a Ativação (24h)
                   </button>
                 </div>
               </div>
@@ -2370,7 +2397,7 @@ function WebmailContent() {
                           <Sparkles className="h-4 w-4 text-primary-600" />
                           <span>Templates de Email</span>
                         </h3>
-                        <p className="text-[10px] text-gray-500 mt-1">Selecione um modelo para comeÃ§ar rapidamente</p>
+                        <p className="text-[10px] text-gray-500 mt-1">Selecione um modelo para começar rapidamente</p>
                       </div>
                       <div className="flex items-center space-x-2">
                         {/* Language Toggle */}
@@ -2469,7 +2496,7 @@ function WebmailContent() {
 
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1">
-                    Para (DestinatÃ¡rio)
+                    Para (Destinatário)
                   </label>
                   <input
                     type="email"
@@ -2485,7 +2512,7 @@ function WebmailContent() {
                   <>
                     <div>
                       <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1">
-                        CC (CÃ³pia)
+                        CC (Cópia)
                       </label>
                       <input
                         type="email"
@@ -2498,7 +2525,7 @@ function WebmailContent() {
 
                     <div>
                       <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1">
-                        BCC (CÃ³pia Oculta)
+                        BCC (Cópia Oculta)
                       </label>
                       <input
                         type="email"
@@ -2543,7 +2570,7 @@ function WebmailContent() {
                         onClick={handleImproveWithAI}
                         disabled={isImprovingDraft || !composeBody}
                         className="text-[11px] font-bold text-purple-700 hover:text-purple-900 bg-purple-50 hover:bg-purple-100 px-2.5 py-1 rounded-lg border border-purple-200 transition cursor-pointer flex items-center space-x-1 disabled:opacity-50"
-                        title="Aprimorar redaÃ§Ã£o com IA"
+                        title="Aprimorar redação com IA"
                       >
                         {isImprovingDraft ? <Loader2 className="w-3 h-3 animate-spin text-purple-600" /> : <Sparkles className="w-3 h-3 text-purple-600" />}
                         <span>{isImprovingDraft ? 'Aprimorando...' : 'âœ¨ Melhorar com IA'}</span>
@@ -2803,7 +2830,7 @@ function WebmailContent() {
               ) : (
                 <div className="flex flex-col items-center justify-center h-full space-y-4 text-gray-500">
                   <FileText className="h-16 w-16 text-gray-300" />
-                  <p className="text-sm">PrÃ©-visualizaÃ§Ã£o nÃ£o disponÃ­vel para este tipo de ficheiro.</p>
+                  <p className="text-sm">Pré-visualização não disponível para este tipo de ficheiro.</p>
                   <a
                     href={previewAttachment.url}
                     download={previewAttachment.name}
@@ -2828,7 +2855,7 @@ function WebmailContent() {
               </div>
               <div>
                 <h3 className="text-base sm:text-lg font-black text-gray-900">Campos Pendentes</h3>
-                <p className="text-xs sm:text-sm text-gray-600">O modelo contÃ©m placeholders nÃ£o preenchidos</p>
+                <p className="text-xs sm:text-sm text-gray-600">O modelo contém placeholders não preenchidos</p>
               </div>
             </div>
 
@@ -2879,7 +2906,7 @@ function WebmailContent() {
                 </div>
                 <div>
                   <h3 className="text-base sm:text-lg font-black text-gray-900">Login Webmail</h3>
-                  <p className="text-xs sm:text-sm text-gray-600">Aceda Ã  sua caixa de correio</p>
+                  <p className="text-xs sm:text-sm text-gray-600">Aceda à sua caixa de correio</p>
                 </div>
               </div>
               <button
@@ -2921,7 +2948,7 @@ function WebmailContent() {
                   type="password"
                   value={webmailLoginPassword}
                   onChange={(e) => setWebmailLoginPassword(e.target.value)}
-                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                  placeholder="••••••••"
                   required
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
                 />
@@ -3016,7 +3043,7 @@ function WebmailContent() {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 outline-none focus:ring-2 focus:ring-primary-500 font-medium"
-                  placeholder="MÃ­nimo 6 caracteres"
+                  placeholder="Mínimo 6 caracteres"
                 />
               </div>
 
@@ -3097,7 +3124,7 @@ function WebmailContent() {
                 </div>
 
                 <div>
-                  <label className="block text-gray-700 font-bold mb-1">Cargo / FunÃ§Ã£o</label>
+                  <label className="block text-gray-700 font-bold mb-1">Cargo / Função</label>
                   <input
                     type="text"
                     value={signatureForm.jobTitle}
@@ -3145,14 +3172,14 @@ function WebmailContent() {
 
               {/* Live Signature Preview */}
               <div className="pt-1">
-                <label className="block text-gray-700 font-bold mb-1">PrÃ©-visualizaÃ§Ã£o:</label>
+                <label className="block text-gray-700 font-bold mb-1">Pré-visualização:</label>
                 <div className="p-3.5 bg-gray-50 rounded-2xl border border-gray-200 space-y-1 text-gray-800 font-sans border-l-4 border-l-purple-600">
                   <div className="font-bold text-sm text-gray-900">{signatureForm.fullName || 'Seu Nome'}</div>
                   <div className="text-gray-600 text-xs">
-                    {signatureForm.jobTitle ? `${signatureForm.jobTitle} â€¢ ` : ''}{signatureForm.companyName || 'Sua Empresa'}
+                    {signatureForm.jobTitle ? `${signatureForm.jobTitle} • ` : ''}{signatureForm.companyName || 'Sua Empresa'}
                   </div>
                   {signatureForm.phone && (
-                    <div className="text-gray-500 text-[11px]">ðŸ“ž {signatureForm.phone}</div>
+                    <div className="text-gray-500 text-[11px]">📞 {signatureForm.phone}</div>
                   )}
                   {signatureForm.website && (
                     <div className="text-purple-600 font-semibold text-[11px]">ðŸŒ {signatureForm.website}</div>
@@ -3182,7 +3209,7 @@ function WebmailContent() {
         </div>
       )}
 
-      {/* MODAL: ConfirmaÃ§Ã£o de EliminaÃ§Ã£o de E-mail */}
+      {/* MODAL: Confirmação de Eliminação de E-mail */}
       {deleteConfirmModal?.isOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-in fade-in duration-150">
           <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-5 sm:p-6 border border-gray-100 animate-in zoom-in-95 duration-150">
@@ -3195,7 +3222,7 @@ function WebmailContent() {
                   {deleteConfirmModal.isPermanent ? 'Eliminar Permanentemente' : 'Mover para a Lixeira'}
                 </h3>
                 <p className="text-xs text-gray-500 mt-0.5">
-                  {deleteConfirmModal.isPermanent ? 'Esta aÃ§Ã£o nÃ£o pode ser desfeita' : 'Pode recuperar a mensagem na Lixeira'}
+                  {deleteConfirmModal.isPermanent ? 'Esta ação não pode ser desfeita' : 'Pode recuperar a mensagem na Lixeira'}
                 </p>
               </div>
             </div>
