@@ -709,35 +709,61 @@ function WebmailContent() {
     }
   };
 
-  // Solicitar confirmação antes de eliminar
-  const handleDeleteMessage = (msgId: string, e?: React.MouseEvent) => {
+  // Eliminar mensagem: move diretamente para a Lixeira (ou pede confirmação se já estiver na Lixeira)
+  const handleDeleteMessage = async (msgId: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    const msg = messages.find(m => m.id === msgId);
-    setDeleteConfirmModal({
-      isOpen: true,
-      msgId,
-      subject: msg?.subject || '(Sem assunto)',
-      isPermanent: currentFolder === 'trash'
-    });
+    const msg = messages.find(m => m.id === msgId) || (selectedMessage?.id === msgId ? selectedMessage : null);
+    if (!msg) return;
+
+    // Se já estiver na pasta Lixeira, pedir confirmação para eliminar permanentemente
+    if (currentFolder === 'trash') {
+      setDeleteConfirmModal({
+        isOpen: true,
+        msgId,
+        subject: msg.subject || '(Sem assunto)',
+        isPermanent: true
+      });
+      return;
+    }
+
+    // Se estiver em Entrada / Enviados / Com Estrela / Rascunhos: Mover diretamente para a Lixeira
+    const fromImapFolder = msg.folder === 'sent' ? 'Sent' : msg.folder === 'drafts' ? 'Drafts' : 'INBOX';
+    
+    // Atualização otimista imediata na UI
+    setMessages(prev => prev.filter(m => m.id !== msgId));
+    if (selectedMessage?.id === msgId) {
+      setSelectedMessage(null);
+    }
+    setFolderStats(prev => ({
+      ...prev,
+      trash: prev.trash + 1,
+      inboxUnread: msg.folder === 'inbox' && !msg.isRead ? Math.max(prev.inboxUnread - 1, 0) : prev.inboxUnread
+    }));
+    soundEffects.playDeleteEmailSound();
+
+    // Mover no servidor IMAP em background
+    try {
+      await webmailManager.moveFolder(msgId, 'trash', selectedAccountEmail, mailboxPassword, msg.uid, fromImapFolder);
+    } catch (err) {
+      console.error('[Webmail] Error moving message to trash:', err);
+    }
   };
 
-  // Executar eliminação após confirmação com feedback sonoro
+  // Executar eliminação definitiva quando o utilizador confirma dentro da Lixeira
   const executeDeleteMessage = async (msgId: string) => {
-    const msg = messages.find(m => m.id === msgId);
-    const imapFolder = msg?.folder === 'sent' ? 'Sent' : msg?.folder === 'trash' ? 'Trash' : 'INBOX';
+    const msg = messages.find(m => m.id === msgId) || (selectedMessage?.id === msgId ? selectedMessage : null);
+    const imapFolder = msg?.folder === 'sent' ? 'Sent' : msg?.folder === 'trash' ? 'Trash' : msg?.folder === 'drafts' ? 'Drafts' : 'INBOX';
     try {
-      if (currentFolder === 'trash') {
-        await webmailManager.deletePermanently(msgId, selectedAccountEmail, mailboxPassword, msg?.uid, imapFolder);
-        setMessages(prev => prev.filter(m => m.id !== msgId));
-        if (selectedMessage?.id === msgId) setSelectedMessage(null);
-      } else {
-        await webmailManager.moveFolder(msgId, 'trash', selectedAccountEmail, mailboxPassword, msg?.uid, imapFolder);
-        setMessages(prev => prev.filter(m => m.id !== msgId));
-        if (selectedMessage?.id === msgId) setSelectedMessage(null);
-      }
+      await webmailManager.deletePermanently(msgId, selectedAccountEmail, mailboxPassword, msg?.uid, imapFolder);
+      setMessages(prev => prev.filter(m => m.id !== msgId));
+      if (selectedMessage?.id === msgId) setSelectedMessage(null);
+      setFolderStats(prev => ({
+        ...prev,
+        trash: Math.max(prev.trash - 1, 0)
+      }));
       soundEffects.playDeleteEmailSound();
     } catch (err) {
-      console.error('[Webmail] Error deleting message:', err);
+      console.error('[Webmail] Error deleting message permanently:', err);
     } finally {
       setDeleteConfirmModal(null);
     }
@@ -1892,13 +1918,13 @@ function WebmailContent() {
                       )}
                       {selectedMessage.priority === 'high' && (
                         <span className="bg-rose-100 text-rose-800 text-xs font-black px-2.5 py-0.5 rounded-full border border-rose-200 flex items-center space-x-1 shrink-0">
-                          <span>âš¡</span>
+                          <span>⚡</span>
                           <span>Alta Prioridade</span>
                         </span>
                       )}
                       {selectedMessage.priority === 'low' && (
                         <span className="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-0.5 rounded-full border border-blue-200 shrink-0">
-                          ðŸ”µ Baixa Prioridade
+                          🔵 Baixa Prioridade
                         </span>
                       )}
                     </div>
