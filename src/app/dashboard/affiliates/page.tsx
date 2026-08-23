@@ -450,7 +450,7 @@ export default function AffiliatesPage() {
                 <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center">
                   <Link2 className="h-5 w-5 text-white" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900">Seu Link de Afiliado</h3>
+                <h3 className="text-xl font-bold text-gray-900">Seu Link de Nhunga</h3>
               </div>
               <div className="flex flex-col md:flex-row md:items-center space-y-3 md:space-y-0 md:space-x-3 mb-4">
                 <input
