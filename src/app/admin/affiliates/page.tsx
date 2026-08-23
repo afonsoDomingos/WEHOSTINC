@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { 
   Users, DollarSign, TrendingUp, Plus, Edit, Trash2, 
   CheckCircle2, XCircle, Clock, Filter, RefreshCw,
-  Image as ImageIcon, FileText, Video, Mail, Share2, Wallet
+  Image as ImageIcon, FileText, Video, Mail, Share2, Wallet,
+  AlertTriangle, CheckCircle
 } from 'lucide-react';
 
 interface Affiliate {
@@ -52,7 +53,7 @@ interface MarketingMaterial {
 }
 
 export default function AdminAffiliatesPage() {
-  const [activeTab, setActiveTab] = useState<'affiliates' | 'commissions' | 'materials' | 'payouts'>('affiliates');
+  const [activeTab, setActiveTab] = useState<'affiliates' | 'commissions' | 'materials' | 'payouts' | 'migration'>('affiliates');
   const [affiliates, setAffiliates] = useState<Affiliate[]>([]);
   const [commissions, setCommissions] = useState<Commission[]>([]);
   const [materials, setMaterials] = useState<MarketingMaterial[]>([]);
@@ -63,6 +64,12 @@ export default function AdminAffiliatesPage() {
   const [payouts, setPayouts] = useState<any[]>([]);
   const [showPayoutModal, setShowPayoutModal] = useState(false);
   const [selectedPayout, setSelectedPayout] = useState<any>(null);
+
+  // Migration states
+  const [migrateLoading, setMigrateLoading] = useState(false);
+  const [migrateResult, setMigrateResult] = useState<any>(null);
+  const [migrateError, setMigrateError] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
 
   const [materialForm, setMaterialForm] = useState({
     title: '',
@@ -237,6 +244,67 @@ export default function AdminAffiliatesPage() {
     setShowMaterialModal(true);
   };
 
+  // Migration functions
+  const handleMigrate = async () => {
+    setMigrateLoading(true);
+    setMigrateError('');
+    setMigrateResult(null);
+
+    try {
+      const response = await fetch('/api/admin/migrate-affiliate-codes', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer admin-secret',
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setMigrateResult(data);
+      } else {
+        setMigrateError(data.error || 'Erro na migração');
+      }
+    } catch (err) {
+      setMigrateError('Erro ao conectar com o servidor');
+    } finally {
+      setMigrateLoading(false);
+    }
+  };
+
+  const handleReset = async () => {
+    if (!confirm('⚠️ Tem certeza que deseja apagar todos os registros de afiliados?\n\nEsta ação não pode ser desfeita e irá remover:\n- Todos os afiliados\n- Todas as comissões\n- Todos os cliques rastreados')) {
+      return;
+    }
+
+    setResetLoading(true);
+    setMigrateError('');
+    setMigrateResult(null);
+
+    try {
+      const response = await fetch('/api/admin/migrate-affiliate-codes/reset', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer admin-secret',
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert(`✅ Registros apagados com sucesso!\n\n${data.stats.deletedAffiliates} afiliados\n${data.stats.deletedCommissions} comissões\n${data.stats.deletedClicks} cliques`);
+      } else {
+        setMigrateError(data.error || 'Erro ao apagar registros');
+      }
+    } catch (err) {
+      setMigrateError('Erro ao conectar com o servidor');
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-MZ');
   };
@@ -297,7 +365,7 @@ export default function AdminAffiliatesPage() {
 
         {/* Tabs */}
         <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/50 p-2 mb-8">
-          <div className="flex space-x-2">
+          <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setActiveTab('affiliates')}
               className={`flex-1 sm:flex-none flex items-center justify-center space-x-2 px-6 py-3 rounded-xl transition-all duration-300 font-semibold ${
@@ -341,6 +409,17 @@ export default function AdminAffiliatesPage() {
             >
               <ImageIcon className="h-5 w-5" />
               <span>Materiais</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('migration')}
+              className={`flex-1 sm:flex-none flex items-center justify-center space-x-2 px-6 py-3 rounded-xl transition-all duration-300 font-semibold ${
+                activeTab === 'migration'
+                  ? 'bg-gradient-to-r from-rose-600 to-red-600 text-white shadow-lg'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <RefreshCw className="h-5 w-5" />
+              <span>Migração</span>
             </button>
           </div>
         </div>
@@ -408,6 +487,175 @@ export default function AdminAffiliatesPage() {
               </div>
             ) : (
               <p className="text-gray-500">Lista de materiais será exibida aqui</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'migration' && (
+        <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/50 overflow-hidden">
+          <div className="bg-gradient-to-r from-rose-600 via-red-700 to-pink-700 p-6 sm:p-8">
+            <div className="flex items-start space-x-4">
+              <div className="flex-shrink-0">
+                <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                  <RefreshCw className="w-6 h-6 text-white" />
+                </div>
+              </div>
+              <div className="flex-1">
+                <h2 className="text-xl font-bold text-white mb-2">Migração de Códigos</h2>
+                <p className="text-white/90 text-sm leading-relaxed">
+                  Atualiza códigos de afiliados do formato numérico (6 dígitos) para o novo formato baseado no nome do usuário.
+                  Isso torna os links mais personalizados e fáceis de compartilhar.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-6 sm:p-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+              <button
+                onClick={handleMigrate}
+                disabled={migrateLoading}
+                className="group relative overflow-hidden bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 hover:from-blue-700 hover:via-blue-800 hover:to-indigo-800 text-white px-6 py-4 rounded-xl transition-all duration-300 font-semibold shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <div className="relative z-10 flex items-center justify-center space-x-2">
+                  {migrateLoading ? (
+                    <>
+                      <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <span>Migrando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="h-5 w-5" />
+                      <span>Iniciar Migração</span>
+                    </>
+                  )}
+                </div>
+              </button>
+              
+              <button
+                onClick={handleReset}
+                disabled={resetLoading}
+                className="group relative overflow-hidden bg-gradient-to-r from-red-600 via-red-700 to-rose-700 hover:from-red-700 hover:via-red-800 hover:to-rose-800 text-white px-6 py-4 rounded-xl transition-all duration-300 font-semibold shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <div className="relative z-10 flex items-center justify-center space-x-2">
+                  {resetLoading ? (
+                    <>
+                      <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <span>Apagando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="h-5 w-5" />
+                      <span>Apagar Registros</span>
+                    </>
+                  )}
+                </div>
+              </button>
+            </div>
+            
+            <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+              <div className="flex items-start space-x-3">
+                <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-semibold text-amber-800">Atenção</p>
+                  <p className="text-xs text-amber-700 mt-1">
+                    Apagar registros irá remover permanentemente todos os afiliados, comissões e cliques rastreados do banco de dados.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {migrateError && (
+              <div className="mt-6 bg-red-50 border border-red-200 rounded-2xl p-6">
+                <div className="flex items-start space-x-3">
+                  <XCircle className="w-6 h-6 text-red-600 flex-shrink-0" />
+                  <div>
+                    <p className="font-semibold text-red-800">Erro</p>
+                    <p className="text-red-700 mt-1">{migrateError}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {migrateResult && (
+              <div className="mt-6 bg-green-50 border border-green-200 rounded-2xl p-6">
+                <div className="flex items-center space-x-4 mb-6">
+                  <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                    <CheckCircle2 className="w-6 h-6 text-green-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-green-800">Migração Concluída!</h3>
+                    <p className="text-green-700">Processo finalizado com sucesso</p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                  <div className="bg-white p-4 rounded-xl">
+                    <p className="text-2xl font-bold text-blue-600">{migrateResult.stats.total}</p>
+                    <p className="text-gray-700 font-medium mt-1">Total</p>
+                    <p className="text-xs text-gray-500 mt-1">Registros processados</p>
+                  </div>
+                  <div className="bg-white p-4 rounded-xl">
+                    <p className="text-2xl font-bold text-green-600">{migrateResult.stats.updated}</p>
+                    <p className="text-gray-700 font-medium mt-1">Atualizados</p>
+                    <p className="text-xs text-gray-500 mt-1">Códigos migrados</p>
+                  </div>
+                  <div className="bg-white p-4 rounded-xl">
+                    <p className="text-2xl font-bold text-gray-600">{migrateResult.stats.skipped}</p>
+                    <p className="text-gray-700 font-medium mt-1">Pulados</p>
+                    <p className="text-xs text-gray-500 mt-1">Já no novo formato</p>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="font-bold text-gray-900 mb-4">Detalhes da Migração</h4>
+                  <div className="bg-white rounded-xl border border-gray-200 max-h-96 overflow-y-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-100 sticky top-0">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Usuário</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Alteração</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {migrateResult.results.map((r: any, i: number) => (
+                          <tr key={i} className="hover:bg-gray-50 transition-colors">
+                            <td className="px-4 py-3 whitespace-nowrap">
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                r.status === 'updated' 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : 'bg-gray-100 text-gray-800'
+                              }`}>
+                                {r.status === 'updated' ? '✓ Atualizado' : '○ Pulado'}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                              {r.userName || r.userId}
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm">
+                              {r.status === 'updated' ? (
+                                <span className="text-green-600 font-medium">
+                                  {r.oldCode} → {r.newCode}
+                                </span>
+                              ) : (
+                                <span className="text-gray-500">{r.reason}</span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
         </div>
