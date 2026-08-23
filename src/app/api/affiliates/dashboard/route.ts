@@ -9,7 +9,15 @@ export async function GET(request: NextRequest) {
     await connectDB();
     
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
+    let userId = searchParams.get('userId');
+
+    // Se não tiver userId, tentar obter do header de autenticação interna
+    if (!userId) {
+      const internalAuth = request.headers.get('x-internal-auth');
+      if (!internalAuth) {
+        return NextResponse.json({ success: false, error: 'User ID é obrigatório' }, { status: 400 });
+      }
+    }
 
     if (!userId) {
       return NextResponse.json({ success: false, error: 'User ID é obrigatório' }, { status: 400 });

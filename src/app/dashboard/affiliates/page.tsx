@@ -133,25 +133,27 @@ export default function AffiliatesPage() {
     try {
       setLoading(true);
       const userId = getUserId();
-      if (!userId) {
-        setAuthError(true);
-        setLoading(false);
-        return;
-      }
-
-      setAuthError(false);
-
+      
+      // Se não tiver userId, tentar buscar sem userId e deixar a API decidir
+      const apiUrl = userId 
+        ? `/api/affiliates/dashboard?userId=${userId}`
+        : '/api/affiliates/dashboard';
+      
       // Fetch dashboard data
-      const dashboardRes = await fetch(`/api/affiliates/dashboard?userId=${userId}`);
+      const dashboardRes = await fetch(apiUrl);
       const dashboardData = await dashboardRes.json();
 
       if (dashboardData.success) {
         setAffiliate(dashboardData.affiliate);
         setCommissions(dashboardData.commissions);
         setStats(dashboardData.stats);
+        setAuthError(false);
       } else if (dashboardData.error === 'Afiliado não encontrado') {
         // Usuário não é afiliado ainda
         setAffiliate(null);
+        setAuthError(false);
+      } else if (dashboardData.error?.includes('User ID')) {
+        setAuthError(true);
       }
 
       // Fetch marketing materials
