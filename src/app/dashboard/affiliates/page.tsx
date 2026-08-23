@@ -87,12 +87,14 @@ export default function AffiliatesPage() {
   const getUserId = () => {
     // Tentar NextAuth primeiro
     if (status === 'authenticated' && session?.user) {
-      return (session.user as any)?.id || session.user.email || '';
+      const userId = (session.user as any)?.id;
+      const userEmail = session.user.email;
+      return userId || userEmail || '';
     }
     
     // Fallback para sistema customizado
     const currentUser = auth.getCurrentUser();
-    return currentUser?.id || '';
+    return currentUser?.id || currentUser?.email || '';
   };
 
   useEffect(() => {
