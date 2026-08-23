@@ -11,10 +11,13 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     let userId = searchParams.get('userId');
 
+    console.log('[Affiliate Dashboard] Request received with userId:', userId);
+
     // Se não tiver userId, tentar obter do header de autenticação interna
     if (!userId) {
       const internalAuth = request.headers.get('x-internal-auth');
       if (!internalAuth) {
+        console.log('[Affiliate Dashboard] No userId and no internal auth header');
         return NextResponse.json({ success: false, error: 'Afiliado não encontrado' }, { status: 404 });
       }
       
@@ -32,24 +35,34 @@ export async function GET(request: NextRequest) {
         const activeUser = users.find((u: any) => u.status === 'active');
         if (activeUser) {
           userId = activeUser.id;
+          console.log('[Affiliate Dashboard] Got userId from users API:', userId);
         }
       }
     }
 
     if (!userId) {
+      console.log('[Affiliate Dashboard] Still no userId after fallback');
       return NextResponse.json({ success: false, error: 'Afiliado não encontrado' }, { status: 404 });
     }
 
     // Get affiliate data - try by userId first, then by email as fallback
+    console.log('[Affiliate Dashboard] Searching for affiliate with userId:', userId);
     let affiliate = await Affiliate.findOne({ userId });
+    console.log('[Affiliate Dashboard] Affiliate found by userId:', affiliate);
+    
     if (!affiliate && userId.includes('@')) {
       // Fallback: try to find by email if userId looks like an email
+      console.log('[Affiliate Dashboard] Trying to find by email:', userId);
       affiliate = await Affiliate.findOne({ userId: userId.toLowerCase() });
+      console.log('[Affiliate Dashboard] Affiliate found by email:', affiliate);
     }
     
     if (!affiliate) {
+      console.log('[Affiliate Dashboard] Affiliate not found in database');
       return NextResponse.json({ success: false, error: 'Afiliado não encontrado' }, { status: 404 });
     }
+
+    console.log('[Affiliate Dashboard] Affiliate found successfully:', affiliate.affiliateCode);
 
     // Get commissions
     const commissions = await Commission.find({ affiliateId: affiliate.userId })

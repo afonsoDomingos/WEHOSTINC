@@ -115,8 +115,11 @@ export default function AffiliatesPage() {
       setLoading(true);
       const userId = getUserId();
       
+      console.log('fetchAffiliateData - userId:', userId);
+      
       // Se não tiver userId, não tentar buscar dados - mostrar página de registro
       if (!userId) {
+        console.log('fetchAffiliateData - No userId, showing registration page');
         setAffiliate(null);
         setLoading(false);
         return;
@@ -125,16 +128,25 @@ export default function AffiliatesPage() {
       // Se não tiver userId, tentar buscar sem userId e deixar a API decidir
       const apiUrl = `/api/affiliates/dashboard?userId=${userId}`;
       
+      console.log('fetchAffiliateData - Fetching from:', apiUrl);
+      
       // Fetch dashboard data
       const dashboardRes = await fetch(apiUrl);
       const dashboardData = await dashboardRes.json();
 
+      console.log('fetchAffiliateData - Response:', dashboardData);
+
       if (dashboardData.success) {
+        console.log('fetchAffiliateData - Affiliate found:', dashboardData.affiliate);
         setAffiliate(dashboardData.affiliate);
         setCommissions(dashboardData.commissions);
         setStats(dashboardData.stats);
       } else if (dashboardData.error === 'Afiliado não encontrado') {
         // Usuário não é afiliado ainda
+        console.log('fetchAffiliateData - Affiliate not found, showing registration page');
+        setAffiliate(null);
+      } else {
+        console.log('fetchAffiliateData - Error:', dashboardData.error);
         setAffiliate(null);
       }
 
