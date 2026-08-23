@@ -304,27 +304,27 @@ export default function AffiliatesPage() {
   if (!affiliate) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-        <div className="max-w-4xl mx-auto py-16 px-4">
-          <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50 overflow-hidden">
+        <div className="max-w-3xl mx-auto py-8 px-4 sm:py-12 sm:px-6">
+          <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/50 overflow-hidden">
             {/* Header Section */}
-            <div className="bg-gradient-to-r from-primary-600 via-primary-700 to-indigo-700 p-8 md:p-12 text-center relative overflow-hidden">
+            <div className="bg-gradient-to-r from-primary-600 via-primary-700 to-indigo-700 p-6 sm:p-8 text-center relative overflow-hidden">
               <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g９IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzRjMC0yIDItNCAyLTRzLTItMi0yLTJjMCAwIDAtMiAyLTJzMCAyIDIgMnMtMiAyLTIgMmMwIDIgMiA0IDIgNHMyIDIgMiAycy0yIDItMiAyYzAgMCAwIDItMiAyYzAgMiAyIDQgMiA0czItMiAyLTJzLTItMi0yLTJ6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-30"></div>
               <div className="relative z-10">
-                <div className="w-24 h-24 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl ring-4 ring-white/30">
-                  <Users className="h-12 w-12 text-white" />
+                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-xl ring-4 ring-white/30">
+                  <Users className="h-8 w-8 sm:h-10 sm:w-10 text-white" />
                 </div>
-                <h2 className="text-4xl md:text-5xl font-extrabold text-white mb-4 tracking-tight">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white mb-2 sm:mb-4 tracking-tight">
                   Programa de Afiliados
                 </h2>
-                <p className="text-white/90 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
+                <p className="text-white/90 text-sm sm:text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
                   Ganhe <span className="font-bold text-emerald-300">30% de comissão</span> em cada venda que você gerar através do seu link de afiliado!
                 </p>
               </div>
             </div>
 
             {/* Benefits Section */}
-            <div className="p-8 md:p-12">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="p-4 sm:p-6 md:p-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-6 sm:mb-8">
                 {[
                   { icon: '🚀', title: 'Registre-se gratuitamente', desc: 'Sem taxas nem custos ocultos' },
                   { icon: '🔗', title: 'Compartilhe seu link único', desc: 'Link personalizado para você' },
@@ -333,15 +333,15 @@ export default function AffiliatesPage() {
                 ].map((benefit, index) => (
                   <div
                     key={index}
-                    className="group bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-2xl p-6 hover:shadow-lg hover:border-primary-300 transition-all duration-300 hover:-translate-y-1"
+                    className="group bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-xl p-3 sm:p-4 hover:shadow-lg hover:border-primary-300 transition-all duration-300 hover:-translate-y-1"
                   >
-                    <div className="flex items-start space-x-4">
-                      <div className="text-3xl group-hover:scale-110 transition-transform duration-300">
+                    <div className="flex items-start space-x-2 sm:space-x-3">
+                      <div className="text-xl sm:text-2xl group-hover:scale-110 transition-transform duration-300">
                         {benefit.icon}
                       </div>
                       <div>
-                        <h3 className="font-bold text-gray-900 mb-1">{benefit.title}</h3>
-                        <p className="text-sm text-gray-600">{benefit.desc}</p>
+                        <h3 className="font-bold text-gray-900 text-xs sm:text-sm mb-0.5">{benefit.title}</h3>
+                        <p className="text-[10px] sm:text-xs text-gray-600">{benefit.desc}</p>
                       </div>
                     </div>
                   </div>
@@ -352,15 +352,15 @@ export default function AffiliatesPage() {
               <div className="text-center">
                 <button
                   onClick={registerAsAffiliate}
-                  className="inline-flex items-center space-x-3 bg-gradient-to-r from-primary-600 via-primary-700 to-indigo-700 hover:from-primary-700 hover:via-primary-800 hover:to-indigo-800 text-white px-10 py-5 rounded-2xl transition-all duration-300 font-bold text-lg shadow-xl hover:shadow-2xl hover:scale-105 transform"
+                  className="inline-flex items-center space-x-2 sm:space-x-3 bg-gradient-to-r from-primary-600 via-primary-700 to-indigo-700 hover:from-primary-700 hover:via-primary-800 hover:to-indigo-800 text-white px-6 sm:px-8 md:px-10 py-3 sm:py-4 md:py-5 rounded-xl sm:rounded-2xl transition-all duration-300 font-bold text-sm sm:text-base md:text-lg shadow-xl hover:shadow-2xl hover:scale-105 transform"
                 >
-                  <Users className="h-6 w-6" />
+                  <Users className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
                   <span>Tornar-se Afiliado Agora</span>
-                  <svg className="h-5 w-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="h-4 w-4 sm:h-5 sm:w-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
                 </button>
-                <p className="mt-4 text-sm text-gray-500">
+                <p className="mt-2 sm:mt-4 text-[10px] sm:text-xs md:text-sm text-gray-500">
                   Comece a ganhar dinheiro hoje mesmo • Sem compromisso
                 </p>
               </div>
