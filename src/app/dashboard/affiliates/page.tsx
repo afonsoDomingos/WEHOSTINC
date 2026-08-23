@@ -125,22 +125,57 @@ export default function AffiliatesPage() {
         return;
       }
       
-      // Se não tiver userId, tentar buscar sem userId e deixar a API decidir
+      // Fetch dashboard data
       const apiUrl = `/api/affiliates/dashboard?userId=${userId}`;
-      
       console.log('fetchAffiliateData - Fetching from:', apiUrl);
       
-      // Fetch dashboard data
       const dashboardRes = await fetch(apiUrl);
+      
+      if (!dashboardRes.ok) {
+        console.log('fetchAffiliateData - Dashboard fetch failed:', dashboardRes.status);
+        setAffiliate(null);
+        setLoading(false);
+        return;
+      }
+      
       const dashboardData = await dashboardRes.json();
-
       console.log('fetchAffiliateData - Response:', dashboardData);
 
-      if (dashboardData.success) {
+      if (dashboardData.success && dashboardData.affiliate) {
         console.log('fetchAffiliateData - Affiliate found:', dashboardData.affiliate);
         setAffiliate(dashboardData.affiliate);
-        setCommissions(dashboardData.commissions);
-        setStats(dashboardData.stats);
+        setCommissions(dashboardData.commissions || []);
+        setStats(dashboardData.stats || {});
+        
+        // Fetch marketing materials (só se tiver affiliate)
+        if (dashboardData.affiliate.affiliateCode) {
+          try {
+            const materialsRes = await fetch(`/api/affiliates/materials?affiliateCode=${dashboardData.affiliate.affiliateCode}`);
+            if (materialsRes.ok) {
+              const materialsData = await materialsRes.json();
+              if (materialsData.success) {
+                setMaterials(materialsData.materials || []);
+              }
+            }
+          } catch (e) {
+            console.log('fetchAffiliateData - Error fetching materials:', e);
+            // Não falhar se materials falhar
+          }
+        }
+        
+        // Fetch performance data (só se tiver affiliate)
+        try {
+          const performanceRes = await fetch(`/api/affiliates/performance?userId=${userId}&period=${performancePeriod}`);
+          if (performanceRes.ok) {
+            const performanceData = await performanceRes.json();
+            if (performanceData.success) {
+              setPerformanceData(performanceData);
+            }
+          }
+        } catch (e) {
+          console.log('fetchAffiliateData - Error fetching performance:', e);
+          // Não falhar se performance falhar
+        }
       } else if (dashboardData.error === 'Afiliado não encontrado') {
         // Usuário não é afiliado ainda
         console.log('fetchAffiliateData - Affiliate not found, showing registration page');
@@ -149,24 +184,9 @@ export default function AffiliatesPage() {
         console.log('fetchAffiliateData - Error:', dashboardData.error);
         setAffiliate(null);
       }
-
-      // Fetch marketing materials
-      const materialsRes = await fetch(`/api/affiliates/materials?affiliateCode=${dashboardData.affiliate?.affiliateCode}`);
-      const materialsData = await materialsRes.json();
-
-      if (materialsData.success) {
-        setMaterials(materialsData.materials);
-      }
-
-      // Fetch performance data
-      const performanceRes = await fetch(`/api/affiliates/performance?userId=${userId}&period=${performancePeriod}`);
-      const performanceData = await performanceRes.json();
-
-      if (performanceData.success) {
-        setPerformanceData(performanceData.data);
-      }
     } catch (error) {
-      console.error('Erro ao buscar dados de afiliado:', error);
+      console.error('fetchAffiliateData - Unexpected error:', error);
+      setAffiliate(null);
     } finally {
       setLoading(false);
     }
