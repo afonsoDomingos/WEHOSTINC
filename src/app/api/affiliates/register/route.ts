@@ -11,18 +11,30 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { userId } = body;
 
+    console.log('Register affiliate request:', { userId, body });
+
     if (!userId) {
       return NextResponse.json({ success: false, error: 'User ID é obrigatório' }, { status: 400 });
     }
 
-    // Check if user exists
-    const user = await User.findOne({ id: userId });
+    // Check if user exists - try by id first, then by email as fallback
+    let user = await User.findOne({ id: userId });
+    
+    if (!user) {
+      // Fallback: try to find by email if userId looks like an email
+      if (userId.includes('@')) {
+        user = await User.findOne({ email: userId });
+      }
+    }
+    
+    console.log('User found:', user ? { id: user.id, email: user.email, name: user.name } : null);
+    
     if (!user) {
       return NextResponse.json({ success: false, error: 'Usuário não encontrado' }, { status: 404 });
     }
 
     // Check if affiliate already exists
-    const existingAffiliate = await Affiliate.findOne({ userId });
+    const existingAffiliate = await Affiliate.findOne({ userId: user.id });
     if (existingAffiliate) {
       return NextResponse.json({ 
         success: false, 
@@ -37,7 +49,7 @@ export async function POST(request: NextRequest) {
 
     // Create affiliate
     const affiliate = await Affiliate.create({
-      userId,
+      userId: user.id,
       affiliateCode,
       affiliateLink,
       status: 'active',
