@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import Affiliate from '@/lib/models/Affiliate';
 import User from '@/lib/models/User';
+import { dispatchMessage } from '@/lib/notifications';
 
 export async function POST(request: NextRequest) {
   try {
@@ -45,6 +46,20 @@ export async function POST(request: NextRequest) {
       totalClicks: 0,
       totalConversions: 0,
       conversionRate: 0,
+    });
+
+    // Send welcome email to affiliate
+    await dispatchMessage({
+      recipientEmail: user.email,
+      recipientName: user.name,
+      templateId: 'affiliate-welcome',
+      variables: {
+        nome_afiliado: user.name,
+        link_afiliado: affiliateLink,
+        codigo_afiliado: affiliateCode,
+      },
+      isAutomatic: true,
+      eventType: 'affiliate_registered'
     });
 
     return NextResponse.json({ 

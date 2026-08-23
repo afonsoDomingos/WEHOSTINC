@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import Affiliate from '@/lib/models/Affiliate';
 import Commission from '@/lib/models/Commission';
+import User from '@/lib/models/User';
+import { dispatchMessage } from '@/lib/notifications';
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,6 +11,7 @@ export async function POST(request: NextRequest) {
     
     const body = await request.json();
     const { userId, payoutMethod, payoutDetails } = body;
+    const typedPayoutMethod = payoutMethod as 'bank_transfer' | 'paypal' | 'mpesa';
 
     if (!userId || !payoutMethod || !payoutDetails) {
       return NextResponse.json({ 
@@ -32,7 +35,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Update payout details
-    affiliate.payoutMethod = payoutMethod;
+    affiliate.payoutMethod = typedPayoutMethod;
     affiliate.payoutDetails = payoutDetails;
     affiliate.availableBalance = 0;
     affiliate.updatedAt = new Date().toISOString();
@@ -57,6 +60,31 @@ export async function POST(request: NextRequest) {
         }
       }
     );
+
+    // Send email notification about payout
+    const user = await User.findOne({ id: userId });
+    if (user) {
+      const payoutAmount = affiliate.availableBalance;
+      const methodNames: Record<'bank_transfer' | 'paypal' | 'mpesa', string> = {
+        bank_transfer: 'Transferência Bancária',
+        paypal: 'PayPal',
+        mpesa: 'M-Pesa'
+      };
+
+      await dispatchMessage({
+        recipientEmail: user.email,
+        recipientName: user.name,
+        templateId: 'affiliate-payout-processed',
+        variables: {
+          nome_afiliado: user.name,
+          valor_saque: payoutAmount.toFixed(2),
+          metodo_pagamento: methodNames[typedPayoutMethod],
+          data: new Date().toLocaleDateString('pt-MZ'),
+        },
+        isAutomatic: true,
+        eventType: 'affiliate_payout_processed'
+      });
+    }
 
     return NextResponse.json({ 
       success: true, 

@@ -38,7 +38,7 @@ async function processAffiliateCommission(orderData: any, affiliateCode: string 
     const commissionAmount = orderAmount * commissionRate;
 
     // Create commission
-    await Commission.create({
+    const commission = await Commission.create({
       affiliateId: affiliate.userId,
       userId: affiliate.userId,
       orderId: orderData.id,
@@ -55,6 +55,30 @@ async function processAffiliateCommission(orderData: any, affiliateCode: string 
       referredCustomerName: orderData.clientName || orderData.userName || '',
       createdAt: new Date().toISOString(),
     });
+
+    // Send email notification to affiliate about new commission
+    const AffiliateUser = (await import('@/lib/models/User')).default;
+    const affiliateUser = await AffiliateUser.findOne({ id: affiliate.userId });
+    
+    if (affiliateUser) {
+      const { dispatchMessage } = await import('@/lib/notifications');
+      await dispatchMessage({
+        recipientEmail: affiliateUser.email,
+        recipientName: affiliateUser.name,
+        templateId: 'affiliate-commission-earned',
+        variables: {
+          nome_afiliado: affiliateUser.name,
+          valor_comissao: commissionAmount.toFixed(2),
+          valor_pedido: orderAmount.toFixed(2),
+          taxa_comissao: (commissionRate * 100).toFixed(0),
+          numero_pedido: orderData.id,
+          nome_cliente: orderData.clientName || orderData.userName || orderData.clientEmail || orderData.userEmail || 'Cliente',
+          data: new Date().toLocaleDateString('pt-MZ'),
+        },
+        isAutomatic: true,
+        eventType: 'affiliate_commission_earned'
+      });
+    }
 
     // Update affiliate click to mark as converted
     await AffiliateClick.updateMany(

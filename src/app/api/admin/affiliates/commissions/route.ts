@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import Commission from '@/lib/models/Commission';
+import Affiliate from '@/lib/models/Affiliate';
+import User from '@/lib/models/User';
+import { dispatchMessage } from '@/lib/notifications';
 
 export async function GET(request: NextRequest) {
   try {
@@ -81,6 +84,27 @@ export async function PATCH(request: NextRequest) {
           }
         }
       );
+
+      // Send email notification to affiliate about approved commission
+      const affiliate = await Affiliate.findById(commission.affiliateId);
+      const affiliateUser = await User.findOne({ id: commission.affiliateId });
+      
+      if (affiliate && affiliateUser) {
+        await dispatchMessage({
+          recipientEmail: affiliateUser.email,
+          recipientName: affiliateUser.name,
+          templateId: 'affiliate-commission-approved',
+          variables: {
+            nome_afiliado: affiliateUser.name,
+            valor_comissao: commission.commissionAmount.toFixed(2),
+            saldo_disponivel: affiliate.availableBalance.toFixed(2),
+            numero_pedido: commission.orderId,
+            data_aprovacao: new Date().toLocaleDateString('pt-MZ'),
+          },
+          isAutomatic: true,
+          eventType: 'affiliate_commission_approved'
+        });
+      }
     }
 
     return NextResponse.json({ success: true, commission });

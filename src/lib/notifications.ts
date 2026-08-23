@@ -18,7 +18,10 @@ export interface AdminNotification {
     | 'payment_pending'
     | 'support_ticket'
     | 'system'
-    | 'blog_post';
+    | 'blog_post'
+    | 'affiliate_new'
+    | 'affiliate_commission'
+    | 'affiliate_payout';
   read: boolean;
   createdAt: string;
   link?: string;
@@ -667,6 +670,134 @@ Por favor, tente novamente ou entre em contato conosco para resolver o problema.
 Se tiver alguma dúvida, estamos aqui:
 📧 Email: info@wehosthere.com
 📱 WhatsApp: +258 84 833 5618
+
+Atenciosamente,
+Equipa WEHOSTHERE`,
+    channel: 'email',
+    isSystem: true,
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'affiliate-commission-earned',
+    name: 'Nova Comissão de Afiliado',
+    category: 'Afiliados',
+    subject: '🎉 Nova Comissão Ganha - {{valor_comissao}} MZN!',
+    body: `Olá {{nome_afiliado}},
+
+Parabéns! Você ganhou uma nova comissão através do seu programa de afiliados!
+
+💰 **Detalhes da Comissão:**
+
+- **Valor da Comissão:** {{valor_comissao}} MZN
+- **Valor do Pedido:** {{valor_pedido}} MZN
+- **Taxa de Comissão:** {{taxa_comissao}}%
+- **Pedido:** #{{numero_pedido}}
+- **Cliente:** {{nome_cliente}}
+- **Data:** {{data}}
+
+A comissão está pendente de aprovação pela administração. Após aprovação, o valor será adicionado ao seu saldo disponível para saque.
+
+Acompanhe suas comissões no painel de afiliados: https://wehosthere.com/dashboard/affiliates
+
+Continue promovendo e ganhe mais!
+
+Atenciosamente,
+Equipa WEHOSTHERE`,
+    channel: 'email',
+    isSystem: true,
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'affiliate-commission-approved',
+    name: 'Comissão Aprovada',
+    category: 'Afiliados',
+    subject: '✅ Comissão Aprovada - {{valor_comissao}} MZN disponível para saque',
+    body: `Olá {{nome_afiliado}},
+
+Sua comissão foi aprovada e já está disponível para saque!
+
+💰 **Detalhes:**
+
+- **Valor da Comissão:** {{valor_comissao}} MZN
+- **Saldo Disponível:** {{saldo_disponivel}} MZN
+- **Pedido:** #{{numero_pedido}}
+- **Data de Aprovação:** {{data_aprovacao}}
+
+Você pode solicitar o saque quando atingir o mínimo de 1.000 MZN.
+
+Solicitar saque: https://wehosthere.com/dashboard/affiliates
+
+Atenciosamente,
+Equipa WEHOSTHERE`,
+    channel: 'email',
+    isSystem: true,
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'affiliate-payout-processed',
+    name: 'Saque Processado',
+    category: 'Afiliados',
+    subject: '💰 Saque Processado - {{valor_saque}} MZN',
+    body: `Olá {{nome_afiliado}},
+
+Seu saque foi processado com sucesso!
+
+💰 **Detalhes do Saque:**
+
+- **Valor Sacado:** {{valor_saque}} MZN
+- **Método de Pagamento:** {{metodo_pagamento}}
+- **Data do Processamento:** {{data}}
+- **Status:** Em processamento
+
+O valor será creditado na sua conta conforme o método escolhido:
+- Transferência Bancária: 2-5 dias úteis
+- PayPal: 1-3 dias úteis
+- M-Pesa: Imediato a 24 horas
+
+Se tiver alguma dúvida, entre em contato:
+📧 Email: info@wehosthere.com
+📱 WhatsApp: +258 84 833 5618
+
+Atenciosamente,
+Equipa WEHOSTHERE`,
+    channel: 'email',
+    isSystem: true,
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'affiliate-welcome',
+    name: 'Bem-vindo ao Programa de Afiliados',
+    category: 'Afiliados',
+    subject: '🎉 Bem-vindo ao Programa de Afiliados WEHOSTHERE!',
+    body: `Olá {{nome_afiliado}},
+
+Parabéns! Você agora é um afiliado oficial da WEHOSTHERE!
+
+🔗 **Seu Link de Afiliado:**
+{{link_afiliado}}
+
+💰 **Como Funciona:**
+
+1. Compartilhe seu link de afiliado
+2. Quando alguém clicar e fazer uma compra, você ganha 30% de comissão
+3. Acompanhe suas comissões no painel
+4. Solicite saques quando atingir o mínimo de 1.000 MZN
+
+📊 **Seus Dados:**
+
+- **Código de Afiliado:** {{codigo_afiliado}}
+- **Taxa de Comissão:** 30%
+- **Saldo Mínimo para Saque:** 1.000 MZN
+
+Acesse o painel de afiliados: https://wehosthere.com/dashboard/affiliates
+
+Lá você encontrará materiais de marketing prontos para usar, estatísticas detalhadas e muito mais!
+
+Se tiver alguma dúvida, estamos aqui para ajudar:
+📧 Email: info@wehosthere.com
+📱 WhatsApp: +258 84 833 5618
+
+Boas vendas!
 
 Atenciosamente,
 Equipa WEHOSTHERE`,
