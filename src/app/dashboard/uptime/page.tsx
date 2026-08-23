@@ -40,6 +40,7 @@ export default function UptimeDashboardPage() {
 
   useEffect(() => {
     fetchMonitors();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchMonitors = async () => {

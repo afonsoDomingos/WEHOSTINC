@@ -74,7 +74,7 @@ export default function SalesNotificationsPage() {
   useEffect(() => {
     if (notifications.length > 0 && previousNotificationIds.size > 0) {
       const currentIds = new Set(notifications.map(n => n._id));
-      const newIds = [...currentIds].filter(id => !previousNotificationIds.has(id));
+      const newIds = Array.from(currentIds).filter(id => !previousNotificationIds.has(id));
       
       if (newIds.length > 0) {
         soundEffects.playNewNotificationSound();
