@@ -5,7 +5,7 @@ import {
   Users, DollarSign, TrendingUp, Plus, Edit, Trash2, 
   CheckCircle2, XCircle, Clock, Filter, RefreshCw,
   Image as ImageIcon, FileText, Video, Mail, Share2, Wallet,
-  AlertTriangle, CheckCircle
+  AlertTriangle, CheckCircle, X
 } from 'lucide-react';
 
 interface Affiliate {
@@ -70,6 +70,10 @@ export default function AdminAffiliatesPage() {
   const [migrateResult, setMigrateResult] = useState<any>(null);
   const [migrateError, setMigrateError] = useState('');
   const [resetLoading, setResetLoading] = useState(false);
+
+  // Upload states
+  const [uploadingFile, setUploadingFile] = useState(false);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState('');
 
   const [materialForm, setMaterialForm] = useState({
     title: '',
@@ -305,6 +309,36 @@ export default function AdminAffiliatesPage() {
     }
   };
 
+  // Upload function
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingFile(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setUploadedImageUrl(data.url);
+        setMaterialForm(prev => ({ ...prev, imageUrl: data.url }));
+      } else {
+        alert('Erro ao fazer upload: ' + data.error);
+      }
+    } catch (error) {
+      alert('Erro ao fazer upload do arquivo');
+      console.error(error);
+    } finally {
+      setUploadingFile(false);
+    }
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-MZ');
   };
@@ -478,16 +512,241 @@ export default function AdminAffiliatesPage() {
       {activeTab === 'materials' && (
         <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/50">
           <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-bold text-gray-900">Materiais de Marketing</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-900">Materiais de Marketing</h2>
+              <button
+                onClick={() => {
+                  setEditingMaterial(null);
+                  setMaterialForm({
+                    title: '',
+                    description: '',
+                    type: 'banner',
+                    content: '',
+                    imageUrl: '',
+                    platform: '',
+                    category: '',
+                  });
+                  setUploadedImageUrl('');
+                  setShowMaterialModal(true);
+                }}
+                className="inline-flex items-center space-x-2 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white px-4 py-2 rounded-xl transition-all duration-300 font-semibold shadow-lg hover:shadow-xl"
+              >
+                <Plus className="h-4 w-4" />
+                <span>Novo Material</span>
+              </button>
+            </div>
           </div>
           <div className="p-6">
             {loading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-600"></div>
               </div>
+            ) : materials.length === 0 ? (
+              <div className="text-center py-12">
+                <ImageIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500">Nenhum material cadastrado</p>
+                <p className="text-gray-400 text-sm mt-1">Clique em &quot;Novo Material&quot; para começar</p>
+              </div>
             ) : (
-              <p className="text-gray-500">Lista de materiais será exibida aqui</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {materials.map((material) => (
+                  <div key={material._id} className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300">
+                    {material.imageUrl && (
+                      <div className="h-40 bg-gray-100 overflow-hidden">
+                        <img 
+                          src={material.imageUrl} 
+                          alt={material.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+                    <div className="p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                          material.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                        }`}>
+                          {material.isActive ? 'Ativo' : 'Inativo'}
+                        </span>
+                        <span className="text-xs text-gray-500">{material.type}</span>
+                      </div>
+                      <h3 className="font-semibold text-gray-900 mb-1">{material.title}</h3>
+                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">{material.description}</p>
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => handleEditMaterial(material)}
+                          className="flex-1 inline-flex items-center justify-center space-x-1 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg transition text-sm font-medium"
+                        >
+                          <Edit className="h-3 w-3" />
+                          <span>Editar</span>
+                        </button>
+                        <button
+                          onClick={() => handleDeleteMaterial(material._id)}
+                          className="inline-flex items-center justify-center space-x-1 px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg transition text-sm font-medium"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Material Modal */}
+      {showMaterialModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-bold text-gray-900">
+                  {editingMaterial ? 'Editar Material' : 'Novo Material'}
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowMaterialModal(false);
+                    setEditingMaterial(null);
+                    setUploadedImageUrl('');
+                  }}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition"
+                >
+                  <X className="h-5 w-5 text-gray-500" />
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Título</label>
+                <input
+                  type="text"
+                  value={materialForm.title}
+                  onChange={(e) => setMaterialForm({ ...materialForm, title: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  placeholder="Ex: Banner Promocional"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
+                <textarea
+                  value={materialForm.description}
+                  onChange={(e) => setMaterialForm({ ...materialForm, description: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  rows={3}
+                  placeholder="Descrição do material..."
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+                <select
+                  value={materialForm.type}
+                  onChange={(e) => setMaterialForm({ ...materialForm, type: e.target.value as any })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                >
+                  <option value="banner">Banner</option>
+                  <option value="social_media">Social Media</option>
+                  <option value="email_template">Email Template</option>
+                  <option value="landing_page">Landing Page</option>
+                  <option value="video">Vídeo</option>
+                  <option value="text_ad">Texto Publicitário</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Categoria</label>
+                <input
+                  type="text"
+                  value={materialForm.category}
+                  onChange={(e) => setMaterialForm({ ...materialForm, category: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  placeholder="Ex: Promoções"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Plataforma (opcional)</label>
+                <input
+                  type="text"
+                  value={materialForm.platform}
+                  onChange={(e) => setMaterialForm({ ...materialForm, platform: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  placeholder="Ex: Instagram, Facebook"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Conteúdo</label>
+                <textarea
+                  value={materialForm.content}
+                  onChange={(e) => setMaterialForm({ ...materialForm, content: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  rows={4}
+                  placeholder="Conteúdo do material..."
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Imagem</label>
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileUpload}
+                      disabled={uploadingFile}
+                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm"
+                    />
+                    {uploadingFile && (
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-amber-600"></div>
+                    )}
+                  </div>
+                  
+                  {materialForm.imageUrl && (
+                    <div className="relative">
+                      <img 
+                        src={materialForm.imageUrl} 
+                        alt="Preview"
+                        className="w-full h-40 object-cover rounded-lg border border-gray-200"
+                      />
+                      <button
+                        onClick={() => {
+                          setMaterialForm({ ...materialForm, imageUrl: '' });
+                          setUploadedImageUrl('');
+                        }}
+                        className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-6 border-t border-gray-200">
+              <div className="flex space-x-3">
+                <button
+                  onClick={handleSaveMaterial}
+                  className="flex-1 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white px-6 py-3 rounded-xl transition-all duration-300 font-semibold shadow-lg hover:shadow-xl"
+                >
+                  {editingMaterial ? 'Atualizar' : 'Criar'}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowMaterialModal(false);
+                    setEditingMaterial(null);
+                    setUploadedImageUrl('');
+                  }}
+                  className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-xl transition-all duration-300 font-semibold"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
