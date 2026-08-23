@@ -744,10 +744,10 @@ export default function AffiliatesPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
               <h4 className="font-bold text-gray-900 mb-4 flex items-center space-x-2">
-                <Users className="h-5 w-5 text-primary-600" />
-                <span>Programa de Afiliados</span>
+                <Users className="h-4 w-4 md:h-5 md:w-5 text-primary-600" />
+                <span className="text-sm md:text-base">Programa de Afiliados</span>
               </h4>
-              <p className="text-gray-600 text-sm">
+              <p className="text-gray-600 text-xs md:text-sm">
                 Ganhe 30% de comissão em cada venda que você gerar através do seu link de afiliado.
               </p>
             </div>
