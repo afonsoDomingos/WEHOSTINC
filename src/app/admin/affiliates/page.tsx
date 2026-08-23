@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { 
   Users, DollarSign, TrendingUp, Plus, Edit, Trash2, 
   CheckCircle2, XCircle, Clock, Filter, RefreshCw,
   Image as ImageIcon, FileText, Video, Mail, Share2, Wallet,
-  AlertTriangle, CheckCircle, X
+  AlertTriangle, CheckCircle, X, ArrowLeft
 } from 'lucide-react';
 
 interface Affiliate {
@@ -379,13 +380,22 @@ export default function AdminAffiliatesPage() {
         {/* Header */}
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h1 className="text-4xl font-extrabold text-gray-900 mb-2 tracking-tight">
-                Gestão de Afiliados
-              </h1>
-              <p className="text-lg text-gray-600">
-                Gerencie o programa de afiliados da WEHOSTHERE
-              </p>
+            <div className="flex items-center space-x-4">
+              <Link
+                href="/admin"
+                className="inline-flex items-center space-x-2 px-4 py-2 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-xl hover:bg-white transition shadow-sm hover:shadow-md"
+              >
+                <ArrowLeft className="h-4 w-4 text-gray-600" />
+                <span className="font-medium text-gray-700">Voltar</span>
+              </Link>
+              <div>
+                <h1 className="text-4xl font-extrabold text-gray-900 mb-2 tracking-tight">
+                  Gestão de Afiliados
+                </h1>
+                <p className="text-lg text-gray-600">
+                  Gerencie o programa de afiliados da WEHOSTHERE
+                </p>
+              </div>
             </div>
             <button
               onClick={fetchData}
