@@ -85,12 +85,22 @@ export default function AffiliatesPage() {
   const [performancePeriod, setPerformancePeriod] = useState('30');
 
   const getUserId = () => {
-    // Usar apenas o sistema customizado que já funciona no sistema
+    // Tentar sistema customizado primeiro
     const currentUser = auth.getCurrentUser();
     console.log('getUserId - Custom auth user:', currentUser);
     
     if (currentUser?.id) return currentUser.id;
     if (currentUser?.email) return currentUser.email;
+    
+    // Fallback para NextAuth (Google OAuth)
+    if (status === 'authenticated' && session?.user) {
+      const userId = (session.user as any)?.id;
+      const userEmail = session.user.email;
+      console.log('getUserId - NextAuth userId:', userId, 'email:', userEmail);
+      
+      if (userId) return userId;
+      if (userEmail) return userEmail;
+    }
     
     console.log('getUserId - No user found');
     return '';
