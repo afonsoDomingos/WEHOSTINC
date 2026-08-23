@@ -85,40 +85,12 @@ export default function AffiliatesPage() {
   const [performancePeriod, setPerformancePeriod] = useState('30');
 
   const getUserId = () => {
-    console.log('getUserId - status:', status);
-    console.log('getUserId - session:', session);
-    
-    // Tentar NextAuth primeiro
-    if (status === 'authenticated' && session?.user) {
-      const userId = (session.user as any)?.id;
-      const userEmail = session.user.email;
-      console.log('getUserId - NextAuth userId:', userId, 'email:', userEmail);
-      
-      // Se não tiver ID, usar email como identificador
-      if (userId) return userId;
-      if (userEmail) return userEmail;
-    }
-    
-    // Fallback para sistema customizado
+    // Usar apenas o sistema customizado que já funciona no sistema
     const currentUser = auth.getCurrentUser();
     console.log('getUserId - Custom auth user:', currentUser);
     
     if (currentUser?.id) return currentUser.id;
     if (currentUser?.email) return currentUser.email;
-    
-    // Último fallback: tentar pegar do localStorage
-    if (typeof window !== 'undefined') {
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) {
-        try {
-          const parsedUser = JSON.parse(storedUser);
-          console.log('getUserId - localStorage user:', parsedUser);
-          return parsedUser.id || parsedUser.email;
-        } catch (e) {
-          console.error('Error parsing localStorage user:', e);
-        }
-      }
-    }
     
     console.log('getUserId - No user found');
     return '';
