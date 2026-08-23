@@ -40,8 +40,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Afiliado não encontrado' }, { status: 404 });
     }
 
-    // Get affiliate data
-    const affiliate = await Affiliate.findOne({ userId });
+    // Get affiliate data - try by userId first, then by email as fallback
+    let affiliate = await Affiliate.findOne({ userId });
+    if (!affiliate && userId.includes('@')) {
+      // Fallback: try to find by email if userId looks like an email
+      affiliate = await Affiliate.findOne({ userId: userId.toLowerCase() });
+    }
+    
     if (!affiliate) {
       return NextResponse.json({ success: false, error: 'Afiliado não encontrado' }, { status: 404 });
     }
