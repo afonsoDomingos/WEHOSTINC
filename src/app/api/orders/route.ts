@@ -3,6 +3,9 @@ import { connectDB } from '@/lib/mongodb';
 import OrderModel from '@/lib/models/Order';
 import { addAdminNotification, dispatchMessage } from '@/lib/notifications';
 import { generateHostingCredentials } from '@/lib/provisioning';
+import Affiliate from '@/lib/models/Affiliate';
+import Commission from '@/lib/models/Commission';
+import AffiliateClick from '@/lib/models/AffiliateClick';
 
 let FALLBACK_ORDERS: any[] = [];
 
@@ -13,6 +16,62 @@ async function tryMongo() {
   } catch (err) {
     console.warn('MongoDB connection issue (orders):', err);
     return false;
+  }
+}
+
+// Process affiliate commission when order is approved
+async function processAffiliateCommission(orderData: any, affiliateCode: string | undefined) {
+  try {
+    if (!affiliateCode) return;
+
+    // Find affiliate by code
+    const affiliate = await Affiliate.findOne({ affiliateCode });
+    if (!affiliate || affiliate.status !== 'active') return;
+
+    // Check if commission already exists for this order
+    const existingCommission = await Commission.findOne({ orderId: orderData.id });
+    if (existingCommission) return;
+
+    // Calculate commission (30%)
+    const orderAmount = orderData.valorPorFaturar || orderData.amount || 0;
+    const commissionRate = 0.30; // 30%
+    const commissionAmount = orderAmount * commissionRate;
+
+    // Create commission
+    await Commission.create({
+      affiliateId: affiliate.userId,
+      userId: affiliate.userId,
+      orderId: orderData.id,
+      orderAmount,
+      commissionRate,
+      commissionAmount,
+      status: 'pending',
+      statusHistory: [{
+        status: 'pending',
+        changedAt: new Date().toISOString(),
+        note: 'Comissão criada automaticamente'
+      }],
+      referredCustomerEmail: orderData.clientEmail || orderData.userEmail || '',
+      referredCustomerName: orderData.clientName || orderData.userName || '',
+      createdAt: new Date().toISOString(),
+    });
+
+    // Update affiliate click to mark as converted
+    await AffiliateClick.updateMany(
+      {
+        affiliateCode,
+        convertedToSale: false,
+      },
+      {
+        convertedToSale: true,
+        conversionOrderId: orderData.id,
+        conversionDate: new Date().toISOString(),
+      }
+    );
+
+    console.log(`Comissão de afiliado criada: ${commissionAmount} MZN para afiliado ${affiliate.affiliateCode}`);
+  } catch (error) {
+    console.error('Erro ao processar comissão de afiliado:', error);
   }
 }
 
@@ -31,6 +90,9 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { action, order, orderId, status } = body;
     const useMongo = await tryMongo();
+
+    // Get affiliate code from cookies for commission tracking
+    const affiliateCode = req.headers.get('cookie')?.match(/affiliate_code=([^;]+)/)?.[1];
 
     if (action === 'update_status') {
       // Mapear status para texto legível
@@ -103,6 +165,9 @@ export async function POST(req: Request) {
               } catch (credErr) {
                 console.error('Erro ao enviar credenciais ao cliente:', credErr);
               }
+
+              // Process affiliate commission
+              await processAffiliateCommission(orderDoc, affiliateCode);
             }
           }
         }
