@@ -20,6 +20,7 @@ import Toast from '@/components/Toast';
 import { API_URL, apiEndpoint } from '@/lib/siteConfig';
 import AdminNotificationCenter from '@/components/AdminNotificationCenter';
 import { dispatchMessage, addAdminNotification } from '@/lib/notifications';
+import { soundEffects } from '@/lib/soundEffects';
 
 const ADMIN_CANNED_RESPONSES = [
   {
@@ -646,12 +647,14 @@ export default function AdminPage() {
 
   // Handlers para Sistemas
   const handleApproveSystem = (systemId: string) => {
+    soundEffects.playApproveAccountSound();
     dataManager.updateSystemForRent(systemId, { approvalStatus: 'approved', isActive: true });
     setSystems(systems.map(s => s.id === systemId ? { ...s, approvalStatus: 'approved', isActive: true } : s));
     setToastMsg({ title: 'Sistema Aprovado', message: 'O sistema foi aprovado e está disponível para aluguer.', type: 'success' });
   };
 
   const handleRejectSystem = (systemId: string, reason: string) => {
+    soundEffects.playRejectAccountSound();
     dataManager.updateSystemForRent(systemId, { approvalStatus: 'rejected', rejectionReason: reason, isActive: false });
     setSystems(systems.map(s => s.id === systemId ? { ...s, approvalStatus: 'rejected', rejectionReason: reason, isActive: false } : s));
     setToastMsg({ title: 'Sistema Rejeitado', message: 'O sistema foi rejeitado.', type: 'warning' });
@@ -661,12 +664,14 @@ export default function AdminPage() {
     const request = rentalRequests.find(r => r.id === requestId);
     if (!request) return;
 
+    soundEffects.playApproveAccountSound();
     dataManager.updateRentalRequest(requestId, { status: 'approved', approvedAt: new Date().toISOString() });
     setRentalRequests(rentalRequests.map(r => r.id === requestId ? { ...r, status: 'approved', approvedAt: new Date().toISOString() } : r));
     setToastMsg({ title: 'Pedido Aprovado', message: 'Agora forneça as credenciais de acesso ao cliente.', type: 'success' });
   };
 
   const handleRejectRentalRequest = (requestId: string, reason: string) => {
+    soundEffects.playRejectAccountSound();
     dataManager.updateRentalRequest(requestId, { status: 'rejected', rejectedAt: new Date().toISOString(), rejectionReason: reason });
     setRentalRequests(rentalRequests.map(r => r.id === requestId ? { ...r, status: 'rejected', rejectedAt: new Date().toISOString(), rejectionReason: reason } : r));
     setToastMsg({ title: 'Pedido Rejeitado', message: 'O pedido foi rejeitado.', type: 'warning' });
@@ -853,6 +858,11 @@ export default function AdminPage() {
   };
 
   const handleUpdateEmailStatus = (emailId: string, status: 'active' | 'pending' | 'suspended') => {
+    if (status === 'active') {
+      soundEffects.playApproveAccountSound();
+    } else {
+      soundEffects.playRejectAccountSound();
+    }
     dataManager.updateEmailStatus(emailId, status);
     setEmails(dataManager.getEmails());
   };
@@ -860,6 +870,8 @@ export default function AdminPage() {
   const handleApprovePayment = (orderId: string) => {
     const order = orders.find(o => o.id === orderId);
     if (!order) return;
+
+    soundEffects.playApproveAccountSound();
 
     // Mover valor de por faturar para faturado
     const updatedOrder = {

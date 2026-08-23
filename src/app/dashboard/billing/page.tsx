@@ -16,6 +16,7 @@ import PageLoader from '@/components/PageLoader';
 import ReceiptModal, { ReceiptData } from '@/components/ReceiptModal';
 import Toast from '@/components/Toast';
 import { Clock, XCircle, FileText } from 'lucide-react';
+import { soundEffects } from '@/lib/soundEffects';
 
 export default function BillingPage() {
   const router = useRouter();
@@ -285,7 +286,10 @@ export default function BillingPage() {
                           </div>
                           <button
                             type="button"
-                            onClick={() => setSelectedReceipt(order)}
+                            onClick={() => {
+                              soundEffects.playInvoiceDownloadSound();
+                              setSelectedReceipt(order);
+                            }}
                             className="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs rounded-xl transition flex items-center space-x-1.5 cursor-pointer border border-emerald-200 shrink-0 shadow-2xs"
                             title="Ver e Imprimir Recibo Oficial (PDF)"
                           >

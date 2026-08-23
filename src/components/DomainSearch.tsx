@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Search, CheckCircle2, XCircle, Globe, ArrowRight, Sparkles, Loader2, Rocket, Flame, WifiOff, Wifi, AlertTriangle } from 'lucide-react';
 import { DOMAIN_PRICES, checkDomainRealAsync, DomainCheckResult } from '@/lib/domains';
 import { hostingPlans } from '@/lib/data';
+import { soundEffects } from '@/lib/soundEffects';
 
 // Timeout de conexão lenta em ms
 const SLOW_CONNECTION_TIMEOUT = 8000;
@@ -101,14 +102,17 @@ export default function DomainSearch() {
   };
 
   const handleRegisterOnly = (domain: string, price: number) => {
+    soundEffects.playDomainRegisteredSound();
     router.push(`/checkout?plan=none&domain=${encodeURIComponent(domain)}&domainPrice=${price}`);
   };
 
   const handleRegisterWithHosting = (domain: string, price: number, planId: string = selectedHostingPlan, cycle: string = hostingCycle) => {
+    soundEffects.playDomainRegisteredSound();
     router.push(`/checkout?plan=${planId}&billingCycle=${cycle}&domain=${encodeURIComponent(domain)}&domainPrice=${price}`);
   };
 
   const handleRegisterWithWebsite = (domain: string, price: number) => {
+    soundEffects.playDomainRegisteredSound();
     router.push(`/site-quote?domain=${encodeURIComponent(domain)}&domainPrice=${price}`);
   };
 

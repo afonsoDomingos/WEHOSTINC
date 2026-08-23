@@ -15,6 +15,7 @@ import PageLoader from '@/components/PageLoader';
 import { auth, User } from '@/lib/auth';
 import { dataManager, SupportTicket, TicketMessage, TicketAttachment } from '@/lib/data';
 import { apiEndpoint } from '@/lib/siteConfig';
+import { soundEffects } from '@/lib/soundEffects';
 
 const CLIENT_TICKET_TEMPLATES = [
   {
@@ -240,6 +241,7 @@ export default function ClientTicketsPage() {
         initialAttachments: createAttachments
       });
 
+      soundEffects.playCreateTicketSound();
       setTickets(prev => [newTicket, ...prev]);
       setSubject('');
       setMessage('');
@@ -267,6 +269,7 @@ export default function ClientTicketsPage() {
     );
 
     if (updated) {
+      soundEffects.playReplyTicketSound();
       setSelectedTicket(updated);
       setTickets(prev => prev.map(t => t.id === updated.id ? updated : t));
       setReplyMessage('');
@@ -276,6 +279,7 @@ export default function ClientTicketsPage() {
   };
 
   const handleCloseTicket = (ticketId: string) => {
+    soundEffects.playCloseTicketSound();
     dataManager.updateTicketStatus(ticketId, 'closed');
     setTickets(prev => prev.map(t => t.id === ticketId ? { ...t, status: 'closed' } : t));
     if (selectedTicket && selectedTicket.id === ticketId) {

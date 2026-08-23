@@ -26,6 +26,7 @@ import {
 import Link from 'next/link';
 import { auth } from '@/lib/auth';
 import { dataManager, EmailAccount } from '@/lib/data';
+import { soundEffects } from '@/lib/soundEffects';
 
 interface EmailDomain {
   _id: string;
@@ -140,16 +141,23 @@ export default function EmailDomainsPage() {
 
   const handleApproveEmail = async (emailAcc: EmailAccount) => {
     try {
+      soundEffects.playApproveAccountSound();
       dataManager.updateEmailStatus(emailAcc.id, 'active');
       setEmailAccounts(prev => prev.map(e => e.id === emailAcc.id ? { ...e, status: 'active' } : e));
       setToast({ type: 'success', message: `E-mail ${emailAcc.email} ativado com sucesso!` });
     } catch (err) {
+      soundEffects.playRejectAccountSound();
       setToast({ type: 'error', message: 'Erro ao ativar e-mail.' });
     }
   };
 
   const handleToggleEmailStatus = (emailAcc: EmailAccount) => {
     const newStatus = emailAcc.status === 'active' ? 'pending' : 'active';
+    if (newStatus === 'active') {
+      soundEffects.playApproveAccountSound();
+    } else {
+      soundEffects.playRejectAccountSound();
+    }
     dataManager.updateEmailStatus(emailAcc.id, newStatus);
     setEmailAccounts(prev => prev.map(e => e.id === emailAcc.id ? { ...e, status: newStatus } : e));
     setToast({ type: 'success', message: `Status de ${emailAcc.email} atualizado para ${newStatus}.` });
@@ -157,6 +165,7 @@ export default function EmailDomainsPage() {
 
   const handleDeleteEmailAccount = (emailAcc: EmailAccount) => {
     if (!window.confirm(`Tem a certeza que deseja eliminar a conta de e-mail ${emailAcc.email}?`)) return;
+    soundEffects.playRejectAccountSound();
     dataManager.deleteEmail(emailAcc.id, emailAcc.userEmail, emailAcc.email);
     setEmailAccounts(prev => prev.filter(e => e.id !== emailAcc.id));
     setToast({ type: 'success', message: `Conta ${emailAcc.email} eliminada.` });

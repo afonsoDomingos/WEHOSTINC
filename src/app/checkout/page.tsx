@@ -15,6 +15,7 @@ import BrandLogo from '@/components/BrandLogo';
 import PageLoader from '@/components/PageLoader';
 import ReceiptModal, { ReceiptData } from '@/components/ReceiptModal';
 import { apiEndpoint } from '@/lib/siteConfig';
+import { soundEffects } from '@/lib/soundEffects';
 
 function CheckoutContent() {
   const router = useRouter();
@@ -254,6 +255,7 @@ function CheckoutContent() {
 
       setPushModal(false);
       setLoading(false);
+      soundEffects.playPaymentSuccessSound();
       setSuccess(true);
 
       // Enviar notificação de venda realizada
@@ -292,6 +294,7 @@ function CheckoutContent() {
     } catch (err) {
       setPushModal(false);
       setLoading(false);
+      soundEffects.playPaymentErrorSound();
       setError(err instanceof Error ? err.message : 'Erro ao processar o pagamento.');
     }
   };
@@ -352,6 +355,7 @@ function CheckoutContent() {
       }
     } catch (err) {
       setLoading(false);
+      soundEffects.playPaymentErrorSound();
       setError(err instanceof Error ? err.message : 'Erro ao processar o pagamento.');
     }
   };

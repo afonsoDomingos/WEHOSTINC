@@ -7,6 +7,7 @@ import {
   AlertCircle, DollarSign, Filter, X, BellOff
 } from 'lucide-react';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
+import { soundEffects } from '@/lib/soundEffects';
 
 interface SalesNotification {
   _id: string;
@@ -35,6 +36,7 @@ export default function SalesNotificationsPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'unread' | 'read'>('unread');
   const [unreadCount, setUnreadCount] = useState(0);
+  const [previousNotificationIds, setPreviousNotificationIds] = useState<Set<string>>(new Set());
   
   const {
     permission,
@@ -68,6 +70,23 @@ export default function SalesNotificationsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter]);
 
+  // Detect new notifications and play sound (skip initial load)
+  useEffect(() => {
+    if (notifications.length > 0 && previousNotificationIds.size > 0) {
+      const currentIds = new Set(notifications.map(n => n._id));
+      const newIds = [...currentIds].filter(id => !previousNotificationIds.has(id));
+      
+      if (newIds.length > 0) {
+        soundEffects.playNewNotificationSound();
+      }
+      
+      setPreviousNotificationIds(currentIds);
+    } else if (notifications.length > 0 && previousNotificationIds.size === 0) {
+      // Initial load - just set the IDs without playing sound
+      setPreviousNotificationIds(new Set(notifications.map(n => n._id)));
+    }
+  }, [notifications]);
+
   const markAsRead = async (id: string) => {
     try {
       const response = await fetch(`/api/notifications/sales/${id}`, {
@@ -77,6 +96,7 @@ export default function SalesNotificationsPage() {
       });
 
       if (response.ok) {
+        soundEffects.playMarkAsReadSound();
         setNotifications(notifications.map(n => 
           n._id === id ? { ...n, status: 'read' as const, readAt: new Date().toISOString() } : n
         ));

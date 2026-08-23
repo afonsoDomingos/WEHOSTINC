@@ -6,6 +6,7 @@ import {
   Plus, Trash2, RefreshCw, Activity, TrendingUp,
   Calendar, BarChart3
 } from 'lucide-react';
+import { soundEffects } from '@/lib/soundEffects';
 
 interface UptimeMonitor {
   _id: string;
@@ -35,6 +36,7 @@ export default function UptimeDashboardPage() {
   const [newMonitor, setNewMonitor] = useState({ url: '', name: '', checkInterval: 5 });
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState('');
+  const [previousStatuses, setPreviousStatuses] = useState<Record<string, 'online' | 'offline'>>({});
 
   useEffect(() => {
     fetchMonitors();
@@ -47,6 +49,25 @@ export default function UptimeDashboardPage() {
       const data = await response.json();
       
       if (data.success) {
+        // Detect status changes and play sounds
+        data.monitors.forEach((monitor: UptimeMonitor) => {
+          const previousStatus = previousStatuses[monitor._id];
+          if (previousStatus && previousStatus !== monitor.currentStatus) {
+            if (monitor.currentStatus === 'offline' && previousStatus === 'online') {
+              soundEffects.playSiteDownSound();
+            } else if (monitor.currentStatus === 'online' && previousStatus === 'offline') {
+              soundEffects.playSiteRecoveredSound();
+            }
+          }
+        });
+        
+        // Update previous statuses
+        const newStatuses: Record<string, 'online' | 'offline'> = {};
+        data.monitors.forEach((monitor: UptimeMonitor) => {
+          newStatuses[monitor._id] = monitor.currentStatus;
+        });
+        setPreviousStatuses(newStatuses);
+        
         setMonitors(data.monitors);
       }
     } catch (err) {

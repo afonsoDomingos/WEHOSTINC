@@ -16,6 +16,7 @@ import PageLoader from '@/components/PageLoader';
 import StatusBadge from '@/components/StatusBadge';
 import ConfirmModal from '@/components/ConfirmModal';
 import Toast from '@/components/Toast';
+import { soundEffects } from '@/lib/soundEffects';
 
 export default function SitesPage() {
   const router = useRouter();
@@ -105,6 +106,7 @@ export default function SitesPage() {
         userEmail: user?.email
       });
 
+      soundEffects.playToggleSiteSound(true);
       setSites([...sites, newSite]);
       setShowModal(false);
       setNewSiteName('');
@@ -131,6 +133,7 @@ export default function SitesPage() {
     if (!deleteConfirm) return;
     try {
       const { id, domain } = deleteConfirm;
+      soundEffects.playToggleSiteSound(false);
       dataManager.deleteSite(id, domain);
       setSites(prev => prev.filter(s => s.id !== id && s.domain !== domain));
       setDeleteConfirm(null);
