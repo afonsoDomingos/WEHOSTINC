@@ -85,15 +85,20 @@ export default function AffiliatesPage() {
   const [performancePeriod, setPerformancePeriod] = useState('30');
 
   const getUserId = () => {
+    console.log('getUserId - status:', status);
+    console.log('getUserId - session:', session);
+    
     // Tentar NextAuth primeiro
     if (status === 'authenticated' && session?.user) {
       const userId = (session.user as any)?.id;
       const userEmail = session.user.email;
+      console.log('getUserId - NextAuth userId:', userId, 'email:', userEmail);
       return userId || userEmail || '';
     }
     
     // Fallback para sistema customizado
     const currentUser = auth.getCurrentUser();
+    console.log('getUserId - Custom auth user:', currentUser);
     return currentUser?.id || currentUser?.email || '';
   };
 
@@ -208,9 +213,17 @@ export default function AffiliatesPage() {
 
   const registerAsAffiliate = async () => {
     try {
+      // Aguardar que a sessão esteja carregada
+      if (status === 'loading') {
+        alert('A carregar sessão, tente novamente...');
+        return;
+      }
+
       const userId = getUserId();
+      console.log('registerAsAffiliate - userId:', userId);
+      
       if (!userId) {
-        alert('Erro: Usuário não autenticado');
+        alert('Erro: Usuário não autenticado. Por favor, faça login novamente.');
         return;
       }
       
@@ -221,6 +234,7 @@ export default function AffiliatesPage() {
       });
 
       const data = await response.json();
+      console.log('registerAsAffiliate - response:', data);
 
       if (data.success) {
         if (data.alreadyAffiliate) {
