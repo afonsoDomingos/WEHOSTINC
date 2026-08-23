@@ -10,6 +10,7 @@ import {
   Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin, ArrowLeft
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
 interface AffiliateData {
   _id: string;
@@ -71,7 +72,7 @@ export default function AffiliatesPage() {
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [showPayoutModal, setShowPayoutModal] = useState(false);
-  const [activeTab, setActiveTab] = useState<'overview' | 'commissions' | 'materials'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'commissions' | 'materials' | 'performance'>('overview');
   const [payoutMethod, setPayoutMethod] = useState<'bank_transfer' | 'paypal' | 'mpesa'>('bank_transfer');
   const [payoutDetails, setPayoutDetails] = useState({
     bankName: '',
@@ -80,6 +81,8 @@ export default function AffiliatesPage() {
     paypalEmail: '',
     mpesaPhone: '',
   });
+  const [performanceData, setPerformanceData] = useState<any>(null);
+  const [performancePeriod, setPerformancePeriod] = useState('30');
 
   const getUserId = () => {
     // Tentar NextAuth primeiro
@@ -119,11 +122,47 @@ export default function AffiliatesPage() {
       if (materialsData.success) {
         setMaterials(materialsData.materials);
       }
+
+      // Fetch performance data
+      const performanceRes = await fetch(`/api/affiliates/performance?userId=${userId}&period=${performancePeriod}`);
+      const performanceData = await performanceRes.json();
+
+      if (performanceData.success) {
+        setPerformanceData(performanceData.data);
+      }
     } catch (error) {
       console.error('Erro ao buscar dados de afiliado:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const shareToSocialMedia = (platform: string) => {
+    if (!affiliate) return;
+    
+    const text = 'Ganhe 30% de comissão com o programa de afiliados da WEHOSTHERE!';
+    const url = affiliate.affiliateLink;
+    
+    let shareUrl = '';
+    
+    switch (platform) {
+      case 'facebook':
+        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+        break;
+      case 'twitter':
+        shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+        break;
+      case 'linkedin':
+        shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
+        break;
+      case 'whatsapp':
+        shareUrl = `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`;
+        break;
+      default:
+        return;
+    }
+    
+    window.open(shareUrl, '_blank', 'width=600,height=400');
   };
 
   const copyToClipboard = (text: string) => {
@@ -330,6 +369,17 @@ export default function AffiliatesPage() {
               <span>Comissões</span>
             </button>
             <button
+              onClick={() => setActiveTab('performance')}
+              className={`flex-1 flex items-center justify-center space-x-2 px-6 py-4 rounded-xl transition font-medium ${
+                activeTab === 'performance' 
+                  ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg' 
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <TrendingUp className="h-5 w-5" />
+              <span>Performance</span>
+            </button>
+            <button
               onClick={() => setActiveTab('materials')}
               className={`flex-1 flex items-center justify-center space-x-2 px-6 py-4 rounded-xl transition font-medium ${
                 activeTab === 'materials' 
@@ -398,7 +448,7 @@ export default function AffiliatesPage() {
                 </div>
                 <h3 className="text-xl font-bold text-gray-900">Seu Link de Afiliado</h3>
               </div>
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-3 mb-4">
                 <input
                   type="text"
                   value={affiliate.affiliateLink}
@@ -411,6 +461,43 @@ export default function AffiliatesPage() {
                 >
                   {copied ? <CheckCircle2 className="h-5 w-5" /> : <Copy className="h-5 w-5" />}
                   <span>{copied ? 'Copiado!' : 'Copiar'}</span>
+                </button>
+              </div>
+              
+              {/* Social Media Share Buttons */}
+              <div className="flex items-center space-x-3 pt-4 border-t border-gray-200">
+                <span className="text-sm font-medium text-gray-600">Compartilhar:</span>
+                <button
+                  onClick={() => shareToSocialMedia('facebook')}
+                  className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                  title="Compartilhar no Facebook"
+                >
+                  <Facebook className="h-4 w-4" />
+                  <span className="text-sm">Facebook</span>
+                </button>
+                <button
+                  onClick={() => shareToSocialMedia('twitter')}
+                  className="flex items-center space-x-2 px-4 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition"
+                  title="Compartilhar no Twitter"
+                >
+                  <Twitter className="h-4 w-4" />
+                  <span className="text-sm">Twitter</span>
+                </button>
+                <button
+                  onClick={() => shareToSocialMedia('linkedin')}
+                  className="flex items-center space-x-2 px-4 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition"
+                  title="Compartilhar no LinkedIn"
+                >
+                  <Linkedin className="h-4 w-4" />
+                  <span className="text-sm">LinkedIn</span>
+                </button>
+                <button
+                  onClick={() => shareToSocialMedia('whatsapp')}
+                  className="flex items-center space-x-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
+                  title="Compartilhar no WhatsApp"
+                >
+                  <Mail className="h-4 w-4" />
+                  <span className="text-sm">WhatsApp</span>
                 </button>
               </div>
               <p className="text-gray-600 mt-4 flex items-center space-x-2">
@@ -547,6 +634,97 @@ export default function AffiliatesPage() {
                 </tbody>
               </table>
             </div>
+          </div>
+        )}
+
+        {activeTab === 'performance' && (
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
+                  <TrendingUp className="h-5 w-5 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900">Performance</h3>
+              </div>
+              <select
+                value={performancePeriod}
+                onChange={(e) => {
+                  setPerformancePeriod(e.target.value);
+                  fetchAffiliateData();
+                }}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              >
+                <option value="7">Últimos 7 dias</option>
+                <option value="30">Últimos 30 dias</option>
+                <option value="90">Últimos 90 dias</option>
+              </select>
+            </div>
+
+            {performanceData ? (
+              <div className="space-y-8">
+                {/* Stats Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <Eye className="h-5 w-5 text-blue-600" />
+                      <span className="text-sm font-medium text-blue-800">Total de Cliques</span>
+                    </div>
+                    <p className="text-3xl font-bold text-blue-900">{performanceData.totalClicks}</p>
+                  </div>
+                  <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-6 border border-emerald-200">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <ShoppingCart className="h-5 w-5 text-emerald-600" />
+                      <span className="text-sm font-medium text-emerald-800">Conversões</span>
+                    </div>
+                    <p className="text-3xl font-bold text-emerald-900">{performanceData.totalConversions}</p>
+                  </div>
+                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 border border-purple-200">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <TrendingUp className="h-5 w-5 text-purple-600" />
+                      <span className="text-sm font-medium text-purple-800">Taxa de Conversão</span>
+                    </div>
+                    <p className="text-3xl font-bold text-purple-900">{performanceData.conversionRate.toFixed(2)}%</p>
+                  </div>
+                </div>
+
+                {/* Clicks Chart */}
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4">Cliques por Dia</h4>
+                  <div className="h-64">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={Object.entries(performanceData.clicksByDay).map(([date, clicks]) => ({ date, clicks }))}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="date" />
+                        <YAxis />
+                        <Tooltip />
+                        <Line type="monotone" dataKey="clicks" stroke="#3b82f6" strokeWidth={2} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
+                {/* Commissions Chart */}
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4">Comissões por Mês (MZN)</h4>
+                  <div className="h-64">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={Object.entries(performanceData.commissionsByMonth).map(([month, amount]) => ({ month, amount }))}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="month" />
+                        <YAxis />
+                        <Tooltip />
+                        <Bar dataKey="amount" fill="#10b981" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <TrendingUp className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500">Carregando dados de performance...</p>
+              </div>
+            )}
           </div>
         )}
 
