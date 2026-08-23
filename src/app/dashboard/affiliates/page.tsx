@@ -345,94 +345,98 @@ export default function AffiliatesPage() {
 
         {/* Navigation Tabs */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-2 mb-6">
-          <div className="flex space-x-2">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
             <button
               onClick={() => setActiveTab('overview')}
-              className={`flex-1 flex items-center justify-center space-x-2 px-6 py-4 rounded-xl transition font-medium ${
+              className={`flex flex-col items-center justify-center space-y-1 px-4 py-3 rounded-xl transition font-medium ${
                 activeTab === 'overview' 
                   ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg' 
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
               <Home className="h-5 w-5" />
-              <span>Visão Geral</span>
+              <span className="text-xs md:text-sm">Visão Geral</span>
             </button>
             <button
               onClick={() => setActiveTab('commissions')}
-              className={`flex-1 flex items-center justify-center space-x-2 px-6 py-4 rounded-xl transition font-medium ${
+              className={`flex flex-col items-center justify-center space-y-1 px-4 py-3 rounded-xl transition font-medium ${
                 activeTab === 'commissions' 
                   ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg' 
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
               <BarChart3 className="h-5 w-5" />
-              <span>Comissões</span>
+              <span className="text-xs md:text-sm">Comissões</span>
             </button>
             <button
               onClick={() => setActiveTab('performance')}
-              className={`flex-1 flex items-center justify-center space-x-2 px-6 py-4 rounded-xl transition font-medium ${
+              className={`flex flex-col items-center justify-center space-y-1 px-4 py-3 rounded-xl transition font-medium ${
                 activeTab === 'performance' 
                   ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg' 
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
               <TrendingUp className="h-5 w-5" />
-              <span>Performance</span>
+              <span className="text-xs md:text-sm">Performance</span>
             </button>
             <button
               onClick={() => setActiveTab('materials')}
-              className={`flex-1 flex items-center justify-center space-x-2 px-6 py-4 rounded-xl transition font-medium ${
+              className={`flex flex-col items-center justify-center space-y-1 px-4 py-3 rounded-xl transition font-medium ${
                 activeTab === 'materials' 
                   ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg' 
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
               <Gift className="h-5 w-5" />
-              <span>Materiais</span>
+              <span className="text-xs md:text-sm">Materiais</span>
             </button>
           </div>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl shadow-lg p-6 text-white">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
+          <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl shadow-lg p-4 md:p-6 text-white">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-emerald-100 text-sm font-medium mb-1">Saldo Disponível</p>
-                <p className="text-3xl font-bold">
+                <p className="text-emerald-100 text-xs md:text-sm font-medium mb-1">Saldo Disponível</p>
+                <p className="text-xl md:text-3xl font-bold">
                   {stats?.availableBalance.toLocaleString('pt-MZ')} MZN
                 </p>
               </div>
-              <Wallet className="h-10 w-10 text-emerald-200" />
+              <Wallet className="h-8 w-8 md:h-10 md:w-10 text-emerald-200" />
             </div>
           </div>
-          <div className="bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl shadow-lg p-6 text-white">
+          <div className="bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl shadow-lg p-4 md:p-6 text-white">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-primary-100 text-sm font-medium mb-1">Ganhos Totais</p>
-                <p className="text-3xl font-bold">
+                <p className="text-primary-100 text-xs md:text-sm font-medium mb-1">Ganhos Totais</p>
+                <p className="text-xl md:text-3xl font-bold">
                   {stats?.totalEarnings.toLocaleString('pt-MZ')} MZN
                 </p>
               </div>
-              <DollarSign className="h-10 w-10 text-primary-200" />
+              <DollarSign className="h-8 w-8 md:h-10 md:w-10 text-primary-200" />
             </div>
           </div>
-          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg p-6 text-white">
+          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg p-4 md:p-6 text-white">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-blue-100 text-sm font-medium mb-1">Cliques Totais</p>
-                <p className="text-3xl font-bold">{stats?.totalClicks}</p>
+                <p className="text-blue-100 text-xs md:text-sm font-medium mb-1">Total Cliques</p>
+                <p className="text-xl md:text-3xl font-bold">
+                  {stats?.totalClicks}
+                </p>
               </div>
-              <Eye className="h-10 w-10 text-blue-200" />
+              <Eye className="h-8 w-8 md:h-10 md:w-10 text-blue-200" />
             </div>
           </div>
-          <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl shadow-lg p-6 text-white">
+          <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl shadow-lg p-4 md:p-6 text-white">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-purple-100 text-sm font-medium mb-1">Conversões</p>
-                <p className="text-3xl font-bold">{stats?.totalConversions}</p>
+                <p className="text-purple-100 text-xs md:text-sm font-medium mb-1">Conversões</p>
+                <p className="text-xl md:text-3xl font-bold">
+                  {stats?.totalConversions}
+                </p>
               </div>
-              <ShoppingCart className="h-10 w-10 text-purple-200" />
+              <Users className="h-8 w-8 md:h-10 md:w-10 text-purple-200" />
             </div>
           </div>
         </div>
@@ -448,7 +452,7 @@ export default function AffiliatesPage() {
                 </div>
                 <h3 className="text-xl font-bold text-gray-900">Seu Link de Afiliado</h3>
               </div>
-              <div className="flex items-center space-x-3 mb-4">
+              <div className="flex flex-col md:flex-row md:items-center space-y-3 md:space-y-0 md:space-x-3 mb-4">
                 <input
                   type="text"
                   value={affiliate.affiliateLink}
@@ -457,7 +461,7 @@ export default function AffiliatesPage() {
                 />
                 <button
                   onClick={() => copyToClipboard(affiliate.affiliateLink)}
-                  className="flex items-center space-x-2 px-6 py-4 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl hover:from-primary-600 hover:to-primary-700 transition font-semibold shadow-lg"
+                  className="flex items-center justify-center space-x-2 px-6 py-4 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl hover:from-primary-600 hover:to-primary-700 transition font-semibold shadow-lg"
                 >
                   {copied ? <CheckCircle2 className="h-5 w-5" /> : <Copy className="h-5 w-5" />}
                   <span>{copied ? 'Copiado!' : 'Copiar'}</span>
@@ -465,11 +469,11 @@ export default function AffiliatesPage() {
               </div>
               
               {/* Social Media Share Buttons */}
-              <div className="flex items-center space-x-3 pt-4 border-t border-gray-200">
-                <span className="text-sm font-medium text-gray-600">Compartilhar:</span>
+              <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-gray-200">
+                <span className="text-sm font-medium text-gray-600 w-full md:w-auto">Compartilhar:</span>
                 <button
                   onClick={() => shareToSocialMedia('facebook')}
-                  className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                  className="flex-1 md:flex-none flex items-center justify-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
                   title="Compartilhar no Facebook"
                 >
                   <Facebook className="h-4 w-4" />
@@ -477,7 +481,7 @@ export default function AffiliatesPage() {
                 </button>
                 <button
                   onClick={() => shareToSocialMedia('twitter')}
-                  className="flex items-center space-x-2 px-4 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition"
+                  className="flex-1 md:flex-none flex items-center justify-center space-x-2 px-4 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition"
                   title="Compartilhar no Twitter"
                 >
                   <Twitter className="h-4 w-4" />
@@ -485,7 +489,7 @@ export default function AffiliatesPage() {
                 </button>
                 <button
                   onClick={() => shareToSocialMedia('linkedin')}
-                  className="flex items-center space-x-2 px-4 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition"
+                  className="flex-1 md:flex-none flex items-center justify-center space-x-2 px-4 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition"
                   title="Compartilhar no LinkedIn"
                 >
                   <Linkedin className="h-4 w-4" />
@@ -493,7 +497,7 @@ export default function AffiliatesPage() {
                 </button>
                 <button
                   onClick={() => shareToSocialMedia('whatsapp')}
-                  className="flex items-center space-x-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
+                  className="flex-1 md:flex-none flex items-center justify-center space-x-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
                   title="Compartilhar no WhatsApp"
                 >
                   <Mail className="h-4 w-4" />
@@ -530,29 +534,29 @@ export default function AffiliatesPage() {
         )}
 
         {activeTab === 'materials' && (
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8">
-            <div className="flex items-center justify-between mb-6">
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-4 md:p-8">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
                   <Gift className="h-5 w-5 text-white" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900">Materiais de Marketing</h3>
               </div>
-              <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">Use [AFFILIATE_LINK] nos materiais</span>
+              <span className="text-xs md:text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">Use [AFFILIATE_LINK] nos materiais</span>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               {materials.map((material) => (
-                <div key={material._id} className="border-2 border-gray-200 rounded-2xl p-5 hover:shadow-xl transition group">
+                <div key={material._id} className="border-2 border-gray-200 rounded-2xl p-4 md:p-5 hover:shadow-xl transition group">
                   {material.imageUrl && (
                     <img
                       src={material.imageUrl}
                       alt={material.title}
-                      className="w-full h-40 object-cover rounded-xl mb-4 group-hover:scale-105 transition"
+                      className="w-full h-32 md:h-40 object-cover rounded-xl mb-4 group-hover:scale-105 transition"
                     />
                   )}
-                  <h4 className="font-bold text-gray-900 mb-2">{material.title}</h4>
-                  <p className="text-sm text-gray-600 mb-3">{material.description}</p>
-                  <div className="flex items-center space-x-2 text-xs text-gray-500 mb-4">
+                  <h4 className="font-bold text-gray-900 mb-2 text-sm md:text-base">{material.title}</h4>
+                  <p className="text-xs md:text-sm text-gray-600 mb-3">{material.description}</p>
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 mb-4">
                     <span className="px-3 py-1 bg-gradient-to-r from-purple-100 to-purple-200 text-purple-700 rounded-full font-medium">{material.type}</span>
                     {material.platform && (
                       <span className="px-3 py-1 bg-gradient-to-r from-blue-100 to-blue-200 text-blue-700 rounded-full font-medium">{material.platform}</span>
@@ -581,44 +585,51 @@ export default function AffiliatesPage() {
         )}
 
         {activeTab === 'commissions' && (
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8">
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-4 md:p-8">
             <div className="flex items-center space-x-3 mb-6">
               <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
                 <BarChart3 className="h-5 w-5 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900">Histórico de Comissões</h3>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full">
+            <div className="overflow-x-auto -mx-4 md:mx-0">
+              <table className="w-full min-w-[600px]">
                 <thead>
                   <tr className="border-b-2 border-gray-200">
-                    <th className="text-left py-4 px-4 text-sm font-bold text-gray-700">Pedido</th>
-                    <th className="text-left py-4 px-4 text-sm font-bold text-gray-700">Cliente</th>
-                    <th className="text-left py-4 px-4 text-sm font-bold text-gray-700">Valor</th>
-                    <th className="text-left py-4 px-4 text-sm font-bold text-gray-700">Comissão</th>
-                    <th className="text-left py-4 px-4 text-sm font-bold text-gray-700">Status</th>
-                    <th className="text-left py-4 px-4 text-sm font-bold text-gray-700">Data</th>
+                    <th className="text-left py-3 md:py-4 px-4 text-xs md:text-sm font-bold text-gray-700">Pedido</th>
+                    <th className="text-left py-3 md:py-4 px-4 text-xs md:text-sm font-bold text-gray-700">Cliente</th>
+                    <th className="text-left py-3 md:py-4 px-4 text-xs md:text-sm font-bold text-gray-700">Valor</th>
+                    <th className="text-left py-3 md:py-4 px-4 text-xs md:text-sm font-bold text-gray-700">Comissão</th>
+                    <th className="text-left py-3 md:py-4 px-4 text-xs md:text-sm font-bold text-gray-700">Status</th>
+                    <th className="text-left py-3 md:py-4 px-4 text-xs md:text-sm font-bold text-gray-700">Data</th>
                   </tr>
                 </thead>
                 <tbody>
                   {commissions.map((commission) => (
                     <tr key={commission._id} className="border-b border-gray-100 hover:bg-gradient-to-r from-gray-50 to-white transition">
-                      <td className="py-4 px-4 text-sm font-semibold text-gray-900">#{commission.orderId}</td>
-                      <td className="py-4 px-4 text-sm text-gray-600">
+                      <td className="py-3 md:py-4 px-4 text-sm text-gray-900">#{commission.orderId}</td>
+                      <td className="py-3 md:py-4 px-4 text-sm text-gray-600">
                         {commission.referredCustomerName || commission.referredCustomerEmail}
                       </td>
-                      <td className="py-4 px-4 text-sm text-gray-900">
+                      <td className="py-3 md:py-4 px-4 text-sm text-gray-900">
                         {commission.orderAmount.toLocaleString('pt-MZ')} MZN
                       </td>
-                      <td className="py-4 px-4 text-sm font-bold text-emerald-600">
+                      <td className="py-3 md:py-4 px-4 text-sm font-semibold text-emerald-600">
                         {commission.commissionAmount.toLocaleString('pt-MZ')} MZN
                       </td>
-                      <td className="py-4 px-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(commission.status)}`}>
+                      <td className="py-3 md:py-4 px-4">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          commission.status === 'paid' ? 'bg-emerald-100 text-emerald-800' :
+                          commission.status === 'approved' ? 'bg-blue-100 text-blue-800' :
+                          commission.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
                           {commission.status}
                         </span>
                       </td>
-                      <td className="py-4 px-4 text-sm text-gray-600">{formatDate(commission.createdAt)}</td>
+                      <td className="py-3 md:py-4 px-4 text-sm text-gray-600">
+                        {new Date(commission.createdAt).toLocaleDateString('pt-MZ')}
+                      </td>
                     </tr>
                   ))}
                   {commissions.length === 0 && (
@@ -639,7 +650,7 @@ export default function AffiliatesPage() {
 
         {activeTab === 'performance' && (
           <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
                   <TrendingUp className="h-5 w-5 text-white" />
@@ -652,7 +663,7 @@ export default function AffiliatesPage() {
                   setPerformancePeriod(e.target.value);
                   fetchAffiliateData();
                 }}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full md:w-auto px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
                 <option value="7">Últimos 7 dias</option>
                 <option value="30">Últimos 30 dias</option>
@@ -663,39 +674,39 @@ export default function AffiliatesPage() {
             {performanceData ? (
               <div className="space-y-8">
                 {/* Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 md:p-6 border border-blue-200">
                     <div className="flex items-center space-x-3 mb-2">
                       <Eye className="h-5 w-5 text-blue-600" />
-                      <span className="text-sm font-medium text-blue-800">Total de Cliques</span>
+                      <span className="text-xs md:text-sm font-medium text-blue-800">Total de Cliques</span>
                     </div>
-                    <p className="text-3xl font-bold text-blue-900">{performanceData.totalClicks}</p>
+                    <p className="text-2xl md:text-3xl font-bold text-blue-900">{performanceData.totalClicks}</p>
                   </div>
-                  <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-6 border border-emerald-200">
+                  <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-4 md:p-6 border border-emerald-200">
                     <div className="flex items-center space-x-3 mb-2">
                       <ShoppingCart className="h-5 w-5 text-emerald-600" />
-                      <span className="text-sm font-medium text-emerald-800">Conversões</span>
+                      <span className="text-xs md:text-sm font-medium text-emerald-800">Conversões</span>
                     </div>
-                    <p className="text-3xl font-bold text-emerald-900">{performanceData.totalConversions}</p>
+                    <p className="text-2xl md:text-3xl font-bold text-emerald-900">{performanceData.totalConversions}</p>
                   </div>
-                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 border border-purple-200">
+                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 md:p-6 border border-purple-200">
                     <div className="flex items-center space-x-3 mb-2">
                       <TrendingUp className="h-5 w-5 text-purple-600" />
-                      <span className="text-sm font-medium text-purple-800">Taxa de Conversão</span>
+                      <span className="text-xs md:text-sm font-medium text-purple-800">Taxa de Conversão</span>
                     </div>
-                    <p className="text-3xl font-bold text-purple-900">{performanceData.conversionRate.toFixed(2)}%</p>
+                    <p className="text-2xl md:text-3xl font-bold text-purple-900">{performanceData.conversionRate.toFixed(2)}%</p>
                   </div>
                 </div>
 
                 {/* Clicks Chart */}
                 <div>
-                  <h4 className="text-lg font-semibold text-gray-900 mb-4">Cliques por Dia</h4>
-                  <div className="h-64">
+                  <h4 className="text-base md:text-lg font-semibold text-gray-900 mb-4">Cliques por Dia</h4>
+                  <div className="h-48 md:h-64">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={Object.entries(performanceData.clicksByDay).map(([date, clicks]) => ({ date, clicks }))}>
                         <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="date" />
-                        <YAxis />
+                        <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+                        <YAxis tick={{ fontSize: 10 }} />
                         <Tooltip />
                         <Line type="monotone" dataKey="clicks" stroke="#3b82f6" strokeWidth={2} />
                       </LineChart>
@@ -705,13 +716,13 @@ export default function AffiliatesPage() {
 
                 {/* Commissions Chart */}
                 <div>
-                  <h4 className="text-lg font-semibold text-gray-900 mb-4">Comissões por Mês (MZN)</h4>
-                  <div className="h-64">
+                  <h4 className="text-base md:text-lg font-semibold text-gray-900 mb-4">Comissões por Mês (MZN)</h4>
+                  <div className="h-48 md:h-64">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={Object.entries(performanceData.commissionsByMonth).map(([month, amount]) => ({ month, amount }))}>
                         <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="month" />
-                        <YAxis />
+                        <XAxis dataKey="month" tick={{ fontSize: 10 }} />
+                        <YAxis tick={{ fontSize: 10 }} />
                         <Tooltip />
                         <Bar dataKey="amount" fill="#10b981" />
                       </BarChart>
