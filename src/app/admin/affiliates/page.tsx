@@ -272,77 +272,147 @@ export default function AdminAffiliatesPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Gestão de Afiliados</h1>
-          <p className="text-gray-600 mt-1">Gerencie o programa de afiliados</p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="text-4xl font-extrabold text-gray-900 mb-2 tracking-tight">
+                Gestão de Afiliados
+              </h1>
+              <p className="text-lg text-gray-600">
+                Gerencie o programa de afiliados da WEHOSTHERE
+              </p>
+            </div>
+            <button
+              onClick={fetchData}
+              className="inline-flex items-center space-x-2 bg-white/80 backdrop-blur-sm border border-gray-200 px-6 py-3 rounded-xl hover:bg-white transition shadow-sm hover:shadow-md"
+            >
+              <RefreshCw className="h-5 w-5 text-gray-600" />
+              <span className="font-medium text-gray-700">Atualizar</span>
+            </button>
+          </div>
         </div>
-        <button
-          onClick={fetchData}
-          className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
-        >
-          <RefreshCw className="h-4 w-4" />
-          <span>Atualizar</span>
-        </button>
-      </div>
 
-      <div className="flex items-center space-x-2 bg-white rounded-lg p-1 border border-gray-200">
-        <button
-          onClick={() => setActiveTab('affiliates')}
-          className={`px-4 py-2 rounded-md transition ${
-            activeTab === 'affiliates' ? 'bg-primary-100 text-primary-700 font-semibold' : 'text-gray-600 hover:bg-gray-100'
-          }`}
-        >
-          Afiliados
-        </button>
-        <button
-          onClick={() => setActiveTab('commissions')}
-          className={`px-4 py-2 rounded-md transition ${
-            activeTab === 'commissions' ? 'bg-primary-100 text-primary-700 font-semibold' : 'text-gray-600 hover:bg-gray-100'
-          }`}
-        >
-          Comissões
-        </button>
-        <button
-          onClick={() => setActiveTab('payouts')}
-          className={`px-4 py-2 rounded-md transition ${
-            activeTab === 'payouts' ? 'bg-primary-100 text-primary-700 font-semibold' : 'text-gray-600 hover:bg-gray-100'
-          }`}
-        >
-          Saques
-        </button>
-        <button
-          onClick={() => setActiveTab('materials')}
-          className={`px-4 py-2 rounded-md transition ${
-            activeTab === 'materials' ? 'bg-primary-100 text-primary-700 font-semibold' : 'text-gray-600 hover:bg-gray-100'
-          }`}
-        >
-          Materiais
-        </button>
-      </div>
+        {/* Tabs */}
+        <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/50 p-2 mb-8">
+          <div className="flex space-x-2">
+            <button
+              onClick={() => setActiveTab('affiliates')}
+              className={`flex-1 sm:flex-none flex items-center justify-center space-x-2 px-6 py-3 rounded-xl transition-all duration-300 font-semibold ${
+                activeTab === 'affiliates'
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <Users className="h-5 w-5" />
+              <span>Afiliados</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('commissions')}
+              className={`flex-1 sm:flex-none flex items-center justify-center space-x-2 px-6 py-3 rounded-xl transition-all duration-300 font-semibold ${
+                activeTab === 'commissions'
+                  ? 'bg-gradient-to-r from-emerald-600 to-green-600 text-white shadow-lg'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <DollarSign className="h-5 w-5" />
+              <span>Comissões</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('payouts')}
+              className={`flex-1 sm:flex-none flex items-center justify-center space-x-2 px-6 py-3 rounded-xl transition-all duration-300 font-semibold ${
+                activeTab === 'payouts'
+                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <Wallet className="h-5 w-5" />
+              <span>Saques</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('materials')}
+              className={`flex-1 sm:flex-none flex items-center justify-center space-x-2 px-6 py-3 rounded-xl transition-all duration-300 font-semibold ${
+                activeTab === 'materials'
+                  ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-lg'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <ImageIcon className="h-5 w-5" />
+              <span>Materiais</span>
+            </button>
+          </div>
+        </div>
 
       {activeTab === 'affiliates' && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+        <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/50">
           <div className="p-6 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">Afiliados</h2>
+            <h2 className="text-xl font-bold text-gray-900">Afiliados</h2>
           </div>
           <div className="p-6">
-            {loading ? <p>Carregando...</p> : <p>Afiliados tab content</p>}
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              </div>
+            ) : (
+              <p className="text-gray-500">Lista de afiliados será exibida aqui</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'commissions' && (
+        <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/50">
+          <div className="p-6 border-b border-gray-200">
+            <h2 className="text-xl font-bold text-gray-900">Comissões</h2>
+          </div>
+          <div className="p-6">
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+              </div>
+            ) : (
+              <p className="text-gray-500">Lista de comissões será exibida aqui</p>
+            )}
           </div>
         </div>
       )}
 
       {activeTab === 'payouts' && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+        <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/50">
           <div className="p-6 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">Solicitações de Saque</h2>
+            <h2 className="text-xl font-bold text-gray-900">Solicitações de Saque</h2>
           </div>
           <div className="p-6">
-            {loading ? <p>Carregando...</p> : <p>Payouts tab content</p>}
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+              </div>
+            ) : (
+              <p className="text-gray-500">Lista de saques será exibida aqui</p>
+            )}
           </div>
         </div>
       )}
+
+      {activeTab === 'materials' && (
+        <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/50">
+          <div className="p-6 border-b border-gray-200">
+            <h2 className="text-xl font-bold text-gray-900">Materiais de Marketing</h2>
+          </div>
+          <div className="p-6">
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-600"></div>
+              </div>
+            ) : (
+              <p className="text-gray-500">Lista de materiais será exibida aqui</p>
+            )}
+          </div>
+        </div>
+      )}
+      </div>
     </div>
   );
 }
