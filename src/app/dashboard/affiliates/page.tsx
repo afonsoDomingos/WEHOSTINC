@@ -94,13 +94,35 @@ export default function AffiliatesPage() {
       const userId = (session.user as any)?.id;
       const userEmail = session.user.email;
       console.log('getUserId - NextAuth userId:', userId, 'email:', userEmail);
-      return userId || userEmail || '';
+      
+      // Se não tiver ID, usar email como identificador
+      if (userId) return userId;
+      if (userEmail) return userEmail;
     }
     
     // Fallback para sistema customizado
     const currentUser = auth.getCurrentUser();
     console.log('getUserId - Custom auth user:', currentUser);
-    return currentUser?.id || currentUser?.email || '';
+    
+    if (currentUser?.id) return currentUser.id;
+    if (currentUser?.email) return currentUser.email;
+    
+    // Último fallback: tentar pegar do localStorage
+    if (typeof window !== 'undefined') {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          console.log('getUserId - localStorage user:', parsedUser);
+          return parsedUser.id || parsedUser.email;
+        } catch (e) {
+          console.error('Error parsing localStorage user:', e);
+        }
+      }
+    }
+    
+    console.log('getUserId - No user found');
+    return '';
   };
 
   useEffect(() => {
