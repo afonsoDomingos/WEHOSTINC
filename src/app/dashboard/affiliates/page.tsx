@@ -221,7 +221,13 @@ export default function AffiliatesPage() {
       const data = await response.json();
 
       if (data.success) {
-        fetchAffiliateData();
+        if (data.alreadyAffiliate) {
+          // Usuário já é afiliado, redirecionar para o painel
+          window.location.href = '/dashboard/affiliates';
+        } else {
+          // Novo afiliado registrado
+          fetchAffiliateData();
+        }
       } else {
         alert('Erro ao registrar como afiliado: ' + data.error);
       }

@@ -37,10 +37,10 @@ export async function POST(request: NextRequest) {
     const existingAffiliate = await Affiliate.findOne({ userId: user.id });
     if (existingAffiliate) {
       return NextResponse.json({ 
-        success: false, 
-        error: 'Usuário já é um afiliado',
-        affiliate: existingAffiliate
-      }, { status: 400 });
+        success: true, 
+        affiliate: existingAffiliate,
+        alreadyAffiliate: true
+      }, { status: 200 });
     }
 
     // Generate unique affiliate code
