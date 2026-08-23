@@ -133,10 +133,15 @@ export default function AffiliatesPage() {
       setLoading(true);
       const userId = getUserId();
       
+      // Se não tiver userId, não tentar buscar dados - mostrar página de registro
+      if (!userId) {
+        setAffiliate(null);
+        setLoading(false);
+        return;
+      }
+      
       // Se não tiver userId, tentar buscar sem userId e deixar a API decidir
-      const apiUrl = userId 
-        ? `/api/affiliates/dashboard?userId=${userId}`
-        : '/api/affiliates/dashboard';
+      const apiUrl = `/api/affiliates/dashboard?userId=${userId}`;
       
       // Fetch dashboard data
       const dashboardRes = await fetch(apiUrl);
@@ -251,11 +256,16 @@ export default function AffiliatesPage() {
       const userId = getUserId();
       console.log('registerAsAffiliate - userId:', userId);
       
-      // Tentar registrar mesmo sem userId - a API vai tentar obter do header
+      if (!userId) {
+        alert('Erro: Não foi possível identificar sua conta. Por favor, faça login novamente.');
+        return;
+      }
+      
+      // Tentar registrar com userId
       const response = await fetch('/api/affiliates/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: userId || undefined }),
+        body: JSON.stringify({ userId }),
       });
 
       const data = await response.json();
