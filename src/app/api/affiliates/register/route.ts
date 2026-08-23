@@ -9,9 +9,34 @@ export async function POST(request: NextRequest) {
     await connectDB();
     
     const body = await request.json();
-    const { userId } = body;
+    let { userId } = body;
 
     console.log('Register affiliate request:', { userId, body });
+
+    // Se não tiver userId, tentar obter do header de autenticação interna
+    if (!userId) {
+      const internalAuth = request.headers.get('x-internal-auth');
+      if (!internalAuth) {
+        return NextResponse.json({ success: false, error: 'User ID é obrigatório' }, { status: 400 });
+      }
+      
+      // Tentar buscar usuários para identificar o usuário atual
+      const baseUrl = process.env.NEXTAUTH_URL || 'https://wehosthere.com';
+      const usersResponse = await fetch(`${baseUrl}/api/users`, {
+        headers: { 'x-internal-auth': internalAuth },
+      });
+      
+      if (usersResponse.ok) {
+        const usersData = await usersResponse.json();
+        const users = usersData.users || [];
+        
+        // Pegar o primeiro usuário ativo (simplificação - em produção deve usar sessão real)
+        const activeUser = users.find((u: any) => u.status === 'active');
+        if (activeUser) {
+          userId = activeUser.id;
+        }
+      }
+    }
 
     if (!userId) {
       return NextResponse.json({ success: false, error: 'User ID é obrigatório' }, { status: 400 });

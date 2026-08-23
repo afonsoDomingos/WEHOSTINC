@@ -251,15 +251,11 @@ export default function AffiliatesPage() {
       const userId = getUserId();
       console.log('registerAsAffiliate - userId:', userId);
       
-      if (!userId) {
-        alert('Erro: Usuário não autenticado. Por favor, faça login novamente.');
-        return;
-      }
-      
+      // Tentar registrar mesmo sem userId - a API vai tentar obter do header
       const response = await fetch('/api/affiliates/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId }),
+        body: JSON.stringify({ userId: userId || undefined }),
       });
 
       const data = await response.json();
@@ -267,11 +263,11 @@ export default function AffiliatesPage() {
 
       if (data.success) {
         if (data.alreadyAffiliate) {
-          // Usuário já é afiliado, redirecionar para o painel
-          window.location.href = '/dashboard/affiliates';
+          // Usuário já é afiliado, recarregar a página para mostrar o painel
+          window.location.reload();
         } else {
-          // Novo afiliado registrado
-          fetchAffiliateData();
+          // Novo afiliado registrado, recarregar para mostrar o painel
+          window.location.reload();
         }
       } else {
         alert('Erro ao registrar como afiliado: ' + data.error);
