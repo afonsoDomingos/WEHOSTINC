@@ -18,6 +18,9 @@ export interface IAffiliate extends Document {
     paypalEmail?: string;
     mpesaPhone?: string;
   };
+  payoutStatus?: 'pending' | 'approved' | 'rejected' | 'processed';
+  payoutNotes?: string;
+  payoutProcessedAt?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -40,6 +43,9 @@ const AffiliateSchema = new Schema<IAffiliate>({
     paypalEmail: String,
     mpesaPhone: String,
   },
+  payoutStatus: { type: String, enum: ['pending', 'approved', 'rejected', 'processed'] },
+  payoutNotes: String,
+  payoutProcessedAt: String,
   createdAt: { type: String, default: () => new Date().toISOString() },
   updatedAt: { type: String, default: () => new Date().toISOString() },
 }, { timestamps: false, versionKey: false });

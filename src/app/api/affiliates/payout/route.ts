@@ -37,6 +37,7 @@ export async function POST(request: NextRequest) {
     // Update payout details
     affiliate.payoutMethod = typedPayoutMethod;
     affiliate.payoutDetails = payoutDetails;
+    affiliate.payoutStatus = 'pending';
     affiliate.availableBalance = 0;
     affiliate.updatedAt = new Date().toISOString();
     await affiliate.save();
