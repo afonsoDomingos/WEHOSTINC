@@ -6,6 +6,7 @@ export default function MigrateAffiliatesPage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
 
   const handleMigrate = async () => {
     setLoading(true);
@@ -35,6 +36,38 @@ export default function MigrateAffiliatesPage() {
     }
   };
 
+  const handleReset = async () => {
+    if (!confirm('Tem certeza que deseja apagar todos os registros de afiliados? Esta ação não pode ser desfeita.')) {
+      return;
+    }
+
+    setResetLoading(true);
+    setError('');
+    setResult(null);
+
+    try {
+      const response = await fetch('/api/admin/migrate-affiliate-codes/reset', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer admin-secret',
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert('Registros de afiliados apagados com sucesso!');
+      } else {
+        setError(data.error || 'Erro ao apagar registros');
+      }
+    } catch (err) {
+      setError('Erro ao conectar com o servidor');
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-4xl mx-auto">
@@ -46,13 +79,27 @@ export default function MigrateAffiliatesPage() {
             para o novo formato baseado no nome do usuário.
           </p>
           
-          <button
-            onClick={handleMigrate}
-            disabled={loading}
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50"
-          >
-            {loading ? 'Migrando...' : 'Iniciar Migração'}
-          </button>
+          <div className="flex space-x-4">
+            <button
+              onClick={handleMigrate}
+              disabled={loading}
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            >
+              {loading ? 'Migrando...' : 'Iniciar Migração'}
+            </button>
+            
+            <button
+              onClick={handleReset}
+              disabled={resetLoading}
+              className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 disabled:opacity-50"
+            >
+              {resetLoading ? 'Apagando...' : 'Apagar Registros'}
+            </button>
+          </div>
+          
+          <p className="text-sm text-gray-500 mt-2">
+            ⚠️ Apagar registros irá remover todos os afiliados do banco de dados.
+          </p>
         </div>
 
         {error && (
