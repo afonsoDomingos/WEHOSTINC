@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { 
   Link2, DollarSign, Users, TrendingUp, Copy, CheckCircle2, 
   Download, Share2, Calendar, Filter, RefreshCw, Wallet,
   ArrowUpRight, Eye, ShoppingCart, Home, BarChart3, Gift, HelpCircle,
   Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin
 } from 'lucide-react';
+import { auth, User } from '@/lib/auth';
 
 interface AffiliateData {
   _id: string;
@@ -60,6 +62,7 @@ interface AffiliateStats {
 }
 
 export default function AffiliatesPage() {
+  const { data: session, status } = useSession();
   const [affiliate, setAffiliate] = useState<AffiliateData | null>(null);
   const [commissions, setCommissions] = useState<Commission[]>([]);
   const [materials, setMaterials] = useState<MarketingMaterial[]>([]);
@@ -77,6 +80,17 @@ export default function AffiliatesPage() {
     mpesaPhone: '',
   });
 
+  const getUserId = () => {
+    // Tentar NextAuth primeiro
+    if (status === 'authenticated' && session?.user) {
+      return (session.user as any)?.id || session.user.email || '';
+    }
+    
+    // Fallback para sistema customizado
+    const currentUser = auth.getCurrentUser();
+    return currentUser?.id || '';
+  };
+
   useEffect(() => {
     fetchAffiliateData();
   }, []);
@@ -84,7 +98,7 @@ export default function AffiliatesPage() {
   const fetchAffiliateData = async () => {
     try {
       setLoading(true);
-      const userId = localStorage.getItem('userId');
+      const userId = getUserId();
       if (!userId) return;
 
       // Fetch dashboard data
@@ -119,7 +133,12 @@ export default function AffiliatesPage() {
 
   const handlePayout = async () => {
     try {
-      const userId = localStorage.getItem('userId');
+      const userId = getUserId();
+      if (!userId) {
+        alert('Erro: Usuário não autenticado');
+        return;
+      }
+      
       const response = await fetch('/api/affiliates/payout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -147,7 +166,12 @@ export default function AffiliatesPage() {
 
   const registerAsAffiliate = async () => {
     try {
-      const userId = localStorage.getItem('userId');
+      const userId = getUserId();
+      if (!userId) {
+        alert('Erro: Usuário não autenticado');
+        return;
+      }
+      
       const response = await fetch('/api/affiliates/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
