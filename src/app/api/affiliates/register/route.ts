@@ -68,8 +68,8 @@ export async function POST(request: NextRequest) {
       }, { status: 200 });
     }
 
-    // Generate unique affiliate code
-    const affiliateCode = await generateUniqueAffiliateCode();
+    // Generate unique affiliate code based on username
+    const affiliateCode = await generateUniqueAffiliateCode(user.name);
     const affiliateLink = `${process.env.NEXT_PUBLIC_APP_URL || 'https://wehosthere.com'}/ref/${affiliateCode}`;
 
     // Create affiliate
@@ -113,16 +113,34 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function generateUniqueAffiliateCode(): Promise<string> {
+async function generateUniqueAffiliateCode(userName?: string): Promise<string> {
   let code: string;
   let attempts = 0;
   const maxAttempts = 10;
   
-  while (attempts < maxAttempts) {
-    // Generate a random 6-digit number
-    code = Math.floor(100000 + Math.random() * 900000).toString();
+  // Generate code based on username if provided
+  if (userName) {
+    // Remove spaces and special characters, convert to lowercase
+    const cleanName = userName
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '')
+      .substring(0, 8); // Take first 8 characters
+    
+    // Add random number for uniqueness
+    const randomNum = Math.floor(100 + Math.random() * 900);
+    code = `${cleanName}${randomNum}`;
     
     // Check if code already exists
+    const existing = await Affiliate.findOne({ affiliateCode: code });
+    if (!existing) {
+      return code;
+    }
+  }
+  
+  // Fallback: generate random 6-digit number
+  while (attempts < maxAttempts) {
+    code = Math.floor(100000 + Math.random() * 900000).toString();
+    
     const existing = await Affiliate.findOne({ affiliateCode: code });
     if (!existing) {
       return code;
@@ -131,6 +149,6 @@ async function generateUniqueAffiliateCode(): Promise<string> {
     attempts++;
   }
   
-  // Fallback: use timestamp + random
+  // Final fallback: use timestamp + random
   return Date.now().toString().slice(-6);
 }
