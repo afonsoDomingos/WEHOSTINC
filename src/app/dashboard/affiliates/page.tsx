@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import Link from 'next/link';
 import { 
   Link2, DollarSign, Users, TrendingUp, Copy, CheckCircle2, 
   Download, Share2, Calendar, Filter, RefreshCw, Wallet,
   ArrowUpRight, Eye, ShoppingCart, Home, BarChart3, Gift, HelpCircle,
-  Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin
+  Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin, ArrowLeft
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 
@@ -274,8 +275,12 @@ export default function AffiliatesPage() {
         {/* Header */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8 mb-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <div className="flex items-center space-x-3 mb-2">
+            <div className="flex items-center space-x-4">
+              <Link href="/dashboard" className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl transition font-medium">
+                <ArrowLeft className="h-4 w-4" />
+                <span>Voltar</span>
+              </Link>
+              <div className="flex items-center space-x-3">
                 <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center">
                   <Users className="h-6 w-6 text-white" />
                 </div>
