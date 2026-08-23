@@ -83,6 +83,7 @@ export default function AffiliatesPage() {
   });
   const [performanceData, setPerformanceData] = useState<any>(null);
   const [performancePeriod, setPerformancePeriod] = useState('30');
+  const [authError, setAuthError] = useState(false);
 
   const getUserId = () => {
     console.log('getUserId - status:', status);
@@ -110,7 +111,13 @@ export default function AffiliatesPage() {
     try {
       setLoading(true);
       const userId = getUserId();
-      if (!userId) return;
+      if (!userId) {
+        setAuthError(true);
+        setLoading(false);
+        return;
+      }
+
+      setAuthError(false);
 
       // Fetch dashboard data
       const dashboardRes = await fetch(`/api/affiliates/dashboard?userId=${userId}`);
@@ -120,6 +127,9 @@ export default function AffiliatesPage() {
         setAffiliate(dashboardData.affiliate);
         setCommissions(dashboardData.commissions);
         setStats(dashboardData.stats);
+      } else if (dashboardData.error === 'Afiliado não encontrado') {
+        // Usuário não é afiliado ainda
+        setAffiliate(null);
       }
 
       // Fetch marketing materials
@@ -285,6 +295,30 @@ export default function AffiliatesPage() {
   }
 
   if (!affiliate) {
+    if (authError) {
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+          <div className="max-w-2xl mx-auto py-12 px-4">
+            <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-12 text-center">
+              <div className="w-20 h-20 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <HelpCircle className="h-10 w-10 text-white" />
+              </div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-3">Erro de Autenticação</h2>
+              <p className="text-gray-600 mb-8 text-lg">
+                Não foi possível identificar sua conta. Por favor, faça login novamente.
+              </p>
+              <Link
+                href="/login"
+                className="inline-flex items-center space-x-2 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white px-8 py-4 rounded-xl transition font-semibold shadow-lg hover:shadow-xl"
+              >
+                <span>Fazer Login</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
         <div className="max-w-2xl mx-auto py-12 px-4">
