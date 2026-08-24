@@ -773,21 +773,21 @@ Equipa WEHOSTHERE`,
 
 Parabéns! Você agora é um afiliado oficial da WEHOSTHERE!
 
-🔗 **Seu Link de Afiliado:**
+🔗 Seu Link de Afiliado:
 {{link_afiliado}}
 
-💰 **Como Funciona:**
+💰 Como Funciona:
 
 1. Compartilhe seu link de afiliado
 2. Quando alguém clicar e fazer uma compra, você ganha 30% de comissão
 3. Acompanhe suas comissões no painel
 4. Solicite saques quando atingir o mínimo de 1.000 MZN
 
-📊 **Seus Dados:**
+📊 Seus Dados:
 
-- **Código de Afiliado:** {{codigo_afiliado}}
-- **Taxa de Comissão:** 30%
-- **Saldo Mínimo para Saque:** 1.000 MZN
+- Código de Afiliado: {{codigo_afiliado}}
+- Taxa de Comissão: 30%
+- Saldo Mínimo para Saque: 1.000 MZN
 
 Acesse o painel de afiliados: https://wehosthere.com/dashboard/affiliates
 
@@ -804,7 +804,7 @@ Equipa WEHOSTHERE`,
     channel: 'email',
     isSystem: true,
     createdAt: new Date().toISOString()
-  }
+  },
 ];
 
 // Helper para substituir variáveis nos templates
