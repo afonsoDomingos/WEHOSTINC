@@ -1769,9 +1769,21 @@ function WebmailContent() {
                 <div>
                   <h4 className="font-extrabold text-gray-900 text-xs sm:text-sm">Caixa Bloqueada</h4>
                   <p className="text-[11px] text-gray-500 mt-1 leading-relaxed max-w-[200px] mx-auto">
-                    Inicie sessão no painel ao lado para sincronizar e ler as suas mensagens.
+                    Inicie sessão para sincronizar e ler as suas mensagens.
                   </p>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setWebmailLoginEmail(selectedAccountEmail);
+                    setWebmailLoginError('');
+                    setWebmailLoginPassword('');
+                    setShowWebmailLogin(true);
+                  }}
+                  className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs rounded-xl transition cursor-pointer shadow-sm"
+                >
+                  Entrar no Webmail
+                </button>
               </div>
             ) : displayMessages.length === 0 ? (
               <div className="p-8 text-center text-gray-400 text-xs">
