@@ -244,6 +244,7 @@ export default function AdminPage() {
   const [sites, setSites] = useState<any[]>([]);
   const [emails, setEmails] = useState<any[]>([]);
   const [webhookEvents, setWebhookEvents] = useState<any[]>([]);
+  const [b2cPayouts, setB2cPayouts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSyncingData, setIsSyncingData] = useState(true);
 
@@ -278,6 +279,55 @@ export default function AdminPage() {
       router.push('/');
     }, 400);
   };
+
+  // Função para criar payout B2C
+  const handleB2CPayout = async () => {
+    setPayoutLoading(true);
+    setPayoutError('');
+    setPayoutSuccess('');
+
+    try {
+      const response = await fetch('/api/payments/b2c', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone: payoutPhone,
+          amount: parseFloat(payoutAmount),
+          reference: payoutReference || `PAYOUT-${Date.now().toString().slice(-6)}`
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setPayoutError(data.error || 'Erro ao processar payout');
+        return;
+      }
+
+      setPayoutSuccess('Payout enviado com sucesso!');
+      
+      // Adicionar ao histórico
+      const newPayout = {
+        id: data.id,
+        phone: payoutPhone,
+        amount: parseFloat(payoutAmount),
+        currency: 'MZN',
+        reference: payoutReference || `PAYOUT-${Date.now().toString().slice(-6)}`,
+        status: 'processing',
+        createdAt: new Date().toISOString()
+      };
+      setB2cPayouts([newPayout, ...b2cPayouts]);
+
+      // Limpar formulário
+      setPayoutPhone('');
+      setPayoutAmount('');
+      setPayoutReference('');
+    } catch (err) {
+      setPayoutError(err instanceof Error ? err.message : 'Erro ao processar payout');
+    } finally {
+      setPayoutLoading(false);
+    }
+  };
   // Planos pendentes de guardar (chave: userId, valor: novo plano)
   const [pendingPlanChanges, setPendingPlanChanges] = useState<Record<string, 'basic' | 'pro' | 'enterprise'>>({});
 
@@ -287,6 +337,14 @@ export default function AdminPage() {
   const [adminReplyMessage, setAdminReplyMessage] = useState('');
   const [ticketSearchTerm, setTicketSearchTerm] = useState('');
   const [ticketFilterStatus, setTicketFilterStatus] = useState<'all' | 'open' | 'answered' | 'closed'>('all');
+
+  // B2C Payout State
+  const [payoutPhone, setPayoutPhone] = useState('');
+  const [payoutAmount, setPayoutAmount] = useState('');
+  const [payoutReference, setPayoutReference] = useState('');
+  const [payoutLoading, setPayoutLoading] = useState(false);
+  const [payoutError, setPayoutError] = useState('');
+  const [payoutSuccess, setPayoutSuccess] = useState('');
   
   // Sistemas de Aluguer State
   const [systems, setSystems] = useState<SystemForRent[]>([]);
@@ -1600,6 +1658,138 @@ export default function AdminPage() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+        </div>
+
+        {/* ───── GESTÃO DE PAYOUTS B2C (ENVIAR DINHEIRO PARA CLIENTES) ───── */}
+        <div className="bg-white border border-green-200 rounded-xl p-4 sm:p-6 shadow-sm mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 sm:mb-4">
+            <div>
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center space-x-2">
+                <Send className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
+                <span>Gestão de Payouts B2C</span>
+              </h2>
+              <p className="text-gray-500 text-[10px] sm:text-sm mt-0.5">Envie dinheiro para clientes (reembolsos, comissões, prémios)</p>
+            </div>
+          </div>
+
+          {/* Formulário de Payout */}
+          <div className="bg-green-50/60 border border-green-100 rounded-xl p-3 sm:p-4 mb-6">
+            <h3 className="text-xs sm:text-sm font-bold text-green-900 mb-3 flex items-center gap-1.5">
+              <Plus className="w-4 h-4 text-green-600" />
+              <span>Novo Payout B2C</span>
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
+              <div>
+                <label className="text-[10px] font-semibold text-gray-600 block mb-1">Número de Telefone</label>
+                <input
+                  type="text"
+                  placeholder="841234567"
+                  value={payoutPhone}
+                  onChange={(e) => setPayoutPhone(e.target.value)}
+                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-green-500"
+                  required
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-semibold text-gray-600 block mb-1">Valor (MZN)</label>
+                <input
+                  type="number"
+                  placeholder="100"
+                  value={payoutAmount}
+                  onChange={(e) => setPayoutAmount(e.target.value)}
+                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-green-500"
+                  required
+                  min="1"
+                  step="0.01"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-semibold text-gray-600 block mb-1">Referência (opcional)</label>
+                <input
+                  type="text"
+                  placeholder="PAYOUT-100"
+                  value={payoutReference}
+                  onChange={(e) => setPayoutReference(e.target.value)}
+                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-green-500"
+                />
+              </div>
+            </div>
+            <button
+              onClick={handleB2CPayout}
+              disabled={payoutLoading || !payoutPhone || !payoutAmount}
+              className="mt-3 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-bold text-xs rounded-lg shadow transition disabled:bg-gray-400 disabled:cursor-not-allowed cursor-pointer"
+            >
+              {payoutLoading ? 'Processando...' : 'Enviar Payout'}
+            </button>
+          </div>
+
+          {payoutError && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-3 sm:p-4 mb-4">
+              <p className="text-red-700 text-xs sm:text-sm">{payoutError}</p>
+            </div>
+          )}
+
+          {payoutSuccess && (
+            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 sm:p-4 mb-4">
+              <p className="text-emerald-700 text-xs sm:text-sm">{payoutSuccess}</p>
+            </div>
+          )}
+
+          {/* Tabela de Histórico de Payouts */}
+          {b2cPayouts.length > 0 && (
+            <div className="overflow-x-auto border border-gray-100 rounded-lg">
+              <table className="w-full text-left text-[10px] sm:text-xs">
+                <thead className="bg-gray-50 text-gray-500 font-bold uppercase border-b border-gray-200">
+                  <tr>
+                    <th className="py-2 sm:py-2.5 px-2 sm:px-3">ID</th>
+                    <th className="py-2 sm:py-2.5 px-2 sm:px-3">Telefone</th>
+                    <th className="py-2 sm:py-2.5 px-2 sm:px-3">Valor</th>
+                    <th className="py-2 sm:py-2.5 px-2 sm:px-3">Referência</th>
+                    <th className="py-2 sm:py-2.5 px-2 sm:px-3">Status</th>
+                    <th className="py-2 sm:py-2.5 px-2 sm:px-3 text-right">Data</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {b2cPayouts.map((payout) => (
+                    <tr key={payout.id} className="hover:bg-green-50/40 transition">
+                      <td className="py-2 sm:py-2.5 px-2 sm:px-3 font-mono text-gray-600 text-[9px] sm:text-xs">
+                        {payout.id?.slice(0, 12)}...
+                      </td>
+                      <td className="py-2 sm:py-2.5 px-2 sm:px-3 font-mono text-gray-900 text-[9px] sm:text-xs">
+                        {payout.phone}
+                      </td>
+                      <td className="py-2 sm:py-2.5 px-2 sm:px-3 font-bold text-gray-900 text-[10px] sm:text-xs">
+                        {payout.amount} {payout.currency}
+                      </td>
+                      <td className="py-2 sm:py-2.5 px-2 sm:px-3 font-mono text-gray-700 text-[9px] sm:text-xs">
+                        {payout.reference}
+                      </td>
+                      <td className="py-2 sm:py-2.5 px-2 sm:px-3">
+                        <span className={`inline-block px-1.5 sm:px-2 py-0.5 rounded text-[9px] sm:text-[10px] font-bold ${
+                          payout.status === 'completed' ? 'bg-emerald-100 text-emerald-700' :
+                          payout.status === 'processing' ? 'bg-amber-100 text-amber-700' :
+                          payout.status === 'failed' ? 'bg-red-100 text-red-700' :
+                          'bg-gray-100 text-gray-700'
+                        }`}>
+                          {payout.status.toUpperCase()}
+                        </span>
+                      </td>
+                      <td className="py-2 sm:py-2.5 px-2 sm:px-3 text-right text-gray-500 font-mono text-[9px] sm:text-xs">
+                        {new Date(payout.createdAt).toLocaleString('pt-MZ')}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {b2cPayouts.length === 0 && (
+            <div className="p-3 sm:p-4 bg-green-50 rounded-xl border border-green-200 text-green-800 text-[10px] sm:text-xs font-semibold flex items-center space-x-2">
+              <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-600" />
+              <span>Nenhum payout realizado ainda. Use o formulário acima para enviar dinheiro para clientes.</span>
             </div>
           )}
         </div>
