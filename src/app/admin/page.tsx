@@ -245,6 +245,7 @@ export default function AdminPage() {
   const [emails, setEmails] = useState<any[]>([]);
   const [webhookEvents, setWebhookEvents] = useState<any[]>([]);
   const [b2cPayouts, setB2cPayouts] = useState<any[]>([]);
+  const [subscriptions, setSubscriptions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSyncingData, setIsSyncingData] = useState(true);
 
@@ -328,6 +329,95 @@ export default function AdminPage() {
       setPayoutLoading(false);
     }
   };
+
+  // Função para criar assinatura
+  const handleCreateSubscription = async () => {
+    setSubLoading(true);
+    setSubError('');
+    setSubSuccess('');
+
+    try {
+      const response = await fetch('/api/subscriptions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customer: {
+            name: subCustomerName,
+            email: subCustomerEmail,
+            phone: subCustomerPhone
+          },
+          amount: parseFloat(subAmount),
+          interval: subInterval,
+          reference: subReference || `SUB-${Date.now().toString().slice(-6)}`
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setSubError(data.error || 'Erro ao criar assinatura');
+        return;
+      }
+
+      setSubSuccess('Assinatura criada com sucesso!');
+      
+      // Adicionar ao histórico
+      const newSubscription = {
+        id: data.id,
+        customer: data.customer,
+        amount: parseFloat(subAmount),
+        currency: 'MZN',
+        interval: subInterval,
+        reference: subReference || `SUB-${Date.now().toString().slice(-6)}`,
+        status: 'active',
+        nextBillingDate: data.nextBillingDate,
+        createdAt: new Date().toISOString()
+      };
+      setSubscriptions([newSubscription, ...subscriptions]);
+
+      // Limpar formulário
+      setSubCustomerName('');
+      setSubCustomerEmail('');
+      setSubCustomerPhone('');
+      setSubAmount('');
+      setSubReference('');
+    } catch (err) {
+      setSubError(err instanceof Error ? err.message : 'Erro ao criar assinatura');
+    } finally {
+      setSubLoading(false);
+    }
+  };
+
+  // Função para exportar payouts para CSV
+  const handleExportPayoutsCSV = () => {
+    if (b2cPayouts.length === 0) {
+      alert('Nenhum payout para exportar');
+      return;
+    }
+
+    const headers = ['ID', 'Telefone', 'Valor', 'Moeda', 'Referência', 'Status', 'Data'];
+    const rows = b2cPayouts.map(p => [
+      p.id,
+      p.phone,
+      p.amount,
+      p.currency,
+      p.reference,
+      p.status,
+      new Date(p.createdAt).toLocaleString('pt-MZ')
+    ]);
+
+    const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', `payouts_export_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
   // Planos pendentes de guardar (chave: userId, valor: novo plano)
   const [pendingPlanChanges, setPendingPlanChanges] = useState<Record<string, 'basic' | 'pro' | 'enterprise'>>({});
 
@@ -345,6 +435,17 @@ export default function AdminPage() {
   const [payoutLoading, setPayoutLoading] = useState(false);
   const [payoutError, setPayoutError] = useState('');
   const [payoutSuccess, setPayoutSuccess] = useState('');
+
+  // Subscription State
+  const [subCustomerName, setSubCustomerName] = useState('');
+  const [subCustomerEmail, setSubCustomerEmail] = useState('');
+  const [subCustomerPhone, setSubCustomerPhone] = useState('');
+  const [subAmount, setSubAmount] = useState('');
+  const [subInterval, setSubInterval] = useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('monthly');
+  const [subReference, setSubReference] = useState('');
+  const [subLoading, setSubLoading] = useState(false);
+  const [subError, setSubError] = useState('');
+  const [subSuccess, setSubSuccess] = useState('');
   
   // Sistemas de Aluguer State
   const [systems, setSystems] = useState<SystemForRent[]>([]);
@@ -1672,6 +1773,15 @@ export default function AdminPage() {
               </h2>
               <p className="text-gray-500 text-[10px] sm:text-sm mt-0.5">Envie dinheiro para clientes (reembolsos, comissões, prémios)</p>
             </div>
+            {b2cPayouts.length > 0 && (
+              <button
+                onClick={handleExportPayoutsCSV}
+                className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white font-bold text-xs rounded-lg shadow transition cursor-pointer flex items-center gap-1.5"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Exportar CSV</span>
+              </button>
+            )}
           </div>
 
           {/* Formulário de Payout */}
@@ -1790,6 +1900,176 @@ export default function AdminPage() {
             <div className="p-3 sm:p-4 bg-green-50 rounded-xl border border-green-200 text-green-800 text-[10px] sm:text-xs font-semibold flex items-center space-x-2">
               <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-600" />
               <span>Nenhum payout realizado ainda. Use o formulário acima para enviar dinheiro para clientes.</span>
+            </div>
+          )}
+        </div>
+
+        {/* ───── GESTÃO DE ASSINATURAS RECURRENTES ───── */}
+        <div className="bg-white border border-blue-200 rounded-xl p-4 sm:p-6 shadow-sm mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 sm:mb-4">
+            <div>
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center space-x-2">
+                <CreditCard className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
+                <span>Gestão de Assinaturas Recorrentes</span>
+              </h2>
+              <p className="text-gray-500 text-[10px] sm:text-sm mt-0.5">Crie e gerencie assinaturas mensais/anuais para clientes</p>
+            </div>
+          </div>
+
+          {/* Formulário de Assinatura */}
+          <div className="bg-blue-50/60 border border-blue-100 rounded-xl p-3 sm:p-4 mb-6">
+            <h3 className="text-xs sm:text-sm font-bold text-blue-900 mb-3 flex items-center gap-1.5">
+              <Plus className="w-4 h-4 text-blue-600" />
+              <span>Nova Assinatura</span>
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
+              <div>
+                <label className="text-[10px] font-semibold text-gray-600 block mb-1">Nome do Cliente</label>
+                <input
+                  type="text"
+                  placeholder="João Silva"
+                  value={subCustomerName}
+                  onChange={(e) => setSubCustomerName(e.target.value)}
+                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-semibold text-gray-600 block mb-1">Email</label>
+                <input
+                  type="email"
+                  placeholder="joao@email.com"
+                  value={subCustomerEmail}
+                  onChange={(e) => setSubCustomerEmail(e.target.value)}
+                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-semibold text-gray-600 block mb-1">Telefone</label>
+                <input
+                  type="text"
+                  placeholder="841234567"
+                  value={subCustomerPhone}
+                  onChange={(e) => setSubCustomerPhone(e.target.value)}
+                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-semibold text-gray-600 block mb-1">Valor (MZN)</label>
+                <input
+                  type="number"
+                  placeholder="299"
+                  value={subAmount}
+                  onChange={(e) => setSubAmount(e.target.value)}
+                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                  min="1"
+                  step="0.01"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-semibold text-gray-600 block mb-1">Intervalo</label>
+                <select
+                  value={subInterval}
+                  onChange={(e) => setSubInterval(e.target.value as 'daily' | 'weekly' | 'monthly' | 'yearly')}
+                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="daily">Diário</option>
+                  <option value="weekly">Semanal</option>
+                  <option value="monthly">Mensal</option>
+                  <option value="yearly">Anual</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-[10px] font-semibold text-gray-600 block mb-1">Referência (opcional)</label>
+                <input
+                  type="text"
+                  placeholder="SUB-001"
+                  value={subReference}
+                  onChange={(e) => setSubReference(e.target.value)}
+                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+            <button
+              onClick={handleCreateSubscription}
+              disabled={subLoading || !subCustomerName || !subAmount}
+              className="mt-3 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg shadow transition disabled:bg-gray-400 disabled:cursor-not-allowed cursor-pointer"
+            >
+              {subLoading ? 'Processando...' : 'Criar Assinatura'}
+            </button>
+          </div>
+
+          {subError && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-3 sm:p-4 mb-4">
+              <p className="text-red-700 text-xs sm:text-sm">{subError}</p>
+            </div>
+          )}
+
+          {subSuccess && (
+            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 sm:p-4 mb-4">
+              <p className="text-emerald-700 text-xs sm:text-sm">{subSuccess}</p>
+            </div>
+          )}
+
+          {/* Tabela de Assinaturas */}
+          {subscriptions.length > 0 && (
+            <div className="overflow-x-auto border border-gray-100 rounded-lg">
+              <table className="w-full text-left text-[10px] sm:text-xs">
+                <thead className="bg-gray-50 text-gray-500 font-bold uppercase border-b border-gray-200">
+                  <tr>
+                    <th className="py-2 sm:py-2.5 px-2 sm:px-3">ID</th>
+                    <th className="py-2 sm:py-2.5 px-2 sm:px-3">Cliente</th>
+                    <th className="py-2 sm:py-2.5 px-2 sm:px-3">Valor</th>
+                    <th className="py-2 sm:py-2.5 px-2 sm:px-3">Intervalo</th>
+                    <th className="py-2 sm:py-2.5 px-2 sm:px-3">Status</th>
+                    <th className="py-2 sm:py-2.5 px-2 sm:px-3 hidden sm:table-cell">Próxima Cobrança</th>
+                    <th className="py-2 sm:py-2.5 px-2 sm:px-3 text-right">Data</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {subscriptions.map((sub) => (
+                    <tr key={sub.id} className="hover:bg-blue-50/40 transition">
+                      <td className="py-2 sm:py-2.5 px-2 sm:px-3 font-mono text-gray-600 text-[9px] sm:text-xs">
+                        {sub.id?.slice(0, 12)}...
+                      </td>
+                      <td className="py-2 sm:py-2.5 px-2 sm:px-3 text-gray-900 text-[10px] sm:text-xs">
+                        {sub.customer?.name || '-'}
+                      </td>
+                      <td className="py-2 sm:py-2.5 px-2 sm:px-3 font-bold text-gray-900 text-[10px] sm:text-xs">
+                        {sub.amount} {sub.currency}
+                      </td>
+                      <td className="py-2 sm:py-2.5 px-2 sm:px-3 text-gray-700 text-[10px] sm:text-xs capitalize">
+                        {sub.interval}
+                      </td>
+                      <td className="py-2 sm:py-2.5 px-2 sm:px-3">
+                        <span className={`inline-block px-1.5 sm:px-2 py-0.5 rounded text-[9px] sm:text-[10px] font-bold ${
+                          sub.status === 'active' ? 'bg-emerald-100 text-emerald-700' :
+                          sub.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                          sub.status === 'past_due' ? 'bg-amber-100 text-amber-700' :
+                          sub.status === 'paused' ? 'bg-gray-100 text-gray-700' :
+                          'bg-gray-100 text-gray-700'
+                        }`}>
+                          {sub.status.toUpperCase()}
+                        </span>
+                      </td>
+                      <td className="py-2 sm:py-2.5 px-2 sm:px-3 text-gray-700 text-[10px] sm:text-xs hidden sm:table-cell">
+                        {sub.nextBillingDate || '-'}
+                      </td>
+                      <td className="py-2 sm:py-2.5 px-2 sm:px-3 text-right text-gray-500 font-mono text-[9px] sm:text-xs">
+                        {new Date(sub.createdAt).toLocaleString('pt-MZ')}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {subscriptions.length === 0 && (
+            <div className="p-3 sm:p-4 bg-blue-50 rounded-xl border border-blue-200 text-blue-800 text-[10px] sm:text-xs font-semibold flex items-center space-x-2">
+              <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600" />
+              <span>Nenhuma assinatura criada ainda. Use o formulário acima para criar assinaturas recorrentes.</span>
             </div>
           )}
         </div>
