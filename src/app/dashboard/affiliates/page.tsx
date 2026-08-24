@@ -87,24 +87,68 @@ export default function AffiliatesPage() {
   const [errorType, setErrorType] = useState<'auth' | 'network' | 'api' | 'unknown'>('unknown');
 
   const getUserId = () => {
+    console.log('=== getUserId DEBUG START ===');
+    console.log('Step 1: Checking NextAuth status:', status);
+    console.log('Step 2: Checking NextAuth session:', session);
+    
     // Tentar NextAuth primeiro (Google OAuth)
     if (status === 'authenticated' && session?.user) {
       const userId = (session.user as any)?.id;
       const userEmail = session.user.email;
-      console.log('getUserId - NextAuth userId:', userId, 'email:', userEmail);
+      console.log('Step 3: NextAuth authenticated - userId:', userId, 'email:', userEmail);
+      console.log('Step 4: Full session.user object:', session.user);
       
-      if (userId) return userId;
-      if (userEmail) return userEmail;
+      if (userId) {
+        console.log('=== getUserId DEBUG END (NextAuth ID) ===');
+        return userId;
+      }
+      if (userEmail) {
+        console.log('=== getUserId DEBUG END (NextAuth Email) ===');
+        return userEmail;
+      }
     }
     
+    console.log('Step 5: NextAuth not authenticated or no user data');
+    
     // Fallback para sistema customizado
+    console.log('Step 6: Checking custom auth system');
     const currentUser = auth.getCurrentUser();
-    console.log('getUserId - Custom auth user:', currentUser);
+    console.log('Step 7: Custom auth user:', currentUser);
     
-    if (currentUser?.id) return currentUser.id;
-    if (currentUser?.email) return currentUser.email;
+    if (currentUser?.id) {
+      console.log('=== getUserId DEBUG END (Custom ID) ===');
+      return currentUser.id;
+    }
+    if (currentUser?.email) {
+      console.log('=== getUserId DEBUG END (Custom Email) ===');
+      return currentUser.email;
+    }
     
-    console.log('getUserId - No user found');
+    // Último fallback: tentar pegar do localStorage
+    console.log('Step 8: Checking localStorage');
+    if (typeof window !== 'undefined') {
+      const storedUser = localStorage.getItem('user');
+      console.log('Step 9: Stored user from localStorage:', storedUser);
+      if (storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          console.log('Step 10: Parsed localStorage user:', parsedUser);
+          if (parsedUser.id) {
+            console.log('=== getUserId DEBUG END (LocalStorage ID) ===');
+            return parsedUser.id;
+          }
+          if (parsedUser.email) {
+            console.log('=== getUserId DEBUG END (LocalStorage Email) ===');
+            return parsedUser.email;
+          }
+        } catch (e) {
+          console.error('Step 11: Error parsing localStorage user:', e);
+        }
+      }
+    }
+    
+    console.log('Step 12: All authentication methods failed');
+    console.log('=== getUserId DEBUG END (NO USER FOUND) ===');
     return '';
   };
 
@@ -113,107 +157,102 @@ export default function AffiliatesPage() {
   }, []);
 
   const fetchAffiliateData = async () => {
+    console.log('=== fetchAffiliateData DEBUG START ===');
     try {
       setLoading(true);
       setErrorMessage('');
       setErrorType('unknown');
+      
+      console.log('Step 1: Calling getUserId()');
       const userId = getUserId();
       
-      console.log('fetchAffiliateData - userId:', userId);
+      console.log('Step 2: userId result:', userId);
       
       // Se não tiver userId, não tentar buscar dados - mostrar página de registro
       if (!userId) {
-        console.log('fetchAffiliateData - No userId, showing registration page');
+        console.log('Step 3: No userId found, showing registration page');
         setAffiliate(null);
         setErrorMessage('Não foi possível identificar sua conta. Por favor, faça login novamente.');
         setErrorType('auth');
         setLoading(false);
+        console.log('=== fetchAffiliateData DEBUG END (NO USER ID) ===');
         return;
       }
       
       // Fetch dashboard data
-      const apiUrl = `/api/affiliates/dashboard?userId=${userId}`;
-      console.log('fetchAffiliateData - Fetching from:', apiUrl);
+      const apiUrl = `/api/affiliates/dashboard?userId=${encodeURIComponent(userId)}`;
+      console.log('Step 4: Fetching from API:', apiUrl);
       
       const dashboardRes = await fetch(apiUrl);
+      console.log('Step 5: API response status:', dashboardRes.status);
       
       if (!dashboardRes.ok) {
-        console.log('fetchAffiliateData - Dashboard fetch failed:', dashboardRes.status);
+        console.log('Step 6: Dashboard fetch failed with status:', dashboardRes.status);
         setAffiliate(null);
         if (dashboardRes.status === 404) {
+          console.log('Step 7: Affiliate not found (404)');
           setErrorMessage('Afiliado não encontrado. Você pode se registrar como afiliado abaixo.');
           setErrorType('api');
         } else if (dashboardRes.status === 401) {
+          console.log('Step 8: Authentication error (401)');
           setErrorMessage('Erro de autenticação. Por favor, faça login novamente.');
           setErrorType('auth');
         } else if (dashboardRes.status >= 500) {
+          console.log('Step 9: Server error (500+)');
           setErrorMessage('Erro no servidor. Tente novamente em alguns minutos.');
           setErrorType('network');
         } else {
+          console.log('Step 10: Other error');
           setErrorMessage('Erro ao carregar dados do afiliado. Tente novamente.');
           setErrorType('api');
         }
         setLoading(false);
+        console.log('=== fetchAffiliateData DEBUG END (API ERROR) ===');
         return;
       }
       
+      console.log('Step 11: Parsing API response');
       const dashboardData = await dashboardRes.json();
-      console.log('fetchAffiliateData - Response:', dashboardData);
-
+      console.log('Step 12: Dashboard data:', dashboardData);
+      
       if (dashboardData.success && dashboardData.affiliate) {
-        console.log('fetchAffiliateData - Affiliate found:', dashboardData.affiliate);
+        console.log('Step 13: Affiliate data found, setting affiliate');
         setAffiliate(dashboardData.affiliate);
+        setStats(dashboardData.stats);
         setCommissions(dashboardData.commissions || []);
-        setStats(dashboardData.stats || {});
-        
-        // Fetch marketing materials (só se tiver affiliate)
-        if (dashboardData.affiliate.affiliateCode) {
-          try {
-            const materialsRes = await fetch(`/api/affiliates/materials?affiliateCode=${dashboardData.affiliate.affiliateCode}`);
-            if (materialsRes.ok) {
-              const materialsData = await materialsRes.json();
-              if (materialsData.success) {
-                setMaterials(materialsData.materials || []);
-              }
-            }
-          } catch (e) {
-            console.log('fetchAffiliateData - Error fetching materials:', e);
-            // Não falhar se materials falhar
-          }
-        }
-        
-        // Fetch performance data (só se tiver affiliate)
-        try {
-          const performanceRes = await fetch(`/api/affiliates/performance?userId=${userId}&period=${performancePeriod}`);
-          if (performanceRes.ok) {
-            const performanceData = await performanceRes.json();
-            if (performanceData.success) {
-              setPerformanceData(performanceData);
-            }
-          }
-        } catch (e) {
-          console.log('fetchAffiliateData - Error fetching performance:', e);
-          // Não falhar se performance falhar
-        }
-      } else if (dashboardData.error === 'Afiliado não encontrado') {
-        // Usuário não é afiliado ainda
-        console.log('fetchAffiliateData - Affiliate not found, showing registration page');
-        setAffiliate(null);
-        setErrorMessage('Você ainda não é um afiliado. Registre-se abaixo para começar a ganhar comissões.');
-        setErrorType('api');
+        setMaterials(dashboardData.materials || []);
       } else {
-        console.log('fetchAffiliateData - Error:', dashboardData.error);
+        console.log('Step 14: No affiliate data in response');
         setAffiliate(null);
-        setErrorMessage(dashboardData.error || 'Erro ao carregar dados do afiliado.');
+        setErrorMessage('Afiliado não encontrado. Você pode se registrar como afiliado abaixo.');
         setErrorType('api');
       }
-    } catch (error) {
-      console.error('fetchAffiliateData - Unexpected error:', error);
-      setAffiliate(null);
-      setErrorMessage('Erro de conexão. Verifique sua internet e tente novamente.');
-      setErrorType('network');
-    } finally {
+      
+      // Fetch performance data
+      console.log('Step 15: Fetching performance data');
+      const performanceUrl = `/api/affiliates/performance?userId=${encodeURIComponent(userId)}&period=${performancePeriod}`;
+      console.log('Step 16: Performance API URL:', performanceUrl);
+      
+      const perfRes = await fetch(performanceUrl);
+      console.log('Step 17: Performance response status:', perfRes.status);
+      
+      if (perfRes.ok) {
+        const perfData = await perfRes.json();
+        console.log('Step 18: Performance data:', perfData);
+        if (perfData.success) {
+          setPerformanceData(perfData.data);
+        }
+      }
+      
       setLoading(false);
+      console.log('=== fetchAffiliateData DEBUG END (SUCCESS) ===');
+    } catch (error) {
+      console.error('Step ERROR: fetchAffiliateData error:', error);
+      setAffiliate(null);
+      setErrorMessage('Erro ao carregar dados do afiliado. Verifique sua conexão e tente novamente.');
+      setErrorType('network');
+      setLoading(false);
+      console.log('=== fetchAffiliateData DEBUG END (CATCH ERROR) ===');
     }
   };
 
@@ -406,6 +445,15 @@ export default function AffiliatesPage() {
                   }`}>
                     {errorMessage}
                   </p>
+                  {errorType === 'auth' && (
+                    <Link
+                      href="/login"
+                      className="inline-flex items-center space-x-1 mt-2 text-xs font-medium text-red-700 hover:text-red-800 underline"
+                    >
+                      <ArrowLeft className="h-3 w-3" />
+                      <span>Fazer Login</span>
+                    </Link>
+                  )}
                 </div>
                 <button
                   onClick={() => {
