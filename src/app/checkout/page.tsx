@@ -272,6 +272,25 @@ function CheckoutContent() {
         reference: paymentReference // Usar a mesma referência gerada antes do pagamento
       });
 
+      // Notificar admin sobre novo pedido
+      try {
+        const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL || 'info@wehosthere.com';
+        const subject = `🛒 Novo Pedido: ${name} - ${serviceName}`;
+        const message = `Olá Administrador,\n\nNovo pedido recebido:\n\n• Cliente: ${name} (${email})\n• Telefone: ${ddi} ${phonePayment || whatsapp}\n• Serviço: ${serviceName}\n• Valor: ${grandTotal.toLocaleString('pt-MZ')} MZN\n• Método: ${paymentMethod}\n• Status: ${orderStatus}\n• Referência: ${paymentReference}\n• Data: ${new Date().toLocaleString('pt-MZ')}\n\nVerifique o pedido no painel admin.\nEquipe WEHOSTHERE`;
+
+        fetch(apiEndpoint('/api/send-email'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: adminEmail,
+            subject,
+            text: message
+          })
+        }).catch(err => console.error('[Checkout] Erro ao notificar admin:', err));
+      } catch (err) {
+        console.error('[Checkout] Erro ao preparar notificação admin:', err);
+      }
+
       setCurrentOrderData({
         id: orderId,
         clientName: name,

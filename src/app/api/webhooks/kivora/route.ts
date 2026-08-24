@@ -54,10 +54,12 @@ export async function POST(req: Request) {
         if (eventData.reference) {
           await updateOrderStatus(eventData.reference, 'completed');
         }
-        // Enviar notificação de sucesso por email
+        // Enviar notificação de sucesso por email para cliente
         if (clientEmail) {
           await sendPaymentNotification(clientEmail, clientName, serviceName, 'completed', eventData.amount);
         }
+        // Notificar admin sobre pagamento confirmado
+        await notifyAdminAboutPayment(clientName, clientEmail || '', serviceName, 'completed', eventData.amount, eventData.reference);
         processed = true;
         break;
         
@@ -67,10 +69,12 @@ export async function POST(req: Request) {
         if (eventData.reference) {
           await updateOrderStatus(eventData.reference, 'cancelled');
         }
-        // Enviar notificação de falha por email
+        // Enviar notificação de falha por email para cliente
         if (clientEmail) {
           await sendPaymentNotification(clientEmail, clientName, serviceName, 'failed', eventData.amount);
         }
+        // Notificar admin sobre pagamento falhado
+        await notifyAdminAboutPayment(clientName, clientEmail || '', serviceName, 'failed', eventData.amount, eventData.reference);
         processed = true;
         break;
         
@@ -155,20 +159,57 @@ async function sendPaymentNotification(
       ? `Olá ${clientName},\n\nO seu pagamento de ${amount || 0} MZN para "${serviceName}" foi confirmado com sucesso!\n\nO seu pedido está sendo processado.\n\nObrigado pela preferência!\nEquipe WEHOSTHERE`
       : `Olá ${clientName},\n\nInfelizmente, o pagamento de ${amount || 0} MZN para "${serviceName}" falhou.\n\nPor favor, tente novamente ou entre em contato com o suporte.\n\nEquipe WEHOSTHERE`;
 
-    // Chamar API de email (implementar conforme seu sistema de email)
-    await fetch(apiEndpoint('/api/emails/send'), {
+    // Chamar API de email correta
+    await fetch(apiEndpoint('/api/send-email'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         to: email,
         subject,
-        message
+        text: message
       })
     }).catch(err => console.error('[KIVORA WEBHOOK] Erro ao enviar email:', err));
     
-    console.log(`[KIVORA WEBHOOK] Notificação enviada para ${email}`);
+    console.log(`[KIVORA WEBHOOK] Notificação ${status} enviada para ${email}`);
   } catch (error) {
     console.error('[KIVORA WEBHOOK] Erro ao enviar notificação:', error);
+  }
+}
+
+// Função auxiliar para notificar admin sobre novo pagamento
+async function notifyAdminAboutPayment(
+  clientName: string,
+  clientEmail: string,
+  serviceName: string,
+  status: 'completed' | 'failed',
+  amount?: number,
+  reference?: string
+) {
+  try {
+    console.log(`[KIVORA WEBHOOK] Notificando admin sobre pagamento ${status}`);
+    
+    const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL || 'info@wehosthere.com';
+    const subject = status === 'completed'
+      ? `💰 Novo Pagamento Confirmado: ${clientName} - ${amount} MZN`
+      : `⚠️ Pagamento Falhou: ${clientName} - ${amount} MZN`;
+    
+    const message = status === 'completed'
+      ? `Olá Administrador,\n\nNovo pagamento confirmado:\n\n• Cliente: ${clientName} (${clientEmail})\n• Serviço: ${serviceName}\n• Valor: ${amount} MZN\n• Referência: ${reference}\n• Data: ${new Date().toLocaleString('pt-MZ')}\n\nVerifique o pedido no painel admin.\nEquipe WEHOSTHERE`
+      : `Olá Administrador,\n\nPagamento falhou:\n\n• Cliente: ${clientName} (${clientEmail})\n• Serviço: ${serviceName}\n• Valor: ${amount} MZN\n• Referência: ${reference}\n• Data: ${new Date().toLocaleString('pt-MZ')}\n\nVerifique o pedido no painel admin.\nEquipe WEHOSTHERE`;
+
+    await fetch(apiEndpoint('/api/send-email'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        to: adminEmail,
+        subject,
+        text: message
+      })
+    }).catch(err => console.error('[KIVORA WEBHOOK] Erro ao notificar admin:', err));
+    
+    console.log(`[KIVORA WEBHOOK] Admin notificado sobre pagamento ${status}`);
+  } catch (error) {
+    console.error('[KIVORA WEBHOOK] Erro ao notificar admin:', error);
   }
 }
 
