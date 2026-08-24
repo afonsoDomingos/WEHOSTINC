@@ -34,6 +34,33 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
+    // Validate payout details based on method
+    if (typedPayoutMethod === 'bank_transfer') {
+      if (!payoutDetails.bankName || !payoutDetails.accountNumber || !payoutDetails.accountHolder) {
+        return NextResponse.json({ 
+          success: false, 
+          error: 'Para transferência bancária, informe: banco, número da conta e titular' 
+        }, { status: 400 });
+      }
+    } else if (typedPayoutMethod === 'paypal') {
+      if (!payoutDetails.paypalEmail) {
+        return NextResponse.json({ 
+          success: false, 
+          error: 'Para PayPal, informe o email PayPal' 
+        }, { status: 400 });
+      }
+    } else if (typedPayoutMethod === 'mpesa') {
+      if (!payoutDetails.mpesaPhone) {
+        return NextResponse.json({ 
+          success: false, 
+          error: 'Para M-Pesa, informe o número de telefone M-Pesa' 
+        }, { status: 400 });
+      }
+    }
+
+    // Save payout amount BEFORE zeroing balance
+    const payoutAmount = affiliate.availableBalance;
+
     // Update payout details
     affiliate.payoutMethod = typedPayoutMethod;
     affiliate.payoutDetails = payoutDetails;

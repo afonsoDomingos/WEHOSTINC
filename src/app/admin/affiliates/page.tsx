@@ -154,24 +154,20 @@ export default function AdminAffiliatesPage() {
     }
   };
 
-  const handleProcessPayout = async (payoutStatus: string, payoutNotes?: string) => {
-    if (!selectedPayout) return;
-    
+  const handleProcessPayout = async (affiliateId: string, payoutStatus: string, payoutNotes?: string) => {
     try {
       const response = await fetch('/api/admin/affiliates/payouts', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          affiliateId: selectedPayout._id, 
+          affiliateId, 
           payoutStatus, 
-          payoutNotes 
+          payoutNotes: payoutNotes || '' 
         }),
       });
 
       const data = await response.json();
       if (data.success) {
-        setShowPayoutModal(false);
-        setSelectedPayout(null);
         fetchData();
       } else {
         alert('Erro ao processar saque: ' + data.error);
@@ -505,15 +501,89 @@ export default function AdminAffiliatesPage() {
       {activeTab === 'payouts' && (
         <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/50">
           <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-bold text-gray-900">Solicitações de Saque</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-900">Solicitações de Saque</h2>
+              <div className="flex items-center space-x-2">
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm"
+                >
+                  <option value="">Todos os Status</option>
+                  <option value="pending">Pendente</option>
+                  <option value="approved">Aprovado</option>
+                  <option value="rejected">Rejeitado</option>
+                  <option value="processed">Processado</option>
+                </select>
+              </div>
+            </div>
           </div>
           <div className="p-6">
             {loading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
               </div>
+            ) : payouts.length === 0 ? (
+              <div className="text-center py-12">
+                <Wallet className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500">Nenhuma solicitação de saque encontrada</p>
+                <p className="text-gray-400 text-sm mt-1">Os saques aparecerão aqui quando os afiliados solicitarem</p>
+              </div>
             ) : (
-              <p className="text-gray-500">Lista de saques será exibida aqui</p>
+              <div className="space-y-4">
+                {payouts.map((payout) => (
+                  <div key={payout._id} className="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-lg transition">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
+                          <Wallet className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-900">{payout.userId}</p>
+                          <p className="text-sm text-gray-500">{payout.payoutMethod}</p>
+                        </div>
+                      </div>
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        payout.payoutStatus === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                        payout.payoutStatus === 'approved' ? 'bg-green-100 text-green-800' :
+                        payout.payoutStatus === 'rejected' ? 'bg-red-100 text-red-800' :
+                        payout.payoutStatus === 'processed' ? 'bg-blue-100 text-blue-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {payout.payoutStatus}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm text-gray-600">
+                        <p>Saldo disponível: <span className="font-semibold text-gray-900">{payout.availableBalance?.toLocaleString('pt-MZ')} MZN</span></p>
+                        {payout.payoutDetails && (
+                          <p className="mt-1">
+                            {payout.payoutMethod === 'bank_transfer' && `${payout.payoutDetails.bankName} - ${payout.payoutDetails.accountHolder}`}
+                            {payout.payoutMethod === 'paypal' && payout.payoutDetails.paypalEmail}
+                            {payout.payoutMethod === 'mpesa' && payout.payoutDetails.mpesaPhone}
+                          </p>
+                        )}
+                      </div>
+                      {payout.payoutStatus === 'pending' && (
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() => handleProcessPayout(payout._id, 'approved')}
+                            className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition"
+                          >
+                            Aprovar
+                          </button>
+                          <button
+                            onClick={() => handleProcessPayout(payout._id, 'rejected')}
+                            className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition"
+                          >
+                            Rejeitar
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         </div>
