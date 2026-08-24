@@ -734,9 +734,7 @@ function CheckoutContent() {
                       : 'border-gray-200 bg-white hover:border-gray-300'
                   }`}
                 >
-                  <div className="w-10 h-7 bg-red-600 text-white rounded flex items-center justify-center font-bold text-xs mb-1">
-                    M-Pesa
-                  </div>
+                  <img src="/mpesa.jpg" alt="M-Pesa" className="h-7 w-auto object-contain mb-1" />
                   <span className="text-xs font-bold text-gray-800">M-Pesa</span>
                 </button>
 
@@ -746,9 +744,7 @@ function CheckoutContent() {
                   title="eMola ainda não disponível. Em breve!"
                 >
                   <span className="absolute -top-2 -right-2 bg-gray-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wide">Em Breve</span>
-                  <div className="w-10 h-7 bg-orange-300 text-white rounded flex items-center justify-center font-bold text-xs mb-1">
-                    eMola
-                  </div>
+                  <img src="/emola.png" alt="eMola" className="h-7 w-auto object-contain mb-1" />
                   <span className="text-xs font-bold text-gray-400">eMola</span>
                   <Lock className="h-3 w-3 text-gray-400 mt-0.5" />
                 </div>
@@ -759,9 +755,7 @@ function CheckoutContent() {
                   title="Pagamento por cartão ainda não disponível. Em breve!"
                 >
                   <span className="absolute -top-2 -right-2 bg-gray-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wide">Em Breve</span>
-                  <div className="flex items-center space-x-1 mb-1 text-blue-300">
-                    <CreditCard className="h-6 w-6" />
-                  </div>
+                  <img src="/visa.png" alt="Visa" className="h-6 w-auto object-contain mb-1" />
                   <span className="text-xs font-bold text-gray-400">Cartão de Crédito</span>
                   <Lock className="h-3 w-3 text-gray-400 mt-0.5" />
                 </div>
