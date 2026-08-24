@@ -54,11 +54,13 @@ export interface KivoraSubscriptionRequest {
 
 export interface KivoraSubscriptionResponse {
   id: string; // Identificador da assinatura (sub_xxxxx)
-  status: 'active' | 'cancelled' | 'past_due' | 'trialing';
+  status: 'active' | 'cancelled' | 'past_due' | 'paused';
   amount: number;
   currency: string;
-  interval: string;
+  interval: 'daily' | 'weekly' | 'monthly' | 'yearly';
   reference?: string;
+  nextBillingDate?: string; // Próxima data de cobrança (YYYY-MM-DD)
+  customer?: KivoraCustomer;
   createdAt?: string;
 }
 
