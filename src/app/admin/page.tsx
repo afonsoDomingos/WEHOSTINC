@@ -1826,6 +1826,42 @@ export default function AdminPage() {
                             {(user.status || 'active') === 'suspended' ? 'Reativar' : 'Suspender'}
                           </button>
 
+                          {user.email.toLowerCase() !== 'admin@wehosthere.com' && (
+                            <button
+                              onClick={() => {
+                                const currentRole = user.role || 'user';
+                                const newRole = currentRole === 'admin' ? 'user' : 'admin';
+                                fetch('/api/users', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({
+                                    action: 'update_role',
+                                    userId: user.id,
+                                    email: user.email,
+                                    role: newRole
+                                  })
+                                }).then(res => res.json()).then(data => {
+                                  if (data.success) {
+                                    setUsers(data.users);
+                                    setToastMsg({ 
+                                      title: 'Função Atualizada', 
+                                      message: `${user.name} agora é ${newRole === 'admin' ? 'administrador' : 'usuário comum'}.`, 
+                                      type: 'success' 
+                                    });
+                                  }
+                                });
+                              }}
+                              className={`px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-md text-[9px] sm:text-xs font-semibold transition ${
+                                (user.role || 'user') === 'admin'
+                                  ? 'bg-purple-100 text-purple-800 hover:bg-purple-200'
+                                  : 'bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200'
+                              }`}
+                              title={(user.role || 'user') === 'admin' ? 'Remover permissões de admin' : 'Promover a administrador'}
+                            >
+                              {(user.role || 'user') === 'admin' ? '👑 Admin' : '👤 User'}
+                            </button>
+                          )}
+
                           <button
                             onClick={() => {
                               setConfirmModalData({

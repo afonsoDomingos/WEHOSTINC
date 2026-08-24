@@ -455,6 +455,39 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true, users: FALLBACK_USERS });
     }
 
+    if (action === 'update_role') {
+      const targetId = (userId || body.id || '').toLowerCase();
+      const targetEmail = (body.email || body.userEmail || '').trim().toLowerCase();
+      const newRole = body.role;
+
+      if (!newRole || !['user', 'admin'].includes(newRole)) {
+        return NextResponse.json({ error: 'Role inválida. Use "user" ou "admin".' }, { status: 400 });
+      }
+
+      // Proteger: não permitir remover admin do root admin
+      const isRootAdmin = targetEmail === 'admin@wehosthere.com' || targetId === 'admin_root';
+      if (isRootAdmin && newRole !== 'admin') {
+        return NextResponse.json({ error: 'Não é possível remover permissões de admin do administrador principal.' }, { status: 403 });
+      }
+
+      if (useMongo) {
+        const filter = targetEmail
+          ? { $or: [{ id: targetId }, { email: targetEmail }] }
+          : { id: targetId };
+        
+        await UserModel.updateMany(filter, { role: newRole });
+        const users = await UserModel.find({}).lean();
+        return NextResponse.json({ success: true, users });
+      }
+
+      FALLBACK_USERS = FALLBACK_USERS.map(u =>
+        (targetId && u.id.toLowerCase() === targetId) || (targetEmail && u.email.toLowerCase() === targetEmail)
+          ? { ...u, role: newRole }
+          : u
+      );
+      return NextResponse.json({ success: true, users: FALLBACK_USERS });
+    }
+
     if (action === 'delete') {
       const targetId = (userId || body.userId || '').toLowerCase().trim();
       const targetEmail = (body.email || body.userEmail || '').toLowerCase().trim();
