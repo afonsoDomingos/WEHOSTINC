@@ -40,7 +40,7 @@ function CheckoutContent() {
   const [email, setEmail] = useState('');
   const [ddi, setDdi] = useState('+258');
   const [whatsapp, setWhatsapp] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<'mpesa' | 'emola' | 'kivora' | 'card' | 'bank_transfer'>('mpesa');
+  const [paymentMethod, setPaymentMethod] = useState<'mpesa' | 'emola' | 'card' | 'bank_transfer'>('mpesa');
   
   // Phone for M-Pesa / eMola push payment
   const [phonePayment, setPhonePayment] = useState('');
@@ -391,7 +391,11 @@ function CheckoutContent() {
     try {
       if (paymentMethod === 'mpesa' || paymentMethod === 'emola') {
         const phone = phonePayment || whatsapp;
-        fetch(apiEndpoint('/api/payments/mpesa/c2b'), {
+        const apiUrl = paymentMethod === 'mpesa' 
+          ? '/api/payments/mpesa/c2b'
+          : '/api/payments/emola/c2b';
+        
+        fetch(apiEndpoint(apiUrl), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -400,24 +404,7 @@ function CheckoutContent() {
             reference: `REF_${Date.now().toString().slice(-6)}`,
             thirdPartyReference: `ORDER_${Date.now().toString().slice(-6)}`
           })
-        }).catch(err => console.warn('M-Pesa API Call:', err));
-
-        // Open PUSH visual countdown modal
-        setCountdown(45);
-        setPushStatus('waiting');
-        setPushModal(true);
-      } else if (paymentMethod === 'kivora') {
-        const phone = phonePayment || whatsapp;
-        fetch(apiEndpoint('/api/payments/kivora/c2b'), {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            phone,
-            amount: grandTotal,
-            reference: `REF_${Date.now().toString().slice(-6)}`,
-            description: `Pagamento de ${selectedPlan?.name || 'Serviço'}`
-          })
-        }).catch(err => console.warn('Kivora API Call:', err));
+        }).catch(err => console.warn(`${paymentMethod.toUpperCase()} API Call:`, err));
 
         // Open PUSH visual countdown modal
         setCountdown(45);
@@ -766,25 +753,6 @@ function CheckoutContent() {
                   <Lock className="h-3 w-3 text-gray-400 mt-0.5" />
                 </div>
 
-                {/* Kivora Option */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    console.log('[Checkout] Método de pagamento selecionado: Kivora');
-                    setPaymentMethod('kivora');
-                  }}
-                  className={`p-3 border-2 rounded-xl text-center flex flex-col items-center justify-center transition cursor-pointer ${
-                    paymentMethod === 'kivora'
-                      ? 'border-purple-600 bg-purple-50/50 shadow-sm ring-2 ring-purple-500/20'
-                      : 'border-gray-200 bg-white hover:border-gray-300'
-                  }`}
-                >
-                  <div className="w-10 h-7 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded flex items-center justify-center font-bold text-xs mb-1">
-                    Kivora
-                  </div>
-                  <span className="text-xs font-bold text-gray-800">Kivora</span>
-                </button>
-
                 {/* Credit Card Option - Desativado temporariamente */}
                 <div
                   className="relative p-3 border-2 rounded-xl text-center flex flex-col items-center justify-center border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed select-none"
@@ -819,10 +787,10 @@ function CheckoutContent() {
               </div>
 
               {/* Dynamic Payment Details Input */}
-              {(paymentMethod === 'mpesa' || paymentMethod === 'emola' || paymentMethod === 'kivora') && (
+              {(paymentMethod === 'mpesa' || paymentMethod === 'emola') && (
                 <div className="mt-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
                   <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    Número {paymentMethod === 'mpesa' ? 'M-Pesa' : paymentMethod === 'emola' ? 'eMola' : 'Kivora'} para cobrança
+                    Número {paymentMethod === 'mpesa' ? 'M-Pesa' : 'eMola'} para cobrança
                   </label>
                   <div className="flex items-center space-x-2">
                     <Smartphone className="h-5 w-5 text-gray-400" />

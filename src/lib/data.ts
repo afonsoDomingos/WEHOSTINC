@@ -36,7 +36,7 @@ export interface ServiceOrder {
   amount: number;
   valorFaturado: number;
   valorPorFaturar: number;
-  paymentMethod: 'mpesa' | 'emola' | 'kivora' | 'card' | 'bank_transfer';
+  paymentMethod: 'mpesa' | 'emola' | 'card' | 'bank_transfer';
   proofUrl?: string;
   proofName?: string;
   status: 'pending' | 'in_progress' | 'completed' | 'cancelled' | 'suspended';
@@ -74,7 +74,7 @@ export interface RentalRequest {
   clientPhone: string;
   billingCycle: 'monthly' | 'yearly';
   amount: number;
-  paymentMethod: 'mpesa' | 'emola' | 'kivora' | 'card' | 'bank_transfer';
+  paymentMethod: 'mpesa' | 'emola' | 'card' | 'bank_transfer';
   proofUrl?: string;
   proofName?: string;
   status: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'completed';

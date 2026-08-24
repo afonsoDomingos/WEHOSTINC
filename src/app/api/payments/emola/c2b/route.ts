@@ -19,22 +19,22 @@ export async function POST(req: Request) {
       phone = phone.substring(3);
     }
 
-    // Usar API Kivora como gateway para processar pagamento M-Pesa
+    // Usar API Kivora como gateway para processar pagamento eMola
     const result = await kivora.createC2BPayment({
       phone,
       amount,
       currency: 'MZN',
       reference: reference || thirdPartyReference || `REF_${Date.now()}`,
-      description: `Pagamento M-Pesa via Kivora - ${reference || 'Serviço'}`
+      description: `Pagamento eMola via Kivora - ${reference || 'Serviço'}`
     });
 
-    console.log('[M-PESA C2B VIA KIVORA RESPONSE]:', result);
+    console.log('[EMOLA C2B VIA KIVORA RESPONSE]:', result);
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error('Erro na rota API M-Pesa C2B (via Kivora):', error);
+    console.error('Erro na rota API eMola C2B (via Kivora):', error);
     return NextResponse.json(
-      { error: 'Falha ao processar pagamento via M-Pesa' },
+      { error: 'Falha ao processar pagamento via eMola' },
       { status: 500 }
     );
   }
