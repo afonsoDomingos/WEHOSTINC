@@ -66,9 +66,20 @@ export async function POST(req: Request) {
       case 'payment.failed':
         console.log('[KIVORA WEBHOOK] Pagamento falhou:', eventData.id);
         
-        // Extrair motivo da falha se disponível
-        const failureReason = eventData.failure_reason || eventData.error_message || eventData.errorMessage || 'Motivo não especificado';
-        const failureCode = eventData.failure_code || eventData.error_code || eventData.errorCode || 'UNKNOWN';
+        // Extrair motivo da falha se disponível (priorizar schema oficial da Kivora)
+        const failureReason = 
+          eventData.error?.message || // Schema oficial: error.message
+          eventData.failure_reason || 
+          eventData.error_message || 
+          eventData.errorMessage || 
+          'Motivo não especificado';
+        
+        const failureCode = 
+          eventData.error?.code || // Schema oficial: error.code
+          eventData.failure_code || 
+          eventData.error_code || 
+          eventData.errorCode || 
+          'UNKNOWN';
         
         console.log('[KIVORA WEBHOOK] Detalhes da falha:', { failureCode, failureReason });
         
@@ -107,10 +118,10 @@ export async function POST(req: Request) {
 
     // Registrar evento no dataManager para monitoramento
     const failureReason = type === 'payment.failed' 
-      ? (eventData.failure_reason || eventData.error_message || eventData.errorMessage || 'Motivo não especificado')
+      ? (eventData.error?.message || eventData.failure_reason || eventData.error_message || eventData.errorMessage || 'Motivo não especificado')
       : undefined;
     const failureCode = type === 'payment.failed'
-      ? (eventData.failure_code || eventData.error_code || eventData.errorCode || 'UNKNOWN')
+      ? (eventData.error?.code || eventData.failure_code || eventData.error_code || eventData.errorCode || 'UNKNOWN')
       : undefined;
 
     dataManager.addWebhookEvent({
