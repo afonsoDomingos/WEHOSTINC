@@ -402,6 +402,16 @@ function CheckoutContent() {
         // Gerar referência única para este pagamento
         const paymentReference = `REF_${Date.now().toString().slice(-6)}`;
         
+        // Calcular serviceName para metadados
+        const isWebsite = selectedPlan?.id === 'website_creation';
+        const siteLabel = isWebsite && siteTypeName ? ` — ${siteTypeName}` : '';
+        const cycleLabel = isWebsite ? '' : ` (${durationMonths} ${durationMonths === 1 ? 'Mês' : 'Meses'})`;
+        const serviceName = selectedPlan
+          ? (domainParam 
+              ? `${selectedPlan.name}${siteLabel}${cycleLabel} + Domínio (${domainParam})` 
+              : `${selectedPlan.name}${siteLabel}${cycleLabel}`)
+          : `Registo de Domínio: ${domainParam || 'Domínio Avulso'}`;
+        
         fetch(apiEndpoint(apiUrl), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -409,7 +419,10 @@ function CheckoutContent() {
             msisdn: phone,
             amount: grandTotal,
             reference: paymentReference,
-            thirdPartyReference: `ORDER_${Date.now().toString().slice(-6)}`
+            thirdPartyReference: `ORDER_${Date.now().toString().slice(-6)}`,
+            clientName: name,
+            clientEmail: email,
+            serviceName: serviceName
           })
         }).catch(err => console.warn(`${paymentMethod.toUpperCase()} API Call:`, err));
 

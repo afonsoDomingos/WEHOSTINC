@@ -4,7 +4,7 @@ import { kivora } from '@/lib/kivora';
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { msisdn, amount, reference, thirdPartyReference } = body;
+    const { msisdn, amount, reference, thirdPartyReference, clientName, clientEmail, serviceName } = body;
 
     if (!msisdn || !amount) {
       return NextResponse.json(
@@ -25,7 +25,13 @@ export async function POST(req: Request) {
       amount,
       currency: 'MZN',
       reference: reference || thirdPartyReference || `REF_${Date.now()}`,
-      description: `Pagamento eMola via Kivora - ${reference || 'Serviço'}`
+      description: `Pagamento eMola via Kivora - ${reference || 'Serviço'}`,
+      metadata: {
+        clientName,
+        clientEmail,
+        clientPhone: msisdn,
+        serviceName
+      }
     });
 
     console.log('[EMOLA C2B VIA KIVORA RESPONSE]:', result);

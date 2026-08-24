@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { dataManager } from '@/lib/data';
+import { apiEndpoint } from '@/lib/siteConfig';
 
 export async function POST(req: Request) {
   try {
@@ -14,6 +15,12 @@ export async function POST(req: Request) {
       console.error('[KIVORA WEBHOOK] Estrutura de evento inválida:', body);
       return NextResponse.json({ error: 'Invalid event structure' }, { status: 400 });
     }
+
+    // Extrair metadados do cliente se disponíveis
+    const metadata = eventData.metadata || {};
+    const clientName = metadata.clientName || 'Cliente';
+    const clientEmail = metadata.clientEmail;
+    const serviceName = metadata.serviceName || 'Serviço';
 
     // Processar diferentes tipos de eventos
     switch (type) {
@@ -31,6 +38,10 @@ export async function POST(req: Request) {
         if (eventData.reference) {
           await updateOrderStatus(eventData.reference, 'completed');
         }
+        // Enviar notificação de sucesso por email
+        if (clientEmail) {
+          await sendPaymentNotification(clientEmail, clientName, serviceName, 'completed', eventData.amount);
+        }
         break;
         
       case 'payment.failed':
@@ -38,6 +49,10 @@ export async function POST(req: Request) {
         // Atualizar status do pedido para 'cancelled' se houver referência
         if (eventData.reference) {
           await updateOrderStatus(eventData.reference, 'cancelled');
+        }
+        // Enviar notificação de falha por email
+        if (clientEmail) {
+          await sendPaymentNotification(clientEmail, clientName, serviceName, 'failed', eventData.amount);
         }
         break;
         
@@ -63,6 +78,42 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error('[KIVORA WEBHOOK] Erro ao processar webhook:', error);
     return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 });
+  }
+}
+
+// Função auxiliar para enviar notificação por email
+async function sendPaymentNotification(
+  email: string,
+  clientName: string,
+  serviceName: string,
+  status: 'completed' | 'failed',
+  amount?: number
+) {
+  try {
+    console.log(`[KIVORA WEBHOOK] Enviando notificação ${status} para ${email}`);
+    
+    const subject = status === 'completed' 
+      ? '✅ Pagamento Confirmado - WEHOSTHERE'
+      : '❌ Pagamento Falhou - WEHOSTHERE';
+    
+    const message = status === 'completed'
+      ? `Olá ${clientName},\n\nO seu pagamento de ${amount || 0} MZN para "${serviceName}" foi confirmado com sucesso!\n\nO seu pedido está sendo processado.\n\nObrigado pela preferência!\nEquipe WEHOSTHERE`
+      : `Olá ${clientName},\n\nInfelizmente, o pagamento de ${amount || 0} MZN para "${serviceName}" falhou.\n\nPor favor, tente novamente ou entre em contato com o suporte.\n\nEquipe WEHOSTHERE`;
+
+    // Chamar API de email (implementar conforme seu sistema de email)
+    await fetch(apiEndpoint('/api/emails/send'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        to: email,
+        subject,
+        message
+      })
+    }).catch(err => console.error('[KIVORA WEBHOOK] Erro ao enviar email:', err));
+    
+    console.log(`[KIVORA WEBHOOK] Notificação enviada para ${email}`);
+  } catch (error) {
+    console.error('[KIVORA WEBHOOK] Erro ao enviar notificação:', error);
   }
 }
 

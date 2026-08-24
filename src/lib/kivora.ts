@@ -4,6 +4,12 @@ export interface KivoraC2BRequest {
   currency?: string; // Predefinição: MZN
   reference?: string; // Referência externa (ex: ORDER-1001)
   description?: string; // Descrição do pagamento
+  metadata?: {
+    clientName?: string;
+    clientEmail?: string;
+    clientPhone?: string;
+    serviceName?: string;
+  }; // Metadados para notificações
 }
 
 export interface KivoraC2BResponse {
@@ -60,7 +66,8 @@ export const kivora = {
       amount: data.amount,
       currency: data.currency || 'MZN',
       reference: data.reference,
-      description: data.description
+      description: data.description,
+      metadata: data.metadata // Incluir metadados do cliente para notificações
     };
 
     try {
