@@ -168,6 +168,47 @@ function CheckoutContent() {
   const [checkoutAccountStatus, setCheckoutAccountStatus] = useState<'logged_in' | 'account_exists' | 'no_account'>('logged_in');
   const [selectedReceipt, setSelectedReceipt] = useState<ReceiptData | null>(null);
   const [currentOrderData, setCurrentOrderData] = useState<ReceiptData | null>(null);
+  const [affiliateCode, setAffiliateCode] = useState<string | null>(null);
+
+  // Rastrear visita ao checkout com código de afiliado
+  useEffect(() => {
+    const getCookie = (name: string) => {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop()?.split(';').shift();
+      return null;
+    };
+    
+    const code = getCookie('affiliate_code');
+    if (code) {
+      setAffiliateCode(code);
+      console.log('[Checkout] Código de afiliado detectado:', code);
+      
+      // Registrar visita ao checkout
+      fetch('/api/affiliates/checkout-visit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ affiliateCode: code })
+      }).catch(err => console.error('[Checkout] Erro ao registrar visita ao checkout:', err));
+    }
+
+    // Rastrear cancelamento de checkout (quando usuário sai da página)
+    const handleBeforeUnload = () => {
+      if (code && !success) {
+        fetch('/api/affiliates/checkout-abandon', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ affiliateCode: code })
+        }).catch(err => console.error('[Checkout] Erro ao registrar abandono de checkout:', err));
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [success]);
 
   const finalizeOrder = async () => {
     console.log('[Checkout] Iniciando processamento de pedido');
@@ -257,6 +298,22 @@ function CheckoutContent() {
       setLoading(false);
       soundEffects.playPaymentSuccessSound();
       setSuccess(true);
+
+      // Atualizar conversão de afiliado se houver código
+      if (affiliateCode) {
+        console.log('[Checkout] Atualizando conversão de afiliado:', affiliateCode);
+        fetch('/api/affiliates/conversion', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            affiliateCode,
+            orderId,
+            amount: grandTotal,
+            customerEmail: email,
+            customerName: name
+          })
+        }).catch(err => console.error('[Checkout] Erro ao atualizar conversão de afiliado:', err));
+      }
 
       // Enviar notificação de venda realizada
       try {

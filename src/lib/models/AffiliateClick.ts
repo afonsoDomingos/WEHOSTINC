@@ -14,6 +14,10 @@ export interface IAffiliateClick extends Document {
   utmSource?: string;
   utmMedium?: string;
   utmCampaign?: string;
+  visitedCheckout?: boolean;
+  checkoutVisitAt?: string;
+  abandonedCheckout?: boolean;
+  abandonedAt?: string;
 }
 
 const AffiliateClickSchema = new Schema<IAffiliateClick>({
@@ -30,6 +34,10 @@ const AffiliateClickSchema = new Schema<IAffiliateClick>({
   utmSource: String,
   utmMedium: String,
   utmCampaign: String,
+  visitedCheckout: { type: Boolean, default: false },
+  checkoutVisitAt: String,
+  abandonedCheckout: { type: Boolean, default: false },
+  abandonedAt: String,
 }, { timestamps: false, versionKey: false });
 
 // Create index for efficient queries
