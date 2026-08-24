@@ -61,7 +61,7 @@ export default function AdminAffiliatesPage() {
   const [loading, setLoading] = useState(true);
   const [showMaterialModal, setShowMaterialModal] = useState(false);
   const [editingMaterial, setEditingMaterial] = useState<MarketingMaterial | null>(null);
-  const [filterStatus, setFilterStatus] = useState<string>('');
+  const [filterStatus, setFilterStatus] = useState<string>('active');
   const [payouts, setPayouts] = useState<any[]>([]);
   const [showPayoutModal, setShowPayoutModal] = useState(false);
   const [selectedPayout, setSelectedPayout] = useState<any>(null);
