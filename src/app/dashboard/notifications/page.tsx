@@ -1,13 +1,19 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { 
   Bell, CheckCircle2, Archive, Trash2, RefreshCw, 
   ShoppingBag, RefreshCw as Renewal, ArrowUp, 
-  AlertCircle, DollarSign, Filter, X, BellOff
+  AlertCircle, DollarSign, Filter, X, BellOff, Loader2
 } from 'lucide-react';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { soundEffects } from '@/lib/soundEffects';
+import { auth, User } from '@/lib/auth';
+import DashboardNav from '@/components/DashboardNav';
+import DashboardSidebar from '@/components/DashboardSidebar';
+import PageLoader from '@/components/PageLoader';
 
 interface SalesNotification {
   _id: string;
@@ -32,6 +38,9 @@ interface SalesNotification {
 }
 
 export default function SalesNotificationsPage() {
+  const router = useRouter();
+  const { data: session, status } = useSession();
+  const [user, setUser] = useState<User | null>(null);
   const [notifications, setNotifications] = useState<SalesNotification[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'unread' | 'read'>('unread');
@@ -45,6 +54,47 @@ export default function SalesNotificationsPage() {
     unsubscribe,
     isSupported
   } = usePushNotifications();
+
+  useEffect(() => {
+    if (status === 'loading') return;
+    
+    let currentUser: User | null = null;
+    
+    if (status === 'authenticated' && session?.user) {
+      currentUser = {
+        id: (session.user as any)?.id || session.user.email || '',
+        name: session.user.name || '',
+        email: session.user.email || '',
+        plan: (session.user as any)?.plan || 'none',
+        status: (session.user as any)?.status || 'active',
+        role: (session.user as any)?.role || 'user',
+        avatar: session.user.image || undefined,
+        dueDate: (session.user as any)?.dueDate,
+        createdAt: (session.user as any)?.createdAt || new Date().toISOString()
+      };
+    }
+    
+    if (!currentUser) {
+      currentUser = auth.getCurrentUser();
+    }
+    
+    if (!currentUser) {
+      router.push('/login');
+      return;
+    }
+    
+    if (currentUser.role === 'admin' || currentUser.email.toLowerCase() === 'admin@wehosthere.com') {
+      router.push('/admin');
+      return;
+    }
+    
+    setUser(currentUser);
+  }, [session, status, router]);
+
+  const handleLogout = () => {
+    auth.logout();
+    router.push('/login');
+  };
 
   const fetchNotifications = async () => {
     try {
@@ -268,173 +318,199 @@ export default function SalesNotificationsPage() {
     return date.toLocaleDateString('pt-MZ');
   };
 
+  if (loading && !user) {
+    return <PageLoader />;
+  }
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Notificações de Vendas</h1>
-          <p className="text-gray-600 mt-1">
-            {unreadCount > 0 ? `${unreadCount} notificação(ões) não lida(s)` : 'Todas as notificações lidas'}
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {isSupported && (
-            <button
-              onClick={subscription ? unsubscribe : requestPermission}
-              className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg transition font-semibold ${
-                subscription 
-                  ? 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200' 
-                  : 'bg-emerald-500 text-white hover:bg-emerald-600 border border-emerald-600 shadow-md'
-              }`}
-            >
-              {subscription ? (
-                <>
-                  <BellOff className="h-4 w-4" />
-                  <span>Desativar Push</span>
-                </>
-              ) : (
-                <>
-                  <Bell className="h-4 w-4" />
-                  <span>Ativar Push</span>
-                </>
-              )}
-            </button>
-          )}
-          {subscription && (
-            <button
-              onClick={testPushNotification}
-              className="flex items-center space-x-2 px-4 py-2 bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 rounded-lg transition"
-            >
-              <RefreshCw className="h-4 w-4" />
-              <span>Testar Push</span>
-            </button>
-          )}
-          <button
-            onClick={simulatePayment}
-            className="flex items-center space-x-2 px-4 py-2 bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 rounded-lg transition"
-          >
-            <ShoppingBag className="h-4 w-4" />
-            <span>Simular Pagamento</span>
-          </button>
-          <button
-            onClick={fetchNotifications}
-            className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
-          >
-            <RefreshCw className="h-4 w-4" />
-            <span>Atualizar</span>
-          </button>
-          {unreadCount > 0 && (
-            <button
-              onClick={markAllAsRead}
-              className="flex items-center space-x-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
-            >
-              <CheckCircle2 className="h-4 w-4" />
-              <span>Marcar todas como lidas</span>
-            </button>
-          )}
-        </div>
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header Responsivo */}
+      <DashboardNav userName={user?.name} userAvatar={user?.avatar} onLogout={handleLogout} />
 
-      {/* Filters */}
-      <div className="flex items-center space-x-2 bg-white rounded-lg p-1 border border-gray-200">
-        <button
-          onClick={() => setFilter('unread')}
-          className={`px-4 py-2 rounded-md transition ${
-            filter === 'unread' ? 'bg-primary-100 text-primary-700 font-semibold' : 'text-gray-600 hover:bg-gray-100'
-          }`}
-        >
-          Não lidas {unreadCount > 0 && `(${unreadCount})`}
-        </button>
-        <button
-          onClick={() => setFilter('read')}
-          className={`px-4 py-2 rounded-md transition ${
-            filter === 'read' ? 'bg-primary-100 text-primary-700 font-semibold' : 'text-gray-600 hover:bg-gray-100'
-          }`}
-        >
-          Lidas
-        </button>
-        <button
-          onClick={() => setFilter('all')}
-          className={`px-4 py-2 rounded-md transition ${
-            filter === 'all' ? 'bg-primary-100 text-primary-700 font-semibold' : 'text-gray-600 hover:bg-gray-100'
-          }`}
-        >
-          Todas
-        </button>
-      </div>
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6">
+        <div className="grid lg:grid-cols-4 gap-8">
+          {/* Sidebar (Desktop) */}
+          <div className="hidden lg:block lg:col-span-1">
+            <DashboardSidebar />
+          </div>
 
-      {/* Notifications List */}
-      {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-        </div>
-      ) : notifications.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-          <Bell className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500">Nenhuma notificação encontrada</p>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {notifications.map((notification) => (
-            <div
-              key={notification._id}
-              className={`bg-white rounded-lg border p-4 transition hover:shadow-md ${
-                notification.status === 'unread' ? 'border-l-4 border-l-primary-500' : 'border-gray-200'
-              }`}
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex items-start space-x-3 flex-1">
-                  <div className={`p-2 rounded-lg ${getBackgroundColorForType(notification.type)}`}>
-                    {getIconForType(notification.type)}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-1">
-                      <h3 className="font-semibold text-gray-900">{notification.title}</h3>
-                      {notification.status === 'unread' && (
-                        <span className="w-2 h-2 bg-primary-600 rounded-full"></span>
-                      )}
-                    </div>
-                    <p className="text-sm text-gray-600 mb-2">{notification.message}</p>
-                    <div className="flex items-center space-x-4 text-xs text-gray-500">
-                      <span>Pedido #{notification.orderNumber}</span>
-                      <span className="font-semibold text-gray-900">
-                        {notification.amount.toLocaleString('pt-MZ')} {notification.currency}
-                      </span>
-                      <span>{formatDate(notification.createdAt)}</span>
-                    </div>
-                  </div>
+          {/* Main Content */}
+          <div className="lg:col-span-3 space-y-6">
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+              {/* Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+                <div>
+                  <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Notificações de Vendas</h1>
+                  <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
+                    {unreadCount > 0 ? `${unreadCount} notificação(ões) não lida(s)` : 'Todas as notificações lidas'}
+                  </p>
                 </div>
-                <div className="flex items-center space-x-2 ml-4">
-                  {notification.status === 'unread' && (
+                <div className="flex flex-wrap items-center gap-2">
+                  {isSupported && (
                     <button
-                      onClick={() => markAsRead(notification._id)}
-                      className="p-2 text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition"
-                      title="Marcar como lida"
+                      onClick={subscription ? unsubscribe : requestPermission}
+                      className={`flex items-center space-x-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl transition font-semibold text-xs sm:text-sm ${
+                        subscription 
+                          ? 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200' 
+                          : 'bg-emerald-500 text-white hover:bg-emerald-600 border border-emerald-600 shadow-md'
+                      }`}
                     >
-                      <CheckCircle2 className="h-5 w-5" />
+                      {subscription ? (
+                        <>
+                          <BellOff className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                          <span className="hidden sm:inline">Desativar Push</span>
+                          <span className="sm:hidden">Desativar</span>
+                        </>
+                      ) : (
+                        <>
+                          <Bell className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                          <span className="hidden sm:inline">Ativar Push</span>
+                          <span className="sm:hidden">Ativar</span>
+                        </>
+                      )}
+                    </button>
+                  )}
+                  {subscription && (
+                    <button
+                      onClick={testPushNotification}
+                      className="flex items-center space-x-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 rounded-xl transition text-xs sm:text-sm"
+                    >
+                      <RefreshCw className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                      <span className="hidden sm:inline">Testar Push</span>
+                      <span className="sm:hidden">Testar</span>
                     </button>
                   )}
                   <button
-                    onClick={() => archiveNotification(notification._id)}
-                    className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                    title="Arquivar"
+                    onClick={simulatePayment}
+                    className="flex items-center space-x-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 rounded-xl transition text-xs sm:text-sm"
                   >
-                    <Archive className="h-5 w-5" />
+                    <ShoppingBag className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">Simular Pagamento</span>
+                    <span className="sm:hidden">Simular</span>
                   </button>
                   <button
-                    onClick={() => deleteNotification(notification._id)}
-                    className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
-                    title="Excluir"
+                    onClick={fetchNotifications}
+                    className="flex items-center space-x-2 px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-xl hover:bg-gray-50 transition text-xs sm:text-sm"
                   >
-                    <Trash2 className="h-5 w-5" />
-                  </button>
+                      <RefreshCw className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                      <span className="hidden sm:inline">Atualizar</span>
+                    </button>
+                  {unreadCount > 0 && (
+                    <button
+                      onClick={markAllAsRead}
+                      className="flex items-center space-x-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition text-xs sm:text-sm shadow-sm"
+                    >
+                      <CheckCircle2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                      <span className="hidden sm:inline">Marcar todas como lidas</span>
+                      <span className="sm:hidden">Ler todas</span>
+                    </button>
+                  )}
                 </div>
               </div>
+
+              {/* Filters */}
+              <div className="flex items-center space-x-1.5 sm:space-x-2 bg-gray-50 rounded-xl p-1 border border-gray-200">
+                <button
+                  onClick={() => setFilter('unread')}
+                  className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition text-xs sm:text-sm font-semibold ${
+                    filter === 'unread' ? 'bg-white text-primary-700 shadow-sm border border-gray-200' : 'text-gray-600 hover:bg-white'
+                  }`}
+                >
+                  Não lidas {unreadCount > 0 && `(${unreadCount})`}
+                </button>
+                <button
+                  onClick={() => setFilter('read')}
+                  className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition text-xs sm:text-sm font-semibold ${
+                    filter === 'read' ? 'bg-white text-primary-700 shadow-sm border border-gray-200' : 'text-gray-600 hover:bg-white'
+                  }`}
+                >
+                  Lidas
+                </button>
+                <button
+                  onClick={() => setFilter('all')}
+                  className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition text-xs sm:text-sm font-semibold ${
+                    filter === 'all' ? 'bg-white text-primary-700 shadow-sm border border-gray-200' : 'text-gray-600 hover:bg-white'
+                  }`}
+                >
+                  Todas
+                </button>
+              </div>
+
+              {/* Notifications List */}
+              {loading ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 text-primary-600 animate-spin" />
+                </div>
+              ) : notifications.length === 0 ? (
+                <div className="bg-gray-50 rounded-xl p-8 sm:p-12 text-center">
+                  <Bell className="h-12 w-12 sm:h-16 sm:w-16 text-gray-300 mx-auto mb-3 sm:mb-4" />
+                  <p className="text-sm sm:text-base text-gray-500">Nenhuma notificação encontrada</p>
+                </div>
+              ) : (
+                <div className="space-y-2 sm:space-y-3">
+                  {notifications.map((notification) => (
+                    <div
+                      key={notification._id}
+                      className={`bg-white rounded-xl sm:rounded-2xl border p-3 sm:p-4 transition hover:shadow-md ${
+                        notification.status === 'unread' ? 'border-l-4 border-l-primary-500 bg-primary-50/30' : 'border-gray-200'
+                      }`}
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-3">
+                        <div className="flex items-start space-x-2.5 sm:space-x-3 flex-1">
+                          <div className={`p-1.5 sm:p-2 rounded-lg sm:rounded-xl ${getBackgroundColorForType(notification.type)} shrink-0`}>
+                            {getIconForType(notification.type)}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center space-x-1.5 sm:space-x-2 mb-1">
+                              <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">{notification.title}</h3>
+                              {notification.status === 'unread' && (
+                                <span className="w-2 h-2 bg-primary-600 rounded-full shrink-0"></span>
+                              )}
+                            </div>
+                            <p className="text-xs sm:text-sm text-gray-600 mb-2 line-clamp-2">{notification.message}</p>
+                            <div className="flex flex-wrap items-center gap-x-3 sm:gap-x-4 gap-y-1 text-[10px] sm:text-xs text-gray-500">
+                              <span className="font-mono">Pedido #{notification.orderNumber}</span>
+                              <span className="font-semibold text-gray-900">
+                                {notification.amount.toLocaleString('pt-MZ')} {notification.currency}
+                              </span>
+                              <span>{formatDate(notification.createdAt)}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-1 sm:space-x-2 ml-0 sm:ml-4 pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-100">
+                          {notification.status === 'unread' && (
+                            <button
+                              onClick={() => markAsRead(notification._id)}
+                              className="p-1.5 sm:p-2 text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded-lg sm:rounded-xl transition"
+                              title="Marcar como lida"
+                            >
+                              <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5" />
+                            </button>
+                          )}
+                          <button
+                            onClick={() => archiveNotification(notification._id)}
+                            className="p-1.5 sm:p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg sm:rounded-xl transition"
+                            title="Arquivar"
+                          >
+                            <Archive className="h-4 w-4 sm:h-5 sm:w-5" />
+                          </button>
+                          <button
+                            onClick={() => deleteNotification(notification._id)}
+                            className="p-1.5 sm:p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg sm:rounded-xl transition"
+                            title="Excluir"
+                          >
+                            <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-          ))}
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
