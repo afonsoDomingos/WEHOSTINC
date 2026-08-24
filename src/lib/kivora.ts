@@ -4,6 +4,7 @@ export interface KivoraC2BRequest {
   currency?: string; // Predefinição: MZN
   reference?: string; // Referência externa (ex: ORDER-1001)
   description?: string; // Descrição do pagamento
+  senderName?: string; // Nome da entidade que aparece no telemóvel do cliente (ex: WEHOSTHERE)
   metadata?: {
     clientName?: string;
     clientEmail?: string;
@@ -67,6 +68,7 @@ export const kivora = {
       currency: data.currency || 'MZN',
       reference: data.reference,
       description: data.description,
+      senderName: data.senderName || 'WEHOSTHERE', // Nome da entidade que aparece no telemóvel
       metadata: data.metadata // Incluir metadados do cliente para notificações
     };
 

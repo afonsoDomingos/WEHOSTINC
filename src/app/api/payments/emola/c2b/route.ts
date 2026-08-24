@@ -26,6 +26,7 @@ export async function POST(req: Request) {
       currency: 'MZN',
       reference: reference || thirdPartyReference || `REF_${Date.now()}`,
       description: `Pagamento eMola via Kivora - ${reference || 'Serviço'}`,
+      senderName: 'WEHOSTHERE', // Nome que aparece no telemóvel do cliente
       metadata: {
         clientName,
         clientEmail,
