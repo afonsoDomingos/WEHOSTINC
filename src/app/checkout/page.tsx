@@ -218,6 +218,9 @@ function CheckoutContent() {
     console.log('[Checkout] Duração:', durationMonths, 'meses');
     console.log('[Checkout] Domínio:', domainParam);
     
+    // Gerar referência única para este pagamento
+    const paymentReference = `REF_${Date.now().toString().slice(-6)}`;
+    
     try {
       const currentUser = auth.getCurrentUser();
       let accountStatus: 'logged_in' | 'account_exists' | 'no_account' = 'logged_in';
@@ -250,7 +253,6 @@ function CheckoutContent() {
         : `Registo de Domínio: ${domainParam || 'Domínio Avulso'}`;
 
       const orderId = `ORD-${Date.now().toString().slice(-5)}`;
-      const paymentReference = `REF_${Date.now().toString().slice(-6)}`;
       const orderStatus = (paymentMethod === 'bank_transfer' || paymentMethod === 'card' || (selectedPlan && selectedPlan.id === 'website_creation')) ? 'in_progress' : 'pending';
 
       // Registra pedido de serviço para gestão no Admin
@@ -267,7 +269,7 @@ function CheckoutContent() {
         proofUrl: proofUrl || undefined,
         proofName: proofName || undefined,
         status: orderStatus,
-        reference: paymentReference // Adicionar referência para rastreamento do webhook
+        reference: paymentReference // Usar a mesma referência gerada antes do pagamento
       });
 
       setCurrentOrderData({
@@ -397,13 +399,16 @@ function CheckoutContent() {
           ? '/api/payments/mpesa/c2b'
           : '/api/payments/emola/c2b';
         
+        // Gerar referência única para este pagamento
+        const paymentReference = `REF_${Date.now().toString().slice(-6)}`;
+        
         fetch(apiEndpoint(apiUrl), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             msisdn: phone,
             amount: grandTotal,
-            reference: `REF_${Date.now().toString().slice(-6)}`,
+            reference: paymentReference,
             thirdPartyReference: `ORDER_${Date.now().toString().slice(-6)}`
           })
         }).catch(err => console.warn(`${paymentMethod.toUpperCase()} API Call:`, err));
