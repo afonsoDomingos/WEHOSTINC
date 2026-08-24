@@ -78,7 +78,7 @@ async function updateOrderStatus(reference: string, status: 'completed' | 'cance
     
     if (order) {
       console.log(`[KIVORA WEBHOOK] Atualizando pedido ${order.id} para status: ${status}`);
-      await dataManager.updateOrderAsync(order.id, { status });
+      dataManager.updateOrderStatus(order.id, status);
     } else {
       console.log(`[KIVORA WEBHOOK] Pedido não encontrado para referência: ${reference}`);
     }
