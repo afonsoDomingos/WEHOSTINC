@@ -212,6 +212,8 @@ export interface WebhookEvent {
   serviceName?: string;
   processed: boolean; // Se foi processado com sucesso
   errorMessage?: string; // Erro se falhou ao processar
+  failureReason?: string; // Motivo da falha do pagamento (ex: falta de saldo, PIN incorreto)
+  failureCode?: string; // Código da falha do pagamento
   createdAt: string;
 }
 

@@ -1550,6 +1550,7 @@ export default function AdminPage() {
                     <th className="py-2 sm:py-2.5 px-2 sm:px-3 hidden sm:table-cell">Cliente</th>
                     <th className="py-2 sm:py-2.5 px-2 sm:px-3">Valor</th>
                     <th className="py-2 sm:py-2.5 px-2 sm:px-3">Status</th>
+                    <th className="py-2 sm:py-2.5 px-2 sm:px-3 hidden sm:table-cell">Motivo</th>
                     <th className="py-2 sm:py-2.5 px-2 sm:px-3 text-right">Data</th>
                   </tr>
                 </thead>
@@ -1588,6 +1589,9 @@ export default function AdminPage() {
                             ✗ Falhou
                           </span>
                         )}
+                      </td>
+                      <td className="py-2 sm:py-2.5 px-2 sm:px-3 text-gray-700 text-[10px] sm:text-xs hidden sm:table-cell max-w-[150px] truncate">
+                        {event.failureReason || '-'}
                       </td>
                       <td className="py-2 sm:py-2.5 px-2 sm:px-3 text-right text-gray-500 font-mono text-[9px] sm:text-xs">
                         {new Date(event.createdAt).toLocaleString('pt-MZ')}

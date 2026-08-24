@@ -65,16 +65,23 @@ export async function POST(req: Request) {
         
       case 'payment.failed':
         console.log('[KIVORA WEBHOOK] Pagamento falhou:', eventData.id);
+        
+        // Extrair motivo da falha se disponível
+        const failureReason = eventData.failure_reason || eventData.error_message || eventData.errorMessage || 'Motivo não especificado';
+        const failureCode = eventData.failure_code || eventData.error_code || eventData.errorCode || 'UNKNOWN';
+        
+        console.log('[KIVORA WEBHOOK] Detalhes da falha:', { failureCode, failureReason });
+        
         // Atualizar status do pedido para 'cancelled' se houver referência
         if (eventData.reference) {
           await updateOrderStatus(eventData.reference, 'cancelled');
         }
-        // Enviar notificação de falha por email para cliente
+        // Enviar notificação de falha por email para cliente com motivo específico
         if (clientEmail) {
-          await sendPaymentNotification(clientEmail, clientName, serviceName, 'failed', eventData.amount);
+          await sendPaymentNotification(clientEmail, clientName, serviceName, 'failed', eventData.amount, failureReason);
         }
-        // Notificar admin sobre pagamento falhado
-        await notifyAdminAboutPayment(clientName, clientEmail || '', serviceName, 'failed', eventData.amount, eventData.reference);
+        // Notificar admin sobre pagamento falhado com motivo específico
+        await notifyAdminAboutPayment(clientName, clientEmail || '', serviceName, 'failed', eventData.amount, eventData.reference, failureReason);
         processed = true;
         break;
         
@@ -99,6 +106,13 @@ export async function POST(req: Request) {
     }
 
     // Registrar evento no dataManager para monitoramento
+    const failureReason = type === 'payment.failed' 
+      ? (eventData.failure_reason || eventData.error_message || eventData.errorMessage || 'Motivo não especificado')
+      : undefined;
+    const failureCode = type === 'payment.failed'
+      ? (eventData.failure_code || eventData.error_code || eventData.errorCode || 'UNKNOWN')
+      : undefined;
+
     dataManager.addWebhookEvent({
       eventId: id,
       eventType: type,
@@ -111,7 +125,9 @@ export async function POST(req: Request) {
       clientEmail,
       serviceName,
       processed,
-      errorMessage
+      errorMessage,
+      failureReason,
+      failureCode
     });
 
     // Responder com 200 OK para confirmar recebimento
@@ -146,7 +162,8 @@ async function sendPaymentNotification(
   clientName: string,
   serviceName: string,
   status: 'completed' | 'failed',
-  amount?: number
+  amount?: number,
+  failureReason?: string
 ) {
   try {
     console.log(`[KIVORA WEBHOOK] Enviando notificação ${status} para ${email}`);
@@ -157,7 +174,7 @@ async function sendPaymentNotification(
     
     const message = status === 'completed'
       ? `Olá ${clientName},\n\nO seu pagamento de ${amount || 0} MZN para "${serviceName}" foi confirmado com sucesso!\n\nO seu pedido está sendo processado.\n\nObrigado pela preferência!\nEquipe WEHOSTHERE`
-      : `Olá ${clientName},\n\nInfelizmente, o pagamento de ${amount || 0} MZN para "${serviceName}" falhou.\n\nPor favor, tente novamente ou entre em contato com o suporte.\n\nEquipe WEHOSTHERE`;
+      : `Olá ${clientName},\n\nInfelizmente, o pagamento de ${amount || 0} MZN para "${serviceName}" falhou.\n\nMotivo: ${failureReason || 'Não especificado'}\n\nPor favor, tente novamente ou entre em contato com o suporte.\n\nEquipe WEHOSTHERE`;
 
     // Chamar API de email correta
     await fetch(apiEndpoint('/api/send-email'), {
@@ -183,7 +200,8 @@ async function notifyAdminAboutPayment(
   serviceName: string,
   status: 'completed' | 'failed',
   amount?: number,
-  reference?: string
+  reference?: string,
+  failureReason?: string
 ) {
   try {
     console.log(`[KIVORA WEBHOOK] Notificando admin sobre pagamento ${status}`);
@@ -195,7 +213,7 @@ async function notifyAdminAboutPayment(
     
     const message = status === 'completed'
       ? `Olá Administrador,\n\nNovo pagamento confirmado:\n\n• Cliente: ${clientName} (${clientEmail})\n• Serviço: ${serviceName}\n• Valor: ${amount} MZN\n• Referência: ${reference}\n• Data: ${new Date().toLocaleString('pt-MZ')}\n\nVerifique o pedido no painel admin.\nEquipe WEHOSTHERE`
-      : `Olá Administrador,\n\nPagamento falhou:\n\n• Cliente: ${clientName} (${clientEmail})\n• Serviço: ${serviceName}\n• Valor: ${amount} MZN\n• Referência: ${reference}\n• Data: ${new Date().toLocaleString('pt-MZ')}\n\nVerifique o pedido no painel admin.\nEquipe WEHOSTHERE`;
+      : `Olá Administrador,\n\nPagamento falhou:\n\n• Cliente: ${clientName} (${clientEmail})\n• Serviço: ${serviceName}\n• Valor: ${amount} MZN\n• Referência: ${reference}\n• Motivo: ${failureReason || 'Não especificado'}\n• Data: ${new Date().toLocaleString('pt-MZ')}\n\nVerifique o pedido no painel admin.\nEquipe WEHOSTHERE`;
 
     await fetch(apiEndpoint('/api/send-email'), {
       method: 'POST',
