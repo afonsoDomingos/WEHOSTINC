@@ -159,6 +159,11 @@ function WebmailContent() {
   const [isGeneratingReply, setIsGeneratingReply] = useState(false);
   const [isImprovingDraft, setIsImprovingDraft] = useState(false);
 
+  // Debug webmail login modal
+  useEffect(() => {
+    console.log('showWebmailLogin mudou para:', showWebmailLogin);
+  }, [showWebmailLogin]);
+
   // Signature states
   const [showSignatureModal, setShowSignatureModal] = useState(false);
   const [userSignature, setUserSignature] = useState<any | null>(null);
@@ -1775,10 +1780,14 @@ function WebmailContent() {
                 <button
                   type="button"
                   onClick={() => {
+                    console.log('Botão Entrar no Webmail clicado');
+                    console.log('selectedAccountEmail:', selectedAccountEmail);
+                    console.log('showWebmailLogin antes:', showWebmailLogin);
                     setWebmailLoginEmail(selectedAccountEmail);
                     setWebmailLoginError('');
                     setWebmailLoginPassword('');
                     setShowWebmailLogin(true);
+                    console.log('showWebmailLogin depois (deve ser true no próximo render)');
                   }}
                   className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs rounded-xl transition cursor-pointer shadow-sm"
                 >
