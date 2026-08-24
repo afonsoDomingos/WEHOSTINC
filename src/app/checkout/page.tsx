@@ -777,16 +777,22 @@ function CheckoutContent() {
                   <span className="text-xs font-bold text-gray-800">M-Pesa</span>
                 </button>
 
-                {/* eMola Option - Desativado temporariamente */}
-                <div
-                  className="relative p-3 border-2 rounded-xl text-center flex flex-col items-center justify-center border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed select-none"
-                  title="eMola ainda não disponível. Em breve!"
+                {/* eMola Option */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    console.log('[Checkout] Método de pagamento selecionado: eMola');
+                    setPaymentMethod('emola');
+                  }}
+                  className={`p-3 border-2 rounded-xl text-center flex flex-col items-center justify-center transition cursor-pointer ${
+                    paymentMethod === 'emola'
+                      ? 'border-blue-600 bg-blue-50/50 shadow-sm ring-2 ring-blue-500/20'
+                      : 'border-gray-200 bg-white hover:border-gray-300'
+                  }`}
                 >
-                  <span className="absolute -top-2 -right-2 bg-gray-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wide">Em Breve</span>
                   <img src="/emola.png" alt="eMola" className="h-7 w-auto object-contain mb-1" />
-                  <span className="text-xs font-bold text-gray-400">eMola</span>
-                  <Lock className="h-3 w-3 text-gray-400 mt-0.5" />
-                </div>
+                  <span className="text-xs font-bold text-gray-800">eMola</span>
+                </button>
 
                 {/* Credit Card Option - Desativado temporariamente */}
                 <div
