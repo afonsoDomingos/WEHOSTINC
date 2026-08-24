@@ -110,7 +110,22 @@ export async function POST(req: Request) {
         console.log('[KIVORA WEBHOOK] Envio B2C falhou:', eventData.id);
         processed = true;
         break;
-        
+
+      case 'subscription.created':
+        console.log('[KIVORA WEBHOOK] Assinatura criada:', eventData.id);
+        processed = true;
+        break;
+
+      case 'subscription.cancelled':
+        console.log('[KIVORA WEBHOOK] Assinatura cancelada:', eventData.id);
+        processed = true;
+        break;
+
+      case 'subscription.renewed':
+        console.log('[KIVORA WEBHOOK] Assinatura renovada:', eventData.id);
+        processed = true;
+        break;
+
       default:
         console.log('[KIVORA WEBHOOK] Tipo de evento não tratado:', type);
         processed = true;

@@ -38,6 +38,30 @@ export interface KivoraB2CResponse {
   createdAt?: string;
 }
 
+export interface KivoraCustomer {
+  name?: string;
+  email?: string;
+  phone?: string;
+}
+
+export interface KivoraSubscriptionRequest {
+  customer: KivoraCustomer;
+  amount: number;
+  currency?: string; // Predefinição: MZN
+  interval: 'daily' | 'weekly' | 'monthly' | 'yearly';
+  reference?: string; // Referência externa opcional
+}
+
+export interface KivoraSubscriptionResponse {
+  id: string; // Identificador da assinatura (sub_xxxxx)
+  status: 'active' | 'cancelled' | 'past_due' | 'trialing';
+  amount: number;
+  currency: string;
+  interval: string;
+  reference?: string;
+  createdAt?: string;
+}
+
 export interface KivoraError {
   error: {
     code: string;
@@ -189,6 +213,69 @@ export const kivora = {
       return result;
     } catch (error) {
       console.error('[KIVORA B2C] Erro ao consultar envio:', error);
+      throw error;
+    }
+  },
+
+  // Criar assinatura recorrente
+  createSubscription: async (data: KivoraSubscriptionRequest): Promise<KivoraSubscriptionResponse> => {
+    try {
+      console.log('[KIVORA SUBSCRIPTION] Criando assinatura:', data);
+
+      const payload = {
+        customer: data.customer,
+        amount: data.amount,
+        currency: data.currency || 'MZN',
+        interval: data.interval,
+        reference: data.reference
+      };
+
+      const response = await fetch(`${KIVORA_BASE_URL}/v1/subscriptions`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(payload)
+      });
+
+      const responseText = await response.text();
+      console.log('[KIVORA SUBSCRIPTION] Response status:', response.status);
+      console.log('[KIVORA SUBSCRIPTION] Response body:', responseText);
+
+      if (!response.ok) {
+        const errorData: KivoraError = JSON.parse(responseText);
+        throw new Error(errorData.error?.message || `Erro Kivora: ${response.status}`);
+      }
+
+      const result: KivoraSubscriptionResponse = JSON.parse(responseText);
+      console.log('[KIVORA SUBSCRIPTION] Assinatura criada:', result);
+      return result;
+    } catch (error) {
+      console.error('[KIVORA SUBSCRIPTION] Erro ao criar assinatura:', error);
+      throw error;
+    }
+  },
+
+  // Consultar status de assinatura
+  getSubscription: async (subscriptionId: string): Promise<KivoraSubscriptionResponse> => {
+    try {
+      console.log('[KIVORA SUBSCRIPTION] Consultando assinatura:', subscriptionId);
+
+      const response = await fetch(`${KIVORA_BASE_URL}/v1/subscriptions/${subscriptionId}`, {
+        method: 'GET',
+        headers: getHeaders()
+      });
+
+      const responseText = await response.text();
+
+      if (!response.ok) {
+        const errorData: KivoraError = JSON.parse(responseText);
+        throw new Error(errorData.error?.message || `Erro Kivora: ${response.status}`);
+      }
+
+      const result: KivoraSubscriptionResponse = JSON.parse(responseText);
+      console.log('[KIVORA SUBSCRIPTION] Status da assinatura:', result);
+      return result;
+    } catch (error) {
+      console.error('[KIVORA SUBSCRIPTION] Erro ao consultar assinatura:', error);
       throw error;
     }
   }
