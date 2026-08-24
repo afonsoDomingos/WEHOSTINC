@@ -6,7 +6,7 @@ import {
   Users, DollarSign, TrendingUp, Plus, Edit, Trash2, 
   CheckCircle2, XCircle, Clock, Filter, RefreshCw,
   Image as ImageIcon, FileText, Video, Mail, Share2, Wallet,
-  AlertTriangle, CheckCircle, X, ArrowLeft
+  AlertTriangle, CheckCircle, X, ArrowLeft, Eye, ShoppingCart
 } from 'lucide-react';
 
 interface Affiliate {
@@ -54,7 +54,7 @@ interface MarketingMaterial {
 }
 
 export default function AdminAffiliatesPage() {
-  const [activeTab, setActiveTab] = useState<'affiliates' | 'commissions' | 'materials' | 'payouts' | 'migration'>('affiliates');
+  const [activeTab, setActiveTab] = useState<'affiliates' | 'commissions' | 'materials' | 'payouts' | 'migration' | 'reports'>('affiliates');
   const [affiliates, setAffiliates] = useState<Affiliate[]>([]);
   const [commissions, setCommissions] = useState<Commission[]>([]);
   const [materials, setMaterials] = useState<MarketingMaterial[]>([]);
@@ -75,6 +75,10 @@ export default function AdminAffiliatesPage() {
   // Upload states
   const [uploadingFile, setUploadingFile] = useState(false);
   const [uploadedImageUrl, setUploadedImageUrl] = useState('');
+
+  // Reports states
+  const [reportsData, setReportsData] = useState<any>(null);
+  const [reportsPeriod, setReportsPeriod] = useState('30');
 
   const [materialForm, setMaterialForm] = useState({
     title: '',
@@ -110,6 +114,10 @@ export default function AdminAffiliatesPage() {
         const res = await fetch(`/api/admin/affiliates/payouts?status=${filterStatus}`);
         const data = await res.json();
         if (data.success) setPayouts(data.affiliates);
+      } else if (activeTab === 'reports') {
+        const res = await fetch(`/api/admin/affiliates/reports?period=${reportsPeriod}`);
+        const data = await res.json();
+        if (data.success) setReportsData(data.data);
       }
     } catch (error) {
       console.error('Erro ao buscar dados:', error);
@@ -451,10 +459,21 @@ export default function AdminAffiliatesPage() {
               <span>Materiais</span>
             </button>
             <button
+              onClick={() => setActiveTab('reports')}
+              className={`flex-1 sm:flex-none flex items-center justify-center space-x-2 px-6 py-3 rounded-xl transition-all duration-300 font-semibold ${
+                activeTab === 'reports'
+                  ? 'bg-gradient-to-r from-teal-600 to-cyan-600 text-white shadow-lg'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <TrendingUp className="h-5 w-5" />
+              <span>Relatórios</span>
+            </button>
+            <button
               onClick={() => setActiveTab('migration')}
               className={`flex-1 sm:flex-none flex items-center justify-center space-x-2 px-6 py-3 rounded-xl transition-all duration-300 font-semibold ${
                 activeTab === 'migration'
-                  ? 'bg-gradient-to-r from-rose-600 to-red-600 text-white shadow-lg'
+                  ? 'bg-gradient-to-r from-rose-600 via-red-700 to-pink-700 text-white shadow-lg'
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
@@ -583,6 +602,117 @@ export default function AdminAffiliatesPage() {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'reports' && (
+        <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/50">
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <h2 className="text-xl font-bold text-gray-900">Relatórios de Afiliados</h2>
+              <select
+                value={reportsPeriod}
+                onChange={(e) => {
+                  setReportsPeriod(e.target.value);
+                  fetchData();
+                }}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm"
+              >
+                <option value="7">Últimos 7 dias</option>
+                <option value="30">Últimos 30 dias</option>
+                <option value="90">Últimos 90 dias</option>
+              </select>
+            </div>
+          </div>
+          <div className="p-6">
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
+              </div>
+            ) : !reportsData ? (
+              <div className="text-center py-12">
+                <TrendingUp className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500">Nenhum dado de relatório disponível</p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {/* Summary Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <Users className="h-5 w-5 text-blue-600" />
+                      <span className="text-sm font-medium text-blue-800">Total de Afiliados</span>
+                    </div>
+                    <p className="text-2xl font-bold text-blue-900">{reportsData.summary?.totalAffiliates || 0}</p>
+                  </div>
+                  <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-4 border border-emerald-200">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <Eye className="h-5 w-5 text-emerald-600" />
+                      <span className="text-sm font-medium text-emerald-800">Total de Cliques</span>
+                    </div>
+                    <p className="text-2xl font-bold text-emerald-900">{reportsData.summary?.totalClicks || 0}</p>
+                  </div>
+                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 border border-purple-200">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <ShoppingCart className="h-5 w-5 text-purple-600" />
+                      <span className="text-sm font-medium text-purple-800">Total de Conversões</span>
+                    </div>
+                    <p className="text-2xl font-bold text-purple-900">{reportsData.summary?.totalConversions || 0}</p>
+                  </div>
+                  <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl p-4 border border-amber-200">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <DollarSign className="h-5 w-5 text-amber-600" />
+                      <span className="text-sm font-medium text-amber-800">Total de Ganhos</span>
+                    </div>
+                    <p className="text-2xl font-bold text-amber-900">{(reportsData.summary?.totalEarnings || 0).toLocaleString('pt-MZ')} MZN</p>
+                  </div>
+                </div>
+
+                {/* Conversion Rate Card */}
+                <div className="bg-gradient-to-br from-teal-50 to-cyan-100 rounded-xl p-4 border border-teal-200">
+                  <div className="flex items-center space-x-3 mb-2">
+                    <TrendingUp className="h-5 w-5 text-teal-600" />
+                    <span className="text-sm font-medium text-teal-800">Taxa de Conversão Global</span>
+                  </div>
+                  <p className="text-3xl font-bold text-teal-900">{(reportsData.summary?.conversionRate || 0).toFixed(2)}%</p>
+                  <p className="text-xs text-teal-700 mt-1">Últimos {reportsData.summary?.period || 30} dias</p>
+                </div>
+
+                {/* Individual Affiliate Reports */}
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-4">Relatório por Afiliado</h3>
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-100">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Afiliado</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Código</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Cliques</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Conversões</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Ganhos</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Saldo</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Taxa Conv.</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {reportsData.affiliates?.map((affiliate: any, index: number) => (
+                          <tr key={index} className="hover:bg-gray-50 transition">
+                            <td className="px-4 py-3 text-sm text-gray-900">{affiliate.userId}</td>
+                            <td className="px-4 py-3 text-sm text-gray-600">{affiliate.affiliateCode}</td>
+                            <td className="px-4 py-3 text-sm text-gray-900 font-medium">{affiliate.clicks}</td>
+                            <td className="px-4 py-3 text-sm text-gray-900 font-medium">{affiliate.conversions}</td>
+                            <td className="px-4 py-3 text-sm text-emerald-600 font-semibold">{affiliate.earnings.toLocaleString('pt-MZ')} MZN</td>
+                            <td className="px-4 py-3 text-sm text-gray-900 font-medium">{affiliate.availableBalance.toLocaleString('pt-MZ')} MZN</td>
+                            <td className="px-4 py-3 text-sm text-gray-600">{affiliate.conversionRate.toFixed(2)}%</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
             )}
           </div>
