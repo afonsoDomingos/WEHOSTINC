@@ -27,7 +27,19 @@ export async function POST(request: NextRequest) {
   try {
     await connectDB();
     
+    // Verificar autorização admin
+    const authHeader = request.headers.get('authorization');
+    if (authHeader !== `Bearer admin-secret`) {
+      console.error('POST /api/admin/affiliates/materials - Unauthorized: Invalid auth header');
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Não autorizado' 
+      }, { status: 401 });
+    }
+    
     const body = await request.json();
+    console.log('POST /api/admin/affiliates/materials - Body:', body);
+    
     const { 
       title, 
       description, 
@@ -42,7 +54,17 @@ export async function POST(request: NextRequest) {
       createdBy 
     } = body;
 
+    console.log('POST /api/admin/affiliates/materials - Fields check:', {
+      title: !!title,
+      description: !!description,
+      type: !!type,
+      content: !!content,
+      category: !!category,
+      createdBy: !!createdBy
+    });
+
     if (!title || !description || !type || !content || !category || !createdBy) {
+      console.error('POST /api/admin/affiliates/materials - Missing required fields');
       return NextResponse.json({ 
         success: false, 
         error: 'Campos obrigatórios: title, description, type, content, category, createdBy' 

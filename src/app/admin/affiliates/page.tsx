@@ -197,12 +197,18 @@ export default function AdminAffiliatesPage() {
       
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer admin-secret'
+        },
         body: JSON.stringify({
           ...materialForm,
           createdBy: adminId,
         }),
       });
+      
+      const data = await res.json();
+      console.log('handleSaveMaterial - Response:', data);
       
       if (res.ok) {
         setShowMaterialModal(false);
@@ -216,10 +222,14 @@ export default function AdminAffiliatesPage() {
           platform: '',
           category: '',
         });
+        setUploadedImageUrl('');
         fetchData();
+      } else {
+        alert('Erro ao salvar material: ' + data.error);
       }
     } catch (error) {
       console.error('Erro ao salvar material:', error);
+      alert('Erro ao salvar material');
     }
   };
 
@@ -229,13 +239,19 @@ export default function AdminAffiliatesPage() {
     try {
       const res = await fetch(`/api/admin/affiliates/materials/${id}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': 'Bearer admin-secret'
+        },
       });
       
       if (res.ok) {
         fetchData();
+      } else {
+        alert('Erro ao excluir material');
       }
     } catch (error) {
       console.error('Erro ao excluir material:', error);
+      alert('Erro ao excluir material');
     }
   };
 
