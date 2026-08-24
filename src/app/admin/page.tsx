@@ -388,6 +388,33 @@ export default function AdminPage() {
     }
   };
 
+  // Função para cancelar assinatura
+  const handleCancelSubscription = async (subscriptionId: string) => {
+    if (!confirm('Tem certeza que deseja cancelar esta assinatura?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/subscriptions/${subscriptionId}`, {
+        method: 'DELETE'
+      });
+
+      if (!response.ok) {
+        alert('Erro ao cancelar assinatura');
+        return;
+      }
+
+      // Atualizar status localmente
+      setSubscriptions(subscriptions.map(sub => 
+        sub.id === subscriptionId ? { ...sub, status: 'cancelled' } : sub
+      ));
+      
+      alert('Assinatura cancelada com sucesso');
+    } catch (err) {
+      alert('Erro ao cancelar assinatura');
+    }
+  };
+
   // Função para exportar payouts para CSV
   const handleExportPayoutsCSV = () => {
     if (b2cPayouts.length === 0) {
@@ -2024,6 +2051,7 @@ export default function AdminPage() {
                     <th className="py-2 sm:py-2.5 px-2 sm:px-3">Intervalo</th>
                     <th className="py-2 sm:py-2.5 px-2 sm:px-3">Status</th>
                     <th className="py-2 sm:py-2.5 px-2 sm:px-3 hidden sm:table-cell">Próxima Cobrança</th>
+                    <th className="py-2 sm:py-2.5 px-2 sm:px-3 text-right">Ações</th>
                     <th className="py-2 sm:py-2.5 px-2 sm:px-3 text-right">Data</th>
                   </tr>
                 </thead>
@@ -2055,6 +2083,16 @@ export default function AdminPage() {
                       </td>
                       <td className="py-2 sm:py-2.5 px-2 sm:px-3 text-gray-700 text-[10px] sm:text-xs hidden sm:table-cell">
                         {sub.nextBillingDate || '-'}
+                      </td>
+                      <td className="py-2 sm:py-2.5 px-2 sm:px-3 text-right">
+                        {sub.status === 'active' && (
+                          <button
+                            onClick={() => handleCancelSubscription(sub.id)}
+                            className="px-2 py-1 bg-red-500 hover:bg-red-600 text-white font-bold text-[9px] sm:text-[10px] rounded transition cursor-pointer"
+                          >
+                            Cancelar
+                          </button>
+                        )}
                       </td>
                       <td className="py-2 sm:py-2.5 px-2 sm:px-3 text-right text-gray-500 font-mono text-[9px] sm:text-xs">
                         {new Date(sub.createdAt).toLocaleString('pt-MZ')}
