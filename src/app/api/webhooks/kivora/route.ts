@@ -69,10 +69,11 @@ export async function POST(req: Request) {
 // Função auxiliar para atualizar status do pedido
 async function updateOrderStatus(reference: string, status: 'completed' | 'cancelled') {
   try {
-    // Buscar pedido pela referência
+    // Buscar pedido pela referência direta
     const orders = await dataManager.fetchOrdersAsync();
     const order = orders.find((o: any) => 
-      o.serviceName?.includes(reference) || 
+      o.reference === reference || 
+      o.serviceName?.includes(reference) ||
       o.serviceName?.includes(reference.replace('REF_', '').replace('ORDER_', ''))
     );
     
@@ -81,6 +82,7 @@ async function updateOrderStatus(reference: string, status: 'completed' | 'cance
       dataManager.updateOrderStatus(order.id, status);
     } else {
       console.log(`[KIVORA WEBHOOK] Pedido não encontrado para referência: ${reference}`);
+      console.log(`[KIVORA WEBHOOK] Pedidos disponíveis:`, orders.map((o: any) => ({ id: o.id, reference: o.reference, serviceName: o.serviceName })));
     }
   } catch (error) {
     console.error('[KIVORA WEBHOOK] Erro ao atualizar pedido:', error);

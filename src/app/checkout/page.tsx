@@ -250,7 +250,8 @@ function CheckoutContent() {
         : `Registo de Domínio: ${domainParam || 'Domínio Avulso'}`;
 
       const orderId = `ORD-${Date.now().toString().slice(-5)}`;
-      const orderStatus = (paymentMethod === 'bank_transfer' || (selectedPlan && selectedPlan.id === 'website_creation')) ? 'in_progress' : 'completed';
+      const paymentReference = `REF_${Date.now().toString().slice(-6)}`;
+      const orderStatus = (paymentMethod === 'bank_transfer' || paymentMethod === 'card' || (selectedPlan && selectedPlan.id === 'website_creation')) ? 'in_progress' : 'pending';
 
       // Registra pedido de serviço para gestão no Admin
       // Quando o pedido é criado, o valor fica "por faturar" até o admin aprovar
@@ -265,7 +266,8 @@ function CheckoutContent() {
         paymentMethod: paymentMethod,
         proofUrl: proofUrl || undefined,
         proofName: proofName || undefined,
-        status: orderStatus
+        status: orderStatus,
+        reference: paymentReference // Adicionar referência para rastreamento do webhook
       });
 
       setCurrentOrderData({

@@ -40,6 +40,7 @@ export interface ServiceOrder {
   proofUrl?: string;
   proofName?: string;
   status: 'pending' | 'in_progress' | 'completed' | 'cancelled' | 'suspended';
+  reference?: string; // Referência do pagamento para rastreamento do webhook
   createdAt: string;
 }
 
