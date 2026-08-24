@@ -189,21 +189,28 @@ export default function AdminAffiliatesPage() {
   const handleSaveMaterial = async () => {
     try {
       const adminId = localStorage.getItem('userId');
+      console.log('handleSaveMaterial - adminId:', adminId);
+      console.log('handleSaveMaterial - materialForm:', materialForm);
+      
       const url = editingMaterial 
         ? `/api/admin/affiliates/materials/${editingMaterial._id}`
         : '/api/admin/affiliates/materials';
       
       const method = editingMaterial ? 'PATCH' : 'POST';
       
+      const payload = {
+        ...materialForm,
+        createdBy: adminId,
+      };
+      
+      console.log('handleSaveMaterial - Payload:', payload);
+      
       const res = await fetch(url, {
         method,
         headers: { 
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          ...materialForm,
-          createdBy: adminId,
-        }),
+        body: JSON.stringify(payload),
       });
       
       const data = await res.json();
