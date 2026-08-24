@@ -837,7 +837,7 @@ function CheckoutContent() {
                       type="tel"
                       value={phonePayment}
                       onChange={(e) => setPhonePayment(e.target.value)}
-                      placeholder="84 123 4567 ou 85 123 4567"
+                      placeholder={paymentMethod === 'mpesa' ? '84 123 4567 ou 85 123 4567' : '86 123 4567 ou 87 123 4567'}
                       className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"
                     />
                   </div>
