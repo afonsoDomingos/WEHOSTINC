@@ -198,8 +198,7 @@ export default function AdminAffiliatesPage() {
       const res = await fetch(url, {
         method,
         headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer admin-secret'
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           ...materialForm,
@@ -239,9 +238,6 @@ export default function AdminAffiliatesPage() {
     try {
       const res = await fetch(`/api/admin/affiliates/materials/${id}`, {
         method: 'DELETE',
-        headers: {
-          'Authorization': 'Bearer admin-secret'
-        },
       });
       
       if (res.ok) {

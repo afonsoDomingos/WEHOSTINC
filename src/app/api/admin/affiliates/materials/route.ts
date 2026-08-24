@@ -27,16 +27,6 @@ export async function POST(request: NextRequest) {
   try {
     await connectDB();
     
-    // Verificar autorização admin
-    const authHeader = request.headers.get('authorization');
-    if (authHeader !== `Bearer admin-secret`) {
-      console.error('POST /api/admin/affiliates/materials - Unauthorized: Invalid auth header');
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Não autorizado' 
-      }, { status: 401 });
-    }
-    
     const body = await request.json();
     console.log('POST /api/admin/affiliates/materials - Body:', body);
     

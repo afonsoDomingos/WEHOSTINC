@@ -9,16 +9,6 @@ export async function PATCH(
   try {
     await connectDB();
     
-    // Verificar autorização admin
-    const authHeader = request.headers.get('authorization');
-    if (authHeader !== `Bearer admin-secret`) {
-      console.error('PATCH /api/admin/affiliates/materials/[id] - Unauthorized');
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Não autorizado' 
-      }, { status: 401 });
-    }
-    
     const body = await request.json();
     const { id } = params;
 
@@ -49,16 +39,6 @@ export async function DELETE(
 ) {
   try {
     await connectDB();
-    
-    // Verificar autorização admin
-    const authHeader = request.headers.get('authorization');
-    if (authHeader !== `Bearer admin-secret`) {
-      console.error('DELETE /api/admin/affiliates/materials/[id] - Unauthorized');
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Não autorizado' 
-      }, { status: 401 });
-    }
     
     const { id } = params;
 
