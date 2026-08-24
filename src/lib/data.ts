@@ -198,6 +198,23 @@ export interface CourseEnrollment {
   paymentId?: string;
 }
 
+export interface WebhookEvent {
+  id: string;
+  eventId: string; // ID do evento da Kivora
+  eventType: 'payment.created' | 'payment.pending' | 'payment.completed' | 'payment.failed' | 'b2c.created' | 'b2c.completed' | 'b2c.failed';
+  paymentId?: string;
+  reference?: string;
+  status?: string;
+  amount?: number;
+  currency?: string;
+  clientName?: string;
+  clientEmail?: string;
+  serviceName?: string;
+  processed: boolean; // Se foi processado com sucesso
+  errorMessage?: string; // Erro se falhou ao processar
+  createdAt: string;
+}
+
 export interface Certificate {
   id: string;
   userId: string;
@@ -1298,6 +1315,37 @@ export const dataManager = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'update_status', orderId: id, status })
       }).catch(err => console.error('Erro de sync de status de pedido:', err));
+    }
+  },
+
+  // Webhook Events
+  getWebhookEvents: (): WebhookEvent[] => {
+    if (typeof window === 'undefined') return [];
+    const data = localStorage.getItem('wehosthere_webhook_events');
+    return data ? JSON.parse(data) : [];
+  },
+
+  addWebhookEvent: (event: Omit<WebhookEvent, 'id' | 'createdAt'>): WebhookEvent => {
+    const events = dataManager.getWebhookEvents();
+    const newEvent: WebhookEvent = {
+      ...event,
+      id: `WEB-${Date.now().toString().slice(-5)}`,
+      createdAt: new Date().toISOString()
+    };
+    events.unshift(newEvent);
+    // Manter apenas os últimos 100 eventos
+    if (events.length > 100) {
+      events.pop();
+    }
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('wehosthere_webhook_events', JSON.stringify(events));
+    }
+    return newEvent;
+  },
+
+  clearWebhookEvents: (): void => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('wehosthere_webhook_events', JSON.stringify([]));
     }
   },
 

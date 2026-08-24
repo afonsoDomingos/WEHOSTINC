@@ -3,6 +3,9 @@ import { dataManager } from '@/lib/data';
 import { apiEndpoint } from '@/lib/siteConfig';
 
 export async function POST(req: Request) {
+  let processed = false;
+  let errorMessage = '';
+  
   try {
     const body = await req.json();
     
@@ -13,6 +16,19 @@ export async function POST(req: Request) {
     // Validar estrutura do evento
     if (!id || !type || !eventData) {
       console.error('[KIVORA WEBHOOK] Estrutura de evento inválida:', body);
+      errorMessage = 'Estrutura de evento inválida';
+      // Registrar evento mesmo com erro
+      dataManager.addWebhookEvent({
+        eventId: id,
+        eventType: type,
+        paymentId: eventData.id,
+        reference: eventData.reference,
+        status: eventData.status,
+        amount: eventData.amount,
+        currency: eventData.currency,
+        processed: false,
+        errorMessage
+      });
       return NextResponse.json({ error: 'Invalid event structure' }, { status: 400 });
     }
 
@@ -42,6 +58,7 @@ export async function POST(req: Request) {
         if (clientEmail) {
           await sendPaymentNotification(clientEmail, clientName, serviceName, 'completed', eventData.amount);
         }
+        processed = true;
         break;
         
       case 'payment.failed':
@@ -54,29 +71,67 @@ export async function POST(req: Request) {
         if (clientEmail) {
           await sendPaymentNotification(clientEmail, clientName, serviceName, 'failed', eventData.amount);
         }
+        processed = true;
         break;
         
       case 'b2c.created':
         console.log('[KIVORA WEBHOOK] Envio B2C criado:', eventData.id);
+        processed = true;
         break;
         
       case 'b2c.completed':
         console.log('[KIVORA WEBHOOK] Envio B2C completado:', eventData.id);
+        processed = true;
         break;
         
       case 'b2c.failed':
         console.log('[KIVORA WEBHOOK] Envio B2C falhou:', eventData.id);
+        processed = true;
         break;
         
       default:
         console.log('[KIVORA WEBHOOK] Tipo de evento não tratado:', type);
+        processed = true;
     }
+
+    // Registrar evento no dataManager para monitoramento
+    dataManager.addWebhookEvent({
+      eventId: id,
+      eventType: type,
+      paymentId: eventData.id,
+      reference: eventData.reference,
+      status: eventData.status,
+      amount: eventData.amount,
+      currency: eventData.currency,
+      clientName,
+      clientEmail,
+      serviceName,
+      processed,
+      errorMessage
+    });
 
     // Responder com 200 OK para confirmar recebimento
     return NextResponse.json({ received: true, eventId: id });
     
   } catch (error) {
     console.error('[KIVORA WEBHOOK] Erro ao processar webhook:', error);
+    errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+    
+    // Tentar registrar evento mesmo com erro
+    try {
+      const body = await req.json();
+      dataManager.addWebhookEvent({
+        eventId: body.id || 'unknown',
+        eventType: body.type || 'unknown',
+        paymentId: body.data?.id,
+        reference: body.data?.reference,
+        processed: false,
+        errorMessage
+      });
+    } catch (e) {
+      console.error('[KIVORA WEBHOOK] Erro ao registrar evento falhado:', e);
+    }
+    
     return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 });
   }
 }

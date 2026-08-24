@@ -243,6 +243,7 @@ export default function AdminPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [sites, setSites] = useState<any[]>([]);
   const [emails, setEmails] = useState<any[]>([]);
+  const [webhookEvents, setWebhookEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSyncingData, setIsSyncingData] = useState(true);
 
@@ -508,6 +509,7 @@ export default function AdminPage() {
     setRentalRequests(dataManager.getRentalRequests());
     setSystemAccesses(dataManager.getSystemAccesses());
     setSocialProofs(dataManager.getSocialProofs());
+    setWebhookEvents(dataManager.getWebhookEvents());
     fetchAnalytics();
     fetchNewsletterSubscribers();
     setLoading(false);
@@ -1494,6 +1496,101 @@ export default function AdminPage() {
                       </td>
                       <td className="py-2 sm:py-2.5 px-2 sm:px-3 text-right text-gray-500 font-mono text-[9px] sm:text-xs">
                         {new Date(log.createdAt).toLocaleString('pt-MZ')}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {/* ───── MONITORAMENTO DE EVENTOS WEBHOOK KIVORA ───── */}
+        <div className="bg-white border border-blue-200 rounded-xl p-4 sm:p-6 shadow-sm mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 sm:mb-4">
+            <div>
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center space-x-2">
+                <Bell className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
+                <span>Monitoramento de Eventos Webhook Kivora</span>
+              </h2>
+              <p className="text-gray-500 text-[10px] sm:text-sm mt-0.5">Eventos de pagamento recebidos em tempo real da Kivora</p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="bg-emerald-100 text-emerald-800 text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border border-emerald-300">
+                {webhookEvents.filter(e => e.processed).length} Processados
+              </span>
+              <span className="bg-red-100 text-red-800 text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border border-red-300">
+                {webhookEvents.filter(e => !e.processed).length} Falhados
+              </span>
+              <button
+                onClick={() => {
+                  dataManager.clearWebhookEvents();
+                  setWebhookEvents([]);
+                }}
+                className="text-[10px] sm:text-xs font-bold text-gray-600 hover:text-red-600 px-2 py-1 rounded border border-gray-200 hover:border-red-300 transition cursor-pointer"
+              >
+                Limpar
+              </button>
+            </div>
+          </div>
+
+          {webhookEvents.length === 0 ? (
+            <div className="p-3 sm:p-4 bg-blue-50 rounded-xl border border-blue-200 text-blue-800 text-[10px] sm:text-xs font-semibold flex items-center space-x-2">
+              <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600" />
+              <span>Nenhum evento do webhook recebido ainda. Os eventos aparecerão aqui quando pagamentos forem processados.</span>
+            </div>
+          ) : (
+            <div className="overflow-x-auto max-h-64 sm:max-h-80 overflow-y-auto border border-gray-100 rounded-lg">
+              <table className="w-full text-left text-[10px] sm:text-xs">
+                <thead className="bg-gray-50 text-gray-500 font-bold uppercase border-b border-gray-200">
+                  <tr>
+                    <th className="py-2 sm:py-2.5 px-2 sm:px-3">Tipo</th>
+                    <th className="py-2 sm:py-2.5 px-2 sm:px-3">Evento ID</th>
+                    <th className="py-2 sm:py-2.5 px-2 sm:px-3">Referência</th>
+                    <th className="py-2 sm:py-2.5 px-2 sm:px-3 hidden sm:table-cell">Cliente</th>
+                    <th className="py-2 sm:py-2.5 px-2 sm:px-3">Valor</th>
+                    <th className="py-2 sm:py-2.5 px-2 sm:px-3">Status</th>
+                    <th className="py-2 sm:py-2.5 px-2 sm:px-3 text-right">Data</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {webhookEvents.slice(0, 20).map((event) => (
+                    <tr key={event.id} className="hover:bg-blue-50/40 transition">
+                      <td className="py-2 sm:py-2.5 px-2 sm:px-3">
+                        <span className={`inline-block px-1.5 sm:px-2 py-0.5 rounded text-[9px] sm:text-[10px] font-bold ${
+                          event.eventType.includes('completed') ? 'bg-emerald-100 text-emerald-700' :
+                          event.eventType.includes('failed') ? 'bg-red-100 text-red-700' :
+                          event.eventType.includes('pending') ? 'bg-amber-100 text-amber-700' :
+                          'bg-gray-100 text-gray-700'
+                        }`}>
+                          {event.eventType.replace('payment.', '').replace('b2c.', '').toUpperCase()}
+                        </span>
+                      </td>
+                      <td className="py-2 sm:py-2.5 px-2 sm:px-3 font-mono text-gray-600 text-[9px] sm:text-xs truncate max-w-[80px] sm:max-w-none">
+                        {event.eventId?.slice(0, 12)}...
+                      </td>
+                      <td className="py-2 sm:py-2.5 px-2 sm:px-3 font-mono text-gray-900 text-[9px] sm:text-xs">
+                        {event.reference || '-'}
+                      </td>
+                      <td className="py-2 sm:py-2.5 px-2 sm:px-3 text-gray-700 text-[10px] sm:text-xs hidden sm:table-cell">
+                        {event.clientName || '-'}
+                      </td>
+                      <td className="py-2 sm:py-2.5 px-2 sm:px-3 font-bold text-gray-900 text-[10px] sm:text-xs">
+                        {event.amount ? `${event.amount} ${event.currency || 'MZN'}` : '-'}
+                      </td>
+                      <td className="py-2 sm:py-2.5 px-2 sm:px-3">
+                        {event.processed ? (
+                          <span className="bg-emerald-100 text-emerald-700 font-bold px-1.5 sm:px-2 py-0.5 rounded text-[9px] sm:text-[10px]">
+                            ✓ Processado
+                          </span>
+                        ) : (
+                          <span className="bg-red-100 text-red-700 font-bold px-1.5 sm:px-2 py-0.5 rounded text-[9px] sm:text-[10px]">
+                            ✗ Falhou
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-2 sm:py-2.5 px-2 sm:px-3 text-right text-gray-500 font-mono text-[9px] sm:text-xs">
+                        {new Date(event.createdAt).toLocaleString('pt-MZ')}
                       </td>
                     </tr>
                   ))}
