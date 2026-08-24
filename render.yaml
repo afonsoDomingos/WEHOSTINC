@@ -34,3 +34,7 @@ services:
         sync: false
       - key: CLOUDINARY_API_SECRET
         sync: false
+      - key: KIVORA_BASE_URL
+        value: https://kivorapayments-nu.vercel.app
+      - key: KIVORA_API_KEY
+        sync: false
