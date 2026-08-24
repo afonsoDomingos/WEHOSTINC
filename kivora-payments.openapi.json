@@ -1,0 +1,1897 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Kivora Payments API",
+    "version": "2026-07-31",
+    "description": "API pública do **Kivora Payments** — cobranças, envios e assinaturas\nprocessados pela Kivora Payments.\n\n## Autenticação\n\nTodas as requisições requerem uma Secret API Key no header:\n\n```\nAuthorization: Bearer sk_test_xxxxxxxxx\n```\n\nou, em produção:\n\n```\nAuthorization: Bearer sk_live_xxxxxxxxx\n```\n\nAs chaves são geridas no dashboard. Nunca exponha Secret Keys em código client-side.\n\n## Versão\n\nA API pública é versionada no path (`/v1/...`).\n\n## Webhooks\n\nA Kivora envia eventos automaticamente para o URL configurado no dashboard.\nNão existem endpoints públicos de gestão de webhooks — apenas entrega de eventos.\nValide a assinatura e responda com HTTP 2xx.",
+    "contact": {
+      "name": "Kivora Payments Support",
+      "url": "https://www.kivorapayments.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://kivorapayments-nu.vercel.app"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Payments",
+      "description": "Cobranças C2B (Customer to Business) e envios B2C (Business to Customer) processados pela Kivora Payments."
+    },
+    {
+      "name": "Subscriptions",
+      "description": "Criação e consulta de assinaturas recorrentes."
+    },
+    {
+      "name": "Webhooks",
+      "description": "Eventos enviados automaticamente pela Kivora para o seu endpoint. Não há API de gestão — configure o URL no dashboard."
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "sk_test_... | sk_live_...",
+        "description": "Secret API Key. Header: `Authorization: Bearer sk_test_xxx` ou `Authorization: Bearer sk_live_xxx`."
+      }
+    },
+    "schemas": {
+      "Money": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "amount",
+          "currency"
+        ],
+        "description": "Montante monetário com moeda ISO 4217.",
+        "properties": {
+          "amount": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Valor na unidade principal da moeda (ex.: 100 = 100 MZN).",
+            "example": 100
+          },
+          "currency": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 3,
+            "default": "MZN",
+            "description": "Código ISO 4217 da moeda.",
+            "example": "MZN"
+          }
+        }
+      },
+      "Customer": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "email"
+        ],
+        "description": "Dados do cliente associado a uma assinatura ou pagamento.",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Nome completo do cliente.",
+            "example": "John Doe"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Email do cliente.",
+            "example": "john@example.com"
+          },
+          "phone": {
+            "type": "string",
+            "description": "Número de telemóvel (opcional).",
+            "example": "841234567"
+          }
+        }
+      },
+      "C2BRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "phone",
+          "amount"
+        ],
+        "description": "Pedido para iniciar uma cobrança Customer to Business (C2B).",
+        "properties": {
+          "phone": {
+            "type": "string",
+            "description": "Número de telemóvel do pagador (MSISDN local, sem +258).",
+            "example": "841234567"
+          },
+          "amount": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Montante a cobrar.",
+            "example": 100
+          },
+          "currency": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 3,
+            "default": "MZN",
+            "description": "Moeda ISO 4217. Predefinição: MZN.",
+            "example": "MZN"
+          },
+          "reference": {
+            "type": "string",
+            "description": "Referência externa opcional (ex.: ID da encomenda).",
+            "example": "ORDER-1001"
+          },
+          "description": {
+            "type": "string",
+            "description": "Descrição legível do pagamento.",
+            "example": "Pagamento da encomenda"
+          }
+        }
+      },
+      "C2BResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "status",
+          "amount",
+          "currency"
+        ],
+        "description": "Pagamento C2B criado ou consultado.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Identificador do pagamento.",
+            "example": "pay_xxxxx"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "processing",
+              "paid",
+              "failed"
+            ],
+            "description": "Estado actual do pagamento.",
+            "example": "pending"
+          },
+          "amount": {
+            "type": "number",
+            "example": 100
+          },
+          "currency": {
+            "type": "string",
+            "example": "MZN"
+          },
+          "reference": {
+            "type": "string",
+            "description": "Referência externa, se fornecida.",
+            "example": "ORDER-1001"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Data de criação (presente em consultas GET).",
+            "example": "2026-07-30T15:30:00Z"
+          }
+        }
+      },
+      "B2CRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "phone",
+          "amount"
+        ],
+        "description": "Pedido para enviar dinheiro a um cliente (Business to Customer).",
+        "properties": {
+          "phone": {
+            "type": "string",
+            "description": "Número de telemóvel do beneficiário.",
+            "example": "841234567"
+          },
+          "amount": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Montante a enviar.",
+            "example": 100
+          },
+          "currency": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 3,
+            "default": "MZN",
+            "description": "Moeda ISO 4217. Predefinição: MZN.",
+            "example": "MZN"
+          },
+          "reference": {
+            "type": "string",
+            "description": "Referência externa opcional do payout.",
+            "example": "PAYOUT-100"
+          }
+        }
+      },
+      "B2CResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "status",
+          "amount",
+          "currency"
+        ],
+        "description": "Transacção B2C criada ou consultada.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Identificador do envio.",
+            "example": "out_xxxxx"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "processing",
+              "completed",
+              "failed",
+              "cancelled"
+            ],
+            "description": "Estado actual do envio.",
+            "example": "processing"
+          },
+          "amount": {
+            "type": "number",
+            "example": 100
+          },
+          "currency": {
+            "type": "string",
+            "example": "MZN"
+          },
+          "reference": {
+            "type": "string",
+            "example": "PAYOUT-100"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Data de criação (presente em consultas GET).",
+            "example": "2026-07-30T16:00:00Z"
+          }
+        }
+      },
+      "SubscriptionRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "customer",
+          "amount",
+          "interval"
+        ],
+        "description": "Pedido para criar uma assinatura recorrente.",
+        "properties": {
+          "customer": {
+            "$ref": "#/components/schemas/Customer"
+          },
+          "amount": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Valor cobrado em cada ciclo.",
+            "example": 299
+          },
+          "currency": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 3,
+            "default": "MZN",
+            "description": "Moeda ISO 4217. Predefinição: MZN.",
+            "example": "MZN"
+          },
+          "interval": {
+            "type": "string",
+            "enum": [
+              "daily",
+              "weekly",
+              "monthly",
+              "yearly"
+            ],
+            "description": "Frequência de cobrança.",
+            "example": "monthly"
+          },
+          "reference": {
+            "type": "string",
+            "description": "Referência externa opcional da assinatura.",
+            "example": "SUB-001"
+          }
+        }
+      },
+      "SubscriptionResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "status"
+        ],
+        "description": "Assinatura criada ou consultada.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Identificador da assinatura.",
+            "example": "sub_xxxxx"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "cancelled",
+              "past_due",
+              "paused"
+            ],
+            "description": "Estado da assinatura.",
+            "example": "active"
+          },
+          "amount": {
+            "type": "number",
+            "example": 299
+          },
+          "currency": {
+            "type": "string",
+            "example": "MZN"
+          },
+          "interval": {
+            "type": "string",
+            "enum": [
+              "daily",
+              "weekly",
+              "monthly",
+              "yearly"
+            ],
+            "example": "monthly"
+          },
+          "reference": {
+            "type": "string",
+            "example": "SUB-001"
+          },
+          "nextBillingDate": {
+            "type": "string",
+            "format": "date",
+            "description": "Próxima data de cobrança (YYYY-MM-DD).",
+            "example": "2026-08-30"
+          },
+          "customer": {
+            "$ref": "#/components/schemas/Customer"
+          }
+        }
+      },
+      "WebhookEvent": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "type",
+          "created_at",
+          "livemode",
+          "data"
+        ],
+        "description": "Payload enviado pela Kivora ao URL de webhook configurado no dashboard.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Identificador único do evento.",
+            "example": "evt_1a2b3c4d5e"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "payment.created",
+              "payment.pending",
+              "payment.completed",
+              "payment.failed",
+              "b2c.created",
+              "b2c.processing",
+              "b2c.completed",
+              "b2c.failed",
+              "subscription.created",
+              "subscription.cancelled",
+              "subscription.renewed"
+            ],
+            "description": "Tipo do evento.",
+            "example": "payment.completed"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Momento em que o evento foi gerado (UTC).",
+            "example": "2026-07-30T15:31:00Z"
+          },
+          "livemode": {
+            "type": "boolean",
+            "description": "`true` se o evento ocorreu em modo live; `false` em modo test.",
+            "example": false
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Objecto com os dados do recurso associado ao evento.",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string"
+              },
+              "amount": {
+                "type": "number"
+              },
+              "currency": {
+                "type": "string"
+              },
+              "reference": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "error"
+        ],
+        "description": "Resposta de erro padrão da API pública.",
+        "properties": {
+          "error": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "code",
+              "message"
+            ],
+            "properties": {
+              "code": {
+                "type": "string",
+                "description": "Código de erro estável.",
+                "example": "PAYMENT_PROCESSING_ERROR"
+              },
+              "message": {
+                "type": "string",
+                "description": "Mensagem legível para o cliente.",
+                "example": "Unable to process payment."
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/v1/c2b": {
+      "post": {
+        "operationId": "createC2BPayment",
+        "tags": [
+          "Payments"
+        ],
+        "summary": "Iniciar cobrança C2B",
+        "description": "Inicia uma cobrança ao cliente (Customer to Business). O pagador recebe um pedido no telemóvel para autorizar o pagamento. O estado inicial é `pending`.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/C2BRequest"
+              },
+              "examples": {
+                "default": {
+                  "summary": "Cobrança C2B",
+                  "value": {
+                    "phone": "841234567",
+                    "amount": 100,
+                    "currency": "MZN",
+                    "reference": "ORDER-1001",
+                    "description": "Pagamento da encomenda"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Cobrança iniciada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/C2BResponse"
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "id": "pay_xxxxx",
+                      "status": "pending",
+                      "reference": "ORDER-1001",
+                      "amount": 100,
+                      "currency": "MZN"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Body inválido — phone e amount são obrigatórios",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "message": "Invalid request"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado — Secret API Key em falta, inválida, revogada ou expirada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "message": "Invalid request"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sem permissão — a API Key não tem o scope necessário ou o recurso não pertence à organização",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "message": "Invalid request"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso relacionado não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "message": "Invalid request"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro interno do servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "message": "Invalid request"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/c2b/{paymentId}": {
+      "get": {
+        "operationId": "getC2BPayment",
+        "tags": [
+          "Payments"
+        ],
+        "summary": "Consultar pagamento C2B",
+        "description": "Consulta o estado actual de um pagamento C2B. Status possíveis: `pending`, `processing`, `paid`, `failed`.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "paymentId",
+            "in": "path",
+            "required": true,
+            "description": "UUID ou identificador do pagamento C2B.",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "example": "838d2571-f916-46c0-9edf-54551a3a17df"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pagamento encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/C2BResponse"
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "id": "pay_xxxxx",
+                      "status": "paid",
+                      "amount": 100,
+                      "currency": "MZN",
+                      "reference": "ORDER-1001",
+                      "createdAt": "2026-07-30T15:30:00Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "paymentId inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "message": "Invalid request"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado — Secret API Key em falta, inválida, revogada ou expirada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "message": "Invalid request"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sem permissão — a API Key não tem o scope necessário ou o recurso não pertence à organização",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "message": "Invalid request"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Pagamento não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "message": "Invalid request"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro interno do servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "message": "Invalid request"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/b2c": {
+      "post": {
+        "operationId": "createB2CPayout",
+        "tags": [
+          "Payments"
+        ],
+        "summary": "Enviar dinheiro (B2C)",
+        "description": "Realiza um envio de dinheiro para um cliente (Business to Customer). O estado inicial tipicamente é `processing` até o provedor confirmar o payout.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/B2CRequest"
+              },
+              "examples": {
+                "default": {
+                  "summary": "Envio B2C",
+                  "value": {
+                    "phone": "841234567",
+                    "amount": 100,
+                    "currency": "MZN",
+                    "reference": "PAYOUT-100"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Envio iniciado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/B2CResponse"
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "id": "out_xxxxx",
+                      "status": "processing",
+                      "amount": 100,
+                      "currency": "MZN"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Body inválido — phone e amount são obrigatórios",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "message": "Invalid request"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado — Secret API Key em falta, inválida, revogada ou expirada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "message": "Invalid request"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sem permissão — a API Key não tem o scope necessário ou o recurso não pertence à organização",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "message": "Invalid request"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso relacionado não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "message": "Invalid request"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro interno do servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "message": "Invalid request"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/b2c/{transactionId}": {
+      "get": {
+        "operationId": "getB2CPayout",
+        "tags": [
+          "Payments"
+        ],
+        "summary": "Consultar envio B2C",
+        "description": "Consulta o estado de um envio de dinheiro. Status possíveis: `processing`, `completed`, `failed`, `cancelled`.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "transactionId",
+            "in": "path",
+            "required": true,
+            "description": "Identificador da transacção B2C.",
+            "schema": {
+              "type": "string",
+              "example": "out_xxxxx"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Transacção encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/B2CResponse"
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "id": "out_xxxxx",
+                      "status": "completed",
+                      "amount": 100,
+                      "currency": "MZN",
+                      "createdAt": "2026-07-30T16:00:00Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "transactionId inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "message": "Invalid request"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado — Secret API Key em falta, inválida, revogada ou expirada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "message": "Invalid request"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sem permissão — a API Key não tem o scope necessário ou o recurso não pertence à organização",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "message": "Invalid request"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Transacção não encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "message": "Invalid request"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro interno do servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "message": "Invalid request"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/subscriptions": {
+      "post": {
+        "operationId": "createSubscription",
+        "tags": [
+          "Subscriptions"
+        ],
+        "summary": "Criar assinatura",
+        "description": "Cria uma assinatura recorrente para um cliente. A cobrança segue o `interval` indicado (ex.: `monthly`).",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubscriptionRequest"
+              },
+              "examples": {
+                "default": {
+                  "summary": "Assinatura mensal",
+                  "value": {
+                    "customer": {
+                      "name": "John Doe",
+                      "email": "john@example.com"
+                    },
+                    "amount": 299,
+                    "currency": "MZN",
+                    "interval": "monthly",
+                    "reference": "SUB-001"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Assinatura criada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionResponse"
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "id": "sub_xxxxx",
+                      "status": "active"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Body inválido — customer, amount e interval são obrigatórios",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "message": "Invalid request"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado — Secret API Key em falta, inválida, revogada ou expirada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "message": "Invalid request"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sem permissão — a API Key não tem o scope necessário ou o recurso não pertence à organização",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "message": "Invalid request"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso relacionado não encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "message": "Invalid request"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro interno do servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "message": "Invalid request"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/subscriptions/{subscriptionId}": {
+      "get": {
+        "operationId": "getSubscription",
+        "tags": [
+          "Subscriptions"
+        ],
+        "summary": "Consultar assinatura",
+        "description": "Obtém os detalhes e o estado actual de uma assinatura.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "subscriptionId",
+            "in": "path",
+            "required": true,
+            "description": "Identificador da assinatura.",
+            "schema": {
+              "type": "string",
+              "example": "sub_xxxxx"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Assinatura encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionResponse"
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "id": "sub_xxxxx",
+                      "status": "active",
+                      "amount": 299,
+                      "currency": "MZN",
+                      "interval": "monthly",
+                      "nextBillingDate": "2026-08-30"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "subscriptionId inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "message": "Invalid request"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado — Secret API Key em falta, inválida, revogada ou expirada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "message": "Invalid request"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sem permissão — a API Key não tem o scope necessário ou o recurso não pertence à organização",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "message": "Invalid request"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Assinatura não encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "message": "Invalid request"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro interno do servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "message": "Invalid request"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "webhooks": {
+    "payment.created": {
+      "post": {
+        "operationId": "webhook_payment_created",
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "payment.created",
+        "description": "Disparado quando um pagamento C2B é criado. O estado inicial é tipicamente `pending`.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookEvent"
+              },
+              "examples": {
+                "default": {
+                  "summary": "payment.created",
+                  "value": {
+                    "id": "evt_1a2b3c4d5e",
+                    "type": "payment.created",
+                    "created_at": "2026-07-30T15:30:00Z",
+                    "livemode": false,
+                    "data": {
+                      "id": "pay_xxxxx",
+                      "status": "pending",
+                      "amount": 100,
+                      "currency": "MZN",
+                      "reference": "ORDER-1001",
+                      "phone": "841234567"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "O seu endpoint deve responder com HTTP 2xx para confirmar a recepção do evento. Respostas fora de 2xx despoletam novas tentativas."
+          }
+        }
+      }
+    },
+    "payment.pending": {
+      "post": {
+        "operationId": "webhook_payment_pending",
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "payment.pending",
+        "description": "Disparado quando o pagamento fica a aguardar acção do cliente ou do provedor.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookEvent"
+              },
+              "examples": {
+                "default": {
+                  "summary": "payment.pending",
+                  "value": {
+                    "id": "evt_2b3c4d5e6f",
+                    "type": "payment.pending",
+                    "created_at": "2026-07-30T15:30:05Z",
+                    "livemode": false,
+                    "data": {
+                      "id": "pay_xxxxx",
+                      "status": "pending",
+                      "amount": 100,
+                      "currency": "MZN",
+                      "reference": "ORDER-1001"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "O seu endpoint deve responder com HTTP 2xx para confirmar a recepção do evento. Respostas fora de 2xx despoletam novas tentativas."
+          }
+        }
+      }
+    },
+    "payment.completed": {
+      "post": {
+        "operationId": "webhook_payment_completed",
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "payment.completed",
+        "description": "Disparado quando o pagamento é confirmado com sucesso (`status: paid`).",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookEvent"
+              },
+              "examples": {
+                "default": {
+                  "summary": "payment.completed",
+                  "value": {
+                    "id": "evt_3c4d5e6f7a",
+                    "type": "payment.completed",
+                    "created_at": "2026-07-30T15:31:00Z",
+                    "livemode": false,
+                    "data": {
+                      "id": "pay_xxxxx",
+                      "status": "paid",
+                      "amount": 100,
+                      "currency": "MZN",
+                      "reference": "ORDER-1001",
+                      "paid_at": "2026-07-30T15:31:00Z"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "O seu endpoint deve responder com HTTP 2xx para confirmar a recepção do evento. Respostas fora de 2xx despoletam novas tentativas."
+          }
+        }
+      }
+    },
+    "payment.failed": {
+      "post": {
+        "operationId": "webhook_payment_failed",
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "payment.failed",
+        "description": "Disparado quando o pagamento falha (fundos insuficientes, timeout, rejeição, etc.).",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookEvent"
+              },
+              "examples": {
+                "default": {
+                  "summary": "payment.failed",
+                  "value": {
+                    "id": "evt_4d5e6f7a8b",
+                    "type": "payment.failed",
+                    "created_at": "2026-07-30T15:31:10Z",
+                    "livemode": false,
+                    "data": {
+                      "id": "pay_xxxxx",
+                      "status": "failed",
+                      "amount": 100,
+                      "currency": "MZN",
+                      "reference": "ORDER-1001",
+                      "failure_reason": "insufficient_funds"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "O seu endpoint deve responder com HTTP 2xx para confirmar a recepção do evento. Respostas fora de 2xx despoletam novas tentativas."
+          }
+        }
+      }
+    },
+    "b2c.created": {
+      "post": {
+        "operationId": "webhook_b2c_created",
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "b2c.created",
+        "description": "Disparado quando um envio B2C é criado.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookEvent"
+              },
+              "examples": {
+                "default": {
+                  "summary": "b2c.created",
+                  "value": {
+                    "id": "evt_5e6f7a8b9c",
+                    "type": "b2c.created",
+                    "created_at": "2026-07-30T16:00:00Z",
+                    "livemode": false,
+                    "data": {
+                      "id": "out_xxxxx",
+                      "status": "processing",
+                      "amount": 100,
+                      "currency": "MZN",
+                      "reference": "PAYOUT-100",
+                      "phone": "841234567"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "O seu endpoint deve responder com HTTP 2xx para confirmar a recepção do evento. Respostas fora de 2xx despoletam novas tentativas."
+          }
+        }
+      }
+    },
+    "b2c.processing": {
+      "post": {
+        "operationId": "webhook_b2c_processing",
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "b2c.processing",
+        "description": "Disparado enquanto o payout está a ser processado pelo provedor.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookEvent"
+              },
+              "examples": {
+                "default": {
+                  "summary": "b2c.processing",
+                  "value": {
+                    "id": "evt_6f7a8b9c0d",
+                    "type": "b2c.processing",
+                    "created_at": "2026-07-30T16:00:05Z",
+                    "livemode": false,
+                    "data": {
+                      "id": "out_xxxxx",
+                      "status": "processing",
+                      "amount": 100,
+                      "currency": "MZN",
+                      "reference": "PAYOUT-100"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "O seu endpoint deve responder com HTTP 2xx para confirmar a recepção do evento. Respostas fora de 2xx despoletam novas tentativas."
+          }
+        }
+      }
+    },
+    "b2c.completed": {
+      "post": {
+        "operationId": "webhook_b2c_completed",
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "b2c.completed",
+        "description": "Disparado quando o dinheiro foi entregue com sucesso ao beneficiário.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookEvent"
+              },
+              "examples": {
+                "default": {
+                  "summary": "b2c.completed",
+                  "value": {
+                    "id": "evt_7a8b9c0d1e",
+                    "type": "b2c.completed",
+                    "created_at": "2026-07-30T16:01:00Z",
+                    "livemode": false,
+                    "data": {
+                      "id": "out_xxxxx",
+                      "status": "completed",
+                      "amount": 100,
+                      "currency": "MZN",
+                      "reference": "PAYOUT-100",
+                      "completed_at": "2026-07-30T16:01:00Z"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "O seu endpoint deve responder com HTTP 2xx para confirmar a recepção do evento. Respostas fora de 2xx despoletam novas tentativas."
+          }
+        }
+      }
+    },
+    "b2c.failed": {
+      "post": {
+        "operationId": "webhook_b2c_failed",
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "b2c.failed",
+        "description": "Disparado quando o envio B2C falha.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookEvent"
+              },
+              "examples": {
+                "default": {
+                  "summary": "b2c.failed",
+                  "value": {
+                    "id": "evt_8b9c0d1e2f",
+                    "type": "b2c.failed",
+                    "created_at": "2026-07-30T16:01:10Z",
+                    "livemode": false,
+                    "data": {
+                      "id": "out_xxxxx",
+                      "status": "failed",
+                      "amount": 100,
+                      "currency": "MZN",
+                      "reference": "PAYOUT-100",
+                      "failure_reason": "invalid_phone"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "O seu endpoint deve responder com HTTP 2xx para confirmar a recepção do evento. Respostas fora de 2xx despoletam novas tentativas."
+          }
+        }
+      }
+    },
+    "subscription.created": {
+      "post": {
+        "operationId": "webhook_subscription_created",
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "subscription.created",
+        "description": "Disparado quando uma assinatura é criada com sucesso.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookEvent"
+              },
+              "examples": {
+                "default": {
+                  "summary": "subscription.created",
+                  "value": {
+                    "id": "evt_9c0d1e2f3a",
+                    "type": "subscription.created",
+                    "created_at": "2026-07-30T17:00:00Z",
+                    "livemode": false,
+                    "data": {
+                      "id": "sub_xxxxx",
+                      "status": "active",
+                      "amount": 299,
+                      "currency": "MZN",
+                      "interval": "monthly",
+                      "reference": "SUB-001",
+                      "customer": {
+                        "name": "John Doe",
+                        "email": "john@example.com"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "O seu endpoint deve responder com HTTP 2xx para confirmar a recepção do evento. Respostas fora de 2xx despoletam novas tentativas."
+          }
+        }
+      }
+    },
+    "subscription.cancelled": {
+      "post": {
+        "operationId": "webhook_subscription_cancelled",
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "subscription.cancelled",
+        "description": "Disparado quando uma assinatura é cancelada.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookEvent"
+              },
+              "examples": {
+                "default": {
+                  "summary": "subscription.cancelled",
+                  "value": {
+                    "id": "evt_0d1e2f3a4b",
+                    "type": "subscription.cancelled",
+                    "created_at": "2026-08-15T10:00:00Z",
+                    "livemode": false,
+                    "data": {
+                      "id": "sub_xxxxx",
+                      "status": "cancelled",
+                      "amount": 299,
+                      "currency": "MZN",
+                      "interval": "monthly",
+                      "reference": "SUB-001",
+                      "cancelled_at": "2026-08-15T10:00:00Z"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "O seu endpoint deve responder com HTTP 2xx para confirmar a recepção do evento. Respostas fora de 2xx despoletam novas tentativas."
+          }
+        }
+      }
+    },
+    "subscription.renewed": {
+      "post": {
+        "operationId": "webhook_subscription_renewed",
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "subscription.renewed",
+        "description": "Disparado quando uma assinatura é renovada com sucesso no ciclo de cobrança.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookEvent"
+              },
+              "examples": {
+                "default": {
+                  "summary": "subscription.renewed",
+                  "value": {
+                    "id": "evt_1e2f3a4b5c",
+                    "type": "subscription.renewed",
+                    "created_at": "2026-08-30T00:00:00Z",
+                    "livemode": false,
+                    "data": {
+                      "id": "sub_xxxxx",
+                      "status": "active",
+                      "amount": 299,
+                      "currency": "MZN",
+                      "interval": "monthly",
+                      "reference": "SUB-001",
+                      "nextBillingDate": "2026-09-30",
+                      "payment_id": "pay_renew_xxxxx"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "O seu endpoint deve responder com HTTP 2xx para confirmar a recepção do evento. Respostas fora de 2xx despoletam novas tentativas."
+          }
+        }
+      }
+    }
+  }
+}
