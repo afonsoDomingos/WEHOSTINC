@@ -10,6 +10,7 @@ import DashboardNav from '@/components/DashboardNav';
 import DashboardSidebar from '@/components/DashboardSidebar';
 import PageLoader from '@/components/PageLoader';
 import { auth, User } from '@/lib/auth';
+import FacebookPixel from '@/lib/facebookPixel';
 
 const complexityLabels: Record<string, { label: string; color: string; active: string }> = {
   simple: { label: 'Simples', color: 'text-emerald-700 bg-emerald-50 border-emerald-200', active: 'bg-emerald-600 text-white border-emerald-600' },
@@ -40,6 +41,12 @@ const sendWhatsAppQuote = (type: WebsiteType, domain?: string | null, userName?:
   const text = `Olá WEHOSTHERE! 👋\n\nGostaria de solicitar a cotação/desenvolvimento de um site:\n\n💻 *Projeto:* ${type.name}${domainText}${userText}\n💰 *Preço Estimado:* ${type.basePrice >= 100000 ? 'Sob orçamento' : `${type.basePrice.toLocaleString('pt-MZ')} MT`}\n⏱️ *Prazo Estimado:* ${type.deliveryDays} dias úteis\n📋 *Recursos Inclusos:*\n${type.examples.slice(0, 4).map(ex => ` • ${ex}`).join('\n')}\n\nPodem ajudar-me a dar início ao projeto?`;
 
   const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(text)}`;
+  
+  // Rastrear Contact no Facebook Pixel
+  FacebookPixel.trackContact({
+    content_name: `Orçamento Dashboard: ${type.name}`
+  });
+  
   window.open(url, '_blank');
 };
 
@@ -125,6 +132,15 @@ function SiteQuoteContent() {
     const domainPart = domainParam
       ? `&domain=${encodeURIComponent(domainParam)}&domainPrice=${domainPriceParam || 0}`
       : '';
+    
+    // Rastrear ViewContent no Facebook Pixel
+    FacebookPixel.trackViewContent({
+      content_name: type.name,
+      content_category: 'Criação de Sites',
+      value: type.basePrice,
+      currency: 'MZN'
+    });
+    
     router.push(
       `/checkout?plan=website_creation&siteType=${type.id}&siteTypeName=${encodeURIComponent(type.name)}&siteTypePrice=${type.basePrice}${domainPart}`
     );

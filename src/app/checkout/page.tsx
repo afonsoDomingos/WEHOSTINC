@@ -16,6 +16,7 @@ import PageLoader from '@/components/PageLoader';
 import ReceiptModal, { ReceiptData } from '@/components/ReceiptModal';
 import { apiEndpoint } from '@/lib/siteConfig';
 import { soundEffects } from '@/lib/soundEffects';
+import FacebookPixel from '@/lib/facebookPixel';
 
 function CheckoutContent() {
   const router = useRouter();
@@ -91,6 +92,26 @@ function CheckoutContent() {
     if (user) {
       setName(user.name || '');
       setEmail(user.email || '');
+    }
+    
+    // Rastrear InitiateCheckout quando o usuário entra na página de checkout
+    if (selectedPlan) {
+      const isWebsite = selectedPlan.id === 'website_creation';
+      const siteLabel = isWebsite && siteTypeName ? ` — ${siteTypeName}` : '';
+      const cycleLabel = isWebsite ? '' : ` (${durationMonths} ${durationMonths === 1 ? 'Mês' : 'Meses'})`;
+      const serviceName = selectedPlan
+        ? (domainParam 
+            ? `${selectedPlan.name}${siteLabel}${cycleLabel} + Domínio (${domainParam})` 
+            : `${selectedPlan.name}${siteLabel}${cycleLabel}`)
+        : `Registo de Domínio: ${domainParam || 'Domínio Avulso'}`;
+      
+      FacebookPixel.trackInitiateCheckout({
+        content_ids: [selectedPlan.id],
+        content_name: serviceName,
+        content_category: 'Hospedagem e Serviços Web',
+        value: grandTotal,
+        currency: 'MZN'
+      });
     }
   }, []);
 
@@ -320,6 +341,17 @@ function CheckoutContent() {
       setPushModal(false);
       setLoading(false);
       soundEffects.playPaymentSuccessSound();
+      
+      // Rastrear Purchase no Facebook Pixel
+      FacebookPixel.trackPurchase({
+        content_ids: selectedPlan ? [selectedPlan.id] : [],
+        content_name: serviceName,
+        content_category: 'Hospedagem e Serviços Web',
+        value: grandTotal,
+        currency: 'MZN',
+        transaction_id: orderId
+      });
+      
       setSuccess(true);
 
       // Atualizar conversão de afiliado se houver código

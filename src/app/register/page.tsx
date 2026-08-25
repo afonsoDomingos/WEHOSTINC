@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { auth } from '@/lib/auth';
 import BrandLogo from '@/components/BrandLogo';
+import FacebookPixel from '@/lib/facebookPixel';
 
 const STEPS = [
   { id: 1, label: 'Conta', icon: User },
@@ -116,6 +117,13 @@ export default function RegisterPage() {
         localStorage.setItem('wehosthere_registered_email', email);
       }
       console.log('[Register Page] Registro bem-sucedido, redirecionando');
+      
+      // Rastrear Lead no Facebook Pixel
+      FacebookPixel.trackLead({
+        content_name: 'Registro de Conta',
+        content_category: 'Lead Generation'
+      });
+      
       // Não fazer login automático - redirecionar para tela de confirmação
       router.push('/confirm-email?email=' + encodeURIComponent(email));
     } catch (err) {
@@ -130,6 +138,12 @@ export default function RegisterPage() {
     setError('');
     setGoogleLoading(true);
     try {
+      // Rastrear Lead no Facebook Pixel para registro com Google
+      FacebookPixel.trackLead({
+        content_name: 'Registro com Google',
+        content_category: 'Lead Generation'
+      });
+      
       // Redireciona o navegador diretamente para a página de autorização do Google
       await signIn('google', { callbackUrl: '/dashboard' });
     } catch (err) {

@@ -8,6 +8,7 @@ import { Server, Lock, Mail, Eye, EyeOff, ArrowRight, ShieldCheck } from 'lucide
 import { auth } from '@/lib/auth';
 import BrandLogo from '@/components/BrandLogo';
 import PageLoader from '@/components/PageLoader';
+import FacebookPixel from '@/lib/facebookPixel';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -46,6 +47,13 @@ export default function LoginPage() {
       console.log('[Login Normal] Iniciando login com email:', email);
       const user = await auth.loginAsync(email, password);
       console.log('[Login Normal] Usuário autenticado:', { email: user.email, status: user.status, role: user.role });
+      
+      // Rastrear CompleteRegistration no Facebook Pixel
+      FacebookPixel.trackCustom('CompleteRegistration', {
+        content_name: 'Login Realizado',
+        status: 'success'
+      });
+      
       if (user.role === 'admin' || user.email === 'admin@wehosthere.com') {
         console.log('[Login Normal] Redirecionando para admin');
         router.push('/admin');
@@ -66,6 +74,13 @@ export default function LoginPage() {
     setGoogleLoading(true);
     try {
       console.log('[Google Login] Iniciando login Google...');
+      
+      // Rastrear CompleteRegistration no Facebook Pixel
+      FacebookPixel.trackCustom('CompleteRegistration', {
+        content_name: 'Login com Google',
+        status: 'initiated'
+      });
+      
       // Redireciona o navegador diretamente para a página de autorização do Google
       const result = await signIn('google', { callbackUrl: '/dashboard' });
       console.log('[Google Login] Result do signIn:', result);
