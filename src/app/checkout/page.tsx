@@ -508,23 +508,26 @@ function CheckoutContent() {
     e.preventDefault();
     setError('');
 
-    if (!name.trim()) {
-      setError('Por favor, informe seu nome completo.');
-      return;
-    }
-    if (!email.trim() || !email.includes('@')) {
-      setError('Por favor, informe um e-mail válido.');
-      return;
-    }
-    if (!whatsapp.trim()) {
-      setError('Por favor, informe seu número do WhatsApp.');
-      return;
-    }
-    
-    // Validação específica para verificação de afiliado
-    if (isAffiliateVerification && !affiliatePhone.trim()) {
-      setError('Por favor, informe o número de telefone para recebimento das comissões.');
-      return;
+    // Validação específica para verificação de afiliado - apenas telefone de comissões
+    if (isAffiliateVerification) {
+      if (!affiliatePhone.trim()) {
+        setError('Por favor, informe o número de telefone para recebimento das comissões.');
+        return;
+      }
+    } else {
+      // Validações normais para checkout de serviços
+      if (!name.trim()) {
+        setError('Por favor, informe seu nome completo.');
+        return;
+      }
+      if (!email.trim() || !email.includes('@')) {
+        setError('Por favor, informe um e-mail válido.');
+        return;
+      }
+      if (!whatsapp.trim()) {
+        setError('Por favor, informe seu número do WhatsApp.');
+        return;
+      }
     }
 
     // Validar limite de sites por plano
@@ -895,7 +898,7 @@ function CheckoutContent() {
                     Telefone para Comissões <span className="text-red-500">*</span>
                   </label>
                   <p className="text-xs text-gray-500 mb-2">
-                    Este número será utilizado para o recebimento das suas comissões do programa de afiliados.
+                    Este número será utilizado para o recebimento das suas comissões do programa de afiliados. Se quiser mudar para outro número no futuro, precisará pagar novamente (teste de segurança).
                   </p>
                   <div className="flex flex-col sm:flex-row gap-2">
                     <select

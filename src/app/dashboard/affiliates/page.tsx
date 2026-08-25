@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { 
   Link2, DollarSign, Users, TrendingUp, Copy, CheckCircle2, 
   Download, Share2, Calendar, Filter, RefreshCw, Wallet,
@@ -89,6 +90,7 @@ interface AffiliateStats {
 }
 
 export default function AffiliatesPage() {
+  const router = useRouter();
   const { data: session, status } = useSession();
   const [affiliate, setAffiliate] = useState<AffiliateData | null>(null);
   const [commissions, setCommissions] = useState<Commission[]>([]);
@@ -166,9 +168,20 @@ export default function AffiliatesPage() {
         const affiliatePhone = dashboardData.affiliate.payoutDetails?.mpesaPhone;
         if (!affiliatePhone) {
           // Afiliado existe mas não tem telefone - precisa fazer verificação
-          setAffiliate(null);
-          setErrorMessage('Você já é afiliado, mas precisa verificar seu número de telefone para receber comissões. Realize a verificação de 2 MZN abaixo.');
-          setErrorType('api');
+          // Mas permite acesso se estiver em modo skipVerification
+          const skipVerification = new URLSearchParams(window.location.search).get('skipVerification') === 'true';
+          if (!skipVerification) {
+            setAffiliate(null);
+            setErrorMessage('Você já é afiliado, mas precisa verificar seu número de telefone para receber comissões. Realize a verificação de 2 MZN abaixo.');
+            setErrorType('api');
+          } else {
+            // Modo skipVerification - permite acesso mas mantém afiliado sem telefone
+            setAffiliate(dashboardData.affiliate);
+            setStats(dashboardData.stats);
+            setCommissions(dashboardData.commissions || []);
+            setMaterials(dashboardData.materials || []);
+            setErrorMessage(''); // Limpa mensagem de erro
+          }
         }
       } else {
         setAffiliate(null);
@@ -453,6 +466,14 @@ export default function AffiliatesPage() {
                 <p className="mt-2 sm:mt-4 text-[10px] sm:text-xs md:text-sm text-gray-500">
                   Após a confirmação do pagamento, você será redirecionado para o Painel de Afiliados
                 </p>
+                
+                {/* Option to pay later */}
+                <button
+                  onClick={() => router.push('/dashboard/affiliates?skipVerification=true')}
+                  className="mt-4 text-sm text-gray-600 hover:text-gray-800 underline"
+                >
+                  Pagar depois
+                </button>
               </div>
             </div>
           </div>
@@ -614,62 +635,85 @@ export default function AffiliatesPage() {
                 </div>
                 <h3 className="text-xl font-bold text-gray-900">Seu Link de Nhonga</h3>
               </div>
-              <div className="flex flex-col md:flex-row md:items-center space-y-3 md:space-y-0 md:space-x-3 mb-4">
-                <input
-                  type="text"
-                  value={affiliate.affiliateLink}
-                  readOnly
-                  className="flex-1 px-5 py-4 bg-gradient-to-r from-gray-50 to-gray-100 border-2 border-gray-200 rounded-xl text-gray-700 font-mono text-sm"
-                />
-                <button
-                  onClick={() => copyToClipboard(affiliate.affiliateLink)}
-                  className="flex items-center justify-center space-x-2 px-6 py-4 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl hover:from-primary-600 hover:to-primary-700 transition font-semibold shadow-lg"
-                >
-                  {copied ? <CheckCircle2 className="h-5 w-5" /> : <Copy className="h-5 w-5" />}
-                  <span>{copied ? 'Copiado!' : 'Copiar'}</span>
-                </button>
-              </div>
               
-              {/* Social Media Share Buttons */}
-              <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-gray-200">
-                <span className="text-sm font-medium text-gray-600 w-full md:w-auto">Compartilhar:</span>
-                <button
-                  onClick={() => shareToSocialMedia('facebook')}
-                  className="flex-1 md:flex-none flex items-center justify-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-                  title="Compartilhar no Facebook"
-                >
-                  <Facebook className="h-4 w-4" />
-                  <span className="text-sm">Facebook</span>
-                </button>
-                <button
-                  onClick={() => shareToSocialMedia('twitter')}
-                  className="flex-1 md:flex-none flex items-center justify-center space-x-2 px-4 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition"
-                  title="Compartilhar no Twitter"
-                >
-                  <Twitter className="h-4 w-4" />
-                  <span className="text-sm">Twitter</span>
-                </button>
-                <button
-                  onClick={() => shareToSocialMedia('linkedin')}
-                  className="flex-1 md:flex-none flex items-center justify-center space-x-2 px-4 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition"
-                  title="Compartilhar no LinkedIn"
-                >
-                  <Linkedin className="h-4 w-4" />
-                  <span className="text-sm">LinkedIn</span>
-                </button>
-                <button
-                  onClick={() => shareToSocialMedia('whatsapp')}
-                  className="flex-1 md:flex-none flex items-center justify-center space-x-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
-                  title="Compartilhar no WhatsApp"
-                >
-                  <Mail className="h-4 w-4" />
-                  <span className="text-sm">WhatsApp</span>
-                </button>
-              </div>
-              <p className="text-gray-600 mt-4 flex items-center space-x-2">
-                <Share2 className="h-4 w-4 text-primary-600" />
-                <span>Compartilhe este link para ganhar 30% de comissão em cada venda!</span>
-              </p>
+              {/* Mostrar link apenas se telefone estiver verificado */}
+              {affiliate.payoutDetails?.mpesaPhone ? (
+                <>
+                  <div className="flex flex-col md:flex-row md:items-center space-y-3 md:space-y-0 md:space-x-3 mb-4">
+                    <input
+                      type="text"
+                      value={affiliate.affiliateLink}
+                      readOnly
+                      className="flex-1 px-5 py-4 bg-gradient-to-r from-gray-50 to-gray-100 border-2 border-gray-200 rounded-xl text-gray-700 font-mono text-sm"
+                    />
+                    <button
+                      onClick={() => copyToClipboard(affiliate.affiliateLink)}
+                      className="flex items-center justify-center space-x-2 px-6 py-4 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl hover:from-primary-600 hover:to-primary-700 transition font-semibold shadow-lg"
+                    >
+                      {copied ? <CheckCircle2 className="h-5 w-5" /> : <Copy className="h-5 w-5" />}
+                      <span>{copied ? 'Copiado!' : 'Copiar'}</span>
+                    </button>
+                  </div>
+                  
+                  {/* Social Media Share Buttons */}
+                  <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-gray-200">
+                    <span className="text-sm font-medium text-gray-600 w-full md:w-auto">Compartilhar:</span>
+                    <button
+                      onClick={() => shareToSocialMedia('facebook')}
+                      className="flex-1 md:flex-none flex items-center justify-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                      title="Compartilhar no Facebook"
+                    >
+                      <Facebook className="h-4 w-4" />
+                      <span className="text-sm">Facebook</span>
+                    </button>
+                    <button
+                      onClick={() => shareToSocialMedia('twitter')}
+                      className="flex-1 md:flex-none flex items-center justify-center space-x-2 px-4 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition"
+                      title="Compartilhar no Twitter"
+                    >
+                      <Twitter className="h-4 w-4" />
+                      <span className="text-sm">Twitter</span>
+                    </button>
+                    <button
+                      onClick={() => shareToSocialMedia('linkedin')}
+                      className="flex-1 md:flex-none flex items-center justify-center space-x-2 px-4 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition"
+                      title="Compartilhar no LinkedIn"
+                    >
+                      <Linkedin className="h-4 w-4" />
+                      <span className="text-sm">LinkedIn</span>
+                    </button>
+                    <button
+                      onClick={() => shareToSocialMedia('whatsapp')}
+                      className="flex-1 md:flex-none flex items-center justify-center space-x-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
+                      title="Compartilhar no WhatsApp"
+                    >
+                      <Mail className="h-4 w-4" />
+                      <span className="text-sm">WhatsApp</span>
+                    </button>
+                  </div>
+                  <p className="text-gray-600 mt-4 flex items-center space-x-2">
+                    <Share2 className="h-4 w-4 text-primary-600" />
+                    <span>Compartilhe este link para ganhar 30% de comissão em cada venda!</span>
+                  </p>
+                </>
+              ) : (
+                <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-6 text-center">
+                  <svg className="w-12 h-12 text-amber-500 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  <h4 className="text-lg font-bold text-amber-800 mb-2">Link de Afiliado Indisponível</h4>
+                  <p className="text-sm text-amber-700 mb-4">
+                    Seu link de afiliado só aparecerá após verificar seu número de telefone com pagamento de 2 MZN.
+                  </p>
+                  <Link
+                    href={`/checkout?service=affiliate_verification&amount=2&duration=1&domain=affiliate&userId=${encodeURIComponent(session?.user?.id || '')}`}
+                    className="inline-flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-xl hover:from-primary-700 hover:to-primary-800 transition font-semibold"
+                  >
+                    <Users className="h-4 w-4" />
+                    <span>Verificar Telefone — 2 MZN</span>
+                  </Link>
+                </div>
+              )}
             </div>
 
             {/* Payout Button */}
