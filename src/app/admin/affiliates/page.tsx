@@ -6,7 +6,8 @@ import {
   Users, DollarSign, TrendingUp, Plus, Edit, Trash2, 
   CheckCircle2, XCircle, Clock, Filter, RefreshCw,
   Image as ImageIcon, FileText, Video, Mail, Share2, Wallet,
-  AlertTriangle, CheckCircle, X, ArrowLeft, Eye, ShoppingCart
+  AlertTriangle, CheckCircle, X, ArrowLeft, Eye, ShoppingCart,
+  Shield, Activity, Database, AlertCircle
 } from 'lucide-react';
 
 interface Affiliate {
@@ -54,7 +55,7 @@ interface MarketingMaterial {
 }
 
 export default function AdminAffiliatesPage() {
-  const [activeTab, setActiveTab] = useState<'affiliates' | 'commissions' | 'materials' | 'payouts' | 'migration' | 'reports'>('affiliates');
+  const [activeTab, setActiveTab] = useState<'affiliates' | 'commissions' | 'materials' | 'payouts' | 'migration' | 'reports' | 'consistency'>('affiliates');
   const [affiliates, setAffiliates] = useState<Affiliate[]>([]);
   const [commissions, setCommissions] = useState<Commission[]>([]);
   const [materials, setMaterials] = useState<MarketingMaterial[]>([]);
@@ -65,6 +66,11 @@ export default function AdminAffiliatesPage() {
   const [payouts, setPayouts] = useState<any[]>([]);
   const [showPayoutModal, setShowPayoutModal] = useState(false);
   const [selectedPayout, setSelectedPayout] = useState<any>(null);
+
+  // Consistency monitoring states
+  const [consistencyReport, setConsistencyReport] = useState<any>(null);
+  const [validating, setValidating] = useState(false);
+  const [autoValidate, setAutoValidate] = useState(false);
 
   // Migration states
   const [migrateLoading, setMigrateLoading] = useState(false);
@@ -333,6 +339,49 @@ export default function AdminAffiliatesPage() {
     }
   };
 
+  // Consistency validation functions
+  const handleValidateAll = async () => {
+    setValidating(true);
+    setConsistencyReport(null);
+    
+    try {
+      const response = await fetch('/api/admin/affiliates/validate?mode=all');
+      const data = await response.json();
+      
+      if (data.success) {
+        setConsistencyReport(data.result);
+      } else {
+        alert('Erro ao validar consistência: ' + data.error);
+      }
+    } catch (error) {
+      alert('Erro ao validar consistência');
+      console.error(error);
+    } finally {
+      setValidating(false);
+    }
+  };
+
+  const handleAutoValidate = async () => {
+    setValidating(true);
+    
+    try {
+      const response = await fetch('/api/admin/affiliates/validate?mode=auto');
+      const data = await response.json();
+      
+      if (data.success) {
+        alert(`✅ Validação automática concluída!\n\nVerificados: ${data.result.checked}\nCorrigidos: ${data.result.corrected}\nProblemas críticos: ${data.result.criticalIssues}\nAvisos: ${data.result.warningIssues}`);
+        fetchData(); // Refresh data
+      } else {
+        alert('Erro ao validar consistência: ' + data.error);
+      }
+    } catch (error) {
+      alert('Erro ao validar consistência');
+      console.error(error);
+    } finally {
+      setValidating(false);
+    }
+  };
+
   // Upload function
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -489,10 +538,21 @@ export default function AdminAffiliatesPage() {
               <span>Relatórios</span>
             </button>
             <button
+              onClick={() => setActiveTab('consistency')}
+              className={`flex-1 sm:flex-none flex items-center justify-center space-x-2 px-6 py-3 rounded-xl transition-all duration-300 font-semibold ${
+                activeTab === 'consistency'
+                  ? 'bg-gradient-to-r from-rose-600 to-pink-600 text-white shadow-lg'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <Shield className="h-5 w-5" />
+              <span>Consistência</span>
+            </button>
+            <button
               onClick={() => setActiveTab('migration')}
               className={`flex-1 sm:flex-none flex items-center justify-center space-x-2 px-6 py-3 rounded-xl transition-all duration-300 font-semibold ${
                 activeTab === 'migration'
-                  ? 'bg-gradient-to-r from-rose-600 via-red-700 to-pink-700 text-white shadow-lg'
+                  ? 'bg-gradient-to-r from-slate-600 to-gray-700 text-white shadow-lg'
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
@@ -976,6 +1036,141 @@ export default function AdminAffiliatesPage() {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'consistency' && (
+        <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/50">
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">Monitoramento de Consistência</h2>
+                <p className="text-sm text-gray-600">Valide e corrija automaticamente inconsistências nos dados de afiliados</p>
+              </div>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={handleValidateAll}
+                  disabled={validating}
+                  className="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition disabled:opacity-50"
+                >
+                  <Activity className="h-4 w-4" />
+                  <span>Validar Todos</span>
+                </button>
+                <button
+                  onClick={handleAutoValidate}
+                  disabled={validating}
+                  className="inline-flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium transition disabled:opacity-50"
+                >
+                  <Database className="h-4 w-4" />
+                  <span>Auto-Corrigir</span>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div className="p-6">
+            {validating ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-rose-600"></div>
+                <p className="ml-3 text-gray-600">Validando consistência dos dados...</p>
+              </div>
+            ) : !consistencyReport ? (
+              <div className="text-center py-12">
+                <Shield className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500 mb-4">Nenhuma validação realizada ainda</p>
+                <button
+                  onClick={handleValidateAll}
+                  className="inline-flex items-center space-x-2 bg-rose-600 hover:bg-rose-700 text-white px-6 py-3 rounded-xl font-medium transition"
+                >
+                  <Activity className="h-4 w-4" />
+                  <span>Iniciar Validação</span>
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {/* Summary Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <Users className="h-5 w-5 text-blue-600" />
+                      <span className="text-sm font-medium text-blue-800">Total Verificados</span>
+                    </div>
+                    <p className="text-2xl font-bold text-blue-900">{consistencyReport.totalAffiliates}</p>
+                  </div>
+                  <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-4 border border-emerald-200">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <CheckCircle className="h-5 w-5 text-emerald-600" />
+                      <span className="text-sm font-medium text-emerald-800">Consistentes</span>
+                    </div>
+                    <p className="text-2xl font-bold text-emerald-900">{consistencyReport.consistentAffiliates}</p>
+                  </div>
+                  <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl p-4 border border-amber-200">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <AlertTriangle className="h-5 w-5 text-amber-600" />
+                      <span className="text-sm font-medium text-amber-800">Inconsistentes</span>
+                    </div>
+                    <p className="text-2xl font-bold text-amber-900">{consistencyReport.inconsistentAffiliates}</p>
+                  </div>
+                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 border border-purple-200">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <RefreshCw className="h-5 w-5 text-purple-600" />
+                      <span className="text-sm font-medium text-purple-800">Corrigidos</span>
+                    </div>
+                    <p className="text-2xl font-bold text-purple-900">
+                      {consistencyReport.reports.filter((r: any) => r.corrected).length}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Issues List */}
+                {consistencyReport.reports && consistencyReport.reports.length > 0 && (
+                  <div className="space-y-3">
+                    <h3 className="text-lg font-bold text-gray-900">Detalhes das Inconsistências</h3>
+                    {consistencyReport.reports.map((report: any, index: number) => (
+                      !report.isConsistent && (
+                        <div key={index} className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex items-center space-x-2">
+                              <AlertCircle className="h-5 w-5 text-amber-600" />
+                              <span className="font-medium text-gray-900">{report.affiliateCode}</span>
+                            </div>
+                            {report.corrected && (
+                              <span className="px-2 py-1 bg-emerald-100 text-emerald-800 text-xs font-medium rounded-full">
+                                Corrigido
+                              </span>
+                            )}
+                          </div>
+                          <div className="space-y-2">
+                            {report.issues.map((issue: any, issueIndex: number) => (
+                              <div key={issueIndex} className={`text-sm p-2 rounded ${
+                                issue.severity === 'critical' ? 'bg-red-50 text-red-800' :
+                                issue.severity === 'warning' ? 'bg-amber-50 text-amber-800' :
+                                'bg-blue-50 text-blue-800'
+                              }`}>
+                                <div className="flex items-center space-x-2">
+                                  <span className="font-medium">{issue.type}:</span>
+                                  <span>{issue.description}</span>
+                                </div>
+                                <div className="text-xs mt-1 opacity-75">
+                                  Esperado: {issue.expected} | Atual: {issue.actual}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )
+                    ))}
+                  </div>
+                )}
+
+                {consistencyReport.inconsistentAffiliates === 0 && (
+                  <div className="text-center py-8 bg-emerald-50 rounded-xl border border-emerald-200">
+                    <CheckCircle className="h-12 w-12 text-emerald-600 mx-auto mb-3" />
+                    <p className="text-emerald-800 font-medium">Todos os dados estão consistentes!</p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}

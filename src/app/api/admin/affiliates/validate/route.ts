@@ -4,6 +4,7 @@ import {
   validateAllAffiliatesConsistency,
   runAutomaticConsistencyCheck 
 } from '@/lib/affiliateConsistency';
+import affiliateAlertManager from '@/lib/affiliateAlerts';
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,6 +16,9 @@ export async function GET(request: NextRequest) {
       // Executa validação automática e corrige problemas
       const result = await runAutomaticConsistencyCheck();
       
+      // Processar alertas automaticamente
+      await affiliateAlertManager.processConsistencyReport(result);
+      
       return NextResponse.json({ 
         success: true, 
         mode: 'automatic',
@@ -25,6 +29,9 @@ export async function GET(request: NextRequest) {
     if (mode === 'all') {
       // Valida todos os afiliados
       const result = await validateAllAffiliatesConsistency();
+      
+      // Processar alertas automaticamente
+      await affiliateAlertManager.processConsistencyReport(result);
       
       return NextResponse.json({ 
         success: true, 

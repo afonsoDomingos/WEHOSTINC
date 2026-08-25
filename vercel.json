@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/abandoned-carts",
       "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/affiliate-consistency",
+      "schedule": "0 3 * * *"
     }
   ]
 }
