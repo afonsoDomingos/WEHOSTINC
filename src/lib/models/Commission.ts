@@ -2,7 +2,6 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export interface ICommission extends Document {
   affiliateId: string;
-  userId: string;
   orderId: string;
   orderAmount: number;
   commissionRate: number;
@@ -16,14 +15,16 @@ export interface ICommission extends Document {
   }>;
   referredCustomerEmail: string;
   referredCustomerName?: string;
+  referredCustomerId?: string; // ID do cliente que fez a compra (para rastreamento)
   createdAt: string;
   approvedAt?: string;
   paidAt?: string;
+  validatedAt?: string; // Timestamp da última validação de consistência
+  isConsistent?: boolean; // Flag para indicar se os dados são consistentes
 }
 
 const CommissionSchema = new Schema<ICommission>({
   affiliateId: { type: String, required: true, index: true },
-  userId: { type: String, required: true },
   orderId: { type: String, required: true, unique: true },
   orderAmount: { type: Number, required: true },
   commissionRate: { type: Number, required: true },
@@ -37,10 +38,18 @@ const CommissionSchema = new Schema<ICommission>({
   }],
   referredCustomerEmail: { type: String, required: true },
   referredCustomerName: String,
+  referredCustomerId: String, // Adicionado para melhor rastreamento
   createdAt: { type: String, default: () => new Date().toISOString() },
   approvedAt: String,
   paidAt: String,
+  validatedAt: String,
+  isConsistent: { type: Boolean, default: true },
 }, { timestamps: false, versionKey: false });
+
+// Adicionar índices compostos para melhor performance
+CommissionSchema.index({ affiliateId: 1, status: 1 });
+CommissionSchema.index({ orderId: 1 }, { unique: true });
+CommissionSchema.index({ createdAt: -1 });
 
 const CommissionModel: Model<ICommission> = mongoose.models.Commission || mongoose.model<ICommission>('Commission', CommissionSchema);
 export default CommissionModel;

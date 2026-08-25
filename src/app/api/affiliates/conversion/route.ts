@@ -64,13 +64,18 @@ export async function POST(request: NextRequest) {
       orderAmount: amount,
       commissionAmount,
       status: 'pending',
+      referredCustomerEmail: customerEmail || '',
+      referredCustomerName: customerName || '',
+      referredCustomerId: customerEmail || '', // Usar email como ID temporário
       createdAt: new Date().toISOString(),
       statusHistory: [{
         status: 'pending',
         changedAt: new Date().toISOString(),
         changedBy: 'system',
         note: 'Comissão criada automaticamente após conversão'
-      }]
+      }],
+      validatedAt: new Date().toISOString(),
+      isConsistent: true
     });
 
     // Update affiliate stats

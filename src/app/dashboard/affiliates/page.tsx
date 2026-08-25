@@ -10,6 +10,7 @@ import {
   Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin, ArrowLeft
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
+import { getUserId, getAffiliateUserInfo, isAffiliateAuthenticated } from '@/lib/affiliateAuth';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
 interface AffiliateData {
@@ -86,173 +87,83 @@ export default function AffiliatesPage() {
   const [errorMessage, setErrorMessage] = useState('');
   const [errorType, setErrorType] = useState<'auth' | 'network' | 'api' | 'unknown'>('unknown');
 
-  const getUserId = () => {
-    console.log('=== getUserId DEBUG START ===');
-    console.log('Step 1: Checking NextAuth status:', status);
-    console.log('Step 2: Checking NextAuth session:', session);
-    
-    // Tentar NextAuth primeiro (Google OAuth)
-    if (status === 'authenticated' && session?.user) {
-      const userId = (session.user as any)?.id;
-      const userEmail = session.user.email;
-      console.log('Step 3: NextAuth authenticated - userId:', userId, 'email:', userEmail);
-      console.log('Step 4: Full session.user object:', session.user);
-      
-      if (userId) {
-        console.log('=== getUserId DEBUG END (NextAuth ID) ===');
-        return userId;
-      }
-      if (userEmail) {
-        console.log('=== getUserId DEBUG END (NextAuth Email) ===');
-        return userEmail;
-      }
-    }
-    
-    console.log('Step 5: NextAuth not authenticated or no user data');
-    
-    // Fallback para sistema customizado
-    console.log('Step 6: Checking custom auth system');
-    const currentUser = auth.getCurrentUser();
-    console.log('Step 7: Custom auth user:', currentUser);
-    
-    if (currentUser?.id) {
-      console.log('=== getUserId DEBUG END (Custom ID) ===');
-      return currentUser.id;
-    }
-    if (currentUser?.email) {
-      console.log('=== getUserId DEBUG END (Custom Email) ===');
-      return currentUser.email;
-    }
-    
-    // Último fallback: tentar pegar do localStorage
-    console.log('Step 8: Checking localStorage');
-    if (typeof window !== 'undefined') {
-      const storedUser = localStorage.getItem('user');
-      console.log('Step 9: Stored user from localStorage:', storedUser);
-      if (storedUser) {
-        try {
-          const parsedUser = JSON.parse(storedUser);
-          console.log('Step 10: Parsed localStorage user:', parsedUser);
-          if (parsedUser.id) {
-            console.log('=== getUserId DEBUG END (LocalStorage ID) ===');
-            return parsedUser.id;
-          }
-          if (parsedUser.email) {
-            console.log('=== getUserId DEBUG END (LocalStorage Email) ===');
-            return parsedUser.email;
-          }
-        } catch (e) {
-          console.error('Step 11: Error parsing localStorage user:', e);
-        }
-      }
-    }
-    
-    console.log('Step 12: All authentication methods failed');
-    console.log('=== getUserId DEBUG END (NO USER FOUND) ===');
-    return '';
-  };
+
 
   useEffect(() => {
     fetchAffiliateData();
   }, []);
 
   const fetchAffiliateData = async () => {
-    console.log('=== fetchAffiliateData DEBUG START ===');
     try {
       setLoading(true);
       setErrorMessage('');
       setErrorType('unknown');
       
-      console.log('Step 1: Calling getUserId()');
       const userId = getUserId();
-      
-      console.log('Step 2: userId result:', userId);
       
       // Se não tiver userId, não tentar buscar dados - mostrar página de registro
       if (!userId) {
-        console.log('Step 3: No userId found, showing registration page');
         setAffiliate(null);
         setErrorMessage('Não foi possível identificar sua conta. Por favor, faça login novamente.');
         setErrorType('auth');
         setLoading(false);
-        console.log('=== fetchAffiliateData DEBUG END (NO USER ID) ===');
         return;
       }
       
       // Fetch dashboard data
       const apiUrl = `/api/affiliates/dashboard?userId=${encodeURIComponent(userId)}`;
-      console.log('Step 4: Fetching from API:', apiUrl);
-      
       const dashboardRes = await fetch(apiUrl);
-      console.log('Step 5: API response status:', dashboardRes.status);
       
       if (!dashboardRes.ok) {
-        console.log('Step 6: Dashboard fetch failed with status:', dashboardRes.status);
         setAffiliate(null);
         if (dashboardRes.status === 404) {
-          console.log('Step 7: Affiliate not found (404)');
           setErrorMessage('Afiliado não encontrado. Você pode se registrar como afiliado abaixo.');
           setErrorType('api');
         } else if (dashboardRes.status === 401) {
-          console.log('Step 8: Authentication error (401)');
           setErrorMessage('Erro de autenticação. Por favor, faça login novamente.');
           setErrorType('auth');
         } else if (dashboardRes.status >= 500) {
-          console.log('Step 9: Server error (500+)');
           setErrorMessage('Erro no servidor. Tente novamente em alguns minutos.');
           setErrorType('network');
         } else {
-          console.log('Step 10: Other error');
           setErrorMessage('Erro ao carregar dados do afiliado. Tente novamente.');
           setErrorType('api');
         }
         setLoading(false);
-        console.log('=== fetchAffiliateData DEBUG END (API ERROR) ===');
         return;
       }
       
-      console.log('Step 11: Parsing API response');
       const dashboardData = await dashboardRes.json();
-      console.log('Step 12: Dashboard data:', dashboardData);
       
       if (dashboardData.success && dashboardData.affiliate) {
-        console.log('Step 13: Affiliate data found, setting affiliate');
         setAffiliate(dashboardData.affiliate);
         setStats(dashboardData.stats);
         setCommissions(dashboardData.commissions || []);
         setMaterials(dashboardData.materials || []);
       } else {
-        console.log('Step 14: No affiliate data in response');
         setAffiliate(null);
         setErrorMessage('Afiliado não encontrado. Você pode se registrar como afiliado abaixo.');
         setErrorType('api');
       }
       
       // Fetch performance data
-      console.log('Step 15: Fetching performance data');
       const performanceUrl = `/api/affiliates/performance?userId=${encodeURIComponent(userId)}&period=${performancePeriod}`;
-      console.log('Step 16: Performance API URL:', performanceUrl);
-      
       const perfRes = await fetch(performanceUrl);
-      console.log('Step 17: Performance response status:', perfRes.status);
       
       if (perfRes.ok) {
         const perfData = await perfRes.json();
-        console.log('Step 18: Performance data:', perfData);
         if (perfData.success) {
           setPerformanceData(perfData.data);
         }
       }
       
       setLoading(false);
-      console.log('=== fetchAffiliateData DEBUG END (SUCCESS) ===');
     } catch (error) {
-      console.error('Step ERROR: fetchAffiliateData error:', error);
+      console.error('fetchAffiliateData error:', error);
       setAffiliate(null);
       setErrorMessage('Erro ao carregar dados do afiliado. Verifique sua conexão e tente novamente.');
       setErrorType('network');
       setLoading(false);
-      console.log('=== fetchAffiliateData DEBUG END (CATCH ERROR) ===');
     }
   };
 

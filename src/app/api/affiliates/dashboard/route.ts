@@ -3,6 +3,7 @@ import { connectDB } from '@/lib/mongodb';
 import Affiliate from '@/lib/models/Affiliate';
 import Commission from '@/lib/models/Commission';
 import AffiliateClick from '@/lib/models/AffiliateClick';
+import { withCache, CacheKeys, invalidateCacheOnChange } from '@/lib/affiliateCache';
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,6 +11,7 @@ export async function GET(request: NextRequest) {
     
     const { searchParams } = new URL(request.url);
     let userId = searchParams.get('userId');
+    const bypassCache = searchParams.get('bypassCache') === 'true';
 
     console.log('[Affiliate Dashboard] Request received with userId:', userId);
 
@@ -45,61 +47,90 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Afiliado não encontrado' }, { status: 404 });
     }
 
-    // Get affiliate data - try by userId first, then by email as fallback
-    console.log('[Affiliate Dashboard] Searching for affiliate with userId:', userId);
-    let affiliate = await Affiliate.findOne({ userId });
-    console.log('[Affiliate Dashboard] Affiliate found by userId:', affiliate);
-    
-    if (!affiliate && userId.includes('@')) {
-      // Fallback: try to find by email if userId looks like an email
-      console.log('[Affiliate Dashboard] Trying to find by email:', userId);
-      affiliate = await Affiliate.findOne({ userId: userId.toLowerCase() });
-      console.log('[Affiliate Dashboard] Affiliate found by email:', affiliate);
-    }
-    
-    if (!affiliate) {
-      console.log('[Affiliate Dashboard] Affiliate not found in database');
-      return NextResponse.json({ success: false, error: 'Afiliado não encontrado' }, { status: 404 });
-    }
+    const cacheKey = CacheKeys.AFFILIATE_DASHBOARD(userId);
 
-    console.log('[Affiliate Dashboard] Affiliate found successfully:', affiliate.affiliateCode);
+    // Função para buscar dados do banco
+    const fetchFromDatabase = async () => {
+      // Get affiliate data - try by userId first, then by email as fallback
+      console.log('[Affiliate Dashboard] Searching for affiliate with userId:', userId);
+      let affiliate = await Affiliate.findOne({ userId });
+      console.log('[Affiliate Dashboard] Affiliate found by userId:', affiliate);
+      
+      if (!affiliate && userId.includes('@')) {
+        // Fallback: try to find by email if userId looks like an email
+        console.log('[Affiliate Dashboard] Trying to find by email:', userId);
+        affiliate = await Affiliate.findOne({ userId: userId.toLowerCase() });
+        console.log('[Affiliate Dashboard] Affiliate found by email:', affiliate);
+      }
+      
+      if (!affiliate) {
+        console.log('[Affiliate Dashboard] Affiliate not found in database');
+        throw new Error('NOT_FOUND');
+      }
 
-    // Get commissions
-    const commissions = await Commission.find({ affiliateId: affiliate.userId })
-      .sort({ createdAt: -1 })
-      .limit(50);
+      console.log('[Affiliate Dashboard] Affiliate found successfully:', affiliate.affiliateCode);
 
-    // Get recent clicks (last 30 days)
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    
-    const recentClicks = await AffiliateClick.find({
-      affiliateId: affiliate.userId,
-      clickedAt: { $gte: thirtyDaysAgo.toISOString() }
-    }).sort({ clickedAt: -1 }).limit(100);
+      // Get commissions
+      const commissions = await Commission.find({ affiliateId: affiliate.userId })
+        .sort({ createdAt: -1 })
+        .limit(50);
 
-    // Calculate stats
-    const pendingCommissions = commissions.filter(c => c.status === 'pending');
-    const approvedCommissions = commissions.filter(c => c.status === 'approved');
-    const paidCommissions = commissions.filter(c => c.status === 'paid');
+      // Get recent clicks (last 30 days)
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      
+      const recentClicks = await AffiliateClick.find({
+        affiliateId: affiliate.userId,
+        clickedAt: { $gte: thirtyDaysAgo.toISOString() }
+      }).sort({ clickedAt: -1 }).limit(100);
 
-    const stats = {
-      totalClicks: affiliate.totalClicks,
-      totalConversions: affiliate.totalConversions,
-      conversionRate: affiliate.conversionRate,
-      totalEarnings: affiliate.totalEarnings,
-      availableBalance: affiliate.availableBalance,
-      pendingAmount: pendingCommissions.reduce((sum, c) => sum + c.commissionAmount, 0),
-      approvedAmount: approvedCommissions.reduce((sum, c) => sum + c.commissionAmount, 0),
-      paidAmount: paidCommissions.reduce((sum, c) => sum + c.commissionAmount, 0),
+      // Calculate stats
+      const pendingCommissions = commissions.filter(c => c.status === 'pending');
+      const approvedCommissions = commissions.filter(c => c.status === 'approved');
+      const paidCommissions = commissions.filter(c => c.status === 'paid');
+
+      const stats = {
+        totalClicks: affiliate.totalClicks,
+        totalConversions: affiliate.totalConversions,
+        conversionRate: affiliate.conversionRate,
+        totalEarnings: affiliate.totalEarnings,
+        availableBalance: affiliate.availableBalance,
+        pendingAmount: pendingCommissions.reduce((sum, c) => sum + c.commissionAmount, 0),
+        approvedAmount: approvedCommissions.reduce((sum, c) => sum + c.commissionAmount, 0),
+        paidAmount: paidCommissions.reduce((sum, c) => sum + c.commissionAmount, 0),
+      };
+
+      return {
+        affiliate,
+        commissions,
+        recentClicks,
+        stats
+      };
     };
 
+    // Usar cache se não estiver solicitando bypass
+    if (!bypassCache) {
+      try {
+        const cachedData = await withCache(cacheKey, fetchFromDatabase, 5 * 60 * 1000); // 5 minutos
+        return NextResponse.json({ 
+          success: true, 
+          ...cachedData,
+          cached: true
+        });
+      } catch (error) {
+        if ((error as Error).message === 'NOT_FOUND') {
+          return NextResponse.json({ success: false, error: 'Afiliado não encontrado' }, { status: 404 });
+        }
+        throw error;
+      }
+    }
+
+    // Se bypass cache, buscar diretamente do banco
+    const data = await fetchFromDatabase();
     return NextResponse.json({ 
       success: true, 
-      affiliate,
-      commissions,
-      recentClicks,
-      stats
+      ...data,
+      cached: false
     });
 
   } catch (error) {
