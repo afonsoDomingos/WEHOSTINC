@@ -636,6 +636,27 @@ export default function AffiliatesPage() {
                 <h3 className="text-xl font-bold text-gray-900">Seu Link de Nhonga</h3>
               </div>
               
+              {/* Informação sobre recebimento de comissões */}
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+                <div className="flex items-start space-x-3">
+                  <div className="flex-shrink-0">
+                    <Phone className="h-5 w-5 text-blue-600 mt-0.5" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-sm font-bold text-blue-900 mb-2">💰 Recebimento de Comissões</h4>
+                    <p className="text-xs text-blue-800 leading-relaxed">
+                      Você receberá suas comissões através do número <strong>{affiliate.payoutDetails?.mpesaPhone || 'não configurado'}</strong>.
+                      Quando atingir <strong>1.000 MZN</strong> em saldo disponível, poderá solicitar o saque.
+                    </p>
+                    {affiliate.payoutDetails?.mpesaPhone && (
+                      <p className="text-xs text-blue-700 mt-2 border-t border-blue-200 pt-2">
+                        <strong>⚠️ Importante:</strong> Se quiser mudar este número no futuro, precisará pagar uma taxa de <strong>2 MZN</strong> para o novo número ser verificado (teste de segurança).
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+              
               {/* Mostrar link apenas se telefone estiver verificado */}
               {affiliate.payoutDetails?.mpesaPhone ? (
                 <>
@@ -705,6 +726,25 @@ export default function AffiliatesPage() {
                   <p className="text-sm text-amber-700 mb-4">
                     Seu link de afiliado só aparecerá após verificar seu número de telefone com pagamento de 2 MZN.
                   </p>
+                  
+                  {/* Informação sobre recebimento de comissões */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4 text-left">
+                    <div className="flex items-start space-x-3">
+                      <div className="flex-shrink-0">
+                        <Phone className="h-5 w-5 text-blue-600 mt-0.5" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="text-sm font-bold text-blue-900 mb-2">💰 Recebimento de Comissões</h4>
+                        <p className="text-xs text-blue-800 leading-relaxed">
+                          Após verificar seu telefone, você receberá suas comissões através desse número quando atingir <strong>1.000 MZN</strong> em saldo disponível.
+                        </p>
+                        <p className="text-xs text-blue-700 mt-2 border-t border-blue-200 pt-2">
+                          <strong>⚠️ Importante:</strong> Se quiser mudar este número no futuro, precisará pagar uma taxa de <strong>2 MZN</strong> para o novo número ser verificado (teste de segurança).
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  
                   <Link
                     href={`/checkout?service=affiliate_verification&amount=2&duration=1&domain=affiliate&userId=${encodeURIComponent(session?.user?.id || '')}`}
                     className="inline-flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-xl hover:from-primary-700 hover:to-primary-800 transition font-semibold"
