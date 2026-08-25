@@ -967,35 +967,39 @@ function CheckoutContent() {
                   <span className="text-xs font-bold text-gray-800">eMola</span>
                 </button>
 
-                {/* Credit Card Option - Desativado temporariamente */}
-                <div
-                  className="relative p-3 border-2 rounded-xl text-center flex flex-col items-center justify-center border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed select-none"
-                  title="Pagamento por cartão ainda não disponível. Em breve!"
-                >
-                  <span className="absolute -top-2 -right-2 bg-gray-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wide">Em Breve</span>
-                  <img src="/visa.png" alt="Visa" className="h-6 w-auto object-contain mb-1" />
-                  <span className="text-xs font-bold text-gray-400">Cartão de Crédito</span>
-                  <Lock className="h-3 w-3 text-gray-400 mt-0.5" />
-                </div>
+                {/* Credit Card Option - Desativado temporariamente - NÃO mostrar para verificação de afiliado */}
+                {!isAffiliateVerification && (
+                  <div
+                    className="relative p-3 border-2 rounded-xl text-center flex flex-col items-center justify-center border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed select-none"
+                    title="Pagamento por cartão ainda não disponível. Em breve!"
+                  >
+                    <span className="absolute -top-2 -right-2 bg-gray-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wide">Em Breve</span>
+                    <img src="/visa.png" alt="Visa" className="h-6 w-auto object-contain mb-1" />
+                    <span className="text-xs font-bold text-gray-400">Cartão de Crédito</span>
+                    <Lock className="h-3 w-3 text-gray-400 mt-0.5" />
+                  </div>
+                )}
 
-                {/* Bank Transfer Option */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    console.log('[Checkout] Método de pagamento selecionado: Transferência / Comprovativo');
-                    setPaymentMethod('bank_transfer');
-                  }}
-                  className={`p-3 border-2 rounded-xl text-center flex flex-col items-center justify-center transition cursor-pointer ${
+                {/* Bank Transfer Option - NÃO mostrar para verificação de afiliado */}
+                {!isAffiliateVerification && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      console.log('[Checkout] Método de pagamento selecionado: Transferência / Comprovativo');
+                      setPaymentMethod('bank_transfer');
+                    }}
+                    className={`p-3 border-2 rounded-xl text-center flex flex-col items-center justify-center transition cursor-pointer ${
                     paymentMethod === 'bank_transfer'
                       ? 'border-emerald-600 bg-emerald-50/50 shadow-sm ring-2 ring-emerald-500/20'
                       : 'border-gray-200 bg-white hover:border-gray-300'
                   }`}
-                >
-                  <div className="flex items-center space-x-1 mb-1 text-emerald-600">
-                    <Landmark className="h-6 w-6" />
-                  </div>
-                  <span className="text-xs font-bold text-gray-800">Transferência / Comprovativo</span>
-                </button>
+                  >
+                    <div className="flex items-center space-x-1 mb-1 text-emerald-600">
+                      <Landmark className="h-6 w-6" />
+                    </div>
+                    <span className="text-xs font-bold text-gray-800">Transferência / Comprovativo</span>
+                  </button>
+                )}
               </div>
 
               {/* Dynamic Payment Details Input */}
@@ -1020,7 +1024,7 @@ function CheckoutContent() {
                 </div>
               )}
 
-              {paymentMethod === 'card' && (
+              {!isAffiliateVerification && paymentMethod === 'card' && (
                 <div className="mt-4 p-4 bg-gray-50 rounded-xl border border-gray-200 space-y-3">
                   <div>
                     <label className="block text-xs font-semibold text-gray-700 mb-1">Número do Cartão</label>
@@ -1057,7 +1061,7 @@ function CheckoutContent() {
                 </div>
               )}
 
-              {paymentMethod === 'bank_transfer' && (
+              {!isAffiliateVerification && paymentMethod === 'bank_transfer' && (
                 <div className="mt-4 p-4 bg-emerald-50/60 rounded-xl border border-emerald-200 space-y-4">
                   <div className="space-y-2 text-xs text-emerald-900">
                     <span className="font-bold block text-sm text-emerald-950">🏦 Contas Bancárias Oficiais para Transferência:</span>
@@ -1137,8 +1141,8 @@ function CheckoutContent() {
               )}
             </div>
 
-            {/* Seleção de Duração / Período da Hospedagem */}
-            {selectedPlan ? (
+            {/* Seleção de Duração / Período da Hospedagem - NÃO mostrar para verificação de afiliado */}
+            {!isAffiliateVerification && selectedPlan ? (
               selectedPlan.id !== 'website_creation' && (
                 <div className="pt-2">
                   <div className="flex items-center justify-between mb-2">
@@ -1269,54 +1273,70 @@ function CheckoutContent() {
               <h4 className="text-sm font-semibold text-gray-800 mb-3">Resumo da compra</h4>
               
               <div className="space-y-2 text-sm text-gray-700 bg-gray-50 p-4 rounded-xl border border-gray-200">
-                {selectedPlan ? (
+                {isAffiliateVerification ? (
                   <>
                     <div className="flex justify-between items-center">
                       <span className="font-semibold text-gray-900">
-                        {selectedPlan.id === 'website_creation'
-                          ? (siteTypeName ? siteTypeName : 'Criação de Site Profissional')
-                          : `Plano ${selectedPlan.name} (${durationMonths === 1 ? '1 Mês' : `${durationMonths} Meses`})`}
+                        Verificação de Telefone para Comissões
                       </span>
-                      <span className="font-bold text-gray-900">{basePrice.toLocaleString('pt-MZ')} MT</span>
+                      <span className="font-bold text-gray-900">{verificationAmount.toLocaleString('pt-MZ')} MT</span>
                     </div>
                     <div className="text-xs text-gray-500">
-                      {selectedPlan.id === 'website_creation'
-                        ? `Investimento único • Entrega estimada`
-                        : `${selectedPlan.features.sites === -1 ? 'Sites ilimitados' : `${selectedPlan.features.sites} site(s)`} • ${selectedPlan.features.storage}GB Armazenamento`}
+                      Teste de segurança para confirmar propriedade do número M-Pesa
                     </div>
                   </>
                 ) : (
-                  <div className="text-xs text-gray-500 font-medium italic">
-                    Nenhum plano de hospedagem selecionado (Registro de Domínio Avulso).
-                  </div>
-                )}
+                  <>
+                    {selectedPlan ? (
+                      <>
+                        <div className="flex justify-between items-center">
+                          <span className="font-semibold text-gray-900">
+                            {selectedPlan.id === 'website_creation'
+                              ? (siteTypeName ? siteTypeName : 'Criação de Site Profissional')
+                              : `Plano ${selectedPlan.name} (${durationMonths === 1 ? '1 Mês' : `${durationMonths} Meses`})`}
+                          </span>
+                          <span className="font-bold text-gray-900">{basePrice.toLocaleString('pt-MZ')} MT</span>
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {selectedPlan.id === 'website_creation'
+                            ? `Investimento único • Entrega estimada`
+                            : `${selectedPlan.features.sites === -1 ? 'Sites ilimitados' : `${selectedPlan.features.sites} site(s)`} • ${selectedPlan.features.storage}GB Armazenamento`}
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-xs text-gray-500 font-medium italic">
+                        Nenhum plano de hospedagem selecionado (Registro de Domínio Avulso).
+                      </div>
+                    )}
 
-                {domainParam && (
-                  <div className="flex justify-between items-center pt-2 mt-2 border-t border-gray-200">
-                    <div>
-                      <span className="font-semibold text-gray-900 block">Registo de Domínio</span>
-                      <span className="text-xs font-mono text-primary-700 font-bold">{domainParam}</span>
-                    </div>
-                    <span className="font-bold text-emerald-700">{domainCost.toLocaleString('pt-MZ')} MT/ano</span>
-                  </div>
-                )}
+                    {domainParam && (
+                      <div className="flex justify-between items-center pt-2 mt-2 border-t border-gray-200">
+                        <div>
+                          <span className="font-semibold text-gray-900 block">Registo de Domínio</span>
+                          <span className="text-xs font-mono text-primary-700 font-bold">{domainParam}</span>
+                        </div>
+                        <span className="font-bold text-emerald-700">{domainCost.toLocaleString('pt-MZ')} MT/ano</span>
+                      </div>
+                    )}
 
-                {selectedPlan && selectedPlan.id !== 'website_creation' && durationMonths > 1 && (
-                  <div className="bg-emerald-50 text-emerald-800 p-2.5 rounded-lg text-xs font-semibold border border-emerald-200 mt-2 flex items-center justify-between">
-                    <span>🎉 Desconto Especial para {durationMonths} Meses Aplicado!</span>
-                    <span className="font-bold text-emerald-700">
-                      {durationMonths === 12
-                        ? `Economia de ${(selectedPlan.price * 2).toLocaleString('pt-MZ')} MT`
-                        : (durationMonths === 6
-                            ? `Economia de ${Math.round(selectedPlan.price * 6 * 0.10).toLocaleString('pt-MZ')} MT`
-                            : `Economia de ${Math.round(selectedPlan.price * 3 * 0.05).toLocaleString('pt-MZ')} MT`)}
-                    </span>
-                  </div>
+                    {selectedPlan && selectedPlan.id !== 'website_creation' && durationMonths > 1 && (
+                      <div className="bg-emerald-50 text-emerald-800 p-2.5 rounded-lg text-xs font-semibold border border-emerald-200 mt-2 flex items-center justify-between">
+                        <span>🎉 Desconto Especial para {durationMonths} Meses Aplicado!</span>
+                        <span className="font-bold text-emerald-700">
+                          {durationMonths === 12
+                            ? `Economia de ${(selectedPlan.price * 2).toLocaleString('pt-MZ')} MT`
+                            : (durationMonths === 6
+                                ? `Economia de ${Math.round(selectedPlan.price * 6 * 0.10).toLocaleString('pt-MZ')} MT`
+                                : `Economia de ${Math.round(selectedPlan.price * 3 * 0.05).toLocaleString('pt-MZ')} MT`)}
+                        </span>
+                      </div>
+                    )}
+                  </>
                 )}
                 
                 <div className="flex justify-between items-center border-t border-gray-200 pt-3 mt-3 font-bold text-base text-gray-900">
                   <span>Total a Pagar</span>
-                  <span className="text-xl text-emerald-600 font-black">{grandTotal.toLocaleString('pt-MZ')} MT</span>
+                  <span className="text-xl text-emerald-600 font-black">{(isAffiliateVerification ? verificationAmount : grandTotal).toLocaleString('pt-MZ')} MT</span>
                 </div>
               </div>
             </div>
