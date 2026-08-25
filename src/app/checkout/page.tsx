@@ -156,6 +156,9 @@ function CheckoutContent() {
   const [pushModal, setPushModal] = useState(false);
   const [pushStatus, setPushStatus] = useState<'waiting' | 'expired'>('waiting');
   const [countdown, setCountdown] = useState(45);
+  const [currentOrderId, setCurrentOrderId] = useState<string | null>(null);
+  const [currentReference, setCurrentReference] = useState<string | null>(null);
+  const [isPollingPayment, setIsPollingPayment] = useState(false);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -180,6 +183,56 @@ function CheckoutContent() {
     }
     return () => clearInterval(timer);
   }, [pushModal, pushStatus, countdown, email, name, grandTotal]);
+
+  // 🔒 SEGURANÇA: Polling de status de pagamento - verificar confirmação do webhook
+  useEffect(() => {
+    let pollingInterval: NodeJS.Timeout;
+
+    if (isPollingPayment && currentReference) {
+      console.log('[PAYMENT POLLING] Iniciando verificação de status para reference:', currentReference);
+      
+      // Verificar a cada 3 segundos
+      pollingInterval = setInterval(async () => {
+        try {
+          const response = await fetch(apiEndpoint(`/api/payments/status?reference=${encodeURIComponent(currentReference)}`));
+          const data = await response.json();
+          
+          console.log('[PAYMENT POLLING] Status:', data.status);
+          
+          if (data.status === 'completed') {
+            console.log('[PAYMENT POLLING] Pagamento confirmado pelo webhook!');
+            clearInterval(pollingInterval);
+            setIsPollingPayment(false);
+            setPushModal(false);
+            
+            // Criar pedido com status completed e finalizar
+            await finalizeOrder();
+          } else if (data.status === 'cancelled' || data.status === 'failed') {
+            console.log('[PAYMENT POLLING] Pagamento falhou/cancelado');
+            clearInterval(pollingInterval);
+            setIsPollingPayment(false);
+            setPushStatus('expired');
+            setError('Pagamento não foi confirmado. Por favor, tente novamente.');
+          }
+        } catch (err) {
+          console.error('[PAYMENT POLLING] Erro ao verificar status:', err);
+        }
+      }, 3000); // Verificar a cada 3 segundos
+      
+      // Parar polling após 2 minutos (timeout)
+      const timeout = setTimeout(() => {
+        clearInterval(pollingInterval);
+        setIsPollingPayment(false);
+        setPushStatus('expired');
+        setError('Tempo de verificação expirado. Se você pagou, aguarde o e-mail de confirmação.');
+      }, 120000); // 2 minutos
+      
+      return () => {
+        clearInterval(pollingInterval);
+        clearTimeout(timeout);
+      };
+    }
+  }, [isPollingPayment, currentReference]);
 
   const handleRetryPush = () => {
     setPushStatus('waiting');
@@ -242,7 +295,7 @@ function CheckoutContent() {
     };
   }, [success]);
 
-  const finalizeOrder = async () => {
+  const finalizeOrder = async (paymentAlreadyConfirmed = false) => {
     console.log('[Checkout] Iniciando processamento de pedido');
     console.log('[Checkout] Método de pagamento:', paymentMethod);
     console.log('[Checkout] Valor total:', grandTotal);
@@ -250,9 +303,12 @@ function CheckoutContent() {
     console.log('[Checkout] Plano selecionado:', selectedPlan?.name);
     console.log('[Checkout] Duração:', durationMonths, 'meses');
     console.log('[Checkout] Domínio:', domainParam);
+    console.log('[Checkout] Pagamento já confirmado pelo webhook:', paymentAlreadyConfirmed);
     
-    // Gerar referência única para este pagamento
-    const paymentReference = `REF_${Date.now().toString().slice(-6)}`;
+    // Gerar referência única para este pagamento (se não foi confirmado pelo webhook)
+    const paymentReference = paymentAlreadyConfirmed && currentReference 
+      ? currentReference 
+      : `REF_${Date.now().toString().slice(-6)}`;
     
     try {
       const currentUser = auth.getCurrentUser();
@@ -288,7 +344,14 @@ function CheckoutContent() {
             : `Registo de Domínio: ${domainParam || 'Domínio Avulso'}`);
 
       const orderId = `ORD-${Date.now().toString().slice(-5)}`;
-      const orderStatus = (paymentMethod === 'bank_transfer' || paymentMethod === 'card' || (selectedPlan && selectedPlan.id === 'website_creation')) ? 'in_progress' : 'pending';
+      // 🔒 SEGURANÇA: Se confirmado pelo webhook, usar 'completed', senão usar status apropriado
+      const orderStatus = paymentAlreadyConfirmed 
+        ? 'completed'
+        : (paymentMethod === 'bank_transfer' || paymentMethod === 'card' || (selectedPlan && selectedPlan.id === 'website_creation')) ? 'in_progress' : 'pending';
+      
+      // Salvar orderId e reference para polling
+      setCurrentOrderId(orderId);
+      setCurrentReference(paymentReference);
 
       // Se for verificação de afiliado, registrar o afiliado após pagamento
       if (isAffiliateVerification) {
@@ -579,6 +642,9 @@ function CheckoutContent() {
           })
         }).catch(err => console.warn(`${paymentMethod.toUpperCase()} API Call:`, err));
 
+        // 🔒 SEGURANÇA: Salvar reference para polling - NÃO confirmar imediatamente
+        setCurrentReference(paymentReference);
+        
         // Open PUSH visual countdown modal
         setCountdown(45);
         setPushStatus('waiting');
@@ -737,14 +803,28 @@ function CheckoutContent() {
                 <div className="space-y-2">
                   <button
                     type="button"
-                    onClick={finalizeOrder}
-                    className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl shadow transition text-sm cursor-pointer"
+                    onClick={() => {
+                      // 🔒 SEGURANÇA: Iniciar polling ao invés de confirmar imediatamente
+                      setIsPollingPayment(true);
+                    }}
+                    disabled={isPollingPayment}
+                    className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl shadow transition text-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
                   >
-                    Já digitei meu PIN (Confirmar Agora)
+                    {isPollingPayment ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        <span>Verificando pagamento...</span>
+                      </>
+                    ) : (
+                      <span>Já digitei meu PIN (Verificar)</span>
+                    )}
                   </button>
                   <button
                     type="button"
-                    onClick={() => setPushModal(false)}
+                    onClick={() => {
+                      setPushModal(false);
+                      setIsPollingPayment(false);
+                    }}
                     className="w-full py-2.5 text-xs font-semibold text-gray-500 hover:text-gray-800 transition"
                   >
                     Cancelar ou Alterar número
