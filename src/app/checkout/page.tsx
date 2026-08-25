@@ -28,6 +28,11 @@ function CheckoutContent() {
   const siteTypeParam = searchParams.get('siteType');
   const siteTypeName = searchParams.get('siteTypeName');
   const siteTypePrice = searchParams.get('siteTypePrice');
+  
+  // Parâmetros para verificação de afiliado
+  const serviceParam = searchParams.get('service');
+  const isAffiliateVerification = serviceParam === 'affiliate_verification';
+  const verificationAmount = Number(searchParams.get('amount')) || 2;
 
   const domainCost = domainParam 
     ? (domainPriceParam ? Number(domainPriceParam) : getDomainPrice(sanitizeDomainName(domainParam).extension))
@@ -45,6 +50,8 @@ function CheckoutContent() {
   
   // Phone for M-Pesa / eMola push payment
   const [phonePayment, setPhonePayment] = useState('');
+  // Phone for affiliate commission payments
+  const [affiliatePhone, setAffiliatePhone] = useState('');
   // Card details
   const [cardNumber, setCardNumber] = useState('');
   const [cardExpiry, setCardExpiry] = useState('');
@@ -125,6 +132,9 @@ function CheckoutContent() {
   }, [planIdParam]);
 
   const calculatePlanCost = () => {
+    if (isAffiliateVerification) {
+      return verificationAmount;
+    }
     if (!selectedPlan) return 0;
     if (selectedPlan.id === 'website_creation') {
       return siteTypePrice ? Number(siteTypePrice) : selectedPlan.price;
@@ -140,7 +150,7 @@ function CheckoutContent() {
   };
 
   const basePrice = calculatePlanCost();
-  const grandTotal = basePrice + domainCost;
+  const grandTotal = isAffiliateVerification ? verificationAmount : (basePrice + domainCost);
 
   const [pushModal, setPushModal] = useState(false);
   const [pushStatus, setPushStatus] = useState<'waiting' | 'expired'>('waiting');
@@ -235,6 +245,7 @@ function CheckoutContent() {
     console.log('[Checkout] Iniciando processamento de pedido');
     console.log('[Checkout] Método de pagamento:', paymentMethod);
     console.log('[Checkout] Valor total:', grandTotal);
+    console.log('[Checkout] É verificação de afiliado:', isAffiliateVerification);
     console.log('[Checkout] Plano selecionado:', selectedPlan?.name);
     console.log('[Checkout] Duração:', durationMonths, 'meses');
     console.log('[Checkout] Domínio:', domainParam);
@@ -267,33 +278,105 @@ function CheckoutContent() {
       const isWebsite = selectedPlan?.id === 'website_creation';
       const siteLabel = isWebsite && siteTypeName ? ` — ${siteTypeName}` : '';
       const cycleLabel = isWebsite ? '' : ` (${durationMonths} ${durationMonths === 1 ? 'Mês' : 'Meses'})`;
-      const serviceName = selectedPlan
-        ? (domainParam 
-            ? `${selectedPlan.name}${siteLabel}${cycleLabel} + Domínio (${domainParam})` 
-            : `${selectedPlan.name}${siteLabel}${cycleLabel}`)
-        : `Registo de Domínio: ${domainParam || 'Domínio Avulso'}`;
+      const serviceName = isAffiliateVerification 
+        ? 'Verificação de Afiliado'
+        : (selectedPlan
+            ? (domainParam 
+                ? `${selectedPlan.name}${siteLabel}${cycleLabel} + Domínio (${domainParam})` 
+                : `${selectedPlan.name}${siteLabel}${cycleLabel}`)
+            : `Registo de Domínio: ${domainParam || 'Domínio Avulso'}`);
 
       const orderId = `ORD-${Date.now().toString().slice(-5)}`;
       const orderStatus = (paymentMethod === 'bank_transfer' || paymentMethod === 'card' || (selectedPlan && selectedPlan.id === 'website_creation')) ? 'in_progress' : 'pending';
 
-      // Registra pedido de serviço para gestão no Admin
-      // Quando o pedido é criado, o valor fica "por faturar" até o admin aprovar
-      dataManager.addOrder({
-        clientName: name,
-        clientEmail: email,
-        clientPhone: `${ddi} ${phonePayment || whatsapp}`,
-        serviceName,
-        amount: grandTotal,
-        valorFaturado: 0,
-        valorPorFaturar: grandTotal,
-        paymentMethod: paymentMethod,
-        proofUrl: proofUrl || undefined,
-        proofName: proofName || undefined,
-        status: orderStatus,
-        reference: paymentReference // Usar a mesma referência gerada antes do pagamento
-      });
+      // Se for verificação de afiliado, registrar o afiliado após pagamento
+      if (isAffiliateVerification) {
+        const affiliatePhoneFinal = affiliatePhone || whatsapp;
+        console.log('[Checkout] Registrando afiliado com telefone:', affiliatePhoneFinal);
+        
+        try {
+          const affiliateResponse = await fetch('/api/affiliates/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userId: currentUser?.id,
+              phone: affiliatePhoneFinal,
+              verificationPayment: true,
+              paymentReference
+            })
+          });
+          
+          const affiliateData = await affiliateResponse.json();
+          console.log('[Checkout] Resposta do registro de afiliado:', affiliateData);
+          
+          if (!affiliateData.success) {
+            console.error('[Checkout] Erro ao registrar afiliado:', affiliateData.error);
+          }
+        } catch (err) {
+          console.error('[Checkout] Erro ao chamar API de registro de afiliado:', err);
+        }
+      } else {
+        // Registra pedido de serviço para gestão no Admin (apenas se não for verificação de afiliado)
+        dataManager.addOrder({
+          clientName: name,
+          clientEmail: email,
+          clientPhone: `${ddi} ${phonePayment || whatsapp}`,
+          serviceName,
+          amount: grandTotal,
+          valorFaturado: 0,
+          valorPorFaturar: grandTotal,
+          paymentMethod: paymentMethod,
+          proofUrl: proofUrl || undefined,
+          proofName: proofName || undefined,
+          status: orderStatus,
+          reference: paymentReference // Usar a mesma referência gerada antes do pagamento
+        });
 
-      // Notificar admin sobre novo pedido
+        // Notificar admin sobre novo pedido
+        try {
+          const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL || 'info@wehosthere.com';
+          const subject = `🛒 Novo Pedido: ${name} - ${serviceName}`;
+          const message = `Olá Administrador,\n\nNovo pedido recebido:\n\n• Cliente: ${name} (${email})\n• Telefone: ${ddi} ${phonePayment || whatsapp}\n• Serviço: ${serviceName}\n• Valor: ${grandTotal.toLocaleString('pt-MZ')} MZN\n• Método: ${paymentMethod}\n• Status: ${orderStatus}\n• Referência: ${paymentReference}\n• Data: ${new Date().toLocaleString('pt-MZ')}\n\nVerifique o pedido no painel admin.\nEquipe WEHOSTHERE`;
+
+          fetch(apiEndpoint('/api/send-email'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              to: adminEmail,
+              subject,
+              text: message
+            })
+          }).catch(err => console.error('[Checkout] Erro ao notificar admin:', err));
+        } catch (err) {
+          console.error('[Checkout] Erro ao preparar notificação admin:', err);
+        }
+
+        setCurrentOrderData({
+          id: orderId,
+          clientName: name,
+          clientEmail: email,
+          clientPhone: `${ddi} ${phonePayment || whatsapp}`,
+          serviceName,
+          amount: grandTotal,
+          valorFaturado: 0,
+          valorPorFaturar: grandTotal,
+          paymentMethod: paymentMethod,
+          status: orderStatus,
+          createdAt: new Date().toISOString()
+        });
+
+        // Cadastra o domínio na lista de sites do cliente associado ao e-mail com status 'pending'
+        if (domainParam) {
+          await dataManager.addSiteAsync({
+            name: domainParam,
+            domain: domainParam,
+            status: 'pending',
+            storage: selectedPlan ? selectedPlan.features.storage : 10,
+            bandwidth: 100,
+            userEmail: email.trim().toLowerCase()
+          });
+        }
+      }
       try {
         const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL || 'info@wehosthere.com';
         const subject = `🛒 Novo Pedido: ${name} - ${serviceName}`;
@@ -353,6 +436,13 @@ function CheckoutContent() {
       });
       
       setSuccess(true);
+
+      // Se for verificação de afiliado, redirecionar para dashboard de afiliados após sucesso
+      if (isAffiliateVerification) {
+        setTimeout(() => {
+          router.push('/dashboard/affiliates');
+        }, 2000);
+      }
 
       // Atualizar conversão de afiliado se houver código
       if (affiliateCode) {
@@ -427,6 +517,12 @@ function CheckoutContent() {
       setError('Por favor, informe seu número do WhatsApp.');
       return;
     }
+    
+    // Validação específica para verificação de afiliado
+    if (isAffiliateVerification && !affiliatePhone.trim()) {
+      setError('Por favor, informe o número de telefone para recebimento das comissões.');
+      return;
+    }
 
     // Validar limite de sites por plano
     const currentUser = auth.getCurrentUser();
@@ -499,9 +595,14 @@ function CheckoutContent() {
           <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
             <CheckCircle2 className="h-10 w-10" />
           </div>
-          <h2 className="text-2xl font-extrabold text-gray-900 mb-1">Pagamento Confirmado!</h2>
+          <h2 className="text-2xl font-extrabold text-gray-900 mb-1">
+            {isAffiliateVerification ? 'Verificação Confirmada!' : 'Pagamento Confirmado!'}
+          </h2>
           <p className="text-gray-600 text-xs sm:text-sm mb-5">
-            O seu pedido de <span className="font-semibold text-gray-900">{selectedPlan ? selectedPlan.name : (domainParam ? `Registo do Domínio ${domainParam}` : 'Serviço')}</span> foi registado com sucesso.
+            {isAffiliateVerification 
+              ? 'A sua verificação de afiliado foi realizada com sucesso. Você será redirecionado para o Painel de Afiliados.'
+              : `O seu pedido de ${selectedPlan ? selectedPlan.name : (domainParam ? `Registo do Domínio ${domainParam}` : 'Serviço')} foi registado com sucesso.`
+            }
           </p>
 
           <div className="bg-gray-50 rounded-2xl p-4 mb-5 text-left border border-gray-200 space-y-2 text-xs text-gray-700">
@@ -783,6 +884,40 @@ function CheckoutContent() {
                   />
                 </div>
               </div>
+
+              {/* Campo para telefone de comissões de afiliado */}
+              {isAffiliateVerification && (
+                <div>
+                  <label htmlFor="affiliatePhone" className="block text-sm font-semibold text-gray-800 mb-1.5">
+                    Telefone para Comissões <span className="text-red-500">*</span>
+                  </label>
+                  <p className="text-xs text-gray-500 mb-2">
+                    Este número será utilizado para o recebimento das suas comissões do programa de afiliados.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <select
+                      value={ddi}
+                      onChange={(e) => setDdi(e.target.value)}
+                      className="w-full sm:w-auto px-3 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none text-gray-900 font-semibold shadow-sm cursor-pointer"
+                    >
+                      <option value="+258">+258 (Moçambique)</option>
+                      <option value="+244">+244 (Angola)</option>
+                      <option value="+351">+351 (Portugal)</option>
+                      <option value="+55">+55 (Brasil)</option>
+                      <option value="+1">+1 (EUA)</option>
+                    </select>
+                    <input
+                      id="affiliatePhone"
+                      type="tel"
+                      value={affiliatePhone}
+                      onChange={(e) => setAffiliatePhone(e.target.value)}
+                      placeholder="Número sem DDI (ex: 84 123 4567)"
+                      required
+                      className="w-full sm:flex-1 px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition text-gray-900 placeholder-gray-400 shadow-sm"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* 2. Método de Pagamento */}

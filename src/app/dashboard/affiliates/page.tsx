@@ -252,49 +252,6 @@ export default function AffiliatesPage() {
     }
   };
 
-  const registerAsAffiliate = async () => {
-    try {
-      // Aguardar que a sessão esteja carregada
-      if (status === 'loading') {
-        alert('A carregar sessão, tente novamente...');
-        return;
-      }
-
-      const userId = session?.user?.id || getUserId(session?.user?.id);
-      console.log('registerAsAffiliate - userId:', userId);
-      
-      if (!userId) {
-        alert('Erro: Não foi possível identificar sua conta. Por favor, faça login novamente.');
-        return;
-      }
-      
-      // Tentar registrar com userId
-      const response = await fetch('/api/affiliates/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId }),
-      });
-
-      const data = await response.json();
-      console.log('registerAsAffiliate - response:', data);
-
-      if (data.success) {
-        if (data.alreadyAffiliate) {
-          // Usuário já é afiliado, recarregar a página para mostrar o painel
-          window.location.reload();
-        } else {
-          // Novo afiliado registrado, recarregar para mostrar o painel
-          window.location.reload();
-        }
-      } else {
-        alert('Erro ao registrar como afiliado: ' + data.error);
-      }
-    } catch (error) {
-      alert('Erro ao registrar como afiliado');
-      console.error(error);
-    }
-  };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-MZ');
   };
@@ -421,14 +378,32 @@ export default function AffiliatesPage() {
               </div>
             </div>
 
+            {/* Verification Notice */}
+            <div className="bg-amber-50 border-l-4 border-amber-400 p-4 mb-6">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-amber-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-amber-800">Verificação obrigatória</h3>
+                  <div className="mt-2 text-sm text-amber-700">
+                    <p>Antes de ter acesso ao programa de afiliados, será necessário verificar o seu número de telefone através de um pagamento de <strong>2 MZN</strong>.</p>
+                    <p className="mt-1">Esse número será associado à sua conta e utilizado para o recebimento das suas futuras comissões.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Benefits Section */}
             <div className="p-4 sm:p-6 md:p-8">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-6 sm:mb-8">
                 {[
-                  { icon: '🚀', title: 'Registre-se gratuitamente', desc: 'Sem taxas nem custos ocultos' },
-                  { icon: '🔗', title: 'Compartilhe seu link único', desc: 'Link personalizado para você' },
-                  { icon: '💰', title: 'Ganhe 30% de cada venda', desc: 'Comissões generosas e recorrentes' },
-                  { icon: '💳', title: 'Saque quando atingir 1.000 MZN', desc: 'Pagamento rápido e seguro' },
+                  { icon: '🚀', title: 'Comece a ganhar', desc: 'Torne-se afiliado e tenha acesso ao seu link de indicação' },
+                  { icon: '🔗', title: 'Compartilhe seu link único', desc: 'Divulgue seu link personalizado e acompanhe as vendas geradas' },
+                  { icon: '💰', title: 'Ganhe 30% de cada venda', desc: 'Receba 30% de comissão pelas vendas realizadas através do seu link' },
+                  { icon: '💳', title: 'Receba suas comissões', desc: 'Quando atingir 1.000 MZN, poderá solicitar o levantamento das suas comissões' },
                 ].map((benefit, index) => (
                   <div
                     key={index}
@@ -449,18 +424,18 @@ export default function AffiliatesPage() {
 
               {/* CTA Button */}
               <div className="text-center">
-                <button
-                  onClick={registerAsAffiliate}
+                <Link
+                  href="/checkout?service=affiliate_verification&amount=2&duration=1&domain=affiliate"
                   className="inline-flex items-center space-x-2 sm:space-x-3 bg-gradient-to-r from-primary-600 via-primary-700 to-indigo-700 hover:from-primary-700 hover:via-primary-800 hover:to-indigo-800 text-white px-6 sm:px-8 md:px-10 py-3 sm:py-4 md:py-5 rounded-xl sm:rounded-2xl transition-all duration-300 font-bold text-sm sm:text-base md:text-lg shadow-xl hover:shadow-2xl hover:scale-105 transform"
                 >
                   <Users className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
-                  <span>Tornar-se Afiliado Agora</span>
+                  <span>Tornar-se Afiliado — 2 MZN</span>
                   <svg className="h-4 w-4 sm:h-5 sm:w-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
-                </button>
+                </Link>
                 <p className="mt-2 sm:mt-4 text-[10px] sm:text-xs md:text-sm text-gray-500">
-                  Comece a ganhar dinheiro hoje mesmo • Sem compromisso
+                  Após a confirmação do pagamento, você será redirecionado para o Painel de Afiliados
                 </p>
               </div>
             </div>

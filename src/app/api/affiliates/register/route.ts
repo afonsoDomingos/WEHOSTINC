@@ -9,9 +9,9 @@ export async function POST(request: NextRequest) {
     await connectDB();
     
     const body = await request.json();
-    let { userId } = body;
+    let { userId, phone, verificationPayment, paymentReference } = body;
 
-    console.log('Register affiliate request:', { userId, body });
+    console.log('Register affiliate request:', { userId, phone, verificationPayment, paymentReference, body });
 
     // Se não tiver userId, tentar obter do header de autenticação interna
     if (!userId) {
@@ -20,22 +20,9 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: false, error: 'User ID é obrigatório' }, { status: 400 });
       }
       
-      // Tentar buscar usuários para identificar o usuário atual
-      const baseUrl = process.env.NEXTAUTH_URL || 'https://wehosthere.com';
-      const usersResponse = await fetch(`${baseUrl}/api/users`, {
-        headers: { 'x-internal-auth': internalAuth },
-      });
-      
-      if (usersResponse.ok) {
-        const usersData = await usersResponse.json();
-        const users = usersData.users || [];
-        
-        // Pegar o primeiro usuário ativo (simplificação - em produção deve usar sessão real)
-        const activeUser = users.find((u: any) => u.status === 'active');
-        if (activeUser) {
-          userId = activeUser.id;
-        }
-      }
+      // REMOVIDO: Fallback perigoso que selecionava o primeiro usuário ativo
+      // Agora exige userId explícito para segurança
+      return NextResponse.json({ success: false, error: 'userId é obrigatório' }, { status: 400 });
     }
 
     if (!userId) {
@@ -61,6 +48,23 @@ export async function POST(request: NextRequest) {
     // Check if affiliate already exists
     const existingAffiliate = await Affiliate.findOne({ userId: user.id });
     if (existingAffiliate) {
+      // Se já existe e está fazendo verificação de pagamento, atualizar o telefone
+      if (verificationPayment && phone) {
+        existingAffiliate.payoutDetails = {
+          ...existingAffiliate.payoutDetails,
+          mpesaPhone: phone
+        };
+        existingAffiliate.payoutMethod = 'mpesa';
+        await existingAffiliate.save();
+        
+        return NextResponse.json({ 
+          success: true, 
+          affiliate: existingAffiliate,
+          alreadyAffiliate: true,
+          phoneUpdated: true
+        }, { status: 200 });
+      }
+      
       return NextResponse.json({ 
         success: true, 
         affiliate: existingAffiliate,
@@ -72,18 +76,28 @@ export async function POST(request: NextRequest) {
     const affiliateCode = await generateUniqueAffiliateCode(user.name);
     const affiliateLink = `${process.env.NEXT_PUBLIC_APP_URL || 'https://wehosthere.com'}/ref/${affiliateCode}`;
 
-    // Create affiliate
-    const affiliate = await Affiliate.create({
+    // Create affiliate com telefone para comissões se fornecido
+    const affiliateData: any = {
       userId: user.id,
       affiliateCode,
       affiliateLink,
-      status: 'active',
+      status: verificationPayment ? 'active' : 'pending', // Ativo se pagamento de verificação foi feito
       totalEarnings: 0,
       availableBalance: 0,
       totalClicks: 0,
       totalConversions: 0,
       conversionRate: 0,
-    });
+    };
+    
+    // Adicionar telefone se fornecido (para verificação de afiliado)
+    if (phone && verificationPayment) {
+      affiliateData.payoutMethod = 'mpesa';
+      affiliateData.payoutDetails = {
+        mpesaPhone: phone
+      };
+    }
+
+    const affiliate = await Affiliate.create(affiliateData);
 
     // Send welcome email to affiliate
     await dispatchMessage({
