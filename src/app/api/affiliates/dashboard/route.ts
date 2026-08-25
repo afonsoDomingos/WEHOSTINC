@@ -23,28 +23,10 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ success: false, error: 'Afiliado não encontrado' }, { status: 404 });
       }
       
-      // Tentar buscar usuários para identificar o usuário atual
-      const baseUrl = process.env.NEXTAUTH_URL || 'https://wehosthere.com';
-      const usersResponse = await fetch(`${baseUrl}/api/users`, {
-        headers: { 'x-internal-auth': internalAuth },
-      });
-      
-      if (usersResponse.ok) {
-        const usersData = await usersResponse.json();
-        const users = usersData.users || [];
-        
-        // Pegar o primeiro usuário ativo (simplificação - em produção deve usar sessão real)
-        const activeUser = users.find((u: any) => u.status === 'active');
-        if (activeUser) {
-          userId = activeUser.id;
-          console.log('[Affiliate Dashboard] Got userId from users API:', userId);
-        }
-      }
-    }
-
-    if (!userId) {
-      console.log('[Affiliate Dashboard] Still no userId after fallback');
-      return NextResponse.json({ success: false, error: 'Afiliado não encontrado' }, { status: 404 });
+      // REMOVIDO: Fallback perigoso que selecionava o primeiro usuário ativo
+      // Isso violava o isolamento de dados. Agora exige userId explícito.
+      console.log('[Affiliate Dashboard] userId required - no fallback allowed');
+      return NextResponse.json({ success: false, error: 'userId é obrigatório' }, { status: 400 });
     }
 
     const cacheKey = CacheKeys.AFFILIATE_DASHBOARD(userId);

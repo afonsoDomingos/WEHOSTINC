@@ -12,33 +12,27 @@ export interface AffiliateUserInfo {
 
 /**
  * Obtém o ID do usuário de forma padronizada
- * Prioridade: NextAuth → Custom Auth → LocalStorage
- * Esta função deve ser usada em todos os lugares que precisam identificar o usuário
+ * Prioridade: NextAuth (via useSession no client) → Custom Auth → LocalStorage
+ * 
+ * NOTA: Esta função deve ser usada apenas em componentes client que já obtêm
+ * o userId via useSession(). Para components server-side, use a sessão NextAuth diretamente.
  */
-export function getUserId(): string {
-  // 1. Tentar NextAuth primeiro (Google OAuth)
-  if (typeof window !== 'undefined') {
-    // Verificar se temos sessão NextAuth no sessionStorage ou similar
-    const nextAuthSession = sessionStorage.getItem('next-auth.session-token');
-    if (nextAuthSession) {
-      try {
-        // Tentar extrair userId da sessão NextAuth
-        const sessionData = JSON.parse(atob(nextAuthSession.split('.')[1] || '{}'));
-        if (sessionData?.user?.id) {
-          console.log('[AffiliateAuth] Using NextAuth userId:', sessionData.user.id);
-          return sessionData.user.id;
-        }
-        if (sessionData?.user?.email) {
-          console.log('[AffiliateAuth] Using NextAuth email:', sessionData.user.email);
-          return sessionData.user.email;
-        }
-      } catch (e) {
-        console.warn('[AffiliateAuth] Error parsing NextAuth session:', e);
-      }
-    }
+export function getUserId(sessionUserId?: string): string {
+  // 1. Se userId foi passado explicitamente (do useSession), usar prioritariamente
+  if (sessionUserId) {
+    console.log('[AffiliateAuth] Using provided session userId:', sessionUserId);
+    return sessionUserId;
   }
 
-  // 2. Fallback para sistema customizado
+  // 2. Tentar NextAuth via cookie (ler do document.cookie - não ideal mas funciona como fallback)
+  if (typeof window !== 'undefined') {
+    // NextAuth armazena a sessão em cookies httpOnly, não acessíveis via JS
+    // Esta função NÃO deve tentar ler cookies diretamente por segurança
+    // Em vez disso, componentes devem passar o userId do useSession()
+    console.warn('[AffiliateAuth] No session userId provided - components should use useSession()');
+  }
+
+  // 3. Fallback para sistema customizado
   const currentUser = auth.getCurrentUser();
   if (currentUser?.id) {
     console.log('[AffiliateAuth] Using custom auth userId:', currentUser.id);
@@ -49,7 +43,7 @@ export function getUserId(): string {
     return currentUser.email;
   }
 
-  // 3. Último fallback: localStorage
+  // 4. Último fallback: localStorage
   if (typeof window !== 'undefined') {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {

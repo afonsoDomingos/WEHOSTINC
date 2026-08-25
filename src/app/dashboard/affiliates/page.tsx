@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { 
@@ -12,6 +12,23 @@ import {
 import { auth, User } from '@/lib/auth';
 import { getUserId, getAffiliateUserInfo, isAffiliateAuthenticated } from '@/lib/affiliateAuth';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+
+// Extender tipos do NextAuth para incluir campos customizados
+declare module 'next-auth' {
+  interface Session {
+    user: {
+      id?: string;
+      email?: string | null;
+      name?: string | null;
+      image?: string | null;
+      role?: string;
+      plan?: string;
+      status?: string;
+      dueDate?: number;
+      createdAt?: string;
+    };
+  }
+}
 
 interface AffiliateData {
   _id: string;
@@ -89,17 +106,14 @@ export default function AffiliatesPage() {
 
 
 
-  useEffect(() => {
-    fetchAffiliateData();
-  }, []);
-
-  const fetchAffiliateData = async () => {
+  const fetchAffiliateData = useCallback(async () => {
     try {
       setLoading(true);
       setErrorMessage('');
       setErrorType('unknown');
       
-      const userId = getUserId();
+      // Obter userId da sessão NextAuth (prioridade para login Google)
+      const userId = session?.user?.id || getUserId(session?.user?.id);
       
       // Se não tiver userId, não tentar buscar dados - mostrar página de registro
       if (!userId) {
@@ -148,9 +162,9 @@ export default function AffiliatesPage() {
       
       // Fetch performance data
       const performanceUrl = `/api/affiliates/performance?userId=${encodeURIComponent(userId)}&period=${performancePeriod}`;
-      const perfRes = await fetch(performanceUrl);
+      const perfRes = await fetch(performanceUrl).catch(() => null);
       
-      if (perfRes.ok) {
+      if (perfRes && perfRes.ok) {
         const perfData = await perfRes.json();
         if (perfData.success) {
           setPerformanceData(perfData.data);
@@ -165,7 +179,11 @@ export default function AffiliatesPage() {
       setErrorType('network');
       setLoading(false);
     }
-  };
+  }, [session, performancePeriod]);
+
+  useEffect(() => {
+    fetchAffiliateData();
+  }, [fetchAffiliateData]);
 
   const shareToSocialMedia = (platform: string) => {
     if (!affiliate) return;
@@ -203,7 +221,7 @@ export default function AffiliatesPage() {
 
   const handlePayout = async () => {
     try {
-      const userId = getUserId();
+      const userId = session?.user?.id || getUserId(session?.user?.id);
       if (!userId) {
         alert('Erro: Usuário não autenticado');
         return;
@@ -242,7 +260,7 @@ export default function AffiliatesPage() {
         return;
       }
 
-      const userId = getUserId();
+      const userId = session?.user?.id || getUserId(session?.user?.id);
       console.log('registerAsAffiliate - userId:', userId);
       
       if (!userId) {
