@@ -42,6 +42,13 @@ interface AffiliateData {
   totalConversions: number;
   conversionRate: number;
   payoutMethod?: string;
+  payoutDetails?: {
+    bankName?: string;
+    accountNumber?: string;
+    accountHolder?: string;
+    paypalEmail?: string;
+    mpesaPhone?: string;
+  };
   createdAt: string;
 }
 
@@ -154,6 +161,15 @@ export default function AffiliatesPage() {
         setStats(dashboardData.stats);
         setCommissions(dashboardData.commissions || []);
         setMaterials(dashboardData.materials || []);
+        
+        // Verificar se afiliado tem telefone configurado para pagamentos
+        const affiliatePhone = dashboardData.affiliate.payoutDetails?.mpesaPhone;
+        if (!affiliatePhone) {
+          // Afiliado existe mas não tem telefone - precisa fazer verificação
+          setAffiliate(null);
+          setErrorMessage('Você já é afiliado, mas precisa verificar seu número de telefone para receber comissões. Realize a verificação de 2 MZN abaixo.');
+          setErrorType('api');
+        }
       } else {
         setAffiliate(null);
         setErrorMessage('Afiliado não encontrado. Você pode se registrar como afiliado abaixo.');
@@ -389,8 +405,8 @@ export default function AffiliatesPage() {
                 <div className="ml-3">
                   <h3 className="text-sm font-medium text-amber-800">Verificação obrigatória</h3>
                   <div className="mt-2 text-sm text-amber-700">
-                    <p>Antes de ter acesso ao programa de afiliados, será necessário verificar o seu número de telefone através de um pagamento de <strong>2 MZN</strong>.</p>
-                    <p className="mt-1">Esse número será associado à sua conta e utilizado para o recebimento das suas futuras comissões.</p>
+                    <p>Para acessar o programa de afiliados e receber comissões, é necessário verificar o seu número de telefone através de um pagamento de <strong>2 MZN</strong>.</p>
+                    <p className="mt-1">Esse número será associado à sua conta e utilizado para o recebimento das suas comissões quando atingir 1.000 MZN.</p>
                   </div>
                 </div>
               </div>
@@ -425,11 +441,11 @@ export default function AffiliatesPage() {
               {/* CTA Button */}
               <div className="text-center">
                 <Link
-                  href="/checkout?service=affiliate_verification&amount=2&duration=1&domain=affiliate"
+                  href={`/checkout?service=affiliate_verification&amount=2&duration=1&domain=affiliate&userId=${encodeURIComponent(session?.user?.id || '')}`}
                   className="inline-flex items-center space-x-2 sm:space-x-3 bg-gradient-to-r from-primary-600 via-primary-700 to-indigo-700 hover:from-primary-700 hover:via-primary-800 hover:to-indigo-800 text-white px-6 sm:px-8 md:px-10 py-3 sm:py-4 md:py-5 rounded-xl sm:rounded-2xl transition-all duration-300 font-bold text-sm sm:text-base md:text-lg shadow-xl hover:shadow-2xl hover:scale-105 transform"
                 >
                   <Users className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
-                  <span>Tornar-se Afiliado — 2 MZN</span>
+                  <span>{errorMessage.includes('já é afiliado') ? 'Verificar Telefone — 2 MZN' : 'Tornar-se Afiliado — 2 MZN'}</span>
                   <svg className="h-4 w-4 sm:h-5 sm:w-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
@@ -466,6 +482,15 @@ export default function AffiliatesPage() {
                     Status: <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(affiliate.status)}`}>
                       {affiliate.status === 'active' ? 'Ativo' : affiliate.status}
                     </span>
+                    {affiliate.payoutDetails?.mpesaPhone ? (
+                      <span className="ml-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
+                        ✓ Telefone Verificado
+                      </span>
+                    ) : (
+                      <span className="ml-2 px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
+                        ⚠ Telefone não verificado
+                      </span>
+                    )}
                   </p>
                 </div>
               </div>

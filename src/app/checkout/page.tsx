@@ -33,6 +33,7 @@ function CheckoutContent() {
   const serviceParam = searchParams.get('service');
   const isAffiliateVerification = serviceParam === 'affiliate_verification';
   const verificationAmount = Number(searchParams.get('amount')) || 2;
+  const affiliateUserIdParam = searchParams.get('userId');
 
   const domainCost = domainParam 
     ? (domainPriceParam ? Number(domainPriceParam) : getDomainPrice(sanitizeDomainName(domainParam).extension))
@@ -292,14 +293,16 @@ function CheckoutContent() {
       // Se for verificação de afiliado, registrar o afiliado após pagamento
       if (isAffiliateVerification) {
         const affiliatePhoneFinal = affiliatePhone || whatsapp;
-        console.log('[Checkout] Registrando afiliado com telefone:', affiliatePhoneFinal);
+        // Usar userId do parâmetro ou do usuário atual
+        const userIdForAffiliate = affiliateUserIdParam || currentUser?.id;
+        console.log('[Checkout] Registrando/Atualizando afiliado com telefone:', affiliatePhoneFinal, 'userId:', userIdForAffiliate);
         
         try {
           const affiliateResponse = await fetch('/api/affiliates/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              userId: currentUser?.id,
+              userId: userIdForAffiliate,
               phone: affiliatePhoneFinal,
               verificationPayment: true,
               paymentReference
