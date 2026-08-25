@@ -645,16 +645,49 @@ export default function AffiliatesPage() {
                   <div className="flex-1">
                     <h4 className="text-sm font-bold text-blue-900 mb-2">💰 Recebimento de Comissões</h4>
                     <p className="text-xs text-blue-800 leading-relaxed">
-                      Você receberá suas comissões através do número <strong>{affiliate.payoutDetails?.mpesaPhone || 'não configurado'}</strong>.
+                      Você receberá suas comissões através do número configurado abaixo.
                       Quando atingir <strong>1.000 MZN</strong> em saldo disponível, poderá solicitar o saque.
                     </p>
-                    {affiliate.payoutDetails?.mpesaPhone && (
-                      <p className="text-xs text-blue-700 mt-2 border-t border-blue-200 pt-2">
-                        <strong>⚠️ Importante:</strong> Se quiser mudar este número no futuro, precisará pagar uma taxa de <strong>2 MZN</strong> para o novo número ser verificado (teste de segurança).
-                      </p>
-                    )}
                   </div>
                 </div>
+              </div>
+              
+              {/* Número de telefone configurado para comissões */}
+              <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl p-6 mb-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 bg-emerald-600 rounded-xl flex items-center justify-center">
+                      <Phone className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-emerald-900">Número para Comissões</h4>
+                      <p className="text-xs text-emerald-700">Número M-Pesa configurado para receber pagamentos</p>
+                    </div>
+                  </div>
+                  {affiliate.payoutDetails?.mpesaPhone ? (
+                    <div className="text-right">
+                      <div className="text-lg font-bold text-emerald-900 font-mono">
+                        {affiliate.payoutDetails.mpesaPhone}
+                      </div>
+                      <span className="text-xs text-emerald-600">✓ Verificado</span>
+                    </div>
+                  ) : (
+                    <div className="text-right">
+                      <div className="text-sm font-medium text-amber-700">
+                        Não configurado
+                      </div>
+                      <span className="text-xs text-amber-600">⚠ Pendente</span>
+                    </div>
+                  )}
+                </div>
+                
+                {affiliate.payoutDetails?.mpesaPhone && (
+                  <div className="mt-4 pt-4 border-t border-emerald-200">
+                    <p className="text-xs text-emerald-700">
+                      <strong>⚠️ Nota:</strong> Se quiser mudar este número no futuro, precisará pagar uma taxa de <strong>2 MZN</strong> para o novo número ser verificado (teste de segurança).
+                    </p>
+                  </div>
+                )}
               </div>
               
               {/* Mostrar link apenas se telefone estiver verificado */}
