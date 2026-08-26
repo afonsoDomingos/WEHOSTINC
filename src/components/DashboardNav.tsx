@@ -167,6 +167,7 @@ export default function DashboardNav({ userName, userAvatar, onLogout, onRefresh
                   <Link
                     key={item.href}
                     href={item.href}
+                    prefetch={false}
                     onClick={closeMobileMenu}
                     className={`flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition ${
                       isActive 
@@ -193,6 +194,7 @@ export default function DashboardNav({ userName, userAvatar, onLogout, onRefresh
                 <Link
                   key={item.href}
                   href={item.href}
+                  prefetch={false}
                   className={`flex items-center space-x-1.5 px-2 py-1.5 rounded-lg text-[10px] font-semibold whitespace-nowrap transition flex-shrink-0 ${
                     isActive
                       ? 'bg-primary-600 text-white shadow-sm'
