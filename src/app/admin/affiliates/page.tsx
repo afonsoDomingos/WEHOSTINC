@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { auth } from '@/lib/auth';
 import { 
   Users, DollarSign, TrendingUp, Plus, Edit, Trash2, 
   CheckCircle2, XCircle, Clock, Filter, RefreshCw,
@@ -31,11 +33,13 @@ interface Affiliate {
 interface Commission {
   _id: string;
   affiliateId: string;
+  affiliateCode: string;
   orderId: string;
   orderAmount: number;
   commissionRate: number;
   commissionAmount: number;
-  status: 'pending' | 'approved' | 'paid' | 'rejected';
+  status: 'pending' | 'approved' | 'paid' | 'cancelled';
+  serviceType: string;
   referredCustomerEmail: string;
   referredCustomerName?: string;
   createdAt: string;
@@ -55,6 +59,7 @@ interface MarketingMaterial {
 }
 
 export default function AdminAffiliatesPage() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<'affiliates' | 'commissions' | 'materials' | 'payouts' | 'migration' | 'reports' | 'consistency'>('affiliates');
   const [affiliates, setAffiliates] = useState<Affiliate[]>([]);
   const [commissions, setCommissions] = useState<Commission[]>([]);

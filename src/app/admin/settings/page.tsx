@@ -112,9 +112,9 @@ export default function AdminSettingsPage() {
 
   if (!user) return null;
 
-  // Verificar se é admin
-  if (user.role !== 'admin' && user.email.toLowerCase() !== 'admin@wehosthere.com') {
-    router.push('/dashboard');
+  // Verificar se é Super Admin
+  if (!auth.isSuperAdmin(user)) {
+    router.push('/admin');
     return null;
   }
 
