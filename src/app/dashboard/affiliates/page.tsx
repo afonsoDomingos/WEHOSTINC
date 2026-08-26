@@ -116,6 +116,11 @@ export default function AffiliatesPage() {
 
 
   const fetchAffiliateData = useCallback(async () => {
+    // Aguardar o NextAuth resolver a sessão antes de qualquer verificação.
+    // Enquanto status === 'loading', session.user ainda é undefined — chamar
+    // agora causaria um falso "Erro de Autenticação" transitório.
+    if (status === 'loading') return;
+
     try {
       setLoading(true);
       setErrorMessage('');
@@ -124,7 +129,8 @@ export default function AffiliatesPage() {
       // Obter userId da sessão NextAuth (prioridade para login Google)
       const userId = session?.user?.id || getUserId(session?.user?.id);
       
-      // Se não tiver userId, não tentar buscar dados - mostrar página de registro
+      // Só chegamos aqui depois de status !== 'loading':
+      // se userId ainda está vazio, o utilizador realmente não está autenticado.
       if (!userId) {
         setAffiliate(null);
         setErrorMessage('Não foi possível identificar sua conta. Por favor, faça login novamente.');
@@ -208,11 +214,13 @@ export default function AffiliatesPage() {
       setErrorType('network');
       setLoading(false);
     }
-  }, [session, performancePeriod]);
+  }, [session, performancePeriod, status]);
 
   useEffect(() => {
+    // Não disparar enquanto a sessão ainda está a carregar — aguardar resolução.
+    if (status === 'loading') return;
     fetchAffiliateData();
-  }, [fetchAffiliateData]);
+  }, [fetchAffiliateData, status]);
 
   const shareToSocialMedia = (platform: string) => {
     if (!affiliate) return;
