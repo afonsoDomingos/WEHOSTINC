@@ -79,6 +79,8 @@ export default function AdminAcademyPage() {
   const [activeTab, setActiveTab] = useState<'courses' | 'modules' | 'lessons'>('courses');
   const [selectedCourseFilter, setSelectedCourseFilter] = useState<string>('all');
   const [selectedModules, setSelectedModules] = useState<Set<string>>(new Set());
+  const [selectedModuleFilter, setSelectedModuleFilter] = useState<string>('all');
+  const [selectedLessons, setSelectedLessons] = useState<Set<string>>(new Set());
 
   // Form state
   const [formData, setFormData] = useState({
@@ -141,7 +143,8 @@ export default function AdminAcademyPage() {
   // Clear selection when switching tabs or changing filters
   useEffect(() => {
     setSelectedModules(new Set());
-  }, [activeTab, selectedCourseFilter, searchTerm]);
+    setSelectedLessons(new Set());
+  }, [activeTab, selectedCourseFilter, selectedModuleFilter, searchTerm]);
 
   const handleCreate = (type: 'course' | 'module' | 'lesson', parentItem?: Course | Module) => {
     setModalType(type);
@@ -428,6 +431,81 @@ export default function AdminAcademyPage() {
       newSelected.add(moduleId);
     }
     setSelectedModules(newSelected);
+  };
+
+  const handleDeleteAllLessons = async () => {
+    if (selectedLessons.size === 0) {
+      alert('Selecione pelo menos uma lição para remover');
+      return;
+    }
+
+    if (!confirm(`Tem certeza que deseja remover ${selectedLessons.size} lição(ões) selecionada(s)? Esta ação não pode ser desfeita.`)) return;
+
+    try {
+      setIsSaving(true);
+      let successCount = 0;
+      let errorCount = 0;
+
+      for (const lessonId of Array.from(selectedLessons)) {
+        try {
+          const response = await fetch('/api/lessons', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'delete', lessonId })
+          });
+
+          if (response.ok) {
+            successCount++;
+          } else {
+            errorCount++;
+          }
+        } catch (error) {
+          errorCount++;
+          console.error(`Erro ao remover lição ${lessonId}:`, error);
+        }
+      }
+
+      setIsSaving(false);
+      setSelectedLessons(new Set());
+      fetchCourses();
+
+      if (errorCount === 0) {
+        alert(`${successCount} lições removidas com sucesso!`);
+      } else {
+        alert(`${successCount} lições removidas com sucesso, ${errorCount} falharam.`);
+      }
+    } catch (error) {
+      setIsSaving(false);
+      console.error('Erro ao remover lições:', error);
+      alert('Erro ao remover lições');
+    }
+  };
+
+  const handleSelectAllLessons = () => {
+    const filteredLessons = lessons.filter(l => {
+      const matchesSearch = l.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            l.content.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesModule = selectedModuleFilter === 'all' || l.moduleId === selectedModuleFilter;
+      return matchesSearch && matchesModule;
+    });
+
+    if (filteredLessons.every(l => selectedLessons.has(l.id))) {
+      // Deselect all
+      setSelectedLessons(new Set());
+    } else {
+      // Select all visible
+      setSelectedLessons(new Set(filteredLessons.map(l => l.id)));
+    }
+  };
+
+  const handleToggleLesson = (lessonId: string) => {
+    const newSelected = new Set(selectedLessons);
+    if (newSelected.has(lessonId)) {
+      newSelected.delete(lessonId);
+    } else {
+      newSelected.add(lessonId);
+    }
+    setSelectedLessons(newSelected);
   };
 
   const handleSave = async () => {
@@ -736,6 +814,23 @@ export default function AdminAcademyPage() {
                   ))}
                 </select>
               )}
+              {activeTab === 'lessons' && (
+                <select
+                  value={selectedModuleFilter}
+                  onChange={(e) => setSelectedModuleFilter(e.target.value)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                >
+                  <option value="all">Todos os Módulos</option>
+                  {modules.map(module => {
+                    const course = courses.find(c => c.id === module.courseId);
+                    return (
+                      <option key={module.id} value={module.id}>
+                        {course?.title ? `${course.title} - ` : ''}{module.title}
+                      </option>
+                    );
+                  })}
+                </select>
+              )}
             </div>
             <div className="flex items-center space-x-2">
               {activeTab === 'modules' && modules.length > 0 && (
@@ -754,6 +849,25 @@ export default function AdminAcademyPage() {
                   >
                     <Trash2 className="h-4 w-4" />
                     <span>{isSaving ? 'Removendo...' : `Remover (${selectedModules.size})`}</span>
+                  </button>
+                </>
+              )}
+              {activeTab === 'lessons' && lessons.length > 0 && (
+                <>
+                  <button
+                    onClick={handleSelectAllLessons}
+                    className="flex items-center space-x-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition font-medium text-sm"
+                  >
+                    <CheckSquare className="h-4 w-4" />
+                    <span>Selecionar Todos</span>
+                  </button>
+                  <button
+                    onClick={handleDeleteAllLessons}
+                    disabled={isSaving || selectedLessons.size === 0}
+                    className="flex items-center space-x-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    <span>{isSaving ? 'Removendo...' : `Remover (${selectedLessons.size})`}</span>
                   </button>
                 </>
               )}
@@ -1017,6 +1131,19 @@ export default function AdminAcademyPage() {
                   <table className="w-full">
                     <thead className="bg-gray-50 border-b border-gray-200">
                       <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-10">
+                          <input
+                            type="checkbox"
+                            checked={lessons.filter(l => {
+                              const matchesSearch = l.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                                    l.content.toLowerCase().includes(searchTerm.toLowerCase());
+                              const matchesModule = selectedModuleFilter === 'all' || l.moduleId === selectedModuleFilter;
+                              return matchesSearch && matchesModule;
+                            }).every(l => selectedLessons.has(l.id))}
+                            onChange={handleSelectAllLessons}
+                            className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                          />
+                        </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lição</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Módulo</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Conteúdo</th>
@@ -1025,14 +1152,24 @@ export default function AdminAcademyPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
-                      {lessons.filter(l => 
-                        l.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        l.content.toLowerCase().includes(searchTerm.toLowerCase())
-                      ).map((lesson) => {
+                      {lessons.filter(l => {
+                        const matchesSearch = l.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                              l.content.toLowerCase().includes(searchTerm.toLowerCase());
+                        const matchesModule = selectedModuleFilter === 'all' || l.moduleId === selectedModuleFilter;
+                        return matchesSearch && matchesModule;
+                      }).map((lesson) => {
                         const parentModule = modules.find(m => m.id === lesson.moduleId);
                         const course = parentModule ? courses.find(c => c.id === parentModule.courseId) : null;
                         return (
                           <tr key={lesson.id} className="hover:bg-gray-50 transition">
+                            <td className="px-6 py-4">
+                              <input
+                                type="checkbox"
+                                checked={selectedLessons.has(lesson.id)}
+                                onChange={() => handleToggleLesson(lesson.id)}
+                                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                              />
+                            </td>
                             <td className="px-6 py-4">
                               <p className="font-medium text-gray-900">{lesson.title}</p>
                               <p className="text-sm text-gray-500 truncate max-w-xs">{lesson.content}</p>
