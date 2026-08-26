@@ -5,7 +5,7 @@ import OrderModel from '@/lib/models/Order';
 import SiteModel from '@/lib/models/Site';
 import { generateInvoicePdf } from '@/lib/invoiceGenerator';
 import { generateHostingCredentials } from '@/lib/provisioning';
-import CourseModel from '@/lib/models/CourseModel';
+import { CourseModel } from '@/lib/models/CourseModel';
 
 export async function POST(req: Request) {
   try {
@@ -24,10 +24,11 @@ export async function POST(req: Request) {
     const isSuccess = transactionStatus === '0' || transactionStatus === 'INS-0' || transactionStatus.toUpperCase() === 'SUCCESS';
 
     // Atualização automática na Base de Dados (Se disponível)
+    let orderIdClean = '';
     try {
       await connectDB();
       if (thirdPartyRef && thirdPartyRef !== 'N/A') {
-        const orderIdClean = thirdPartyRef.replace('ORDER_', '');
+        orderIdClean = thirdPartyRef.replace('ORDER_', '');
         await OrderModel.findOneAndUpdate(
           { id: { $regex: new RegExp(orderIdClean, 'i') } },
           { 

@@ -1111,7 +1111,7 @@ export default function AdminPage() {
     setEmails(dataManager.getEmails());
   };
 
-  const handleApprovePayment = (orderId: string) => {
+  const handleApprovePayment = async (orderId: string) => {
     const order = orders.find(o => o.id === orderId);
     if (!order) return;
 
@@ -1183,7 +1183,7 @@ export default function AdminPage() {
           );
 
           if (matchingCourse) {
-            // Usar freeLessonsCount do curso ao criar inscrição
+            // Criar inscrição automática
             const enrollmentResponse = await fetch('/api/enrollments', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -1196,23 +1196,6 @@ export default function AdminPage() {
                   enrolledAt: new Date().toISOString(),
                   paymentId: orderId,
                   freeLessonsAccessed: matchingCourse.freeLessonsCount || 1
-                }
-              })
-            });
-
-          if (matchingCourse) {
-            // Criar inscrição automática
-            const enrollmentResponse = await fetch('/api/enrollments', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                action: 'create',
-                enrollment: {
-                  userId: cEmail,
-                  courseId: matchingCourse.id,
-                  status: 'active',
-                  enrolledAt: new Date().toISOString(),
-                  paymentId: orderId
                 }
               })
             });

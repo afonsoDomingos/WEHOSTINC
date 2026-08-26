@@ -183,6 +183,7 @@ export default function AdminAcademyPage() {
         currency: 'MZN',
         order: modules.filter(m => m.courseId === parentItem.id).length + 1,
         active: true,
+        freeLessonsCount: 1,
         courseId: parentItem.id,
         objective: '',
         hasVideo: false,
@@ -210,6 +211,7 @@ export default function AdminAcademyPage() {
         currency: 'MZN',
         order: lessons.filter(l => l.moduleId === parentItem.id).length + 1,
         active: true,
+        freeLessonsCount: 1,
         courseId: '',
         objective: '',
         hasVideo: false,
@@ -261,11 +263,11 @@ export default function AdminAcademyPage() {
         content: ''
       });
     } else if (type === 'module') {
-      const module = item as Module;
-      setEditingModule(module);
+      const moduleItem = item as Module;
+      setEditingModule(moduleItem);
       setFormData({
-        title: module.title,
-        description: module.description,
+        title: moduleItem.title,
+        description: moduleItem.description,
         shortDescription: '',
         duration: '',
         outcome: '',
@@ -273,18 +275,19 @@ export default function AdminAcademyPage() {
         accessType: 'paid',
         price: '',
         currency: 'MZN',
-        order: module.order,
-        active: module.active,
-        courseId: module.courseId,
-        objective: module.objective,
-        hasVideo: module.hasVideo,
-        videoUrl: module.videoUrl || '',
-        videoTitle: module.videoTitle || '',
-        videoDescription: module.videoDescription || '',
-        hasMaterial: module.hasMaterial,
-        materialUrl: module.materialUrl || '',
-        materialTitle: module.materialTitle || '',
-        materialType: module.materialType || 'pdf',
+        order: moduleItem.order,
+        active: moduleItem.active,
+        freeLessonsCount: 1,
+        courseId: moduleItem.courseId,
+        objective: moduleItem.objective,
+        hasVideo: moduleItem.hasVideo,
+        videoUrl: moduleItem.videoUrl || '',
+        videoTitle: moduleItem.videoTitle || '',
+        videoDescription: moduleItem.videoDescription || '',
+        hasMaterial: moduleItem.hasMaterial,
+        materialUrl: moduleItem.materialUrl || '',
+        materialTitle: moduleItem.materialTitle || '',
+        materialType: moduleItem.materialType || 'pdf',
         moduleId: '',
         content: ''
       });
@@ -303,6 +306,7 @@ export default function AdminAcademyPage() {
         currency: 'MZN',
         order: lesson.order,
         active: lesson.active,
+        freeLessonsCount: 1,
         courseId: '',
         objective: '',
         hasVideo: lesson.hasVideo,
@@ -362,7 +366,7 @@ export default function AdminAcademyPage() {
 
     setIsSaving(true);
     try {
-      let endpoint, action, payload;
+      let endpoint = '', action, payload;
 
       if (modalType === 'course') {
         endpoint = '/api/courses';
@@ -657,8 +661,8 @@ export default function AdminAcademyPage() {
                     return;
                   }
                   // Simple implementation - prompt to select module
-                  const module = modules[0]; // Default to first module
-                  handleCreate('lesson', module);
+                  const selectedModule = modules[0]; // Default to first module
+                  handleCreate('lesson', selectedModule);
                 }
               }}
               className="flex items-center space-x-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition font-medium text-sm"
@@ -887,8 +891,8 @@ export default function AdminAcademyPage() {
                         l.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                         l.content.toLowerCase().includes(searchTerm.toLowerCase())
                       ).map((lesson) => {
-                        const module = modules.find(m => m.id === lesson.moduleId);
-                        const course = module ? courses.find(c => c.id === module.courseId) : null;
+                        const parentModule = modules.find(m => m.id === lesson.moduleId);
+                        const course = parentModule ? courses.find(c => c.id === parentModule.courseId) : null;
                         return (
                           <tr key={lesson.id} className="hover:bg-gray-50 transition">
                             <td className="px-6 py-4">
@@ -896,7 +900,7 @@ export default function AdminAcademyPage() {
                               <p className="text-sm text-gray-500 truncate max-w-xs">{lesson.content}</p>
                             </td>
                             <td className="px-6 py-4 text-sm text-gray-600">
-                              {module?.title || 'N/A'}
+                              {parentModule?.title || 'N/A'}
                               {course && <span className="text-xs text-gray-400 block">{course.title}</span>}
                             </td>
                             <td className="px-6 py-4">
