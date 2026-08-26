@@ -2354,6 +2354,7 @@ export default function AdminPage() {
                   <tr className="border-b border-gray-200 bg-gray-50/50">
                     <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">Nome</th>
                     <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500 hidden sm:table-cell">Email</th>
+                    <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">Função</th>
                     <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">Serviços</th>
                     <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500 hidden sm:table-cell">Vencimento</th>
                     <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">Status</th>
@@ -2365,42 +2366,88 @@ export default function AdminPage() {
                   {filteredUsers.map((user) => {
                     const userClientOrders = orders.filter(o => o.clientEmail.toLowerCase() === user.email.toLowerCase() || o.clientName.toLowerCase() === user.name.toLowerCase());
                     const userClientSites = sites.filter(s => (s.userEmail || '').toLowerCase() === user.email.toLowerCase());
+                    const isSuperAdmin = user.email.toLowerCase() === 'admin@wehosthere.com' || user.id === 'admin_root';
 
                     return (
                     <tr key={user.id} className="hover:bg-gray-50/80 transition">
                       <td className="py-2.5 sm:py-3.5 px-2 sm:px-4">
-                        <span className="font-semibold text-gray-900 text-[10px] sm:text-sm block">{user.name}</span>
+                        <div className="flex items-center space-x-1.5">
+                          <span className="font-semibold text-gray-900 text-[10px] sm:text-sm">{user.name}</span>
+                          {user.role === 'admin' && (
+                            <span className="text-[10px]" title="Administrador">👑</span>
+                          )}
+                        </div>
                         <span className="text-[9px] sm:text-xs text-gray-500 font-mono block sm:hidden">{user.email}</span>
                       </td>
                       <td className="py-2.5 sm:py-3.5 px-2 sm:px-4 text-gray-600 font-mono text-[10px] sm:text-sm hidden sm:table-cell">{user.email}</td>
+                      
+                      {/* Coluna Função / Role */}
                       <td className="py-2.5 sm:py-3.5 px-2 sm:px-4">
-                        {user.role === 'admin' || user.email.toLowerCase() === 'admin@wehosthere.com' ? (
-                          <span className="inline-block px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[9px] sm:text-xs font-bold bg-purple-100 text-purple-700 border border-purple-200">
-                            👑 Sistema
+                        {isSuperAdmin ? (
+                          <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[9px] sm:text-xs font-extrabold bg-purple-100 text-purple-800 border border-purple-200">
+                            <span>👑 Super Admin</span>
                           </span>
                         ) : (
-                          <div>
-                            {userClientOrders.length > 0 || userClientSites.length > 0 ? (
-                              <div className="space-y-0.5 sm:space-y-1">
-                                {userClientOrders.slice(0, 2).map((ord) => (
-                                  <span key={ord.id} className="inline-block px-1.5 sm:px-2 py-0.5 rounded text-[9px] sm:text-[11px] font-bold bg-blue-50 text-blue-800 border border-blue-200 mr-0.5 sm:mr-1">
-                                    📦 {ord.serviceName.length > 15 ? ord.serviceName.substring(0, 15) + '...' : ord.serviceName}
-                                  </span>
-                                ))}
-                                {userClientOrders.length > 2 && (
-                                  <span className="text-[9px] sm:text-[10px] text-gray-500 font-bold block">+ {userClientOrders.length - 2}</span>
-                                )}
-                              </div>
-                            ) : (
-                              <span className="inline-block px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[9px] sm:text-xs font-semibold bg-gray-100 text-gray-600 border border-gray-200">
-                                Sem Serviço
+                          <select
+                            value={user.role || 'user'}
+                            onChange={(e) => {
+                              const newRole = e.target.value as 'user' | 'admin';
+                              setConfirmModalData({
+                                isOpen: true,
+                                title: newRole === 'admin' ? 'Promover a Administrador' : 'Remover Permissões de Admin',
+                                message: newRole === 'admin'
+                                  ? `Tem certeza que deseja promover "${user.name}" (${user.email}) a Administrador? Este utilizador terá acesso total ao Painel Administrativo.`
+                                  : `Tem certeza que deseja remover o cargo de Administrador de "${user.name}"?`,
+                                variant: newRole === 'admin' ? 'info' : 'warning',
+                                onConfirm: async () => {
+                                  const success = await auth.updateUserRole(user.id, newRole, user.email);
+                                  if (success) {
+                                    setUsers(prev => prev.map(u => u.id === user.id ? { ...u, role: newRole } : u));
+                                    setToastMsg({ 
+                                      title: 'Função Atualizada', 
+                                      message: `${user.name} agora é ${newRole === 'admin' ? 'Administrador 👑' : 'Utilizador Comum 👤'}.`, 
+                                      type: 'success' 
+                                    });
+                                  } else {
+                                    setToastMsg({ title: 'Erro', message: 'Falha ao atualizar função.', type: 'error' });
+                                  }
+                                  setConfirmModalData(null);
+                                }
+                              });
+                            }}
+                            className={`px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg text-[9px] sm:text-xs font-bold outline-none border cursor-pointer ${
+                              user.role === 'admin'
+                                ? 'bg-purple-50 text-purple-700 border-purple-300 ring-1 ring-purple-400/30'
+                                : 'bg-gray-50 text-gray-700 border-gray-200 hover:border-gray-300'
+                            }`}
+                            title="Alterar cargo do utilizador"
+                          >
+                            <option value="user">👤 Utilizador</option>
+                            <option value="admin">👑 Admin</option>
+                          </select>
+                        )}
+                      </td>
+
+                      <td className="py-2.5 sm:py-3.5 px-2 sm:px-4">
+                        {userClientOrders.length > 0 || userClientSites.length > 0 ? (
+                          <div className="space-y-0.5 sm:space-y-1">
+                            {userClientOrders.slice(0, 2).map((ord) => (
+                              <span key={ord.id} className="inline-block px-1.5 sm:px-2 py-0.5 rounded text-[9px] sm:text-[11px] font-bold bg-blue-50 text-blue-800 border border-blue-200 mr-0.5 sm:mr-1">
+                                📦 {ord.serviceName.length > 15 ? ord.serviceName.substring(0, 15) + '...' : ord.serviceName}
                               </span>
+                            ))}
+                            {userClientOrders.length > 2 && (
+                              <span className="text-[9px] sm:text-[10px] text-gray-500 font-bold block">+ {userClientOrders.length - 2}</span>
                             )}
                           </div>
+                        ) : (
+                          <span className="inline-block px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[9px] sm:text-xs font-semibold bg-gray-100 text-gray-600 border border-gray-200">
+                            Sem Serviço
+                          </span>
                         )}
                       </td>
                       <td className="py-2.5 sm:py-3.5 px-2 sm:px-4 text-gray-600 text-[10px] sm:text-sm font-medium hidden sm:table-cell">
-                        {user.role === 'admin' || user.email.toLowerCase() === 'admin@wehosthere.com' ? (
+                        {isSuperAdmin ? (
                           <span className="text-gray-400 font-mono text-xs">N/A</span>
                         ) : (
                           <select
@@ -2422,7 +2469,7 @@ export default function AdminPage() {
                         )}
                       </td>
                       <td className="py-2.5 sm:py-3.5 px-2 sm:px-4">
-                        {user.role === 'admin' || user.email.toLowerCase() === 'admin@wehosthere.com' ? (
+                        {isSuperAdmin ? (
                           <span className="inline-block px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[9px] sm:text-xs font-bold bg-purple-100 text-purple-700 border border-purple-200">
                             👑 Sistema
                           </span>
@@ -2453,78 +2500,46 @@ export default function AdminPage() {
                       </td>
                       <td className="py-2.5 sm:py-3.5 px-2 sm:px-4">
                         <div className="flex items-center space-x-1 sm:space-x-1.5">
-                          <button
-                            onClick={() => {
-                              const currentSt = user.status || 'active';
-                              const newStatus = currentSt === 'suspended' ? 'active' : 'suspended';
-                              auth.updateUserStatus(user.id, newStatus);
-                              setUsers(prev => prev.map(u => u.id === user.id ? { ...u, status: newStatus } : u));
-                            }}
-                            className={`px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-md text-[9px] sm:text-xs font-semibold transition ${
-                              (user.status || 'active') === 'suspended'
-                                ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
-                                : 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200'
-                            }`}
-                          >
-                            {(user.status || 'active') === 'suspended' ? 'Reativar' : 'Suspender'}
-                          </button>
-
-                          {user.email.toLowerCase() !== 'admin@wehosthere.com' && (
+                          {!isSuperAdmin && (
                             <button
                               onClick={() => {
-                                const currentRole = user.role || 'user';
-                                const newRole = currentRole === 'admin' ? 'user' : 'admin';
-                                fetch('/api/users', {
-                                  method: 'POST',
-                                  headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({
-                                    action: 'update_role',
-                                    userId: user.id,
-                                    email: user.email,
-                                    role: newRole
-                                  })
-                                }).then(res => res.json()).then(data => {
-                                  if (data.success) {
-                                    setUsers(data.users);
-                                    setToastMsg({ 
-                                      title: 'Função Atualizada', 
-                                      message: `${user.name} agora é ${newRole === 'admin' ? 'administrador' : 'usuário comum'}.`, 
-                                      type: 'success' 
-                                    });
-                                  }
-                                });
+                                const currentSt = user.status || 'active';
+                                const newStatus = currentSt === 'suspended' ? 'active' : 'suspended';
+                                auth.updateUserStatus(user.id, newStatus);
+                                setUsers(prev => prev.map(u => u.id === user.id ? { ...u, status: newStatus } : u));
                               }}
                               className={`px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-md text-[9px] sm:text-xs font-semibold transition ${
-                                (user.role || 'user') === 'admin'
-                                  ? 'bg-purple-100 text-purple-800 hover:bg-purple-200'
-                                  : 'bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200'
+                                (user.status || 'active') === 'suspended'
+                                  ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
+                                  : 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200'
                               }`}
-                              title={(user.role || 'user') === 'admin' ? 'Remover permissões de admin' : 'Promover a administrador'}
                             >
-                              {(user.role || 'user') === 'admin' ? '👑 Admin' : '👤 User'}
+                              {(user.status || 'active') === 'suspended' ? 'Reativar' : 'Suspender'}
                             </button>
                           )}
 
-                          <button
-                            onClick={() => {
-                              setConfirmModalData({
-                                isOpen: true,
-                                title: 'Eliminar Cliente',
-                                message: `Tem certeza que deseja eliminar permanentemente o cliente "${user.name}" (${user.email})?`,
-                                variant: 'danger',
-                                onConfirm: () => {
-                                  auth.deleteUser(user.id, user.email);
-                                  setUsers(auth.getUsers());
-                                  setConfirmModalData(null);
-                                  setToastMsg({ title: 'Cliente Eliminado', message: `O cliente ${user.name} foi removido da plataforma.`, type: 'success' });
-                                }
-                              });
-                            }}
-                            className="p-1 sm:p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition cursor-pointer"
-                            title="Eliminar cliente"
-                          >
-                            <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
-                          </button>
+                          {!isSuperAdmin && (
+                            <button
+                              onClick={() => {
+                                setConfirmModalData({
+                                  isOpen: true,
+                                  title: 'Eliminar Utilizador',
+                                  message: `Tem certeza que deseja eliminar permanentemente o utilizador "${user.name}" (${user.email})?`,
+                                  variant: 'danger',
+                                  onConfirm: () => {
+                                    auth.deleteUser(user.id, user.email);
+                                    setUsers(auth.getUsers());
+                                    setConfirmModalData(null);
+                                    setToastMsg({ title: 'Utilizador Eliminado', message: `O utilizador ${user.name} foi removido da plataforma.`, type: 'success' });
+                                  }
+                                });
+                              }}
+                              className="p-1 sm:p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition cursor-pointer"
+                              title="Eliminar utilizador"
+                            >
+                              <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>

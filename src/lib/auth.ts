@@ -719,6 +719,34 @@ export const auth = {
     }
   },
 
+  // Atualizar função/role do usuário (user | admin)
+  updateUserRole: async (userId: string, role: 'user' | 'admin', userEmail?: string): Promise<boolean> => {
+    if (typeof window === 'undefined') return false;
+    const userData = JSON.parse(localStorage.getItem(`user_${userId}`) || '{}');
+    userData.role = role;
+    localStorage.setItem(`user_${userId}`, JSON.stringify(userData));
+
+    const currentList = auth.getUsers();
+    const updatedList = currentList.map(u => u.id === userId ? { ...u, role } : u);
+    localStorage.setItem('wehosthere_all_users', JSON.stringify(updatedList));
+
+    try {
+      const res = await fetch(apiEndpoint('/api/users'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update_role', userId, email: userEmail || userData.email, role })
+      });
+      const data = await res.json();
+      if (data.users && Array.isArray(data.users)) {
+        localStorage.setItem('wehosthere_all_users', JSON.stringify(data.users));
+      }
+      return Boolean(data.success);
+    } catch (err) {
+      console.error('Erro de sync de role:', err);
+      return false;
+    }
+  },
+
   // Eliminar usuário
   deleteUser: (userId: string, userEmail?: string): void => {
     if (typeof window === 'undefined') return;
