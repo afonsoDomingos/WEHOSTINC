@@ -396,97 +396,97 @@ export default function EmailPage() {
       {/* Header Responsivo */}
       <DashboardNav userName={user.name} userAvatar={user.avatar} onLogout={handleLogout} />
 
-      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-4 sm:py-6">
-        <div className="grid lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+      <div className="max-w-7xl mx-auto px-1.5 sm:px-3 lg:px-8 py-3 sm:py-6">
+        <div className="grid lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-8">
           {/* Sidebar (Desktop) */}
           <div className="hidden lg:block lg:col-span-1">
             <DashboardSidebar />
           </div>
 
           {/* Main Content */}
-          <div className="lg:col-span-3 space-y-4 sm:space-y-6">
-            <div className="bg-white rounded-xl shadow-sm p-3 sm:p-4 sm:p-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 mb-3 sm:mb-5">
+          <div className="lg:col-span-3 space-y-3 sm:space-y-6">
+            <div className="bg-white rounded-xl shadow-sm p-2 sm:p-3 sm:p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2 sm:gap-3 mb-2 sm:mb-3 sm:mb-5">
                 <div className="min-w-0 flex-1">
-                  <h1 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-gray-900 truncate">Contas de Email Corporativo</h1>
-                  <p className="text-[10px] sm:text-xs md:text-sm text-gray-500 mt-0.5 line-clamp-1 sm:line-clamp-2">Gerencie os emails da sua empresa, altere senhas e aceda ao Webmail</p>
+                  <h1 className="text-sm sm:text-base md:text-lg lg:text-2xl font-bold text-gray-900 truncate">Contas de Email Corporativo</h1>
+                  <p className="text-[8px] sm:text-[10px] md:text-sm text-gray-500 mt-0.5 line-clamp-1 sm:line-clamp-2">Gerencie os emails da sua empresa, altere senhas e aceda ao Webmail</p>
                 </div>
                 <button
                   onClick={() => setShowCreateModal(true)}
-                  className="flex items-center justify-center space-x-1.5 sm:space-x-2 bg-primary-600 text-white font-bold text-xs sm:text-sm md:text-base px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl hover:bg-primary-700 transition cursor-pointer shadow-sm w-full sm:w-auto shrink-0"
+                  className="flex items-center justify-center space-x-1 sm:space-x-1.5 sm:space-x-2 bg-primary-600 text-white font-bold text-[10px] sm:text-xs md:text-base px-2 sm:px-3 sm:px-4 py-1.5 sm:py-2 sm:py-2.5 rounded-xl hover:bg-primary-700 transition cursor-pointer shadow-sm w-full sm:w-auto shrink-0"
                 >
-                  <Plus className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5" />
+                  <Plus className="h-2.5 w-2.5 sm:h-3 sm:w-3 md:h-5 md:w-5" />
                   <span className="hidden sm:inline">Nova Conta de Email</span>
                   <span className="sm:hidden">+ Email</span>
                 </button>
               </div>
 
               {emails.length === 0 ? (
-                <div className="text-center py-8 sm:py-12">
-                  <Mail className="h-12 w-12 sm:h-16 sm:w-16 text-gray-300 mx-auto mb-2 sm:mb-4" />
-                  <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 mb-2">Nenhuma conta configurada</h3>
-                  <p className="text-gray-600 mb-2 sm:mb-4 text-[10px] sm:text-xs md:text-sm max-w-md mx-auto px-2">Crie sua primeira conta de email profissional personalizada</p>
+                <div className="text-center py-6 sm:py-8 sm:py-12">
+                  <Mail className="h-10 w-10 sm:h-12 sm:h-16 sm:w-12 sm:w-16 text-gray-300 mx-auto mb-1.5 sm:mb-2 sm:mb-4" />
+                  <h3 className="text-xs sm:text-sm md:text-lg font-semibold text-gray-900 mb-1.5 sm:mb-2">Nenhuma conta configurada</h3>
+                  <p className="text-gray-600 mb-1.5 sm:mb-2 sm:mb-4 text-[8px] sm:text-[10px] md:text-sm max-w-md mx-auto px-1.5 sm:px-2">Crie sua primeira conta de email profissional personalizada</p>
                   <button
                     onClick={() => setShowCreateModal(true)}
-                    className="flex items-center justify-center space-x-1.5 sm:space-x-2 bg-primary-600 text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl hover:bg-primary-700 transition mx-auto font-bold text-xs sm:text-sm w-full sm:w-auto"
+                    className="flex items-center justify-center space-x-1 sm:space-x-1.5 sm:space-x-2 bg-primary-600 text-white px-2 sm:px-3 sm:px-4 py-1.5 sm:py-2 sm:py-2.5 rounded-xl hover:bg-primary-700 transition mx-auto font-bold text-[10px] sm:text-xs w-full sm:w-auto"
                   >
-                    <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <Plus className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                     <span>Criar Primeira Conta</span>
                   </button>
                 </div>
               ) : (
-                <div className="space-y-2 sm:space-y-3 sm:space-y-4">
+                <div className="space-y-1.5 sm:space-y-2 sm:space-y-3 sm:space-y-4">
                   {emails.map((email) => (
-                    <div key={email.id} className="border border-gray-200 rounded-xl sm:rounded-2xl p-2.5 sm:p-3 sm:p-4 sm:p-5 hover:bg-gray-50/50 transition bg-white shadow-xs">
-                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-3">
-                        <div className="flex items-center space-x-2 sm:space-x-3 sm:space-x-3.5 min-w-0">
-                          <div className="bg-primary-50 border border-primary-100 p-1.5 sm:p-2 sm:p-2.5 sm:p-3 rounded-lg sm:rounded-xl shrink-0">
-                            <Mail className="h-3.5 w-3.5 sm:h-4 sm:h-5 sm:w-4 sm:w-5 sm:h-6 sm:w-6 text-primary-600" />
+                    <div key={email.id} className="border border-gray-200 rounded-lg sm:rounded-xl sm:rounded-2xl p-2 sm:p-2.5 sm:p-3 sm:p-4 sm:p-5 hover:bg-gray-50/50 transition bg-white shadow-xs">
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1.5 sm:gap-2 sm:gap-3">
+                        <div className="flex items-center space-x-1.5 sm:space-x-2 sm:space-x-3 sm:space-x-3.5 min-w-0">
+                          <div className="bg-primary-50 border border-primary-100 p-1 sm:p-1.5 sm:p-2 sm:p-2.5 sm:p-3 rounded-lg sm:rounded-xl shrink-0">
+                            <Mail className="h-3 w-3 sm:h-3.5 sm:h-4 sm:h-5 sm:w-3.5 sm:w-4 sm:w-5 sm:h-6 sm:w-6 text-primary-600" />
                           </div>
                           <div className="min-w-0 flex-1">
-                            <h3 className="font-extrabold text-gray-900 text-[11px] sm:text-xs sm:text-sm md:text-base truncate">{email.email}</h3>
-                            <p className="text-[9px] sm:text-[10px] sm:text-xs md:text-sm text-gray-500">Conta Corporativa Profissional</p>
+                            <h3 className="font-extrabold text-gray-900 text-[10px] sm:text-[11px] sm:text-xs sm:text-sm md:text-base truncate">{email.email}</h3>
+                            <p className="text-[8px] sm:text-[9px] sm:text-[10px] sm:text-xs md:text-sm text-gray-500">Conta Corporativa Profissional</p>
                           </div>
                         </div>
 
-                        <div className="flex items-center justify-between sm:justify-end space-x-2 sm:space-x-3 w-full sm:w-auto pt-2 sm:pt-2.5 border-t sm:border-t-0 border-gray-100 shrink-0">
+                        <div className="flex items-center justify-between sm:justify-end space-x-1.5 sm:space-x-2 sm:space-x-3 w-full sm:w-auto pt-1.5 sm:pt-2 sm:pt-2.5 border-t sm:border-t-0 border-gray-100 shrink-0">
                           <StatusBadge status={email.status} />
-                          <div className="flex items-center space-x-1 sm:space-x-1 shrink-0">
+                          <div className="flex items-center space-x-0.5 sm:space-x-1 sm:space-x-1 shrink-0">
                             <Link
                               href={`/webmail?user=${encodeURIComponent(email.email)}`}
-                              className="px-2 sm:px-3 py-1.5 sm:py-2 bg-primary-600 hover:bg-primary-700 text-white font-bold text-[10px] sm:text-xs rounded-lg transition flex items-center space-x-1 sm:space-x-1.5 cursor-pointer"
+                              className="px-1.5 sm:px-2 sm:px-3 py-1 sm:py-1.5 sm:py-2 bg-primary-600 hover:bg-primary-700 text-white font-bold text-[9px] sm:text-[10px] sm:text-xs rounded-lg transition flex items-center space-x-0.5 sm:space-x-1 sm:space-x-1.5 cursor-pointer"
                             >
-                              <Mail className="h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0" />
+                              <Mail className="h-2.5 w-2.5 sm:h-3 sm:w-3 sm:h-3.5 sm:w-3.5 shrink-0" />
                               <span className="hidden sm:inline">Webmail</span>
                             </Link>
                             <button
                               type="button"
                               onClick={() => handleOpenEditModal(email)}
-                              className="p-1.5 sm:p-2 text-gray-500 hover:text-primary-600 transition hover:bg-gray-100 rounded-lg cursor-pointer"
+                              className="p-1 sm:p-1.5 sm:p-2 text-gray-500 hover:text-primary-600 transition hover:bg-gray-100 rounded-lg cursor-pointer"
                             >
-                              <Settings className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:h-5 sm:w-5" />
+                              <Settings className="h-3 w-3 sm:h-3.5 sm:w-3.5 sm:h-4 sm:w-4 sm:h-5 sm:w-5" />
                             </button>
                             <button
                               type="button"
                               onClick={() => setDeleteEmailConfirm({ isOpen: true, id: email.id, emailStr: email.email })}
-                              className="p-1.5 sm:p-2 text-gray-500 hover:text-red-600 transition hover:bg-red-50 rounded-lg cursor-pointer"
+                              className="p-1 sm:p-1.5 sm:p-2 text-gray-500 hover:text-red-600 transition hover:bg-red-50 rounded-lg cursor-pointer"
                             >
-                              <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:h-5 sm:w-5" />
+                              <Trash2 className="h-3 w-3 sm:h-3.5 sm:w-3.5 sm:h-4 sm:w-4 sm:h-5 sm:w-5" />
                             </button>
                           </div>
                         </div>
                       </div>
 
                       {email.status === 'pending' && (
-                        <div className="mt-2 sm:mt-3 p-2 sm:p-3 bg-amber-50 border border-amber-200 rounded-lg text-[10px] sm:text-xs text-amber-800 flex items-center space-x-1.5 sm:space-x-2">
-                          <Clock className="h-3 w-3 sm:h-3.5 sm:h-4 sm:w-3.5 sm:w-4 text-amber-600 flex-shrink-0 animate-pulse" />
+                        <div className="mt-1.5 sm:mt-2 sm:mt-3 p-1.5 sm:p-2 sm:p-3 bg-amber-50 border border-amber-200 rounded-lg text-[9px] sm:text-[10px] sm:text-xs text-amber-800 flex items-center space-x-1 sm:space-x-1.5 sm:space-x-2">
+                          <Clock className="h-2.5 w-2.5 sm:h-3 sm:w-3 sm:h-3.5 sm:h-4 sm:w-3.5 sm:w-4 text-amber-600 flex-shrink-0 animate-pulse" />
                           <span className="line-clamp-2">
                             <strong>Em Processamento:</strong> Ativação em curso pela equipa técnica.
                           </span>
                         </div>
                       )}
 
-                      <div className="mt-2 sm:mt-3 sm:mt-4 pt-2 sm:pt-3 sm:pt-4 border-t grid grid-cols-2 gap-2 sm:gap-3 sm:gap-4 text-[10px] sm:text-xs md:text-sm">
+                      <div className="mt-1.5 sm:mt-2 sm:mt-3 sm:mt-4 pt-1.5 sm:pt-2 sm:pt-3 sm:pt-4 border-t grid grid-cols-2 gap-1.5 sm:gap-2 sm:gap-3 sm:gap-4 text-[9px] sm:text-[10px] sm:text-xs md:text-sm">
                         <div>
                           <p className="text-gray-600">Armazenamento</p>
                           <p className="font-semibold text-gray-900">{email.storage || 1} GB</p>
@@ -505,35 +505,35 @@ export default function EmailPage() {
             </div>
 
             {/* Email Configuration Box */}
-            <div className="bg-white border border-blue-200 rounded-xl shadow-sm p-3 sm:p-4 sm:p-6">
-              <div className="flex items-center space-x-1.5 sm:space-x-2 mb-2 sm:mb-3">
-                <ShieldCheck className="h-4 w-4 sm:h-5 sm:w-5 text-primary-600" />
-                <h3 className="font-bold text-gray-900 text-xs sm:text-sm md:text-base truncate">Configuração Email (Outlook, iPhone, Android)</h3>
+            <div className="bg-white border border-blue-200 rounded-xl shadow-sm p-2 sm:p-3 sm:p-4 sm:p-6">
+              <div className="flex items-center space-x-1 sm:space-x-1.5 sm:space-x-2 mb-1.5 sm:mb-2 sm:mb-3">
+                <ShieldCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:h-5 sm:w-5 text-primary-600" />
+                <h3 className="font-bold text-gray-900 text-[10px] sm:text-xs md:text-base truncate">Configuração Email (Outlook, iPhone, Android)</h3>
               </div>
-              <p className="text-gray-600 text-[10px] sm:text-xs md:text-sm mb-2 sm:mb-3 sm:mb-4 line-clamp-2">
+              <p className="text-gray-600 text-[8px] sm:text-[10px] md:text-sm mb-1.5 sm:mb-2 sm:mb-3 sm:mb-4 line-clamp-2">
                 Utilize as configurações abaixo para adicionar estas contas ao Outlook, Thunderbird, Apple Mail ou no smartphone:
               </p>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 text-[10px] sm:text-xs md:text-sm">
-                <div className="p-2 sm:p-3 bg-blue-50/60 rounded-lg border border-blue-100">
-                  <span className="font-bold text-blue-900 block mb-0.5 sm:mb-1 text-[10px] sm:text-xs">IMAP (Recomendado):</span>
-                  <span className="font-mono text-gray-800 block text-[9px] sm:text-[10px] sm:text-xs break-all">mail.wehosthere.com</span>
-                  <span className="text-gray-500 font-mono text-[9px] sm:text-[10px] sm:text-xs block">Porta 993 (SSL)</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-1.5 sm:gap-2 sm:gap-3 text-[9px] sm:text-[10px] sm:text-xs md:text-sm">
+                <div className="p-1.5 sm:p-2 sm:p-3 bg-blue-50/60 rounded-lg border border-blue-100">
+                  <span className="font-bold text-blue-900 block mb-0.5 sm:mb-1 text-[9px] sm:text-[10px] sm:text-xs">IMAP (Recomendado):</span>
+                  <span className="font-mono text-gray-800 block text-[8px] sm:text-[9px] sm:text-[10px] sm:text-xs break-all">mail.wehosthere.com</span>
+                  <span className="text-gray-500 font-mono text-[8px] sm:text-[9px] sm:text-[10px] sm:text-xs block">Porta 993 (SSL)</span>
                 </div>
-                <div className="p-2 sm:p-3 bg-blue-50/60 rounded-lg border border-blue-100">
-                  <span className="font-bold text-blue-900 block mb-0.5 sm:mb-1 text-[10px] sm:text-xs">POP3:</span>
-                  <span className="font-mono text-gray-800 block text-[9px] sm:text-[10px] sm:text-xs break-all">mail.wehosthere.com</span>
-                  <span className="text-gray-500 font-mono text-[9px] sm:text-[10px] sm:text-xs block">Porta 995 (SSL)</span>
+                <div className="p-1.5 sm:p-2 sm:p-3 bg-blue-50/60 rounded-lg border border-blue-100">
+                  <span className="font-bold text-blue-900 block mb-0.5 sm:mb-1 text-[9px] sm:text-[10px] sm:text-xs">POP3:</span>
+                  <span className="font-mono text-gray-800 block text-[8px] sm:text-[9px] sm:text-[10px] sm:text-xs break-all">mail.wehosthere.com</span>
+                  <span className="text-gray-500 font-mono text-[8px] sm:text-[9px] sm:text-[10px] sm:text-xs block">Porta 995 (SSL)</span>
                 </div>
-                <div className="p-2 sm:p-3 bg-blue-50/60 rounded-lg border border-blue-100">
-                  <span className="font-bold text-blue-900 block mb-0.5 sm:mb-1 text-[10px] sm:text-xs">SMTP (Envio):</span>
-                  <span className="font-mono text-gray-800 block text-[9px] sm:text-[10px] sm:text-xs break-all">mail.wehosthere.com</span>
-                  <span className="text-gray-500 font-mono text-[9px] sm:text-[10px] sm:text-xs block">Porta 465/587</span>
+                <div className="p-1.5 sm:p-2 sm:p-3 bg-blue-50/60 rounded-lg border border-blue-100">
+                  <span className="font-bold text-blue-900 block mb-0.5 sm:mb-1 text-[9px] sm:text-[10px] sm:text-xs">SMTP (Envio):</span>
+                  <span className="font-mono text-gray-800 block text-[8px] sm:text-[9px] sm:text-[10px] sm:text-xs break-all">mail.wehosthere.com</span>
+                  <span className="text-gray-500 font-mono text-[8px] sm:text-[9px] sm:text-[10px] sm:text-xs block">Porta 465/587</span>
                 </div>
-                <div className="p-2 sm:p-3 bg-blue-50/60 rounded-lg border border-blue-100">
-                  <span className="font-bold text-blue-900 block mb-0.5 sm:mb-1 text-[10px] sm:text-xs">Webmail:</span>
-                  <span className="font-mono text-primary-700 font-bold block text-[9px] sm:text-[10px] sm:text-xs break-all">wehosthere.com/webmail</span>
-                  <span className="text-gray-500 font-mono text-[9px] sm:text-[10px] sm:text-xs block">Email + Senha</span>
+                <div className="p-1.5 sm:p-2 sm:p-3 bg-blue-50/60 rounded-lg border border-blue-100">
+                  <span className="font-bold text-blue-900 block mb-0.5 sm:mb-1 text-[9px] sm:text-[10px] sm:text-xs">Webmail:</span>
+                  <span className="font-mono text-primary-700 font-bold block text-[8px] sm:text-[9px] sm:text-[10px] sm:text-xs break-all">wehosthere.com/webmail</span>
+                  <span className="text-gray-500 font-mono text-[8px] sm:text-[9px] sm:text-[10px] sm:text-xs block">Email + Senha</span>
                 </div>
               </div>
             </div>
