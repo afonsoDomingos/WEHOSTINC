@@ -1775,24 +1775,80 @@ function WebmailContent() {
                 </div>
               ))
             ) : !mailboxPassword && !isAccountPending ? (
-              <div className="p-6 text-center flex flex-col items-center justify-center my-auto space-y-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-primary-100 to-indigo-100 text-primary-600 rounded-2xl flex items-center justify-center mx-auto shadow-inner border border-primary-200/60">
+              <div className="p-4 sm:p-6 text-center flex flex-col items-center justify-center my-auto w-full max-w-sm mx-auto animate-in fade-in zoom-in-95 duration-200">
+                <div className="w-12 h-12 bg-gradient-to-br from-primary-100 to-indigo-100 text-primary-600 rounded-2xl flex items-center justify-center mx-auto shadow-inner border border-primary-200/60 mb-2">
                   <Lock className="h-6 w-6 text-primary-600" />
                 </div>
-                <div>
-                  <h4 className="font-extrabold text-gray-900 text-xs sm:text-sm">Caixa Bloqueada</h4>
-                  <p className="text-[11px] text-gray-500 mt-1 leading-relaxed max-w-[200px] mx-auto">
-                    Inicie sessão para sincronizar e ler as suas mensagens.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => openLoginModal()}
-                  className="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 active:scale-95 text-white font-bold text-xs sm:text-sm rounded-xl transition cursor-pointer shadow-md flex items-center justify-center space-x-2 mx-auto"
-                >
-                  <Lock className="h-3.5 w-3.5" />
-                  <span>Entrar no Webmail</span>
-                </button>
+                <h4 className="font-extrabold text-gray-900 text-sm sm:text-base">Caixa Bloqueada</h4>
+                <p className="text-xs text-gray-500 mt-0.5 mb-3 leading-relaxed">
+                  Insira a senha de <strong className="font-mono text-primary-700">{selectedAccountEmail}</strong> para aceder às mensagens.
+                </p>
+
+                <form onSubmit={handleWebmailLogin} className="w-full space-y-3 bg-white p-4 rounded-2xl border border-gray-200/90 shadow-sm text-left">
+                  {webmailLoginError && (
+                    <div className="p-2.5 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-xs font-semibold">
+                      {webmailLoginError}
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-600 uppercase tracking-wider mb-1">
+                      Conta de Email
+                    </label>
+                    <input
+                      type="email"
+                      value={webmailLoginEmail || selectedAccountEmail}
+                      onChange={(e) => {
+                        setWebmailLoginEmail(e.target.value);
+                        setSelectedAccountEmail(e.target.value);
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-xs font-mono bg-gray-50 text-gray-800"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-600 uppercase tracking-wider mb-1">
+                      Senha do Webmail
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showLoginPassword ? 'text' : 'password'}
+                        value={webmailLoginPassword}
+                        onChange={(e) => setWebmailLoginPassword(e.target.value)}
+                        placeholder="••••••••"
+                        required
+                        className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-xs text-gray-900"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowLoginPassword(!showLoginPassword)}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 cursor-pointer"
+                        title={showLoginPassword ? 'Ocultar senha' : 'Ver senha'}
+                      >
+                        {showLoginPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={webmailLoginLoading}
+                    className="w-full py-2.5 bg-primary-600 hover:bg-primary-700 active:scale-98 disabled:bg-gray-300 text-white font-bold text-xs rounded-xl transition cursor-pointer shadow-md flex items-center justify-center space-x-2"
+                  >
+                    {webmailLoginLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>A autenticar...</span>
+                      </>
+                    ) : (
+                      <>
+                        <ShieldCheck className="h-4 w-4" />
+                        <span>Entrar no Webmail</span>
+                      </>
+                    )}
+                  </button>
+                </form>
               </div>
             ) : displayMessages.length === 0 ? (
               <div className="p-8 text-center text-gray-400 text-xs">
