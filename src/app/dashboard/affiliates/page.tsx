@@ -13,6 +13,7 @@ import {
 import { auth, User } from '@/lib/auth';
 import { getUserId, getAffiliateUserInfo, isAffiliateAuthenticated } from '@/lib/affiliateAuth';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import PageLoader from '@/components/PageLoader';
 
 // Extender tipos do NextAuth para incluir campos customizados
 declare module 'next-auth' {
@@ -312,12 +313,8 @@ export default function AffiliatesPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-      </div>
-    );
+  if (loading || status === 'loading') {
+    return <PageLoader text="A carregar o Painel de Afiliados..." />;
   }
 
   if (!affiliate) {
