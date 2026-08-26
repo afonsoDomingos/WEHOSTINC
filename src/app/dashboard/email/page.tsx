@@ -19,16 +19,18 @@ import StatusBadge from '@/components/StatusBadge';
 import ApprovalCelebration from '@/components/ApprovalCelebration';
 import ConfirmModal from '@/components/ConfirmModal';
 import Toast from '@/components/Toast';
+import { getCached, setCached } from '@/lib/pageCache';
 
 export default function EmailPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const [user, setUser] = useState<User | null>(null);
-  const [emails, setEmails] = useState<EmailAccount[]>([]);
-  const [sites, setSites] = useState<Site[]>([]);
+  const [emails, setEmails] = useState<EmailAccount[]>(() => getCached<EmailAccount[]>('email:accounts') || []);
+  const [sites, setSites] = useState<Site[]>(() => getCached<Site[]>('email:sites') || []);
   const [userDomains, setUserDomains] = useState<string[]>([]);
   const [migaduDomains, setMigaduDomains] = useState<any[]>([]); // Domains from Migadu
-  const [loading, setLoading] = useState(true);
+  // Sem loader se ja ha dados em cache (navegacao entre abas)
+  const [loading, setLoading] = useState(() => !getCached('email:accounts'));
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   // Modal para Criar Nova Conta
@@ -186,6 +188,10 @@ export default function EmailPage() {
       setSelectedDomain(initialSites[0].domain);
     }
     setLoading(false);
+
+    // Guardar em cache para navegacoes futuras
+    setCached('email:accounts', dataManager.getEmails(userEmailFilter));
+    setCached('email:sites', initialSites);
 
     // Fetch Migadu domains
     fetchMigaduDomains();

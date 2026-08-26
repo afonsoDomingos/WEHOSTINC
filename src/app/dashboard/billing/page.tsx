@@ -17,15 +17,16 @@ import ReceiptModal, { ReceiptData } from '@/components/ReceiptModal';
 import Toast from '@/components/Toast';
 import { Clock, XCircle, FileText } from 'lucide-react';
 import { soundEffects } from '@/lib/soundEffects';
+import { getCached, setCached } from '@/lib/pageCache';
 
 export default function BillingPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(() => getCached<User>('billing:user') || null);
+  const [loading, setLoading] = useState(() => !getCached('billing:user'));
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [selectedReceipt, setSelectedReceipt] = useState<ReceiptData | null>(null);
-  const [userOrders, setUserOrders] = useState<ServiceOrder[]>([]);
+  const [userOrders, setUserOrders] = useState<ServiceOrder[]>(() => getCached<ServiceOrder[]>('billing:orders') || []);
   const [siteCount, setSiteCount] = useState(0);
   const [emailCount, setEmailCount] = useState(0);
   const [toastMsg, setToastMsg] = useState<{ type: 'success' | 'error' | 'info'; title?: string; message: string } | null>(null);
@@ -93,6 +94,8 @@ export default function BillingPage() {
 
     refreshOrders();
     setLoading(false);
+    setCached('billing:user', currentUser);
+    setCached('billing:orders', dataManager.getOrders());
 
     dataManager.fetchOrdersAsync().then((fetched) => refreshOrders(fetched));
 

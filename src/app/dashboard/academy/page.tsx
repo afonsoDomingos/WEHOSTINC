@@ -10,16 +10,18 @@ import DashboardNav from '@/components/DashboardNav';
 import DashboardSidebar from '@/components/DashboardSidebar';
 import PageLoader from '@/components/PageLoader';
 import Toast from '@/components/Toast';
+import { getCached, setCached } from '@/lib/pageCache';
 
 export default function DashboardAcademyPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const [user, setUser] = useState<User | null>(null);
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [modules, setModules] = useState<Module[]>([]);
+  const [courses, setCourses] = useState<Course[]>(() => getCached<Course[]>('academy:courses') || []);
+  const [modules, setModules] = useState<Module[]>(() => getCached<Module[]>('academy:modules') || []);
   const [enrollments, setEnrollments] = useState<CourseEnrollment[]>([]);
   const [progressList, setProgressList] = useState<CourseProgress[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Se ja ha dados em cache, nao mostra loader — evita spinner ao navegar entre abas
+  const [loading, setLoading] = useState(() => !getCached('academy:courses'));
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' | 'info' | 'warning' }>({ show: false, message: '', type: 'success' });
 
@@ -73,8 +75,15 @@ export default function DashboardAcademyPage() {
       console.error('Erro ao buscar dados do servidor, usando dados locais:', e);
     }
 
-    setCourses(dataManager.getCourses().filter(c => c.active));
-    setModules(dataManager.getModules());
+    const fetchedCourses = dataManager.getCourses().filter(c => c.active);
+    const fetchedModules = dataManager.getModules();
+
+    // Guardar em cache para navegacoes futuras sem loader
+    setCached('academy:courses', fetchedCourses);
+    setCached('academy:modules', fetchedModules);
+
+    setCourses(fetchedCourses);
+    setModules(fetchedModules);
     setEnrollments(dataManager.getEnrollments(currentUser.email));
     setLoading(false);
   };
