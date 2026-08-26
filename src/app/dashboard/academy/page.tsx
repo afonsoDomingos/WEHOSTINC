@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import { BookOpen, Play, Lock, CheckCircle, Clock, DollarSign, Eye, Unlock, ChevronRight, ArrowRight } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 import { dataManager, Course, Module, Lesson, CourseProgress, CourseEnrollment } from '@/lib/data';
@@ -20,6 +20,7 @@ export default function DashboardAcademyPage() {
   const [enrollments, setEnrollments] = useState<CourseEnrollment[]>([]);
   const [progressList, setProgressList] = useState<CourseProgress[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' | 'info' | 'warning' }>({ show: false, message: '', type: 'success' });
 
   useEffect(() => {
@@ -116,19 +117,34 @@ export default function DashboardAcademyPage() {
 
   if (loading) return <PageLoader text="A carregar cursos..." />;
 
+  if (isLoggingOut) return <PageLoader text="A encerrar a sua sessão com segurança..." />;
+
+  const handleLogout = () => {
+    setIsLoggingOut(true);
+    setTimeout(() => {
+      auth.logout();
+      signOut({ callbackUrl: '/' });
+    }, 400);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <DashboardNav 
-        userName={user?.name} 
+      <DashboardNav
+        userName={user?.name}
         userAvatar={user?.avatar}
-        onLogout={() => {
-          auth.logout();
-          router.push('/');
-        }}
+        onLogout={handleLogout}
       />
-      <DashboardSidebar />
-      
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6">
+        <div className="grid lg:grid-cols-4 gap-8">
+          {/* Sidebar (Desktop) */}
+          <div className="hidden lg:block lg:col-span-1">
+            <DashboardSidebar />
+          </div>
+
+          {/* Main Content */}
+          <div className="lg:col-span-3 space-y-6">
+            <main>
         {/* Welcome Section */}
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Bem-vindo à Academia Web</h2>
@@ -300,7 +316,10 @@ export default function DashboardAcademyPage() {
             </div>
           )}
         </section>
-      </main>
+            </main>
+          </div>
+        </div>
+      </div>
 
       {/* Toast */}
       {toast.show && (
