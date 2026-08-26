@@ -89,6 +89,27 @@ export async function POST(request: NextRequest) {
 
     console.log(`[Affiliate] Conversion tracked for affiliate ${affiliateCode}, order: ${orderId}, commission: ${commissionAmount}`);
 
+    // Enviar e-mail de notificação de comissão ao afiliado
+    try {
+      const UserModel = (await import('@/lib/models/User')).default;
+      const affiliateUser = await UserModel.findOne({
+        $or: [{ id: affiliate.userId }, { email: affiliate.userId }]
+      });
+      if (affiliateUser && affiliateUser.email) {
+        const { sendAffiliateCommissionEmail } = await import('@/lib/affiliateEmails');
+        sendAffiliateCommissionEmail(
+          affiliateUser.email,
+          affiliateUser.name || 'Parceiro Afiliado',
+          amount,
+          commissionAmount,
+          customerName || customerEmail,
+          orderId
+        ).catch((err: any) => console.error('[Affiliate Commission Email] Erro:', err));
+      }
+    } catch (emailErr) {
+      console.error('[Affiliate Conversion] Erro ao enviar email de comissão:', emailErr);
+    }
+
     return NextResponse.json({ 
       success: true, 
       message: 'Conversão rastreada com sucesso',

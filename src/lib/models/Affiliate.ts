@@ -9,6 +9,7 @@ export interface IAffiliate extends Document {
   availableBalance: number;
   totalClicks: number;
   totalConversions: number;
+  totalReferredUsers?: number; // Contas criadas pelo link do afiliado
   conversionRate: number;
   payoutMethod?: 'bank_transfer' | 'paypal' | 'mpesa';
   payoutDetails?: {
@@ -34,6 +35,7 @@ const AffiliateSchema = new Schema<IAffiliate>({
   availableBalance: { type: Number, default: 0 },
   totalClicks: { type: Number, default: 0 },
   totalConversions: { type: Number, default: 0 },
+  totalReferredUsers: { type: Number, default: 0 },
   conversionRate: { type: Number, default: 0 },
   payoutMethod: { type: String, enum: ['bank_transfer', 'paypal', 'mpesa'] },
   payoutDetails: {

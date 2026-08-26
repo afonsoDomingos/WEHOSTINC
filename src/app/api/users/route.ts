@@ -619,6 +619,18 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: 'E-mail é obrigatório para registo.' }, { status: 400 });
       }
 
+      // 🎯 Extrair código de afiliado (do body ou do cookie)
+      const cookieHeader = req.headers.get('cookie') || '';
+      let affiliateCode = body.referredBy || body.user?.referredBy || '';
+      if (!affiliateCode && cookieHeader.includes('affiliate_code=')) {
+        const match = cookieHeader.match(/affiliate_code=([^;]+)/);
+        if (match) affiliateCode = decodeURIComponent(match[1].trim());
+      }
+
+      if (affiliateCode) {
+        userData.referredBy = affiliateCode;
+      }
+
       userData.email = cleanEmail;
       if (!userData.id) userData.id = Date.now().toString();
 
@@ -657,6 +669,36 @@ export async function POST(req: Request) {
             isAutomatic: true,
             eventType: 'user_signup'
           });
+
+          // 🎯 Rastreamento de Afiliado & Envio de E-mail de Novo Lead
+          if (affiliateCode) {
+            try {
+              const AffiliateModel = (await import('@/lib/models/Affiliate')).default;
+              const affiliateDoc = await AffiliateModel.findOne({ affiliateCode });
+              if (affiliateDoc) {
+                await AffiliateModel.findByIdAndUpdate(affiliateDoc._id, {
+                  $inc: { totalReferredUsers: 1 }
+                });
+
+                // Buscar dados do afiliado para enviar o email
+                const affiliateUser = await UserModel.findOne({
+                  $or: [{ id: affiliateDoc.userId }, { email: affiliateDoc.userId }]
+                });
+
+                if (affiliateUser && affiliateUser.email) {
+                  const { sendAffiliateNewLeadEmail } = await import('@/lib/affiliateEmails');
+                  sendAffiliateNewLeadEmail(
+                    affiliateUser.email,
+                    affiliateUser.name || 'Parceiro Afiliado',
+                    userData.name || 'Novo Cliente',
+                    userData.email
+                  ).catch((err: any) => console.error('[Affiliate Lead Email] Erro:', err));
+                }
+              }
+            } catch (affErr) {
+              console.error('[Users API] Erro ao processar afiliado:', affErr);
+            }
+          }
 
           // 🎁 Auto-claim de convite de domínio pré-provisionado
           try {

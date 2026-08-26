@@ -44,10 +44,35 @@ export async function GET(
       utmCampaign: request.nextUrl.searchParams.get('utm_campaign') || undefined,
     });
 
-    // Update affiliate click count
-    await Affiliate.findByIdAndUpdate(affiliate._id, {
-      $inc: { totalClicks: 1 }
-    });
+    // Update affiliate click count and get new count
+    const updatedAffiliate = await Affiliate.findByIdAndUpdate(
+      affiliate._id,
+      { $inc: { totalClicks: 1 } },
+      { new: true }
+    );
+
+    // Milestone notifications (a cada 10 cliques ate 50, depois a cada 50)
+    const newClicks = updatedAffiliate?.totalClicks || (affiliate.totalClicks + 1);
+    const isMilestone = (newClicks <= 50 && newClicks % 10 === 0) || (newClicks > 50 && newClicks % 50 === 0);
+
+    if (isMilestone) {
+      try {
+        const UserModel = (await import('@/lib/models/User')).default;
+        const affiliateUser = await UserModel.findOne({
+          $or: [{ id: affiliate.userId }, { email: affiliate.userId }]
+        });
+        if (affiliateUser && affiliateUser.email) {
+          const { sendAffiliateMilestoneEmail } = await import('@/lib/affiliateEmails');
+          sendAffiliateMilestoneEmail(
+            affiliateUser.email,
+            affiliateUser.name || 'Parceiro Afiliado',
+            newClicks
+          ).catch((err: any) => console.error('[Affiliate Milestone Email] Erro:', err));
+        }
+      } catch (err) {
+        console.error('[Affiliate Milestone] Erro:', err);
+      }
+    }
 
     // Set cookie for affiliate tracking (30 days)
     const response = NextResponse.redirect(new URL('/', request.url));

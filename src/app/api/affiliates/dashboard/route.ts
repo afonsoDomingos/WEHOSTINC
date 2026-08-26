@@ -66,6 +66,29 @@ export async function GET(request: NextRequest) {
         clickedAt: { $gte: thirtyDaysAgo.toISOString() }
       }).sort({ clickedAt: -1 }).limit(100);
 
+      // 🎯 Buscar utilizadores cadastrados pelo link deste afiliado (Leads)
+      const UserModel = (await import('@/lib/models/User')).default;
+      const referredUsersDocs = await UserModel.find({
+        referredBy: affiliate.affiliateCode
+      }).sort({ createdAt: -1 }).limit(100).lean();
+
+      const referredUsers = referredUsersDocs.map((u: any) => {
+        const userHasConverted = commissions.some(
+          c => c.referredCustomerEmail?.toLowerCase() === u.email?.toLowerCase() ||
+               c.referredCustomerId === u.id
+        );
+
+        return {
+          id: u.id,
+          name: u.name || 'Utilizador',
+          email: u.email,
+          createdAt: u.createdAt,
+          status: u.status || 'active',
+          plan: u.plan || 'none',
+          hasConverted: userHasConverted
+        };
+      });
+
       // Calculate stats
       const pendingCommissions = commissions.filter(c => c.status === 'pending');
       const approvedCommissions = commissions.filter(c => c.status === 'approved');
@@ -74,6 +97,7 @@ export async function GET(request: NextRequest) {
       const stats = {
         totalClicks: affiliate.totalClicks,
         totalConversions: affiliate.totalConversions,
+        totalReferredUsers: referredUsers.length,
         conversionRate: affiliate.conversionRate,
         totalEarnings: affiliate.totalEarnings,
         availableBalance: affiliate.availableBalance,
@@ -85,6 +109,7 @@ export async function GET(request: NextRequest) {
       return {
         affiliate,
         commissions,
+        referredUsers,
         recentClicks,
         stats
       };

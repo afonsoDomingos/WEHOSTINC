@@ -12,6 +12,7 @@ export interface IUser extends Document {
   avatar?: string;
   confirmationCode?: string;
   confirmationCodeExpiresAt?: string;
+  referredBy?: string; // Código do afiliado indicador
   createdAt: string;
 }
 
@@ -27,6 +28,7 @@ const UserSchema = new Schema<IUser>({
   avatar: { type: String, default: '' },
   confirmationCode: { type: String },
   confirmationCodeExpiresAt: { type: String },
+  referredBy: { type: String, index: true },
   createdAt: { type: String, default: () => new Date().toISOString() },
 }, { timestamps: false, versionKey: false });
 

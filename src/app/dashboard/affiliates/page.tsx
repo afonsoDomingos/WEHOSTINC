@@ -8,7 +8,8 @@ import {
   Link2, DollarSign, Users, TrendingUp, Copy, CheckCircle2, 
   Download, Share2, Calendar, Filter, RefreshCw, Wallet,
   ArrowUpRight, Eye, ShoppingCart, Home, BarChart3, Gift, HelpCircle,
-  Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin, ArrowLeft
+  Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin, ArrowLeft,
+  UserCheck, UserPlus, Sparkles, ShieldCheck
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 import { getUserId, getAffiliateUserInfo, isAffiliateAuthenticated } from '@/lib/affiliateAuth';
@@ -68,6 +69,16 @@ interface Commission {
   paidAt?: string;
 }
 
+interface ReferredUser {
+  id: string;
+  name: string;
+  email: string;
+  createdAt: string;
+  status: 'active' | 'pending' | 'suspended';
+  plan: 'none' | 'basic' | 'pro' | 'enterprise';
+  hasConverted: boolean;
+}
+
 interface MarketingMaterial {
   _id: string;
   title: string;
@@ -82,6 +93,7 @@ interface MarketingMaterial {
 interface AffiliateStats {
   totalClicks: number;
   totalConversions: number;
+  totalReferredUsers?: number;
   conversionRate: number;
   totalEarnings: number;
   availableBalance: number;
@@ -95,12 +107,13 @@ export default function AffiliatesPage() {
   const { data: session, status } = useSession();
   const [affiliate, setAffiliate] = useState<AffiliateData | null>(null);
   const [commissions, setCommissions] = useState<Commission[]>([]);
+  const [referredUsers, setReferredUsers] = useState<ReferredUser[]>([]);
   const [materials, setMaterials] = useState<MarketingMaterial[]>([]);
   const [stats, setStats] = useState<AffiliateStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [showPayoutModal, setShowPayoutModal] = useState(false);
-  const [activeTab, setActiveTab] = useState<'overview' | 'commissions' | 'materials' | 'performance'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'leads' | 'commissions' | 'materials' | 'performance'>('overview');
   const [payoutMethod, setPayoutMethod] = useState<'bank_transfer' | 'paypal' | 'mpesa'>('bank_transfer');
   const [payoutDetails, setPayoutDetails] = useState({
     bankName: '',
@@ -169,6 +182,7 @@ export default function AffiliatesPage() {
         setAffiliate(dashboardData.affiliate);
         setStats(dashboardData.stats);
         setCommissions(dashboardData.commissions || []);
+        setReferredUsers(dashboardData.referredUsers || []);
         setMaterials(dashboardData.materials || []);
         
         // Verificar se afiliado tem telefone configurado para pagamentos
@@ -533,98 +547,131 @@ export default function AffiliatesPage() {
 
         {/* Navigation Tabs */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-2 mb-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
             <button
               onClick={() => setActiveTab('overview')}
-              className={`flex flex-col items-center justify-center space-y-1 px-4 py-3 rounded-xl transition font-medium ${
+              className={`flex flex-col items-center justify-center space-y-1 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl transition font-medium cursor-pointer ${
                 activeTab === 'overview' 
-                  ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg' 
+                  ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-md' 
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
-              <Home className="h-5 w-5" />
-              <span className="text-xs md:text-sm">Visão Geral</span>
+              <Home className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="text-xs sm:text-sm">Visão Geral</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('leads')}
+              className={`flex flex-col items-center justify-center space-y-1 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl transition font-medium cursor-pointer relative ${
+                activeTab === 'leads' 
+                  ? 'bg-gradient-to-r from-indigo-500 to-indigo-600 text-white shadow-md' 
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <UserCheck className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="text-xs sm:text-sm flex items-center space-x-1">
+                <span>Contas Criadas</span>
+                {referredUsers.length > 0 && (
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${activeTab === 'leads' ? 'bg-white/20 text-white' : 'bg-indigo-100 text-indigo-700'}`}>
+                    {referredUsers.length}
+                  </span>
+                )}
+              </span>
             </button>
             <button
               onClick={() => setActiveTab('commissions')}
-              className={`flex flex-col items-center justify-center space-y-1 px-4 py-3 rounded-xl transition font-medium ${
+              className={`flex flex-col items-center justify-center space-y-1 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl transition font-medium cursor-pointer ${
                 activeTab === 'commissions' 
-                  ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg' 
+                  ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-md' 
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
-              <BarChart3 className="h-5 w-5" />
-              <span className="text-xs md:text-sm">Comissões</span>
+              <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="text-xs sm:text-sm">Comissões</span>
             </button>
             <button
               onClick={() => setActiveTab('performance')}
-              className={`flex flex-col items-center justify-center space-y-1 px-4 py-3 rounded-xl transition font-medium ${
+              className={`flex flex-col items-center justify-center space-y-1 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl transition font-medium cursor-pointer ${
                 activeTab === 'performance' 
-                  ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg' 
+                  ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-md' 
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
-              <TrendingUp className="h-5 w-5" />
-              <span className="text-xs md:text-sm">Performance</span>
+              <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="text-xs sm:text-sm">Performance</span>
             </button>
             <button
               onClick={() => setActiveTab('materials')}
-              className={`flex flex-col items-center justify-center space-y-1 px-4 py-3 rounded-xl transition font-medium ${
+              className={`flex flex-col items-center justify-center space-y-1 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl transition font-medium cursor-pointer ${
                 activeTab === 'materials' 
-                  ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg' 
+                  ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-md' 
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
-              <Gift className="h-5 w-5" />
-              <span className="text-xs md:text-sm">Materiais</span>
+              <Gift className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="text-xs sm:text-sm">Materiais</span>
             </button>
           </div>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
-          <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl shadow-lg p-4 md:p-6 text-white">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4 mb-6">
+          <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl shadow-lg p-4 text-white">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-emerald-100 text-xs md:text-sm font-medium mb-1">Saldo Disponível</p>
-                <p className="text-xl md:text-3xl font-bold">
+                <p className="text-emerald-100 text-xs font-medium mb-1">Saldo Disponível</p>
+                <p className="text-lg sm:text-2xl font-bold">
                   {stats?.availableBalance.toLocaleString('pt-MZ')} MZN
                 </p>
               </div>
-              <Wallet className="h-8 w-8 md:h-10 md:w-10 text-emerald-200" />
+              <Wallet className="h-6 w-6 sm:h-8 sm:w-8 text-emerald-200 shrink-0" />
             </div>
           </div>
-          <div className="bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl shadow-lg p-4 md:p-6 text-white">
+
+          <div className="bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl shadow-lg p-4 text-white">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-primary-100 text-xs md:text-sm font-medium mb-1">Ganhos Totais</p>
-                <p className="text-xl md:text-3xl font-bold">
+                <p className="text-primary-100 text-xs font-medium mb-1">Ganhos Totais</p>
+                <p className="text-lg sm:text-2xl font-bold">
                   {stats?.totalEarnings.toLocaleString('pt-MZ')} MZN
                 </p>
               </div>
-              <DollarSign className="h-8 w-8 md:h-10 md:w-10 text-primary-200" />
+              <DollarSign className="h-6 w-6 sm:h-8 sm:w-8 text-primary-200 shrink-0" />
             </div>
           </div>
-          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg p-4 md:p-6 text-white">
+
+          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg p-4 text-white">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-blue-100 text-xs md:text-sm font-medium mb-1">Total Cliques</p>
-                <p className="text-xl md:text-3xl font-bold">
-                  {stats?.totalClicks}
+                <p className="text-blue-100 text-xs font-medium mb-1">Total Cliques</p>
+                <p className="text-lg sm:text-2xl font-bold">
+                  {stats?.totalClicks || 0}
                 </p>
               </div>
-              <Eye className="h-8 w-8 md:h-10 md:w-10 text-blue-200" />
+              <Eye className="h-6 w-6 sm:h-8 sm:w-8 text-blue-200 shrink-0" />
             </div>
           </div>
-          <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl shadow-lg p-4 md:p-6 text-white">
+
+          <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-2xl shadow-lg p-4 text-white">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-purple-100 text-xs md:text-sm font-medium mb-1">Conversões</p>
-                <p className="text-xl md:text-3xl font-bold">
-                  {stats?.totalConversions}
+                <p className="text-indigo-100 text-xs font-medium mb-1">Contas Criadas</p>
+                <p className="text-lg sm:text-2xl font-bold">
+                  {stats?.totalReferredUsers || referredUsers.length}
                 </p>
               </div>
-              <Users className="h-8 w-8 md:h-10 md:w-10 text-purple-200" />
+              <UserPlus className="h-6 w-6 sm:h-8 sm:w-8 text-indigo-200 shrink-0" />
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl shadow-lg p-4 text-white col-span-2 sm:col-span-1">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-purple-100 text-xs font-medium mb-1">Vendas / Conversões</p>
+                <p className="text-lg sm:text-2xl font-bold">
+                  {stats?.totalConversions || 0}
+                </p>
+              </div>
+              <Users className="h-6 w-6 sm:h-8 sm:w-8 text-purple-200 shrink-0" />
             </div>
           </div>
         </div>
@@ -812,6 +859,115 @@ export default function AffiliatesPage() {
                     <span>Solicitar Saque</span>
                   </button>
                 </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB: Leads / Contas Criadas */}
+        {activeTab === 'leads' && (
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-4 md:p-8">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center text-white shadow-md">
+                  <UserCheck className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-lg md:text-xl font-bold text-gray-900">Contas Criadas (Leads Indicados)</h3>
+                  <p className="text-xs text-gray-500">Utilizadores que criaram conta na plataforma através do seu link</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-xl">
+                  {referredUsers.length} {referredUsers.length === 1 ? 'conta vinculada' : 'contas vinculadas'}
+                </span>
+              </div>
+            </div>
+
+            {/* Explanatory Banner */}
+            <div className="bg-gradient-to-r from-indigo-50 via-blue-50 to-indigo-50 border border-indigo-100 rounded-xl p-4 mb-6">
+              <div className="flex items-start space-x-3">
+                <Sparkles className="h-5 w-5 text-indigo-600 shrink-0 mt-0.5" />
+                <div className="text-xs text-indigo-900 leading-relaxed">
+                  <strong>Como funciona:</strong> Todas as contas criadas pelo seu link ficam vinculadas a si por <strong>30 dias</strong>. Assim que qualquer um destes clientes contratar um plano de hospedagem, domínio, sistema ou site, receberá automaticamente <strong>30% de comissão</strong>!
+                </div>
+              </div>
+            </div>
+
+            {referredUsers.length === 0 ? (
+              <div className="text-center py-12 border-2 border-dashed border-gray-200 rounded-2xl p-6">
+                <div className="w-16 h-16 bg-indigo-50 text-indigo-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <UserPlus className="h-8 w-8" />
+                </div>
+                <h4 className="text-base font-bold text-gray-900 mb-1">Nenhuma conta criada ainda</h4>
+                <p className="text-xs sm:text-sm text-gray-500 max-w-md mx-auto mb-6">
+                  Partilhe o seu link de afiliado no WhatsApp e redes sociais para atrair os seus primeiros utilizadores.
+                </p>
+                {affiliate?.affiliateLink && (
+                  <button
+                    onClick={() => copyToClipboard(affiliate.affiliateLink)}
+                    className="inline-flex items-center space-x-2 px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-bold text-xs sm:text-sm transition shadow-md cursor-pointer"
+                  >
+                    {copied ? <CheckCircle2 className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                    <span>{copied ? 'Link Copiado!' : 'Copiar Link de Divulgação'}</span>
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="overflow-x-auto -mx-4 md:mx-0">
+                <table className="w-full min-w-[650px]">
+                  <thead>
+                    <tr className="border-b-2 border-gray-100 text-left">
+                      <th className="py-3 px-4 text-xs font-bold text-gray-700">Utilizador</th>
+                      <th className="py-3 px-4 text-xs font-bold text-gray-700">Email</th>
+                      <th className="py-3 px-4 text-xs font-bold text-gray-700">Data de Registo</th>
+                      <th className="py-3 px-4 text-xs font-bold text-gray-700">Plano Atual</th>
+                      <th className="py-3 px-4 text-xs font-bold text-gray-700">Status de Compra</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {referredUsers.map((user) => (
+                      <tr key={user.id} className="hover:bg-gray-50/80 transition">
+                        <td className="py-3.5 px-4">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-primary-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
+                              {user.name.charAt(0).toUpperCase()}
+                            </div>
+                            <span className="text-sm font-bold text-gray-900">{user.name}</span>
+                          </div>
+                        </td>
+                        <td className="py-3.5 px-4 font-mono text-xs text-gray-600">
+                          {user.email}
+                        </td>
+                        <td className="py-3.5 px-4 text-xs text-gray-500">
+                          {new Date(user.createdAt).toLocaleDateString('pt-MZ', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric'
+                          })}
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span className="text-xs font-semibold px-2.5 py-1 rounded-md bg-gray-100 text-gray-700 capitalize">
+                            {user.plan === 'none' ? 'Sem Plano' : user.plan}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          {user.hasConverted ? (
+                            <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                              <span>🎉 Compra Realizada</span>
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200">
+                              <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                              <span>Aguardando 1ª Compra</span>
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>
