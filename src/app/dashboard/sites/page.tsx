@@ -27,6 +27,7 @@ export default function SitesPage() {
   const [newSiteName, setNewSiteName] = useState('');
   const [newSiteDomain, setNewSiteDomain] = useState('');
   const [loading, setLoading] = useState(true);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   useEffect(() => {
     // Aguardar NextAuth carregar
@@ -184,11 +185,18 @@ export default function SitesPage() {
     return <PageLoader text="A carregar os seus sites..." />;
   }
 
+  if (isLoggingOut) {
+    return <PageLoader text="A encerrar a sua sessão com segurança..." />;
+  }
+
   if (!user) return null;
 
   const handleLogout = () => {
-    auth.logout();
-    signOut({ callbackUrl: '/' });
+    setIsLoggingOut(true);
+    setTimeout(() => {
+      auth.logout();
+      signOut({ callbackUrl: '/' });
+    }, 400);
   };
 
   return (

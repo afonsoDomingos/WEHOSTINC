@@ -237,6 +237,10 @@ export default function DashboardPage() {
     return <PageLoader text="A carregar o seu painel..." />;
   }
 
+  if (isLoggingOut) {
+    return <PageLoader text="A encerrar a sua sessão com segurança..." />;
+  }
+
   if (!user) {
     return null;
   }

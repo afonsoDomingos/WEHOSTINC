@@ -29,6 +29,7 @@ export default function EmailPage() {
   const [userDomains, setUserDomains] = useState<string[]>([]);
   const [migaduDomains, setMigaduDomains] = useState<any[]>([]); // Domains from Migadu
   const [loading, setLoading] = useState(true);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   // Modal para Criar Nova Conta
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -360,11 +361,18 @@ export default function EmailPage() {
     return <PageLoader text="A carregar as suas contas de email..." />;
   }
 
+  if (isLoggingOut) {
+    return <PageLoader text="A encerrar a sua sessão com segurança..." />;
+  }
+
   if (!user) return null;
 
   const handleLogout = () => {
-    auth.logout();
-    signOut({ callbackUrl: '/' });
+    setIsLoggingOut(true);
+    setTimeout(() => {
+      auth.logout();
+      signOut({ callbackUrl: '/' });
+    }, 400);
   };
 
   return (

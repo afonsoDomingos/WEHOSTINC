@@ -23,6 +23,7 @@ export default function BillingPage() {
   const { data: session, status } = useSession();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [selectedReceipt, setSelectedReceipt] = useState<ReceiptData | null>(null);
   const [userOrders, setUserOrders] = useState<ServiceOrder[]>([]);
   const [siteCount, setSiteCount] = useState(0);
@@ -125,13 +126,20 @@ export default function BillingPage() {
     return <PageLoader text="A carregar os seus dados de faturamento..." />;
   }
 
+  if (isLoggingOut) {
+    return <PageLoader text="A encerrar a sua sessão com segurança..." />;
+  }
+
   if (!user) return null;
 
   const currentPlan = getCurrentPlan();
 
   const handleLogout = () => {
-    auth.logout();
-    signOut({ callbackUrl: '/' });
+    setIsLoggingOut(true);
+    setTimeout(() => {
+      auth.logout();
+      signOut({ callbackUrl: '/' });
+    }, 400);
   };
 
   return (
