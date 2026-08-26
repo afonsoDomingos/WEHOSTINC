@@ -11,46 +11,100 @@ export async function sendAffiliateNewLeadEmail(
   leadEmail: string
 ) {
   const maskedEmail = leadEmail.replace(/(.{2})(.*)(?=@)/, (_gp1, h, t) => h + '*'.repeat(Math.max(1, t.length)));
+  // Usar o primeiro nome do lead para personalizar o subject
+  const leadFirstName = (leadName || 'Novo Utilizador').split(' ')[0];
 
   return sendEmail({
     to: affiliateEmail,
-    subject: `👤 Novo Lead Registado! Um utilizador criou conta pelo seu link | WEHOSTHERE`,
+    subject: `🎉 ${leadFirstName} acabou de criar conta através do seu link! | WEHOSTHERE`,
     html: `
       <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;">
         <div style="background:linear-gradient(135deg,#2563eb,#4f46e5);padding:40px 32px;border-radius:16px 16px 0 0;text-align:center;">
           <img src="${SITE_URL}/logo.png" alt="WEHOSTHERE Logo" style="width:180px;height:auto;margin:0 auto 16px;display:block;" />
-          <h1 style="color:#ffffff;font-size:24px;font-weight:800;margin:0;">🎉 Novo Lead no Seu Programa!</h1>
-          <p style="color:#bfdbfe;margin:8px 0 0;font-size:14px;">Um novo cliente vinculou-se à sua conta de afiliado</p>
+          <h1 style="color:#ffffff;font-size:24px;font-weight:800;margin:0;">🎉 ${leadFirstName} Criou Conta Pelo Seu Link!</h1>
+          <p style="color:#bfdbfe;margin:8px 0 0;font-size:14px;">Novo lead vinculado à sua conta de afiliado</p>
         </div>
         <div style="background:#f8fafc;padding:36px 32px;border-radius:0 0 16px 16px;border:1px solid #e2e8f0;">
           <p style="font-size:15px;color:#334155;line-height:1.6;">Olá <strong>${affiliateName}</strong>,</p>
           <p style="font-size:14px;color:#475569;line-height:1.6;">
-            Temos uma ótima notícia! Um novo utilizador acabou de criar conta na WEHOSTHERE utilizando o seu link de afiliado.
+            Excelente notícia! <strong>${leadName || 'Um novo utilizador'}</strong> acabou de criar conta na WEHOSTHERE usando o seu link de afiliado. Este cliente está agora vinculado a si!
           </p>
 
           <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:20px;margin:24px 0;">
             <p style="margin:0 0 8px;font-size:12px;color:#1e40af;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">Dados do Lead Vinculado:</p>
-            <p style="margin:4px 0;font-size:14px;color:#1e293b;"><strong>Nome:</strong> ${leadName || 'Novo Utilizador'}</p>
-            <p style="margin:4px 0;font-size:14px;color:#1e293b;"><strong>E-mail:</strong> ${maskedEmail}</p>
-            <p style="margin:4px 0;font-size:14px;color:#1e293b;"><strong>Data:</strong> ${new Date().toLocaleDateString('pt-MZ')}</p>
+            <p style="margin:4px 0;font-size:15px;color:#1e293b;font-weight:700;">👤 ${leadName || 'Novo Utilizador'}</p>
+            <p style="margin:4px 0;font-size:13px;color:#64748b;font-family:monospace;">${maskedEmail}</p>
+            <p style="margin:4px 0;font-size:13px;color:#64748b;">📅 ${new Date().toLocaleDateString('pt-MZ', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
             <div style="margin-top:12px;padding-top:12px;border-top:1px dashed #cbd5e1;font-size:13px;color:#2563eb;font-weight:600;">
-              ✨ Qualquer plano, domínio ou serviço contratado por este cliente nos próximos 30 dias renderá <strong>30% de comissão</strong> direta para si!
+              ✨ Qualquer compra que <strong>${leadFirstName}</strong> realize nos próximos <strong>30 dias</strong> gera <strong>30% de comissão</strong> directa para si!
             </div>
           </div>
 
           <div style="text-align:center;margin:30px 0;">
             <a href="${SITE_URL}/dashboard/affiliates" style="background:#2563eb;color:#ffffff;font-weight:700;padding:14px 32px;border-radius:12px;text-decoration:none;font-size:15px;display:inline-block;box-shadow:0 4px 12px rgba(37,99,235,0.25);">
-              Aceder ao Painel de Afiliados →
+              Ver Contas Criadas no Painel →
             </a>
           </div>
 
           <p style="color:#94a3b8;font-size:12px;margin:24px 0 0;text-align:center;">
-            WEHOSTHERE — Programa de Parcerias & Afiliados | info@wehosthere.com
+            WEHOSTHERE — Programa de Parcerias &amp; Afiliados | info@wehosthere.com
           </p>
         </div>
       </div>`,
   });
 }
+
+/**
+ * 1b. Email especial para o PRIMEIRO clique no link do afiliado
+ */
+export async function sendAffiliateFirstClickEmail(
+  affiliateEmail: string,
+  affiliateName: string
+) {
+  return sendEmail({
+    to: affiliateEmail,
+    subject: `🚀 O seu link de afiliado recebeu o PRIMEIRO clique! | WEHOSTHERE`,
+    html: `
+      <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;">
+        <div style="background:linear-gradient(135deg,#f59e0b,#f97316);padding:40px 32px;border-radius:16px 16px 0 0;text-align:center;">
+          <img src="${SITE_URL}/logo.png" alt="WEHOSTHERE Logo" style="width:180px;height:auto;margin:0 auto 16px;display:block;" />
+          <h1 style="color:#ffffff;font-size:26px;font-weight:900;margin:0;">🚀 Primeiro Clique Registado!</h1>
+          <p style="color:#fef3c7;margin:8px 0 0;font-size:14px;">O seu link de afiliado já está a funcionar</p>
+        </div>
+        <div style="background:#f8fafc;padding:36px 32px;border-radius:0 0 16px 16px;border:1px solid #e2e8f0;">
+          <p style="font-size:15px;color:#334155;line-height:1.6;">Parabéns, <strong>${affiliateName}</strong>! 🎉</p>
+          <p style="font-size:14px;color:#475569;line-height:1.6;">
+            O seu link de afiliado acaba de receber o <strong>1º clique</strong>! Alguém viu a sua partilha e quis saber mais sobre a WEHOSTHERE.
+          </p>
+
+          <div style="background:linear-gradient(135deg,#fffbeb,#fff7ed);border:2px solid #fbbf24;border-radius:16px;padding:24px;margin:24px 0;text-align:center;">
+            <div style="font-size:48px;margin-bottom:8px;">🎯</div>
+            <p style="font-size:22px;font-weight:900;color:#92400e;margin:0;">1 Clique!</p>
+            <p style="font-size:13px;color:#78350f;margin:8px 0 0;">O seu programa de afiliado está activo e a funcionar.</p>
+          </div>
+
+          <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:18px;margin:20px 0;">
+            <p style="margin:0 0 6px;font-size:13px;font-weight:700;color:#14532d;">💡 Dica para mais cliques:</p>
+            <p style="margin:0;font-size:13px;color:#166534;line-height:1.6;">
+              Partilhe o seu link em grupos de WhatsApp, Facebook e TikTok com uma mensagem personalizada. Quanto mais pessoas virem, maior a probabilidade de criarem conta!
+            </p>
+          </div>
+
+          <div style="text-align:center;margin:30px 0;">
+            <a href="${SITE_URL}/dashboard/affiliates" style="background:#f59e0b;color:#ffffff;font-weight:700;padding:14px 32px;border-radius:12px;text-decoration:none;font-size:15px;display:inline-block;box-shadow:0 4px 12px rgba(245,158,11,0.3);">
+              Ver Estatísticas do Meu Link →
+            </a>
+          </div>
+
+          <p style="color:#94a3b8;font-size:12px;margin:24px 0 0;text-align:center;">
+            Equipa WEHOSTHERE — Programa de Afiliados
+          </p>
+        </div>
+      </div>`,
+  });
+}
+
+
 
 /**
  * 2. Email disparado quando uma nova Comissão de 30% é gerada

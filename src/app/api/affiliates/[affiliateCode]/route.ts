@@ -51,9 +51,32 @@ export async function GET(
       { new: true }
     );
 
-    // Milestone notifications (a cada 10 cliques ate 50, depois a cada 50)
+    // Milestone notifications
     const newClicks = updatedAffiliate?.totalClicks || (affiliate.totalClicks + 1);
-    const isMilestone = (newClicks <= 50 && newClicks % 10 === 0) || (newClicks > 50 && newClicks % 50 === 0);
+
+    // 🎯 1º Clique — e-mail especial de boas-vindas ao programa
+    if (newClicks === 1) {
+      try {
+        const UserModel = (await import('@/lib/models/User')).default;
+        const affiliateUser = await UserModel.findOne({
+          $or: [{ id: affiliate.userId }, { email: affiliate.userId }]
+        });
+        if (affiliateUser && affiliateUser.email) {
+          const { sendAffiliateFirstClickEmail } = await import('@/lib/affiliateEmails');
+          sendAffiliateFirstClickEmail(
+            affiliateUser.email,
+            affiliateUser.name || 'Parceiro Afiliado'
+          ).catch((err: any) => console.error('[Affiliate First Click Email] Erro:', err));
+        }
+      } catch (err) {
+        console.error('[Affiliate First Click] Erro:', err);
+      }
+    }
+
+    // 🚀 Marcos de cliques (a cada 10 até 50, depois a cada 50)
+    const isMilestone = newClicks > 1 && (
+      (newClicks <= 50 && newClicks % 10 === 0) || (newClicks > 50 && newClicks % 50 === 0)
+    );
 
     if (isMilestone) {
       try {
@@ -73,6 +96,7 @@ export async function GET(
         console.error('[Affiliate Milestone] Erro:', err);
       }
     }
+
 
     // Set cookie for affiliate tracking (30 days)
     const response = NextResponse.redirect(new URL('/', request.url));
