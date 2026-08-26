@@ -354,8 +354,9 @@ function CheckoutContent() {
       setCurrentReference(paymentReference);
 
       // Se for verificação de afiliado, registrar o afiliado após pagamento
+      // O número de comissões = o mesmo número usado para pagar os 2 MZN (M-Pesa/eMola)
       if (isAffiliateVerification) {
-        const affiliatePhoneFinal = affiliatePhone || whatsapp;
+        const affiliatePhoneFinal = phonePayment || whatsapp;
         // Usar userId do parâmetro ou do usuário atual
         const userIdForAffiliate = affiliateUserIdParam || currentUser?.id;
         console.log('[Checkout] Registrando/Atualizando afiliado com telefone:', affiliatePhoneFinal, 'userId:', userIdForAffiliate);
@@ -949,43 +950,12 @@ function CheckoutContent() {
                 />
               </div>
 
-              <div>
-                <label htmlFor="whatsapp" className="block text-sm font-semibold text-gray-800 mb-1.5">
-                  Número do WhatsApp <span className="text-red-500">*</span>
-                </label>
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <select
-                    value={ddi}
-                    onChange={(e) => setDdi(e.target.value)}
-                    className="w-full sm:w-auto px-3 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none text-gray-900 font-semibold shadow-sm cursor-pointer"
-                  >
-                    <option value="+258">+258 (Moçambique)</option>
-                    <option value="+244">+244 (Angola)</option>
-                    <option value="+351">+351 (Portugal)</option>
-                    <option value="+55">+55 (Brasil)</option>
-                    <option value="+1">+1 (EUA)</option>
-                  </select>
-                  <input
-                    id="whatsapp"
-                    type="tel"
-                    value={whatsapp}
-                    onChange={(e) => setWhatsapp(e.target.value)}
-                    placeholder="Número sem DDI (ex: 84 123 4567)"
-                    required
-                    className="w-full sm:flex-1 px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition text-gray-900 placeholder-gray-400 shadow-sm"
-                  />
-                </div>
-              </div>
-
-              {/* Campo para telefone de comissões de afiliado */}
-              {isAffiliateVerification && (
+              {/* Número de WhatsApp — apenas em checkouts normais, não para afiliados */}
+              {!isAffiliateVerification && (
                 <div>
-                  <label htmlFor="affiliatePhone" className="block text-sm font-semibold text-gray-800 mb-1.5">
-                    Telefone para Comissões <span className="text-red-500">*</span>
+                  <label htmlFor="whatsapp" className="block text-sm font-semibold text-gray-800 mb-1.5">
+                    Número do WhatsApp <span className="text-red-500">*</span>
                   </label>
-                  <p className="text-xs text-gray-500 mb-2">
-                    Este número será utilizado para o recebimento das suas comissões do programa de afiliados. Se quiser mudar para outro número no futuro, precisará pagar novamente (teste de segurança).
-                  </p>
                   <div className="flex flex-col sm:flex-row gap-2">
                     <select
                       value={ddi}
@@ -999,10 +969,10 @@ function CheckoutContent() {
                       <option value="+1">+1 (EUA)</option>
                     </select>
                     <input
-                      id="affiliatePhone"
+                      id="whatsapp"
                       type="tel"
-                      value={affiliatePhone}
-                      onChange={(e) => setAffiliatePhone(e.target.value)}
+                      value={whatsapp}
+                      onChange={(e) => setWhatsapp(e.target.value)}
                       placeholder="Número sem DDI (ex: 84 123 4567)"
                       required
                       className="w-full sm:flex-1 px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition text-gray-900 placeholder-gray-400 shadow-sm"
@@ -1093,6 +1063,7 @@ function CheckoutContent() {
                 <div className="mt-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
                   <label className="block text-xs font-semibold text-gray-700 mb-1">
                     Número {paymentMethod === 'mpesa' ? 'M-Pesa' : 'eMola'} para cobrança
+                    {isAffiliateVerification && <span className="text-red-500 ml-1">*</span>}
                   </label>
                   <div className="flex items-center space-x-2">
                     <Smartphone className="h-5 w-5 text-gray-400" />
@@ -1104,9 +1075,15 @@ function CheckoutContent() {
                       className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"
                     />
                   </div>
-                  <p className="text-xs text-gray-500 mt-2">
-                    Ao clicar em comprar, receberá um pedido PUSH no seu celular para introduzir o PIN do {paymentMethod === 'mpesa' ? 'M-Pesa' : 'eMola'}.
-                  </p>
+                  {isAffiliateVerification ? (
+                    <p className="text-xs text-blue-700 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 mt-2 leading-relaxed">
+                      💡 <strong>Este número será o seu número de comissões.</strong> O mesmo que usas para pagar os 2 MZN ficará registado para receber os seus ganhos como afiliado. Para mudar no futuro, será necessário repetir este processo.
+                    </p>
+                  ) : (
+                    <p className="text-xs text-gray-500 mt-2">
+                      Ao clicar em comprar, receberá um pedido PUSH no seu celular para introduzir o PIN do {paymentMethod === 'mpesa' ? 'M-Pesa' : 'eMola'}.
+                    </p>
+                  )}
                 </div>
               )}
 
