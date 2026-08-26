@@ -23,11 +23,11 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
     { href: '/dashboard/academy', label: 'Academia Web', icon: BookOpen },
     { href: '/dashboard/domains', label: 'Comprar Domínio', icon: Link2 },
     { href: '/dashboard/email', label: 'Email', icon: Mail },
-    { href: '/dashboard/uptime', label: 'Monitorar Uptime', icon: Activity },
     { href: '/dashboard/notifications', label: 'Notificações', icon: Bell },
     { href: '/dashboard/affiliates', label: 'Programa de Afiliados', icon: Users },
     { href: '/dashboard/billing', label: 'Faturamento', icon: Database },
     { href: '/dashboard/tickets', label: 'Suporte', icon: LifeBuoy },
+    { href: '/dashboard/uptime', label: 'Monitorar Uptime', icon: Activity },
     { href: '/dashboard/settings', label: 'Configurações', icon: SettingsIcon },
   ];
 
