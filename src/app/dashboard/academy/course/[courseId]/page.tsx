@@ -44,27 +44,27 @@ export default function CourseRedirectPage() {
       router.push('/login');
       return;
     }
-    if ((currentUser.role === 'admin' || currentUser.email.toLowerCase() === 'admin@wehosthere.com') && !auth.isClientViewActive()) {
-      router.push('/admin');
-      return;
-    }
     
     const loadAndRedirect = async () => {
       console.log('[CourseRedirect] Iniciando redirecionamento para curso:', courseId);
       
+      let fetchedModules: Module[] = [];
       try {
-        await Promise.all([
+        const [cRes, mRes] = await Promise.all([
           dataManager.fetchCoursesAsync(),
           dataManager.fetchModulesAsync()
         ]);
+        if (mRes && Array.isArray(mRes) && mRes.length > 0) {
+          fetchedModules = mRes;
+        }
       } catch (e) {
         console.error('[CourseRedirect] Erro ao buscar dados do servidor:', e);
       }
 
-      // Buscar módulos para este curso
-      let modules = dataManager.getModules(courseId).sort((a, b) => a.order - b.order);
+      // Buscar módulos locais ou do servidor
+      let modules = fetchedModules.length > 0 ? fetchedModules : dataManager.getModules(courseId).sort((a, b) => a.order - b.order);
       
-      // Se não encontrar por courseId exato, buscar todos os módulos disponíveis
+      // Se ainda não encontrar, buscar todos os módulos disponíveis
       if (modules.length === 0) {
         const allModules = dataManager.getModules();
         if (allModules.length > 0) {
@@ -72,14 +72,9 @@ export default function CourseRedirectPage() {
         }
       }
       
-      if (modules.length > 0) {
-        const firstModule = modules[0];
-        console.log('[CourseRedirect] Redirecionando para primeiro módulo:', firstModule.id);
-        router.replace(`/dashboard/academy/course/${courseId}/chapter/${firstModule.id}`);
-      } else {
-        console.error('[CourseRedirect] Nenhum módulo encontrado, redirecionando para academy');
-        router.replace('/dashboard/academy');
-      }
+      const targetChapterId = modules.length > 0 ? modules[0].id : 'module-1';
+      console.log('[CourseRedirect] Redirecionando para capítulo:', targetChapterId);
+      router.replace(`/dashboard/academy/course/${courseId}/chapter/${targetChapterId}`);
       setLoading(false);
     };
 

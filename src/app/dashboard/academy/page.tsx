@@ -63,10 +63,6 @@ export default function DashboardAcademyPage() {
       router.push('/login');
       return;
     }
-    if ((currentUser.role === 'admin' || currentUser.email.toLowerCase() === 'admin@wehosthere.com') && !auth.isClientViewActive()) {
-      router.push('/admin');
-      return;
-    }
     setUser(currentUser);
     loadData(currentUser);
   }, [session, status, router]);
@@ -103,9 +99,9 @@ export default function DashboardAcademyPage() {
   };
 
   const getCourseProgress = (courseId: string) => {
-    const user = auth.getCurrentUser();
-    if (!user) return null;
-    return progressList.find(p => p.userId === user.email && p.courseId === courseId);
+    const activeUser = user || auth.getCurrentUser();
+    if (!activeUser) return null;
+    return progressList.find(p => p.userId === activeUser.email && p.courseId === courseId);
   };
 
   const isEnrolled = (courseId: string) => {
@@ -113,8 +109,20 @@ export default function DashboardAcademyPage() {
   };
 
   const handleEnroll = async (course: Course) => {
-    const user = auth.getCurrentUser();
-    if (!user) return;
+    const activeUser = user || auth.getCurrentUser() || (session?.user ? {
+      id: (session.user as any)?.id || session.user.email || '',
+      name: session.user.name || '',
+      email: session.user.email || '',
+      plan: (session.user as any)?.plan || 'none',
+      status: 'active' as const,
+      role: (session.user as any)?.role || 'user',
+      createdAt: new Date().toISOString()
+    } : null);
+
+    if (!activeUser) {
+      router.push('/login');
+      return;
+    }
 
     if (course.accessType === 'paid') {
       // Redirecionar para o checkout com os parâmetros do curso
@@ -122,9 +130,8 @@ export default function DashboardAcademyPage() {
       return;
     }
 
-    const enrollment = dataManager.enrollInCourse(user.email, course.id);
-    setEnrollments([...enrollments, enrollment]);
-    setToast({ show: true, message: 'Inscrição realizada com sucesso!', type: 'success' });
+    const enrollment = dataManager.enrollInCourse(activeUser.email, course.id);
+    setEnrollments(prev => [...prev.filter(e => e.courseId !== course.id), enrollment]);
     
     // Disparar e-mail de boas-vindas ao curso
     fetch('/api/send-email', {
@@ -132,13 +139,13 @@ export default function DashboardAcademyPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         type: 'course_enrollment',
-        to: user.email,
-        userName: user.name,
+        to: activeUser.email,
+        userName: activeUser.name,
         courseTitle: course.title
       })
     }).catch(err => console.error('Erro ao disparar email de curso:', err));
 
-    // Redirecionar para o curso após inscrição
+    // Redirecionar imediatamente para o curso
     router.push(`/dashboard/academy/course/${course.id}`);
   };
 
