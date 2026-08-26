@@ -40,6 +40,7 @@ export default function ChapterViewPage() {
 
     console.log('[ChapterView] Carregando dados do curso:', courseId);
     console.log('[ChapterView] Chapter ID:', chapterId);
+    console.log('[ChapterView] Todos os cursos disponíveis:', dataManager.getCourses().map(c => c.id));
 
     // Carregar dados locais primeiro para renderização rápida
     const courseData = dataManager.getCourses().find(c => c.id === courseId);
@@ -53,13 +54,19 @@ export default function ChapterViewPage() {
 
     const courseModules = dataManager.getModules(courseId).sort((a, b) => a.order - b.order);
     console.log('[ChapterView] Módulos encontrados (local):', courseModules.length);
+    console.log('[ChapterView] IDs dos módulos:', courseModules.map(m => m.id));
+    
+    const allLessons = dataManager.getLessons();
+    console.log('[ChapterView] Todas as lições disponíveis:', allLessons.length);
+    console.log('[ChapterView] IDs das lições:', allLessons.map(l => l.id));
     
     setCourse(courseData);
     setModules(courseModules);
-    setLessons(dataManager.getLessons());
+    setLessons(allLessons);
     
     // Carregar progresso local primeiro
     const localProgress = dataManager.getCourseProgress(currentUser.email, courseId);
+    console.log('[ChapterView] Progresso local:', localProgress);
     setProgress(localProgress);
     
     setLoading(false);
@@ -255,14 +262,26 @@ export default function ChapterViewPage() {
     return lessons.filter(l => l.moduleId === moduleId).sort((a, b) => a.order - b.order);
   };
 
-  if (loading) return <PageLoader text="A carregar capítulo..." />;
+  if (loading) {
+    console.log('[ChapterView] Ainda carregando, loading = true');
+    return <PageLoader text="A carregar capítulo..." />;
+  }
 
-  if (!course) return null;
+  if (!course) {
+    console.log('[ChapterView] Curso é null, retornando null');
+    return null;
+  }
+
+  console.log('[ChapterView] Curso definido, modules.length:', modules.length, 'lessons.length:', lessons.length);
 
   const { chapterIndex, module: currentModule } = getCurrentChapter();
   const currentLessonData = getCurrentLesson();
 
+  console.log('[ChapterView] currentModule:', currentModule?.title, 'chapterIndex:', chapterIndex);
+  console.log('[ChapterView] currentLessonData:', currentLessonData?.title);
+
   if (!currentModule || chapterIndex === -1) {
+    console.log('[ChapterView] Capítulo não encontrado, mostrando mensagem de erro');
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
