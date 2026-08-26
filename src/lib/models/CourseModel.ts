@@ -13,6 +13,7 @@ export interface ICourse {
   currency?: string;
   order: number;
   active: boolean;
+  freeLessonsCount?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -30,6 +31,7 @@ const CourseSchema = new Schema<ICourse>({
   currency: { type: String, default: 'MZN' },
   order: { type: Number, required: true },
   active: { type: Boolean, required: true, default: true },
+  freeLessonsCount: { type: Number, default: 1 },
   createdAt: { type: String, required: true },
   updatedAt: { type: String, required: true }
 }, {

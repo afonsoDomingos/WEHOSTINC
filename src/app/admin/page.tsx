@@ -1183,6 +1183,24 @@ export default function AdminPage() {
           );
 
           if (matchingCourse) {
+            // Usar freeLessonsCount do curso ao criar inscrição
+            const enrollmentResponse = await fetch('/api/enrollments', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: 'create',
+                enrollment: {
+                  userId: cEmail,
+                  courseId: matchingCourse.id,
+                  status: 'active',
+                  enrolledAt: new Date().toISOString(),
+                  paymentId: orderId,
+                  freeLessonsAccessed: matchingCourse.freeLessonsCount || 1
+                }
+              })
+            });
+
+          if (matchingCourse) {
             // Criar inscrição automática
             const enrollmentResponse = await fetch('/api/enrollments', {
               method: 'POST',

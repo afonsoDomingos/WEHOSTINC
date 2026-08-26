@@ -390,7 +390,7 @@ export default function DashboardAcademyPage() {
                                 )}
                                 {course.accessType === 'preview' && (
                                   <span className="flex items-center space-x-1 bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0">
-                                    <span>🎁 Aula 1 Grátis</span>
+                                    <span>🎁 {course.freeLessonsCount || 1} {course.freeLessonsCount === 1 ? 'Aula' : 'Aulas'} Grátis</span>
                                   </span>
                                 )}
                               </div>
@@ -415,7 +415,7 @@ export default function DashboardAcademyPage() {
                               {course.accessType === 'preview' ? (
                                 <>
                                   <Play className="h-3.5 w-3.5 fill-current" />
-                                  <span>Assistir Aula Grátis</span>
+                                  <span>Assistir {course.freeLessonsCount || 1} {course.freeLessonsCount === 1 ? 'Aula' : 'Aulas'} Grátis</span>
                                 </>
                               ) : course.accessType === 'paid' ? (
                                 <>

@@ -17,6 +17,7 @@ interface Course {
   currency?: string;
   order: number;
   active: boolean;
+  freeLessonsCount?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -91,6 +92,7 @@ export default function AdminAcademyPage() {
     currency: 'MZN',
     order: 1,
     active: true,
+    freeLessonsCount: 1,
     // Module fields
     courseId: '',
     objective: '',
@@ -153,6 +155,7 @@ export default function AdminAcademyPage() {
         currency: 'MZN',
         order: courses.length + 1,
         active: true,
+        freeLessonsCount: 1,
         courseId: '',
         objective: '',
         hasVideo: false,
@@ -243,6 +246,7 @@ export default function AdminAcademyPage() {
         currency: course.currency || 'MZN',
         order: course.order,
         active: course.active,
+        freeLessonsCount: course.freeLessonsCount || 1,
         courseId: '',
         objective: '',
         hasVideo: false,
@@ -373,7 +377,8 @@ export default function AdminAcademyPage() {
           price: formData.accessType === 'paid' ? parseFloat(formData.price) || 0 : undefined,
           currency: formData.currency,
           order: parseInt(formData.order.toString()) || 1,
-          active: formData.active
+          active: formData.active,
+          freeLessonsCount: parseInt(formData.freeLessonsCount.toString()) || 1
         };
 
         action = editingCourse ? 'update' : 'create';
@@ -686,6 +691,7 @@ export default function AdminAcademyPage() {
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Preço</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duração</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aulas Grátis</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ordem</th>
                         <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
                       </tr>
@@ -732,6 +738,13 @@ export default function AdminAcademyPage() {
                             }`}>
                               {course.active ? 'Ativo' : 'Inativo'}
                             </span>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-600">
+                            {course.accessType === 'free' ? (
+                              <span className="text-gray-400">—</span>
+                            ) : (
+                              <span className="font-medium text-emerald-600">{course.freeLessonsCount || 1}</span>
+                            )}
                           </td>
                           <td className="px-6 py-4 text-sm text-gray-600">{course.order}</td>
                           <td className="px-6 py-4 text-right">
@@ -1079,6 +1092,19 @@ export default function AdminAcademyPage() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                       placeholder="https://..."
                     />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Aulas Grátis (Freemium)</label>
+                    <input
+                      type="number"
+                      value={formData.freeLessonsCount}
+                      onChange={(e) => setFormData({ ...formData, freeLessonsCount: parseInt(e.target.value) || 1 })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      min="0"
+                      max="99"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Número de aulas/módulos gratuitos que os alunos podem acessar sem pagar (padrão: 1)</p>
                   </div>
                 </>
               )}

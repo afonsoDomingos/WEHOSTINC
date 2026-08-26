@@ -352,7 +352,7 @@ export default function ChapterViewPage() {
                 const completedInModule = moduleLessons.filter(l => isLessonCompleted(l.id)).length;
                 const isActive = module.id === currentChapterId;
                 const isCompleted = completedInModule === moduleLessons.length && moduleLessons.length > 0;
-                const isLocked = (course?.accessType === 'preview' || course?.accessType === 'paid') && !isPaidUser && (module.order > 1);
+                const isLocked = (course?.accessType === 'preview' || course?.accessType === 'paid') && !isPaidUser && (module.order > (course?.freeLessonsCount || 1));
 
                 return (
                   <div key={module.id} className="mb-3">
@@ -437,7 +437,7 @@ export default function ChapterViewPage() {
             </div>
 
             {/* Paywall Screen se o módulo atual estiver bloqueado */}
-            {(course?.accessType === 'preview' || course?.accessType === 'paid') && !isPaidUser && (currentModule.order > 1) ? (
+            {(course?.accessType === 'preview' || course?.accessType === 'paid') && !isPaidUser && (currentModule.order > (course?.freeLessonsCount || 1)) ? (
               <div className="bg-white rounded-3xl border-2 border-amber-200/90 shadow-2xl p-6 sm:p-12 text-center max-w-2xl mx-auto animate-in zoom-in-95 duration-300">
                 <div className="w-20 h-20 bg-gradient-to-br from-amber-100 to-orange-100 text-amber-600 rounded-3xl flex items-center justify-center mx-auto mb-5 shadow-inner border border-amber-200">
                   <Lock className="h-10 w-10 text-amber-700" />
@@ -453,7 +453,7 @@ export default function ChapterViewPage() {
                 </h3>
 
                 <p className="text-gray-600 text-sm sm:text-base leading-relaxed mb-6">
-                  Você teve acesso gratuito à aula de introdução! Para continuar a assistir aos restantes <strong>12 módulos práticos</strong>, descarregar ficheiros de apoio, modelos de código e receber o seu <strong>Certificado Oficial de Conclusão</strong>, adquira o acesso vitalício.
+                  Você teve acesso gratuito a {course?.freeLessonsCount || 1} {course?.freeLessonsCount === 1 ? 'aula' : 'aulas'}! Para continuar a assistir aos restantes módulos práticos, descarregar ficheiros de apoio, modelos de código e receber o seu <strong>Certificado Oficial de Conclusão</strong>, adquira o acesso vitalício.
                 </p>
 
                 {/* Box de Preço e Benefícios */}

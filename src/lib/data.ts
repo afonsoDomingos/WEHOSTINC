@@ -132,6 +132,7 @@ export interface Course {
   currency?: string;
   order: number;
   active: boolean;
+  freeLessonsCount?: number;
   createdAt: string;
   updatedAt: string;
 }
