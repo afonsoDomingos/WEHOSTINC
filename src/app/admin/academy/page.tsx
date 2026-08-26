@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { Plus, Edit, Trash2, Eye, BookOpen, DollarSign, Clock, ArrowLeft, Home, GraduationCap, Loader2, CheckCircle, XCircle, Save, X } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, BookOpen, DollarSign, Clock, ArrowLeft, Home, GraduationCap, Loader2, CheckCircle, XCircle, Save, X, CheckSquare } from 'lucide-react';
 
 interface Course {
   id: string;
@@ -78,6 +78,7 @@ export default function AdminAcademyPage() {
   const [filter, setFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [activeTab, setActiveTab] = useState<'courses' | 'modules' | 'lessons'>('courses');
   const [selectedCourseFilter, setSelectedCourseFilter] = useState<string>('all');
+  const [selectedModules, setSelectedModules] = useState<Set<string>>(new Set());
 
   // Form state
   const [formData, setFormData] = useState({
@@ -136,6 +137,11 @@ export default function AdminAcademyPage() {
   useEffect(() => {
     fetchCourses();
   }, [fetchCourses]);
+
+  // Clear selection when switching tabs or changing filters
+  useEffect(() => {
+    setSelectedModules(new Set());
+  }, [activeTab, selectedCourseFilter, searchTerm]);
 
   const handleCreate = (type: 'course' | 'module' | 'lesson', parentItem?: Course | Module) => {
     setModalType(type);
@@ -350,37 +356,24 @@ export default function AdminAcademyPage() {
   };
 
   const handleDeleteAllModules = async () => {
-    if (modules.length === 0) {
-      alert('Não há módulos para remover');
+    if (selectedModules.size === 0) {
+      alert('Selecione pelo menos um módulo para remover');
       return;
     }
 
-    const filteredModules = selectedCourseFilter === 'all'
-      ? modules
-      : modules.filter(m => m.courseId === selectedCourseFilter);
-
-    if (filteredModules.length === 0) {
-      alert('Não há módulos para o filtro selecionado');
-      return;
-    }
-
-    const courseInfo = selectedCourseFilter === 'all'
-      ? 'todos os cursos'
-      : courses.find(c => c.id === selectedCourseFilter)?.title || 'o curso selecionado';
-
-    if (!confirm(`Tem certeza que deseja remover TODOS os ${filteredModules.length} módulos de ${courseInfo}? Esta ação também removerá todas as lições associadas. Esta ação não pode ser desfeita.`)) return;
+    if (!confirm(`Tem certeza que deseja remover ${selectedModules.size} módulo(s) selecionado(s)? Esta ação também removerá todas as lições associadas. Esta ação não pode ser desfeita.`)) return;
 
     try {
       setIsSaving(true);
       let successCount = 0;
       let errorCount = 0;
 
-      for (const mod of filteredModules) {
+      for (const moduleId of Array.from(selectedModules)) {
         try {
           const response = await fetch('/api/modules', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'delete', moduleId: mod.id })
+            body: JSON.stringify({ action: 'delete', moduleId })
           });
 
           if (response.ok) {
@@ -390,11 +383,12 @@ export default function AdminAcademyPage() {
           }
         } catch (error) {
           errorCount++;
-          console.error(`Erro ao remover módulo ${mod.id}:`, error);
+          console.error(`Erro ao remover módulo ${moduleId}:`, error);
         }
       }
 
       setIsSaving(false);
+      setSelectedModules(new Set());
       fetchCourses();
 
       if (errorCount === 0) {
@@ -407,6 +401,33 @@ export default function AdminAcademyPage() {
       console.error('Erro ao remover módulos:', error);
       alert('Erro ao remover módulos');
     }
+  };
+
+  const handleSelectAllModules = () => {
+    const filteredModules = modules.filter(m => {
+      const matchesSearch = m.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            m.description.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCourse = selectedCourseFilter === 'all' || m.courseId === selectedCourseFilter;
+      return matchesSearch && matchesCourse;
+    });
+
+    if (filteredModules.every(m => selectedModules.has(m.id))) {
+      // Deselect all
+      setSelectedModules(new Set());
+    } else {
+      // Select all visible
+      setSelectedModules(new Set(filteredModules.map(m => m.id)));
+    }
+  };
+
+  const handleToggleModule = (moduleId: string) => {
+    const newSelected = new Set(selectedModules);
+    if (newSelected.has(moduleId)) {
+      newSelected.delete(moduleId);
+    } else {
+      newSelected.add(moduleId);
+    }
+    setSelectedModules(newSelected);
   };
 
   const handleSave = async () => {
@@ -718,14 +739,23 @@ export default function AdminAcademyPage() {
             </div>
             <div className="flex items-center space-x-2">
               {activeTab === 'modules' && modules.length > 0 && (
-                <button
-                  onClick={handleDeleteAllModules}
-                  disabled={isSaving}
-                  className="flex items-center space-x-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <Trash2 className="h-4 w-4" />
-                  <span>{isSaving ? 'Removendo...' : 'Remover Todos'}</span>
-                </button>
+                <>
+                  <button
+                    onClick={handleSelectAllModules}
+                    className="flex items-center space-x-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition font-medium text-sm"
+                  >
+                    <CheckSquare className="h-4 w-4" />
+                    <span>Selecionar Todos</span>
+                  </button>
+                  <button
+                    onClick={handleDeleteAllModules}
+                    disabled={isSaving || selectedModules.size === 0}
+                    className="flex items-center space-x-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    <span>{isSaving ? 'Removendo...' : `Remover (${selectedModules.size})`}</span>
+                  </button>
+                </>
               )}
               <button
                 onClick={() => {
@@ -878,6 +908,19 @@ export default function AdminAcademyPage() {
                   <table className="w-full">
                     <thead className="bg-gray-50 border-b border-gray-200">
                       <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-10">
+                          <input
+                            type="checkbox"
+                            checked={modules.filter(m => {
+                              const matchesSearch = m.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                                    m.description.toLowerCase().includes(searchTerm.toLowerCase());
+                              const matchesCourse = selectedCourseFilter === 'all' || m.courseId === selectedCourseFilter;
+                              return matchesSearch && matchesCourse;
+                            }).every(m => selectedModules.has(m.id))}
+                            onChange={handleSelectAllModules}
+                            className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                          />
+                        </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Módulo</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Curso</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Objetivo</th>
@@ -896,6 +939,14 @@ export default function AdminAcademyPage() {
                         const course = courses.find(c => c.id === module.courseId);
                         return (
                           <tr key={module.id} className="hover:bg-gray-50 transition">
+                            <td className="px-6 py-4">
+                              <input
+                                type="checkbox"
+                                checked={selectedModules.has(module.id)}
+                                onChange={() => handleToggleModule(module.id)}
+                                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                              />
+                            </td>
                             <td className="px-6 py-4">
                               <p className="font-medium text-gray-900">{module.title}</p>
                               <p className="text-sm text-gray-500 truncate">{module.description}</p>
