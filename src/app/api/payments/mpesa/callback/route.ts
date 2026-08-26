@@ -5,6 +5,7 @@ import OrderModel from '@/lib/models/Order';
 import SiteModel from '@/lib/models/Site';
 import { generateInvoicePdf } from '@/lib/invoiceGenerator';
 import { generateHostingCredentials } from '@/lib/provisioning';
+import CourseModel from '@/lib/models/CourseModel';
 
 export async function POST(req: Request) {
   try {
@@ -106,6 +107,61 @@ export async function POST(req: Request) {
           });
         } catch (credErr) {
           console.error('Erro ao gerar/enviar credenciais de acesso:', credErr);
+        }
+
+        // 🎓 Inscrição automática para cursos
+        try {
+          const order = await OrderModel.findOne({ 
+            id: { $regex: new RegExp(orderIdClean, 'i') } 
+          });
+          
+          if (order && order.serviceName?.toLowerCase().includes('curso') && userEmail) {
+            // Buscar cursos para encontrar o curso correspondente
+            const courses = await CourseModel.find({});
+            
+            // Tentar encontrar o curso pelo nome ou pela correspondência parcial
+            const matchingCourse = courses.find((course: any) => 
+              course.title.toLowerCase().includes(order.serviceName.toLowerCase()) ||
+              order.serviceName.toLowerCase().includes(course.title.toLowerCase())
+            );
+
+            if (matchingCourse) {
+              // Criar inscrição via API
+              const enrollmentResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/enrollments`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  action: 'create',
+                  enrollment: {
+                    userId: userEmail,
+                    courseId: matchingCourse.id,
+                    status: 'active',
+                    enrolledAt: new Date().toISOString(),
+                    paymentId: order.id
+                  }
+                })
+              });
+
+              if (enrollmentResponse.ok) {
+                console.log('[M-PESA Callback] Inscrição automática criada para:', userEmail, 'no curso:', matchingCourse.title);
+                
+                // Enviar email de boas-vindas ao curso
+                await dispatchMessage({
+                  recipientEmail: userEmail,
+                  recipientName: userName || 'Cliente',
+                  templateId: 'course_enrollment',
+                  variables: {
+                    courseTitle: matchingCourse.title
+                  },
+                  isAutomatic: true,
+                  eventType: 'course_auto_enrollment'
+                });
+              }
+            }
+          }
+        } catch (enrollErr) {
+          console.error('Erro ao criar inscrição automática no callback M-Pesa:', enrollErr);
+          // Não falhar o pagamento se a inscrição falhar
         }
       }
     } else {

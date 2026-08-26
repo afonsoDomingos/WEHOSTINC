@@ -1168,6 +1168,53 @@ export default function AdminPage() {
     const cEmail = updatedOrder.clientEmail || updatedOrder.userEmail || '';
     const cName = updatedOrder.clientName || updatedOrder.userName || cEmail.split('@')[0] || 'Cliente';
 
+    // Inscrição automática para cursos
+    if (updatedOrder.serviceName?.toLowerCase().includes('curso')) {
+      try {
+        // Buscar cursos para encontrar o curso correspondente
+        const coursesResponse = await fetch('/api/courses');
+        const coursesData = await coursesResponse.json();
+        
+        if (coursesData.courses && Array.isArray(coursesData.courses)) {
+          // Tentar encontrar o curso pelo nome ou pela correspondência parcial
+          const matchingCourse = coursesData.courses.find((course: any) => 
+            course.title.toLowerCase().includes(updatedOrder.serviceName.toLowerCase()) ||
+            updatedOrder.serviceName.toLowerCase().includes(course.title.toLowerCase())
+          );
+
+          if (matchingCourse) {
+            // Criar inscrição automática
+            const enrollmentResponse = await fetch('/api/enrollments', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: 'create',
+                enrollment: {
+                  userId: cEmail,
+                  courseId: matchingCourse.id,
+                  status: 'active',
+                  enrolledAt: new Date().toISOString(),
+                  paymentId: orderId
+                }
+              })
+            });
+
+            if (enrollmentResponse.ok) {
+              console.log('[Admin] Inscrição automática criada para:', cEmail, 'no curso:', matchingCourse.title);
+              
+              // Atualizar lista de inscrições
+              fetch('/api/enrollments').then(r => r.json()).then(d => {
+                if (d.enrollments) setAcademyEnrollments(d.enrollments);
+              }).catch(() => {});
+            }
+          }
+        }
+      } catch (error) {
+        console.error('[Admin] Erro ao criar inscrição automática:', error);
+        // Não falhar o pagamento se a inscrição falhar
+      }
+    }
+
     // 1. Notificar Administrador
     addAdminNotification({
       title: `Pagamento Confirmado: #${orderId}`,

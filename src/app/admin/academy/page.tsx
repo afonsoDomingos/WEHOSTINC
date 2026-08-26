@@ -21,17 +21,65 @@ interface Course {
   updatedAt: string;
 }
 
+interface Module {
+  id: string;
+  courseId: string;
+  title: string;
+  description: string;
+  objective: string;
+  hasVideo: boolean;
+  videoUrl?: string;
+  videoTitle?: string;
+  videoDescription?: string;
+  hasMaterial: boolean;
+  materialUrl?: string;
+  materialTitle?: string;
+  materialType?: 'pdf' | 'document' | 'link';
+  order: number;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface Lesson {
+  id: string;
+  moduleId: string;
+  title: string;
+  content: string;
+  hasVideo: boolean;
+  videoUrl?: string;
+  videoTitle?: string;
+  videoDescription?: string;
+  hasMaterial: boolean;
+  materialUrl?: string;
+  materialTitle?: string;
+  materialType?: 'pdf' | 'document' | 'link';
+  order: number;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export default function AdminAcademyPage() {
   const [courses, setCourses] = useState<Course[]>([]);
+  const [modules, setModules] = useState<Module[]>([]);
+  const [lessons, setLessons] = useState<Lesson[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [modalType, setModalType] = useState<'course' | 'module' | 'lesson'>('course');
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
+  const [editingModule, setEditingModule] = useState<Module | null>(null);
+  const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
+  const [selectedCourseForModule, setSelectedCourseForModule] = useState<Course | null>(null);
+  const [selectedModuleForLesson, setSelectedModuleForLesson] = useState<Module | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [activeTab, setActiveTab] = useState<'courses' | 'modules' | 'lessons'>('courses');
 
   // Form state
   const [formData, setFormData] = useState({
+    // Course fields
     title: '',
     description: '',
     shortDescription: '',
@@ -42,20 +90,41 @@ export default function AdminAcademyPage() {
     price: '',
     currency: 'MZN',
     order: 1,
-    active: true
+    active: true,
+    // Module fields
+    courseId: '',
+    objective: '',
+    hasVideo: false,
+    videoUrl: '',
+    videoTitle: '',
+    videoDescription: '',
+    hasMaterial: false,
+    materialUrl: '',
+    materialTitle: '',
+    materialType: 'pdf' as 'pdf' | 'document' | 'link',
+    // Lesson fields
+    moduleId: '',
+    content: ''
   });
 
   const fetchCourses = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/courses');
-      const data = await response.json();
+      const [coursesRes, modulesRes, lessonsRes] = await Promise.all([
+        fetch('/api/courses'),
+        fetch('/api/modules'),
+        fetch('/api/lessons')
+      ]);
       
-      if (data.courses) {
-        setCourses(data.courses);
-      }
+      const coursesData = await coursesRes.json();
+      const modulesData = await modulesRes.json();
+      const lessonsData = await lessonsRes.json();
+      
+      if (coursesData.courses) setCourses(coursesData.courses);
+      if (modulesData.modules) setModules(modulesData.modules);
+      if (lessonsData.lessons) setLessons(lessonsData.lessons);
     } catch (error) {
-      console.error('Erro ao buscar cursos:', error);
+      console.error('Erro ao buscar dados:', error);
     } finally {
       setLoading(false);
     }
@@ -65,81 +134,302 @@ export default function AdminAcademyPage() {
     fetchCourses();
   }, [fetchCourses]);
 
-  const handleCreate = () => {
+  const handleCreate = (type: 'course' | 'module' | 'lesson', parentItem?: Course | Module) => {
+    setModalType(type);
     setEditingCourse(null);
-    setFormData({
-      title: '',
-      description: '',
-      shortDescription: '',
-      duration: '',
-      outcome: '',
-      thumbnail: '',
-      accessType: 'paid',
-      price: '',
-      currency: 'MZN',
-      order: courses.length + 1,
-      active: true
-    });
+    setEditingModule(null);
+    setEditingLesson(null);
+    
+    if (type === 'course') {
+      setFormData({
+        title: '',
+        description: '',
+        shortDescription: '',
+        duration: '',
+        outcome: '',
+        thumbnail: '',
+        accessType: 'paid',
+        price: '',
+        currency: 'MZN',
+        order: courses.length + 1,
+        active: true,
+        courseId: '',
+        objective: '',
+        hasVideo: false,
+        videoUrl: '',
+        videoTitle: '',
+        videoDescription: '',
+        hasMaterial: false,
+        materialUrl: '',
+        materialTitle: '',
+        materialType: 'pdf',
+        moduleId: '',
+        content: ''
+      });
+    } else if (type === 'module' && parentItem) {
+      setSelectedCourseForModule(parentItem as Course);
+      setFormData({
+        title: '',
+        description: '',
+        shortDescription: '',
+        duration: '',
+        outcome: '',
+        thumbnail: '',
+        accessType: 'paid',
+        price: '',
+        currency: 'MZN',
+        order: modules.filter(m => m.courseId === parentItem.id).length + 1,
+        active: true,
+        courseId: parentItem.id,
+        objective: '',
+        hasVideo: false,
+        videoUrl: '',
+        videoTitle: '',
+        videoDescription: '',
+        hasMaterial: false,
+        materialUrl: '',
+        materialTitle: '',
+        materialType: 'pdf',
+        moduleId: '',
+        content: ''
+      });
+    } else if (type === 'lesson' && parentItem) {
+      setSelectedModuleForLesson(parentItem as Module);
+      setFormData({
+        title: '',
+        description: '',
+        shortDescription: '',
+        duration: '',
+        outcome: '',
+        thumbnail: '',
+        accessType: 'paid',
+        price: '',
+        currency: 'MZN',
+        order: lessons.filter(l => l.moduleId === parentItem.id).length + 1,
+        active: true,
+        courseId: '',
+        objective: '',
+        hasVideo: false,
+        videoUrl: '',
+        videoTitle: '',
+        videoDescription: '',
+        hasMaterial: false,
+        materialUrl: '',
+        materialTitle: '',
+        materialType: 'pdf',
+        moduleId: parentItem.id,
+        content: ''
+      });
+    }
+    
     setShowModal(true);
   };
 
-  const handleEdit = (course: Course) => {
-    setEditingCourse(course);
-    setFormData({
-      title: course.title,
-      description: course.description,
-      shortDescription: course.shortDescription,
-      duration: course.duration,
-      outcome: course.outcome,
-      thumbnail: course.thumbnail || '',
-      accessType: course.accessType,
-      price: course.price?.toString() || '',
-      currency: course.currency || 'MZN',
-      order: course.order,
-      active: course.active
-    });
+  const handleEdit = (item: Course | Module | Lesson, type: 'course' | 'module' | 'lesson') => {
+    setModalType(type);
+    
+    if (type === 'course') {
+      const course = item as Course;
+      setEditingCourse(course);
+      setFormData({
+        title: course.title,
+        description: course.description,
+        shortDescription: course.shortDescription,
+        duration: course.duration,
+        outcome: course.outcome,
+        thumbnail: course.thumbnail || '',
+        accessType: course.accessType,
+        price: course.price?.toString() || '',
+        currency: course.currency || 'MZN',
+        order: course.order,
+        active: course.active,
+        courseId: '',
+        objective: '',
+        hasVideo: false,
+        videoUrl: '',
+        videoTitle: '',
+        videoDescription: '',
+        hasMaterial: false,
+        materialUrl: '',
+        materialTitle: '',
+        materialType: 'pdf',
+        moduleId: '',
+        content: ''
+      });
+    } else if (type === 'module') {
+      const module = item as Module;
+      setEditingModule(module);
+      setFormData({
+        title: module.title,
+        description: module.description,
+        shortDescription: '',
+        duration: '',
+        outcome: '',
+        thumbnail: '',
+        accessType: 'paid',
+        price: '',
+        currency: 'MZN',
+        order: module.order,
+        active: module.active,
+        courseId: module.courseId,
+        objective: module.objective,
+        hasVideo: module.hasVideo,
+        videoUrl: module.videoUrl || '',
+        videoTitle: module.videoTitle || '',
+        videoDescription: module.videoDescription || '',
+        hasMaterial: module.hasMaterial,
+        materialUrl: module.materialUrl || '',
+        materialTitle: module.materialTitle || '',
+        materialType: module.materialType || 'pdf',
+        moduleId: '',
+        content: ''
+      });
+    } else if (type === 'lesson') {
+      const lesson = item as Lesson;
+      setEditingLesson(lesson);
+      setFormData({
+        title: lesson.title,
+        description: '',
+        shortDescription: '',
+        duration: '',
+        outcome: '',
+        thumbnail: '',
+        accessType: 'paid',
+        price: '',
+        currency: 'MZN',
+        order: lesson.order,
+        active: lesson.active,
+        courseId: '',
+        objective: '',
+        hasVideo: lesson.hasVideo,
+        videoUrl: lesson.videoUrl || '',
+        videoTitle: lesson.videoTitle || '',
+        videoDescription: lesson.videoDescription || '',
+        hasMaterial: lesson.hasMaterial,
+        materialUrl: lesson.materialUrl || '',
+        materialTitle: lesson.materialTitle || '',
+        materialType: lesson.materialType || 'pdf',
+        moduleId: lesson.moduleId,
+        content: lesson.content
+      });
+    }
+    
     setShowModal(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Tem certeza que deseja remover este curso? Esta ação não pode ser desfeita.')) return;
+  const handleDelete = async (id: string, type: 'course' | 'module' | 'lesson') => {
+    const itemName = type === 'course' ? 'curso' : type === 'module' ? 'módulo' : 'lição';
+    if (!confirm(`Tem certeza que deseja remover este ${itemName}? Esta ação não pode ser desfeita.`)) return;
     
     try {
-      const response = await fetch('/api/courses', {
+      const endpoint = type === 'course' ? '/api/courses' : type === 'module' ? '/api/modules' : '/api/lessons';
+      const idParam = type === 'course' ? 'courseId' : type === 'module' ? 'moduleId' : 'lessonId';
+      
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'delete', courseId: id })
+        body: JSON.stringify({ action: 'delete', [idParam]: id })
       });
       
       if (response.ok) {
         fetchCourses();
       }
     } catch (error) {
-      console.error('Erro ao remover curso:', error);
-      alert('Erro ao remover curso');
+      console.error(`Erro ao remover ${itemName}:`, error);
+      alert(`Erro ao remover ${itemName}`);
     }
   };
 
   const handleSave = async () => {
-    if (!formData.title.trim() || !formData.description.trim()) {
-      alert('Por favor, preencha o título e descrição do curso');
+    if (!formData.title.trim()) {
+      alert('Por favor, preencha o título');
+      return;
+    }
+
+    if (modalType === 'course' && !formData.description.trim()) {
+      alert('Por favor, preencha a descrição do curso');
+      return;
+    }
+
+    if (modalType === 'lesson' && !formData.content.trim()) {
+      alert('Por favor, preencha o conteúdo da lição');
       return;
     }
 
     setIsSaving(true);
     try {
-      const courseData = {
-        ...formData,
-        price: formData.accessType === 'paid' ? parseFloat(formData.price) || 0 : undefined,
-        order: parseInt(formData.order.toString()) || 1
-      };
+      let endpoint, action, payload;
 
-      const action = editingCourse ? 'update' : 'create';
-      const payload = editingCourse 
-        ? { action, course: { ...courseData, id: editingCourse.id } }
-        : { action, course: courseData };
+      if (modalType === 'course') {
+        endpoint = '/api/courses';
+        const courseData = {
+          title: formData.title,
+          description: formData.description,
+          shortDescription: formData.shortDescription,
+          duration: formData.duration,
+          outcome: formData.outcome,
+          thumbnail: formData.thumbnail,
+          accessType: formData.accessType,
+          price: formData.accessType === 'paid' ? parseFloat(formData.price) || 0 : undefined,
+          currency: formData.currency,
+          order: parseInt(formData.order.toString()) || 1,
+          active: formData.active
+        };
 
-      const response = await fetch('/api/courses', {
+        action = editingCourse ? 'update' : 'create';
+        payload = editingCourse 
+          ? { action, course: { ...courseData, id: editingCourse.id } }
+          : { action, course: courseData };
+
+      } else if (modalType === 'module') {
+        endpoint = '/api/modules';
+        const moduleData = {
+          courseId: formData.courseId,
+          title: formData.title,
+          description: formData.description,
+          objective: formData.objective,
+          hasVideo: formData.hasVideo,
+          videoUrl: formData.hasVideo ? formData.videoUrl : undefined,
+          videoTitle: formData.hasVideo ? formData.videoTitle : undefined,
+          videoDescription: formData.hasVideo ? formData.videoDescription : undefined,
+          hasMaterial: formData.hasMaterial,
+          materialUrl: formData.hasMaterial ? formData.materialUrl : undefined,
+          materialTitle: formData.hasMaterial ? formData.materialTitle : undefined,
+          materialType: formData.hasMaterial ? formData.materialType : undefined,
+          order: parseInt(formData.order.toString()) || 1,
+          active: formData.active
+        };
+
+        action = editingModule ? 'update' : 'create';
+        payload = editingModule 
+          ? { action, module: { ...moduleData, id: editingModule.id } }
+          : { action, module: moduleData };
+
+      } else if (modalType === 'lesson') {
+        endpoint = '/api/lessons';
+        const lessonData = {
+          moduleId: formData.moduleId,
+          title: formData.title,
+          content: formData.content,
+          hasVideo: formData.hasVideo,
+          videoUrl: formData.hasVideo ? formData.videoUrl : undefined,
+          videoTitle: formData.hasVideo ? formData.videoTitle : undefined,
+          videoDescription: formData.hasVideo ? formData.videoDescription : undefined,
+          hasMaterial: formData.hasMaterial,
+          materialUrl: formData.hasMaterial ? formData.materialUrl : undefined,
+          materialTitle: formData.hasMaterial ? formData.materialTitle : undefined,
+          materialType: formData.hasMaterial ? formData.materialType : undefined,
+          order: parseInt(formData.order.toString()) || 1,
+          active: formData.active
+        };
+
+        action = editingLesson ? 'update' : 'create';
+        payload = editingLesson 
+          ? { action, lesson: { ...lessonData, id: editingLesson.id } }
+          : { action, lesson: lessonData };
+      }
+
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -150,11 +440,11 @@ export default function AdminAcademyPage() {
         fetchCourses();
       } else {
         const error = await response.json();
-        alert(error.error || 'Erro ao salvar curso');
+        alert(error.error || 'Erro ao salvar');
       }
     } catch (error) {
-      console.error('Erro ao salvar curso:', error);
-      alert('Erro ao salvar curso');
+      console.error('Erro ao salvar:', error);
+      alert('Erro ao salvar');
     } finally {
       setIsSaving(false);
     }
@@ -270,6 +560,54 @@ export default function AdminAcademyPage() {
           </div>
         </div>
 
+        {/* Tabs */}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm mb-6">
+          <div className="flex border-b border-gray-200">
+            <button
+              onClick={() => setActiveTab('courses')}
+              className={`flex-1 px-6 py-4 font-medium text-sm transition ${
+                activeTab === 'courses'
+                  ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              <div className="flex items-center justify-center space-x-2">
+                <BookOpen className="h-4 w-4" />
+                <span>Cursos</span>
+                <span className="bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full text-xs">{courses.length}</span>
+              </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('modules')}
+              className={`flex-1 px-6 py-4 font-medium text-sm transition ${
+                activeTab === 'modules'
+                  ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              <div className="flex items-center justify-center space-x-2">
+                <BookOpen className="h-4 w-4" />
+                <span>Módulos</span>
+                <span className="bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full text-xs">{modules.length}</span>
+              </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('lessons')}
+              className={`flex-1 px-6 py-4 font-medium text-sm transition ${
+                activeTab === 'lessons'
+                  ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              <div className="flex items-center justify-center space-x-2">
+                <BookOpen className="h-4 w-4" />
+                <span>Liçãoões</span>
+                <span className="bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full text-xs">{lessons.length}</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
         {/* Actions Bar */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm mb-6">
           <div className="p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -277,124 +615,320 @@ export default function AdminAcademyPage() {
               <div className="relative">
                 <input
                   type="text"
-                  placeholder="Buscar cursos..."
+                  placeholder={`Buscar ${activeTab === 'courses' ? 'cursos' : activeTab === 'modules' ? 'módulos' : 'lições'}...`}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
                 />
                 <Eye className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
               </div>
-              <select
-                value={filter}
-                onChange={(e) => setFilter(e.target.value as any)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
-              >
-                <option value="all">Todos</option>
-                <option value="active">Ativos</option>
-                <option value="inactive">Inativos</option>
-              </select>
+              {activeTab === 'courses' && (
+                <select
+                  value={filter}
+                  onChange={(e) => setFilter(e.target.value as any)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                >
+                  <option value="all">Todos</option>
+                  <option value="active">Ativos</option>
+                  <option value="inactive">Inativos</option>
+                </select>
+              )}
             </div>
             <button
-              onClick={handleCreate}
+              onClick={() => {
+                if (activeTab === 'courses') {
+                  handleCreate('course');
+                } else if (activeTab === 'modules') {
+                  if (courses.length === 0) {
+                    alert('Crie um curso primeiro antes de adicionar módulos');
+                    return;
+                  }
+                  // Simple implementation - prompt to select course
+                  const course = courses[0]; // Default to first course
+                  handleCreate('module', course);
+                } else if (activeTab === 'lessons') {
+                  if (modules.length === 0) {
+                    alert('Crie um módulo primeiro antes de adicionar lições');
+                    return;
+                  }
+                  // Simple implementation - prompt to select module
+                  const module = modules[0]; // Default to first module
+                  handleCreate('lesson', module);
+                }
+              }}
               className="flex items-center space-x-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition font-medium text-sm"
             >
               <Plus className="h-4 w-4" />
-              <span>Novo Curso</span>
+              <span>Novo {activeTab === 'courses' ? 'Curso' : activeTab === 'modules' ? 'Módulo' : 'Lição'}</span>
             </button>
           </div>
         </div>
 
-        {/* Courses List */}
+        {/* Content List */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-          {filteredCourses.length === 0 ? (
-            <div className="p-12 text-center">
-              <BookOpen className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 font-medium">Nenhum curso encontrado</p>
-              <p className="text-gray-400 text-sm mt-1">
-                {searchTerm ? 'Tente uma busca diferente' : 'Comece criando seu primeiro curso'}
-              </p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Curso</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Preço</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duração</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ordem</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {filteredCourses.map((course) => (
-                    <tr key={course.id} className="hover:bg-gray-50 transition">
-                      <td className="px-6 py-4">
-                        <div className="flex items-start space-x-3">
-                          {course.thumbnail && (
-                            <img
-                              src={course.thumbnail}
-                              alt={course.title}
-                              className="h-12 w-12 rounded-lg object-cover"
-                            />
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium text-gray-900 truncate">{course.title}</p>
-                            <p className="text-sm text-gray-500 truncate">{course.shortDescription}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getAccessTypeColor(course.accessType)}`}>
-                          {getAccessTypeLabel(course.accessType)}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">
-                        {course.accessType === 'paid' ? (
-                          <span className="font-medium">{course.price?.toLocaleString('pt-MZ')} {course.currency}</span>
-                        ) : (
-                          <span className="text-gray-400">—</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
-                        <div className="flex items-center space-x-1">
-                          <Clock className="h-4 w-4" />
-                          <span>{course.duration}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          course.active ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
-                        }`}>
-                          {course.active ? 'Ativo' : 'Inativo'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{course.order}</td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end space-x-2">
-                          <button
-                            onClick={() => handleEdit(course)}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                            title="Editar"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(course.id)}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
-                            title="Excluir"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+          {activeTab === 'courses' && (
+            <>
+              {filteredCourses.length === 0 ? (
+                <div className="p-12 text-center">
+                  <BookOpen className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500 font-medium">Nenhum curso encontrado</p>
+                  <p className="text-gray-400 text-sm mt-1">
+                    {searchTerm ? 'Tente uma busca diferente' : 'Comece criando seu primeiro curso'}
+                  </p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-50 border-b border-gray-200">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Curso</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Preço</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duração</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ordem</th>
+                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {filteredCourses.map((course) => (
+                        <tr key={course.id} className="hover:bg-gray-50 transition">
+                          <td className="px-6 py-4">
+                            <div className="flex items-start space-x-3">
+                              {course.thumbnail && (
+                                <img
+                                  src={course.thumbnail}
+                                  alt={course.title}
+                                  className="h-12 w-12 rounded-lg object-cover"
+                                />
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-gray-900 truncate">{course.title}</p>
+                                <p className="text-sm text-gray-500 truncate">{course.shortDescription}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getAccessTypeColor(course.accessType)}`}>
+                              {getAccessTypeLabel(course.accessType)}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-900">
+                            {course.accessType === 'paid' ? (
+                              <span className="font-medium">{course.price?.toLocaleString('pt-MZ')} {course.currency}</span>
+                            ) : (
+                              <span className="text-gray-400">—</span>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-600">
+                            <div className="flex items-center space-x-1">
+                              <Clock className="h-4 w-4" />
+                              <span>{course.duration}</span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              course.active ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
+                            }`}>
+                              {course.active ? 'Ativo' : 'Inativo'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-600">{course.order}</td>
+                          <td className="px-6 py-4 text-right">
+                            <div className="flex items-center justify-end space-x-2">
+                              <button
+                                onClick={() => handleEdit(course, 'course')}
+                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                                title="Editar"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDelete(course.id, 'course')}
+                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                                title="Excluir"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </>
+          )}
+
+          {activeTab === 'modules' && (
+            <>
+              {modules.length === 0 ? (
+                <div className="p-12 text-center">
+                  <BookOpen className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500 font-medium">Nenhum módulo encontrado</p>
+                  <p className="text-gray-400 text-sm mt-1">
+                    {searchTerm ? 'Tente uma busca diferente' : 'Comece criando seu primeiro módulo'}
+                  </p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-50 border-b border-gray-200">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Módulo</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Curso</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Objetivo</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Conteúdo</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {modules.filter(m => 
+                        m.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        m.description.toLowerCase().includes(searchTerm.toLowerCase())
+                      ).map((module) => {
+                        const course = courses.find(c => c.id === module.courseId);
+                        return (
+                          <tr key={module.id} className="hover:bg-gray-50 transition">
+                            <td className="px-6 py-4">
+                              <p className="font-medium text-gray-900">{module.title}</p>
+                              <p className="text-sm text-gray-500 truncate">{module.description}</p>
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-600">
+                              {course?.title || 'N/A'}
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-600 truncate max-w-xs">
+                              {module.objective}
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex flex-wrap gap-1">
+                                {module.hasVideo && (
+                                  <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs">Vídeo</span>
+                                )}
+                                {module.hasMaterial && (
+                                  <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs">Material</span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                module.active ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
+                              }`}>
+                                {module.active ? 'Ativo' : 'Inativo'}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              <div className="flex items-center justify-end space-x-2">
+                                <button
+                                  onClick={() => handleEdit(module, 'module')}
+                                  className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                                  title="Editar"
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleDelete(module.id, 'module')}
+                                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                                  title="Excluir"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </>
+          )}
+
+          {activeTab === 'lessons' && (
+            <>
+              {lessons.length === 0 ? (
+                <div className="p-12 text-center">
+                  <BookOpen className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500 font-medium">Nenhuma lição encontrada</p>
+                  <p className="text-gray-400 text-sm mt-1">
+                    {searchTerm ? 'Tente uma busca diferente' : 'Comece criando sua primeira lição'}
+                  </p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-50 border-b border-gray-200">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lição</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Módulo</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Conteúdo</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {lessons.filter(l => 
+                        l.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        l.content.toLowerCase().includes(searchTerm.toLowerCase())
+                      ).map((lesson) => {
+                        const module = modules.find(m => m.id === lesson.moduleId);
+                        const course = module ? courses.find(c => c.id === module.courseId) : null;
+                        return (
+                          <tr key={lesson.id} className="hover:bg-gray-50 transition">
+                            <td className="px-6 py-4">
+                              <p className="font-medium text-gray-900">{lesson.title}</p>
+                              <p className="text-sm text-gray-500 truncate max-w-xs">{lesson.content}</p>
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-600">
+                              {module?.title || 'N/A'}
+                              {course && <span className="text-xs text-gray-400 block">{course.title}</span>}
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex flex-wrap gap-1">
+                                {lesson.hasVideo && (
+                                  <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs">Vídeo</span>
+                                )}
+                                {lesson.hasMaterial && (
+                                  <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs">Material</span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                lesson.active ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
+                              }`}>
+                                {lesson.active ? 'Ativo' : 'Inativo'}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              <div className="flex items-center justify-end space-x-2">
+                                <button
+                                  onClick={() => handleEdit(lesson, 'lesson')}
+                                  className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                                  title="Editar"
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleDelete(lesson.id, 'lesson')}
+                                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                                  title="Excluir"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -406,7 +940,12 @@ export default function AdminAcademyPage() {
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-bold text-gray-900">
-                  {editingCourse ? 'Editar Curso' : 'Novo Curso'}
+                  {modalType === 'course' 
+                    ? (editingCourse ? 'Editar Curso' : 'Novo Curso')
+                    : modalType === 'module'
+                    ? (editingModule ? 'Editar Módulo' : 'Novo Módulo')
+                    : (editingLesson ? 'Editar Lição' : 'Nova Lição')
+                  }
                 </h2>
                 <button
                   onClick={() => setShowModal(false)}
@@ -418,6 +957,7 @@ export default function AdminAcademyPage() {
             </div>
 
             <div className="p-6 space-y-4">
+              {/* Common fields */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Título *</label>
                 <input
@@ -425,119 +965,386 @@ export default function AdminAcademyPage() {
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                  placeholder="Nome do curso"
+                  placeholder={modalType === 'course' ? 'Nome do curso' : modalType === 'module' ? 'Nome do módulo' : 'Nome da lição'}
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Descrição Curta *</label>
-                <input
-                  type="text"
-                  value={formData.shortDescription}
-                  onChange={(e) => setFormData({ ...formData, shortDescription: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                  placeholder="Breve descrição para lista"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Descrição Completa *</label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                  placeholder="Descrição detalhada do curso"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Duração *</label>
-                  <input
-                    type="text"
-                    value={formData.duration}
-                    onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    placeholder="Ex: 4 horas, 2 dias"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Ordem *</label>
-                  <input
-                    type="number"
-                    value={formData.order}
-                    onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) || 1 })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    min="1"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Resultado Esperado *</label>
-                <textarea
-                  value={formData.outcome}
-                  onChange={(e) => setFormData({ ...formData, outcome: e.target.value })}
-                  rows={2}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                  placeholder="O que o aluno vai aprender"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de Acesso *</label>
-                <select
-                  value={formData.accessType}
-                  onChange={(e) => setFormData({ ...formData, accessType: e.target.value as any })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                >
-                  <option value="free">Gratuito</option>
-                  <option value="paid">Pago</option>
-                  <option value="preview">Preview</option>
-                </select>
-              </div>
-
-              {formData.accessType === 'paid' && (
-                <div className="grid grid-cols-2 gap-4">
+              {/* Course-specific fields */}
+              {modalType === 'course' && (
+                <>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Preço *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Descrição Curta *</label>
                     <input
-                      type="number"
-                      value={formData.price}
-                      onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                      type="text"
+                      value={formData.shortDescription}
+                      onChange={(e) => setFormData({ ...formData, shortDescription: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                      placeholder="0.00"
-                      min="0"
-                      step="0.01"
+                      placeholder="Breve descrição para lista"
                     />
                   </div>
+
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Moeda</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Descrição Completa *</label>
+                    <textarea
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      rows={4}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="Descrição detalhada do curso"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Duração *</label>
+                      <input
+                        type="text"
+                        value={formData.duration}
+                        onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="Ex: 4 horas, 2 dias"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Ordem *</label>
+                      <input
+                        type="number"
+                        value={formData.order}
+                        onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) || 1 })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        min="1"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Resultado Esperado *</label>
+                    <textarea
+                      value={formData.outcome}
+                      onChange={(e) => setFormData({ ...formData, outcome: e.target.value })}
+                      rows={2}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="O que o aluno vai aprender"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de Acesso *</label>
                     <select
-                      value={formData.currency}
-                      onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
+                      value={formData.accessType}
+                      onChange={(e) => setFormData({ ...formData, accessType: e.target.value as any })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                     >
-                      <option value="MZN">MZN</option>
-                      <option value="USD">USD</option>
-                      <option value="EUR">EUR</option>
+                      <option value="free">Gratuito</option>
+                      <option value="paid">Pago</option>
+                      <option value="preview">Preview</option>
                     </select>
                   </div>
-                </div>
+
+                  {formData.accessType === 'paid' && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Preço *</label>
+                        <input
+                          type="number"
+                          value={formData.price}
+                          onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          placeholder="0.00"
+                          min="0"
+                          step="0.01"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Moeda</label>
+                        <select
+                          value={formData.currency}
+                          onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        >
+                          <option value="MZN">MZN</option>
+                          <option value="USD">USD</option>
+                          <option value="EUR">EUR</option>
+                        </select>
+                      </div>
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">URL da Imagem (Thumbnail)</label>
+                    <input
+                      type="url"
+                      value={formData.thumbnail}
+                      onChange={(e) => setFormData({ ...formData, thumbnail: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="https://..."
+                    />
+                  </div>
+                </>
               )}
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">URL da Imagem (Thumbnail)</label>
-                <input
-                  type="url"
-                  value={formData.thumbnail}
-                  onChange={(e) => setFormData({ ...formData, thumbnail: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                  placeholder="https://..."
-                />
-              </div>
+              {/* Module-specific fields */}
+              {modalType === 'module' && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
+                    <textarea
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      rows={3}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="Descrição do módulo"
+                    />
+                  </div>
 
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Objetivo</label>
+                    <textarea
+                      value={formData.objective}
+                      onChange={(e) => setFormData({ ...formData, objective: e.target.value })}
+                      rows={2}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="Objetivo de aprendizagem do módulo"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Ordem *</label>
+                    <input
+                      type="number"
+                      value={formData.order}
+                      onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) || 1 })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      min="1"
+                    />
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="hasVideo"
+                      checked={formData.hasVideo}
+                      onChange={(e) => setFormData({ ...formData, hasVideo: e.target.checked })}
+                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                    />
+                    <label htmlFor="hasVideo" className="text-sm font-medium text-gray-700">
+                      Incluir vídeo
+                    </label>
+                  </div>
+
+                  {formData.hasVideo && (
+                    <div className="space-y-3 pl-6 border-l-2 border-indigo-200">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Título do Vídeo</label>
+                        <input
+                          type="text"
+                          value={formData.videoTitle}
+                          onChange={(e) => setFormData({ ...formData, videoTitle: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          placeholder="Título do vídeo"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">URL do Vídeo</label>
+                        <input
+                          type="url"
+                          value={formData.videoUrl}
+                          onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          placeholder="https://youtube.com/..."
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Descrição do Vídeo</label>
+                        <textarea
+                          value={formData.videoDescription}
+                          onChange={(e) => setFormData({ ...formData, videoDescription: e.target.value })}
+                          rows={2}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          placeholder="Descrição do vídeo"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="hasMaterial"
+                      checked={formData.hasMaterial}
+                      onChange={(e) => setFormData({ ...formData, hasMaterial: e.target.checked })}
+                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                    />
+                    <label htmlFor="hasMaterial" className="text-sm font-medium text-gray-700">
+                      Incluir material de apoio
+                    </label>
+                  </div>
+
+                  {formData.hasMaterial && (
+                    <div className="space-y-3 pl-6 border-l-2 border-green-200">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Título do Material</label>
+                        <input
+                          type="text"
+                          value={formData.materialTitle}
+                          onChange={(e) => setFormData({ ...formData, materialTitle: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          placeholder="Título do material"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">URL do Material</label>
+                        <input
+                          type="url"
+                          value={formData.materialUrl}
+                          onChange={(e) => setFormData({ ...formData, materialUrl: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          placeholder="https://..."
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de Material</label>
+                        <select
+                          value={formData.materialType}
+                          onChange={(e) => setFormData({ ...formData, materialType: e.target.value as any })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        >
+                          <option value="pdf">PDF</option>
+                          <option value="document">Documento</option>
+                          <option value="link">Link</option>
+                        </select>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* Lesson-specific fields */}
+              {modalType === 'lesson' && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Conteúdo *</label>
+                    <textarea
+                      value={formData.content}
+                      onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                      rows={6}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="Conteúdo da lição"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Ordem *</label>
+                    <input
+                      type="number"
+                      value={formData.order}
+                      onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) || 1 })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      min="1"
+                    />
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="hasVideo"
+                      checked={formData.hasVideo}
+                      onChange={(e) => setFormData({ ...formData, hasVideo: e.target.checked })}
+                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                    />
+                    <label htmlFor="hasVideo" className="text-sm font-medium text-gray-700">
+                      Incluir vídeo
+                </label>
+                  </div>
+
+                  {formData.hasVideo && (
+                    <div className="space-y-3 pl-6 border-l-2 border-indigo-200">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Título do Vídeo</label>
+                        <input
+                          type="text"
+                          value={formData.videoTitle}
+                          onChange={(e) => setFormData({ ...formData, videoTitle: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          placeholder="Título do vídeo"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">URL do Vídeo</label>
+                        <input
+                          type="url"
+                          value={formData.videoUrl}
+                          onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          placeholder="https://youtube.com/..."
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Descrição do Vídeo</label>
+                        <textarea
+                          value={formData.videoDescription}
+                          onChange={(e) => setFormData({ ...formData, videoDescription: e.target.value })}
+                          rows={2}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          placeholder="Descrição do vídeo"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="hasMaterial"
+                      checked={formData.hasMaterial}
+                      onChange={(e) => setFormData({ ...formData, hasMaterial: e.target.checked })}
+                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                    />
+                    <label htmlFor="hasMaterial" className="text-sm font-medium text-gray-700">
+                      Incluir material de apoio
+                    </label>
+                  </div>
+
+                  {formData.hasMaterial && (
+                    <div className="space-y-3 pl-6 border-l-2 border-green-200">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Título do Material</label>
+                        <input
+                          type="text"
+                          value={formData.materialTitle}
+                          onChange={(e) => setFormData({ ...formData, materialTitle: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          placeholder="Título do material"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">URL do Material</label>
+                        <input
+                          type="url"
+                          value={formData.materialUrl}
+                          onChange={(e) => setFormData({ ...formData, materialUrl: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          placeholder="https://..."
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de Material</label>
+                        <select
+                          value={formData.materialType}
+                          onChange={(e) => setFormData({ ...formData, materialType: e.target.value as any })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        >
+                          <option value="pdf">PDF</option>
+                          <option value="document">Documento</option>
+                          <option value="link">Link</option>
+                        </select>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* Common active field */}
               <div className="flex items-center space-x-2">
                 <input
                   type="checkbox"
@@ -547,7 +1354,7 @@ export default function AdminAcademyPage() {
                   className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                 />
                 <label htmlFor="active" className="text-sm font-medium text-gray-700">
-                  Curso ativo (visível para alunos)
+                  {modalType === 'course' ? 'Curso' : modalType === 'module' ? 'Módulo' : 'Lição'} ativo (visível para alunos)
                 </label>
               </div>
             </div>
