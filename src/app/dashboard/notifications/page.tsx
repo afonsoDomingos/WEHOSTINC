@@ -83,7 +83,7 @@ export default function SalesNotificationsPage() {
       return;
     }
     
-    if (currentUser.role === 'admin' || currentUser.email.toLowerCase() === 'admin@wehosthere.com') {
+    if ((currentUser.role === 'admin' || currentUser.email.toLowerCase() === 'admin@wehosthere.com') && !auth.isClientViewActive()) {
       router.push('/admin');
       return;
     }

@@ -94,8 +94,9 @@ function SiteQuoteContent() {
     if (currentUser) {
       setUser(currentUser);
       // Only redirect admin users - regular users can access the quote page
-      if (currentUser.role === 'admin' || currentUser.email.toLowerCase() === 'admin@wehosthere.com') {
+      if ((currentUser.role === 'admin' || currentUser.email.toLowerCase() === 'admin@wehosthere.com') && !auth.isClientViewActive()) {
         router.push('/admin');
+        return;
       }
     } else {
       // Redirect to login if not authenticated

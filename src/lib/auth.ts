@@ -456,8 +456,62 @@ export const auth = {
     }
   },
 
-  // Obter usuário atual
+  // Obter usuário atual (com suporte a modo de visualização como cliente)
   getCurrentUser: (): User | null => {
+    if (typeof window === 'undefined') return null;
+    // Se estiver em modo de personificação / visualização de cliente:
+    const impersonated = sessionStorage.getItem('wehosthere_impersonated_user');
+    if (impersonated) {
+      try {
+        return JSON.parse(impersonated);
+      } catch (e) {}
+    }
+    const session = localStorage.getItem(STORAGE_KEY);
+    if (!session) return null;
+    try {
+      const parsed = JSON.parse(session);
+      return parsed.user || null;
+    } catch (e) {
+      return null;
+    }
+  },
+
+  // Ativar modo de visualização como cliente (impersonar cliente específico ou próprio admin como cliente)
+  startClientView: (targetUser?: User): void => {
+    if (typeof window === 'undefined') return;
+    const session = localStorage.getItem(STORAGE_KEY);
+    let originalAdmin: User | null = null;
+    if (session) {
+      try {
+        originalAdmin = JSON.parse(session).user || null;
+      } catch (e) {}
+    }
+    if (originalAdmin) {
+      sessionStorage.setItem('wehosthere_original_admin', JSON.stringify(originalAdmin));
+    }
+    if (targetUser) {
+      sessionStorage.setItem('wehosthere_impersonated_user', JSON.stringify({ ...targetUser, role: 'user' }));
+    } else if (originalAdmin) {
+      sessionStorage.setItem('wehosthere_impersonated_user', JSON.stringify({ ...originalAdmin, role: 'user' }));
+    }
+    sessionStorage.setItem('wehosthere_view_as_client', 'true');
+  },
+
+  // Encerrar modo de visualização como cliente e retornar ao Admin
+  stopClientView: (): void => {
+    if (typeof window === 'undefined') return;
+    sessionStorage.removeItem('wehosthere_impersonated_user');
+    sessionStorage.removeItem('wehosthere_view_as_client');
+  },
+
+  // Verificar se está em modo de visualização como cliente
+  isClientViewActive: (): boolean => {
+    if (typeof window === 'undefined') return false;
+    return sessionStorage.getItem('wehosthere_view_as_client') === 'true';
+  },
+
+  // Obter o usuário real autenticado (mesmo se estiver personificando outro cliente)
+  getActualUser: (): User | null => {
     if (typeof window === 'undefined') return null;
     const session = localStorage.getItem(STORAGE_KEY);
     if (!session) return null;

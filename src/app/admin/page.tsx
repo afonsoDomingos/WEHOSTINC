@@ -1326,10 +1326,23 @@ export default function AdminPage() {
                 <CreditCard className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-500" />
                 <span className="hidden sm:inline">Testar Pagamento</span>
               </Link>
+              <button
+                onClick={() => {
+                  auth.startClientView();
+                  router.push('/dashboard');
+                }}
+                className="flex items-center space-x-1.5 px-3 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold transition shadow-sm cursor-pointer"
+                title="Visualizar o painel exatamente como um cliente"
+              >
+                <Eye className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Ver como Cliente</span>
+                <span className="sm:hidden">Modo Cliente</span>
+              </button>
+
               <AdminNotificationCenter onNavigate={(url) => router.push(url)} />
               <button
                 onClick={handleLogout}
-                className="flex items-center space-x-1.5 sm:space-x-2 text-gray-600 hover:text-red-600 font-medium transition text-[10px] sm:text-xs sm:text-sm"
+                className="flex items-center space-x-1.5 sm:space-x-2 text-gray-600 hover:text-red-600 font-medium transition text-[10px] sm:text-xs sm:text-sm cursor-pointer"
               >
                 <LogOut className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 <span className="hidden sm:inline">Sair</span>
@@ -2500,6 +2513,17 @@ export default function AdminPage() {
                       </td>
                       <td className="py-2.5 sm:py-3.5 px-2 sm:px-4">
                         <div className="flex items-center space-x-1 sm:space-x-1.5">
+                          <button
+                            onClick={() => {
+                              auth.startClientView(user);
+                              router.push('/dashboard');
+                            }}
+                            className="p-1 sm:p-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-md transition cursor-pointer"
+                            title={`Visualizar painel exatamente como ${user.name}`}
+                          >
+                            <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
+                          </button>
+
                           {!isSuperAdmin && (
                             <button
                               onClick={() => {

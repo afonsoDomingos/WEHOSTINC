@@ -10,6 +10,9 @@ import {
 
 import BrandLogo from '@/components/BrandLogo';
 
+import AdminClientViewBanner from '@/components/AdminClientViewBanner';
+import { auth } from '@/lib/auth';
+
 interface DashboardNavProps {
   userName?: string;
   userAvatar?: string;
@@ -21,6 +24,8 @@ export default function DashboardNav({ userName, userAvatar, onLogout, onRefresh
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const pathname = usePathname();
+  const actualUser = auth.getActualUser();
+  const isActualAdmin = actualUser?.role === 'admin' || actualUser?.email.toLowerCase() === 'admin@wehosthere.com';
 
   const handleRefreshClick = () => {
     setIsRefreshing(true);
@@ -53,6 +58,9 @@ export default function DashboardNav({ userName, userAvatar, onLogout, onRefresh
 
   return (
     <>
+      {/* Banner de Modo de Pré-visualização do Administrador */}
+      <AdminClientViewBanner />
+
       {/* Top Header Bar */}
       <header className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -62,6 +70,16 @@ export default function DashboardNav({ userName, userAvatar, onLogout, onRefresh
 
             {/* Desktop User Info, Refresh, Notifications & Logout */}
             <div className="hidden md:flex items-center space-x-3.5">
+              {isActualAdmin && (
+                <Link
+                  href="/admin"
+                  className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-bold text-amber-900 bg-amber-100 hover:bg-amber-200 border border-amber-300 rounded-lg transition shadow-sm cursor-pointer"
+                  title="Aceder ao Painel Administrativo"
+                >
+                  <span>👑 Painel Admin</span>
+                </Link>
+              )}
+
               <Link
                 href="/dashboard/notifications"
                 className="relative flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200/80 rounded-lg transition shadow-sm cursor-pointer"
