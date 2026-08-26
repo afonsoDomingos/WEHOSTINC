@@ -36,9 +36,9 @@ export default function SocialProofToast() {
   }, []);
 
   useEffect(() => {
-    // Não mostrar nas páginas de login/registro
-    const isAuthPage = pathname === '/login' || pathname === '/register';
-    if (isAuthPage) return;
+    // Não mostrar nas páginas de login/registro/dashboard/webmail/admin
+    const isAppPage = pathname === '/login' || pathname === '/register' || pathname?.startsWith('/dashboard') || pathname?.startsWith('/webmail') || pathname?.startsWith('/admin');
+    if (isAppPage) return;
     
     // Não mostrar se newsletter popup está visível
     if (newsletterVisible) return;
@@ -65,9 +65,9 @@ export default function SocialProofToast() {
     };
   }, [proofs, dismissed, pathname, newsletterVisible]);
 
-  // Não renderizar se estiver em páginas de login/registro ou newsletter estiver visível
-  const isAuthPage = pathname === '/login' || pathname === '/register';
-  if (isAuthPage || newsletterVisible || proofs.length === 0 || dismissed) return null;
+  // Não renderizar se estiver em páginas de login/registro/dashboard/webmail/admin ou newsletter estiver visível
+  const isAppPage = pathname === '/login' || pathname === '/register' || pathname?.startsWith('/dashboard') || pathname?.startsWith('/webmail') || pathname?.startsWith('/admin');
+  if (isAppPage || newsletterVisible || proofs.length === 0 || dismissed) return null;
 
   const current = proofs[currentIndex] || proofs[0];
 

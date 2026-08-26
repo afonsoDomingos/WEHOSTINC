@@ -519,9 +519,16 @@ function WebmailContent() {
       if (initialEmailParam) {
         setSelectedAccountEmail(initialEmailParam);
         setWebmailLoginEmail(initialEmailParam);
+        if (!mailboxPassword) {
+          setShowWebmailLogin(true);
+        }
       } else if (emailList.length > 0) {
-        setSelectedAccountEmail(prev => prev || emailList[0].email);
-        setWebmailLoginEmail(prev => prev || emailList[0].email);
+        const firstEmail = emailList[0].email;
+        setSelectedAccountEmail(prev => prev || firstEmail);
+        setWebmailLoginEmail(prev => prev || firstEmail);
+        if (!mailboxPassword) {
+          setShowWebmailLogin(true);
+        }
       }
     };
 
@@ -546,8 +553,9 @@ function WebmailContent() {
 
 
   // Helper to open login modal reliably from any button
-  const openLoginModal = () => {
-    setWebmailLoginEmail(selectedAccountEmail);
+  const openLoginModal = (targetEmail?: string) => {
+    const emailToUse = targetEmail || selectedAccountEmail || initialEmailParam || (accounts.length > 0 ? accounts[0].email : '');
+    setWebmailLoginEmail(emailToUse);
     setWebmailLoginError('');
     setWebmailLoginPassword('');
     setShowWebmailLogin(true);
@@ -1779,19 +1787,11 @@ function WebmailContent() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => {
-                    console.log('Botão Entrar no Webmail clicado');
-                    console.log('selectedAccountEmail:', selectedAccountEmail);
-                    console.log('showWebmailLogin antes:', showWebmailLogin);
-                    setWebmailLoginEmail(selectedAccountEmail);
-                    setWebmailLoginError('');
-                    setWebmailLoginPassword('');
-                    setShowWebmailLogin(true);
-                    console.log('showWebmailLogin depois (deve ser true no próximo render)');
-                  }}
-                  className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs rounded-xl transition cursor-pointer shadow-sm"
+                  onClick={() => openLoginModal()}
+                  className="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 active:scale-95 text-white font-bold text-xs sm:text-sm rounded-xl transition cursor-pointer shadow-md flex items-center justify-center space-x-2 mx-auto"
                 >
-                  Entrar no Webmail
+                  <Lock className="h-3.5 w-3.5" />
+                  <span>Entrar no Webmail</span>
                 </button>
               </div>
             ) : displayMessages.length === 0 ? (
@@ -2957,8 +2957,14 @@ function WebmailContent() {
 
       {/* MODAL: Webmail Login */}
       {showWebmailLogin && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center z-[100]">
-          <div className="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl max-w-md w-full p-5 sm:p-6 animate-in slide-in-from-bottom sm:zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto sm:mx-4">
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9999] p-3 sm:p-4 animate-in fade-in duration-200"
+          onClick={() => setShowWebmailLogin(false)}
+        >
+          <div 
+            className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-5 sm:p-6 animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary-100 rounded-full flex items-center justify-center shrink-0">
