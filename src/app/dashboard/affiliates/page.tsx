@@ -334,7 +334,19 @@ export default function AffiliatesPage() {
   if (!affiliate) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-        <div className="max-w-3xl mx-auto py-8 px-4 sm:py-12 sm:px-6">
+        <div className="max-w-3xl mx-auto py-6 px-4 sm:py-10 sm:px-6">
+
+          {/* Botão Voltar — igual às outras abas */}
+          <div className="mb-4">
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center space-x-2 px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 rounded-xl border border-gray-200 shadow-sm transition font-medium text-sm"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span>Voltar ao Dashboard</span>
+            </Link>
+          </div>
+
           {/* Error Message */}
           {errorMessage && (
             <div className={`mb-6 rounded-2xl p-4 border ${
