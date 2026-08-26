@@ -13,7 +13,8 @@ const poppins = Poppins({
   variable: '--font-poppins'
 });
 
-const BASE_URL = SITE_URL;
+const BASE_URL = 'https://www.wehosthere.com';
+const OG_IMAGE_URL = `${BASE_URL}/servidores-banner.png`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
@@ -59,9 +60,11 @@ export const metadata: Metadata = {
       'Hospedagem de sites rápida e segura, email corporativo, registo de domínios e criação de sites profissionais em Moçambique. A partir de 550 MT/mês.',
     images: [
       {
-        url: '/servidores-banner.png',
+        url: OG_IMAGE_URL,
+        secureUrl: OG_IMAGE_URL,
         width: 1200,
         height: 630,
+        type: 'image/png',
         alt: 'WEHOSTHERE — Hospedagem Profissional em Moçambique',
       },
     ],
@@ -71,7 +74,7 @@ export const metadata: Metadata = {
     title: 'WEHOSTHERE — Hospedagem de Sites & Email em Moçambique',
     description:
       'Hospedagem de sites, email corporativo e registo de domínios em Moçambique. A partir de 550 MT/mês.',
-    images: ['/servidores-banner.png'],
+    images: [OG_IMAGE_URL],
     creator: '@wehosthere',
   },
   alternates: {
@@ -108,6 +111,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-MZ">
+      <head>
+        <meta property="og:image" content="https://www.wehosthere.com/servidores-banner.png" />
+        <meta property="og:image:secure_url" content="https://www.wehosthere.com/servidores-banner.png" />
+        <meta property="og:image:type" content="image/png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta name="twitter:image" content="https://www.wehosthere.com/servidores-banner.png" />
+        <meta name="twitter:card" content="summary_large_image" />
+      </head>
       <body className={poppins.className}>
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-YR0M8T8ZBF"
