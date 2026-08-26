@@ -686,8 +686,28 @@ export default function AdminPage() {
       return;
     }
 
-    if (currentUser.role !== 'admin' && currentUser.email.toLowerCase() !== 'admin@wehosthere.com') {
-      router.push('/dashboard');
+    // Verificar role localmente primeiro
+    const localIsAdmin = currentUser.role === 'admin' || currentUser.email.toLowerCase() === 'admin@wehosthere.com';
+
+    if (!localIsAdmin) {
+      // 🔄 Sessão local pode estar desatualizada (utilizador foi promovido após login)
+      // Verificar role no servidor antes de rejeitar o acesso
+      fetch('/api/users?action=me&email=' + encodeURIComponent(currentUser.email))
+        .then(r => r.json())
+        .then(data => {
+          const serverUser = data.user || (data.users && data.users.find((u: any) => u.email?.toLowerCase() === currentUser.email.toLowerCase()));
+          if (serverUser && serverUser.role === 'admin') {
+            // Promovido! Atualizar sessão local e recarregar
+            const updatedSession = { user: { ...currentUser, role: 'admin' } };
+            localStorage.setItem('wehosthere_auth', JSON.stringify(updatedSession));
+            window.location.reload();
+          } else {
+            router.push('/dashboard');
+          }
+        })
+        .catch(() => {
+          router.push('/dashboard');
+        });
       return;
     }
 
