@@ -400,16 +400,8 @@ export default function DashboardAcademyPage() {
                                 </span>
                               </div>
 
-                              {(course.accessType === 'paid' || course.accessType === 'preview') && (
-                                <div className="mb-4 p-2.5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/80 rounded-xl flex items-center justify-between">
-                                  <span className="text-xs font-semibold text-amber-900">
-                                    {course.accessType === 'preview' ? 'Acesso Completo (13 módulos):' : 'Investimento:'}
-                                  </span>
-                                  <span className="text-sm font-extrabold text-amber-950">
-                                    {course.price?.toLocaleString('pt-MZ') || '500'} {course.currency || 'MT'}
-                                  </span>
-                                </div>
-                              )}
+
+
                             </div>
 
                             <button
