@@ -48,23 +48,10 @@ export default function CourseRedirectPage() {
     const loadAndRedirect = async () => {
       console.log('[CourseRedirect] Iniciando redirecionamento para curso:', courseId);
       
-      let fetchedModules: Module[] = [];
-      try {
-        const [cRes, mRes] = await Promise.all([
-          dataManager.fetchCoursesAsync(),
-          dataManager.fetchModulesAsync()
-        ]);
-        if (mRes && Array.isArray(mRes) && mRes.length > 0) {
-          fetchedModules = mRes;
-        }
-      } catch (e) {
-        console.error('[CourseRedirect] Erro ao buscar dados do servidor:', e);
-      }
-
-      // Buscar módulos locais ou do servidor
-      let modules = fetchedModules.length > 0 ? fetchedModules : dataManager.getModules(courseId).sort((a, b) => a.order - b.order);
+      // Buscar módulos locais primeiro para redirecionamento rápido
+      let modules = dataManager.getModules(courseId).sort((a, b) => a.order - b.order);
       
-      // Se ainda não encontrar, buscar todos os módulos disponíveis
+      // Se não encontrar módulos locais, buscar todos os módulos disponíveis
       if (modules.length === 0) {
         const allModules = dataManager.getModules();
         if (allModules.length > 0) {
@@ -76,6 +63,16 @@ export default function CourseRedirectPage() {
       console.log('[CourseRedirect] Redirecionando para capítulo:', targetChapterId);
       router.replace(`/dashboard/academy/course/${courseId}/chapter/${targetChapterId}`);
       setLoading(false);
+
+      // Buscar dados do servidor em background
+      Promise.all([
+        dataManager.fetchCoursesAsync(),
+        dataManager.fetchModulesAsync()
+      ]).then(() => {
+        console.log('[CourseRedirect] Dados do servidor atualizados');
+      }).catch(e => {
+        console.error('[CourseRedirect] Erro ao buscar dados do servidor:', e);
+      });
     };
 
     loadAndRedirect();
