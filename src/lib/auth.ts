@@ -9,7 +9,7 @@ export interface User {
   plan: 'none' | 'basic' | 'pro' | 'enterprise';
   status?: 'active' | 'pending' | 'suspended';
   dueDate?: number;
-  role?: 'admin' | 'user';
+  role?: 'super_admin' | 'admin' | 'user';
   avatar?: string;
   referralCode?: string;
   createdAt: string;
@@ -33,7 +33,7 @@ const DEFAULT_USERS: Array<User & { password?: string }> = [
     password: 'admin123', // Senha temporária para desenvolvimento local
     plan: 'enterprise',
     status: 'active',
-    role: 'admin',
+    role: 'super_admin',
     createdAt: new Date().toISOString()
   }
 ];
@@ -523,10 +523,45 @@ export const auth = {
     }
   },
 
-  // Helper para verificar se usuário é Admin
+  // Helper: Super Admin (acesso total)
+  isSuperAdmin: (user: User | null): boolean => {
+    if (!user) return false;
+    return user.role === 'super_admin' || user.email.toLowerCase() === 'admin@wehosthere.com';
+  },
+
+  // Helper: Admin comum (acesso limitado) ou Super Admin
   isAdminUser: (user: User | null): boolean => {
     if (!user) return false;
-    return user.role === 'admin' || user.email.toLowerCase() === 'admin@wehosthere.com';
+    return user.role === 'super_admin' || user.role === 'admin' || user.email.toLowerCase() === 'admin@wehosthere.com';
+  },
+
+  // Helper: permissões do admin (o que cada role pode fazer)
+  getAdminPermissions: (user: User | null): {
+    canManageRoles: boolean;
+    canAccessFinances: boolean;
+    canAccessSecurityLogs: boolean;
+    canAccessNewsletter: boolean;
+    canAccessSystemSettings: boolean;
+    canManageClients: boolean;
+    canManageOrders: boolean;
+    canManageTickets: boolean;
+    canManageSites: boolean;
+    canManageAcademy: boolean;
+  } => {
+    const isSuperAdmin = auth.isSuperAdmin(user);
+    const isAdmin = auth.isAdminUser(user);
+    return {
+      canManageRoles: isSuperAdmin,
+      canAccessFinances: isSuperAdmin,
+      canAccessSecurityLogs: isSuperAdmin,
+      canAccessNewsletter: isSuperAdmin,
+      canAccessSystemSettings: isSuperAdmin,
+      canManageClients: isAdmin,
+      canManageOrders: isAdmin,
+      canManageTickets: isAdmin,
+      canManageSites: isAdmin,
+      canManageAcademy: isAdmin,
+    };
   },
 
 
@@ -773,8 +808,8 @@ export const auth = {
     }
   },
 
-  // Atualizar função/role do usuário (user | admin)
-  updateUserRole: async (userId: string, role: 'user' | 'admin', userEmail?: string): Promise<boolean> => {
+  // Atualizar função/role do usuário (user | admin | super_admin)
+  updateUserRole: async (userId: string, role: 'user' | 'admin' | 'super_admin', userEmail?: string, requestedByEmail?: string): Promise<boolean> => {
     if (typeof window === 'undefined') return false;
     const userData = JSON.parse(localStorage.getItem(`user_${userId}`) || '{}');
     userData.role = role;
@@ -785,10 +820,12 @@ export const auth = {
     localStorage.setItem('wehosthere_all_users', JSON.stringify(updatedList));
 
     try {
+      const currentUser = auth.getActualUser() || auth.getCurrentUser();
+      const requester = requestedByEmail || currentUser?.email || 'admin@wehosthere.com';
       const res = await fetch(apiEndpoint('/api/users'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'update_role', userId, email: userEmail || userData.email, role })
+        body: JSON.stringify({ action: 'update_role', userId, email: userEmail || userData.email, role, requestedByEmail: requester })
       });
       const data = await res.json();
       if (data.users && Array.isArray(data.users)) {

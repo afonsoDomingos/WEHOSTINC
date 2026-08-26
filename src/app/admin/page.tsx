@@ -249,6 +249,10 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [isSyncingData, setIsSyncingData] = useState(true);
 
+  // Current admin user and permissions
+  const [adminUser, setAdminUser] = useState<User | null>(null);
+  const [perms, setPerms] = useState(auth.getAdminPermissions(null));
+
   // Search and Filter State
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'pending' | 'suspended'>('all');
@@ -687,7 +691,7 @@ export default function AdminPage() {
     }
 
     // Verificar role localmente primeiro
-    const localIsAdmin = currentUser.role === 'admin' || currentUser.email.toLowerCase() === 'admin@wehosthere.com';
+    const localIsAdmin = auth.isAdminUser(currentUser);
 
     if (!localIsAdmin) {
       // 🔄 Sessão local pode estar desatualizada (utilizador foi promovido após login)
@@ -696,9 +700,9 @@ export default function AdminPage() {
         .then(r => r.json())
         .then(data => {
           const serverUser = data.user || (data.users && data.users.find((u: any) => u.email?.toLowerCase() === currentUser.email.toLowerCase()));
-          if (serverUser && serverUser.role === 'admin') {
+          if (serverUser && (serverUser.role === 'admin' || serverUser.role === 'super_admin')) {
             // Promovido! Atualizar sessão local e recarregar
-            const updatedSession = { user: { ...currentUser, role: 'admin' } };
+            const updatedSession = { user: { ...currentUser, role: serverUser.role } };
             localStorage.setItem('wehosthere_auth', JSON.stringify(updatedSession));
             window.location.reload();
           } else {
@@ -710,6 +714,10 @@ export default function AdminPage() {
         });
       return;
     }
+
+    // Definir utilizador e permissões
+    setAdminUser(currentUser);
+    setPerms(auth.getAdminPermissions(currentUser));
 
     // Carregar dados
     setUsers(auth.getUsers());
@@ -1344,13 +1352,15 @@ export default function AdminPage() {
                 <BookOpen className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-500" />
                 <span className="hidden sm:inline">Blog</span>
               </Link>
-              <Link
-                href="/admin/settings"
-                className="flex items-center space-x-1.5 sm:space-x-2 text-gray-600 hover:text-purple-600 font-medium transition text-[10px] sm:text-xs sm:text-sm"
-              >
-                <Settings className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-500" />
-                <span className="hidden sm:inline">Configurações</span>
-              </Link>
+              {perms.canAccessSystemSettings && (
+                <Link
+                  href="/admin/settings"
+                  className="flex items-center space-x-1.5 sm:space-x-2 text-gray-600 hover:text-purple-600 font-medium transition text-[10px] sm:text-xs sm:text-sm"
+                >
+                  <Settings className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-500" />
+                  <span className="hidden sm:inline">Configurações</span>
+                </Link>
+              )}
               <Link
                 href="/test-payment"
                 target="_blank"
@@ -2429,29 +2439,29 @@ export default function AdminPage() {
                       
                       {/* Coluna Função / Role */}
                       <td className="py-2.5 sm:py-3.5 px-2 sm:px-4">
-                        {isSuperAdmin ? (
+                        {isSuperAdmin || user.role === 'super_admin' ? (
                           <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[9px] sm:text-xs font-extrabold bg-purple-100 text-purple-800 border border-purple-200">
                             <span>👑 Super Admin</span>
                           </span>
-                        ) : (
+                        ) : perms.canManageRoles ? (
                           <select
                             value={user.role || 'user'}
                             onChange={(e) => {
                               const newRole = e.target.value as 'user' | 'admin';
                               setConfirmModalData({
                                 isOpen: true,
-                                title: newRole === 'admin' ? 'Promover a Administrador' : 'Remover Permissões de Admin',
+                                title: newRole === 'admin' ? 'Promover a Administrador (Permissões Limitadas)' : 'Remover Permissões de Admin',
                                 message: newRole === 'admin'
-                                  ? `Tem certeza que deseja promover "${user.name}" (${user.email}) a Administrador? Este utilizador terá acesso total ao Painel Administrativo.`
+                                  ? `Tem certeza que deseja promover "${user.name}" (${user.email}) a Administrador? Este utilizador terá acesso operacional (clientes, pedidos, tickets, sites e academia), mas sem acesso a configurações gerais, finanças ou gestão de administradores.`
                                   : `Tem certeza que deseja remover o cargo de Administrador de "${user.name}"?`,
                                 variant: newRole === 'admin' ? 'info' : 'warning',
                                 onConfirm: async () => {
-                                  const success = await auth.updateUserRole(user.id, newRole, user.email);
+                                  const success = await auth.updateUserRole(user.id, newRole, user.email, adminUser?.email);
                                   if (success) {
                                     setUsers(prev => prev.map(u => u.id === user.id ? { ...u, role: newRole } : u));
                                     setToastMsg({ 
                                       title: 'Função Atualizada', 
-                                      message: `${user.name} agora é ${newRole === 'admin' ? 'Administrador 👑' : 'Utilizador Comum 👤'}.`, 
+                                      message: `${user.name} agora é ${newRole === 'admin' ? 'Administrador 🛡️' : 'Utilizador Comum 👤'}.`, 
                                       type: 'success' 
                                     });
                                   } else {
@@ -2463,14 +2473,22 @@ export default function AdminPage() {
                             }}
                             className={`px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg text-[9px] sm:text-xs font-bold outline-none border cursor-pointer ${
                               user.role === 'admin'
-                                ? 'bg-purple-50 text-purple-700 border-purple-300 ring-1 ring-purple-400/30'
+                                ? 'bg-indigo-50 text-indigo-700 border-indigo-300 ring-1 ring-indigo-400/30'
                                 : 'bg-gray-50 text-gray-700 border-gray-200 hover:border-gray-300'
                             }`}
-                            title="Alterar cargo do utilizador"
+                            title="Alterar cargo do utilizador (Apenas Super Admin)"
                           >
                             <option value="user">👤 Utilizador</option>
-                            <option value="admin">👑 Admin</option>
+                            <option value="admin">🛡️ Admin</option>
                           </select>
+                        ) : (
+                          <span className={`inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[9px] sm:text-xs font-bold ${
+                            user.role === 'admin'
+                              ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                              : 'bg-gray-100 text-gray-700 border border-gray-200'
+                          }`}>
+                            <span>{user.role === 'admin' ? '🛡️ Admin' : '👤 Utilizador'}</span>
+                          </span>
                         )}
                       </td>
 

@@ -459,15 +459,28 @@ export async function POST(req: Request) {
       const targetId = (userId || body.id || '').toLowerCase();
       const targetEmail = (body.email || body.userEmail || '').trim().toLowerCase();
       const newRole = body.role;
+      const requestedByEmail = (body.requestedByEmail || '').trim().toLowerCase();
 
-      if (!newRole || !['user', 'admin'].includes(newRole)) {
-        return NextResponse.json({ error: 'Role inválida. Use "user" ou "admin".' }, { status: 400 });
+      if (!newRole || !['user', 'admin', 'super_admin'].includes(newRole)) {
+        return NextResponse.json({ error: 'Role inválida. Use "user", "admin" ou "super_admin".' }, { status: 400 });
       }
 
-      // Proteger: não permitir remover admin do root admin
+      // Apenas Super Admin pode atribuir roles
+      const isSuperAdminRequester = requestedByEmail === 'admin@wehosthere.com';
+      if (!isSuperAdminRequester) {
+        // Verificar no MongoDB se o requestedBy é super_admin
+        if (useMongo && requestedByEmail) {
+          const requester = await UserModel.findOne({ email: requestedByEmail }).lean();
+          if (!requester || (requester as any).role !== 'super_admin') {
+            return NextResponse.json({ error: 'Apenas o Super Administrador pode gerir permissões de cargos.' }, { status: 403 });
+          }
+        }
+      }
+
+      // Proteger: não permitir tocar no Super Admin root
       const isRootAdmin = targetEmail === 'admin@wehosthere.com' || targetId === 'admin_root';
-      if (isRootAdmin && newRole !== 'admin') {
-        return NextResponse.json({ error: 'Não é possível remover permissões de admin do administrador principal.' }, { status: 403 });
+      if (isRootAdmin) {
+        return NextResponse.json({ error: 'Não é possível alterar as permissões do Super Administrador principal.' }, { status: 403 });
       }
 
       if (useMongo) {
@@ -476,11 +489,17 @@ export async function POST(req: Request) {
           : { id: targetId };
         
         const existingTarget = await UserModel.findOne(filter).lean();
+
+        // Também não permitir alterar outro super_admin
+        if ((existingTarget as any)?.role === 'super_admin') {
+          return NextResponse.json({ error: 'Não é possível alterar as permissões de outro Super Administrador.' }, { status: 403 });
+        }
+
         await UserModel.updateMany(filter, { role: newRole });
 
         // Enviar e-mail de notificação de cargo
         if (existingTarget?.email) {
-          sendRoleChangeEmail(existingTarget.email, existingTarget.name || existingTarget.email, newRole).catch(err => {
+          sendRoleChangeEmail(existingTarget.email, (existingTarget as any).name || existingTarget.email, newRole as any).catch(err => {
             console.error('[UsersAPI] Erro ao enviar email de mudança de cargo:', err);
           });
         }
@@ -490,8 +509,11 @@ export async function POST(req: Request) {
       }
 
       const localTarget = FALLBACK_USERS.find(u => (targetId && u.id.toLowerCase() === targetId) || (targetEmail && u.email.toLowerCase() === targetEmail));
+      if (localTarget?.role === 'super_admin') {
+        return NextResponse.json({ error: 'Não é possível alterar as permissões de um Super Administrador.' }, { status: 403 });
+      }
       if (localTarget?.email) {
-        sendRoleChangeEmail(localTarget.email, localTarget.name || localTarget.email, newRole).catch(() => {});
+        sendRoleChangeEmail(localTarget.email, localTarget.name || localTarget.email, newRole as any).catch(() => {});
       }
 
       FALLBACK_USERS = FALLBACK_USERS.map(u =>
