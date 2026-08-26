@@ -77,6 +77,7 @@ export default function AdminAcademyPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [activeTab, setActiveTab] = useState<'courses' | 'modules' | 'lessons'>('courses');
+  const [selectedCourseFilter, setSelectedCourseFilter] = useState<string>('all');
 
   // Form state
   const [formData, setFormData] = useState({
@@ -328,23 +329,83 @@ export default function AdminAcademyPage() {
   const handleDelete = async (id: string, type: 'course' | 'module' | 'lesson') => {
     const itemName = type === 'course' ? 'curso' : type === 'module' ? 'módulo' : 'lição';
     if (!confirm(`Tem certeza que deseja remover este ${itemName}? Esta ação não pode ser desfeita.`)) return;
-    
+
     try {
       const endpoint = type === 'course' ? '/api/courses' : type === 'module' ? '/api/modules' : '/api/lessons';
       const idParam = type === 'course' ? 'courseId' : type === 'module' ? 'moduleId' : 'lessonId';
-      
+
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'delete', [idParam]: id })
       });
-      
+
       if (response.ok) {
         fetchCourses();
       }
     } catch (error) {
       console.error(`Erro ao remover ${itemName}:`, error);
       alert(`Erro ao remover ${itemName}`);
+    }
+  };
+
+  const handleDeleteAllModules = async () => {
+    if (modules.length === 0) {
+      alert('Não há módulos para remover');
+      return;
+    }
+
+    const filteredModules = selectedCourseFilter === 'all'
+      ? modules
+      : modules.filter(m => m.courseId === selectedCourseFilter);
+
+    if (filteredModules.length === 0) {
+      alert('Não há módulos para o filtro selecionado');
+      return;
+    }
+
+    const courseInfo = selectedCourseFilter === 'all'
+      ? 'todos os cursos'
+      : courses.find(c => c.id === selectedCourseFilter)?.title || 'o curso selecionado';
+
+    if (!confirm(`Tem certeza que deseja remover TODOS os ${filteredModules.length} módulos de ${courseInfo}? Esta ação também removerá todas as lições associadas. Esta ação não pode ser desfeita.`)) return;
+
+    try {
+      setIsSaving(true);
+      let successCount = 0;
+      let errorCount = 0;
+
+      for (const mod of filteredModules) {
+        try {
+          const response = await fetch('/api/modules', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'delete', moduleId: mod.id })
+          });
+
+          if (response.ok) {
+            successCount++;
+          } else {
+            errorCount++;
+          }
+        } catch (error) {
+          errorCount++;
+          console.error(`Erro ao remover módulo ${mod.id}:`, error);
+        }
+      }
+
+      setIsSaving(false);
+      fetchCourses();
+
+      if (errorCount === 0) {
+        alert(`${successCount} módulos removidos com sucesso!`);
+      } else {
+        alert(`${successCount} módulos removidos com sucesso, ${errorCount} falharam.`);
+      }
+    } catch (error) {
+      setIsSaving(false);
+      console.error('Erro ao remover módulos:', error);
+      alert('Erro ao remover módulos');
     }
   };
 
@@ -642,34 +703,58 @@ export default function AdminAcademyPage() {
                   <option value="inactive">Inativos</option>
                 </select>
               )}
+              {activeTab === 'modules' && (
+                <select
+                  value={selectedCourseFilter}
+                  onChange={(e) => setSelectedCourseFilter(e.target.value)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                >
+                  <option value="all">Todos os Cursos</option>
+                  {courses.map(course => (
+                    <option key={course.id} value={course.id}>{course.title}</option>
+                  ))}
+                </select>
+              )}
             </div>
-            <button
-              onClick={() => {
-                if (activeTab === 'courses') {
-                  handleCreate('course');
-                } else if (activeTab === 'modules') {
-                  if (courses.length === 0) {
-                    alert('Crie um curso primeiro antes de adicionar módulos');
-                    return;
+            <div className="flex items-center space-x-2">
+              {activeTab === 'modules' && modules.length > 0 && (
+                <button
+                  onClick={handleDeleteAllModules}
+                  disabled={isSaving}
+                  className="flex items-center space-x-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span>{isSaving ? 'Removendo...' : 'Remover Todos'}</span>
+                </button>
+              )}
+              <button
+                onClick={() => {
+                  if (activeTab === 'courses') {
+                    handleCreate('course');
+                  } else if (activeTab === 'modules') {
+                    if (courses.length === 0) {
+                      alert('Crie um curso primeiro antes de adicionar módulos');
+                      return;
+                    }
+                    // Simple implementation - prompt to select course
+                    const course = courses[0]; // Default to first course
+                    handleCreate('module', course);
+                  } else if (activeTab === 'lessons') {
+                    if (modules.length === 0) {
+                      alert('Crie um módulo primeiro antes de adicionar lições');
+                      return;
+                    }
+                    // Simple implementation - prompt to select module
+                    const selectedModule = modules[0]; // Default to first module
+                    handleCreate('lesson', selectedModule);
                   }
-                  // Simple implementation - prompt to select course
-                  const course = courses[0]; // Default to first course
-                  handleCreate('module', course);
-                } else if (activeTab === 'lessons') {
-                  if (modules.length === 0) {
-                    alert('Crie um módulo primeiro antes de adicionar lições');
-                    return;
-                  }
-                  // Simple implementation - prompt to select module
-                  const selectedModule = modules[0]; // Default to first module
-                  handleCreate('lesson', selectedModule);
-                }
-              }}
-              className="flex items-center space-x-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition font-medium text-sm"
-            >
-              <Plus className="h-4 w-4" />
-              <span>Novo {activeTab === 'courses' ? 'Curso' : activeTab === 'modules' ? 'Módulo' : 'Lição'}</span>
-            </button>
+                }}
+                className="flex items-center space-x-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition font-medium text-sm"
+              >
+                <Plus className="h-4 w-4" />
+                <span>Novo {activeTab === 'courses' ? 'Curso' : activeTab === 'modules' ? 'Módulo' : 'Lição'}</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -802,10 +887,12 @@ export default function AdminAcademyPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
-                      {modules.filter(m => 
-                        m.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        m.description.toLowerCase().includes(searchTerm.toLowerCase())
-                      ).map((module) => {
+                      {modules.filter(m => {
+                        const matchesSearch = m.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                              m.description.toLowerCase().includes(searchTerm.toLowerCase());
+                        const matchesCourse = selectedCourseFilter === 'all' || m.courseId === selectedCourseFilter;
+                        return matchesSearch && matchesCourse;
+                      }).map((module) => {
                         const course = courses.find(c => c.id === module.courseId);
                         return (
                           <tr key={module.id} className="hover:bg-gray-50 transition">
