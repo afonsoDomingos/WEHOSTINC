@@ -33,82 +33,100 @@ export default function ChapterViewPage() {
     (currentUser?.email ? dataManager.getOrders(currentUser.email).some(o => (o.serviceName?.toLowerCase().includes('curso') || (course?.title && o.serviceName?.toLowerCase().includes(course.title.toLowerCase()))) && o.status === 'completed') : false);
 
   const loadCourseData = useCallback(async (currentUser: User) => {
-    if (!currentUser) {
-      console.error('[ChapterView] Usuário não autenticado');
-      return;
-    }
-
-    console.log('[ChapterView] Carregando dados do curso:', courseId);
-    console.log('[ChapterView] Chapter ID:', chapterId);
-    console.log('[ChapterView] Todos os cursos disponíveis:', dataManager.getCourses().map(c => c.id));
-
-    // Carregar dados locais primeiro para renderização rápida
-    const courseData = dataManager.getCourses().find(c => c.id === courseId);
-    console.log('[ChapterView] Curso encontrado (local):', courseData?.title);
-    
-    if (!courseData) {
-      console.error('[ChapterView] Curso não encontrado, redirecionando para academy');
-      router.push('/dashboard/academy');
-      return;
-    }
-
-    const courseModules = dataManager.getModules(courseId).sort((a, b) => a.order - b.order);
-    console.log('[ChapterView] Módulos encontrados (local):', courseModules.length);
-    console.log('[ChapterView] IDs dos módulos:', courseModules.map(m => m.id));
-    
-    const allLessons = dataManager.getLessons();
-    console.log('[ChapterView] Todas as lições disponíveis:', allLessons.length);
-    console.log('[ChapterView] IDs das lições:', allLessons.map(l => l.id));
-    
-    setCourse(courseData);
-    setModules(courseModules);
-    setLessons(allLessons);
-    
-    // Carregar progresso local primeiro
-    const localProgress = dataManager.getCourseProgress(currentUser.email, courseId);
-    console.log('[ChapterView] Progresso local:', localProgress);
-    setProgress(localProgress);
-    
-    setLoading(false);
-
-    // Buscar dados do servidor em background
-    Promise.all([
-      dataManager.fetchCoursesAsync(),
-      dataManager.fetchModulesAsync(),
-      dataManager.fetchLessonsAsync()
-    ]).then(() => {
-      console.log('[ChapterView] Dados do servidor atualizados');
-      // Atualizar com dados frescos do servidor
-      const freshCourseData = dataManager.getCourses().find(c => c.id === courseId);
-      const freshCourseModules = dataManager.getModules(courseId).sort((a, b) => a.order - b.order);
+    try {
+      console.log('[ChapterView] loadCourseData iniciado');
       
-      if (freshCourseData) setCourse(freshCourseData);
-      if (freshCourseModules.length > 0) setModules(freshCourseModules);
-      setLessons(dataManager.getLessons());
-    }).catch(e => {
-      console.error('[ChapterView] Erro ao buscar dados do servidor:', e);
-    });
+      if (!currentUser) {
+        console.error('[ChapterView] Usuário não autenticado');
+        return;
+      }
 
-    // Buscar progresso do servidor em background
-    dataManager.fetchCourseProgressAsync(currentUser.email, courseId)
-      .then(serverProgress => {
-        console.log('[ChapterView] Progresso do servidor:', serverProgress);
-        setProgress(serverProgress);
-      })
-      .catch(e => {
-        console.error('[ChapterView] Erro ao buscar progresso do servidor:', e);
+      console.log('[ChapterView] Carregando dados do curso:', courseId);
+      console.log('[ChapterView] Chapter ID:', chapterId);
+      console.log('[ChapterView] Todos os cursos disponíveis:', dataManager.getCourses().map(c => c.id));
+
+      // Carregar dados locais primeiro para renderização rápida
+      const courseData = dataManager.getCourses().find(c => c.id === courseId);
+      console.log('[ChapterView] Curso encontrado (local):', courseData?.title);
+      
+      if (!courseData) {
+        console.error('[ChapterView] Curso não encontrado, redirecionando para academy');
+        router.push('/dashboard/academy');
+        return;
+      }
+
+      const courseModules = dataManager.getModules(courseId).sort((a, b) => a.order - b.order);
+      console.log('[ChapterView] Módulos encontrados (local):', courseModules.length);
+      console.log('[ChapterView] IDs dos módulos:', courseModules.map(m => m.id));
+      
+      const allLessons = dataManager.getLessons();
+      console.log('[ChapterView] Todas as lições disponíveis:', allLessons.length);
+      console.log('[ChapterView] IDs das lições:', allLessons.map(l => l.id));
+      
+      console.log('[ChapterView] Definindo estados: course, modules, lessons');
+      setCourse(courseData);
+      setModules(courseModules);
+      setLessons(allLessons);
+      
+      // Carregar progresso local primeiro
+      const localProgress = dataManager.getCourseProgress(currentUser.email, courseId);
+      console.log('[ChapterView] Progresso local:', localProgress);
+      setProgress(localProgress);
+      
+      console.log('[ChapterView] Definindo loading = false');
+      setLoading(false);
+
+      // Buscar dados do servidor em background
+      console.log('[ChapterView] Iniciando fetch do servidor em background');
+      Promise.all([
+        dataManager.fetchCoursesAsync(),
+        dataManager.fetchModulesAsync(),
+        dataManager.fetchLessonsAsync()
+      ]).then(() => {
+        console.log('[ChapterView] Dados do servidor atualizados');
+        // Atualizar com dados frescos do servidor
+        const freshCourseData = dataManager.getCourses().find(c => c.id === courseId);
+        const freshCourseModules = dataManager.getModules(courseId).sort((a, b) => a.order - b.order);
+        
+        if (freshCourseData) setCourse(freshCourseData);
+        if (freshCourseModules.length > 0) setModules(freshCourseModules);
+        setLessons(dataManager.getLessons());
+      }).catch(e => {
+        console.error('[ChapterView] Erro ao buscar dados do servidor:', e);
       });
+
+      // Buscar progresso do servidor em background
+      dataManager.fetchCourseProgressAsync(currentUser.email, courseId)
+        .then(serverProgress => {
+          console.log('[ChapterView] Progresso do servidor:', serverProgress);
+          setProgress(serverProgress);
+        })
+        .catch(e => {
+          console.error('[ChapterView] Erro ao buscar progresso do servidor:', e);
+        });
+    } catch (error) {
+      console.error('[ChapterView] Erro em loadCourseData:', error);
+      setLoading(false);
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [courseId, chapterId, router]);
 
   useEffect(() => {
+    console.log('[ChapterView] useEffect iniciado');
+    console.log('[ChapterView] courseId:', courseId, 'chapterId:', chapterId);
+    console.log('[ChapterView] NextAuth status:', status);
+    
     // Aguardar NextAuth carregar
-    if (status === 'loading') return;
+    if (status === 'loading') {
+      console.log('[ChapterView] Aguardando NextAuth carregar...');
+      return;
+    }
     
     let currentUser: User | null = null;
     
     // Tentar NextAuth primeiro
     if (status === 'authenticated' && session?.user) {
+      console.log('[ChapterView] Usuário autenticado via NextAuth:', session.user.email);
       currentUser = {
         id: (session.user as any)?.id || session.user.email || '',
         name: session.user.name || '',
@@ -124,13 +142,18 @@ export default function ChapterViewPage() {
     
     // Fallback para sistema customizado (se NextAuth falhar ou não estiver autenticado)
     if (!currentUser) {
+      console.log('[ChapterView] NextAuth não disponível, tentando auth customizado');
       currentUser = auth.getCurrentUser();
+      console.log('[ChapterView] Usuário do auth customizado:', currentUser?.email);
     }
     
     if (!currentUser) {
+      console.error('[ChapterView] Nenhum usuário encontrado, redirecionando para login');
       router.push('/login');
       return;
     }
+    
+    console.log('[ChapterView] Chamando loadCourseData com usuário:', currentUser.email);
     loadCourseData(currentUser);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [courseId, router, session, status]);
@@ -264,6 +287,13 @@ export default function ChapterViewPage() {
 
   if (loading) {
     console.log('[ChapterView] Ainda carregando, loading = true');
+    console.log('[ChapterView] Estado atual:', { 
+      courseId, 
+      chapterId, 
+      course: course?.title, 
+      modulesCount: modules.length, 
+      lessonsCount: lessons.length 
+    });
     return <PageLoader text="A carregar capítulo..." />;
   }
 
