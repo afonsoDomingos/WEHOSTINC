@@ -347,26 +347,26 @@ export default function ClientTicketsPage() {
     <div className="min-h-screen bg-gray-50">
       <DashboardNav userName={user?.name} userAvatar={user?.avatar} onLogout={handleLogout} />
 
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
-        <div className="grid lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6">
+        <div className="grid lg:grid-cols-4 gap-8">
           {/* Sidebar (Desktop) */}
           <div className="hidden lg:block lg:col-span-1">
             <DashboardSidebar />
           </div>
 
           {/* Main Content */}
-          <div className="lg:col-span-3 space-y-4 sm:space-y-6">
+          <div className="lg:col-span-3 space-y-6">
         {/* Cabeçalho da Página */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
           <div className="flex-1">
-            <div className="flex items-center space-x-2 text-primary-600 font-semibold text-xs sm:text-sm mb-1">
-              <LifeBuoy className="w-4 h-4 sm:w-5 sm:h-5" />
+            <div className="flex items-center space-x-2 text-primary-600 font-semibold text-sm mb-1">
+              <LifeBuoy className="w-5 h-5" />
               <span>Central de Atendimento</span>
             </div>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-gray-900 tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">
               Tickets de Suporte
             </h1>
-            <p className="text-gray-600 text-xs sm:text-sm mt-1 line-clamp-2">
+            <p className="text-gray-600 text-sm mt-1">
               Abra chamados para tirar dúvidas técnicas, resolver problemas de hospedagem ou pagamentos.
             </p>
           </div>
@@ -374,48 +374,48 @@ export default function ClientTicketsPage() {
           <button
             type="button"
             onClick={() => setShowCreateModal(true)}
-            className="inline-flex items-center justify-center space-x-2 bg-primary-600 hover:bg-primary-700 text-white font-bold px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl shadow-md transition cursor-pointer w-full sm:w-auto shrink-0"
+            className="inline-flex items-center justify-center space-x-2 bg-primary-600 hover:bg-primary-700 text-white font-bold px-4 py-2.5 rounded-xl shadow-md transition cursor-pointer w-full sm:w-auto shrink-0"
           >
-            <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-            <span className="text-xs sm:text-sm">Abrir Novo Ticket</span>
+            <Plus className="w-4 h-4" />
+            <span>Abrir Novo Ticket</span>
           </button>
         </div>
 
         {/* Cards de Métricas */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 md:gap-5 mb-4 sm:mb-6">
-          <div className="bg-white p-3 sm:p-4 md:p-5 rounded-xl sm:rounded-2xl border border-gray-200 shadow-sm flex items-center justify-between">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5 mb-6">
+          <div className="bg-white p-4 sm:p-5 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
             <div>
-              <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-gray-400">Total de Chamados</p>
-              <h3 className="text-xl sm:text-2xl font-black text-gray-900 mt-1">{tickets.length}</h3>
+              <p className="text-xs font-bold uppercase tracking-wider text-gray-400">Total de Chamados</p>
+              <h3 className="text-2xl font-black text-gray-900 mt-1">{tickets.length}</h3>
             </div>
-            <div className="p-2 sm:p-3 bg-blue-50 text-blue-600 rounded-xl">
-              <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6" />
+            <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
+              <MessageSquare className="w-6 h-6" />
             </div>
           </div>
 
-          <div className="bg-white p-3 sm:p-4 md:p-5 rounded-xl sm:rounded-2xl border border-gray-200 shadow-sm flex items-center justify-between">
+          <div className="bg-white p-4 sm:p-5 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
             <div>
-              <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-gray-400">Abertos / Em Análise</p>
-              <h3 className="text-xl sm:text-2xl font-black text-blue-600 mt-1">{countOpen}</h3>
+              <p className="text-xs font-bold uppercase tracking-wider text-gray-400">Abertos / Em Análise</p>
+              <h3 className="text-2xl font-black text-blue-600 mt-1">{countOpen}</h3>
             </div>
-            <div className="p-2 sm:p-3 bg-amber-50 text-amber-600 rounded-xl">
-              <Clock className="w-5 h-5 sm:w-6 sm:h-6" />
+            <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
+              <Clock className="w-6 h-6" />
             </div>
           </div>
 
-          <div className="bg-white p-3 sm:p-4 md:p-5 rounded-xl sm:rounded-2xl border border-gray-200 shadow-sm flex items-center justify-between">
+          <div className="bg-white p-4 sm:p-5 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
             <div>
-              <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-gray-400">Respondidos</p>
-              <h3 className="text-xl sm:text-2xl font-black text-emerald-600 mt-1">{countAnswered}</h3>
+              <p className="text-xs font-bold uppercase tracking-wider text-gray-400">Respondidos</p>
+              <h3 className="text-2xl font-black text-emerald-600 mt-1">{countAnswered}</h3>
             </div>
-            <div className="p-2 sm:p-3 bg-emerald-50 text-emerald-600 rounded-xl">
-              <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6" />
+            <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+              <CheckCircle2 className="w-6 h-6" />
             </div>
           </div>
         </div>
 
         {/* Barra de Filtros e Busca */}
-        <div className="bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-gray-200 shadow-sm mb-4 sm:mb-6 flex flex-col md:flex-row items-center justify-between gap-3 sm:gap-4">
+        <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="relative w-full md:w-80">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
@@ -423,14 +423,14 @@ export default function ClientTicketsPage() {
               placeholder="Buscar por ID ou assunto..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 sm:py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-gray-900 placeholder-gray-400"
+              className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-gray-900 placeholder-gray-400"
             />
           </div>
 
-          <div className="flex items-center space-x-1.5 sm:space-x-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
+          <div className="flex items-center space-x-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
             <button
               onClick={() => setFilterStatus('all')}
-              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[10px] sm:text-xs font-bold transition whitespace-nowrap ${
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap ${
                 filterStatus === 'all' ? 'bg-primary-600 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
@@ -438,7 +438,7 @@ export default function ClientTicketsPage() {
             </button>
             <button
               onClick={() => setFilterStatus('open')}
-              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[10px] sm:text-xs font-bold transition whitespace-nowrap ${
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap ${
                 filterStatus === 'open' ? 'bg-blue-600 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
@@ -446,7 +446,7 @@ export default function ClientTicketsPage() {
             </button>
             <button
               onClick={() => setFilterStatus('answered')}
-              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[10px] sm:text-xs font-bold transition whitespace-nowrap ${
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap ${
                 filterStatus === 'answered' ? 'bg-emerald-600 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
@@ -454,7 +454,7 @@ export default function ClientTicketsPage() {
             </button>
             <button
               onClick={() => setFilterStatus('closed')}
-              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[10px] sm:text-xs font-bold transition whitespace-nowrap ${
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap ${
                 filterStatus === 'closed' ? 'bg-gray-700 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
@@ -465,12 +465,12 @@ export default function ClientTicketsPage() {
 
         {/* Lista de Tickets */}
         {filteredTickets.length === 0 ? (
-          <div className="bg-white rounded-xl sm:rounded-2xl border border-gray-200 p-6 sm:p-8 md:p-12 text-center shadow-sm">
-            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary-50 text-primary-600 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-              <LifeBuoy className="w-6 h-6 sm:w-8 sm:h-8" />
+          <div className="bg-white rounded-xl border border-gray-200 p-12 text-center shadow-sm">
+            <div className="w-16 h-16 bg-primary-50 text-primary-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <LifeBuoy className="w-8 h-8" />
             </div>
-            <h3 className="text-base sm:text-lg font-bold text-gray-900">Nenhum ticket encontrado</h3>
-            <p className="text-gray-500 text-xs sm:text-sm mt-1 max-w-md mx-auto">
+            <h3 className="text-lg font-bold text-gray-900">Nenhum ticket encontrado</h3>
+            <p className="text-gray-500 text-sm mt-1 max-w-md mx-auto">
               {searchTerm || filterStatus !== 'all'
                 ? 'Tente ajustar os seus filtros de pesquisa para visualizar outros resultados.'
                 : 'Precisa de ajuda com o seu serviço? Abra um ticket e nossa equipa responderá em breve.'}
@@ -479,47 +479,47 @@ export default function ClientTicketsPage() {
               <button
                 type="button"
                 onClick={() => setShowCreateModal(true)}
-                className="mt-4 sm:mt-6 inline-flex items-center space-x-2 bg-primary-600 text-white font-bold px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl shadow transition"
+                className="mt-6 inline-flex items-center space-x-2 bg-primary-600 text-white font-bold px-5 py-2.5 rounded-xl shadow transition"
               >
                 <Plus className="w-4 h-4" />
-                <span className="text-xs sm:text-sm">Criar Primeiro Ticket</span>
+                <span>Criar Primeiro Ticket</span>
               </button>
             )}
           </div>
         ) : (
-          <div className="space-y-2 sm:space-y-3">
+          <div className="space-y-4">
             {filteredTickets.map((ticket) => (
               <div
                 key={ticket.id}
                 onClick={() => setSelectedTicket(ticket)}
-                className="bg-white p-3 sm:p-4 md:p-5 rounded-xl sm:rounded-2xl border border-gray-200 hover:border-primary-300 hover:shadow-md transition cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4"
+                className="bg-white p-4 sm:p-5 rounded-xl border border-gray-200 hover:border-primary-300 hover:shadow-md transition cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-4"
               >
-                <div className="space-y-1.5 sm:space-y-2 flex-1">
-                  <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                    <span className="text-[10px] sm:text-xs font-mono font-bold text-gray-400">{ticket.id}</span>
+                <div className="space-y-2 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-xs font-mono font-bold text-gray-400">{ticket.id}</span>
                     {getStatusBadge(ticket.status)}
                     {getPriorityBadge(ticket.priority)}
-                    <span className="text-[10px] sm:text-xs font-semibold px-2 sm:px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-600 border border-gray-200">
+                    <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-600 border border-gray-200">
                       {getCategoryLabel(ticket.category)}
                     </span>
                   </div>
-                  <h3 className="text-sm sm:text-base font-bold text-gray-900 hover:text-primary-600 transition line-clamp-2">
+                  <h3 className="text-base font-bold text-gray-900 hover:text-primary-600 transition">
                     {ticket.subject}
                   </h3>
-                  <p className="text-[10px] sm:text-xs text-gray-500 line-clamp-2">
+                  <p className="text-xs text-gray-500 line-clamp-1">
                     {ticket.messages[ticket.messages.length - 1]?.message || 'Sem conteúdo.'}
                   </p>
                 </div>
 
-                <div className="flex items-center justify-between md:justify-end gap-3 sm:gap-4 border-t md:border-t-0 pt-2 sm:pt-3 md:pt-0 border-gray-100">
-                  <div className="text-right text-[10px] sm:text-xs text-gray-500">
+                <div className="flex items-center justify-between md:justify-end gap-4 border-t md:border-t-0 pt-3 md:pt-0 border-gray-100">
+                  <div className="text-right text-xs text-gray-500">
                     <div>{ticket.messages.length} {ticket.messages.length === 1 ? 'mensagem' : 'mensagens'}</div>
-                    <div className="text-[9px] sm:text-[11px] text-gray-400 mt-0.5">
-                      {new Date(ticket.updatedAt).toLocaleDateString('pt-PT')}
+                    <div className="text-[11px] text-gray-400 mt-0.5">
+                      Atualizado {new Date(ticket.updatedAt).toLocaleDateString('pt-PT')} às {new Date(ticket.updatedAt).toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' })}
                     </div>
                   </div>
-                  <div className="p-1.5 sm:p-2 rounded-xl bg-gray-50 text-gray-400 group-hover:text-primary-600 group-hover:bg-primary-50 transition shrink-0">
-                    <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <div className="p-2 rounded-xl bg-gray-50 text-gray-400 group-hover:text-primary-600 group-hover:bg-primary-50 transition">
+                    <ChevronRight className="w-5 h-5" />
                   </div>
                 </div>
               </div>

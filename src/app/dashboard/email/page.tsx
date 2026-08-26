@@ -396,125 +396,106 @@ export default function EmailPage() {
       {/* Header Responsivo */}
       <DashboardNav userName={user.name} userAvatar={user.avatar} onLogout={handleLogout} />
 
-      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-4 sm:py-6">
-        <div className="grid lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6">
+        <div className="grid lg:grid-cols-4 gap-8">
           {/* Sidebar (Desktop) */}
           <div className="hidden lg:block lg:col-span-1">
             <DashboardSidebar />
           </div>
 
           {/* Main Content */}
-          <div className="lg:col-span-3 space-y-4 sm:space-y-6">
-            <div className="bg-white rounded-xl shadow-sm p-3 sm:p-4 sm:p-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 mb-3 sm:mb-4 sm:mb-6">
+          <div className="lg:col-span-3 space-y-6">
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
                 <div className="min-w-0 flex-1">
-                  <h1 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-gray-900 truncate">Contas de Email Corporativo</h1>
-                  <p className="text-[10px] sm:text-xs md:text-sm text-gray-500 mt-0.5 line-clamp-2">Gerencie os emails da sua empresa, altere senhas e aceda ao Webmail</p>
+                  <h1 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">Contas de Email Corporativo</h1>
+                  <p className="text-xs sm:text-sm text-gray-500 mt-0.5">Gerencie os emails da sua empresa, altere senhas e aceda ao Webmail</p>
                 </div>
                 <button
                   onClick={() => setShowCreateModal(true)}
-                  className="flex items-center justify-center space-x-1.5 sm:space-x-2 bg-primary-600 text-white font-bold text-xs sm:text-sm md:text-base px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl hover:bg-primary-700 transition cursor-pointer shadow-sm w-full sm:w-auto shrink-0"
+                  className="flex items-center justify-center space-x-2 bg-primary-600 text-white font-bold text-sm px-4 py-2.5 rounded-xl hover:bg-primary-700 transition cursor-pointer shadow-sm w-full sm:w-auto shrink-0"
                 >
-                  <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4 md:h-5 md:w-5" />
+                  <Plus className="h-4 w-4 shrink-0" />
                   <span className="hidden sm:inline">Nova Conta de Email</span>
                   <span className="sm:hidden">+ Email</span>
                 </button>
               </div>
 
               {emails.length === 0 ? (
-                <div className="text-center py-6 sm:py-8 sm:py-12">
-                  <Mail className="h-10 w-10 sm:h-12 sm:h-16 sm:w-12 sm:w-16 text-gray-300 mx-auto mb-2 sm:mb-3 sm:mb-4" />
-                  <h3 className="text-sm sm:text-base sm:text-lg font-semibold text-gray-900 mb-2">Nenhuma conta configurada</h3>
-                  <p className="text-gray-600 mb-2 sm:mb-3 sm:mb-4 text-xs sm:text-sm px-2">Crie sua primeira conta de email profissional personalizada</p>
+                <div className="text-center py-12">
+                  <Mail className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhuma conta configurada</h3>
+                  <p className="text-gray-600 mb-4 text-sm max-w-md mx-auto">Crie sua primeira conta de email profissional personalizada</p>
                   <button
                     onClick={() => setShowCreateModal(true)}
-                    className="flex items-center justify-center space-x-1.5 sm:space-x-2 bg-primary-600 text-white px-3 sm:px-4 sm:px-6 py-2 sm:py-2.5 sm:py-3 rounded-xl hover:bg-primary-700 transition mx-auto font-bold text-xs sm:text-sm w-full sm:w-auto"
+                    className="flex items-center justify-center space-x-2 bg-primary-600 text-white px-4 py-2.5 rounded-xl hover:bg-primary-700 transition mx-auto font-bold text-sm"
                   >
-                    <Plus className="h-3.5 w-3.5 sm:h-4 sm:h-5 sm:w-4 sm:w-5" />
+                    <Plus className="h-4 w-4" />
                     <span>Criar Primeira Conta</span>
                   </button>
                 </div>
               ) : (
-                <div className="space-y-2 sm:space-y-3 sm:space-y-4">
+                <div className="space-y-4">
                   {emails.map((email) => (
-                    <div key={email.id} className="border rounded-xl sm:rounded-2xl p-3 sm:p-4 sm:p-5 hover:bg-gray-50/80 transition bg-white shadow-sm">
-                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-3">
-                        <div className="flex items-center space-x-2 sm:space-x-3 sm:space-x-4 w-full sm:w-auto">
-                          <div className="bg-primary-50 p-2 sm:p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border border-primary-100 shrink-0">
-                            <Mail className="h-4 w-4 sm:h-5 sm:w-5 sm:h-6 sm:w-6 text-primary-600" />
+                    <div key={email.id} className="border border-gray-200 rounded-2xl p-4 sm:p-5 hover:bg-gray-50/50 transition bg-white shadow-xs">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex items-center space-x-3.5 min-w-0">
+                          <div className="bg-primary-50 border border-primary-100 p-2.5 sm:p-3 rounded-xl shrink-0">
+                            <Mail className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600" />
                           </div>
-                          <div className="min-w-0 flex-1">
-                            <h3 className="font-bold text-gray-900 text-xs sm:text-sm md:text-base flex items-center space-x-1.5 sm:space-x-2">
-                              <span className="truncate">{email.email}</span>
-                            </h3>
-                            <p className="text-xs sm:text-sm text-gray-500 mt-0.5">Conta Corporativa Profissional</p>
+                          <div className="min-w-0">
+                            <h3 className="font-extrabold text-gray-900 text-sm sm:text-base truncate">{email.email}</h3>
+                            <p className="text-xs sm:text-sm text-gray-500">Conta Corporativa Profissional</p>
                           </div>
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 w-full sm:w-auto justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-100">
+                        <div className="flex items-center justify-between sm:justify-end space-x-3 w-full sm:w-auto pt-2.5 sm:pt-0 border-t sm:border-t-0 border-gray-100 shrink-0">
                           <StatusBadge status={email.status} />
-
-                          {/* Botão Acessar Webmail Integrado */}
-                          <Link
-                            href={`/webmail?user=${encodeURIComponent(email.email)}`}
-                            className="px-2.5 sm:px-3 sm:px-3.5 py-1.5 sm:py-2 bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs sm:text-sm rounded-lg sm:rounded-xl transition flex items-center space-x-1 sm:space-x-1.5 cursor-pointer shadow-sm shrink-0"
-                          >
-                            <Mail className="h-3 w-3 sm:h-3.5 sm:w-3.5 sm:h-4 sm:w-4" />
-                            <span className="hidden sm:inline">Abrir Webmail</span>
-                            <span className="sm:hidden">Webmail</span>
-                          </Link>
-
-                          {/* Botão Configurações / Editar Senha */}
-                          <button
-                            type="button"
-                            onClick={() => handleOpenEditModal(email)}
-                            className="p-1.5 sm:p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-100 rounded-lg sm:rounded-xl transition cursor-pointer border border-gray-200 shrink-0"
-                            title="Editar Conta & Alterar Senha"
-                          >
-                            <Settings className="h-3 w-3 sm:h-3.5 sm:w-3.5 sm:h-4 sm:w-4" />
-                          </button>
-
-                          {/* Botão Excluir */}
-                          <button
-                            type="button"
-                            onClick={() => setDeleteEmailConfirm({ isOpen: true, id: email.id, emailStr: email.email })}
-                            className="p-1.5 sm:p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg sm:rounded-xl transition cursor-pointer border border-gray-200 shrink-0"
-                            title="Excluir Conta"
-                          >
-                            <Trash2 className="h-3 w-3 sm:h-3.5 sm:w-3.5 sm:h-4 sm:w-4" />
-                          </button>
+                          <div className="flex items-center space-x-1 shrink-0">
+                            <Link
+                              href={`/webmail?user=${encodeURIComponent(email.email)}`}
+                              className="px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs rounded-lg transition flex items-center space-x-1.5 cursor-pointer"
+                            >
+                              <Mail className="h-3.5 w-3.5 shrink-0" />
+                              <span className="hidden sm:inline">Webmail</span>
+                            </Link>
+                            <button
+                              type="button"
+                              onClick={() => handleOpenEditModal(email)}
+                              className="p-2 text-gray-500 hover:text-primary-600 transition hover:bg-gray-100 rounded-lg cursor-pointer"
+                            >
+                              <Settings className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setDeleteEmailConfirm({ isOpen: true, id: email.id, emailStr: email.email })}
+                              className="p-2 text-gray-500 hover:text-red-600 transition hover:bg-red-50 rounded-lg cursor-pointer"
+                            >
+                              <Trash2 className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
+                            </button>
+                          </div>
                         </div>
                       </div>
 
                       {email.status === 'pending' && (
-                        <div className="mt-2 sm:mt-3 p-2 sm:p-3 bg-amber-50 border border-amber-200 rounded-lg sm:rounded-xl text-xs sm:text-sm text-amber-900 flex items-center space-x-2">
-                          <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-amber-600 shrink-0 animate-pulse" />
-                          <span className="line-clamp-2">
+                        <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800 flex items-center space-x-2">
+                          <Clock className="h-4 w-4 text-amber-600 flex-shrink-0 animate-pulse" />
+                          <span>
                             <strong>Em Processamento:</strong> Ativação em curso pela equipa técnica.
                           </span>
                         </div>
                       )}
 
-                      <div className="mt-2 sm:mt-3 sm:mt-4 pt-2 sm:pt-3 border-t border-gray-100 grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 text-xs sm:text-sm text-gray-600">
+                      <div className="mt-4 pt-4 border-t grid grid-cols-2 gap-4 text-sm">
                         <div>
-                          <span className="text-gray-400 block font-medium text-[10px] sm:text-xs">Armazenamento</span>
-                          <span className="font-bold text-gray-900">{email.storage || 1} GB</span>
+                          <p className="text-gray-600">Armazenamento</p>
+                          <p className="font-semibold text-gray-900">{email.storage || 1} GB</p>
                         </div>
                         <div>
-                          <span className="text-gray-400 block font-medium text-[10px] sm:text-xs">Criado em</span>
-                          <span className="font-bold text-gray-900 block">
+                          <p className="text-gray-600">Criado em</p>
+                          <p className="font-semibold text-gray-900">
                             {new Date(email.createdAt).toLocaleDateString('pt-BR')}
-                          </span>
-                        </div>
-                        <div className="col-span-2 sm:col-span-1">
-                          <button
-                            type="button"
-                            onClick={() => handleOpenEditModal(email)}
-                            className="text-primary-600 hover:text-primary-800 font-bold underline cursor-pointer flex items-center space-x-1 text-xs sm:text-sm"
-                          >
-                            <Key className="h-3 w-3 sm:h-3.5 sm:w-3.5 sm:h-4 sm:w-4" />
-                            <span className="truncate">Alterar Senha</span>
-                          </button>
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -524,32 +505,32 @@ export default function EmailPage() {
             </div>
 
             {/* Email Configuration Box */}
-            <div className="bg-white border border-blue-200 rounded-xl sm:rounded-2xl p-3 sm:p-4 sm:p-6 shadow-sm">
-              <div className="flex items-center space-x-2 sm:space-x-3 mb-2 sm:mb-3">
-                <ShieldCheck className="h-4 w-4 sm:h-5 sm:w-5 text-primary-600" />
-                <h3 className="font-bold text-gray-900 text-xs sm:text-sm md:text-base truncate">Configuração Email (Outlook, iPhone, Android)</h3>
+            <div className="bg-white border border-blue-200 rounded-xl shadow-sm p-4 sm:p-6">
+              <div className="flex items-center space-x-2 mb-3">
+                <ShieldCheck className="h-5 w-5 text-primary-600" />
+                <h3 className="font-bold text-gray-900 text-sm sm:text-base">Configuração Email (Outlook, iPhone, Android)</h3>
               </div>
-              <p className="text-gray-600 text-xs sm:text-sm md:text-base mb-3 sm:mb-4">
+              <p className="text-gray-600 text-xs sm:text-sm mb-4">
                 Utilize as configurações abaixo para adicionar estas contas ao Outlook, Thunderbird, Apple Mail ou no smartphone:
               </p>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 text-xs sm:text-sm">
-                <div className="p-2 sm:p-3 bg-blue-50/60 rounded-lg sm:rounded-xl border border-blue-100">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs sm:text-sm">
+                <div className="p-3 bg-blue-50/60 rounded-lg border border-blue-100">
                   <span className="font-bold text-blue-900 block mb-1 text-xs sm:text-sm">IMAP (Recomendado):</span>
                   <span className="font-mono text-gray-800 block text-xs sm:text-sm break-all">mail.wehosthere.com</span>
                   <span className="text-gray-500 font-mono text-xs sm:text-sm block">Porta 993 (SSL)</span>
                 </div>
-                <div className="p-2 sm:p-3 bg-blue-50/60 rounded-lg sm:rounded-xl border border-blue-100">
+                <div className="p-3 bg-blue-50/60 rounded-lg border border-blue-100">
                   <span className="font-bold text-blue-900 block mb-1 text-xs sm:text-sm">POP3:</span>
                   <span className="font-mono text-gray-800 block text-xs sm:text-sm break-all">mail.wehosthere.com</span>
                   <span className="text-gray-500 font-mono text-xs sm:text-sm block">Porta 995 (SSL)</span>
                 </div>
-                <div className="p-2 sm:p-3 bg-blue-50/60 rounded-lg sm:rounded-xl border border-blue-100">
+                <div className="p-3 bg-blue-50/60 rounded-lg border border-blue-100">
                   <span className="font-bold text-blue-900 block mb-1 text-xs sm:text-sm">SMTP (Envio):</span>
                   <span className="font-mono text-gray-800 block text-xs sm:text-sm break-all">mail.wehosthere.com</span>
                   <span className="text-gray-500 font-mono text-xs sm:text-sm block">Porta 465/587</span>
                 </div>
-                <div className="p-2 sm:p-3 bg-blue-50/60 rounded-lg sm:rounded-xl border border-blue-100">
+                <div className="p-3 bg-blue-50/60 rounded-lg border border-blue-100">
                   <span className="font-bold text-blue-900 block mb-1 text-xs sm:text-sm">Webmail:</span>
                   <span className="font-mono text-primary-700 font-bold block text-xs sm:text-sm break-all">wehosthere.com/webmail</span>
                   <span className="text-gray-500 font-mono text-xs sm:text-sm block">Email + Senha</span>
