@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { ArrowLeft, BookOpen, ChevronLeft, ChevronRight, CheckCircle, Menu, X, Video, FileText, Clock, Target, Award } from 'lucide-react';
+import { ArrowLeft, BookOpen, ChevronLeft, ChevronRight, CheckCircle, Menu, X, Video, FileText, Clock, Target, Award, Lock, DollarSign, CreditCard, Sparkles } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 import { dataManager, Course, Module, Lesson, CourseProgress } from '@/lib/data';
 import BrandLogo from '@/components/BrandLogo';
@@ -27,6 +27,10 @@ export default function ChapterViewPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
   const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' | 'info' | 'warning' }>({ show: false, message: '', type: 'success' });
+
+  const currentUser = auth.getCurrentUser();
+  const isPaidUser = currentUser?.role === 'admin' || currentUser?.plan === 'pro' || currentUser?.plan === 'enterprise' || 
+    (currentUser?.email ? dataManager.getOrders(currentUser.email).some(o => (o.serviceName?.toLowerCase().includes('curso') || (course?.title && o.serviceName?.toLowerCase().includes(course.title.toLowerCase()))) && o.status === 'completed') : false);
 
   const loadCourseData = useCallback(async (currentUser: User) => {
     if (!currentUser) {
@@ -352,6 +356,7 @@ export default function ChapterViewPage() {
                 const completedInModule = moduleLessons.filter(l => isLessonCompleted(l.id)).length;
                 const isActive = module.id === currentChapterId;
                 const isCompleted = completedInModule === moduleLessons.length && moduleLessons.length > 0;
+                const isLocked = (course?.accessType === 'preview' || course?.accessType === 'paid') && !isPaidUser && (module.order > 1);
 
                 return (
                   <div key={module.id} className="mb-3">
@@ -366,22 +371,37 @@ export default function ChapterViewPage() {
                       }`}
                     >
                       <div className="flex items-center space-x-3">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                          isCompleted ? 'bg-emerald-100' : isActive ? 'bg-primary-100' : 'bg-gray-100'
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                          isLocked 
+                            ? 'bg-amber-100 text-amber-700'
+                            : isCompleted 
+                            ? 'bg-emerald-100 text-emerald-600' 
+                            : isActive 
+                            ? 'bg-primary-100 text-primary-600' 
+                            : 'bg-gray-100 text-gray-600'
                         }`}>
-                          {isCompleted ? (
+                          {isLocked ? (
+                            <Lock className="h-4 w-4 text-amber-700" />
+                          ) : isCompleted ? (
                             <CheckCircle className="h-4 w-4 text-emerald-600" />
                           ) : isActive ? (
                             <BookOpen className="h-4 w-4 text-primary-600" />
                           ) : (
-                            <span className="text-xs font-semibold text-gray-600">{index + 1}</span>
+                            <span className="text-xs font-semibold">{index + 1}</span>
                           )}
                         </div>
-                        <div className="flex-1">
-                          <div className={`font-medium text-sm ${isActive ? 'text-primary-900' : 'text-gray-900'}`}>
-                            Capítulo {index + 1}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <span className={`font-bold text-xs sm:text-sm ${isActive ? 'text-primary-900' : 'text-gray-900'}`}>
+                              Capítulo {index + 1}
+                            </span>
+                            {isLocked && (
+                              <span className="text-[10px] font-extrabold text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded">
+                                🔒 Bloqueado
+                              </span>
+                            )}
                           </div>
-                          <div className="text-xs text-gray-600 mt-1">{module.title}</div>
+                          <div className="text-xs text-gray-500 truncate mt-0.5">{module.title}</div>
                         </div>
                       </div>
                     </button>
@@ -420,8 +440,67 @@ export default function ChapterViewPage() {
               </div>
             </div>
 
-            {/* Lesson Content */}
-            {currentLessonData ? (
+            {/* Paywall Screen se o módulo atual estiver bloqueado */}
+            {(course?.accessType === 'preview' || course?.accessType === 'paid') && !isPaidUser && (currentModule.order > 1) ? (
+              <div className="bg-white rounded-3xl border-2 border-amber-200/90 shadow-2xl p-6 sm:p-12 text-center max-w-2xl mx-auto animate-in zoom-in-95 duration-300">
+                <div className="w-20 h-20 bg-gradient-to-br from-amber-100 to-orange-100 text-amber-600 rounded-3xl flex items-center justify-center mx-auto mb-5 shadow-inner border border-amber-200">
+                  <Lock className="h-10 w-10 text-amber-700" />
+                </div>
+
+                <span className="inline-flex items-center space-x-1.5 px-3.5 py-1 bg-amber-100 text-amber-900 border border-amber-300 text-xs font-black rounded-full mb-4 uppercase tracking-widest">
+                  <Sparkles className="h-3.5 w-3.5 text-amber-600" />
+                  <span>Conteúdo Exclusivo do Curso</span>
+                </span>
+
+                <h3 className="text-2xl sm:text-3xl font-black text-gray-950 mb-3 tracking-tight">
+                  Desbloqueie o Curso Completo
+                </h3>
+
+                <p className="text-gray-600 text-sm sm:text-base leading-relaxed mb-6">
+                  Você teve acesso gratuito à aula de introdução! Para continuar a assistir aos restantes <strong>12 módulos práticos</strong>, descarregar ficheiros de apoio, modelos de código e receber o seu <strong>Certificado Oficial de Conclusão</strong>, adquira o acesso vitalício.
+                </p>
+
+                {/* Box de Preço e Benefícios */}
+                <div className="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white rounded-2xl p-6 mb-8 text-left shadow-lg border border-indigo-500/30">
+                  <div className="flex items-center justify-between border-b border-indigo-400/20 pb-4 mb-4">
+                    <div>
+                      <span className="text-xs font-bold text-amber-400 uppercase tracking-wider block">Acesso Vitalício Completo</span>
+                      <span className="text-3xl sm:text-4xl font-black text-white">{course.price || 500} MT</span>
+                    </div>
+                    <span className="px-3 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold rounded-lg">
+                      Pagamento Único
+                    </span>
+                  </div>
+
+                  <ul className="space-y-2 text-xs sm:text-sm text-gray-300">
+                    <li className="flex items-center space-x-2">
+                      <span className="text-emerald-400 font-bold">✓</span>
+                      <span>Acesso aos 13 módulos completos e lições passo a passo</span>
+                    </li>
+                    <li className="flex items-center space-x-2">
+                      <span className="text-emerald-400 font-bold">✓</span>
+                      <span>Modelos de código prontos e materiais de apoio em PDF</span>
+                    </li>
+                    <li className="flex items-center space-x-2">
+                      <span className="text-emerald-400 font-bold">✓</span>
+                      <span>Certificado Oficial WEHOSTHERE com código de validação</span>
+                    </li>
+                    <li className="flex items-center space-x-2">
+                      <span className="text-emerald-400 font-bold">✓</span>
+                      <span>Liberação automática imediata via M-Pesa, eMola ou Cartão</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <button
+                  onClick={() => router.push(`/checkout?service=course&amount=${course.price || 500}&domain=academy&name=${encodeURIComponent(course.title)}`)}
+                  className="w-full sm:w-auto inline-flex items-center justify-center space-x-3 px-8 py-4 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold rounded-2xl shadow-xl hover:shadow-2xl transition transform hover:-translate-y-0.5 cursor-pointer text-base"
+                >
+                  <CreditCard className="h-5 w-5" />
+                  <span>Desbloquear Curso Agora por {course.price || 500} MT</span>
+                </button>
+              </div>
+            ) : currentLessonData ? (
               <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-lg animate-in slide-in-from-bottom-8 fade-in duration-500">
                 <div className="p-6 sm:p-8">
                   {/* Lesson Header */}

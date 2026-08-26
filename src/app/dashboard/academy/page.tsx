@@ -358,9 +358,9 @@ export default function DashboardAcademyPage() {
                               <div className="flex items-center justify-between space-x-2 mb-2">
                                 <h4 className="font-bold text-gray-900 text-sm line-clamp-1">{course.title}</h4>
                                 {course.accessType === 'paid' && (
-                                  <span className="flex items-center space-x-1 bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full text-[11px] font-bold shrink-0">
+                                  <span className="flex items-center space-x-1 bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.5 rounded-full text-[11px] font-extrabold shrink-0">
                                     <DollarSign className="h-3 w-3" />
-                                    <span>Pago</span>
+                                    <span>Pago ({course.price || 500} MT)</span>
                                   </span>
                                 )}
                                 {course.accessType === 'free' && (
@@ -370,9 +370,8 @@ export default function DashboardAcademyPage() {
                                   </span>
                                 )}
                                 {course.accessType === 'preview' && (
-                                  <span className="flex items-center space-x-1 bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-[11px] font-bold shrink-0">
-                                    <Eye className="h-3 w-3" />
-                                    <span>Prévia</span>
+                                  <span className="flex items-center space-x-1 bg-gradient-to-r from-amber-100 to-orange-100 text-amber-900 border border-amber-300 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold shrink-0 shadow-sm">
+                                    <span>🎁 Aula 1 Grátis ({course.price || 500} MT Completo)</span>
                                   </span>
                                 )}
                               </div>
@@ -385,15 +384,17 @@ export default function DashboardAcademyPage() {
                                 </span>
                                 <span className="flex items-center space-x-1">
                                   <BookOpen className="h-3.5 w-3.5" />
-                                  <span>{moduleCount} módulos</span>
+                                  <span>{moduleCount || 13} módulos</span>
                                 </span>
                               </div>
 
-                              {course.accessType === 'paid' && (
-                                <div className="mb-4 p-2.5 bg-amber-50 border border-amber-200/80 rounded-xl flex items-center justify-between">
-                                  <span className="text-xs font-semibold text-amber-900">Investimento:</span>
-                                  <span className="text-base font-extrabold text-amber-950">
-                                    {course.price?.toLocaleString('pt-MZ')} {course.currency || 'MZN'}
+                              {(course.accessType === 'paid' || course.accessType === 'preview') && (
+                                <div className="mb-4 p-2.5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/80 rounded-xl flex items-center justify-between">
+                                  <span className="text-xs font-semibold text-amber-900">
+                                    {course.accessType === 'preview' ? 'Acesso Completo (13 módulos):' : 'Investimento:'}
+                                  </span>
+                                  <span className="text-sm font-extrabold text-amber-950">
+                                    {course.price?.toLocaleString('pt-MZ') || '500'} {course.currency || 'MT'}
                                   </span>
                                 </div>
                               )}
@@ -401,21 +402,28 @@ export default function DashboardAcademyPage() {
 
                             <button
                               onClick={() => handleEnroll(course)}
-                              className={`w-full flex items-center justify-center space-x-2 py-2.5 rounded-xl font-bold text-xs transition shadow-sm ${
-                                course.accessType === 'paid'
+                              className={`w-full flex items-center justify-center space-x-2 py-2.5 rounded-xl font-bold text-xs transition shadow-sm cursor-pointer ${
+                                course.accessType === 'preview'
+                                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white'
+                                  : course.accessType === 'paid'
                                   ? 'bg-amber-600 hover:bg-amber-700 text-white'
                                   : 'bg-primary-600 hover:bg-primary-700 text-white'
                               }`}
                             >
-                              {course.accessType === 'paid' ? (
+                              {course.accessType === 'preview' ? (
+                                <>
+                                  <Play className="h-4 w-4" />
+                                  <span>Assistir Aula de Introdução (Grátis)</span>
+                                </>
+                              ) : course.accessType === 'paid' ? (
                                 <>
                                   <DollarSign className="h-4 w-4" />
-                                  <span>Comprar Curso</span>
+                                  <span>Comprar Curso Completo ({course.price || 500} MT)</span>
                                 </>
                               ) : (
                                 <>
-                                  <ArrowRight className="h-4 w-4" />
-                                  <span>Começar Agora (Grátis)</span>
+                                  <Play className="h-4 w-4" />
+                                  <span>Começar Agora</span>
                                 </>
                               )}
                             </button>

@@ -52,22 +52,25 @@ export default function CourseRedirectPage() {
     const loadAndRedirect = async () => {
       console.log('[CourseRedirect] Iniciando redirecionamento para curso:', courseId);
       
-      // Try to load from server first, but fallback to localStorage
       try {
-        console.log('[CourseRedirect] Buscando dados do servidor...');
         await Promise.all([
           dataManager.fetchCoursesAsync(),
           dataManager.fetchModulesAsync()
         ]);
-        console.log('[CourseRedirect] Dados do servidor carregados');
       } catch (e) {
-        console.error('[CourseRedirect] Erro ao buscar dados do servidor, usando dados locais:', e);
+        console.error('[CourseRedirect] Erro ao buscar dados do servidor:', e);
       }
 
-      // Always use local data for redirect
-      console.log('[CourseRedirect] Buscando módulos locais para curso:', courseId);
-      const modules = dataManager.getModules(courseId).sort((a, b) => a.order - b.order);
-      console.log('[CourseRedirect] Módulos encontrados:', modules.length);
+      // Buscar módulos para este curso
+      let modules = dataManager.getModules(courseId).sort((a, b) => a.order - b.order);
+      
+      // Se não encontrar por courseId exato, buscar todos os módulos disponíveis
+      if (modules.length === 0) {
+        const allModules = dataManager.getModules();
+        if (allModules.length > 0) {
+          modules = allModules.sort((a, b) => a.order - b.order);
+        }
+      }
       
       if (modules.length > 0) {
         const firstModule = modules[0];
