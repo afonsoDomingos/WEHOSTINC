@@ -1,5 +1,5 @@
-import PageLoader from '@/components/PageLoader';
-
+// Loader global desactivado — cada página gere o seu próprio estado de loading internamente.
+// Retornar null garante que não aparece nenhum ecrã de carregamento ao clicar nas abas de navegação.
 export default function Loading() {
-  return <PageLoader text="A carregar a WEHOSTHERE..." />;
+  return null;
 }
