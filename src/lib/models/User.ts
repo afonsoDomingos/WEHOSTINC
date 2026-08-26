@@ -24,7 +24,7 @@ const UserSchema = new Schema<IUser>({
   plan: { type: String, enum: ['none', 'basic', 'pro', 'enterprise'], default: 'none' },
   status: { type: String, enum: ['active', 'pending', 'suspended'], default: 'active' },
   role: { type: String, enum: ['admin', 'user'], default: 'user' },
-  dueDate: { type: Number, default: 29 },
+  dueDate: { type: Number },
   avatar: { type: String, default: '' },
   confirmationCode: { type: String },
   confirmationCodeExpiresAt: { type: String },

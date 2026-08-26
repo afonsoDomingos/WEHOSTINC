@@ -42,17 +42,24 @@ export async function GET(request: Request) {
         continue;
       }
 
-      // 2. Verificar se o utilizador possui pelo menos um site/serviço ativo ou pendente
-      const hasActiveService = await SiteModel.exists({
+      // 2. Verificar e obter o site/serviço ativo do utilizador para determinar o dia exato de ativação
+      const userSite = await SiteModel.findOne({
         userEmail: user.email.toLowerCase().trim(),
         status: { $in: ['active', 'pending'] }
-      });
+      }).sort({ createdAt: 1 }).lean();
 
-      if (!hasActiveService) {
+      if (!userSite) {
         continue;
       }
 
-      const dueDay = user.dueDate || 29;
+      // O dia de vencimento mensal corresponde ao dia real de ativação do serviço (ou dueDate personalizado)
+      let dueDay = user.dueDate;
+      if (!dueDay && userSite.createdAt) {
+        dueDay = new Date(userSite.createdAt).getDate();
+      }
+      if (!dueDay) {
+        dueDay = 29;
+      }
       
       let daysUntilExpiry = 0;
       if (dueDay >= currentDay) {
