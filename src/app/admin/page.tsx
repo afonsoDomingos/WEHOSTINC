@@ -1353,11 +1353,11 @@ export default function AdminPage() {
                 <span className="hidden sm:inline">Blog</span>
               </Link>
               <Link
-                href="/admin#academia"
+                href="/admin/academy"
                 className="flex items-center space-x-1.5 sm:space-x-2 text-gray-600 hover:text-indigo-600 font-medium transition text-[10px] sm:text-xs sm:text-sm"
               >
                 <GraduationCap className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-indigo-500" />
-                <span className="hidden sm:inline">Academia</span>
+                <span className="hidden sm:inline">Cursos</span>
               </Link>
               {perms.canAccessSystemSettings && (
                 <Link
@@ -2634,7 +2634,7 @@ export default function AdminPage() {
         </div>
 
         {/* ===== ACADEMIA — GESTÃO ADMIN ===== */}
-        <div id="academia" className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm mb-6 sm:mb-8">
+        <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm mb-6 sm:mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 sm:mb-6">
             <div>
               <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center space-x-2">
