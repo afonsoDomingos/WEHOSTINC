@@ -789,11 +789,25 @@ export default function AdminPage() {
   };
 
   const handleUpdateOrderStatus = (id: string, newStatus: ServiceOrder['status']) => {
+    const targetOrder = orders.find(o => o.id === id);
+    if (!targetOrder) return;
+
+    // 🔒 SEGURANÇA: Impedir alteração manual de status para M-Pesa/eMola
+    // Apenas webhook do gateway pode confirmar esses pagamentos
+    if ((targetOrder.paymentMethod === 'mpesa' || targetOrder.paymentMethod === 'emola') && 
+        newStatus === 'completed') {
+      setToastMsg({
+        title: '⚠️ Ação Não Permitida',
+        message: 'Pagamentos via M-Pesa/eMola devem ser confirmados automaticamente pelo webhook do gateway. Não é possível alterar manualmente para "completed".',
+        type: 'error'
+      });
+      return;
+    }
+
     dataManager.updateOrderStatus(id, newStatus);
     const updatedOrders = dataManager.getOrders();
     setOrders(updatedOrders);
 
-    const targetOrder = updatedOrders.find(o => o.id === id);
     if (targetOrder) {
       const clientEmail = targetOrder.clientEmail || targetOrder.userEmail || '';
       const clientName = targetOrder.clientName || targetOrder.userName || clientEmail.split('@')[0] || 'Cliente';
@@ -1058,6 +1072,17 @@ export default function AdminPage() {
   const handleApprovePayment = (orderId: string) => {
     const order = orders.find(o => o.id === orderId);
     if (!order) return;
+
+    // 🔒 SEGURANÇA: Apenas permitir aprovação manual para transferência bancária
+    // M-Pesa e eMola devem ser confirmados apenas via webhook
+    if (order.paymentMethod === 'mpesa' || order.paymentMethod === 'emola') {
+      setToastMsg({
+        title: '⚠️ Ação Não Permitida',
+        message: 'Pagamentos via M-Pesa/eMola devem ser confirmados automaticamente pelo webhook do gateway. Não é possível aprovar manualmente.',
+        type: 'error'
+      });
+      return;
+    }
 
     soundEffects.playApproveAccountSound();
 

@@ -119,6 +119,23 @@ export async function POST(req: Request) {
     const affiliateCode = req.headers.get('cookie')?.match(/affiliate_code=([^;]+)/)?.[1];
 
     if (action === 'update_status') {
+      // 🔒 SEGURANÇA: Verificar se é permitido alterar status manualmente
+      let orderDoc: any = null;
+      if (useMongo) {
+        orderDoc = await OrderModel.findOne({ id: orderId }).lean();
+        
+        // Impedir alteração manual para 'completed' em pagamentos M-Pesa/eMola
+        if (orderDoc && (orderDoc.paymentMethod === 'mpesa' || orderDoc.paymentMethod === 'emola') && 
+            status === 'completed') {
+          return NextResponse.json(
+            { error: 'Pagamentos via M-Pesa/eMola devem ser confirmados apenas pelo webhook do gateway. Alteração manual não permitida.' },
+            { status: 403 }
+          );
+        }
+        
+        await OrderModel.findOneAndUpdate({ id: orderId }, { status });
+      }
+
       // Mapear status para texto legível
       const statusLabels: Record<string, string> = {
         pending: 'Pendente', active: 'Ativo', approved: 'Aprovado',
@@ -139,9 +156,6 @@ export async function POST(req: Request) {
       const templateId = templateMap[status] || 'order-status-changed';
 
       if (useMongo) {
-        const orderDoc: any = await OrderModel.findOne({ id: orderId }).lean();
-        await OrderModel.findOneAndUpdate({ id: orderId }, { status });
-
         if (orderDoc) {
           addAdminNotification({
             title: `📋 Pedido #${orderId} → ${statusLabel}`,

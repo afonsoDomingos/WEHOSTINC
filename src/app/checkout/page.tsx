@@ -649,9 +649,15 @@ function CheckoutContent() {
         setCountdown(45);
         setPushStatus('waiting');
         setPushModal(true);
-      } else {
-        // Direct card payment or bank transfer
-        finalizeOrder();
+      } else if (paymentMethod === 'bank_transfer') {
+        // 🔒 SEGURANÇA: Para transferência bancária, apenas criar pedido como 'in_progress'
+        // Admin deve aprovar manualmente após verificar comprovativo
+        await finalizeOrder(false);
+      } else if (paymentMethod === 'card') {
+        // 🔒 CARTÃO NÃO IMPLEMENTADO - Não permitir pagamento por cartão
+        setError('Pagamento por cartão ainda não disponível. Por favor, use M-Pesa ou eMola.');
+        setLoading(false);
+        return;
       }
     } catch (err) {
       setLoading(false);
