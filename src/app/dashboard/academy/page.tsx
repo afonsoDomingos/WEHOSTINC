@@ -126,6 +126,18 @@ export default function DashboardAcademyPage() {
     setEnrollments([...enrollments, enrollment]);
     setToast({ show: true, message: 'Inscrição realizada com sucesso!', type: 'success' });
     
+    // Disparar e-mail de boas-vindas ao curso
+    fetch('/api/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'course_enrollment',
+        to: user.email,
+        userName: user.name,
+        courseTitle: course.title
+      })
+    }).catch(err => console.error('Erro ao disparar email de curso:', err));
+
     // Redirecionar para o curso após inscrição
     router.push(`/dashboard/academy/course/${course.id}`);
   };

@@ -458,6 +458,21 @@ function CheckoutContent() {
             text: message
           })
         }).catch(err => console.error('[Checkout] Erro ao notificar admin:', err));
+
+        // Se o pedido for de curso, enviar e-mail de confirmação de curso ao aluno
+        if (serviceParam === 'course' || serviceName.toLowerCase().includes('curso')) {
+          fetch(apiEndpoint('/api/send-email'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'course_purchase',
+              to: email,
+              userName: name,
+              courseTitle: serviceName,
+              amount: grandTotal
+            })
+          }).catch(err => console.error('[Checkout] Erro ao enviar email de curso:', err));
+        }
       } catch (err) {
         console.error('[Checkout] Erro ao preparar notificação admin:', err);
       }

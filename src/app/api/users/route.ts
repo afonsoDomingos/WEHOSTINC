@@ -4,7 +4,7 @@ import UserModel from '@/lib/models/User';
 import { addAdminNotification, dispatchMessage } from '@/lib/notifications';
 import { rateLimit, getRateLimitIdentifier } from '@/lib/rateLimiter';
 import bcrypt from 'bcryptjs';
-import { sendAccountDeletionEmail } from '@/lib/sendgrid';
+import { sendAccountDeletionEmail, sendRoleChangeEmail } from '@/lib/sendgrid';
 import { DomainInvitation } from '@/models/DomainInvitation';
 import { EmailDomain } from '@/models/EmailDomain';
 import { EmailMailbox } from '@/models/EmailMailbox';
@@ -475,9 +475,23 @@ export async function POST(req: Request) {
           ? { $or: [{ id: targetId }, { email: targetEmail }] }
           : { id: targetId };
         
+        const existingTarget = await UserModel.findOne(filter).lean();
         await UserModel.updateMany(filter, { role: newRole });
+
+        // Enviar e-mail de notificação de cargo
+        if (existingTarget?.email) {
+          sendRoleChangeEmail(existingTarget.email, existingTarget.name || existingTarget.email, newRole).catch(err => {
+            console.error('[UsersAPI] Erro ao enviar email de mudança de cargo:', err);
+          });
+        }
+
         const users = await UserModel.find({}).lean();
         return NextResponse.json({ success: true, users });
+      }
+
+      const localTarget = FALLBACK_USERS.find(u => (targetId && u.id.toLowerCase() === targetId) || (targetEmail && u.email.toLowerCase() === targetEmail));
+      if (localTarget?.email) {
+        sendRoleChangeEmail(localTarget.email, localTarget.name || localTarget.email, newRole).catch(() => {});
       }
 
       FALLBACK_USERS = FALLBACK_USERS.map(u =>

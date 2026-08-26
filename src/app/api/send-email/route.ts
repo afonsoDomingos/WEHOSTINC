@@ -1,25 +1,39 @@
 import { NextResponse } from 'next/server';
-import { sendEmail, sendWebmailMessage } from '@/lib/sendgrid';
+import { 
+  sendEmail, 
+  sendWebmailMessage, 
+  sendCourseEnrollmentEmail, 
+  sendCoursePurchaseEmail, 
+  sendCourseCompletionEmail, 
+  sendRoleChangeEmail 
+} from '@/lib/sendgrid';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { type, from, to, subject, body: msgBody, text, html } = body;
+    const { type, from, to, subject, body: msgBody, text, html, userName, courseTitle, amount, certificateNumber, verificationUrl, role } = body;
 
-    // Validação básica
-    if (!to || (!msgBody && !text && !html)) {
+    // Validação básica para tipos específicos ou genéricos
+    if (!to) {
       return NextResponse.json(
-        { success: false, error: 'Campos obrigatórios: to, body/text/html' },
+        { success: false, error: 'Campo obrigatório: to' },
         { status: 400 }
       );
     }
 
     let result;
 
-    // Tipo: mensagem enviada do Webmail corporativo
-    if (type === 'webmail') {
+    if (type === 'course_enrollment') {
+      result = await sendCourseEnrollmentEmail(to, userName || 'Aluno', courseTitle || 'Curso');
+    } else if (type === 'course_purchase') {
+      result = await sendCoursePurchaseEmail(to, userName || 'Aluno', courseTitle || 'Curso', amount || 500);
+    } else if (type === 'course_completion') {
+      result = await sendCourseCompletionEmail(to, userName || 'Aluno', courseTitle || 'Curso', certificateNumber || 'WH-CERT', verificationUrl || '');
+    } else if (type === 'role_change') {
+      result = await sendRoleChangeEmail(to, userName || 'Utilizador', role || 'user');
+    } else if (type === 'webmail') {
       if (!from) {
         return NextResponse.json(
           { success: false, error: 'Remetente (from) é obrigatório para Webmail.' },

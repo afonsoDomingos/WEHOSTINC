@@ -2612,6 +2612,20 @@ export const dataManager = {
       if (res.ok) {
         const data = await res.json();
         if (data.certificate) {
+          // Disparar e-mail com o Certificado Oficial de Conclusão
+          fetch(apiEndpoint('/api/send-email'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'course_completion',
+              to: userEmail,
+              userName: userName || userEmail,
+              courseTitle,
+              certificateNumber,
+              verificationUrl
+            })
+          }).catch(err => console.error('Erro ao enviar email de certificado:', err));
+
           // Update localStorage
           if (typeof window !== 'undefined') {
             const localData = localStorage.getItem('wehosthere_certificates');

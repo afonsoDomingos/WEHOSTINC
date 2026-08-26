@@ -353,3 +353,164 @@ export async function sendNewsletterEmail(toEmail: string, subject: string, cont
       </div>`,
   });
 }
+
+/** Email de inscrição no curso (Boas-vindas à aula de introdução) */
+export async function sendCourseEnrollmentEmail(toEmail: string, userName: string, courseTitle: string) {
+  const academyUrl = `${SITE_URL}/dashboard/academy`;
+
+  return sendEmail({
+    to: toEmail,
+    subject: `🎓 Bem-vindo ao curso: ${courseTitle}!`,
+    html: `
+      <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;">
+        <div style="background:linear-gradient(135deg,#2563eb,#4f46e5);padding:40px 32px;border-radius:16px 16px 0 0;text-align:center;">
+          <img src="${SITE_URL}/logo.png" alt="WEHOSTHERE Logo" style="width:180px;height:auto;margin:0 auto 16px;display:block;" />
+          <p style="color:#e0e7ff;margin:8px 0 0;font-size:14px;font-weight:600;">Academia Web WEHOSTHERE</p>
+        </div>
+        <div style="background:#f8fafc;padding:40px 32px;border-radius:0 0 16px 16px;border:1px solid #e2e8f0;">
+          <p style="color:#334155;font-size:16px;line-height:1.7;">Olá, <strong>${userName}</strong>!</p>
+          <p style="color:#334155;font-size:15px;line-height:1.7;">
+            A sua inscrição no curso <strong>${courseTitle}</strong> foi confirmada com sucesso!
+          </p>
+          
+          <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:20px;margin:24px 0;">
+            <p style="margin:0 0 8px;font-weight:800;color:#1d4ed8;font-size:15px;">🎁 O que está disponível para si agora:</p>
+            <ul style="margin:0;padding-left:20px;color:#475569;font-size:14px;line-height:1.8;">
+              <li>Acesso completo à <strong>Aula 1 (Introdução e Conceitos)</strong> gratuita.</li>
+              <li>Estrutura passo a passo e visão geral dos 13 módulos.</li>
+              <li>Acesso à comunidade e suporte da plataforma.</li>
+            </ul>
+          </div>
+          
+          <div style="text-align:center;margin:32px 0;">
+            <a href="${academyUrl}" style="background:linear-gradient(135deg,#2563eb,#4f46e5);color:white;font-weight:700;padding:16px 36px;border-radius:10px;text-decoration:none;font-size:15px;display:inline-block;box-shadow:0 4px 12px rgba(37,99,235,0.25);">Começar a Assistir Agora →</a>
+          </div>
+          
+          <p style="color:#94a3b8;font-size:12px;margin:24px 0 0;text-align:center;">Equipa WEHOSTHERE — Academia de Desenvolvimento Web</p>
+        </div>
+      </div>`,
+  });
+}
+
+/** Email de confirmação de pagamento do curso completo */
+export async function sendCoursePurchaseEmail(toEmail: string, userName: string, courseTitle: string, amount: number = 500) {
+  const academyUrl = `${SITE_URL}/dashboard/academy`;
+
+  return sendEmail({
+    to: toEmail,
+    subject: `🎉 Acesso Completo Liberado: ${courseTitle}!`,
+    html: `
+      <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;">
+        <div style="background:linear-gradient(135deg,#059669,#10b981);padding:40px 32px;border-radius:16px 16px 0 0;text-align:center;">
+          <img src="${SITE_URL}/logo.png" alt="WEHOSTHERE Logo" style="width:180px;height:auto;margin:0 auto 16px;display:block;" />
+          <p style="color:#d1fae5;margin:8px 0 0;font-size:14px;font-weight:600;">Pagamento Confirmado</p>
+        </div>
+        <div style="background:#f8fafc;padding:40px 32px;border-radius:0 0 16px 16px;border:1px solid #e2e8f0;">
+          <p style="color:#334155;font-size:16px;line-height:1.7;">Olá, <strong>${userName}</strong>!</p>
+          <p style="color:#334155;font-size:15px;line-height:1.7;">
+            Confirmamos a receção do seu pagamento de <strong>${amount} MT</strong> para o curso <strong>${courseTitle}</strong>.
+          </p>
+          
+          <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:20px;margin:24px 0;">
+            <p style="margin:0 0 8px;font-weight:800;color:#15803d;font-size:15px;">✓ O seu curso completo está 100% desbloqueado:</p>
+            <ul style="margin:0;padding-left:20px;color:#374151;font-size:14px;line-height:1.8;">
+              <li>Acesso vitalício aos <strong>13 módulos práticos</strong>.</li>
+              <li>Downloads de modelos de código e materiais em PDF.</li>
+              <li>Direito à emissão do <strong>Certificado Oficial WEHOSTHERE</strong> ao concluir.</li>
+            </ul>
+          </div>
+          
+          <div style="text-align:center;margin:32px 0;">
+            <a href="${academyUrl}" style="background:linear-gradient(135deg,#059669,#10b981);color:white;font-weight:700;padding:16px 36px;border-radius:10px;text-decoration:none;font-size:15px;display:inline-block;box-shadow:0 4px 12px rgba(16,185,129,0.25);">Acessar Todas as Aulas →</a>
+          </div>
+          
+          <p style="color:#94a3b8;font-size:12px;margin:24px 0 0;text-align:center;">Equipa WEHOSTHERE — Academia de Desenvolvimento Web</p>
+        </div>
+      </div>`,
+  });
+}
+
+/** Email de conclusão de curso e emissão de certificado */
+export async function sendCourseCompletionEmail(toEmail: string, userName: string, courseTitle: string, certificateNumber: string, verificationUrl: string) {
+  return sendEmail({
+    to: toEmail,
+    subject: `🏆 Parabéns! O seu Certificado de ${courseTitle} está pronto!`,
+    html: `
+      <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;">
+        <div style="background:linear-gradient(135deg,#7c3aed,#9333ea);padding:40px 32px;border-radius:16px 16px 0 0;text-align:center;">
+          <img src="${SITE_URL}/logo.png" alt="WEHOSTHERE Logo" style="width:180px;height:auto;margin:0 auto 16px;display:block;" />
+          <p style="color:#ede9fe;margin:8px 0 0;font-size:14px;font-weight:600;">Certificado Oficial de Conclusão</p>
+        </div>
+        <div style="background:#f8fafc;padding:40px 32px;border-radius:0 0 16px 16px;border:1px solid #e2e8f0;">
+          <p style="color:#334155;font-size:16px;line-height:1.7;">Parabéns, <strong>${userName}</strong>! 🎓</p>
+          <p style="color:#334155;font-size:15px;line-height:1.7;">
+            Você concluiu com distinção todas as lições e módulos do curso <strong>${courseTitle}</strong>.
+          </p>
+          
+          <div style="background:#faf5ff;border:1px solid #e9d5ff;border-radius:12px;padding:20px;margin:24px 0;text-align:center;">
+            <p style="margin:0;font-size:13px;color:#6b21a8;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Código de Autenticidade do Certificado</p>
+            <p style="margin:8px 0 0;font-family:monospace;font-size:22px;font-weight:900;color:#581c87;letter-spacing:2px;">${certificateNumber}</p>
+          </div>
+          
+          <div style="text-align:center;margin:32px 0;">
+            <a href="${verificationUrl}" style="background:linear-gradient(135deg,#7c3aed,#9333ea);color:white;font-weight:700;padding:16px 36px;border-radius:10px;text-decoration:none;font-size:15px;display:inline-block;box-shadow:0 4px 12px rgba(124,58,237,0.25);">Visualizar e Imprimir Certificado →</a>
+          </div>
+          
+          <p style="color:#64748b;font-size:13px;line-height:1.6;margin:16px 0 0;">
+            Pode adicionar este certificado ao seu currículo e perfil do LinkedIn através do link oficial de validação.
+          </p>
+          <p style="color:#94a3b8;font-size:12px;margin:24px 0 0;text-align:center;">Equipa WEHOSTHERE — Academia de Desenvolvimento Web</p>
+        </div>
+      </div>`,
+  });
+}
+
+/** Email de notificação de promoção ou despromoção de Administrador */
+export async function sendRoleChangeEmail(toEmail: string, userName: string, newRole: 'admin' | 'user') {
+  const isAdmin = newRole === 'admin';
+  const targetUrl = isAdmin ? `${SITE_URL}/admin` : `${SITE_URL}/dashboard`;
+
+  return sendEmail({
+    to: toEmail,
+    subject: isAdmin 
+      ? `👑 Acesso Concedido: Você foi promovido a Administrador da WEHOSTHERE!`
+      : `ℹ️ Atualização de Permissões na sua conta WEHOSTHERE`,
+    html: `
+      <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;">
+        <div style="background:linear-gradient(135deg,${isAdmin ? '#6d28d9,#4f46e5' : '#475569,#334155'});padding:40px 32px;border-radius:16px 16px 0 0;text-align:center;">
+          <img src="${SITE_URL}/logo.png" alt="WEHOSTHERE Logo" style="width:180px;height:auto;margin:0 auto 16px;display:block;" />
+          <p style="color:#ede9fe;margin:8px 0 0;font-size:14px;font-weight:600;">Gestão de Permissões</p>
+        </div>
+        <div style="background:#f8fafc;padding:40px 32px;border-radius:0 0 16px 16px;border:1px solid #e2e8f0;">
+          <p style="color:#334155;font-size:16px;line-height:1.7;">Olá, <strong>${userName}</strong>,</p>
+          
+          ${isAdmin ? `
+            <p style="color:#334155;font-size:15px;line-height:1.7;">
+              Informamos que a sua conta foi promovida para <strong>Administrador da plataforma WEHOSTHERE 👑</strong>.
+            </p>
+            <div style="background:#f5f3ff;border:1px solid #ddd6fe;border-radius:12px;padding:20px;margin:24px 0;">
+              <p style="margin:0 0 8px;font-weight:800;color:#5b21b6;font-size:15px;">Privilégios Administrativos Ativados:</p>
+              <ul style="margin:0;padding-left:20px;color:#475569;font-size:14px;line-height:1.8;">
+                <li>Acesso completo ao <strong>Painel Administrativo (/admin)</strong>.</li>
+                <li>Gestão de clientes, pedidos, faturas e serviços ativos.</li>
+                <li>Monitorização de uptime, tickets de suporte e configurações globais.</li>
+              </ul>
+            </div>
+            <div style="text-align:center;margin:32px 0;">
+              <a href="${targetUrl}" style="background:linear-gradient(135deg,#6d28d9,#4f46e5);color:white;font-weight:700;padding:16px 36px;border-radius:10px;text-decoration:none;font-size:15px;display:inline-block;box-shadow:0 4px 12px rgba(109,40,217,0.25);">Acessar Painel Administrativo →</a>
+            </div>
+          ` : `
+            <p style="color:#334155;font-size:15px;line-height:1.7;">
+              Informamos que as permissões de Administrador da sua conta foram desativadas. A sua conta funciona agora com a função de <strong>Utilizador / Cliente Comum</strong>.
+            </p>
+            <div style="text-align:center;margin:32px 0;">
+              <a href="${targetUrl}" style="background:#334155;color:white;font-weight:700;padding:16px 36px;border-radius:10px;text-decoration:none;font-size:15px;display:inline-block;">Acessar Dashboard do Cliente →</a>
+            </div>
+          `}
+          
+          <p style="color:#94a3b8;font-size:12px;margin:24px 0 0;text-align:center;">Equipa de Segurança WEHOSTHERE — Gestão de Acessos</p>
+        </div>
+      </div>`,
+  });
+}
+
