@@ -382,8 +382,8 @@ export default function DashboardAcademyPage() {
                                   </span>
                                 )}
                                 {course.accessType === 'preview' && (
-                                  <span className="flex items-center space-x-1 bg-gradient-to-r from-amber-100 to-orange-100 text-amber-900 border border-amber-300 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold shrink-0 shadow-sm">
-                                    <span>🎁 Aula 1 Grátis ({course.price || 500} MT Completo)</span>
+                                  <span className="flex items-center space-x-1 bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0">
+                                    <span>🎁 Aula 1 Grátis</span>
                                   </span>
                                 )}
                               </div>
@@ -399,35 +399,26 @@ export default function DashboardAcademyPage() {
                                   <span>{moduleCount || 13} módulos</span>
                                 </span>
                               </div>
-
-
-
                             </div>
 
                             <button
                               onClick={() => handleEnroll(course)}
-                              className={`w-full flex items-center justify-center space-x-2 py-2.5 rounded-xl font-bold text-xs transition shadow-sm cursor-pointer ${
-                                course.accessType === 'preview'
-                                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white'
-                                  : course.accessType === 'paid'
-                                  ? 'bg-amber-600 hover:bg-amber-700 text-white'
-                                  : 'bg-primary-600 hover:bg-primary-700 text-white'
-                              }`}
+                              className="w-full flex items-center justify-center space-x-1.5 py-2 px-3 rounded-lg font-semibold text-xs transition shadow-sm cursor-pointer bg-primary-600 hover:bg-primary-700 text-white"
                             >
                               {course.accessType === 'preview' ? (
                                 <>
-                                  <Play className="h-4 w-4" />
-                                  <span>Assistir Aula de Introdução (Grátis)</span>
+                                  <Play className="h-3.5 w-3.5 fill-current" />
+                                  <span>Assistir Aula Grátis</span>
                                 </>
                               ) : course.accessType === 'paid' ? (
                                 <>
-                                  <DollarSign className="h-4 w-4" />
-                                  <span>Comprar Curso Completo ({course.price || 500} MT)</span>
+                                  <DollarSign className="h-3.5 w-3.5" />
+                                  <span>Comprar Curso ({course.price || 500} MT)</span>
                                 </>
                               ) : (
                                 <>
-                                  <Play className="h-4 w-4" />
-                                  <span>Começar Agora</span>
+                                  <Play className="h-3.5 w-3.5 fill-current" />
+                                  <span>Começar Grátis</span>
                                 </>
                               )}
                             </button>
