@@ -360,6 +360,7 @@ export default function AdminAcademyPage() {
       });
 
       if (response.ok) {
+        // Recarregar todos os dados
         fetchCourses();
       }
     } catch (error) {
@@ -647,6 +648,7 @@ export default function AdminAcademyPage() {
 
       if (response.ok) {
         setShowModal(false);
+        // Recarregar todos os dados
         fetchCourses();
       } else {
         const error = await response.json();

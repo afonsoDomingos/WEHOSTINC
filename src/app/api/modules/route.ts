@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import { ModuleModel } from '@/lib/models/ModuleModel';
+import { LessonModel } from '@/lib/models/LessonModel';
 import { ensureAcademySeeded } from '@/lib/serverSeedAcademy';
 
 export async function GET(request: NextRequest) {
@@ -88,6 +89,10 @@ export async function POST(request: NextRequest) {
     if (action === 'delete' && moduleId) {
       console.log('[API Modules] Deletando módulo:', moduleId);
       
+      // Deletar em cascade: primeiro lições, depois módulo
+      console.log('[API Modules] Deletando lições do módulo:', moduleId);
+      await LessonModel.deleteMany({ moduleId });
+      
       const deleted = await ModuleModel.findOneAndDelete({ id: moduleId });
       
       if (!deleted) {
@@ -95,7 +100,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Módulo não encontrado' }, { status: 404 });
       }
       
-      console.log('[API Modules] Módulo deletado com sucesso');
+      console.log('[API Modules] Módulo e lições associadas deletados com sucesso');
       return NextResponse.json({ success: true });
     }
 

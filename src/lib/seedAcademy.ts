@@ -27,7 +27,11 @@ export async function seedAcademyData() {
   };
 
   // Salvar no localStorage (MongoDB não está configurado na Vercel)
-  const course = dataManager.createCourse(courseData);
+  const course = await dataManager.createCourse(courseData);
+  if (!course) {
+    console.error('[SeedAcademy] Erro ao criar curso');
+    return;
+  }
   console.log('[SeedAcademy] Curso criado no localStorage:', course.id);
 
   // Criar módulos
@@ -112,7 +116,7 @@ export async function seedAcademyData() {
     }
   ];
 
-  const createdModules = modules.map((mod, index) => {
+  const createdModules = await Promise.all(modules.map(async (mod, index) => {
     const moduleData = {
       courseId: course.id,
       ...mod,
@@ -122,11 +126,11 @@ export async function seedAcademyData() {
     };
     
     // Salvar no localStorage (MongoDB não está configurado na Vercel)
-    const courseModule = dataManager.createModule(moduleData);
-    console.log(`[SeedAcademy] Módulo ${index + 1} criado no localStorage:`, courseModule.id);
+    const courseModule = await dataManager.createModule(moduleData);
+    console.log(`[SeedAcademy] Módulo ${index + 1} criado no localStorage:`, courseModule?.id);
     
     return courseModule;
-  });
+  }));
 
   // Criar lições para cada módulo
   const lessonsData = [
@@ -573,9 +577,14 @@ export async function seedAcademyData() {
     ]
   ];
 
-  lessonsData.forEach((moduleLessons, moduleIndex) => {
+  // Criar lições para cada módulo
+  for (let moduleIndex = 0; moduleIndex < lessonsData.length; moduleIndex++) {
+    const moduleLessons = lessonsData[moduleIndex];
     const courseModule = createdModules[moduleIndex];
-    moduleLessons.forEach((lessonData, lessonIndex) => {
+    if (!courseModule) continue;
+    
+    for (let lessonIndex = 0; lessonIndex < moduleLessons.length; lessonIndex++) {
+      const lessonData = moduleLessons[lessonIndex];
       const lessonDataWithModule = {
         moduleId: courseModule.id,
         ...lessonData,
@@ -583,21 +592,23 @@ export async function seedAcademyData() {
       };
       
       // Salvar no localStorage (MongoDB não está configurado na Vercel)
-      const lesson = dataManager.createLesson(lessonDataWithModule);
-      console.log(`[SeedAcademy] Lição ${lessonIndex + 1} do módulo ${moduleIndex + 1} criada no localStorage:`, lesson.id);
-    });
-  });
+      const lesson = await dataManager.createLesson(lessonDataWithModule);
+      console.log(`[SeedAcademy] Lição ${lessonIndex + 1} do módulo ${moduleIndex + 1} criada no localStorage:`, lesson?.id);
+    }
+  }
 
   console.log('[SeedAcademy] Dados da Academia Web criados com sucesso!');
   console.log('[SeedAcademy] Curso ID:', course.id);
   console.log('[SeedAcademy] Total de módulos:', createdModules.length);
   
   let totalLessons = 0;
-  createdModules.forEach(mod => {
-    const moduleLessons = dataManager.getLessons(mod.id);
-    totalLessons += moduleLessons.length;
-    console.log(`[SeedAcademy] Módulo ${mod.id} tem ${moduleLessons.length} lições`);
-  });
+  for (const mod of createdModules) {
+    if (mod) {
+      const moduleLessons = dataManager.getLessons(mod.id);
+      totalLessons += moduleLessons.length;
+      console.log(`[SeedAcademy] Módulo ${mod.id} tem ${moduleLessons.length} lições`);
+    }
+  }
   console.log('[SeedAcademy] Total de lições:', totalLessons);
   
   // Verificar dados no localStorage

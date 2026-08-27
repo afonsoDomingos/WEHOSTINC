@@ -2203,57 +2203,94 @@ export const dataManager = {
     return dataManager.getCourses();
   },
 
-  createCourse: (course: Omit<Course, 'id' | 'createdAt' | 'updatedAt'>): Course => {
-    const courses = dataManager.getCourses();
-    const now = new Date().toISOString();
-    const newCourse: Course = {
-      ...course,
-      id: `COURSE-${Math.floor(1000 + Math.random() * 9000)}`,
-      createdAt: now,
-      updatedAt: now
-    };
-    courses.unshift(newCourse);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('wehosthere_courses', JSON.stringify(courses));
-      fetch(apiEndpoint('/api/courses'), {
+  createCourse: async (course: Omit<Course, 'id' | 'createdAt' | 'updatedAt'>): Promise<Course | null> => {
+    try {
+      // Primeiro criar no servidor
+      const res = await fetch(apiEndpoint('/api/courses'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'create', course: newCourse })
-      }).catch(err => console.error('Erro de sync de course no servidor:', err));
+        body: JSON.stringify({ action: 'create', course })
+      });
+      
+      if (!res.ok) {
+        console.error('[DataManager] Erro ao criar curso no servidor:', res.status);
+        return null;
+      }
+      
+      const data = await res.json();
+      
+      // Limpar completamente o localStorage para garantir consistência
+      dataManager.clearAcademyData();
+      
+      // Buscar dados frescos do servidor
+      await dataManager.fetchCoursesAsync();
+      
+      console.log('[DataManager] Curso criado com sucesso e dados sincronizados');
+      return data.course;
+    } catch (err) {
+      console.error('[DataManager] Erro ao criar curso:', err);
+      return null;
     }
-    return newCourse;
   },
 
-  updateCourse: (id: string, updates: Partial<Course>): boolean => {
-    const courses = dataManager.getCourses();
-    const index = courses.findIndex((c: Course) => c.id === id);
-    if (index === -1) return false;
-    courses[index] = { ...courses[index], ...updates, updatedAt: new Date().toISOString() };
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('wehosthere_courses', JSON.stringify(courses));
-      fetch(apiEndpoint('/api/courses'), {
+  updateCourse: async (id: string, updates: Partial<Course>): Promise<boolean> => {
+    try {
+      // Primeiro atualizar no servidor
+      const res = await fetch(apiEndpoint('/api/courses'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'update', course: courses[index] })
-      }).catch(err => console.error('Erro de sync de course no servidor:', err));
+        body: JSON.stringify({ action: 'update', course: { ...updates, id } })
+      });
+      
+      if (!res.ok) {
+        console.error('[DataManager] Erro ao atualizar curso no servidor:', res.status);
+        return false;
+      }
+      
+      // Limpar completamente o localStorage para garantir consistência
+      dataManager.clearAcademyData();
+      
+      // Buscar dados frescos do servidor
+      await dataManager.fetchCoursesAsync();
+      
+      console.log('[DataManager] Curso atualizado com sucesso e dados sincronizados');
+      return true;
+    } catch (err) {
+      console.error('[DataManager] Erro ao atualizar curso:', err);
+      return false;
     }
-    return true;
   },
 
-  deleteCourse: (id: string): boolean => {
-    const courses = dataManager.getCourses();
-    const index = courses.findIndex((c: Course) => c.id === id);
-    if (index === -1) return false;
-    courses.splice(index, 1);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('wehosthere_courses', JSON.stringify(courses));
-      fetch(apiEndpoint('/api/courses'), {
+  deleteCourse: async (id: string): Promise<boolean> => {
+    try {
+      // Primeiro deletar do servidor (que faz cascade delete de módulos e lições)
+      const res = await fetch(apiEndpoint('/api/courses'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'delete', courseId: id })
-      }).catch(err => console.error('Erro de sync de course no servidor:', err));
+      });
+      
+      if (!res.ok) {
+        console.error('[DataManager] Erro ao deletar curso do servidor:', res.status);
+        return false;
+      }
+      
+      // Limpar completamente o localStorage para garantir consistência
+      dataManager.clearAcademyData();
+      
+      // Buscar dados frescos do servidor
+      await Promise.all([
+        dataManager.fetchCoursesAsync(),
+        dataManager.fetchModulesAsync(),
+        dataManager.fetchLessonsAsync()
+      ]);
+      
+      console.log('[DataManager] Curso deletado com sucesso e dados sincronizados');
+      return true;
+    } catch (err) {
+      console.error('[DataManager] Erro ao deletar curso:', err);
+      return false;
     }
-    return true;
   },
 
   // Module methods
@@ -2283,71 +2320,106 @@ export const dataManager = {
     return dataManager.getModules();
   },
 
-  createModule: (module: Omit<Module, 'id' | 'createdAt' | 'updatedAt'>): Module => {
-    const modules = dataManager.getModules();
-    const now = new Date().toISOString();
-    const newModule: Module = {
-      ...module,
-      id: `MODULE-${Math.floor(1000 + Math.random() * 9000)}`,
-      createdAt: now,
-      updatedAt: now
-    };
-    modules.push(newModule);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('wehosthere_modules', JSON.stringify(modules));
-      fetch(apiEndpoint('/api/modules'), {
+  createModule: async (module: Omit<Module, 'id' | 'createdAt' | 'updatedAt'>): Promise<Module | null> => {
+    try {
+      // Primeiro criar no servidor
+      const res = await fetch(apiEndpoint('/api/modules'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'create', module: newModule })
-      }).catch(err => console.error('Erro de sync de module no servidor:', err));
+        body: JSON.stringify({ action: 'create', module })
+      });
+      
+      if (!res.ok) {
+        console.error('[DataManager] Erro ao criar módulo no servidor:', res.status);
+        return null;
+      }
+      
+      const data = await res.json();
+      
+      // Limpar completamente o localStorage para garantir consistência
+      dataManager.clearAcademyData();
+      
+      // Buscar dados frescos do servidor
+      await dataManager.fetchModulesAsync();
+      
+      console.log('[DataManager] Módulo criado com sucesso e dados sincronizados');
+      return data.module;
+    } catch (err) {
+      console.error('[DataManager] Erro ao criar módulo:', err);
+      return null;
     }
-    return newModule;
   },
 
-  updateModule: (id: string, updates: Partial<Module>): boolean => {
-    const modules = dataManager.getModules();
-    const index = modules.findIndex((m: Module) => m.id === id);
-    if (index === -1) return false;
-    
-    // Limpar campos de video/material apenas se hasVideo/hasMaterial for false explicitamente
-    const cleanUpdates: Partial<Module> = { ...updates };
-    if (updates.hasVideo === false) {
-      cleanUpdates.videoUrl = undefined;
-      cleanUpdates.videoTitle = undefined;
-      cleanUpdates.videoDescription = undefined;
-    }
-    if (updates.hasMaterial === false) {
-      cleanUpdates.materialUrl = undefined;
-      cleanUpdates.materialTitle = undefined;
-      cleanUpdates.materialType = undefined;
-    }
-    
-    modules[index] = { ...modules[index], ...cleanUpdates, updatedAt: new Date().toISOString() };
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('wehosthere_modules', JSON.stringify(modules));
-      fetch(apiEndpoint('/api/modules'), {
+  updateModule: async (id: string, updates: Partial<Module>): Promise<boolean> => {
+    try {
+      // Limpar campos de video/material apenas se hasVideo/hasMaterial for false explicitamente
+      const cleanUpdates: Partial<Module> = { ...updates };
+      if (updates.hasVideo === false) {
+        cleanUpdates.videoUrl = undefined;
+        cleanUpdates.videoTitle = undefined;
+        cleanUpdates.videoDescription = undefined;
+      }
+      if (updates.hasMaterial === false) {
+        cleanUpdates.materialUrl = undefined;
+        cleanUpdates.materialTitle = undefined;
+        cleanUpdates.materialType = undefined;
+      }
+
+      // Primeiro atualizar no servidor
+      const res = await fetch(apiEndpoint('/api/modules'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'update', module: modules[index] })
-      }).catch(err => console.error('Erro de sync de module no servidor:', err));
+        body: JSON.stringify({ action: 'update', module: { ...cleanUpdates, id } })
+      });
+      
+      if (!res.ok) {
+        console.error('[DataManager] Erro ao atualizar módulo no servidor:', res.status);
+        return false;
+      }
+      
+      // Limpar completamente o localStorage para garantir consistência
+      dataManager.clearAcademyData();
+      
+      // Buscar dados frescos do servidor
+      await dataManager.fetchModulesAsync();
+      
+      console.log('[DataManager] Módulo atualizado com sucesso e dados sincronizados');
+      return true;
+    } catch (err) {
+      console.error('[DataManager] Erro ao atualizar módulo:', err);
+      return false;
     }
-    return true;
   },
 
-  deleteModule: (id: string): boolean => {
-    const modules = dataManager.getModules();
-    const index = modules.findIndex((m: Module) => m.id === id);
-    if (index === -1) return false;
-    modules.splice(index, 1);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('wehosthere_modules', JSON.stringify(modules));
-      fetch(apiEndpoint('/api/modules'), {
+  deleteModule: async (id: string): Promise<boolean> => {
+    try {
+      // Primeiro deletar do servidor (que faz cascade delete de lições)
+      const res = await fetch(apiEndpoint('/api/modules'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'delete', moduleId: id })
-      }).catch(err => console.error('Erro de sync de module no servidor:', err));
+      });
+      
+      if (!res.ok) {
+        console.error('[DataManager] Erro ao deletar módulo do servidor:', res.status);
+        return false;
+      }
+      
+      // Limpar completamente o localStorage para garantir consistência
+      dataManager.clearAcademyData();
+      
+      // Buscar dados frescos do servidor
+      await Promise.all([
+        dataManager.fetchModulesAsync(),
+        dataManager.fetchLessonsAsync()
+      ]);
+      
+      console.log('[DataManager] Módulo deletado com sucesso e dados sincronizados');
+      return true;
+    } catch (err) {
+      console.error('[DataManager] Erro ao deletar módulo:', err);
+      return false;
     }
-    return true;
   },
 
   // Lesson methods
@@ -2377,71 +2449,103 @@ export const dataManager = {
     return dataManager.getLessons();
   },
 
-  createLesson: (lesson: Omit<Lesson, 'id' | 'createdAt' | 'updatedAt'>): Lesson => {
-    const lessons = dataManager.getLessons();
-    const now = new Date().toISOString();
-    const newLesson: Lesson = {
-      ...lesson,
-      id: `LESSON-${Math.floor(1000 + Math.random() * 9000)}`,
-      createdAt: now,
-      updatedAt: now
-    };
-    lessons.push(newLesson);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('wehosthere_lessons', JSON.stringify(lessons));
-      fetch(apiEndpoint('/api/lessons'), {
+  createLesson: async (lesson: Omit<Lesson, 'id' | 'createdAt' | 'updatedAt'>): Promise<Lesson | null> => {
+    try {
+      // Primeiro criar no servidor
+      const res = await fetch(apiEndpoint('/api/lessons'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'create', lesson: newLesson })
-      }).catch(err => console.error('Erro de sync de lesson no servidor:', err));
+        body: JSON.stringify({ action: 'create', lesson })
+      });
+      
+      if (!res.ok) {
+        console.error('[DataManager] Erro ao criar lição no servidor:', res.status);
+        return null;
+      }
+      
+      const data = await res.json();
+      
+      // Limpar completamente o localStorage para garantir consistência
+      dataManager.clearAcademyData();
+      
+      // Buscar dados frescos do servidor
+      await dataManager.fetchLessonsAsync();
+      
+      console.log('[DataManager] Lição criada com sucesso e dados sincronizados');
+      return data.lesson;
+    } catch (err) {
+      console.error('[DataManager] Erro ao criar lição:', err);
+      return null;
     }
-    return newLesson;
   },
 
-  updateLesson: (id: string, updates: Partial<Lesson>): boolean => {
-    const lessons = dataManager.getLessons();
-    const index = lessons.findIndex((l: Lesson) => l.id === id);
-    if (index === -1) return false;
-    
-    // Limpar campos de video/material se hasVideo/hasMaterial for false
-    const cleanUpdates: Partial<Lesson> = { ...updates };
-    if (updates.hasVideo === false) {
-      cleanUpdates.videoUrl = undefined;
-      cleanUpdates.videoTitle = undefined;
-      cleanUpdates.videoDescription = undefined;
-    }
-    if (updates.hasMaterial === false) {
-      cleanUpdates.materialUrl = undefined;
-      cleanUpdates.materialTitle = undefined;
-      cleanUpdates.materialType = undefined;
-    }
-    
-    lessons[index] = { ...lessons[index], ...cleanUpdates, updatedAt: new Date().toISOString() };
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('wehosthere_lessons', JSON.stringify(lessons));
-      fetch(apiEndpoint('/api/lessons'), {
+  updateLesson: async (id: string, updates: Partial<Lesson>): Promise<boolean> => {
+    try {
+      // Limpar campos de video/material se hasVideo/hasMaterial for false
+      const cleanUpdates: Partial<Lesson> = { ...updates };
+      if (updates.hasVideo === false) {
+        cleanUpdates.videoUrl = undefined;
+        cleanUpdates.videoTitle = undefined;
+        cleanUpdates.videoDescription = undefined;
+      }
+      if (updates.hasMaterial === false) {
+        cleanUpdates.materialUrl = undefined;
+        cleanUpdates.materialTitle = undefined;
+        cleanUpdates.materialType = undefined;
+      }
+
+      // Primeiro atualizar no servidor
+      const res = await fetch(apiEndpoint('/api/lessons'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'update', lesson: lessons[index] })
-      }).catch(err => console.error('Erro de sync de lesson no servidor:', err));
+        body: JSON.stringify({ action: 'update', lesson: { ...cleanUpdates, id } })
+      });
+      
+      if (!res.ok) {
+        console.error('[DataManager] Erro ao atualizar lição no servidor:', res.status);
+        return false;
+      }
+      
+      // Limpar completamente o localStorage para garantir consistência
+      dataManager.clearAcademyData();
+      
+      // Buscar dados frescos do servidor
+      await dataManager.fetchLessonsAsync();
+      
+      console.log('[DataManager] Lição atualizada com sucesso e dados sincronizados');
+      return true;
+    } catch (err) {
+      console.error('[DataManager] Erro ao atualizar lição:', err);
+      return false;
     }
-    return true;
   },
 
-  deleteLesson: (id: string): boolean => {
-    const lessons = dataManager.getLessons();
-    const index = lessons.findIndex((l: Lesson) => l.id === id);
-    if (index === -1) return false;
-    lessons.splice(index, 1);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('wehosthere_lessons', JSON.stringify(lessons));
-      fetch(apiEndpoint('/api/lessons'), {
+  deleteLesson: async (id: string): Promise<boolean> => {
+    try {
+      // Deletar do servidor
+      const res = await fetch(apiEndpoint('/api/lessons'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'delete', lessonId: id })
-      }).catch(err => console.error('Erro de sync de lesson no servidor:', err));
+      });
+      
+      if (!res.ok) {
+        console.error('[DataManager] Erro ao deletar lição do servidor:', res.status);
+        return false;
+      }
+      
+      // Limpar completamente o localStorage para garantir consistência
+      dataManager.clearAcademyData();
+      
+      // Buscar dados frescos do servidor
+      await dataManager.fetchLessonsAsync();
+      
+      console.log('[DataManager] Lição deletada com sucesso e dados sincronizados');
+      return true;
+    } catch (err) {
+      console.error('[DataManager] Erro ao deletar lição:', err);
+      return false;
     }
-    return true;
   },
 
   // Course Progress methods

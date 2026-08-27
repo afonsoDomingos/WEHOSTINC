@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import { CourseModel } from '@/lib/models/CourseModel';
+import { ModuleModel } from '@/lib/models/ModuleModel';
+import { LessonModel } from '@/lib/models/LessonModel';
 import { ensureAcademySeeded } from '@/lib/serverSeedAcademy';
 
 export const dynamic = 'force-dynamic';
@@ -66,6 +68,16 @@ export async function POST(request: NextRequest) {
     if (action === 'delete' && courseId) {
       console.log('[API Courses] Deletando curso:', courseId);
       
+      // Deletar em cascade: primeiro lições, depois módulos, depois curso
+      const modules = await ModuleModel.find({ courseId });
+      const moduleIds = modules.map(m => m.id);
+      
+      console.log('[API Courses] Deletando lições dos módulos:', moduleIds.length, 'módulos');
+      await LessonModel.deleteMany({ moduleId: { $in: moduleIds } });
+      
+      console.log('[API Courses] Deletando módulos:', modules.length);
+      await ModuleModel.deleteMany({ courseId });
+      
       const deleted = await CourseModel.findOneAndDelete({ id: courseId });
       
       if (!deleted) {
@@ -73,7 +85,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Curso não encontrado' }, { status: 404 });
       }
       
-      console.log('[API Courses] Curso deletado com sucesso');
+      console.log('[API Courses] Curso e dados relacionados deletados com sucesso');
       return NextResponse.json({ success: true });
     }
 
