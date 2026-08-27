@@ -112,11 +112,42 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { action, order, orderId, status } = body;
+    const { action, order, orderId, status, email, courseTitle } = body;
     const useMongo = await tryMongo();
 
     // Get affiliate code from cookies for commission tracking
     const affiliateCode = req.headers.get('cookie')?.match(/affiliate_code=([^;]+)/)?.[1];
+
+    // Action otimizado para verificar pagamento de curso específico
+    if (action === 'check_course_payment') {
+      if (!email || !courseTitle) {
+        return NextResponse.json({ hasPaid: false }, { status: 400 });
+      }
+
+      if (useMongo) {
+        // Filtro no servidor - muito mais eficiente
+        const hasPaid = await OrderModel.exists({
+          clientEmail: email.toLowerCase(),
+          status: 'completed',
+          $or: [
+            { serviceName: { $regex: 'curso', $options: 'i' } },
+            { serviceName: { $regex: courseTitle, $options: 'i' } }
+          ]
+        });
+        return NextResponse.json({ hasPaid: !!hasPaid });
+      }
+
+      // Fallback local
+      const hasPaid = FALLBACK_ORDERS.some(o => 
+        o.clientEmail?.toLowerCase() === email.toLowerCase() &&
+        o.status === 'completed' &&
+        (
+          o.serviceName?.toLowerCase().includes('curso') || 
+          o.serviceName?.toLowerCase().includes(courseTitle.toLowerCase())
+        )
+      );
+      return NextResponse.json({ hasPaid });
+    }
 
     if (action === 'update_status') {
       // 🔒 SEGURANÇA: Verificar se é permitido alterar status manualmente

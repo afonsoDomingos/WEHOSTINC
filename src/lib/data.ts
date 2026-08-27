@@ -1240,6 +1240,39 @@ export const dataManager = {
     return orders;
   },
 
+  // Função otimizada para verificar pagamentos de cursos específicos
+  hasPaidForCourse: async (userEmail: string, courseTitle: string): Promise<boolean> => {
+    try {
+      // Busca apenas pedidos de cursos do usuário (filtro no servidor)
+      const res = await fetch(apiEndpoint('/api/orders'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'check_course_payment',
+          email: userEmail,
+          courseTitle: courseTitle
+        })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        return data.hasPaid === true;
+      }
+    } catch (e) {
+      console.error('Erro ao verificar pagamento do curso:', e);
+    }
+
+    // Fallback: verificar localmente (apenas se API falhar)
+    const orders = dataManager.getOrders(userEmail);
+    return orders.some(o => 
+      o.status === 'completed' && 
+      (
+        o.serviceName?.toLowerCase().includes('curso') || 
+        o.serviceName?.toLowerCase().includes(courseTitle.toLowerCase())
+      )
+    );
+  },
+
   fetchOrdersAsync: async (): Promise<ServiceOrder[]> => {
     try {
       const res = await fetch(apiEndpoint('/api/orders'));

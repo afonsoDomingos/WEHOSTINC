@@ -27,10 +27,9 @@ export default function ChapterViewPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
   const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' | 'info' | 'warning' }>({ show: false, message: '', type: 'success' });
+  const [isPaidUser, setIsPaidUser] = useState(false);
 
   const currentUser = auth.getCurrentUser();
-  const isPaidUser = currentUser?.role === 'admin' || currentUser?.plan === 'pro' || currentUser?.plan === 'enterprise' || 
-    (currentUser?.email ? dataManager.getOrders(currentUser.email).some(o => (o.serviceName?.toLowerCase().includes('curso') || (course?.title && o.serviceName?.toLowerCase().includes(course.title.toLowerCase()))) && o.status === 'completed') : false);
 
   const loadCourseData = useCallback(async (currentUser: User) => {
     try {
@@ -65,6 +64,21 @@ export default function ChapterViewPage() {
       setCourse(courseData);
       setModules(courseModules);
       setLessons(allLessons);
+      
+      // Verificar pagamento de forma otimizada (apenas para este curso específico)
+      const isAdmin = currentUser.role === 'admin';
+      const isProOrEnterprise = currentUser.plan === 'pro' || currentUser.plan === 'enterprise';
+      
+      if (isAdmin || isProOrEnterprise) {
+        setIsPaidUser(true);
+      } else if (courseData.accessType === 'paid' || courseData.accessType === 'preview') {
+        // Verificar apenas se o curso for pago/preview
+        const hasPaid = await dataManager.hasPaidForCourse(currentUser.email, courseData.title);
+        setIsPaidUser(hasPaid);
+        console.log('[ChapterView] Verificação de pagamento:', hasPaid);
+      } else {
+        setIsPaidUser(false);
+      }
       
       // Carregar progresso local primeiro
       const localProgress = dataManager.getCourseProgress(currentUser.email, courseId);
