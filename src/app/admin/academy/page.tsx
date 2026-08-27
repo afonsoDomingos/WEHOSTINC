@@ -451,7 +451,12 @@ export default function AdminAcademyPage() {
       }
     } catch (error) {
       console.error('Erro no upload:', error);
-      alert('Erro ao fazer upload do arquivo');
+      setConfirmModal({
+        show: true,
+        title: 'Erro no Upload',
+        message: 'Erro ao fazer upload do arquivo. Tente novamente.',
+        onConfirm: () => setConfirmModal({ show: false, title: '', message: '', onConfirm: () => {} })
+      });
       return null;
     } finally {
       setUploadingMaterial(false);
@@ -460,58 +465,69 @@ export default function AdminAcademyPage() {
 
   const handleDeleteAllModules = async () => {
     if (selectedModules.size === 0) {
-      alert('Selecione pelo menos um módulo para remover');
+      setConfirmModal({
+        show: true,
+        title: 'Aviso',
+        message: 'Selecione pelo menos um módulo para remover',
+        onConfirm: () => setConfirmModal({ show: false, title: '', message: '', onConfirm: () => {} })
+      });
       return;
     }
 
-    if (!confirm(`Tem certeza que deseja remover ${selectedModules.size} módulo(s) selecionado(s)? Esta ação também removerá todas as lições associadas. Esta ação não pode ser desfeita.`)) return;
-
-    try {
-      setIsSaving(true);
-      let successCount = 0;
-      let errorCount = 0;
-
-      for (const moduleId of Array.from(selectedModules)) {
+    setConfirmModal({
+      show: true,
+      title: 'Confirmar Exclusão em Massa',
+      message: `Tem certeza que deseja remover ${selectedModules.size} módulo(s) selecionado(s)? Esta ação também removerá todas as lições associadas. Esta ação não pode ser desfeita.`,
+      onConfirm: async () => {
+        setConfirmModal({ show: false, title: '', message: '', onConfirm: () => {} });
+        
         try {
-          const response = await fetch('/api/modules', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'delete', moduleId })
-          });
+          setIsSaving(true);
+          let successCount = 0;
+          let errorCount = 0;
 
-          if (response.ok) {
-            successCount++;
-          } else {
-            errorCount++;
+          for (const moduleId of Array.from(selectedModules)) {
+            try {
+              const response = await fetch('/api/modules', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'delete', moduleId })
+              });
+
+              if (response.ok) {
+                successCount++;
+              } else {
+                errorCount++;
+              }
+            } catch (error) {
+              errorCount++;
+              console.error(`Erro ao remover módulo ${moduleId}:`, error);
+            }
           }
+
+          setIsSaving(false);
+          setSelectedModules(new Set());
+          fetchCourses();
+
+          setConfirmModal({
+            show: true,
+            title: 'Exclusão Concluída',
+            message: errorCount === 0 
+              ? `${successCount} módulos removidos com sucesso!`
+              : `${successCount} módulos removidos com sucesso, ${errorCount} falharam.`,
+            onConfirm: () => setConfirmModal({ show: false, title: '', message: '', onConfirm: () => {} })
+          });
         } catch (error) {
-          errorCount++;
-          console.error(`Erro ao remover módulo ${moduleId}:`, error);
+          setIsSaving(false);
+          setConfirmModal({
+            show: true,
+            title: 'Erro na Exclusão',
+            message: 'Erro ao remover módulos. Tente novamente.',
+            onConfirm: () => setConfirmModal({ show: false, title: '', message: '', onConfirm: () => {} })
+          });
         }
       }
-
-      setIsSaving(false);
-      setSelectedModules(new Set());
-      fetchCourses();
-
-      setConfirmModal({
-        show: true,
-        title: 'Exclusão Concluída',
-        message: errorCount === 0 
-          ? `${successCount} módulos removidos com sucesso!`
-          : `${successCount} módulos removidos com sucesso, ${errorCount} falharam.`,
-        onConfirm: () => setConfirmModal({ show: false, title: '', message: '', onConfirm: () => {} })
-      });
-    } catch (error) {
-      setIsSaving(false);
-      console.error('Erro ao remover módulos:', error);
-      setConfirmModal({
-        show: true,
-        title: 'Erro na Exclusão',
-        message: 'Erro ao remover módulos. Tente novamente.',
-        onConfirm: () => setConfirmModal({ show: false, title: '', message: '', onConfirm: () => {} })
-      });
-    }
+    });
   };
 
   const handleSelectAllModules = () => {
@@ -637,17 +653,32 @@ export default function AdminAcademyPage() {
 
   const handleSave = async () => {
     if (!formData.title.trim()) {
-      alert('Por favor, preencha o título');
+      setConfirmModal({
+        show: true,
+        title: 'Campo Obrigatório',
+        message: 'Por favor, preencha o título',
+        onConfirm: () => setConfirmModal({ show: false, title: '', message: '', onConfirm: () => {} })
+      });
       return;
     }
 
     if (modalType === 'course' && !formData.description.trim()) {
-      alert('Por favor, preencha a descrição do curso');
+      setConfirmModal({
+        show: true,
+        title: 'Campo Obrigatório',
+        message: 'Por favor, preencha a descrição do curso',
+        onConfirm: () => setConfirmModal({ show: false, title: '', message: '', onConfirm: () => {} })
+      });
       return;
     }
 
     if (modalType === 'lesson' && !formData.content.trim()) {
-      alert('Por favor, preencha o conteúdo da lição');
+      setConfirmModal({
+        show: true,
+        title: 'Campo Obrigatório',
+        message: 'Por favor, preencha o conteúdo da lição',
+        onConfirm: () => setConfirmModal({ show: false, title: '', message: '', onConfirm: () => {} })
+      });
       return;
     }
 
@@ -737,11 +768,21 @@ export default function AdminAcademyPage() {
         fetchCourses();
       } else {
         const error = await response.json();
-        alert(error.error || 'Erro ao salvar');
+        setConfirmModal({
+          show: true,
+          title: 'Erro ao Salvar',
+          message: error.error || 'Erro ao salvar',
+          onConfirm: () => setConfirmModal({ show: false, title: '', message: '', onConfirm: () => {} })
+        });
       }
     } catch (error) {
       console.error('Erro ao salvar:', error);
-      alert('Erro ao salvar');
+      setConfirmModal({
+        show: true,
+        title: 'Erro ao Salvar',
+        message: 'Erro ao salvar',
+        onConfirm: () => setConfirmModal({ show: false, title: '', message: '', onConfirm: () => {} })
+      });
     } finally {
       setIsSaving(false);
     }
