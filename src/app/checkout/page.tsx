@@ -94,12 +94,56 @@ function CheckoutContent() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
+  const [loadingAffiliateProfile, setLoadingAffiliateProfile] = useState(false);
+  const [affiliatePhoneConfigured, setAffiliatePhoneConfigured] = useState<string | null>(null);
 
   useEffect(() => {
     const user = auth.getCurrentUser();
     if (user) {
       setName(user.name || '');
       setEmail(user.email || '');
+    }
+    
+    // Se for verificação de afiliado, carregar o número configurado automaticamente
+    if (isAffiliateVerification) {
+      const loadAffiliateProfile = async () => {
+        setLoadingAffiliateProfile(true);
+        try {
+          const userIdForProfile = affiliateUserIdParam || user?.id;
+          if (!userIdForProfile) {
+            setError('Usuário não identificado. Por favor, faça login novamente.');
+            setLoadingAffiliateProfile(false);
+            return;
+          }
+          
+          const response = await fetch(`/api/affiliates/get-profile?userId=${encodeURIComponent(userIdForProfile)}`);
+          const data = await response.json();
+          
+          console.log('[Checkout] Perfil do afiliado:', data);
+          
+          if (data.success && data.hasPhoneConfigured && data.phone) {
+            // Usar o número configurado automaticamente
+            setAffiliatePhoneConfigured(data.phone);
+            setPhonePayment(data.phone);
+            setAffiliatePhone(data.phone);
+            console.log('[Checkout] Número de afiliado configurado automaticamente:', data.phone);
+          } else if (data.success && !data.hasPhoneConfigured) {
+            // Afiliado existe mas não tem número configurado
+            setError('Você precisa configurar o número para receber comissões antes de efetuar o pagamento de verificação. Por favor, configure seu número no painel de afiliados.');
+            setLoadingAffiliateProfile(false);
+            return;
+          } else if (!data.exists) {
+            // Afiliado não existe ainda
+            console.log('[Checkout] Afiliado ainda não registrado, usuário poderá configurar número');
+          }
+        } catch (err) {
+          console.error('[Checkout] Erro ao carregar perfil do afiliado:', err);
+        } finally {
+          setLoadingAffiliateProfile(false);
+        }
+      };
+      
+      loadAffiliateProfile();
     }
     
     // Rastrear InitiateCheckout quando o usuário entra na página de checkout
@@ -356,10 +400,11 @@ function CheckoutContent() {
       // Se for verificação de afiliado, registrar o afiliado após pagamento
       // O número de comissões = o mesmo número usado para pagar os 2 MZN (M-Pesa/eMola)
       if (isAffiliateVerification) {
-        const affiliatePhoneFinal = phonePayment || whatsapp;
+        // Usar obrigatoriamente o número configurado
+        const affiliatePhoneFinal = affiliatePhoneConfigured;
         // Usar userId do parâmetro ou do usuário atual
         const userIdForAffiliate = affiliateUserIdParam || currentUser?.id;
-        console.log('[Checkout] Registrando/Atualizando afiliado com telefone:', affiliatePhoneFinal, 'userId:', userIdForAffiliate);
+        console.log('[Checkout] Registrando/Atualizando afiliado com telefone configurado:', affiliatePhoneFinal, 'userId:', userIdForAffiliate);
         
         try {
           const affiliateResponse = await fetch('/api/affiliates/register', {
@@ -587,12 +632,22 @@ function CheckoutContent() {
     e.preventDefault();
     setError('');
 
-    // Validação específica para verificação de afiliado - apenas telefone de comissões
+    // Validação específica para verificação de afiliado
     if (isAffiliateVerification) {
-      if (!affiliatePhone.trim()) {
-        setError('Por favor, informe o número de telefone para recebimento das comissões.');
+      if (loadingAffiliateProfile) {
+        setError('A carregar perfil do afiliado. Por favor, aguarde...');
         return;
       }
+      
+      if (!affiliatePhoneConfigured) {
+        setError('Número para comissões não configurado. Por favor, configure seu número no painel de afiliados antes de efetuar o pagamento.');
+        return;
+      }
+      
+      // Usar obrigatoriamente o número configurado
+      setPhonePayment(affiliatePhoneConfigured);
+      setAffiliatePhone(affiliatePhoneConfigured);
+      console.log('[Checkout] Usando número configurado do afiliado:', affiliatePhoneConfigured);
     } else {
       // Validações normais para checkout de serviços
       if (!name.trim()) {
@@ -626,7 +681,17 @@ function CheckoutContent() {
 
     try {
       if (paymentMethod === 'mpesa' || paymentMethod === 'emola') {
-        const phone = phonePayment || whatsapp;
+        // Para verificação de afiliado, usar obrigatoriamente o número configurado
+        const phone = isAffiliateVerification 
+          ? affiliatePhoneConfigured 
+          : (phonePayment || whatsapp);
+        
+        if (!phone) {
+          setError('Número de telefone obrigatório para pagamento.');
+          setLoading(false);
+          return;
+        }
+        
         const apiUrl = paymentMethod === 'mpesa' 
           ? '/api/payments/mpesa/c2b'
           : '/api/payments/emola/c2b';
@@ -643,6 +708,8 @@ function CheckoutContent() {
               ? `${selectedPlan.name}${siteLabel}${cycleLabel} + Domínio (${domainParam})` 
               : `${selectedPlan.name}${siteLabel}${cycleLabel}`)
           : `Registo de Domínio: ${domainParam || 'Domínio Avulso'}`;
+        
+        console.log('[Checkout] Iniciando pagamento com telefone:', phone, 'Valor:', grandTotal);
         
         fetch(apiEndpoint(apiUrl), {
           method: 'POST',
@@ -1082,17 +1149,28 @@ function CheckoutContent() {
                   </label>
                   <div className="flex items-center space-x-2">
                     <Smartphone className="h-5 w-5 text-gray-400" />
-                    <input
-                      type="tel"
-                      value={phonePayment}
-                      onChange={(e) => setPhonePayment(e.target.value)}
-                      placeholder={paymentMethod === 'mpesa' ? '84 123 4567 ou 85 123 4567' : '86 123 4567 ou 87 123 4567'}
-                      className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"
-                    />
+                    {isAffiliateVerification ? (
+                      <input
+                        type="tel"
+                        value={affiliatePhoneConfigured || phonePayment}
+                        readOnly
+                        disabled={loadingAffiliateProfile}
+                        placeholder={loadingAffiliateProfile ? 'A carregar número configurado...' : 'Número configurado automaticamente'}
+                        className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-sm outline-none text-gray-700 cursor-not-allowed"
+                      />
+                    ) : (
+                      <input
+                        type="tel"
+                        value={phonePayment}
+                        onChange={(e) => setPhonePayment(e.target.value)}
+                        placeholder={paymentMethod === 'mpesa' ? '84 123 4567 ou 85 123 4567' : '86 123 4567 ou 87 123 4567'}
+                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"
+                      />
+                    )}
                   </div>
                   {isAffiliateVerification ? (
                     <p className="text-xs text-blue-700 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 mt-2 leading-relaxed">
-                      💡 <strong>Este número será o seu número de comissões.</strong> O mesmo que usas para pagar os 2 MZN ficará registado para receber os seus ganhos como afiliado. Para mudar no futuro, será necessário repetir este processo.
+                      � <strong>Número configurado automaticamente.</strong> Este é o número que você configurou para receber suas comissões. O pagamento de 2 MT será feito para este mesmo número. Para alterar, atualize suas configurações no painel de afiliados.
                     </p>
                   ) : (
                     <p className="text-xs text-gray-500 mt-2">
