@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { Plus, Edit, Trash2, Eye, BookOpen, DollarSign, Clock, ArrowLeft, Home, GraduationCap, Loader2, CheckCircle, XCircle, Save, X, CheckSquare, Upload } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, BookOpen, DollarSign, Clock, ArrowLeft, Home, GraduationCap, Loader2, CheckCircle, XCircle, Save, X, CheckSquare, Upload, AlertTriangle } from 'lucide-react';
 
 interface Course {
   id: string;
@@ -84,6 +84,14 @@ export default function AdminAcademyPage() {
   const [selectedModuleFilter, setSelectedModuleFilter] = useState<string>('all');
   const [selectedLessons, setSelectedLessons] = useState<Set<string>>(new Set());
   const [uploadingMaterial, setUploadingMaterial] = useState(false);
+  
+  // Confirmation modal state
+  const [confirmModal, setConfirmModal] = useState<{
+    show: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({ show: false, title: '', message: '', onConfirm: () => {} });
 
   // Form state
   const [formData, setFormData] = useState({
@@ -360,45 +368,63 @@ export default function AdminAcademyPage() {
 
   const handleDelete = async (id: string, type: 'course' | 'module' | 'lesson') => {
     const itemName = type === 'course' ? 'curso' : type === 'module' ? 'módulo' : 'lição';
-    if (!confirm(`Tem certeza que deseja remover este ${itemName}? Esta ação não pode ser desfeita.`)) return;
+    
+    setConfirmModal({
+      show: true,
+      title: `Confirmar Exclusão`,
+      message: `Tem certeza que deseja remover este ${itemName}? Esta ação não pode ser desfeita e todos os dados associados serão perdidos.`,
+      onConfirm: async () => {
+        setConfirmModal({ show: false, title: '', message: '', onConfirm: () => {} });
+        
+        try {
+          const endpoint = type === 'course' ? '/api/courses' : type === 'module' ? '/api/modules' : '/api/lessons';
+          const idParam = type === 'course' ? 'courseId' : type === 'module' ? 'moduleId' : 'lessonId';
 
-    try {
-      const endpoint = type === 'course' ? '/api/courses' : type === 'module' ? '/api/modules' : '/api/lessons';
-      const idParam = type === 'course' ? 'courseId' : type === 'module' ? 'moduleId' : 'lessonId';
+          console.log(`[Admin Academy] Deletando ${itemName}:`, id);
+          console.log(`[Admin Academy] Endpoint:`, endpoint);
+          console.log(`[Admin Academy] Payload:`, JSON.stringify({ action: 'delete', [idParam]: id }));
 
-      console.log(`[Admin Academy] Deletando ${itemName}:`, id);
-      console.log(`[Admin Academy] Endpoint:`, endpoint);
-      console.log(`[Admin Academy] Payload:`, JSON.stringify({ action: 'delete', [idParam]: id }));
+          const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'delete', [idParam]: id })
+          });
 
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'delete', [idParam]: id })
-      });
+          console.log(`[Admin Academy] Response status:`, response.status);
+          
+          if (!response.ok) {
+            const errorData = await response.json();
+            console.error(`[Admin Academy] Erro ao deletar ${itemName}:`, errorData);
+            setConfirmModal({
+              show: true,
+              title: 'Erro na Exclusão',
+              message: `Erro ao remover ${itemName}: ${errorData.error || 'Erro desconhecido'}`,
+              onConfirm: () => setConfirmModal({ show: false, title: '', message: '', onConfirm: () => {} })
+            });
+            return;
+          }
 
-      console.log(`[Admin Academy] Response status:`, response.status);
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error(`[Admin Academy] Erro ao deletar ${itemName}:`, errorData);
-        alert(`Erro ao remover ${itemName}: ${errorData.error || 'Erro desconhecido'}`);
-        return;
+          const responseData = await response.json();
+          console.log(`[Admin Academy] ${itemName} deletado com sucesso:`, responseData);
+          
+          // Pequeno delay para garantir que o servidor tenha processado
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          // Recarregar todos os dados
+          console.log('[Admin Academy] Recarregando dados...');
+          await fetchCourses();
+          console.log('[Admin Academy] Dados recarregados');
+        } catch (error) {
+          console.error(`[Admin Academy] Erro ao remover ${itemName}:`, error);
+          setConfirmModal({
+            show: true,
+            title: 'Erro na Exclusão',
+            message: `Erro ao remover ${itemName}: ${error instanceof Error ? error.message : 'Erro desconhecido'}`,
+            onConfirm: () => setConfirmModal({ show: false, title: '', message: '', onConfirm: () => {} })
+          });
+        }
       }
-
-      const responseData = await response.json();
-      console.log(`[Admin Academy] ${itemName} deletado com sucesso:`, responseData);
-      
-      // Pequeno delay para garantir que o servidor tenha processado
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Recarregar todos os dados
-      console.log('[Admin Academy] Recarregando dados...');
-      await fetchCourses();
-      console.log('[Admin Academy] Dados recarregados');
-    } catch (error) {
-      console.error(`[Admin Academy] Erro ao remover ${itemName}:`, error);
-      alert(`Erro ao remover ${itemName}: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
-    }
+    });
   };
 
   const handleMaterialUpload = async (file: File) => {
@@ -468,15 +494,23 @@ export default function AdminAcademyPage() {
       setSelectedModules(new Set());
       fetchCourses();
 
-      if (errorCount === 0) {
-        alert(`${successCount} módulos removidos com sucesso!`);
-      } else {
-        alert(`${successCount} módulos removidos com sucesso, ${errorCount} falharam.`);
-      }
+      setConfirmModal({
+        show: true,
+        title: 'Exclusão Concluída',
+        message: errorCount === 0 
+          ? `${successCount} módulos removidos com sucesso!`
+          : `${successCount} módulos removidos com sucesso, ${errorCount} falharam.`,
+        onConfirm: () => setConfirmModal({ show: false, title: '', message: '', onConfirm: () => {} })
+      });
     } catch (error) {
       setIsSaving(false);
       console.error('Erro ao remover módulos:', error);
-      alert('Erro ao remover módulos');
+      setConfirmModal({
+        show: true,
+        title: 'Erro na Exclusão',
+        message: 'Erro ao remover módulos. Tente novamente.',
+        onConfirm: () => setConfirmModal({ show: false, title: '', message: '', onConfirm: () => {} })
+      });
     }
   };
 
@@ -509,50 +543,69 @@ export default function AdminAcademyPage() {
 
   const handleDeleteAllLessons = async () => {
     if (selectedLessons.size === 0) {
-      alert('Selecione pelo menos uma lição para remover');
+      setConfirmModal({
+        show: true,
+        title: 'Aviso',
+        message: 'Selecione pelo menos uma lição para remover',
+        onConfirm: () => setConfirmModal({ show: false, title: '', message: '', onConfirm: () => {} })
+      });
       return;
     }
 
-    if (!confirm(`Tem certeza que deseja remover ${selectedLessons.size} lição(ões) selecionada(s)? Esta ação não pode ser desfeita.`)) return;
-
-    try {
-      setIsSaving(true);
-      let successCount = 0;
-      let errorCount = 0;
-
-      for (const lessonId of Array.from(selectedLessons)) {
+    setConfirmModal({
+      show: true,
+      title: 'Confirmar Exclusão em Massa',
+      message: `Tem certeza que deseja remover ${selectedLessons.size} lição(ões) selecionada(s)? Esta ação não pode ser desfeita.`,
+      onConfirm: async () => {
+        setConfirmModal({ show: false, title: '', message: '', onConfirm: () => {} });
+        
         try {
-          const response = await fetch('/api/lessons', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'delete', lessonId })
-          });
+          setIsSaving(true);
+          let successCount = 0;
+          let errorCount = 0;
 
-          if (response.ok) {
-            successCount++;
-          } else {
-            errorCount++;
+          for (const lessonId of Array.from(selectedLessons)) {
+            try {
+              const response = await fetch('/api/lessons', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'delete', lessonId })
+              });
+
+              if (response.ok) {
+                successCount++;
+              } else {
+                errorCount++;
+              }
+            } catch (error) {
+              errorCount++;
+              console.error(`Erro ao remover lição ${lessonId}:`, error);
+            }
           }
+
+          setIsSaving(false);
+          setSelectedLessons(new Set());
+          fetchCourses();
+
+          setConfirmModal({
+            show: true,
+            title: 'Exclusão Concluída',
+            message: errorCount === 0 
+              ? `${successCount} lições removidas com sucesso!`
+              : `${successCount} lições removidas com sucesso, ${errorCount} falharam.`,
+            onConfirm: () => setConfirmModal({ show: false, title: '', message: '', onConfirm: () => {} })
+          });
         } catch (error) {
-          errorCount++;
-          console.error(`Erro ao remover lição ${lessonId}:`, error);
+          setIsSaving(false);
+          setConfirmModal({
+            show: true,
+            title: 'Erro na Exclusão',
+            message: 'Erro ao remover lições. Tente novamente.',
+            onConfirm: () => setConfirmModal({ show: false, title: '', message: '', onConfirm: () => {} })
+          });
         }
       }
-
-      setIsSaving(false);
-      setSelectedLessons(new Set());
-      fetchCourses();
-
-      if (errorCount === 0) {
-        alert(`${successCount} lições removidas com sucesso!`);
-      } else {
-        alert(`${successCount} lições removidas com sucesso, ${errorCount} falharam.`);
-      }
-    } catch (error) {
-      setIsSaving(false);
-      console.error('Erro ao remover lições:', error);
-      alert('Erro ao remover lições');
-    }
+    });
   };
 
   const handleSelectAllLessons = () => {
@@ -952,7 +1005,12 @@ export default function AdminAcademyPage() {
                     handleCreate('course');
                   } else if (activeTab === 'modules') {
                     if (courses.length === 0) {
-                      alert('Crie um curso primeiro antes de adicionar módulos');
+                      setConfirmModal({
+                        show: true,
+                        title: 'Aviso',
+                        message: 'Crie um curso primeiro antes de adicionar módulos',
+                        onConfirm: () => setConfirmModal({ show: false, title: '', message: '', onConfirm: () => {} })
+                      });
                       return;
                     }
                     // Simple implementation - prompt to select course
@@ -960,7 +1018,12 @@ export default function AdminAcademyPage() {
                     handleCreate('module', course);
                   } else if (activeTab === 'lessons') {
                     if (modules.length === 0) {
-                      alert('Crie um módulo primeiro antes de adicionar lições');
+                      setConfirmModal({
+                        show: true,
+                        title: 'Aviso',
+                        message: 'Crie um módulo primeiro antes de adicionar lições',
+                        onConfirm: () => setConfirmModal({ show: false, title: '', message: '', onConfirm: () => {} })
+                      });
                       return;
                     }
                     // Simple implementation - prompt to select module
@@ -1885,6 +1948,60 @@ export default function AdminAcademyPage() {
                   </>
                 )}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Modal */}
+      {confirmModal.show && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 animate-in zoom-in-95 duration-200">
+            <div className="p-6">
+              <div className="flex items-center justify-center mb-4">
+                <div className={`w-16 h-16 rounded-full flex items-center justify-center ${
+                  confirmModal.title.includes('Erro') || confirmModal.title.includes('Aviso')
+                    ? 'bg-amber-100'
+                    : confirmModal.title.includes('Exclusão')
+                    ? 'bg-red-100'
+                    : 'bg-blue-100'
+                }`}>
+                  <AlertTriangle className={`h-8 w-8 ${
+                    confirmModal.title.includes('Erro') || confirmModal.title.includes('Aviso')
+                      ? 'text-amber-600'
+                      : confirmModal.title.includes('Exclusão')
+                      ? 'text-red-600'
+                      : 'text-blue-600'
+                  }`} />
+                </div>
+              </div>
+              
+              <h3 className="text-xl font-bold text-gray-900 text-center mb-3">
+                {confirmModal.title}
+              </h3>
+              
+              <p className="text-gray-600 text-center mb-6">
+                {confirmModal.message}
+              </p>
+              
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setConfirmModal({ show: false, title: '', message: '', onConfirm: () => {} })}
+                  className="flex-1 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={confirmModal.onConfirm}
+                  className={`flex-1 px-4 py-2.5 rounded-xl font-medium transition ${
+                    confirmModal.title.includes('Exclusão')
+                      ? 'bg-red-600 hover:bg-red-700 text-white'
+                      : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                  }`}
+                >
+                  {confirmModal.title.includes('Exclusão') ? 'Confirmar Exclusão' : 'OK'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
