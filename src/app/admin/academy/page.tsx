@@ -120,6 +120,14 @@ export default function AdminAcademyPage() {
   const fetchCourses = useCallback(async () => {
     try {
       setLoading(true);
+      
+      // Limpar localStorage para garantir dados frescos
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('wehosthere_courses');
+        localStorage.removeItem('wehosthere_modules');
+        localStorage.removeItem('wehosthere_lessons');
+      }
+      
       const [coursesRes, modulesRes, lessonsRes] = await Promise.all([
         fetch('/api/courses'),
         fetch('/api/modules'),
@@ -129,6 +137,11 @@ export default function AdminAcademyPage() {
       const coursesData = await coursesRes.json();
       const modulesData = await modulesRes.json();
       const lessonsData = await lessonsRes.json();
+      
+      console.log('[Admin Academy] Dados atualizados:');
+      console.log('[Admin Academy] Cursos:', coursesData.courses?.length || 0);
+      console.log('[Admin Academy] Módulos:', modulesData.modules?.length || 0);
+      console.log('[Admin Academy] Lições:', lessonsData.lessons?.length || 0);
       
       if (coursesData.courses) setCourses(coursesData.courses);
       if (modulesData.modules) setModules(modulesData.modules);
@@ -375,8 +388,13 @@ export default function AdminAcademyPage() {
       const responseData = await response.json();
       console.log(`[Admin Academy] ${itemName} deletado com sucesso:`, responseData);
       
+      // Pequeno delay para garantir que o servidor tenha processado
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       // Recarregar todos os dados
-      fetchCourses();
+      console.log('[Admin Academy] Recarregando dados...');
+      await fetchCourses();
+      console.log('[Admin Academy] Dados recarregados');
     } catch (error) {
       console.error(`[Admin Academy] Erro ao remover ${itemName}:`, error);
       alert(`Erro ao remover ${itemName}: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
