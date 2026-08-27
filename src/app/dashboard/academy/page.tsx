@@ -129,13 +129,7 @@ export default function DashboardAcademyPage() {
       return;
     }
 
-    // Se o curso for pago, redirecionar para checkout
-    if (course.accessType === 'paid') {
-      router.push(`/checkout?service=course&amount=${course.price || 0}&domain=academy&name=${encodeURIComponent(course.title)}`);
-      return;
-    }
-
-    // Para cursos preview ou gratuitos, inscrever sem pagamento
+    // Inscrever no curso sem cobrar - pagamento será solicitado dentro do curso quando tentar acessar além das aulas grátis
     const enrollment = dataManager.enrollInCourse(activeUser.email, course.id);
     setEnrollments(prev => [...prev.filter(e => e.courseId !== course.id), enrollment]);
     
@@ -431,8 +425,8 @@ export default function DashboardAcademyPage() {
                                 </>
                               ) : course.accessType === 'paid' ? (
                                 <>
-                                  <DollarSign className="h-3.5 w-3.5" />
-                                  <span>Comprar Curso ({course.price || 500} MT)</span>
+                                  <Play className="h-3.5 w-3.5 fill-current" />
+                                  <span>Acessar o Curso</span>
                                 </>
                               ) : (
                                 <>

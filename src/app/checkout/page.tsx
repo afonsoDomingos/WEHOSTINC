@@ -1048,8 +1048,8 @@ function CheckoutContent() {
                 />
               </div>
 
-              {/* Número de WhatsApp — apenas em checkouts normais, não para afiliados */}
-              {!isAffiliateVerification && (
+              {/* Número de WhatsApp — apenas em checkouts normais, não para afiliados nem cursos */}
+              {!isAffiliateVerification && !isCoursePayment && (
                 <div>
                   <label htmlFor="whatsapp" className="block text-sm font-semibold text-gray-800 mb-1.5">
                     Número do WhatsApp <span className="text-red-500">*</span>
@@ -1313,8 +1313,8 @@ function CheckoutContent() {
               )}
             </div>
 
-            {/* Seleção de Duração / Período da Hospedagem - NÃO mostrar para verificação de afiliado */}
-            {!isAffiliateVerification && selectedPlan ? (
+            {/* Seleção de Duração / Período da Hospedagem - NÃO mostrar para verificação de afiliado nem cursos */}
+            {!isAffiliateVerification && !isCoursePayment && selectedPlan ? (
               selectedPlan.id !== 'website_creation' && (
                 <div className="pt-2">
                   <div className="flex items-center justify-between mb-2">
