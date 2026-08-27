@@ -73,6 +73,10 @@ export default function CourseRedirectPage() {
         let modules = dataManager.getModules(courseId).sort((a, b) => a.order - b.order);
         console.log('[CourseRedirect] Módulos para courseId:', courseId, '-', modules.length);
         
+        // Buscar o curso para verificar se é gratuito ou preview
+        const courseData = dataManager.getCourses().find(c => c.id === courseId);
+        console.log('[CourseRedirect] Dados do curso:', courseData?.title, 'Tipo:', courseData?.accessType, 'Aulas grátis:', courseData?.freeLessonsCount);
+        
         // Se ainda não encontrar, buscar todos os módulos
         if (modules.length === 0) {
           console.log('[CourseRedirect] Nenhum módulo encontrado para courseId, buscando todos');

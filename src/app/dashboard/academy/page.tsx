@@ -129,12 +129,13 @@ export default function DashboardAcademyPage() {
       return;
     }
 
+    // Se o curso for pago, redirecionar para checkout
     if (course.accessType === 'paid') {
-      // Redirecionar para o checkout com os parâmetros do curso
       router.push(`/checkout?service=course&amount=${course.price || 0}&domain=academy&name=${encodeURIComponent(course.title)}`);
       return;
     }
 
+    // Para cursos preview ou gratuitos, inscrever sem pagamento
     const enrollment = dataManager.enrollInCourse(activeUser.email, course.id);
     setEnrollments(prev => [...prev.filter(e => e.courseId !== course.id), enrollment]);
     

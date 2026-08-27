@@ -365,6 +365,12 @@ export default function ChapterViewPage() {
   const moduleLessons = getModuleLessons(currentModule.id);
   const completedInModule = moduleLessons.filter(l => isLessonCompleted(l.id)).length;
 
+  // Verifica se o módulo atual está dentro do limite de aulas grátis
+  const isCurrentModuleFree = course && currentModule && currentModule.order <= (course.freeLessonsCount || 1);
+  
+  // Permite acesso se: curso é gratuito, usuário é pago, OU módulo está dentro do limite grátis
+  const hasAccess = course?.accessType === 'free' || isPaidUser || isCurrentModuleFree;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Celebration Animation */}
@@ -448,7 +454,7 @@ export default function ChapterViewPage() {
                 const completedInModule = moduleLessons.filter(l => isLessonCompleted(l.id)).length;
                 const isActive = module.id === currentChapterId;
                 const isCompleted = completedInModule === moduleLessons.length && moduleLessons.length > 0;
-                const isLocked = (course?.accessType === 'preview' || course?.accessType === 'paid') && !isPaidUser && (module.order > (course?.freeLessonsCount || 1));
+                const isLocked = !hasAccess && (module.order > (course?.freeLessonsCount || 1));
 
                 return (
                   <div key={module.id} className="mb-3">
@@ -533,7 +539,7 @@ export default function ChapterViewPage() {
             </div>
 
             {/* Paywall Screen se o módulo atual estiver bloqueado */}
-            {(course?.accessType === 'preview' || course?.accessType === 'paid') && !isPaidUser && (currentModule.order > (course?.freeLessonsCount || 1)) ? (
+            {!hasAccess && (currentModule.order > (course?.freeLessonsCount || 1)) ? (
               <div className="bg-white rounded-3xl border-2 border-amber-200/90 shadow-2xl p-6 sm:p-12 text-center max-w-2xl mx-auto animate-in zoom-in-95 duration-300">
                 <div className="w-20 h-20 bg-gradient-to-br from-amber-100 to-orange-100 text-amber-600 rounded-3xl flex items-center justify-center mx-auto mb-5 shadow-inner border border-amber-200">
                   <Lock className="h-10 w-10 text-amber-700" />
