@@ -35,6 +35,11 @@ function CheckoutContent() {
   const verificationAmount = Number(searchParams.get('amount')) || 2;
   const affiliateUserIdParam = searchParams.get('userId');
 
+  // Parâmetros para pagamento de curso
+  const isCoursePayment = serviceParam === 'course';
+  const courseNameParam = searchParams.get('name');
+  const courseAmountParam = Number(searchParams.get('amount')) || 500;
+
   const domainCost = domainParam 
     ? (domainPriceParam ? Number(domainPriceParam) : getDomainPrice(sanitizeDomainName(domainParam).extension))
     : 0;
@@ -177,6 +182,9 @@ function CheckoutContent() {
   }, [planIdParam]);
 
   const calculatePlanCost = () => {
+    if (isCoursePayment) {
+      return courseAmountParam;
+    }
     if (isAffiliateVerification) {
       return verificationAmount;
     }
@@ -195,7 +203,9 @@ function CheckoutContent() {
   };
 
   const basePrice = calculatePlanCost();
-  const grandTotal = isAffiliateVerification ? verificationAmount : (basePrice + domainCost);
+  const grandTotal = isCoursePayment 
+    ? courseAmountParam 
+    : (isAffiliateVerification ? verificationAmount : (basePrice + domainCost));
 
   const [pushModal, setPushModal] = useState(false);
   const [pushStatus, setPushStatus] = useState<'waiting' | 'expired'>('waiting');
@@ -379,7 +389,9 @@ function CheckoutContent() {
       const isWebsite = selectedPlan?.id === 'website_creation';
       const siteLabel = isWebsite && siteTypeName ? ` — ${siteTypeName}` : '';
       const cycleLabel = isWebsite ? '' : ` (${durationMonths} ${durationMonths === 1 ? 'Mês' : 'Meses'})`;
-      const serviceName = isAffiliateVerification 
+      const serviceName = isCoursePayment
+        ? `Curso: ${courseNameParam || 'Curso WEHOSTHERE'}`
+        : isAffiliateVerification 
         ? 'Verificação de Afiliado'
         : (selectedPlan
             ? (domainParam 
@@ -703,7 +715,9 @@ function CheckoutContent() {
         const isWebsite = selectedPlan?.id === 'website_creation';
         const siteLabel = isWebsite && siteTypeName ? ` — ${siteTypeName}` : '';
         const cycleLabel = isWebsite ? '' : ` (${durationMonths} ${durationMonths === 1 ? 'Mês' : 'Meses'})`;
-        const serviceName = selectedPlan
+        const serviceName = isCoursePayment
+          ? `Curso: ${courseNameParam || 'Curso WEHOSTHERE'}`
+          : selectedPlan
           ? (domainParam 
               ? `${selectedPlan.name}${siteLabel}${cycleLabel} + Domínio (${domainParam})` 
               : `${selectedPlan.name}${siteLabel}${cycleLabel}`)
@@ -757,10 +771,12 @@ function CheckoutContent() {
             <CheckCircle2 className="h-10 w-10" />
           </div>
           <h2 className="text-2xl font-extrabold text-gray-900 mb-1">
-            {isAffiliateVerification ? 'Verificação Confirmada!' : 'Pagamento Confirmado!'}
+            {isCoursePayment ? 'Pagamento do Curso Confirmado!' : (isAffiliateVerification ? 'Verificação Confirmada!' : 'Pagamento Confirmado!')}
           </h2>
           <p className="text-gray-600 text-xs sm:text-sm mb-5">
-            {isAffiliateVerification 
+            {isCoursePayment 
+              ? 'O pagamento do seu curso foi confirmado com sucesso. Você será redirecionado para a academia.'
+              : isAffiliateVerification 
               ? 'A sua verificação de afiliado foi realizada com sucesso. Você será redirecionado para o Painel de Afiliados.'
               : `O seu pedido de ${selectedPlan ? selectedPlan.name : (domainParam ? `Registo do Domínio ${domainParam}` : 'Serviço')} foi registado com sucesso.`
             }
@@ -801,10 +817,10 @@ function CheckoutContent() {
           {checkoutAccountStatus === 'logged_in' && (
             <button
               type="button"
-              onClick={() => router.push('/dashboard')}
+              onClick={() => isCoursePayment ? router.push('/dashboard/academy') : router.push('/dashboard')}
               className="w-full py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-2xl shadow-lg transition flex items-center justify-center space-x-2 cursor-pointer text-sm"
             >
-              <span>Ir para o meu Painel</span>
+              <span>{isCoursePayment ? 'Ir para a Academia' : 'Ir para o meu Painel'}</span>
             </button>
           )}
 
@@ -1429,7 +1445,19 @@ function CheckoutContent() {
               <h4 className="text-sm font-semibold text-gray-800 mb-3">Resumo da compra</h4>
               
               <div className="space-y-2 text-sm text-gray-700 bg-gray-50 p-4 rounded-xl border border-gray-200">
-                {isAffiliateVerification ? (
+                {isCoursePayment ? (
+                  <>
+                    <div className="flex justify-between items-center">
+                      <span className="font-semibold text-gray-900">
+                        Curso: {courseNameParam || 'Curso WEHOSTHERE'}
+                      </span>
+                      <span className="font-bold text-gray-900">{courseAmountParam.toLocaleString('pt-MZ')} MT</span>
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      Acesso vitalício ao curso completo • Certificado de conclusão
+                    </div>
+                  </>
+                ) : isAffiliateVerification ? (
                   <>
                     <div className="flex justify-between items-center">
                       <span className="font-semibold text-gray-900">
@@ -1492,7 +1520,7 @@ function CheckoutContent() {
                 
                 <div className="flex justify-between items-center border-t border-gray-200 pt-3 mt-3 font-bold text-base text-gray-900">
                   <span>Total a Pagar</span>
-                  <span className="text-xl text-emerald-600 font-black">{(isAffiliateVerification ? verificationAmount : grandTotal).toLocaleString('pt-MZ')} MT</span>
+                  <span className="text-xl text-emerald-600 font-black">{(isCoursePayment ? courseAmountParam : (isAffiliateVerification ? verificationAmount : grandTotal)).toLocaleString('pt-MZ')} MT</span>
                 </div>
               </div>
             </div>
