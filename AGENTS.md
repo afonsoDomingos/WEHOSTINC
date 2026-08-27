@@ -35,12 +35,12 @@ The academy follows a hierarchical structure:
 - Auto-detects material type based on uploaded file
 - Uploads are handled via Cloudinary API
 
-### 4. Automatic Enrollment
+### 5. Automatic Enrollment
 - When payment is approved via M-Pesa callback, users are automatically enrolled
 - System matches payment service name to course title
 - Free lessons count is preserved during enrollment
 
-### 5. Mobile Responsiveness
+### 8. Mobile Responsiveness
 
 #### Admin Academy Page
 - Action bar uses vertical flex layout on mobile to prevent button cutoff
@@ -85,7 +85,22 @@ The academy follows a hierarchical structure:
 - Container padding reduced to px-1.5 on mobile
 - Overall much more compact while still readable
 
-### 6. Performance Optimization
+### 6. Data Synchronization
+
+#### Server-First Approach
+- All CRUD operations (create, update, delete) are now async and prioritize server operations
+- DataManager methods first execute operations on the MongoDB server via API endpoints
+- After successful server operation, localStorage is cleared completely to prevent stale data
+- Fresh data is then fetched from the server to ensure consistency
+- This prevents data inconsistencies between localStorage and MongoDB
+
+#### Cascade Delete
+- Course deletion automatically deletes all associated modules and lessons
+- Module deletion automatically deletes all associated lessons
+- Implemented at API level to ensure referential integrity in MongoDB
+- Prevents orphaned records when parent entities are deleted
+
+### 7. Performance Optimization
 
 #### Course Page Loading
 - Implemented progressive loading strategy for instant rendering
