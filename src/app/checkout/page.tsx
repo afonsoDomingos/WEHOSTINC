@@ -17,10 +17,15 @@ import ReceiptModal, { ReceiptData } from '@/components/ReceiptModal';
 import { apiEndpoint } from '@/lib/siteConfig';
 import { soundEffects } from '@/lib/soundEffects';
 import FacebookPixel from '@/lib/facebookPixel';
+import { useTranslation, getLanguage, setLanguage, Language } from '@/lib/i18n';
+import { useAnalytics } from '@/lib/analytics';
 
 function CheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [language, setLanguageState] = useState<Language>(getLanguage());
+  const t = useTranslation(language);
+  const analytics = useAnalytics();
   const rawPlanId = searchParams.get('plan');
   const planIdParam = rawPlanId === 'none' ? 'none' : (rawPlanId || 'pro');
   const domainParam = searchParams.get('domain');
@@ -105,7 +110,12 @@ function CheckoutContent() {
     if (user) {
       setName(user.name || '');
       setEmail(user.email || '');
+      analytics.setUserId(user.id);
     }
+    
+    // Track page view
+    const serviceType = isCoursePayment ? 'course' : (isAffiliateVerification ? 'affiliate' : 'hosting');
+    analytics.trackCheckoutView(serviceType, grandTotal);
     
     // Rastrear InitiateCheckout quando o usuário entra na página de checkout
     if (selectedPlan) {
@@ -165,10 +175,11 @@ function CheckoutContent() {
 
   const [pushModal, setPushModal] = useState(false);
   const [pushStatus, setPushStatus] = useState<'waiting' | 'expired'>('waiting');
-  const [countdown, setCountdown] = useState(45);
+  const [countdown, setCountdown] = useState(60); // Aumentado de 45 para 60 segundos
   const [currentOrderId, setCurrentOrderId] = useState<string | null>(null);
   const [currentReference, setCurrentReference] = useState<string | null>(null);
   const [isPollingPayment, setIsPollingPayment] = useState(false);
+  const [retryCount, setRetryCount] = useState(0); // Contador de tentativas de retry
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -194,6 +205,19 @@ function CheckoutContent() {
     return () => clearInterval(timer);
   }, [pushModal, pushStatus, countdown, email, name, grandTotal]);
 
+  // 🔒 ACESSIBILIDADE: Suporte a teclado para fechar modal com ESC
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && pushModal) {
+        setPushModal(false);
+        setIsPollingPayment(false);
+      }
+    };
+    
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [pushModal]);
+
   // 🔒 SEGURANÇA: Polling de status de pagamento - verificar confirmação do webhook
   useEffect(() => {
     let pollingInterval: NodeJS.Timeout;
@@ -201,19 +225,31 @@ function CheckoutContent() {
     if (isPollingPayment && currentReference) {
       console.log('[PAYMENT POLLING] Iniciando verificação de status para reference:', currentReference);
       
-      // Verificar a cada 3 segundos
-      pollingInterval = setInterval(async () => {
+      // Exponential backoff: começa com 5s, aumenta gradualmente
+      const getPollingInterval = (attempt: number) => {
+        return Math.min(5000 * Math.pow(1.5, attempt), 15000); // Max 15s
+      };
+      
+      let attempt = 0;
+      
+      const pollWithRetry = async () => {
         try {
           const response = await fetch(apiEndpoint(`/api/payments/status?reference=${encodeURIComponent(currentReference)}`));
           const data = await response.json();
           
-          console.log('[PAYMENT POLLING] Status:', data.status);
+          console.log('[PAYMENT POLLING] Status:', data.status, 'Attempt:', attempt + 1);
           
           if (data.status === 'completed') {
             console.log('[PAYMENT POLLING] Pagamento confirmado pelo webhook!');
             clearInterval(pollingInterval);
             setIsPollingPayment(false);
             setPushModal(false);
+            setRetryCount(0);
+            
+            // Track successful payment
+            const serviceType = isCoursePayment ? 'course' : (isAffiliateVerification ? 'affiliate' : 'hosting');
+            analytics.trackPaymentCompleted(paymentMethod, grandTotal, currentReference || '');
+            analytics.trackConversion(serviceType, grandTotal);
             
             // Criar pedido com status completed e finalizar
             await finalizeOrder();
@@ -222,20 +258,50 @@ function CheckoutContent() {
             clearInterval(pollingInterval);
             setIsPollingPayment(false);
             setPushStatus('expired');
+            setRetryCount(0);
             setError('Pagamento não foi confirmado. Por favor, tente novamente.');
+          } else {
+            // Continua polling com exponential backoff
+            attempt++;
+            const nextInterval = getPollingInterval(attempt);
+            console.log('[PAYMENT POLLING] Próxima verificação em', nextInterval/1000, 'segundos');
+            
+            clearInterval(pollingInterval);
+            pollingInterval = setInterval(pollWithRetry, nextInterval);
           }
         } catch (err) {
           console.error('[PAYMENT POLLING] Erro ao verificar status:', err);
+          attempt++;
+          
+          // Retry automático até 3 tentativas
+          if (attempt < 3) {
+            const nextInterval = getPollingInterval(attempt);
+            console.log('[PAYMENT POLLING] Retry', attempt, 'em', nextInterval/1000, 'segundos');
+            
+            clearInterval(pollingInterval);
+            pollingInterval = setInterval(pollWithRetry, nextInterval);
+          } else {
+            console.error('[PAYMENT POLLING] Máximo de retries atingido');
+            clearInterval(pollingInterval);
+            setIsPollingPayment(false);
+            setPushStatus('expired');
+            setRetryCount(0);
+            setError('Erro de conexão. Verifique sua internet e tente novamente.');
+          }
         }
-      }, 3000); // Verificar a cada 3 segundos
+      };
       
-      // Parar polling após 2 minutos (timeout)
+      // Iniciar polling
+      pollingInterval = setInterval(pollWithRetry, 5000); // Começa com 5 segundos
+      
+      // Parar polling após 3 minutos (timeout aumentado)
       const timeout = setTimeout(() => {
         clearInterval(pollingInterval);
         setIsPollingPayment(false);
         setPushStatus('expired');
+        setRetryCount(0);
         setError('Tempo de verificação expirado. Se você pagou, aguarde o e-mail de confirmação.');
-      }, 120000); // 2 minutos
+      }, 180000); // 3 minutos
       
       return () => {
         clearInterval(pollingInterval);
@@ -244,20 +310,52 @@ function CheckoutContent() {
     }
   }, [isPollingPayment, currentReference]);
 
-  const handleRetryPush = () => {
+  const handleRetryPush = async () => {
     setPushStatus('waiting');
-    setCountdown(45);
+    setCountdown(60); // Countdown aumentado para 60 segundos
+    setRetryCount(prev => prev + 1);
+    
     const phone = phonePayment || whatsapp;
-    fetch(apiEndpoint('/api/payments/mpesa/c2b'), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        msisdn: phone,
-        amount: grandTotal,
-        reference: `REF_${Date.now().toString().slice(-6)}`,
-        thirdPartyReference: `ORDER_${Date.now().toString().slice(-6)}`
-      })
-    }).catch(err => console.warn('M-Pesa API Call:', err));
+    
+    try {
+      const response = await fetch(apiEndpoint('/api/payments/mpesa/c2b'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          msisdn: phone,
+          amount: grandTotal,
+          reference: `REF_${Date.now().toString().slice(-6)}`,
+          thirdPartyReference: `ORDER_${Date.now().toString().slice(-6)}`
+        })
+      });
+      
+      const data = await response.json();
+      console.log('[PUSH RETRY] Nova solicitação enviada:', data);
+      
+      if (response.ok) {
+        setPushStatus('waiting');
+        setIsPollingPayment(true);
+      } else {
+        throw new Error(data.error || 'Erro ao enviar solicitação');
+      }
+    } catch (err) {
+      console.error('[PUSH RETRY] Erro ao retry:', err);
+      
+      // Mensagens de erro específicas
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
+      
+      if (errorMessage.includes('saldo') || errorMessage.includes('insufficient')) {
+        setError('Saldo insuficiente no M-Pesa. Por favor, recarregue e tente novamente.');
+      } else if (errorMessage.includes('timeout') || errorMessage.includes('network')) {
+        setError('Erro de conexão. Verifique sua internet e tente novamente.');
+      } else if (errorMessage.includes('invalid') || errorMessage.includes('format')) {
+        setError('Número de telefone inválido. Verifique e tente novamente.');
+      } else {
+        setError(`Erro ao processar pagamento: ${errorMessage}. Tente novamente.`);
+      }
+      
+      setPushStatus('expired');
+    }
   };
 
   const [checkoutAccountStatus, setCheckoutAccountStatus] = useState<'logged_in' | 'account_exists' | 'no_account'>('logged_in');
@@ -614,15 +712,18 @@ function CheckoutContent() {
       // Validações normais para checkout de serviços
       if (!name.trim()) {
         setError('Por favor, informe seu nome completo.');
+        analytics.trackFormError('name', 'Name required');
         return;
       }
       if (!email.trim() || !email.includes('@')) {
         setError('Por favor, informe um e-mail válido.');
+        analytics.trackFormError('email', 'Invalid email');
         return;
       }
       // WhatsApp não é obrigatório para pagamento de cursos
       if (!isCoursePayment && !whatsapp.trim()) {
         setError('Por favor, informe seu número do WhatsApp.');
+        analytics.trackFormError('whatsapp', 'WhatsApp required');
         return;
       }
     }
@@ -655,12 +756,31 @@ function CheckoutContent() {
           return;
         }
         
+        // Validação de valor mínimo e máximo
+        if (grandTotal < 1) {
+          setError('Valor mínimo de pagamento é 1 MT.');
+          setLoading(false);
+          return;
+        }
+        
+        if (grandTotal > 1000000) {
+          setError('Valor máximo de pagamento é 1.000.000 MT. Para valores maiores, contacte o suporte.');
+          setLoading(false);
+          return;
+        }
+        
         const apiUrl = paymentMethod === 'mpesa' 
           ? '/api/payments/mpesa/c2b'
           : '/api/payments/emola/c2b';
         
-        // Gerar referência única para este pagamento
-        const paymentReference = `REF_${Date.now().toString().slice(-6)}`;
+        // Gerar referência única e mais segura para este pagamento
+        const generateSecureReference = () => {
+          const timestamp = Date.now().toString(36);
+          const random = Math.random().toString(36).substring(2, 8);
+          const checksum = (timestamp + random).split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 100;
+          return `REF_${timestamp}_${random}_${checksum}`.toUpperCase();
+        };
+        const paymentReference = generateSecureReference();
         
         // Calcular serviceName para metadados
         const isWebsite = selectedPlan?.id === 'website_creation';
@@ -675,6 +795,9 @@ function CheckoutContent() {
           : `Registo de Domínio: ${domainParam || 'Domínio Avulso'}`;
         
         console.log('[Checkout] Iniciando pagamento com telefone:', phone, 'Valor:', grandTotal);
+        
+        // Track payment initiation
+        analytics.trackPaymentInitiated(paymentMethod, grandTotal);
         
         fetch(apiEndpoint(apiUrl), {
           method: 'POST',
@@ -694,7 +817,7 @@ function CheckoutContent() {
         setCurrentReference(paymentReference);
         
         // Open PUSH visual countdown modal
-        setCountdown(45);
+        setCountdown(60); // Countdown aumentado para 60 segundos
         setPushStatus('waiting');
         setPushModal(true);
       } else if (paymentMethod === 'bank_transfer') {
@@ -710,7 +833,23 @@ function CheckoutContent() {
     } catch (err) {
       setLoading(false);
       soundEffects.playPaymentErrorSound();
-      setError(err instanceof Error ? err.message : 'Erro ao processar o pagamento.');
+      
+      // Tratamento de erros específicos
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
+      
+      if (errorMessage.includes('network') || errorMessage.includes('fetch') || errorMessage.includes('timeout')) {
+        setError('Erro de conexão. Verifique sua internet e tente novamente.');
+      } else if (errorMessage.includes('saldo') || errorMessage.includes('insufficient')) {
+        setError('Saldo insuficiente. Por favor, recarregue e tente novamente.');
+      } else if (errorMessage.includes('invalid') || errorMessage.includes('format')) {
+        setError('Dados inválidos. Verifique as informações e tente novamente.');
+      } else if (errorMessage.includes('server') || errorMessage.includes('500')) {
+        setError('Erro no servidor. Tente novamente em alguns instantes.');
+      } else {
+        setError(`Erro ao processar pagamento: ${errorMessage}. Tente novamente.`);
+      }
+      
+      console.error('[CHECKOUT ERROR]', err);
     }
   };
 
@@ -825,18 +964,24 @@ function CheckoutContent() {
     <div className="min-h-screen bg-gray-50 text-gray-900 relative">
       {/* PUSH Modal Overlay */}
       {pushModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 text-center border border-gray-200 animate-in fade-in zoom-in duration-200">
+        <div 
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modal-title"
+        >
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 text-center border border-gray-200 animate-in fade-in zoom-in duration-300 ease-out">
             {pushStatus === 'waiting' ? (
               <>
                 <div className="relative w-20 h-20 mx-auto mb-4 flex items-center justify-center">
                   <div className="absolute inset-0 bg-red-100 rounded-full animate-ping opacity-75"></div>
-                  <div className="relative w-16 h-16 bg-red-600 text-white rounded-full flex items-center justify-center shadow-lg">
+                  <div className="absolute inset-0 bg-red-200 rounded-full animate-pulse"></div>
+                  <div className="relative w-16 h-16 bg-red-600 text-white rounded-full flex items-center justify-center shadow-lg animate-bounce">
                     <Smartphone className="h-8 w-8" />
                   </div>
                 </div>
 
-                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                <h3 id="modal-title" className="text-xl font-bold text-gray-900 mb-2">
                   Autorize no seu Telemóvel
                 </h3>
                 <p className="text-sm text-gray-600 mb-4">
@@ -854,6 +999,17 @@ function CheckoutContent() {
                   <div className="text-3xl font-mono font-bold text-gray-800">
                     00:{countdown < 10 ? `0${countdown}` : countdown}
                   </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                    <div 
+                      className="bg-red-600 h-2 rounded-full transition-all duration-1000 ease-linear"
+                      style={{ width: `${(countdown / 60) * 100}%` }}
+                    ></div>
+                  </div>
+                  {retryCount > 0 && (
+                    <div className="text-xs text-amber-600 mt-1 font-medium">
+                      Tentativa {retryCount + 1} de 3
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -864,11 +1020,13 @@ function CheckoutContent() {
                       setIsPollingPayment(true);
                     }}
                     disabled={isPollingPayment}
-                    className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl shadow transition text-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                    aria-label="Verificar pagamento"
+                    aria-busy={isPollingPayment}
+                    className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl shadow transition text-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 min-h-[52px]"
                   >
                     {isPollingPayment ? (
                       <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                         <span>Verificando pagamento...</span>
                       </>
                     ) : (
@@ -881,7 +1039,7 @@ function CheckoutContent() {
                       setPushModal(false);
                       setIsPollingPayment(false);
                     }}
-                    className="w-full py-2.5 text-xs font-semibold text-gray-500 hover:text-gray-800 transition"
+                    className="w-full py-3 text-xs font-semibold text-gray-500 hover:text-gray-800 transition min-h-[44px]"
                   >
                     Cancelar ou Alterar número
                   </button>
@@ -903,24 +1061,25 @@ function CheckoutContent() {
                 <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 text-left text-xs text-amber-900 space-y-1">
                   <p className="font-semibold text-amber-800 text-sm mb-1">O que pode ter acontecido?</p>
                   <p>• O ecrã do seu telemóvel estava bloqueado ao receber o PUSH.</p>
-                  <p>• A notificação expirou (45s) ou foi cancelada no telemóvel.</p>
+                  <p>• A notificação expirou (60s) ou foi cancelada no telemóvel.</p>
                   <p>• O número de telemóvel não tem saldo M-Pesa suficiente.</p>
+                  <p>• Conexão instável com a rede M-Pesa.</p>
                 </div>
 
                 <div className="space-y-2">
                   <button
                     type="button"
                     onClick={handleRetryPush}
-                    className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow transition text-sm flex items-center justify-center gap-2 cursor-pointer"
+                    className="w-full py-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow transition text-sm flex items-center justify-center gap-2 cursor-pointer min-h-[52px]"
                   >
-                    <RefreshCw className="h-4 w-4" />
+                    <RefreshCw className="h-5 w-5" />
                     Reenviar Notificação PUSH Agora
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setPushModal(false)}
-                    className="w-full py-2.5 text-xs font-semibold text-gray-600 hover:text-gray-900 border border-gray-200 rounded-xl transition"
+                    className="w-full py-3 text-xs font-semibold text-gray-600 hover:text-gray-900 border border-gray-200 rounded-xl transition min-h-[44px]"
                   >
                     Alterar Número ou Método de Pagamento
                   </button>
@@ -1121,7 +1280,7 @@ function CheckoutContent() {
                       value={isAffiliateVerification ? affiliatePhone : phonePayment}
                       onChange={(e) => isAffiliateVerification ? setAffiliatePhone(e.target.value) : setPhonePayment(e.target.value)}
                       placeholder={paymentMethod === 'mpesa' ? '84 123 4567 ou 85 123 4567' : '86 123 4567 ou 87 123 4567'}
-                      className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"
+                      className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500 min-h-[48px]"
                     />
                   </div>
                   {isAffiliateVerification ? (
@@ -1145,7 +1304,7 @@ function CheckoutContent() {
                       value={cardNumber}
                       onChange={(e) => setCardNumber(e.target.value)}
                       placeholder="0000 0000 0000 0000"
-                      className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"
+                      className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500 min-h-[48px]"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
@@ -1156,7 +1315,7 @@ function CheckoutContent() {
                         value={cardExpiry}
                         onChange={(e) => setCardExpiry(e.target.value)}
                         placeholder="MM/AA"
-                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"
+                        className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500 min-h-[48px]"
                       />
                     </div>
                     <div>
@@ -1166,7 +1325,7 @@ function CheckoutContent() {
                         value={cardCvc}
                         onChange={(e) => setCardCvc(e.target.value)}
                         placeholder="123"
-                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"
+                        className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500 min-h-[48px]"
                       />
                     </div>
                   </div>

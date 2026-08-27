@@ -2,6 +2,33 @@ import { NextResponse } from 'next/server';
 import { dataManager } from '@/lib/data';
 import { apiEndpoint } from '@/lib/siteConfig';
 
+// 🔒 BACKEND ROBUSTEZ: Sistema de retry para webhooks falhados
+const WEBHOOK_RETRY_ATTEMPTS = 3;
+const WEBHOOK_RETRY_DELAY = 1000; // 1 segundo
+
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  attempts: number = WEBHOOK_RETRY_ATTEMPTS,
+  delay: number = WEBHOOK_RETRY_DELAY
+): Promise<T> {
+  let lastError: Error;
+  
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error as Error;
+      console.error(`[WEBHOOK RETRY] Attempt ${i + 1}/${attempts} failed:`, error);
+      
+      if (i < attempts - 1) {
+        await new Promise(resolve => setTimeout(resolve, delay * Math.pow(2, i))); // Exponential backoff
+      }
+    }
+  }
+  
+  throw lastError!;
+}
+
 export async function POST(req: Request) {
   let processed = false;
   let errorMessage = '';
@@ -50,16 +77,16 @@ export async function POST(req: Request) {
         
       case 'payment.completed':
         console.log('[KIVORA WEBHOOK] Pagamento completado:', eventData.id);
-        // Atualizar status do pedido para 'completed' se houver referência
+        // Atualizar status do pedido para 'completed' se houver referência (com retry)
         if (eventData.reference) {
-          await updateOrderStatus(eventData.reference, 'completed');
+          await withRetry(() => updateOrderStatus(eventData.reference, 'completed'));
         }
-        // Enviar notificação de sucesso por email para cliente
+        // Enviar notificação de sucesso por email para cliente (com retry)
         if (clientEmail) {
-          await sendPaymentNotification(clientEmail, clientName, serviceName, 'completed', eventData.amount);
+          await withRetry(() => sendPaymentNotification(clientEmail, clientName, serviceName, 'completed', eventData.amount));
         }
-        // Notificar admin sobre pagamento confirmado
-        await notifyAdminAboutPayment(clientName, clientEmail || '', serviceName, 'completed', eventData.amount, eventData.reference);
+        // Notificar admin sobre pagamento confirmado (com retry)
+        await withRetry(() => notifyAdminAboutPayment(clientName, clientEmail || '', serviceName, 'completed', eventData.amount, eventData.reference));
         processed = true;
         break;
         
