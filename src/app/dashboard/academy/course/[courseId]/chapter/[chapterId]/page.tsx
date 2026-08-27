@@ -39,7 +39,14 @@ export default function ChapterViewPage() {
         return;
       }
 
-      // Carregar dados locais primeiro para renderização rápida
+      // Buscar dados do servidor primeiro para garantir dados atualizados
+      await Promise.all([
+        dataManager.fetchCoursesAsync(),
+        dataManager.fetchModulesAsync(),
+        dataManager.fetchLessonsAsync()
+      ]);
+
+      // Agora buscar dados locais (atualizados do servidor)
       const courseData = dataManager.getCourses().find(c => c.id === courseId);
       
       if (!courseData) {
@@ -60,23 +67,6 @@ export default function ChapterViewPage() {
       setProgress(localProgress);
       
       setLoading(false);
-
-      // Buscar dados do servidor em background
-      Promise.all([
-        dataManager.fetchCoursesAsync(),
-        dataManager.fetchModulesAsync(),
-        dataManager.fetchLessonsAsync()
-      ]).then(() => {
-        // Atualizar com dados frescos do servidor
-        const freshCourseData = dataManager.getCourses().find(c => c.id === courseId);
-        const freshCourseModules = dataManager.getModules(courseId).sort((a, b) => a.order - b.order);
-        
-        if (freshCourseData) setCourse(freshCourseData);
-        if (freshCourseModules.length > 0) setModules(freshCourseModules);
-        setLessons(dataManager.getLessons());
-      }).catch(e => {
-        console.error('[ChapterView] Erro ao buscar dados do servidor:', e);
-      });
 
       // Buscar progresso do servidor em background
       dataManager.fetchCourseProgressAsync(currentUser.email, courseId)
