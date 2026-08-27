@@ -293,12 +293,12 @@ export default function ChapterViewPage() {
     // Se não houver lições para este módulo, criar uma lição temporária usando o conteúdo do módulo
     if (moduleLessons.length === 0) {
       const moduleData = modules.find(m => m.id === moduleId);
-      if (moduleData) {
+      if (moduleData && (moduleData.description || moduleData.hasVideo || moduleData.hasMaterial)) {
         return [{
           id: `TEMP-${moduleData.id}`,
           moduleId: moduleData.id,
           title: moduleData.title,
-          content: moduleData.description,
+          content: moduleData.description || 'Conteúdo em breve...',
           hasVideo: moduleData.hasVideo,
           videoUrl: moduleData.videoUrl,
           videoTitle: moduleData.videoTitle,
@@ -706,8 +706,8 @@ export default function ChapterViewPage() {
             ) : (
               <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center shadow-lg">
                 <BookOpen className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Capítulo vazio</h3>
-                <p className="text-gray-600">Este capítulo ainda não tem conteúdo</p>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhuma aula disponível</h3>
+                <p className="text-gray-600">Este capítulo ainda não tem aulas disponíveis. Por favor, volte mais tarde ou entre em contato com o suporte.</p>
               </div>
             )}
           </div>

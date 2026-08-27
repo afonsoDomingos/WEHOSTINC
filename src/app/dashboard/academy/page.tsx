@@ -355,7 +355,13 @@ export default function DashboardAcademyPage() {
                   <span>Todos os Cursos Disponíveis</span>
                 </h3>
                 
-                {courses.filter(c => !isEnrolled(c.id)).length === 0 ? (
+                {courses.length === 0 ? (
+                  <div className="text-center py-12 bg-white rounded-2xl border border-gray-200 p-8 shadow-sm">
+                    <BookOpen className="h-14 w-14 text-gray-300 mx-auto mb-3" />
+                    <h3 className="text-base font-bold text-gray-900 mb-1">Nenhum curso disponível</h3>
+                    <p className="text-xs text-gray-500">No momento não há cursos disponíveis na academia. Por favor, volte mais tarde.</p>
+                  </div>
+                ) : courses.filter(c => !isEnrolled(c.id)).length === 0 ? (
                   <div className="text-center py-12 bg-white rounded-2xl border border-gray-200 p-8 shadow-sm">
                     <CheckCircle className="h-14 w-14 text-emerald-500 mx-auto mb-3" />
                     <h3 className="text-base font-bold text-gray-900 mb-1">Inscrição Ativa em Todos os Cursos</h3>
