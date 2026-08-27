@@ -99,56 +99,12 @@ function CheckoutContent() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
-  const [loadingAffiliateProfile, setLoadingAffiliateProfile] = useState(false);
-  const [affiliatePhoneConfigured, setAffiliatePhoneConfigured] = useState<string | null>(null);
 
   useEffect(() => {
     const user = auth.getCurrentUser();
     if (user) {
       setName(user.name || '');
       setEmail(user.email || '');
-    }
-    
-    // Se for verificação de afiliado, carregar o número configurado automaticamente
-    if (isAffiliateVerification) {
-      const loadAffiliateProfile = async () => {
-        setLoadingAffiliateProfile(true);
-        try {
-          const userIdForProfile = affiliateUserIdParam || user?.id;
-          if (!userIdForProfile) {
-            setError('Usuário não identificado. Por favor, faça login novamente.');
-            setLoadingAffiliateProfile(false);
-            return;
-          }
-          
-          const response = await fetch(`/api/affiliates/get-profile?userId=${encodeURIComponent(userIdForProfile)}`);
-          const data = await response.json();
-          
-          console.log('[Checkout] Perfil do afiliado:', data);
-          
-          if (data.success && data.hasPhoneConfigured && data.phone) {
-            // Usar o número configurado automaticamente
-            setAffiliatePhoneConfigured(data.phone);
-            setPhonePayment(data.phone);
-            setAffiliatePhone(data.phone);
-            console.log('[Checkout] Número de afiliado configurado automaticamente:', data.phone);
-          } else if (data.success && !data.hasPhoneConfigured) {
-            // Afiliado existe mas não tem número configurado
-            setError('Você precisa configurar o número para receber comissões antes de efetuar o pagamento de verificação. Por favor, configure seu número no painel de afiliados.');
-            setLoadingAffiliateProfile(false);
-            return;
-          } else if (!data.exists) {
-            // Afiliado não existe ainda
-            console.log('[Checkout] Afiliado ainda não registrado, usuário poderá configurar número');
-          }
-        } catch (err) {
-          console.error('[Checkout] Erro ao carregar perfil do afiliado:', err);
-        } finally {
-          setLoadingAffiliateProfile(false);
-        }
-      };
-      
-      loadAffiliateProfile();
     }
     
     // Rastrear InitiateCheckout quando o usuário entra na página de checkout
@@ -412,11 +368,11 @@ function CheckoutContent() {
       // Se for verificação de afiliado, registrar o afiliado após pagamento
       // O número de comissões = o mesmo número usado para pagar os 2 MZN (M-Pesa/eMola)
       if (isAffiliateVerification) {
-        // Usar obrigatoriamente o número configurado
-        const affiliatePhoneFinal = affiliatePhoneConfigured;
+        // Usar o número digitado pelo usuário
+        const affiliatePhoneFinal = affiliatePhone;
         // Usar userId do parâmetro ou do usuário atual
         const userIdForAffiliate = affiliateUserIdParam || currentUser?.id;
-        console.log('[Checkout] Registrando/Atualizando afiliado com telefone configurado:', affiliatePhoneFinal, 'userId:', userIdForAffiliate);
+        console.log('[Checkout] Registrando/Atualizando afiliado com telefone digitado:', affiliatePhoneFinal, 'userId:', userIdForAffiliate);
         
         try {
           const affiliateResponse = await fetch('/api/affiliates/register', {
@@ -646,20 +602,14 @@ function CheckoutContent() {
 
     // Validação específica para verificação de afiliado
     if (isAffiliateVerification) {
-      if (loadingAffiliateProfile) {
-        setError('A carregar perfil do afiliado. Por favor, aguarde...');
+      if (!affiliatePhone.trim()) {
+        setError('Por favor, informe o número para receber comissões.');
         return;
       }
       
-      if (!affiliatePhoneConfigured) {
-        setError('Número para comissões não configurado. Por favor, configure seu número no painel de afiliados antes de efetuar o pagamento.');
-        return;
-      }
-      
-      // Usar obrigatoriamente o número configurado
-      setPhonePayment(affiliatePhoneConfigured);
-      setAffiliatePhone(affiliatePhoneConfigured);
-      console.log('[Checkout] Usando número configurado do afiliado:', affiliatePhoneConfigured);
+      // Usar o número digitado pelo usuário
+      setPhonePayment(affiliatePhone);
+      console.log('[Checkout] Usando número digitado pelo afiliado:', affiliatePhone);
     } else {
       // Validações normais para checkout de serviços
       if (!name.trim()) {
@@ -670,7 +620,8 @@ function CheckoutContent() {
         setError('Por favor, informe um e-mail válido.');
         return;
       }
-      if (!whatsapp.trim()) {
+      // WhatsApp não é obrigatório para pagamento de cursos
+      if (!isCoursePayment && !whatsapp.trim()) {
         setError('Por favor, informe seu número do WhatsApp.');
         return;
       }
@@ -693,9 +644,9 @@ function CheckoutContent() {
 
     try {
       if (paymentMethod === 'mpesa' || paymentMethod === 'emola') {
-        // Para verificação de afiliado, usar obrigatoriamente o número configurado
+        // Para verificação de afiliado, usar o número digitado pelo usuário
         const phone = isAffiliateVerification 
-          ? affiliatePhoneConfigured 
+          ? affiliatePhone 
           : (phonePayment || whatsapp);
         
         if (!phone) {
@@ -1165,28 +1116,17 @@ function CheckoutContent() {
                   </label>
                   <div className="flex items-center space-x-2">
                     <Smartphone className="h-5 w-5 text-gray-400" />
-                    {isAffiliateVerification ? (
-                      <input
-                        type="tel"
-                        value={affiliatePhoneConfigured || phonePayment}
-                        readOnly
-                        disabled={loadingAffiliateProfile}
-                        placeholder={loadingAffiliateProfile ? 'A carregar número configurado...' : 'Número configurado automaticamente'}
-                        className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-sm outline-none text-gray-700 cursor-not-allowed"
-                      />
-                    ) : (
-                      <input
-                        type="tel"
-                        value={phonePayment}
-                        onChange={(e) => setPhonePayment(e.target.value)}
-                        placeholder={paymentMethod === 'mpesa' ? '84 123 4567 ou 85 123 4567' : '86 123 4567 ou 87 123 4567'}
-                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"
-                      />
-                    )}
+                    <input
+                      type="tel"
+                      value={isAffiliateVerification ? affiliatePhone : phonePayment}
+                      onChange={(e) => isAffiliateVerification ? setAffiliatePhone(e.target.value) : setPhonePayment(e.target.value)}
+                      placeholder={paymentMethod === 'mpesa' ? '84 123 4567 ou 85 123 4567' : '86 123 4567 ou 87 123 4567'}
+                      className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary-500"
+                    />
                   </div>
                   {isAffiliateVerification ? (
-                    <p className="text-xs text-blue-700 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 mt-2 leading-relaxed">
-                      � <strong>Número configurado automaticamente.</strong> Este é o número que você configurou para receber suas comissões. O pagamento de 2 MT será feito para este mesmo número. Para alterar, atualize suas configurações no painel de afiliados.
+                    <p className="text-xs text-gray-500 mt-2">
+                      Digite o número {paymentMethod === 'mpesa' ? 'M-Pesa' : 'eMola'} para receber o pagamento de verificação e suas comissões futuras.
                     </p>
                   ) : (
                     <p className="text-xs text-gray-500 mt-2">
@@ -1321,7 +1261,7 @@ function CheckoutContent() {
                     <label className="block text-sm font-bold text-gray-800">
                       Período de Contratação (Duração da Assinatura)
                     </label>
-                    {domainParam && (
+                    {domainParam && !isCoursePayment && !isAffiliateVerification && (
                       <button
                         type="button"
                         onClick={() => setSelectedPlanId('none')}
@@ -1425,19 +1365,21 @@ function CheckoutContent() {
                 </div>
               )
             ) : (
-              <div className="p-4 bg-blue-50/80 border border-blue-200 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 my-2">
-                <div>
-                  <span className="text-xs font-black text-blue-900 uppercase block tracking-wider">Comprando Apenas Registro de Domínio</span>
-                  <span className="text-xs text-blue-700 mt-0.5 block">Nenhum plano de hospedagem adicionado. Deseja incluir hospedagem?</span>
+              !isCoursePayment && !isAffiliateVerification && (
+                <div className="p-4 bg-blue-50/80 border border-blue-200 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 my-2">
+                  <div>
+                    <span className="text-xs font-black text-blue-900 uppercase block tracking-wider">Comprando Apenas Registro de Domínio</span>
+                    <span className="text-xs text-blue-700 mt-0.5 block">Nenhum plano de hospedagem adicionado. Deseja incluir hospedagem?</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedPlanId('pro')}
+                    className="px-3.5 py-2 bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs rounded-lg transition whitespace-nowrap cursor-pointer shadow-sm"
+                  >
+                    + Adicionar Plano Pro (2.500 MT/mês)
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setSelectedPlanId('pro')}
-                  className="px-3.5 py-2 bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs rounded-lg transition whitespace-nowrap cursor-pointer shadow-sm"
-                >
-                  + Adicionar Plano Pro (2.500 MT/mês)
-                </button>
-              </div>
+              )
             )}
 
             {/* 3. Resumo da Compra (Order Summary) */}
