@@ -3,14 +3,12 @@ import { connectDB } from '@/lib/mongodb';
 import { CourseModel } from '@/lib/models/CourseModel';
 import { ModuleModel } from '@/lib/models/ModuleModel';
 import { LessonModel } from '@/lib/models/LessonModel';
-import { ensureAcademySeeded } from '@/lib/serverSeedAcademy';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
     await connectDB();
-    await ensureAcademySeeded();
     const courses = await CourseModel.find({}).sort({ order: 1 });
     return NextResponse.json({ courses });
   } catch (error) {

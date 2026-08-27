@@ -2,12 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import { ModuleModel } from '@/lib/models/ModuleModel';
 import { LessonModel } from '@/lib/models/LessonModel';
-import { ensureAcademySeeded } from '@/lib/serverSeedAcademy';
 
 export async function GET(request: NextRequest) {
   try {
     await connectDB();
-    await ensureAcademySeeded();
     const { searchParams } = new URL(request.url);
     const courseId = searchParams.get('courseId');
     
