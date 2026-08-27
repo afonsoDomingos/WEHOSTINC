@@ -353,19 +353,33 @@ export default function AdminAcademyPage() {
       const endpoint = type === 'course' ? '/api/courses' : type === 'module' ? '/api/modules' : '/api/lessons';
       const idParam = type === 'course' ? 'courseId' : type === 'module' ? 'moduleId' : 'lessonId';
 
+      console.log(`[Admin Academy] Deletando ${itemName}:`, id);
+      console.log(`[Admin Academy] Endpoint:`, endpoint);
+      console.log(`[Admin Academy] Payload:`, JSON.stringify({ action: 'delete', [idParam]: id }));
+
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'delete', [idParam]: id })
       });
 
-      if (response.ok) {
-        // Recarregar todos os dados
-        fetchCourses();
+      console.log(`[Admin Academy] Response status:`, response.status);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error(`[Admin Academy] Erro ao deletar ${itemName}:`, errorData);
+        alert(`Erro ao remover ${itemName}: ${errorData.error || 'Erro desconhecido'}`);
+        return;
       }
+
+      const responseData = await response.json();
+      console.log(`[Admin Academy] ${itemName} deletado com sucesso:`, responseData);
+      
+      // Recarregar todos os dados
+      fetchCourses();
     } catch (error) {
-      console.error(`Erro ao remover ${itemName}:`, error);
-      alert(`Erro ao remover ${itemName}`);
+      console.error(`[Admin Academy] Erro ao remover ${itemName}:`, error);
+      alert(`Erro ao remover ${itemName}: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
     }
   };
 

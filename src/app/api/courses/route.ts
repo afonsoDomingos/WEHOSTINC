@@ -68,15 +68,27 @@ export async function POST(request: NextRequest) {
     if (action === 'delete' && courseId) {
       console.log('[API Courses] Deletando curso:', courseId);
       
+      // Verificar se o curso existe antes de deletar
+      const courseExists = await CourseModel.findOne({ id: courseId });
+      console.log('[API Courses] Curso existe?', !!courseExists);
+      if (courseExists) {
+        console.log('[API Courses] Curso encontrado:', courseExists.id, courseExists.title);
+      }
+      
       // Deletar em cascade: primeiro lições, depois módulos, depois curso
       const modules = await ModuleModel.find({ courseId });
       const moduleIds = modules.map(m => m.id);
       
+      console.log('[API Courses] Módulos encontrados:', modules.length);
+      console.log('[API Courses] IDs dos módulos:', moduleIds);
+      
       console.log('[API Courses] Deletando lições dos módulos:', moduleIds.length, 'módulos');
-      await LessonModel.deleteMany({ moduleId: { $in: moduleIds } });
+      const lessonsDeleted = await LessonModel.deleteMany({ moduleId: { $in: moduleIds } });
+      console.log('[API Courses] Lições deletadas:', lessonsDeleted.deletedCount);
       
       console.log('[API Courses] Deletando módulos:', modules.length);
-      await ModuleModel.deleteMany({ courseId });
+      const modulesDeleted = await ModuleModel.deleteMany({ courseId });
+      console.log('[API Courses] Módulos deletados:', modulesDeleted.deletedCount);
       
       const deleted = await CourseModel.findOneAndDelete({ id: courseId });
       
@@ -86,7 +98,8 @@ export async function POST(request: NextRequest) {
       }
       
       console.log('[API Courses] Curso e dados relacionados deletados com sucesso');
-      return NextResponse.json({ success: true });
+      console.log('[API Courses] Curso deletado:', deleted.id, deleted.title);
+      return NextResponse.json({ success: true, deletedCourse: deleted.id, deletedModules: modulesDeleted.deletedCount, deletedLessons: lessonsDeleted.deletedCount });
     }
 
     console.error('[API Courses] Ação inválida:', action);

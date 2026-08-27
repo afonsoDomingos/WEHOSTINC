@@ -89,9 +89,17 @@ export async function POST(request: NextRequest) {
     if (action === 'delete' && moduleId) {
       console.log('[API Modules] Deletando módulo:', moduleId);
       
+      // Verificar se o módulo existe antes de deletar
+      const moduleExists = await ModuleModel.findOne({ id: moduleId });
+      console.log('[API Modules] Módulo existe?', !!moduleExists);
+      if (moduleExists) {
+        console.log('[API Modules] Módulo encontrado:', moduleExists.id, moduleExists.title);
+      }
+      
       // Deletar em cascade: primeiro lições, depois módulo
       console.log('[API Modules] Deletando lições do módulo:', moduleId);
-      await LessonModel.deleteMany({ moduleId });
+      const lessonsDeleted = await LessonModel.deleteMany({ moduleId });
+      console.log('[API Modules] Lições deletadas:', lessonsDeleted.deletedCount);
       
       const deleted = await ModuleModel.findOneAndDelete({ id: moduleId });
       
@@ -101,7 +109,8 @@ export async function POST(request: NextRequest) {
       }
       
       console.log('[API Modules] Módulo e lições associadas deletados com sucesso');
-      return NextResponse.json({ success: true });
+      console.log('[API Modules] Módulo deletado:', deleted.id, deleted.title);
+      return NextResponse.json({ success: true, deletedModule: deleted.id, deletedLessons: lessonsDeleted.deletedCount });
     }
 
     console.error('[API Modules] Ação inválida:', action);
