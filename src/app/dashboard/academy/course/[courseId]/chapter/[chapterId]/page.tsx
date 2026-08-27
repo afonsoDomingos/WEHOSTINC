@@ -34,20 +34,13 @@ export default function ChapterViewPage() {
 
   const loadCourseData = useCallback(async (currentUser: User) => {
     try {
-      console.log('[ChapterView] loadCourseData iniciado');
-      
       if (!currentUser) {
         console.error('[ChapterView] Usuário não autenticado');
         return;
       }
 
-      console.log('[ChapterView] Carregando dados do curso:', courseId);
-      console.log('[ChapterView] Chapter ID:', chapterId);
-      console.log('[ChapterView] Todos os cursos disponíveis:', dataManager.getCourses().map(c => c.id));
-
       // Carregar dados locais primeiro para renderização rápida
       const courseData = dataManager.getCourses().find(c => c.id === courseId);
-      console.log('[ChapterView] Curso encontrado (local):', courseData?.title);
       
       if (!courseData) {
         console.error('[ChapterView] Curso não encontrado, redirecionando para academy');
@@ -56,34 +49,24 @@ export default function ChapterViewPage() {
       }
 
       const courseModules = dataManager.getModules(courseId).sort((a, b) => a.order - b.order);
-      console.log('[ChapterView] Módulos encontrados (local):', courseModules.length);
-      console.log('[ChapterView] IDs dos módulos:', courseModules.map(m => m.id));
-      
       const allLessons = dataManager.getLessons();
-      console.log('[ChapterView] Todas as lições disponíveis:', allLessons.length);
-      console.log('[ChapterView] IDs das lições:', allLessons.map(l => l.id));
       
-      console.log('[ChapterView] Definindo estados: course, modules, lessons');
       setCourse(courseData);
       setModules(courseModules);
       setLessons(allLessons);
       
       // Carregar progresso local primeiro
       const localProgress = dataManager.getCourseProgress(currentUser.email, courseId);
-      console.log('[ChapterView] Progresso local:', localProgress);
       setProgress(localProgress);
       
-      console.log('[ChapterView] Definindo loading = false');
       setLoading(false);
 
       // Buscar dados do servidor em background
-      console.log('[ChapterView] Iniciando fetch do servidor em background');
       Promise.all([
         dataManager.fetchCoursesAsync(),
         dataManager.fetchModulesAsync(),
         dataManager.fetchLessonsAsync()
       ]).then(() => {
-        console.log('[ChapterView] Dados do servidor atualizados');
         // Atualizar com dados frescos do servidor
         const freshCourseData = dataManager.getCourses().find(c => c.id === courseId);
         const freshCourseModules = dataManager.getModules(courseId).sort((a, b) => a.order - b.order);
@@ -98,7 +81,6 @@ export default function ChapterViewPage() {
       // Buscar progresso do servidor em background
       dataManager.fetchCourseProgressAsync(currentUser.email, courseId)
         .then(serverProgress => {
-          console.log('[ChapterView] Progresso do servidor:', serverProgress);
           setProgress(serverProgress);
         })
         .catch(e => {
@@ -167,9 +149,32 @@ export default function ChapterViewPage() {
   };
 
   const getCurrentLesson = () => {
-    const { module } = getCurrentChapter();
-    if (!module) return null;
-    const moduleLessons = lessons.filter(l => l.moduleId === module.id).sort((a, b) => a.order - b.order);
+    const { module: currentModuleData } = getCurrentChapter();
+    if (!currentModuleData) return null;
+    const moduleLessons = lessons.filter(l => l.moduleId === currentModuleData.id).sort((a, b) => a.order - b.order);
+    
+    // Se não houver lições, criar uma lição temporária usando o conteúdo do módulo
+    if (moduleLessons.length === 0 && currentModuleData) {
+      return {
+        id: `TEMP-${currentModuleData.id}`,
+        moduleId: currentModuleData.id,
+        title: currentModuleData.title,
+        content: currentModuleData.description,
+        hasVideo: currentModuleData.hasVideo,
+        videoUrl: currentModuleData.videoUrl,
+        videoTitle: currentModuleData.videoTitle,
+        videoDescription: currentModuleData.videoDescription,
+        hasMaterial: currentModuleData.hasMaterial,
+        materialUrl: currentModuleData.materialUrl,
+        materialTitle: currentModuleData.materialTitle,
+        materialType: currentModuleData.materialType,
+        order: 1,
+        active: true,
+        createdAt: currentModuleData.createdAt,
+        updatedAt: currentModuleData.updatedAt
+      };
+    }
+    
     return moduleLessons[currentLesson] || null;
   };
 
@@ -276,13 +281,47 @@ export default function ChapterViewPage() {
 
   const getCourseProgress = () => {
     if (!progress || !course) return 0;
-    const totalLessons = lessons.filter(l => modules.some(m => m.id === l.moduleId)).length;
+    
+    // Contar lições reais + lições temporárias de módulos sem lições
+    let totalLessons = 0;
+    modules.forEach(module => {
+      const moduleLessons = lessons.filter(l => l.moduleId === module.id);
+      totalLessons += moduleLessons.length > 0 ? moduleLessons.length : 1;
+    });
+    
     if (totalLessons === 0) return 0;
     return Math.round((progress.completedLessons.length / totalLessons) * 100);
   };
 
   const getModuleLessons = (moduleId: string) => {
-    return lessons.filter(l => l.moduleId === moduleId).sort((a, b) => a.order - b.order);
+    const moduleLessons = lessons.filter(l => l.moduleId === moduleId).sort((a, b) => a.order - b.order);
+    
+    // Se não houver lições para este módulo, criar uma lição temporária usando o conteúdo do módulo
+    if (moduleLessons.length === 0) {
+      const moduleData = modules.find(m => m.id === moduleId);
+      if (moduleData) {
+        return [{
+          id: `TEMP-${moduleData.id}`,
+          moduleId: moduleData.id,
+          title: moduleData.title,
+          content: moduleData.description,
+          hasVideo: moduleData.hasVideo,
+          videoUrl: moduleData.videoUrl,
+          videoTitle: moduleData.videoTitle,
+          videoDescription: moduleData.videoDescription,
+          hasMaterial: moduleData.hasMaterial,
+          materialUrl: moduleData.materialUrl,
+          materialTitle: moduleData.materialTitle,
+          materialType: moduleData.materialType,
+          order: 1,
+          active: true,
+          createdAt: moduleData.createdAt,
+          updatedAt: moduleData.updatedAt
+        }];
+      }
+    }
+    
+    return moduleLessons;
   };
 
   if (loading) {
