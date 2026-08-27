@@ -2170,6 +2170,14 @@ export const dataManager = {
   },
 
   // Academy/Course Management
+  clearAcademyData: (): void => {
+    if (typeof window === 'undefined') return;
+    localStorage.removeItem('wehosthere_courses');
+    localStorage.removeItem('wehosthere_modules');
+    localStorage.removeItem('wehosthere_lessons');
+    console.log('[DataManager] Dados de academy do localStorage limpos');
+  },
+
   getCourses: (): Course[] => {
     if (typeof window === 'undefined') return [];
     const data = localStorage.getItem('wehosthere_courses');

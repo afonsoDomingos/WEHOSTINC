@@ -65,12 +65,17 @@ export default function DashboardAcademyPage() {
     }
     setUser(currentUser);
     loadData(currentUser);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session, status, router]);
 
   const loadData = async (currentUser: User) => {
     if (!currentUser) return;
 
     try {
+      // Limpar dados mockados do localStorage para garantir dados frescos do servidor
+      dataManager.clearAcademyData();
+      console.log('[Academy Dashboard] Dados do localStorage limpos');
+
       // Carregar dados sequencialmente para evitar sobrecarga
       await Promise.all([
         dataManager.fetchCoursesAsync(),

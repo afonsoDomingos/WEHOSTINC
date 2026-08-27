@@ -57,6 +57,10 @@ export default function CourseRedirectPage() {
       console.log('[CourseRedirect] Iniciando redirecionamento para curso:', courseId);
       
       try {
+        // Limpar dados mockados do localStorage para garantir dados frescos do servidor
+        dataManager.clearAcademyData();
+        console.log('[CourseRedirect] Dados do localStorage limpos');
+        
         // Buscar dados do servidor primeiro para garantir que temos os dados
         console.log('[CourseRedirect] Buscando dados do servidor...');
         await Promise.all([

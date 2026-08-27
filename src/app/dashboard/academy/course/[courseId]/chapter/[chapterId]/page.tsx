@@ -39,6 +39,10 @@ export default function ChapterViewPage() {
         return;
       }
 
+      // Limpar dados mockados do localStorage para garantir dados frescos do servidor
+      dataManager.clearAcademyData();
+      console.log('[ChapterView] Dados do localStorage limpos');
+
       // Buscar dados do servidor primeiro para garantir dados atualizados
       await Promise.all([
         dataManager.fetchCoursesAsync(),
