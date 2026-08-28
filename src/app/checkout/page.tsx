@@ -136,7 +136,7 @@ function CheckoutContent() {
         currency: 'MZN'
       });
     }
-  }, [analytics, domainParam, durationMonths, grandTotal, isAffiliateVerification, isCoursePayment, selectedPlan, siteTypeName]);
+  }, [analytics, domainParam, grandTotal, isAffiliateVerification, isCoursePayment, selectedPlan, siteTypeName]);
 
   const cycleParam = searchParams.get('billingCycle');
   const [durationMonths, setDurationMonths] = useState<number>(cycleParam === 'annual' ? 12 : 1);
