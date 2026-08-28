@@ -173,6 +173,28 @@ function CheckoutContent() {
     ? courseAmountParam 
     : (isAffiliateVerification ? verificationAmount : (basePrice + domainCost));
 
+  // Facebook Pixel tracking
+  useEffect(() => {
+    if (analytics && selectedPlan && !isCoursePayment && !isAffiliateVerification) {
+      const siteLabel = siteTypeName ? ` (${siteTypeName})` : '';
+      const cycleLabel = durationMonths === 12 ? ' (Anual)' : ' (Mensal)';
+      
+      const serviceName = selectedPlan
+        ? (domainParam 
+            ? `${selectedPlan.name}${siteLabel}${cycleLabel} + Domínio (${domainParam})` 
+            : `${selectedPlan.name}${siteLabel}${cycleLabel}`)
+        : `Registo de Domínio: ${domainParam || 'Domínio Avulso'}`;
+      
+      FacebookPixel.trackInitiateCheckout({
+        content_ids: [selectedPlan.id],
+        content_name: serviceName,
+        content_category: 'Hospedagem e Serviços Web',
+        value: grandTotal,
+        currency: 'MZN'
+      });
+    }
+  }, [analytics, domainParam, grandTotal, isAffiliateVerification, isCoursePayment, selectedPlan, siteTypeName]);
+
   const [pushModal, setPushModal] = useState(false);
   const [pushStatus, setPushStatus] = useState<'waiting' | 'expired'>('waiting');
   const [countdown, setCountdown] = useState(60); // Aumentado de 45 para 60 segundos
