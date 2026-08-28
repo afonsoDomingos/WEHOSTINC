@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Server, Mail, Shield, Zap, Globe, Users, Search, Sparkles, CheckCircle, Facebook, Phone, Linkedin, Star, ArrowRight, Play, Calendar, Eye, Instagram } from "lucide-react";
 import { websiteTypes } from '@/lib/data';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
+import { useTranslation, getLanguage, setLanguage, Language } from '@/lib/i18n';
 
 import Navbar from '@/components/Navbar';
 
@@ -20,6 +21,8 @@ export default function Home() {
   const [blogPosts, setBlogPosts] = useState<any[]>([]);
   const [blogLoading, setBlogLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [language, setLanguageState] = useState<Language>(getLanguage());
+  const t = useTranslation(language);
 
   // Ticker animado pelos tipos de sites e seus preços
   const tickerTypes = websiteTypes.filter(t => t.basePrice < 100000);
@@ -99,8 +102,8 @@ export default function Home() {
             className="anim-fade-down inline-flex items-center space-x-2 bg-primary-600/30 border border-primary-400/50 text-primary-200 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs sm:text-sm font-bold mb-4 sm:mb-6 backdrop-blur-md shadow-lg"
           >
             <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 text-primary-300" />
-            <span className="hidden sm:inline">Infraestrutura Datacenter de Última Geração</span>
-            <span className="sm:hidden">Datacenter de Alta Performance</span>
+            <span className="hidden sm:inline">{t.heroBadge}</span>
+            <span className="sm:hidden">{t.heroBadgeMobile}</span>
           </div>
 
           {/* Título principal — efeito typewriter + shimmer, com delay */}
@@ -108,8 +111,7 @@ export default function Home() {
             ref={titleRef}
             className="anim-typewriter anim-delay-200 text-2xl sm:text-4xl lg:text-6xl font-extrabold text-white mb-3 sm:mb-4 tracking-tight leading-tight drop-shadow-lg"
           >
-            Domínio, Hospedagem, Email{' '}
-            <span className="hero-title-shimmer">e Site</span>
+            {t.heroTitle}
           </h1>
 
           {/* Subtítulo — sobe do baixo */}
@@ -117,7 +119,7 @@ export default function Home() {
             ref={subtitleRef}
             className="anim-fade-up anim-delay-300 text-sm sm:text-base lg:text-xl text-slate-200 mb-6 sm:mb-8 max-w-2xl mx-auto font-semibold drop-shadow px-2"
           >
-            Tudo o que a sua empresa precisa para ter uma presença online de alta performance em Moçambique com servidores ultrarrápidos e seguros.
+            {t.heroSubtitle}
           </p>
 
           {/* Domain Search — entra com zoom ligeiro */}
@@ -131,31 +133,31 @@ export default function Home() {
       <section id="recursos" ref={featuresRef} className="anim-fade-up py-6 sm:py-14 px-3 sm:px-6 bg-white">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-lg sm:text-2xl lg:text-3xl font-extrabold text-center text-gray-900 mb-4 sm:mb-10">
-            Por que escolher a WEHOSTHERE?
+            {t.whyChooseUs}
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6">
             <div className="text-center p-4 sm:p-5 bg-gray-50/80 rounded-2xl border border-gray-100 hover:shadow-lg hover:scale-105 hover:bg-gradient-to-br hover:from-primary-50 hover:to-blue-50 transition-all duration-300 cursor-pointer group">
               <div className="flex justify-center mb-2">
                 <Zap className="h-6 w-6 sm:h-10 sm:w-10 text-primary-600 group-hover:scale-110 group-hover:text-primary-700 transition-transform duration-300" />
               </div>
-              <h3 className="text-sm sm:text-base lg:text-lg font-bold text-gray-900 mb-1 group-hover:text-primary-700 transition-colors">Ultra Rápido</h3>
-              <p className="text-xs sm:text-sm text-gray-500 leading-tight">Servidores de máxima performance</p>
+              <h3 className="text-sm sm:text-base lg:text-lg font-bold text-gray-900 mb-1 group-hover:text-primary-700 transition-colors">{t.ultraFast}</h3>
+              <p className="text-xs sm:text-sm text-gray-500 leading-tight">{t.ultraFastDesc}</p>
             </div>
 
             <div className="text-center p-4 sm:p-5 bg-gray-50/80 rounded-2xl border border-gray-100 hover:shadow-lg hover:scale-105 hover:bg-gradient-to-br hover:from-emerald-50 hover:to-green-50 transition-all duration-300 cursor-pointer group">
               <div className="flex justify-center mb-2">
                 <Shield className="h-6 w-6 sm:h-10 sm:w-10 text-primary-600 group-hover:scale-110 group-hover:text-emerald-600 transition-transform duration-300" />
               </div>
-              <h3 className="text-sm sm:text-base lg:text-lg font-bold text-gray-900 mb-1 group-hover:text-emerald-700 transition-colors">100% Seguro</h3>
-              <p className="text-xs sm:text-sm text-gray-500 leading-tight">Backup diário &amp; proteção total</p>
+              <h3 className="text-sm sm:text-base lg:text-lg font-bold text-gray-900 mb-1 group-hover:text-emerald-700 transition-colors">{t.secure}</h3>
+              <p className="text-xs sm:text-sm text-gray-500 leading-tight">{t.secureDesc}</p>
             </div>
 
             <div className="text-center p-4 sm:p-5 bg-gray-50/80 rounded-2xl border border-gray-100 hover:shadow-lg hover:scale-105 hover:bg-gradient-to-br hover:from-purple-50 hover:to-indigo-50 transition-all duration-300 cursor-pointer group">
               <div className="flex justify-center mb-2">
                 <Users className="h-6 w-6 sm:h-10 sm:w-10 text-primary-600 group-hover:scale-110 group-hover:text-purple-600 transition-transform duration-300" />
               </div>
-              <h3 className="text-sm sm:text-base lg:text-lg font-bold text-gray-900 mb-1 group-hover:text-purple-700 transition-colors">Suporte 24/7</h3>
-              <p className="text-xs sm:text-sm text-gray-500 leading-tight">Equipa técnica sempre disponível</p>
+              <h3 className="text-sm sm:text-base lg:text-lg font-bold text-gray-900 mb-1 group-hover:text-purple-700 transition-colors">{t.support247}</h3>
+              <p className="text-xs sm:text-sm text-gray-500 leading-tight">{t.support247Desc}</p>
             </div>
           </div>
         </div>
@@ -166,10 +168,10 @@ export default function Home() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-6 sm:mb-10">
             <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">
-              Planos de Hospedagem
+              {t.hostingPlans}
             </h2>
             <p className="text-sm sm:text-base text-gray-600 max-w-xl mx-auto mb-4 sm:mb-6 px-2">
-              Escolha o plano ideal para o seu projeto com pagamento mensal ou anual com desconto.
+              {t.hostingPlansDesc}
             </p>
 
             {/* Seleção de Duração / Período da Hospedagem */}
@@ -181,7 +183,7 @@ export default function Home() {
                   durationMonths === 1 ? 'bg-white text-gray-900 shadow-md' : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
-                1 Mês
+                {t.oneMonth}
               </button>
               <button
                 type="button"
@@ -190,9 +192,9 @@ export default function Home() {
                   durationMonths === 3 ? 'bg-blue-600 text-white shadow-md' : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
-                <span>3 Meses</span>
+                <span>{t.threeMonths}</span>
                 <span className="bg-blue-200 text-blue-900 text-[8px] sm:text-[10px] font-extrabold px-1 sm:px-1.5 py-0.2 rounded-full hidden sm:inline">
-                  -5% OFF
+                  -5% {t.off}
                 </span>
               </button>
               <button
@@ -202,9 +204,9 @@ export default function Home() {
                   durationMonths === 6 ? 'bg-purple-600 text-white shadow-md' : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
-                <span>6 Meses</span>
+                <span>{t.sixMonths}</span>
                 <span className="bg-purple-200 text-purple-900 text-[8px] sm:text-[10px] font-extrabold px-1 sm:px-1.5 py-0.2 rounded-full hidden sm:inline">
-                  -10% OFF
+                  -10% {t.off}
                 </span>
               </button>
               <button
@@ -214,9 +216,9 @@ export default function Home() {
                   durationMonths === 12 ? 'bg-primary-600 text-white shadow-md' : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
-                <span>1 Ano</span>
+                <span>{t.oneYear}</span>
                 <span className="bg-amber-400 text-gray-900 text-[8px] sm:text-[10px] font-extrabold px-1.5 sm:px-2 py-0.5 rounded-full uppercase tracking-wider hidden sm:inline">
-                  2 Meses Grátis
+                  2 {t.off}
                 </span>
               </button>
             </div>
@@ -226,8 +228,8 @@ export default function Home() {
             {/* Basic Plan */}
             <div className="bg-white rounded-xl shadow-lg p-5 sm:p-8 flex flex-col justify-between border border-gray-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group">
               <div>
-                <h3 className="text-lg sm:text-2xl font-bold text-gray-900 mb-2 group-hover:text-primary-600 transition-colors">Básico</h3>
-                <p className="text-sm sm:text-base text-gray-600 mb-4">Ideal para iniciantes</p>
+                <h3 className="text-lg sm:text-2xl font-bold text-gray-900 mb-2 group-hover:text-primary-600 transition-colors">{t.basicPlan}</h3>
+                <p className="text-sm sm:text-base text-gray-600 mb-4">{t.basicPlanDesc}</p>
                 <div className="mb-4 sm:mb-6">
                   <span className="text-2xl sm:text-4xl font-bold text-gray-900 group-hover:text-primary-600 transition-colors">
                     {durationMonths === 12
@@ -284,8 +286,8 @@ export default function Home() {
                 MAIS POPULAR
               </div>
               <div>
-                <h3 className="text-lg sm:text-2xl font-bold text-white mb-2 pt-2 group-hover:text-blue-100 transition-colors">Profissional</h3>
-                <p className="text-sm sm:text-base text-blue-100 mb-4">Para negócios em crescimento</p>
+                <h3 className="text-lg sm:text-2xl font-bold text-white mb-2 pt-2 group-hover:text-blue-100 transition-colors">{t.proPlan}</h3>
+                <p className="text-sm sm:text-base text-blue-100 mb-4">{t.proPlanDesc}</p>
                 <div className="mb-4 sm:mb-6">
                   <span className="text-2xl sm:text-4xl font-bold text-white group-hover:text-blue-100 transition-colors">
                     {durationMonths === 12
@@ -343,8 +345,8 @@ export default function Home() {
             {/* Enterprise Plan */}
             <div className="bg-white rounded-xl shadow-lg p-5 sm:p-8 flex flex-col justify-between border border-gray-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group">
               <div>
-                <h3 className="text-lg sm:text-2xl font-bold text-gray-900 mb-2 group-hover:text-primary-600 transition-colors">Empresarial</h3>
-                <p className="text-sm sm:text-base text-gray-600 mb-4">Para grandes operações</p>
+                <h3 className="text-lg sm:text-2xl font-bold text-gray-900 mb-2 group-hover:text-primary-600 transition-colors">{t.enterprisePlan}</h3>
+                <p className="text-sm sm:text-base text-gray-600 mb-4">{t.enterprisePlanDesc}</p>
                 <div className="mb-4 sm:mb-6">
                   <span className="text-2xl sm:text-4xl font-bold text-gray-900 group-hover:text-primary-600 transition-colors">
                     {durationMonths === 12
