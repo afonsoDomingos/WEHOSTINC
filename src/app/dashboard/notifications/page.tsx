@@ -135,7 +135,7 @@ export default function SalesNotificationsPage() {
       // Initial load - just set the IDs without playing sound
       setPreviousNotificationIds(new Set(notifications.map(n => n._id)));
     }
-  }, [notifications]);
+  }, [notifications, previousNotificationIds]);
 
   const markAsRead = async (id: string) => {
     try {
