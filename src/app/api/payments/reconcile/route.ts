@@ -37,7 +37,8 @@ export async function POST(req: Request) {
             console.log(`[PAYMENT RECONCILIATION] Status do pagamento ${paymentId}:`, paymentStatus.status);
             
             // Se o pagamento foi completado na Kivora mas não no sistema, reconciliar
-            if (paymentStatus.status === 'completed' && order.status !== 'completed') {
+            // A Kivora pode retornar 'paid', 'completed', 'success' ou outros status
+            if ((paymentStatus.status === 'completed' || paymentStatus.status === 'paid' || paymentStatus.status === 'success') && order.status !== 'completed') {
               console.log(`[PAYMENT RECONCILIATION] Reconciliando pedido ${order.id} - pagamento completado na Kivora`);
               
               // Atualizar status do pedido

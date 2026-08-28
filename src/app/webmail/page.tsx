@@ -549,7 +549,7 @@ function WebmailContent() {
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [router, initialEmailParam]);
+  }, [router, initialEmailParam, mailboxPassword]);
 
 
   // Helper to open login modal reliably from any button
