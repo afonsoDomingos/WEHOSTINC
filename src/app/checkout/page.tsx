@@ -105,39 +105,6 @@ function CheckoutContent() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    const user = auth.getCurrentUser();
-    if (user) {
-      setName(user.name || '');
-      setEmail(user.email || '');
-      analytics.setUserId(user.id);
-    }
-    
-    // Track page view
-    const serviceType = isCoursePayment ? 'course' : (isAffiliateVerification ? 'affiliate' : 'hosting');
-    analytics.trackCheckoutView(serviceType, grandTotal);
-    
-    // Rastrear InitiateCheckout quando o usuário entra na página de checkout
-    if (selectedPlan) {
-      const isWebsite = selectedPlan.id === 'website_creation';
-      const siteLabel = isWebsite && siteTypeName ? ` — ${siteTypeName}` : '';
-      const cycleLabel = isWebsite ? '' : ` (${durationMonths} ${durationMonths === 1 ? 'Mês' : 'Meses'})`;
-      const serviceName = selectedPlan
-        ? (domainParam 
-            ? `${selectedPlan.name}${siteLabel}${cycleLabel} + Domínio (${domainParam})` 
-            : `${selectedPlan.name}${siteLabel}${cycleLabel}`)
-        : `Registo de Domínio: ${domainParam || 'Domínio Avulso'}`;
-      
-      FacebookPixel.trackInitiateCheckout({
-        content_ids: [selectedPlan.id],
-        content_name: serviceName,
-        content_category: 'Hospedagem e Serviços Web',
-        value: grandTotal,
-        currency: 'MZN'
-      });
-    }
-  }, [analytics, domainParam, grandTotal, isAffiliateVerification, isCoursePayment, selectedPlan, siteTypeName]);
-
   const cycleParam = searchParams.get('billingCycle');
   const [durationMonths, setDurationMonths] = useState<number>(cycleParam === 'annual' ? 12 : 1);
 
@@ -172,6 +139,39 @@ function CheckoutContent() {
   const grandTotal = isCoursePayment 
     ? courseAmountParam 
     : (isAffiliateVerification ? verificationAmount : (basePrice + domainCost));
+
+  useEffect(() => {
+    const user = auth.getCurrentUser();
+    if (user) {
+      setName(user.name || '');
+      setEmail(user.email || '');
+      analytics.setUserId(user.id);
+    }
+    
+    // Track page view
+    const serviceType = isCoursePayment ? 'course' : (isAffiliateVerification ? 'affiliate' : 'hosting');
+    analytics.trackCheckoutView(serviceType, grandTotal);
+    
+    // Rastrear InitiateCheckout quando o usuário entra na página de checkout
+    if (selectedPlan) {
+      const isWebsite = selectedPlan.id === 'website_creation';
+      const siteLabel = isWebsite && siteTypeName ? ` — ${siteTypeName}` : '';
+      const cycleLabel = isWebsite ? '' : ` (${durationMonths} ${durationMonths === 1 ? 'Mês' : 'Meses'})`;
+      const serviceName = selectedPlan
+        ? (domainParam 
+            ? `${selectedPlan.name}${siteLabel}${cycleLabel} + Domínio (${domainParam})` 
+            : `${selectedPlan.name}${siteLabel}${cycleLabel}`)
+        : `Registo de Domínio: ${domainParam || 'Domínio Avulso'}`;
+      
+      FacebookPixel.trackInitiateCheckout({
+        content_ids: [selectedPlan.id],
+        content_name: serviceName,
+        content_category: 'Hospedagem e Serviços Web',
+        value: grandTotal,
+        currency: 'MZN'
+      });
+    }
+  }, [analytics, domainParam, grandTotal, isAffiliateVerification, isCoursePayment, selectedPlan, siteTypeName, durationMonths]);
 
   // Facebook Pixel tracking
   useEffect(() => {
