@@ -345,13 +345,13 @@ function CheckoutContent() {
       const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
       
       if (errorMessage.includes('saldo') || errorMessage.includes('insufficient')) {
-        setError('Saldo insuficiente no M-Pesa. Por favor, recarregue e tente novamente.');
+        setError(t.insufficientBalance);
       } else if (errorMessage.includes('timeout') || errorMessage.includes('network')) {
-        setError('Erro de conexão. Verifique sua internet e tente novamente.');
+        setError(t.connectionError);
       } else if (errorMessage.includes('invalid') || errorMessage.includes('format')) {
-        setError('Número de telefone inválido. Verifique e tente novamente.');
+        setError(t.invalidPhone);
       } else {
-        setError(`Erro ao processar pagamento: ${errorMessage}. Tente novamente.`);
+        setError(`${t.paymentError}: ${errorMessage}. ${t.tryAgain}`);
       }
       
       setPushStatus('expired');
@@ -701,7 +701,7 @@ function CheckoutContent() {
     // Validação específica para verificação de afiliado
     if (isAffiliateVerification) {
       if (!affiliatePhone.trim()) {
-        setError('Por favor, informe o número para receber comissões.');
+        setError(t.affiliatePhoneRequired);
         return;
       }
       
@@ -711,18 +711,18 @@ function CheckoutContent() {
     } else {
       // Validações normais para checkout de serviços
       if (!name.trim()) {
-        setError('Por favor, informe seu nome completo.');
+        setError(t.nameRequired);
         analytics.trackFormError('name', 'Name required');
         return;
       }
       if (!email.trim() || !email.includes('@')) {
-        setError('Por favor, informe um e-mail válido.');
+        setError(t.emailRequired);
         analytics.trackFormError('email', 'Invalid email');
         return;
       }
       // WhatsApp não é obrigatório para pagamento de cursos
       if (!isCoursePayment && !whatsapp.trim()) {
-        setError('Por favor, informe seu número do WhatsApp.');
+        setError(t.whatsappRequired);
         analytics.trackFormError('whatsapp', 'WhatsApp required');
         return;
       }
@@ -751,20 +751,20 @@ function CheckoutContent() {
           : (phonePayment || whatsapp);
         
         if (!phone) {
-          setError('Número de telefone obrigatório para pagamento.');
+          setError(t.phoneRequired);
           setLoading(false);
           return;
         }
         
         // Validação de valor mínimo e máximo
         if (grandTotal < 1) {
-          setError('Valor mínimo de pagamento é 1 MT.');
+          setError(t.minAmount);
           setLoading(false);
           return;
         }
         
         if (grandTotal > 1000000) {
-          setError('Valor máximo de pagamento é 1.000.000 MT. Para valores maiores, contacte o suporte.');
+          setError(t.maxAmount);
           setLoading(false);
           return;
         }
@@ -838,15 +838,15 @@ function CheckoutContent() {
       const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
       
       if (errorMessage.includes('network') || errorMessage.includes('fetch') || errorMessage.includes('timeout')) {
-        setError('Erro de conexão. Verifique sua internet e tente novamente.');
+        setError(t.connectionError);
       } else if (errorMessage.includes('saldo') || errorMessage.includes('insufficient')) {
-        setError('Saldo insuficiente. Por favor, recarregue e tente novamente.');
+        setError(t.insufficientBalance);
       } else if (errorMessage.includes('invalid') || errorMessage.includes('format')) {
-        setError('Dados inválidos. Verifique as informações e tente novamente.');
+        setError(t.invalidPhone);
       } else if (errorMessage.includes('server') || errorMessage.includes('500')) {
-        setError('Erro no servidor. Tente novamente em alguns instantes.');
+        setError(t.serverError);
       } else {
-        setError(`Erro ao processar pagamento: ${errorMessage}. Tente novamente.`);
+        setError(`${t.paymentError}: ${errorMessage}. ${t.tryAgain}`);
       }
       
       console.error('[CHECKOUT ERROR]', err);
@@ -861,15 +861,14 @@ function CheckoutContent() {
             <CheckCircle2 className="h-10 w-10" />
           </div>
           <h2 className="text-2xl font-extrabold text-gray-900 mb-1">
-            {isCoursePayment ? 'Pagamento do Curso Confirmado!' : (isAffiliateVerification ? 'Verificação Confirmada!' : 'Pagamento Confirmado!')}
+            {isCoursePayment ? t.coursePaymentConfirmed : (isAffiliateVerification ? t.verificationConfirmed : t.paymentConfirmed)}
           </h2>
           <p className="text-gray-600 text-xs sm:text-sm mb-5">
             {isCoursePayment 
-              ? 'O pagamento do seu curso foi confirmado com sucesso. Você será redirecionado para a academia.'
+              ? t.coursePaymentSuccess
               : isAffiliateVerification 
-              ? 'A sua verificação de afiliado foi realizada com sucesso. Você será redirecionado para o Painel de Afiliados.'
-              : `O seu pedido de ${selectedPlan ? selectedPlan.name : (domainParam ? `Registo do Domínio ${domainParam}` : 'Serviço')} foi registado com sucesso.`
-            }
+              ? t.verificationSuccess
+              : t.paymentSuccess}
           </p>
 
           <div className="bg-gray-50 rounded-2xl p-4 mb-5 text-left border border-gray-200 space-y-2 text-xs text-gray-700">
@@ -982,20 +981,20 @@ function CheckoutContent() {
                 </div>
 
                 <h3 id="modal-title" className="text-xl font-bold text-gray-900 mb-2">
-                  Autorize no seu Telemóvel
+                  {t.authorizeOnPhone}
                 </h3>
                 <p className="text-sm text-gray-600 mb-4">
-                  Enviamos um pedido PUSH para o número <span className="font-bold text-gray-900">{ddi} {phonePayment || whatsapp}</span>.
+                  {t.pushSent} <span className="font-bold text-gray-900">{ddi} {phonePayment || whatsapp}</span>.
                 </p>
 
                 <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 text-left text-sm text-red-900 space-y-1">
-                  <p className="font-semibold text-red-700">Instruções:</p>
-                  <p>1. Verifique a tela do seu celular.</p>
-                  <p>2. Digite seu <strong>PIN {paymentMethod.toUpperCase()}</strong> para autorizar <strong>{grandTotal.toLocaleString('pt-MZ')} MT</strong>.</p>
+                  <p className="font-semibold text-red-700">{t.instructions}</p>
+                  <p>{t.instruction1}</p>
+                  <p>{t.instruction2} <strong>PIN {paymentMethod.toUpperCase()}</strong> {t.instruction3} <strong>{grandTotal.toLocaleString('pt-MZ')} MT</strong>.</p>
                 </div>
 
                 <div className="mb-6">
-                  <div className="text-xs text-gray-400 font-semibold mb-1 uppercase tracking-wider">Aguardando confirmação</div>
+                  <div className="text-xs text-gray-400 font-semibold mb-1 uppercase tracking-wider">{t.waitingConfirmation}</div>
                   <div className="text-3xl font-mono font-bold text-gray-800">
                     00:{countdown < 10 ? `0${countdown}` : countdown}
                   </div>
@@ -1007,7 +1006,7 @@ function CheckoutContent() {
                   </div>
                   {retryCount > 0 && (
                     <div className="text-xs text-amber-600 mt-1 font-medium">
-                      Tentativa {retryCount + 1} de 3
+                      {language === 'pt' ? `Tentativa ${retryCount + 1} de 3` : language === 'en' ? `Attempt ${retryCount + 1} of 3` : `Intento ${retryCount + 1} de 3`}
                     </div>
                   )}
                 </div>
@@ -1027,10 +1026,10 @@ function CheckoutContent() {
                     {isPollingPayment ? (
                       <>
                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                        <span>Verificando pagamento...</span>
+                        <span>{t.verifyingPayment}</span>
                       </>
                     ) : (
-                      <span>Já digitei meu PIN (Verificar)</span>
+                      <span>{t.alreadyTypedPin}</span>
                     )}
                   </button>
                   <button
@@ -1052,18 +1051,18 @@ function CheckoutContent() {
                 </div>
 
                 <h3 className="text-xl font-bold text-gray-900 mb-2">
-                  PIN Não Introduzido / Tempo Expirado
+                  {t.pinNotEntered}
                 </h3>
                 <p className="text-sm text-gray-600 mb-4">
-                  Não recebemos a confirmação do PIN no número <span className="font-bold text-gray-900">{ddi} {phonePayment || whatsapp}</span>.
+                  {t.noConfirmationReceived} <span className="font-bold text-gray-900">{ddi} {phonePayment || whatsapp}</span>.
                 </p>
 
                 <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 text-left text-xs text-amber-900 space-y-1">
-                  <p className="font-semibold text-amber-800 text-sm mb-1">O que pode ter acontecido?</p>
-                  <p>• O ecrã do seu telemóvel estava bloqueado ao receber o PUSH.</p>
-                  <p>• A notificação expirou (60s) ou foi cancelada no telemóvel.</p>
-                  <p>• O número de telemóvel não tem saldo M-Pesa suficiente.</p>
-                  <p>• Conexão instável com a rede M-Pesa.</p>
+                  <p className="font-semibold text-amber-800 text-sm mb-1">{t.whatHappened}</p>
+                  <p>{t.reason1}</p>
+                  <p>{t.reason2}</p>
+                  <p>{t.reason3}</p>
+                  <p>{t.reason4}</p>
                 </div>
 
                 <div className="space-y-2">
@@ -1073,7 +1072,7 @@ function CheckoutContent() {
                     className="w-full py-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow transition text-sm flex items-center justify-center gap-2 cursor-pointer min-h-[52px]"
                   >
                     <RefreshCw className="h-5 w-5" />
-                    Reenviar Notificação PUSH Agora
+                    {t.resendPush}
                   </button>
 
                   <button
@@ -1081,7 +1080,7 @@ function CheckoutContent() {
                     onClick={() => setPushModal(false)}
                     className="w-full py-3 text-xs font-semibold text-gray-600 hover:text-gray-900 border border-gray-200 rounded-xl transition min-h-[44px]"
                   >
-                    Alterar Número ou Método de Pagamento
+                    {t.changeNumberOrMethod}
                   </button>
                 </div>
               </>

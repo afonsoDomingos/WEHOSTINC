@@ -10,6 +10,7 @@ export const translations = {
     paymentSuccess: 'O pagamento foi confirmado com sucesso.',
     coursePaymentSuccess: 'O pagamento do seu curso foi confirmado com sucesso. Você será redirecionado para a academia.',
     verificationSuccess: 'A sua verificação de afiliado foi realizada com sucesso. Você será redirecionado para o Painel de Afiliados.',
+    paymentSuccess: 'O seu pedido foi registado com sucesso. Aceda ao painel para gerir os seus serviços.',
     redirectMessage: 'Redirecionando...',
     
     // Modal PUSH
@@ -77,6 +78,7 @@ export const translations = {
     paymentSuccess: 'The payment was confirmed successfully.',
     coursePaymentSuccess: 'Your course payment was confirmed successfully. You will be redirected to the academy.',
     verificationSuccess: 'Your affiliate verification was completed successfully. You will be redirected to the Affiliate Panel.',
+    paymentSuccess: 'Your order was registered successfully. Access the panel to manage your services.',
     redirectMessage: 'Redirecting...',
     
     // Modal PUSH
@@ -144,6 +146,7 @@ export const translations = {
     paymentSuccess: 'El pago fue confirmado exitosamente.',
     coursePaymentSuccess: 'El pago de su curso fue confirmado exitosamente. Será redirigido a la academia.',
     verificationSuccess: 'Su verificación de afiliado fue completada exitosamente. Será redirigido al Panel de Afiliados.',
+    paymentSuccess: 'Su pedido fue registrado exitosamente. Acceda al panel para administrar sus servicios.',
     redirectMessage: 'Redirigiendo...',
     
     // Modal PUSH
