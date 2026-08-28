@@ -95,7 +95,6 @@ export const translations = {
     enterprisePlan: 'Empresarial',
     enterprisePlanDesc: 'Para grandes operações',
     perMonth: '/mês',
-    selectPlan: 'Selecionar Plano',
     bestValue: 'Melhor Valor',
   },
   
@@ -192,7 +191,6 @@ export const translations = {
     enterprisePlan: 'Enterprise',
     enterprisePlanDesc: 'For large operations',
     perMonth: '/month',
-    selectPlan: 'Select Plan',
     bestValue: 'Best Value',
   },
   
@@ -289,7 +287,6 @@ export const translations = {
     enterprisePlan: 'Empresarial',
     enterprisePlanDesc: 'Para grandes operaciones',
     perMonth: '/mes',
-    selectPlan: 'Seleccionar Plan',
     bestValue: 'Mejor Valor',
   }
 };
