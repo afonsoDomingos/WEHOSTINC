@@ -55,8 +55,11 @@ export default function DomainSearch() {
     e.preventDefault();
     if (!query.trim()) return;
 
+    soundEffects.playClickSound();
+
     // Verificar conexão antes de pesquisar
     if (!navigator.onLine) {
+      soundEffects.playErrorSound();
       setIsOffline(true);
       setNetworkError('Sem ligação à internet. Verifique a sua conexão e tente novamente.');
       return;
@@ -83,9 +86,15 @@ export default function DomainSearch() {
       const searchResult = await checkDomainRealAsync(fullQuery);
       console.log(`[DomainSearch] Resultado:`, searchResult);
       setResult(searchResult);
+      if (searchResult?.isAvailable) {
+        soundEffects.playSuccessSound();
+      } else {
+        soundEffects.playErrorSound();
+      }
       setIsSlowConnection(false);
       setNetworkError(null);
     } catch (err: any) {
+      soundEffects.playErrorSound();
       console.error('Erro na busca de domínio:', err);
       // Distinguir erro de rede de outros erros
       if (!navigator.onLine) {
@@ -199,6 +208,7 @@ export default function DomainSearch() {
               key={tld.extension}
               type="button"
               onClick={() => {
+                soundEffects.playClickSound();
                 setSelectedTld(tld.extension);
                 if (query.trim()) {
                   let cleaned = query.trim();
@@ -341,7 +351,10 @@ export default function DomainSearch() {
                       <div className="flex bg-emerald-100/70 p-0.5 sm:p-1 rounded-lg sm:rounded-xl border border-emerald-200 text-[10px] sm:text-xs">
                         <button
                           type="button"
-                          onClick={() => setHostingCycle('annual')}
+                          onClick={() => {
+                            soundEffects.playClickSound();
+                            setHostingCycle('annual');
+                          }}
                           className={`flex-1 py-0.5 sm:py-1 px-1.5 sm:px-2 rounded-md sm:rounded-lg font-bold transition text-[10px] sm:text-[11px] cursor-pointer ${
                             hostingCycle === 'annual'
                               ? 'bg-emerald-600 text-white shadow-sm'
@@ -352,7 +365,10 @@ export default function DomainSearch() {
                         </button>
                         <button
                           type="button"
-                          onClick={() => setHostingCycle('monthly')}
+                          onClick={() => {
+                            soundEffects.playClickSound();
+                            setHostingCycle('monthly');
+                          }}
                           className={`flex-1 py-0.5 sm:py-1 px-1.5 sm:px-2 rounded-md sm:rounded-lg font-bold transition text-[10px] sm:text-[11px] cursor-pointer ${
                             hostingCycle === 'monthly'
                               ? 'bg-emerald-600 text-white shadow-sm'
