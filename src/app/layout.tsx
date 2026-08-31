@@ -95,6 +95,9 @@ export const metadata: Metadata = {
   verification: {
     google: '-WIDb6-E1CZzvXz2qkam2i118tdjPuEsgdnpbTpA7_0',
   },
+  other: {
+    'google-adsense-account': 'ca-pub-5452584470581302',
+  },
   category: 'technology',
 };
 
@@ -113,6 +116,11 @@ export default function RootLayout({
     <html lang="pt-MZ">
       <head>
         <meta name="google-adsense-account" content="ca-pub-5452584470581302" />
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5452584470581302"
+          crossOrigin="anonymous"
+        />
         <meta property="og:image" content="https://www.wehosthere.com/servidores-banner.png" />
         <meta property="og:image:secure_url" content="https://www.wehosthere.com/servidores-banner.png" />
         <meta property="og:image:type" content="image/png" />
@@ -122,13 +130,6 @@ export default function RootLayout({
         <meta name="twitter:card" content="summary_large_image" />
       </head>
       <body className={poppins.className}>
-        {/* Google AdSense */}
-        <Script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5452584470581302"
-          crossOrigin="anonymous"
-          strategy="afterInteractive"
-        />
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-YR0M8T8ZBF"
           strategy="afterInteractive"

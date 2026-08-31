@@ -5,8 +5,16 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
       {
+        userAgent: 'Mediapartners-Google',
+        allow: '/',
+      },
+      {
+        userAgent: 'Google-AdSense',
+        allow: '/',
+      },
+      {
         userAgent: '*',
-        allow: ['/', '/login', '/register', '/site-quote', '/checkout', '/webmail', '/blog', '/blog/*', '/terms', '/privacy', '/systems'],
+        allow: ['/', '/login', '/register', '/site-quote', '/checkout', '/webmail', '/blog', '/blog/*', '/terms', '/privacy', '/systems', '/ads.txt'],
         disallow: ['/dashboard/', '/admin/', '/api/'],
       },
     ],
