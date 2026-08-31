@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Calendar, User, Tag, ArrowLeft, Share2, Eye, Facebook, Twitter, Linkedin, MessageCircle, EyeOff } from 'lucide-react';
+import AdSenseBanner from '@/components/AdSenseBanner';
 
 // Hook de efeito de digitação
 function useTypingEffect(text: string, speed: number = 50) {
@@ -444,6 +445,9 @@ export default function BlogPostPage() {
             <div className="text-gray-500">Conteúdo não disponível</div>
           )}
         </div>
+
+        {/* AdSense Banner Responsivo */}
+        <AdSenseBanner className="my-8" />
 
         {/* Excerpt */}
         <div className="mt-8 p-6 bg-blue-50 rounded-lg border border-blue-200">
