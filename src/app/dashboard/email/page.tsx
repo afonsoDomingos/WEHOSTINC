@@ -20,6 +20,7 @@ import ApprovalCelebration from '@/components/ApprovalCelebration';
 import ConfirmModal from '@/components/ConfirmModal';
 import Toast from '@/components/Toast';
 import { getCached, setCached } from '@/lib/pageCache';
+import { soundEffects } from '@/lib/soundEffects';
 
 export default function EmailPage() {
   const router = useRouter();
@@ -218,6 +219,7 @@ export default function EmailPage() {
   const copyToClipboard = (text: string) => {
     if (typeof navigator !== 'undefined') {
       navigator.clipboard.writeText(text);
+      soundEffects.playCopySound();
       setCopiedText(text);
       setTimeout(() => setCopiedText(null), 2500);
     }
@@ -243,6 +245,7 @@ export default function EmailPage() {
     // Verificação de duplicados
     const existing = emails.find(e => e.email.trim().toLowerCase() === fullEmail);
     if (existing) {
+      soundEffects.playErrorSound();
       setToastMsg({
         type: 'error',
         title: 'E-mail Já Existente',
@@ -262,6 +265,7 @@ export default function EmailPage() {
         userEmail: user?.email
       });
 
+      soundEffects.playSendEmailSound();
       setEmails([...emails, newEmailAccount]);
       setShowCreateModal(false);
       setNewEmailPrefix('');
@@ -272,6 +276,7 @@ export default function EmailPage() {
         message: `A conta ${fullEmail} foi gravada com sucesso e está em processamento de ativação.`
       });
     } catch (err: any) {
+      soundEffects.playErrorSound();
       setToastMsg({
         type: 'error',
         title: 'Erro ao Criar E-mail',
@@ -281,6 +286,7 @@ export default function EmailPage() {
   };
 
   const handleOpenEditModal = (email: EmailAccount) => {
+    soundEffects.playClickSound();
     setEditEmailAccount(email);
     setEditPassword('');
     setConfirmPassword('');
@@ -294,11 +300,13 @@ export default function EmailPage() {
     if (!editEmailAccount) return;
 
     if (editPassword && editPassword !== confirmPassword) {
+      soundEffects.playErrorSound();
       setEditErrorMsg('As senhas não coincidem. Por favor verifique.');
       return;
     }
 
     if (editPassword && editPassword.length < 6) {
+      soundEffects.playErrorSound();
       setEditErrorMsg('A senha deve ter pelo menos 6 caracteres.');
       return;
     }
@@ -310,6 +318,7 @@ export default function EmailPage() {
     dataManager.updateEmail(editEmailAccount.id, updates);
     setEmails(emails.map(e => e.id === editEmailAccount.id ? { ...e, ...updates } : e));
 
+    soundEffects.playSuccessSound();
     setEditErrorMsg('');
     setEditSuccessMsg('Configurações e senha atualizadas com sucesso!');
     setTimeout(() => {
@@ -328,11 +337,13 @@ export default function EmailPage() {
       const { id, emailStr } = deleteEmailConfirm;
       const userEmailFilter = user?.email;
       dataManager.deleteEmail(id, userEmailFilter, emailStr);
+      soundEffects.playDeleteEmailSound();
       setEmails(prev => prev.filter(e => e.id !== id && e.email !== emailStr));
       setDeleteEmailConfirm(null);
       setToastMsg({ title: 'E-mail Removido', message: `A conta de e-mail ${emailStr || ''} foi eliminada com sucesso.`, type: 'success' });
     } catch (err) {
       console.error('Erro ao eliminar e-mail:', err);
+      soundEffects.playErrorSound();
       setToastMsg({ title: 'Erro ao Eliminar', message: 'Não foi possível eliminar o e-mail. Tente novamente.', type: 'error' });
     }
   };

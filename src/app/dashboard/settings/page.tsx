@@ -13,6 +13,7 @@ import DashboardSidebar from '@/components/DashboardSidebar';
 import PageLoader from '@/components/PageLoader';
 import ConfirmModal from '@/components/ConfirmModal';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
+import { soundEffects } from '@/lib/soundEffects';
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -80,6 +81,7 @@ export default function SettingsPage() {
       return;
     }
 
+    soundEffects.playAttachSound();
     setAvatarUploading(true);
 
     try {
@@ -144,6 +146,11 @@ export default function SettingsPage() {
   const showMessage = (msg: string, type: 'success' | 'error') => {
     setMessage(msg);
     setMessageType(type);
+    if (type === 'success') {
+      soundEffects.playSuccessSound();
+    } else {
+      soundEffects.playErrorSound();
+    }
     setTimeout(() => setMessage(''), 3000);
   };
 

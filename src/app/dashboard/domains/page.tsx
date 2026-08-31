@@ -19,6 +19,7 @@ import ApprovalCelebration from '@/components/ApprovalCelebration';
 import ConfirmModal from '@/components/ConfirmModal';
 import Toast from '@/components/Toast';
 import DomainSearch from '@/components/DomainSearch';
+import { soundEffects } from '@/lib/soundEffects';
 
 const NS1 = 'ns1.wehosthere.com';
 const NS2 = 'ns2.wehosthere.com';
@@ -79,6 +80,7 @@ export default function DomainsPage() {
       loaded.forEach(site => {
         const prevStatus = prevSiteStatusRef.current[site.id || site.domain];
         if (prevStatus === 'pending' && site.status === 'active') {
+          soundEffects.playCertificateSound();
           setCelebration({ show: true, name: site.domain });
         }
         prevSiteStatusRef.current[site.id || site.domain] = site.status;
@@ -109,17 +111,20 @@ export default function DomainsPage() {
     try {
       const { id, domain } = deleteConfirm;
       dataManager.deleteSite(id, domain);
+      soundEffects.playDeleteEmailSound();
       setSites(prev => prev.filter(s => s.id !== id && s.domain !== domain));
       setDeleteConfirm(null);
       setToastMsg({ title: 'Domínio Removido', message: `O domínio ${domain} foi permanentemente eliminado.`, type: 'success' });
     } catch (err) {
       console.error('Erro ao eliminar domínio:', err);
+      soundEffects.playErrorSound();
       setToastMsg({ title: 'Erro ao Eliminar', message: 'Ocorreu uma falha ao tentar eliminar o domínio. Tente novamente.', type: 'error' });
     }
   };
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
+    soundEffects.playCopySound();
     setCopiedText(text);
     setTimeout(() => setCopiedText(null), 2500);
   };

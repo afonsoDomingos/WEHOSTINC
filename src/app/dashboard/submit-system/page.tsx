@@ -13,6 +13,7 @@ import { dataManager, SystemForRent } from '@/lib/data';
 import DashboardNav from '@/components/DashboardNav';
 import DashboardSidebar from '@/components/DashboardSidebar';
 import PageLoader from '@/components/PageLoader';
+import { soundEffects } from '@/lib/soundEffects';
 
 export default function SubmitSystemPage() {
   const router = useRouter();
@@ -81,18 +82,21 @@ export default function SubmitSystemPage() {
 
   const handleAddFeature = () => {
     if (currentFeature.trim()) {
+      soundEffects.playClickSound();
       setFeatures([...features, currentFeature.trim()]);
       setCurrentFeature('');
     }
   };
 
   const handleRemoveFeature = (index: number) => {
+    soundEffects.playClickSound();
     setFeatures(features.filter((_, i) => i !== index));
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      soundEffects.playAttachSound();
       setImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -128,8 +132,10 @@ export default function SubmitSystemPage() {
       };
 
       dataManager.addSystemForRent(systemData);
+      soundEffects.playSuccessSound();
       router.push('/dashboard/systems?submitted=true');
     } catch (error) {
+      soundEffects.playErrorSound();
       console.error('Erro ao submeter sistema:', error);
       alert('Erro ao submeter sistema. Tente novamente.');
     } finally {

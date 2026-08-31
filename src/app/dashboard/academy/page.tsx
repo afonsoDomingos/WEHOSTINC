@@ -16,6 +16,7 @@ import PageLoader from '@/components/PageLoader';
 import Toast from '@/components/Toast';
 import CertificateModal from '@/components/CertificateModal';
 import { getCached, setCached } from '@/lib/pageCache';
+import { soundEffects } from '@/lib/soundEffects';
 
 export default function DashboardAcademyPage() {
   const router = useRouter();
@@ -128,6 +129,8 @@ export default function DashboardAcademyPage() {
       router.push('/login');
       return;
     }
+
+    soundEffects.playEnrollCourseSound();
 
     // Inscrever no curso sem cobrar - pagamento será solicitado dentro do curso quando tentar acessar além das aulas grátis
     const enrollment = dataManager.enrollInCourse(activeUser.email, course.id);

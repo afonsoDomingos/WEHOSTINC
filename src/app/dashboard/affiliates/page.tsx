@@ -15,6 +15,7 @@ import { auth, User } from '@/lib/auth';
 import { getUserId, getAffiliateUserInfo, isAffiliateAuthenticated } from '@/lib/affiliateAuth';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import PageLoader from '@/components/PageLoader';
+import { soundEffects } from '@/lib/soundEffects';
 
 // Extender tipos do NextAuth para incluir campos customizados
 declare module 'next-auth' {
@@ -267,6 +268,7 @@ export default function AffiliatesPage() {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
+    soundEffects.playCopySound();
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -275,6 +277,7 @@ export default function AffiliatesPage() {
     try {
       const userId = session?.user?.id || getUserId(session?.user?.id);
       if (!userId) {
+        soundEffects.playErrorSound();
         alert('Erro: Usuário não autenticado');
         return;
       }
@@ -292,13 +295,16 @@ export default function AffiliatesPage() {
       const data = await response.json();
 
       if (data.success) {
+        soundEffects.playSuccessSound();
         alert('Saque solicitado com sucesso!');
         setShowPayoutModal(false);
         fetchAffiliateData();
       } else {
+        soundEffects.playErrorSound();
         alert('Erro ao solicitar saque: ' + data.error);
       }
     } catch (error) {
+      soundEffects.playErrorSound();
       alert('Erro ao solicitar saque');
       console.error(error);
     }
