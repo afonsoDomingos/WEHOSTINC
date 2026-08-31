@@ -17,6 +17,7 @@ import { usePWAInstall } from '@/hooks/usePWAInstall';
 import DashboardNav from '@/components/DashboardNav';
 import DashboardSidebar from '@/components/DashboardSidebar';
 import PageLoader from '@/components/PageLoader';
+import { useLanguage } from '@/context/LanguageContext';
 
 function CircularProgress({ percentage, colorClass, size = 64, strokeWidth = 6 }: { percentage: number; colorClass: string; size?: number; strokeWidth?: number }) {
   const radius = (size - strokeWidth) / 2;
@@ -55,6 +56,7 @@ function CircularProgress({ percentage, colorClass, size = 64, strokeWidth = 6 }
 
 export default function DashboardPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const { data: session, status } = useSession();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -319,9 +321,9 @@ export default function DashboardPage() {
                 <div className="flex items-start gap-2 sm:gap-3">
                   <span className="text-xl sm:text-2xl">⚠️</span>
                   <div>
-                    <h3 className="font-bold text-orange-950 text-xs sm:text-base">Plano Próximo da Expiração</h3>
+                    <h3 className="font-bold text-orange-950 text-xs sm:text-base">{t('dash.expiring_soon')}</h3>
                     <p className="text-[10px] sm:text-sm text-orange-800 mt-0.5">
-                      O seu plano {planInfo.name} expira em <strong>{daysUntilExpiry} dia{daysUntilExpiry === 1 ? '' : 's'}</strong>. Renove agora para evitar interrupções no serviço.
+                      {daysUntilExpiry} dia{daysUntilExpiry === 1 ? '' : 's'}
                     </p>
                   </div>
                 </div>
@@ -329,7 +331,7 @@ export default function DashboardPage() {
                   href="/dashboard/billing"
                   className="px-3 sm:px-4 py-2 sm:py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold whitespace-nowrap shadow transition"
                 >
-                  Renovar Plano →
+                  {t('dash.renew_plan')}
                 </Link>
               </div>
             )}
@@ -342,22 +344,22 @@ export default function DashboardPage() {
                     <Bell className="h-5 w-5 text-blue-600" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-blue-950 text-xs sm:text-base">Ative as Notificações Push</h3>
+                    <h3 className="font-bold text-blue-950 text-xs sm:text-base">{t('dash.push_title')}</h3>
                     <p className="text-[10px] sm:text-sm text-blue-800 mt-0.5">
-                      Receba alertas importantes sobre seus sites, pagamentos e atualizações mesmo quando estiver offline.
+                      {t('dash.push_desc')}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={handleActivatePush}
-                    className="px-3 sm:px-4 py-2 sm:py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold whitespace-nowrap shadow transition"
+                    className="px-3 sm:px-4 py-2 sm:py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold whitespace-nowrap shadow transition cursor-pointer"
                   >
-                    Ativar Agora
+                    {t('dash.push_btn')}
                   </button>
                   <button
                     onClick={handleDismissPushBanner}
-                    className="p-2 hover:bg-blue-200 rounded-lg transition"
+                    className="p-2 hover:bg-blue-200 rounded-lg transition cursor-pointer"
                   >
                     <X className="h-4 w-4 text-blue-600" />
                   </button>
@@ -373,22 +375,22 @@ export default function DashboardPage() {
                     <Download className="h-5 w-5 text-purple-600" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-purple-950 text-xs sm:text-base">Instale a WEHOSTHERE App</h3>
+                    <h3 className="font-bold text-purple-950 text-xs sm:text-base">{t('dash.pwa_title')}</h3>
                     <p className="text-[10px] sm:text-sm text-purple-800 mt-0.5">
-                      Instale a plataforma no seu dispositivo para acesso rápido, notificações e uso offline.
+                      {t('dash.pwa_desc')}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={handleInstallPWA}
-                    className="px-3 sm:px-4 py-2 sm:py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold whitespace-nowrap shadow transition"
+                    className="px-3 sm:px-4 py-2 sm:py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold whitespace-nowrap shadow transition cursor-pointer"
                   >
-                    Instalar App
+                    {t('dash.pwa_btn')}
                   </button>
                   <button
                     onClick={handleDismissPWAInstallBanner}
-                    className="p-2 hover:bg-purple-200 rounded-lg transition"
+                    className="p-2 hover:bg-purple-200 rounded-lg transition cursor-pointer"
                   >
                     <X className="h-4 w-4 text-purple-600" />
                   </button>
@@ -405,9 +407,9 @@ export default function DashboardPage() {
               <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-900/90 to-primary-950/80" />
 
               <div className="relative z-10">
-                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-1 sm:mb-2 text-white">Bem-vindo ao Painel, {user.name}!</h1>
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-1 sm:mb-2 text-white">{t('dash.welcome_title')}, {user.name}!</h1>
                 <p className="text-slate-300 mb-4 sm:mb-6 text-xs sm:text-sm md:text-base max-w-xl font-medium">
-                  Sua conta está conectada à nossa infraestrutura Datacenter de alta performance em Moçambique.
+                  {t('dash.welcome_subtitle')}
                 </p>
               <div className="flex flex-wrap gap-2 sm:gap-3">
                 <Link
@@ -415,35 +417,35 @@ export default function DashboardPage() {
                   className="flex items-center space-x-1.5 sm:space-x-2 bg-amber-400 hover:bg-amber-300 text-gray-900 px-3 sm:px-5 py-2 sm:py-3 rounded-lg font-extrabold text-[10px] sm:text-sm shadow-md transition"
                 >
                   <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-gray-900" />
-                  <span>Solicitar Criação de Site</span>
+                  <span>{t('dash.btn_request_site')}</span>
                 </Link>
                 <Link
                   href="/dashboard/sites"
                   className="flex items-center space-x-1.5 sm:space-x-2 bg-white text-primary-600 px-3 sm:px-5 py-2 sm:py-3 rounded-lg hover:bg-gray-100 transition font-semibold text-[10px] sm:text-sm"
                 >
                   <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span>Novo Site</span>
+                  <span>{t('dash.btn_new_site')}</span>
                 </Link>
                 <Link
                   href="/dashboard/systems"
                   className="flex items-center space-x-1.5 sm:space-x-2 bg-purple-500 text-white px-3 sm:px-5 py-2 sm:py-3 rounded-lg hover:bg-purple-400 transition font-semibold text-[10px] sm:text-sm"
                 >
                   <Star className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span>Sistemas Prontos</span>
+                  <span>{t('dash.btn_systems')}</span>
                 </Link>
                 <Link
                   href="/dashboard/email"
                   className="flex items-center space-x-1.5 sm:space-x-2 bg-primary-500 text-white px-3 sm:px-5 py-2 sm:py-3 rounded-lg hover:bg-primary-400 transition font-semibold text-[10px] sm:text-sm"
                 >
                   <Mail className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span>Configurar Email</span>
+                  <span>{t('dash.btn_email')}</span>
                 </Link>
                 <Link
                   href="/dashboard/uptime"
                   className="flex items-center space-x-1.5 sm:space-x-2 bg-emerald-500 text-white px-3 sm:px-5 py-2 sm:py-3 rounded-lg hover:bg-emerald-400 transition font-semibold text-[10px] sm:text-sm"
                 >
                   <Activity className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span>Monitorar Uptime</span>
+                  <span>{t('dash.btn_uptime')}</span>
                 </Link>
                 </div>
               </div>
@@ -455,20 +457,13 @@ export default function DashboardPage() {
                 <div>
                   <h2 className="text-base sm:text-lg font-extrabold text-gray-900 flex items-center gap-2">
                     <Activity className="h-5 w-5 text-emerald-600" />
-                    <span>Recursos & Saúde do Servidor</span>
+                    <span>{t('dash.server_status')}</span>
                   </h2>
-                  <p className="text-xs text-gray-500 mt-0.5">
-                    Monitoramento em tempo real do seu plano e limites de hardware.
-                  </p>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-                    <span>Servidor Online (99.98% Uptime)</span>
-                  </span>
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-gray-100 text-gray-600">
-                    <Zap className="w-3.5 h-3.5 text-amber-500" />
-                    <span>Latência: 12ms</span>
+                    <span>{t('dash.all_systems_operational')}</span>
                   </span>
                 </div>
               </div>
@@ -479,13 +474,10 @@ export default function DashboardPage() {
                   <div>
                     <div className="flex items-center gap-1.5 text-xs font-bold text-gray-700 mb-1">
                       <HardDrive className="h-4 w-4 text-blue-600" />
-                      <span>Disco SSD NVMe</span>
+                      <span>{t('dash.storage_nvme')}</span>
                     </div>
                     <p className="text-xl font-black text-gray-900">
                       {storageUsed} GB <span className="text-xs font-normal text-gray-500">/ {storageTotal} GB</span>
-                    </p>
-                    <p className="text-[10px] text-gray-500 mt-1">
-                      {storageTotal - storageUsed} GB livres
                     </p>
                   </div>
                   <CircularProgress
@@ -500,14 +492,10 @@ export default function DashboardPage() {
                   <div>
                     <div className="flex items-center gap-1.5 text-xs font-bold text-gray-700 mb-1">
                       <Wifi className="h-4 w-4 text-purple-600" />
-                      <span>Tráfego Mensal</span>
+                      <span>{t('dash.traffic_bw')}</span>
                     </div>
                     <p className="text-xl font-black text-gray-900">
                       {bandwidthUsed} GB <span className="text-xs font-normal text-gray-500">/ {bandwidthTotal} GB</span>
-                    </p>
-                    <p className="text-[10px] text-emerald-600 font-semibold mt-1 flex items-center gap-1">
-                      <ShieldCheck className="h-3 w-3" />
-                      <span>Tráfego ilimitado</span>
                     </p>
                   </div>
                   <CircularProgress
@@ -522,13 +510,10 @@ export default function DashboardPage() {
                   <div>
                     <div className="flex items-center gap-1.5 text-xs font-bold text-gray-700 mb-1">
                       <Cpu className="h-4 w-4 text-emerald-600" />
-                      <span>RAM / vCPU Alocada</span>
+                      <span>{t('dash.ram_memory')}</span>
                     </div>
                     <p className="text-xl font-black text-gray-900">
                       {ramUsed} GB <span className="text-xs font-normal text-gray-500">/ {ramTotal} GB RAM</span>
-                    </p>
-                    <p className="text-[10px] text-emerald-600 font-semibold mt-1">
-                      ⚡ Desempenho Máximo
                     </p>
                   </div>
                   <CircularProgress
@@ -594,7 +579,7 @@ export default function DashboardPage() {
 
             {/* Quick Actions */}
             <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
-              <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-3 sm:mb-4">Ações Rápidas</h2>
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-3 sm:mb-4">{t('dash.quick_actions')}</h2>
               <div className="grid sm:grid-cols-2 gap-2 sm:gap-4">
                 <Link
                   href="/site-quote"
@@ -605,10 +590,8 @@ export default function DashboardPage() {
                   </div>
                   <div>
                     <h3 className="font-bold text-gray-900 flex items-center gap-1 sm:gap-1.5 text-xs sm:text-sm">
-                      <span>Solicitar Criação de Site</span>
-                      <span className="text-[9px] sm:text-[10px] bg-amber-200 text-amber-900 font-extrabold px-1.5 sm:px-2 py-0.5 rounded-full">Novo</span>
+                      <span>{t('dash.btn_request_site')}</span>
                     </h3>
-                    <p className="text-[9px] sm:text-xs text-amber-900 font-medium mt-0.5">Catálogo com 18 tipos de sites • a partir de 12.000 MT</p>
                   </div>
                 </Link>
 
@@ -620,8 +603,7 @@ export default function DashboardPage() {
                     <Globe className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900 text-xs sm:text-sm">Adicionar Site</h3>
-                    <p className="text-[10px] sm:text-sm text-gray-600">Configure um novo site</p>
+                    <h3 className="font-semibold text-gray-900 text-xs sm:text-sm">{t('dash.btn_new_site')}</h3>
                   </div>
                 </Link>
 
@@ -633,8 +615,7 @@ export default function DashboardPage() {
                     <Mail className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900 text-xs sm:text-sm">Criar Email</h3>
-                    <p className="text-[10px] sm:text-sm text-gray-600">Nova conta de email</p>
+                    <h3 className="font-semibold text-gray-900 text-xs sm:text-sm">{t('dash.btn_email')}</h3>
                   </div>
                 </Link>
 
@@ -646,8 +627,7 @@ export default function DashboardPage() {
                     <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900 text-xs sm:text-sm">Upgrade de Plano</h3>
-                    <p className="text-[10px] sm:text-sm text-gray-600">Aumente seus recursos</p>
+                    <h3 className="font-semibold text-gray-900 text-xs sm:text-sm">{t('dash.upgrade_plan')}</h3>
                   </div>
                 </Link>
               </div>

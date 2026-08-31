@@ -2,8 +2,10 @@
 
 import { useState } from 'react';
 import { Mail, Send, CheckCircle, Loader2 } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function NewsletterForm() {
+  const { t } = useLanguage();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -12,7 +14,7 @@ export default function NewsletterForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !email.includes('@')) {
-      setMessage('Por favor, insira um email válido.');
+      setMessage(t('newsletter.error'));
       setStatus('error');
       return;
     }
@@ -31,15 +33,15 @@ export default function NewsletterForm() {
       const data = await response.json();
 
       if (response.ok || data.success) {
-        setMessage(data.message || 'Subscrito com sucesso!');
+        setMessage(t('newsletter.success'));
         setStatus('success');
         setEmail('');
       } else {
-        setMessage(data.error || 'Erro ao subscrever. Tente novamente.');
+        setMessage(data.error || t('newsletter.error'));
         setStatus('error');
       }
     } catch (err) {
-      setMessage('Erro ao conectar. Tente novamente.');
+      setMessage(t('newsletter.error'));
       setStatus('error');
     } finally {
       setLoading(false);
@@ -55,7 +57,7 @@ export default function NewsletterForm() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="seu@email.com"
+            placeholder={t('newsletter.placeholder')}
             className="w-full pl-8 sm:pl-9 pr-3 sm:pr-4 py-2 sm:py-2.5 bg-slate-800 border border-slate-600 rounded-lg text-white text-[10px] sm:text-xs placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary-500/60 focus:border-primary-500/60 transition"
             disabled={loading || status === 'success'}
           />
@@ -63,22 +65,22 @@ export default function NewsletterForm() {
         <button
           type="submit"
           disabled={loading || status === 'success'}
-          className="w-full py-2 sm:py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg sm:rounded-xl transition flex items-center justify-center space-x-1.5 sm:space-x-2 text-[10px] sm:text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full py-2 sm:py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg sm:rounded-xl transition flex items-center justify-center space-x-1.5 sm:space-x-2 text-[10px] sm:text-xs disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
           {loading ? (
             <>
               <Loader2 className="h-3 w-3 sm:h-3.5 sm:w-3.5 animate-spin" />
-              <span>A subscrever...</span>
+              <span>{t('newsletter.sending')}</span>
             </>
           ) : status === 'success' ? (
             <>
               <CheckCircle className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-              <span>Subscrito!</span>
+              <span>{t('newsletter.success')}</span>
             </>
           ) : (
             <>
               <Send className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-              <span>Subscrever</span>
+              <span>{t('newsletter.btn_subscribe')}</span>
             </>
           )}
         </button>

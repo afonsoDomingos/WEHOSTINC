@@ -3,8 +3,10 @@
 import { useEffect, useState } from 'react';
 import { Image as ImageIcon } from 'lucide-react';
 import { dataManager, Partner } from '@/lib/data';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function PartnersSection() {
+  const { t } = useLanguage();
   const [partners, setPartners] = useState<Partner[]>([]);
   const [loading, setLoading] = useState(true);
   const [failedLogos, setFailedLogos] = useState<Record<string, boolean>>({});
@@ -58,15 +60,11 @@ export default function PartnersSection() {
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
           <div className="text-center mb-8 sm:mb-12">
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">
-              Nossos Parceiros
+              {t('partners.title')}
             </h2>
             <p className="text-gray-600 text-sm sm:text-base max-w-2xl mx-auto">
-              Empresas que confiam na WEHOSTHERE para seus serviços de hospedagem
+              {t('partners.subtitle')}
             </p>
-          </div>
-          <div className="text-center py-8 bg-gray-50 rounded-xl">
-            <ImageIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500 text-sm">Nenhum parceiro cadastrado ainda</p>
           </div>
         </div>
       </section>
@@ -78,10 +76,10 @@ export default function PartnersSection() {
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         <div className="text-center mb-8 sm:mb-12">
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">
-            Nossos Parceiros
+            {t('partners.title')}
           </h2>
           <p className="text-gray-600 text-sm sm:text-base max-w-2xl mx-auto">
-            Empresas que confiam na WEHOSTHERE para seus serviços de hospedagem
+            {t('partners.subtitle')}
           </p>
         </div>
 

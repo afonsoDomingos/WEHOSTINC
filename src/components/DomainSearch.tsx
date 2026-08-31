@@ -6,12 +6,14 @@ import { Search, CheckCircle2, XCircle, Globe, ArrowRight, Sparkles, Loader2, Ro
 import { DOMAIN_PRICES, checkDomainRealAsync, DomainCheckResult } from '@/lib/domains';
 import { hostingPlans } from '@/lib/data';
 import { soundEffects } from '@/lib/soundEffects';
+import { useLanguage } from '@/context/LanguageContext';
 
 // Timeout de conexão lenta em ms
 const SLOW_CONNECTION_TIMEOUT = 8000;
 
 export default function DomainSearch() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [query, setQuery] = useState('');
   const [selectedTld, setSelectedTld] = useState('.co.mz');
   const [isSearching, setIsSearching] = useState(false);
@@ -124,8 +126,8 @@ export default function DomainSearch() {
         <div className="flex items-center space-x-2 sm:space-x-3 bg-red-900/80 backdrop-blur border border-red-500/60 text-red-100 px-3 sm:px-4 py-2 sm:py-3 rounded-xl sm:rounded-2xl mb-3 sm:mb-4 shadow-lg animate-pulse">
           <WifiOff className="h-4 w-4 sm:h-5 sm:w-5 text-red-400 shrink-0" />
           <div className="text-left">
-            <p className="text-xs sm:text-sm font-bold">Sem ligação à Internet</p>
-            <p className="text-[10px] sm:text-xs text-red-300">{networkError || 'Verifique o Wi-Fi ou dados móveis e tente novamente.'}</p>
+            <p className="text-xs sm:text-sm font-bold">{t('domain.offline_title')}</p>
+            <p className="text-[10px] sm:text-xs text-red-300">{networkError || t('domain.offline_desc')}</p>
           </div>
         </div>
       )}
@@ -134,18 +136,7 @@ export default function DomainSearch() {
         <div className="flex items-center space-x-2 sm:space-x-3 bg-amber-900/80 backdrop-blur border border-amber-500/60 text-amber-100 px-3 sm:px-4 py-2 sm:py-3 rounded-xl sm:rounded-2xl mb-3 sm:mb-4 shadow-lg">
           <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-amber-400 shrink-0" />
           <div className="text-left">
-            <p className="text-xs sm:text-sm font-bold">Conexão lenta detectada</p>
-            <p className="text-[10px] sm:text-xs text-amber-300">A pesquisa está a demorar mais do esperado. Por favor aguarde...</p>
-          </div>
-        </div>
-      )}
-
-      {networkError && !isOffline && !isSlowConnection && (
-        <div className="flex items-center space-x-2 sm:space-x-3 bg-orange-900/80 backdrop-blur border border-orange-500/60 text-orange-100 px-3 sm:px-4 py-2 sm:py-3 rounded-xl sm:rounded-2xl mb-3 sm:mb-4 shadow-lg">
-          <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-orange-400 shrink-0" />
-          <div className="text-left">
-            <p className="text-xs sm:text-sm font-bold">Erro na pesquisa</p>
-            <p className="text-[10px] sm:text-xs text-orange-300">{networkError}</p>
+            <p className="text-xs sm:text-sm font-bold">{t('domain.slow_conn')}</p>
           </div>
         </div>
       )}
@@ -161,7 +152,7 @@ export default function DomainSearch() {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Digite o nome do seu domínio (ex: suaempresa)"
+              placeholder={t('hero.search_placeholder')}
               className="w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-2.5 sm:py-3.5 bg-gray-50 border border-gray-200 rounded-xl sm:rounded-2xl outline-none focus:ring-2 focus:ring-primary-500 font-medium text-gray-900 text-xs sm:text-sm md:text-base placeholder-gray-400"
               required
             />
@@ -176,7 +167,7 @@ export default function DomainSearch() {
             >
               {DOMAIN_PRICES.map((tld) => (
                 <option key={tld.extension} value={tld.extension}>
-                  {tld.extension} ({tld.price.toLocaleString('pt-MZ')} MT/ano)
+                  {tld.extension} ({tld.price.toLocaleString('pt-MZ')} MT{t('pricing.per_year')})
                 </option>
               ))}
             </select>
@@ -189,11 +180,11 @@ export default function DomainSearch() {
               {isSearching ? (
                 <>
                   <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
-                  <span>Verificando...</span>
+                  <span>{t('hero.searching')}</span>
                 </>
               ) : (
                 <>
-                  <span>Pesquisar</span>
+                  <span>{t('hero.search_btn')}</span>
                   <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
                 </>
               )}
@@ -253,70 +244,51 @@ export default function DomainSearch() {
                   <span className="text-lg sm:text-xl md:text-2xl font-black text-gray-900">{result.fullDomain}</span>
                   {result.isAvailable ? (
                     <span className="bg-emerald-600 text-white text-[10px] sm:text-xs font-bold px-2 sm:px-2.5 py-0.5 rounded-full shadow-sm">
-                      Disponível!
+                      {t('domain.available')}
                     </span>
                   ) : (
                     <span className="bg-red-600 text-white text-[10px] sm:text-xs font-bold px-2 sm:px-2.5 py-0.5 rounded-full shadow-sm">
-                      Indisponível
+                      {t('domain.unavailable')}
                     </span>
                   )}
                   {result.searchCount && result.searchCount > 1 && (
                     <span className="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[10px] sm:text-xs font-extrabold px-2 sm:px-3 py-0.5 rounded-full shadow-sm flex items-center space-x-0.5 sm:space-x-1 animate-pulse">
                       <Flame className="h-3 w-3 sm:h-3.5 sm:w-3.5 fill-white" />
-                      <span>Alta Procura ({result.searchCount}x buscas)</span>
+                      <span>{result.searchCount}x buscas</span>
                     </span>
                   )}
                 </div>
                 <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5 font-medium">
                   {result.isAvailable 
-                    ? 'Este domínio está totalmente livre para registo imediato.' 
-                    : 'Este domínio já se encontra registrado. Veja as extensões alternativas abaixo.'}
+                    ? t('domain.available_desc')
+                    : t('domain.unavailable_desc')}
                 </p>
               </div>
             </div>
 
             {result.isAvailable && (
               <div className="bg-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl border border-gray-200 shadow-sm flex flex-row sm:flex-col items-center sm:items-end justify-between shrink-0">
-                <span className="text-[10px] sm:text-[11px] font-bold text-gray-400 uppercase tracking-wider">Registo do Domínio</span>
+                <span className="text-[10px] sm:text-[11px] font-bold text-gray-400 uppercase tracking-wider">{t('domain.pkg_domain_only')}</span>
                 <span className="text-base sm:text-lg font-black text-primary-600">
-                  {result.price.toLocaleString('pt-MZ')} MT <span className="text-[10px] sm:text-xs text-gray-500 font-normal">/ano</span>
+                  {result.price.toLocaleString('pt-MZ')} MT <span className="text-[10px] sm:text-xs text-gray-500 font-normal">{t('pricing.per_year')}</span>
                 </span>
               </div>
             )}
           </div>
 
-          {/* Banner Alerta de Alta Procura (Urgency Marketing) */}
-          {result.isAvailable && result.searchCount && result.searchCount > 1 && (
-            <div className="mt-3 sm:mt-4 p-2.5 sm:p-3.5 bg-amber-500/10 border-2 border-amber-400/80 rounded-xl sm:rounded-2xl flex items-center space-x-2 sm:space-x-3 text-amber-950 shadow-sm">
-              <div className="p-1.5 sm:p-2 bg-gradient-to-br from-amber-500 to-orange-600 text-white rounded-lg sm:rounded-xl font-bold shrink-0 shadow">
-                <Flame className="h-4 w-4 sm:h-5 sm:w-5 fill-amber-100" />
-              </div>
-              <div className="text-[10px] sm:text-xs leading-relaxed">
-                <span className="font-extrabold text-amber-950 block text-xs sm:text-sm">🔥 Alta Procura Detectada!</span>
-                <span>
-                  Este domínio já foi pesquisado <strong className="font-black text-amber-950 underline">{result.searchCount} vezes</strong> no nosso site. Garanta o seu registo agora antes que outra pessoa o reserve!
-                </span>
-              </div>
-            </div>
-          )}
-
           {/* Opções de Contratação com Preços Transparentes */}
           {result.isAvailable && (
             <div className="mt-4 sm:mt-5">
-              <h4 className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 sm:mb-3">
-                Escolha a sua opção de contratação:
-              </h4>
-
               <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 sm:gap-3.5">
                 {/* Opção 1: Apenas Domínio */}
                 <div className="flex flex-col justify-between p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 border-gray-200 hover:border-primary-400 bg-white transition shadow-sm group">
                   <div>
                     <div className="flex items-center space-x-1.5 sm:space-x-2 text-gray-700 mb-1.5 sm:mb-2">
                       <Globe className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600 group-hover:text-primary-600 transition" />
-                      <span className="font-bold text-xs sm:text-sm text-gray-900">Apenas Domínio</span>
+                      <span className="font-bold text-xs sm:text-sm text-gray-900">{t('domain.pkg_domain_only')}</span>
                     </div>
                     <p className="text-[10px] sm:text-xs text-gray-500 mb-3 sm:mb-4 leading-relaxed">
-                      Registo do nome <strong className="text-gray-800">{result.fullDomain}</strong> sem hospedagem associada.
+                      <strong className="text-gray-800">{result.fullDomain}</strong>
                     </p>
                   </div>
 
@@ -324,7 +296,7 @@ export default function DomainSearch() {
                     <div className="flex items-baseline justify-between pt-2 sm:pt-3 border-t border-gray-100 mb-2 sm:mb-3">
                       <span className="text-[10px] sm:text-xs text-gray-400 font-medium">Total:</span>
                       <span className="text-base sm:text-lg font-extrabold text-gray-900">
-                        {result.price.toLocaleString('pt-MZ')} MT <span className="text-[10px] sm:text-xs font-normal text-gray-500">/ano</span>
+                        {result.price.toLocaleString('pt-MZ')} MT <span className="text-[10px] sm:text-xs font-normal text-gray-500">{t('pricing.per_year')}</span>
                       </span>
                     </div>
 
@@ -333,7 +305,7 @@ export default function DomainSearch() {
                       onClick={() => handleRegisterOnly(result.fullDomain, result.price)}
                       className="w-full py-2 sm:py-3 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] sm:text-xs sm:text-sm rounded-lg sm:rounded-xl shadow-md transition flex items-center justify-center space-x-1 sm:space-x-1.5 cursor-pointer hover:scale-[1.01]"
                     >
-                      <span>Garanta Agora ({result.price.toLocaleString('pt-MZ')} MT)</span>
+                      <span>{t('domain.btn_register')} ({result.price.toLocaleString('pt-MZ')} MT)</span>
                       <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </button>
                   </div>
@@ -342,29 +314,26 @@ export default function DomainSearch() {
                 {/* Opção 2: Domínio + Hospedagem */}
                 <div className="flex flex-col justify-between p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 border-emerald-500 bg-emerald-50/30 transition shadow-sm relative overflow-hidden group">
                   <div className="absolute top-0 right-0 bg-emerald-600 text-white text-[9px] sm:text-[10px] font-black uppercase px-2 sm:px-3 py-0.5 rounded-bl-lg sm:rounded-bl-xl tracking-wider">
-                    Recomendado
+                    {t('pricing.most_popular')}
                   </div>
 
                   <div>
                     <div className="flex items-center space-x-1.5 sm:space-x-2 text-emerald-800 mb-1.5 sm:mb-2">
                       <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-600" />
-                      <span className="font-bold text-xs sm:text-sm text-emerald-950">Domínio + Hospedagem</span>
+                      <span className="font-bold text-xs sm:text-sm text-emerald-950">{t('domain.pkg_with_hosting')}</span>
                     </div>
 
                     {/* Seletor de Plano de Hospedagem */}
                     <div className="mb-2 sm:mb-3 space-y-1.5 sm:space-y-2">
                       <div>
-                        <label className="block text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-emerald-900 mb-0.5 sm:mb-1">
-                          Plano de Hospedagem:
-                        </label>
                         <select
                           value={selectedHostingPlan}
                           onChange={(e) => setSelectedHostingPlan(e.target.value as 'basic' | 'pro' | 'enterprise')}
                           className="w-full px-2 sm:px-3 py-1.5 sm:py-2 bg-white border border-emerald-300 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold text-gray-900 outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer shadow-sm"
                         >
-                          <option value="basic">Básico ({hostingCycle === 'annual' ? '5.500 MT/ano' : '550 MT/mês'})</option>
-                          <option value="pro">Profissional ({hostingCycle === 'annual' ? '25.000 MT/ano' : '2.500 MT/mês'})</option>
-                          <option value="enterprise">Empresarial ({hostingCycle === 'annual' ? '62.000 MT/ano' : '6.200 MT/mês'})</option>
+                          <option value="basic">{t('pricing.basic_name')} ({hostingCycle === 'annual' ? '5.500 MT/ano' : '550 MT/mês'})</option>
+                          <option value="pro">{t('pricing.pro_name')} ({hostingCycle === 'annual' ? '25.000 MT/ano' : '2.500 MT/mês'})</option>
+                          <option value="enterprise">{t('pricing.enterprise_name')} ({hostingCycle === 'annual' ? '62.000 MT/ano' : '6.200 MT/mês'})</option>
                         </select>
                       </div>
 
@@ -379,7 +348,7 @@ export default function DomainSearch() {
                               : 'text-emerald-900 hover:bg-emerald-200/60'
                           }`}
                         >
-                          Anual (2 Meses Grátis)
+                          {t('pricing.1year')} ({t('pricing.2months_free')})
                         </button>
                         <button
                           type="button"
@@ -390,27 +359,18 @@ export default function DomainSearch() {
                               : 'text-emerald-900 hover:bg-emerald-200/60'
                           }`}
                         >
-                          Mensal
+                          {t('pricing.1month')}
                         </button>
                       </div>
                     </div>
-
-                    <p className="text-[10px] sm:text-xs text-gray-600 mb-2 sm:mb-3 leading-relaxed">
-                      Inclui o domínio e <strong>Hospedagem {currentHostingPlan.name}</strong> ({hostingCycle === 'annual' ? 'Anual' : 'Mensal'}).
-                    </p>
                   </div>
 
                   <div>
                     <div className="flex items-baseline justify-between pt-2 sm:pt-3 border-t border-emerald-200/60 mb-2 sm:mb-3">
-                      <span className="text-[10px] sm:text-xs text-emerald-800 font-medium">1º Pagamento:</span>
+                      <span className="text-[10px] sm:text-xs text-emerald-800 font-medium">Total:</span>
                       <div className="text-right">
                         <span className="text-base sm:text-lg font-black text-emerald-700">
-                          {(result.price + hostingPrice).toLocaleString('pt-MZ')} MT <span className="text-[10px] sm:text-xs font-normal text-gray-600">{hostingCycle === 'annual' ? '/ano' : '/total inicial'}</span>
-                        </span>
-                        <span className="text-[9px] sm:text-[10px] text-gray-500 block font-normal">
-                          {hostingCycle === 'annual'
-                            ? `(${result.price.toLocaleString('pt-MZ')} MT Domínio/ano + ${hostingPrice.toLocaleString('pt-MZ')} MT Hospedagem Anual)`
-                            : `(${result.price.toLocaleString('pt-MZ')} MT Domínio/ano + ${hostingPrice.toLocaleString('pt-MZ')} MT 1º Mês Hospedagem)`}
+                          {(result.price + hostingPrice).toLocaleString('pt-MZ')} MT <span className="text-[10px] sm:text-xs font-normal text-gray-600">{hostingCycle === 'annual' ? t('pricing.per_year') : t('pricing.per_month')}</span>
                         </span>
                       </div>
                     </div>
@@ -421,7 +381,7 @@ export default function DomainSearch() {
                       className="w-full py-2.5 sm:py-3.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[10px] sm:text-xs sm:text-sm rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition flex items-center justify-center space-x-1.5 sm:space-x-2 cursor-pointer hover:scale-[1.02]"
                     >
                       <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-                      <span>Garanta Agora ({(result.price + hostingPrice).toLocaleString('pt-MZ')} MT)</span>
+                      <span>{t('domain.btn_register')} ({(result.price + hostingPrice).toLocaleString('pt-MZ')} MT)</span>
                       <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
                     </button>
                   </div>
@@ -430,16 +390,16 @@ export default function DomainSearch() {
                 {/* Opção 3: Domínio + Criação de Site (Investimento Único) */}
                 <div className="flex flex-col justify-between p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 border-primary-500 bg-primary-50/30 transition shadow-sm relative overflow-hidden group">
                   <div className="absolute top-0 right-0 bg-primary-600 text-white text-[9px] sm:text-[10px] font-black uppercase px-2 sm:px-3 py-0.5 rounded-bl-lg sm:rounded-bl-xl tracking-wider">
-                    Investimento Único
+                    {t('sites.investment_title')}
                   </div>
 
                   <div>
                     <div className="flex items-center space-x-1.5 sm:space-x-2 text-primary-900 mb-1.5 sm:mb-2">
                       <Rocket className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500" />
-                      <span className="font-bold text-xs sm:text-sm text-primary-950">Domínio + Criação de Site</span>
+                      <span className="font-bold text-xs sm:text-sm text-primary-950">{t('domain.pkg_with_site')}</span>
                     </div>
                     <p className="text-[10px] sm:text-xs text-gray-600 mb-3 sm:mb-4 leading-relaxed">
-                      Desenvolvimento de <strong>Website Profissional Chave na Mão</strong> + Domínio e Configuração.
+                      {t('sites.desc')}
                     </p>
                   </div>
 
@@ -450,7 +410,6 @@ export default function DomainSearch() {
                         <span className="text-base sm:text-lg font-black text-primary-700">
                           {(result.price + 25000).toLocaleString('pt-MZ')} MT
                         </span>
-                        <span className="text-[9px] sm:text-[10px] text-gray-500 block font-normal">({result.price.toLocaleString('pt-MZ')} MT Domínio + 25.000 MT Projeto Site)</span>
                       </div>
                     </div>
 
@@ -460,7 +419,7 @@ export default function DomainSearch() {
                       className="w-full py-2 sm:py-3 px-3 bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-700 hover:to-indigo-700 text-white font-extrabold text-[10px] sm:text-xs sm:text-sm rounded-lg sm:rounded-xl shadow-md transition flex items-center justify-center space-x-1 sm:space-x-1.5 cursor-pointer hover:scale-[1.01]"
                     >
                       <Rocket className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-amber-300 shrink-0" />
-                      <span>Garanta Agora &amp; Escolher Site</span>
+                      <span>{t('domain.btn_register')} &amp; {t('sites.title')}</span>
                       <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
                     </button>
                   </div>
@@ -476,15 +435,15 @@ export default function DomainSearch() {
                 <div className="flex items-center space-x-2">
                   <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
                   <h4 className="text-xs sm:text-sm font-extrabold text-purple-950">
-                    Sugestões Inteligentes de Nomes Alternativos
+                    {t('domain.smart_suggestions')}
                   </h4>
                 </div>
                 <span className="text-[10px] bg-purple-200 text-purple-900 font-extrabold px-2.5 py-0.5 rounded-full">
-                  100% Disponíveis
+                  {t('domain.all_available')}
                 </span>
               </div>
               <p className="text-[10px] sm:text-xs text-purple-800 mb-3">
-                Variações de nomes comerciais com excelente memorização para <strong>{result.sld}</strong>:
+                {t('domain.suggestions_desc')} <strong>{result.sld}</strong>:
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-3">
@@ -514,7 +473,7 @@ export default function DomainSearch() {
                         onClick={() => handleRegisterOnly(sug.fullDomain, sug.price)}
                         className="flex-1 py-1.5 px-2 bg-purple-600 hover:bg-purple-700 text-white font-bold text-[10px] sm:text-xs rounded-lg transition shadow-xs flex items-center justify-center space-x-1 cursor-pointer active:scale-95"
                       >
-                        <span>Registrar Este</span>
+                        <span>{t('domain.btn_register_this')}</span>
                         <ArrowRight className="h-3 w-3" />
                       </button>
                       <button
@@ -536,7 +495,7 @@ export default function DomainSearch() {
           {result.alternatives.length > 0 && (
             <div className="mt-4 sm:mt-6 pt-4 sm:pt-5 border-t border-gray-100">
               <h4 className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 sm:mb-3">
-                Outras extensões para {result.sld}:
+                {t('domain.other_extensions')} {result.sld}:
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3">
                 {result.alternatives.map((alt) => (
@@ -546,14 +505,14 @@ export default function DomainSearch() {
                   >
                     <div>
                       <span className="font-bold text-gray-900 text-xs sm:text-sm block">{alt.fullDomain}</span>
-                      <span className="text-[10px] sm:text-xs text-primary-600 font-extrabold">{alt.price.toLocaleString('pt-MZ')} MT/ano</span>
+                      <span className="text-[10px] sm:text-xs text-primary-600 font-extrabold">{alt.price.toLocaleString('pt-MZ')} MT{t('pricing.per_year')}</span>
                     </div>
                     <button
                       type="button"
                       onClick={() => handleRegisterOnly(alt.fullDomain, alt.price)}
                       className="px-2 sm:px-3 py-1 sm:py-1.5 bg-primary-50 text-primary-700 hover:bg-primary-600 hover:text-white rounded-lg text-[10px] sm:text-xs font-bold transition cursor-pointer"
                     >
-                      Registrar
+                      {t('domain.btn_register')}
                     </button>
                   </div>
                 ))}

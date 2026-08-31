@@ -14,6 +14,7 @@ import {
 import { auth, User } from '@/lib/auth';
 import { dataManager, ServiceOrder, SupportTicket, TicketMessage, TicketAttachment, SecurityLog, SystemForRent, RentalRequest, SystemAccess, SocialProof } from '@/lib/data';
 import BrandLogo from '@/components/BrandLogo';
+import LanguageSelector from '@/components/LanguageSelector';
 import PageLoader from '@/components/PageLoader';
 import ConfirmModal from '@/components/ConfirmModal';
 import Toast from '@/components/Toast';
@@ -1347,6 +1348,8 @@ export default function AdminPage() {
               <BrandLogo />
             </div>
             <div className="flex items-center space-x-2 sm:space-x-3 sm:space-x-4">
+              <LanguageSelector />
+
               <button
                 type="button"
                 onClick={handleRefreshAdminData}

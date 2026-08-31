@@ -2,13 +2,14 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { MousePointerClick, FileText, CheckCircle2, Rocket, ArrowRight, Play, Pause } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 
-interface Step {
+interface StepConfig {
   id: number;
   step: string;
-  title: string;
-  desc: string;
-  detail: string;
+  titleKey: string;
+  descKey: string;
+  detailKey: string;
   icon: any;
   color: {
     text: string;
@@ -20,13 +21,13 @@ interface Step {
   };
 }
 
-const steps: Step[] = [
+const stepsConfig: StepConfig[] = [
   {
     id: 1,
     step: '1',
-    title: 'Escolha',
-    desc: 'Selecione o sistema ideal',
-    detail: 'Navegue pelo catálogo e escolha o software ideal para o seu negócio (ERP, CRM, Vendas, Stocks).',
+    titleKey: 'steps.step1_title',
+    descKey: 'steps.step1_desc',
+    detailKey: 'steps.step1_detail',
     icon: MousePointerClick,
     color: {
       text: 'text-blue-600',
@@ -40,9 +41,9 @@ const steps: Step[] = [
   {
     id: 2,
     step: '2',
-    title: 'Solicite',
-    desc: 'Faça o pedido de aluguer',
-    detail: 'Escolha o plano ideal (mensal ou anual) e envie a solicitação com os dados da sua empresa em segundos.',
+    titleKey: 'steps.step2_title',
+    descKey: 'steps.step2_desc',
+    detailKey: 'steps.step2_detail',
     icon: FileText,
     color: {
       text: 'text-emerald-600',
@@ -56,9 +57,9 @@ const steps: Step[] = [
   {
     id: 3,
     step: '3',
-    title: 'Aprovação',
-    desc: 'Após pagamento, aprovamos',
-    detail: 'Pagamento facilitado via M-Pesa ou transferência. A nossa equipa aprova e configura o seu ambiente.',
+    titleKey: 'steps.step3_title',
+    descKey: 'steps.step3_desc',
+    detailKey: 'steps.step3_detail',
     icon: CheckCircle2,
     color: {
       text: 'text-amber-600',
@@ -72,9 +73,9 @@ const steps: Step[] = [
   {
     id: 4,
     step: '4',
-    title: 'Use',
-    desc: 'Receba credenciais e use',
-    detail: 'Receba os acessos no seu email e WhatsApp. O sistema fica pronto a usar com suporte técnico incluso.',
+    titleKey: 'steps.step4_title',
+    descKey: 'steps.step4_desc',
+    detailKey: 'steps.step4_detail',
     icon: Rocket,
     color: {
       text: 'text-purple-600',
@@ -88,6 +89,7 @@ const steps: Step[] = [
 ];
 
 export default function InteractiveSteps() {
+  const { t } = useLanguage();
   const [activeStep, setActiveStep] = useState<number>(1);
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -103,7 +105,7 @@ export default function InteractiveSteps() {
     };
   }, [isPaused]);
 
-  const currentStepObj = steps.find((s) => s.id === activeStep) || steps[0];
+  const currentStepObj = stepsConfig.find((s) => s.id === activeStep) || stepsConfig[0];
   const IconComponent = currentStepObj.icon;
 
   // Percentual para a barra de progresso horizontal
@@ -118,18 +120,18 @@ export default function InteractiveSteps() {
       {/* Indicador de Auto-Play no Canto */}
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-lg sm:text-xl font-extrabold text-gray-900 flex items-center gap-2">
-          <span>Como Funciona</span>
+          <span>{t('steps.title_section')}</span>
           <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-700 animate-pulse">
-            Passo a Passo
+            {t('steps.subtitle_section')}
           </span>
         </h3>
         <button
           onClick={() => setIsPaused(!isPaused)}
-          className="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-500 hover:text-purple-600 transition bg-gray-100 hover:bg-gray-200 px-2.5 py-1 rounded-full"
-          title={isPaused ? 'Continuar animação' : 'Pausar animação'}
+          className="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-500 hover:text-purple-600 transition bg-gray-100 hover:bg-gray-200 px-2.5 py-1 rounded-full cursor-pointer"
+          title={isPaused ? t('steps.play') : t('steps.pause')}
         >
           {isPaused ? <Play className="w-3 h-3 text-purple-600 fill-purple-600" /> : <Pause className="w-3 h-3 text-gray-600" />}
-          <span>{isPaused ? 'Pausado' : 'Automático'}</span>
+          <span>{isPaused ? t('steps.pause') : t('steps.play')}</span>
         </button>
       </div>
 
@@ -145,7 +147,7 @@ export default function InteractiveSteps() {
 
         {/* 4 Círculos dos Passos */}
         <div className="grid grid-cols-4 gap-2 sm:gap-4 relative z-10">
-          {steps.map((item) => {
+          {stepsConfig.map((item) => {
             const isActive = activeStep === item.id;
             const isCompleted = item.id < activeStep;
             const ItemIcon = item.icon;
@@ -187,10 +189,10 @@ export default function InteractiveSteps() {
                     isActive ? item.color.text : 'text-gray-800 group-hover:text-gray-900'
                   }`}
                 >
-                  {item.title}
+                  {t(item.titleKey)}
                 </h4>
                 <p className="text-[10px] sm:text-xs text-gray-500 max-w-[120px] hidden sm:block mt-0.5 line-clamp-2">
-                  {item.desc}
+                  {t(item.descKey)}
                 </p>
               </div>
             );
@@ -212,27 +214,27 @@ export default function InteractiveSteps() {
               </div>
               <div>
                 <span className="text-[10px] uppercase tracking-wider font-extrabold text-gray-500">
-                  Passo {currentStepObj.step} de 4
+                  {t('steps.step_badge')} {currentStepObj.step} de 4
                 </span>
                 <h5 className={`text-sm sm:text-base font-bold ${currentStepObj.color.text}`}>
-                  {currentStepObj.title} — {currentStepObj.desc}
+                  {t(currentStepObj.titleKey)} — {t(currentStepObj.descKey)}
                 </h5>
                 <p className="text-xs sm:text-sm text-gray-600 mt-1 leading-relaxed">
-                  {currentStepObj.detail}
+                  {t(currentStepObj.detailKey)}
                 </p>
               </div>
             </div>
 
             {/* Navegação Manual com Botões */}
             <div className="flex items-center gap-1.5 self-end sm:self-center flex-shrink-0">
-              {steps.map((s) => (
+              {stepsConfig.map((s) => (
                 <button
                   key={s.id}
                   onClick={() => {
                     setActiveStep(s.id);
                     setIsPaused(true);
                   }}
-                  className={`h-2.5 rounded-full transition-all duration-300 ${
+                  className={`h-2.5 rounded-full transition-all duration-300 cursor-pointer ${
                     activeStep === s.id
                       ? `w-7 bg-gradient-to-r ${s.color.gradient}`
                       : 'w-2.5 bg-gray-300 hover:bg-gray-400'

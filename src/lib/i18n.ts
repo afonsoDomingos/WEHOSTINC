@@ -297,7 +297,7 @@ export const useTranslation = (language: Language = 'pt') => {
 
 export const getLanguage = (): Language => {
   if (typeof window !== 'undefined') {
-    const savedLang = localStorage.getItem('language') as Language;
+    const savedLang = (localStorage.getItem('wehost_lang') || localStorage.getItem('language')) as Language;
     if (savedLang && translations[savedLang]) {
       return savedLang;
     }
@@ -313,6 +313,8 @@ export const getLanguage = (): Language => {
 
 export const setLanguage = (language: Language) => {
   if (typeof window !== 'undefined') {
+    localStorage.setItem('wehost_lang', language);
     localStorage.setItem('language', language);
+    document.documentElement.lang = language === 'pt' ? 'pt-MZ' : 'en';
   }
 };

@@ -9,9 +9,10 @@ import {
 } from 'lucide-react';
 
 import BrandLogo from '@/components/BrandLogo';
-
+import LanguageSelector from '@/components/LanguageSelector';
 import AdminClientViewBanner from '@/components/AdminClientViewBanner';
 import { auth } from '@/lib/auth';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface DashboardNavProps {
   userName?: string;
@@ -21,6 +22,7 @@ interface DashboardNavProps {
 }
 
 export default function DashboardNav({ userName, userAvatar, onLogout, onRefresh }: DashboardNavProps) {
+  const { t } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const pathname = usePathname();
@@ -38,20 +40,20 @@ export default function DashboardNav({ userName, userAvatar, onLogout, onRefresh
   };
 
   const navItems = [
-    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/dashboard/sites', label: 'Meus Domínios & Sites', icon: Globe },
-    { href: '/dashboard/systems', label: 'Sistemas para Aluguer', icon: Package },
-    { href: '/dashboard/orders', label: 'Meus Pedidos', icon: FileText },
-    { href: '/dashboard/site-quote', label: 'Solicitar Site', icon: Sparkles },
-    { href: '/dashboard/academy', label: 'Academia Web', icon: BookOpen },
-    { href: '/dashboard/domains', label: 'Comprar Domínio', icon: Link2 },
-    { href: '/dashboard/email', label: 'Email', icon: Mail },
-    { href: '/dashboard/notifications', label: 'Notificações', icon: Bell },
-    { href: '/dashboard/affiliates', label: 'Programa de Afiliados', icon: Users },
-    { href: '/dashboard/billing', label: 'Faturamento', icon: Database },
-    { href: '/dashboard/tickets', label: 'Suporte', icon: LifeBuoy },
-    { href: '/dashboard/uptime', label: 'Monitorar Uptime', icon: Activity },
-    { href: '/dashboard/settings', label: 'Configurações', icon: SettingsIcon },
+    { href: '/dashboard', label: t('dash.nav_dashboard'), icon: LayoutDashboard },
+    { href: '/dashboard/sites', label: t('dash.nav_sites'), icon: Globe },
+    { href: '/dashboard/systems', label: t('dash.nav_systems'), icon: Package },
+    { href: '/dashboard/orders', label: t('dash.nav_orders'), icon: FileText },
+    { href: '/dashboard/site-quote', label: t('dash.nav_quote'), icon: Sparkles },
+    { href: '/dashboard/academy', label: t('dash.nav_academy'), icon: BookOpen },
+    { href: '/dashboard/domains', label: t('dash.nav_domains'), icon: Link2 },
+    { href: '/dashboard/email', label: t('dash.nav_email'), icon: Mail },
+    { href: '/dashboard/notifications', label: t('dash.nav_notifications'), icon: Bell },
+    { href: '/dashboard/affiliates', label: t('dash.nav_affiliates'), icon: Users },
+    { href: '/dashboard/billing', label: t('dash.nav_billing'), icon: Database },
+    { href: '/dashboard/tickets', label: t('dash.nav_tickets'), icon: LifeBuoy },
+    { href: '/dashboard/uptime', label: t('dash.nav_uptime'), icon: Activity },
+    { href: '/dashboard/settings', label: t('dash.nav_settings'), icon: SettingsIcon },
   ];
 
   const closeMobileMenu = () => setMobileMenuOpen(false);
@@ -70,23 +72,25 @@ export default function DashboardNav({ userName, userAvatar, onLogout, onRefresh
 
             {/* Desktop User Info, Refresh, Notifications & Logout */}
             <div className="hidden md:flex items-center space-x-3.5">
+              <LanguageSelector />
+
               {isActualAdmin && (
                 <Link
                   href="/admin"
                   className="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-bold text-amber-900 bg-amber-100 hover:bg-amber-200 border border-amber-300 rounded-lg transition shadow-sm cursor-pointer"
                   title="Aceder ao Painel Administrativo"
                 >
-                  <span>👑 Painel Admin</span>
+                  <span>{t('dash.admin_panel')}</span>
                 </Link>
               )}
 
               <Link
                 href="/dashboard/notifications"
                 className="relative flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200/80 rounded-lg transition shadow-sm cursor-pointer"
-                title="Notificações"
+                title={t('dash.nav_notifications')}
               >
                 <Bell className="h-3.5 w-3.5 text-purple-600" />
-                <span>Notificações</span>
+                <span>{t('dash.nav_notifications')}</span>
               </Link>
 
               <button
@@ -97,7 +101,7 @@ export default function DashboardNav({ userName, userAvatar, onLogout, onRefresh
                 title="Atualizar dados do servidor"
               >
                 <RefreshCw className={`h-3.5 w-3.5 text-primary-600 ${isRefreshing ? 'animate-spin' : ''}`} />
-                <span>{isRefreshing ? 'A atualizar...' : 'Atualizar'}</span>
+                <span>{isRefreshing ? t('dash.refreshing') : t('dash.refresh')}</span>
               </button>
 
               {userName && (
@@ -111,7 +115,7 @@ export default function DashboardNav({ userName, userAvatar, onLogout, onRefresh
                   ) : (
                     <User className="h-4 w-4 text-primary-600" />
                   )}
-                  <span>Olá, <strong className="text-gray-900">{userName}</strong></span>
+                  <span>{t('dash.greeting')} <strong className="text-gray-900">{userName}</strong></span>
                 </div>
               )}
               <button
@@ -120,12 +124,13 @@ export default function DashboardNav({ userName, userAvatar, onLogout, onRefresh
                 className="flex items-center space-x-2 px-3.5 py-2 text-sm font-medium text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
               >
                 <LogOut className="h-4 w-4" />
-                <span>Sair</span>
+                <span>{t('dash.logout')}</span>
               </button>
             </div>
 
             {/* Mobile Hamburger Toggle Button */}
             <div className="flex md:hidden items-center space-x-2">
+              <LanguageSelector />
               <button
                 type="button"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -160,23 +165,23 @@ export default function DashboardNav({ userName, userAvatar, onLogout, onRefresh
                     )}
                   </div>
                   <div>
-                    <p className="text-xs text-primary-700 font-medium">Usuário Conectado</p>
+                    <p className="text-xs text-primary-700 font-medium">{t('dash.connected_user')}</p>
                     <p className="text-sm font-bold text-gray-900">{userName}</p>
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => { closeMobileMenu(); onLogout(); }}
-                  className="px-3 py-1.5 text-xs font-semibold text-red-600 bg-white border border-red-200 rounded-lg hover:bg-red-50 transition"
+                  className="px-3 py-1.5 text-xs font-semibold text-red-600 bg-white border border-red-200 rounded-lg hover:bg-red-50 transition cursor-pointer"
                 >
-                  Sair
+                  {t('dash.logout')}
                 </button>
               </div>
             )}
 
             <nav className="flex flex-col space-y-1.5">
               <p className="px-2 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">
-                Navegação do Painel
+                {t('dash.nav_title')}
               </p>
               {navItems.map((item) => {
                 const Icon = item.icon;

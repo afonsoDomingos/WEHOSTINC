@@ -5,10 +5,9 @@ import Link from "next/link";
 import { Server, Mail, Shield, Zap, Globe, Users, Search, Sparkles, CheckCircle, Facebook, Phone, Linkedin, Star, ArrowRight, Play, Calendar, Eye, Instagram } from "lucide-react";
 import { websiteTypes } from '@/lib/data';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
-import { useTranslation, getLanguage, setLanguage, Language } from '@/lib/i18n';
+import { useLanguage } from '@/context/LanguageContext';
 
 import Navbar from '@/components/Navbar';
-
 import DomainSearch from '@/components/DomainSearch';
 import VirtualAssistant from '@/components/VirtualAssistant';
 import InteractiveSteps from '@/components/InteractiveSteps';
@@ -17,12 +16,11 @@ import NewsletterForm from '@/components/NewsletterForm';
 import NewsletterPopup from '@/components/NewsletterPopup';
 
 export default function Home() {
+  const { t, language } = useLanguage();
   const [durationMonths, setDurationMonths] = useState<number>(1);
   const [blogPosts, setBlogPosts] = useState<any[]>([]);
   const [blogLoading, setBlogLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [language, setLanguageState] = useState<Language>(getLanguage());
-  const t = useTranslation(language);
 
   // Ticker animado pelos tipos de sites e seus preços
   const tickerTypes = websiteTypes.filter(t => t.basePrice < 100000);
@@ -45,15 +43,11 @@ export default function Home() {
     const fetchBlogPosts = async () => {
       try {
         setBlogLoading(true);
-        console.log('[Home] Buscando posts do blog...');
         const categoryParam = selectedCategory !== 'all' ? `&category=${selectedCategory}` : '';
         const response = await fetch(`/api/blog/posts?status=published&limit=3${categoryParam}`);
         const data = await response.json();
         
-        console.log('[Home] Resposta da API:', data);
-        
         if (data.success) {
-          console.log('[Home] Posts encontrados:', data.posts.length);
           setBlogPosts(data.posts);
         } else {
           console.error('[Home] Erro na API:', data.error);
@@ -79,6 +73,7 @@ export default function Home() {
   const pricingRef = useScrollAnimation<HTMLDivElement>();
   const siteCreationRef = useScrollAnimation<HTMLDivElement>();
   const systemsRentRef = useScrollAnimation<HTMLDivElement>();
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       {/* Navbar Responsivo */}
@@ -86,43 +81,43 @@ export default function Home() {
 
       {/* Hero + Banner unificados — fundo estático, sem layout shift ao pesquisar */}
       <section id="infraestrutura" className="relative min-h-[600px] sm:min-h-[700px] px-4 bg-slate-950 text-white overflow-hidden shadow-2xl w-full flex items-start justify-center pb-0">
-        {/* Imagem de Fundo estática — não se move com o conteúdo */}
+        {/* Imagem de Fundo estática */}
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-70"
           style={{ backgroundImage: "url('/servidores-banner.png')" }}
         />
         <div className="absolute inset-0 bg-gradient-to-b from-slate-950/65 via-slate-950/70 to-slate-950" />
 
-        {/* Conteúdo que cresce para baixo — o fundo não mexe */}
+        {/* Conteúdo */}
         <div className="relative z-10 w-full max-w-7xl mx-auto text-center pt-16 sm:pt-24 pb-8 sm:pb-10">
 
-          {/* Badge — entra vindo de cima */}
+          {/* Badge */}
           <div
             ref={badgeRef}
             className="anim-fade-down inline-flex items-center space-x-2 bg-primary-600/30 border border-primary-400/50 text-primary-200 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs sm:text-sm font-bold mb-4 sm:mb-6 backdrop-blur-md shadow-lg"
           >
             <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 text-primary-300" />
-            <span className="hidden sm:inline">{t.heroBadge}</span>
-            <span className="sm:hidden">{t.heroBadgeMobile}</span>
+            <span className="hidden sm:inline">{t('hero.badge')}</span>
+            <span className="sm:hidden">{t('hero.badge_mobile')}</span>
           </div>
 
-          {/* Título principal — efeito typewriter + shimmer, com delay */}
+          {/* Título principal */}
           <h1
             ref={titleRef}
             className="anim-typewriter anim-delay-200 text-2xl sm:text-4xl lg:text-6xl font-extrabold text-white mb-3 sm:mb-4 tracking-tight leading-tight drop-shadow-lg"
           >
-            {t.heroTitle}
+            {t('hero.title_full')}
           </h1>
 
-          {/* Subtítulo — sobe do baixo */}
+          {/* Subtítulo */}
           <p
             ref={subtitleRef}
             className="anim-fade-up anim-delay-300 text-sm sm:text-base lg:text-xl text-slate-200 mb-6 sm:mb-8 max-w-2xl mx-auto font-semibold drop-shadow px-2"
           >
-            {t.heroSubtitle}
+            {t('hero.subtitle')}
           </p>
 
-          {/* Domain Search — entra com zoom ligeiro */}
+          {/* Domain Search */}
           <div ref={searchRef} className="anim-zoom-in anim-delay-400 px-2">
             <DomainSearch />
           </div>
@@ -133,31 +128,31 @@ export default function Home() {
       <section id="recursos" ref={featuresRef} className="anim-fade-up py-6 sm:py-14 px-3 sm:px-6 bg-white">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-lg sm:text-2xl lg:text-3xl font-extrabold text-center text-gray-900 mb-4 sm:mb-10">
-            {t.whyChooseUs}
+            {t('features.title')}
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6">
             <div className="text-center p-4 sm:p-5 bg-gray-50/80 rounded-2xl border border-gray-100 hover:shadow-lg hover:scale-105 hover:bg-gradient-to-br hover:from-primary-50 hover:to-blue-50 transition-all duration-300 cursor-pointer group">
               <div className="flex justify-center mb-2">
                 <Zap className="h-6 w-6 sm:h-10 sm:w-10 text-primary-600 group-hover:scale-110 group-hover:text-primary-700 transition-transform duration-300" />
               </div>
-              <h3 className="text-sm sm:text-base lg:text-lg font-bold text-gray-900 mb-1 group-hover:text-primary-700 transition-colors">{t.ultraFast}</h3>
-              <p className="text-xs sm:text-sm text-gray-500 leading-tight">{t.ultraFastDesc}</p>
+              <h3 className="text-sm sm:text-base lg:text-lg font-bold text-gray-900 mb-1 group-hover:text-primary-700 transition-colors">{t('features.fast_title')}</h3>
+              <p className="text-xs sm:text-sm text-gray-500 leading-tight">{t('features.fast_desc')}</p>
             </div>
 
             <div className="text-center p-4 sm:p-5 bg-gray-50/80 rounded-2xl border border-gray-100 hover:shadow-lg hover:scale-105 hover:bg-gradient-to-br hover:from-emerald-50 hover:to-green-50 transition-all duration-300 cursor-pointer group">
               <div className="flex justify-center mb-2">
                 <Shield className="h-6 w-6 sm:h-10 sm:w-10 text-primary-600 group-hover:scale-110 group-hover:text-emerald-600 transition-transform duration-300" />
               </div>
-              <h3 className="text-sm sm:text-base lg:text-lg font-bold text-gray-900 mb-1 group-hover:text-emerald-700 transition-colors">{t.secure}</h3>
-              <p className="text-xs sm:text-sm text-gray-500 leading-tight">{t.secureDesc}</p>
+              <h3 className="text-sm sm:text-base lg:text-lg font-bold text-gray-900 mb-1 group-hover:text-emerald-700 transition-colors">{t('features.secure_title')}</h3>
+              <p className="text-xs sm:text-sm text-gray-500 leading-tight">{t('features.secure_desc')}</p>
             </div>
 
             <div className="text-center p-4 sm:p-5 bg-gray-50/80 rounded-2xl border border-gray-100 hover:shadow-lg hover:scale-105 hover:bg-gradient-to-br hover:from-purple-50 hover:to-indigo-50 transition-all duration-300 cursor-pointer group">
               <div className="flex justify-center mb-2">
                 <Users className="h-6 w-6 sm:h-10 sm:w-10 text-primary-600 group-hover:scale-110 group-hover:text-purple-600 transition-transform duration-300" />
               </div>
-              <h3 className="text-sm sm:text-base lg:text-lg font-bold text-gray-900 mb-1 group-hover:text-purple-700 transition-colors">{t.support247}</h3>
-              <p className="text-xs sm:text-sm text-gray-500 leading-tight">{t.support247Desc}</p>
+              <h3 className="text-sm sm:text-base lg:text-lg font-bold text-gray-900 mb-1 group-hover:text-purple-700 transition-colors">{t('features.support_title')}</h3>
+              <p className="text-xs sm:text-sm text-gray-500 leading-tight">{t('features.support_desc')}</p>
             </div>
           </div>
         </div>
@@ -168,10 +163,10 @@ export default function Home() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-6 sm:mb-10">
             <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">
-              {t.hostingPlans}
+              {t('pricing.title')}
             </h2>
             <p className="text-sm sm:text-base text-gray-600 max-w-xl mx-auto mb-4 sm:mb-6 px-2">
-              {t.hostingPlansDesc}
+              {t('pricing.subtitle')}
             </p>
 
             {/* Seleção de Duração / Período da Hospedagem */}
@@ -183,7 +178,7 @@ export default function Home() {
                   durationMonths === 1 ? 'bg-white text-gray-900 shadow-md' : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
-                {t.oneMonth}
+                {t('pricing.1month')}
               </button>
               <button
                 type="button"
@@ -192,9 +187,9 @@ export default function Home() {
                   durationMonths === 3 ? 'bg-blue-600 text-white shadow-md' : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
-                <span>{t.threeMonths}</span>
+                <span>{t('pricing.3months')}</span>
                 <span className="bg-blue-200 text-blue-900 text-[8px] sm:text-[10px] font-extrabold px-1 sm:px-1.5 py-0.2 rounded-full hidden sm:inline">
-                  -5% {t.off}
+                  -5% {t('pricing.off')}
                 </span>
               </button>
               <button
@@ -204,9 +199,9 @@ export default function Home() {
                   durationMonths === 6 ? 'bg-purple-600 text-white shadow-md' : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
-                <span>{t.sixMonths}</span>
+                <span>{t('pricing.6months')}</span>
                 <span className="bg-purple-200 text-purple-900 text-[8px] sm:text-[10px] font-extrabold px-1 sm:px-1.5 py-0.2 rounded-full hidden sm:inline">
-                  -10% {t.off}
+                  -10% {t('pricing.off')}
                 </span>
               </button>
               <button
@@ -216,9 +211,9 @@ export default function Home() {
                   durationMonths === 12 ? 'bg-primary-600 text-white shadow-md' : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
-                <span>{t.oneYear}</span>
+                <span>{t('pricing.1year')}</span>
                 <span className="bg-amber-400 text-gray-900 text-[8px] sm:text-[10px] font-extrabold px-1.5 sm:px-2 py-0.5 rounded-full uppercase tracking-wider hidden sm:inline">
-                  2 {t.off}
+                  {t('pricing.2months_free')}
                 </span>
               </button>
             </div>
@@ -228,8 +223,8 @@ export default function Home() {
             {/* Basic Plan */}
             <div className="bg-white rounded-xl shadow-lg p-5 sm:p-8 flex flex-col justify-between border border-gray-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group">
               <div>
-                <h3 className="text-lg sm:text-2xl font-bold text-gray-900 mb-2 group-hover:text-primary-600 transition-colors">{t.basicPlan}</h3>
-                <p className="text-sm sm:text-base text-gray-600 mb-4">{t.basicPlanDesc}</p>
+                <h3 className="text-lg sm:text-2xl font-bold text-gray-900 mb-2 group-hover:text-primary-600 transition-colors">{t('pricing.basic_name')}</h3>
+                <p className="text-sm sm:text-base text-gray-600 mb-4">{t('pricing.basic_desc')}</p>
                 <div className="mb-4 sm:mb-6">
                   <span className="text-2xl sm:text-4xl font-bold text-gray-900 group-hover:text-primary-600 transition-colors">
                     {durationMonths === 12
@@ -241,34 +236,34 @@ export default function Home() {
                       : '550 MT'}
                   </span>
                   <span className="text-xs sm:text-sm text-gray-600 font-medium">
-                    {durationMonths === 12 ? ' /ano' : ` /${durationMonths}M`}
+                    {durationMonths === 12 ? ` ${t('pricing.per_year')}` : ` /${durationMonths}M`}
                   </span>
                   {durationMonths > 1 && (
                     <div className="text-[10px] sm:text-xs font-semibold text-emerald-600 mt-1">
                       {durationMonths === 12
-                        ? 'Economize 1.100 MT (2 meses grátis)'
+                        ? `${t('pricing.save')} 1.100 MT (${t('pricing.2months_free')})`
                         : durationMonths === 6
-                        ? 'Economize 330 MT (10% Desconto)'
-                        : 'Economize 82 MT (5% Desconto)'}
+                        ? `${t('pricing.save')} 330 MT (10% ${t('pricing.discount')})`
+                        : `${t('pricing.save')} 82 MT (5% ${t('pricing.discount')})`}
                     </div>
                   )}
                 </div>
                 <ul className="space-y-2 sm:space-y-3 mb-4 sm:mb-8">
                   <li className="flex items-center text-xs sm:text-sm text-gray-700 group-hover:text-gray-900 transition-colors">
                     <Server className="h-4 w-4 sm:h-5 sm:w-5 text-primary-600 mr-2 flex-shrink-0 group-hover:scale-110 transition-transform" />
-                    1 Site
+                    {t('pricing.basic_f1')}
                   </li>
                   <li className="flex items-center text-xs sm:text-sm text-gray-700 group-hover:text-gray-900 transition-colors">
                     <Mail className="h-4 w-4 sm:h-5 sm:w-5 text-primary-600 mr-2 flex-shrink-0 group-hover:scale-110 transition-transform" />
-                    5 Contas de Email
+                    {t('pricing.basic_f2')}
                   </li>
                   <li className="flex items-center text-xs sm:text-sm text-gray-700 group-hover:text-gray-900 transition-colors">
                     <Globe className="h-4 w-4 sm:h-5 sm:w-5 text-primary-600 mr-2 flex-shrink-0 group-hover:scale-110 transition-transform" />
-                    10 GB Armazenamento
+                    {t('pricing.basic_f3')}
                   </li>
                   <li className="flex items-center text-xs sm:text-sm text-gray-700 group-hover:text-gray-900 transition-colors">
                     <Zap className="h-4 w-4 sm:h-5 sm:w-5 text-primary-600 mr-2 flex-shrink-0 group-hover:scale-110 transition-transform" />
-                    Tráfego Ilimitado
+                    {t('pricing.basic_f4')}
                   </li>
                 </ul>
               </div>
@@ -276,18 +271,18 @@ export default function Home() {
                 href={`/checkout?plan=basic&billingCycle=${durationMonths === 12 ? 'annual' : 'monthly'}`}
                 className="block w-full py-2.5 sm:py-3 text-center border-2 border-primary-600 text-primary-600 font-bold rounded-xl hover:bg-primary-50 hover:scale-105 active:scale-95 transition-all duration-300 text-xs sm:text-sm"
               >
-                Assinar Agora
+                {t('pricing.btn_subscribe')}
               </Link>
             </div>
 
             {/* Pro Plan */}
             <div className="bg-primary-600 rounded-xl shadow-xl p-5 sm:p-8 text-white flex flex-col justify-between relative transform lg:-translate-y-2 border border-primary-500 hover:shadow-2xl hover:-translate-y-4 transition-all duration-300 group">
               <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-amber-400 text-gray-900 text-[10px] sm:text-xs font-black px-3 sm:px-4 py-1 rounded-full uppercase tracking-wider shadow group-hover:scale-110 transition-transform">
-                MAIS POPULAR
+                {t('pricing.most_popular')}
               </div>
               <div>
-                <h3 className="text-lg sm:text-2xl font-bold text-white mb-2 pt-2 group-hover:text-blue-100 transition-colors">{t.proPlan}</h3>
-                <p className="text-sm sm:text-base text-blue-100 mb-4">{t.proPlanDesc}</p>
+                <h3 className="text-lg sm:text-2xl font-bold text-white mb-2 pt-2 group-hover:text-blue-100 transition-colors">{t('pricing.pro_name')}</h3>
+                <p className="text-sm sm:text-base text-blue-100 mb-4">{t('pricing.pro_desc')}</p>
                 <div className="mb-4 sm:mb-6">
                   <span className="text-2xl sm:text-4xl font-bold text-white group-hover:text-blue-100 transition-colors">
                     {durationMonths === 12
@@ -298,39 +293,39 @@ export default function Home() {
                       ? '7.125 MT'
                       : '2.500 MT'}
                   </span>
-                  <span className="text-xs sm:text-sm text-blue-100 text-sm font-medium">
-                    {durationMonths === 12 ? ' /ano' : ` /${durationMonths}M`}
+                  <span className="text-xs sm:text-sm text-blue-100 font-medium">
+                    {durationMonths === 12 ? ` ${t('pricing.per_year')}` : ` /${durationMonths}M`}
                   </span>
                   {durationMonths > 1 && (
                     <div className="text-[10px] sm:text-xs font-semibold text-amber-300 mt-1">
                       {durationMonths === 12
-                        ? 'Economize 5.000 MT (2 meses grátis)'
+                        ? `${t('pricing.save')} 5.000 MT (${t('pricing.2months_free')})`
                         : durationMonths === 6
-                        ? 'Economize 1.500 MT (10% Desconto)'
-                        : 'Economize 375 MT (5% Desconto)'}
+                        ? `${t('pricing.save')} 1.500 MT (10% ${t('pricing.discount')})`
+                        : `${t('pricing.save')} 375 MT (5% ${t('pricing.discount')})`}
                     </div>
                   )}
                 </div>
                 <ul className="space-y-2 sm:space-y-3 mb-4 sm:mb-8">
                   <li className="flex items-center text-xs sm:text-sm text-white group-hover:text-blue-100 transition-colors">
                     <Server className="h-4 w-4 sm:h-5 sm:w-5 text-blue-200 mr-2 flex-shrink-0 group-hover:scale-110 transition-transform" />
-                    5 Sites
+                    {t('pricing.pro_f1')}
                   </li>
                   <li className="flex items-center text-xs sm:text-sm text-white group-hover:text-blue-100 transition-colors">
                     <Mail className="h-4 w-4 sm:h-5 sm:w-5 text-blue-200 mr-2 flex-shrink-0 group-hover:scale-110 transition-transform" />
-                    20 Contas de Email
+                    {t('pricing.pro_f2')}
                   </li>
                   <li className="flex items-center text-xs sm:text-sm text-white group-hover:text-blue-100 transition-colors">
                     <Globe className="h-4 w-4 sm:h-5 sm:w-5 text-blue-200 mr-2 flex-shrink-0 group-hover:scale-110 transition-transform" />
-                    50 GB Armazenamento
+                    {t('pricing.pro_f3')}
                   </li>
                   <li className="flex items-center text-xs sm:text-sm text-white group-hover:text-blue-100 transition-colors">
                     <Zap className="h-4 w-4 sm:h-5 sm:w-5 text-blue-200 mr-2 flex-shrink-0 group-hover:scale-110 transition-transform" />
-                    Tráfego Ilimitado
+                    {t('pricing.pro_f4')}
                   </li>
                   <li className="flex items-center text-xs sm:text-sm text-white group-hover:text-blue-100 transition-colors">
                     <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-blue-200 mr-2 flex-shrink-0 group-hover:scale-110 transition-transform" />
-                    SSL Grátis
+                    {t('pricing.pro_f5')}
                   </li>
                 </ul>
               </div>
@@ -338,15 +333,15 @@ export default function Home() {
                 href={`/checkout?plan=pro&billingCycle=${durationMonths === 12 ? 'annual' : 'monthly'}`}
                 className="block w-full py-2.5 sm:py-3.5 text-center bg-white text-primary-700 rounded-xl hover:bg-gray-100 hover:scale-105 active:scale-95 transition-all duration-300 font-bold shadow-md text-xs sm:text-sm"
               >
-                Assinar Agora
+                {t('pricing.btn_pro')}
               </Link>
             </div>
 
             {/* Enterprise Plan */}
             <div className="bg-white rounded-xl shadow-lg p-5 sm:p-8 flex flex-col justify-between border border-gray-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group">
               <div>
-                <h3 className="text-lg sm:text-2xl font-bold text-gray-900 mb-2 group-hover:text-primary-600 transition-colors">{t.enterprisePlan}</h3>
-                <p className="text-sm sm:text-base text-gray-600 mb-4">{t.enterprisePlanDesc}</p>
+                <h3 className="text-lg sm:text-2xl font-bold text-gray-900 mb-2 group-hover:text-primary-600 transition-colors">{t('pricing.enterprise_name')}</h3>
+                <p className="text-sm sm:text-base text-gray-600 mb-4">{t('pricing.enterprise_desc')}</p>
                 <div className="mb-4 sm:mb-6">
                   <span className="text-2xl sm:text-4xl font-bold text-gray-900 group-hover:text-primary-600 transition-colors">
                     {durationMonths === 12
@@ -358,38 +353,38 @@ export default function Home() {
                       : '6.200 MT'}
                   </span>
                   <span className="text-xs sm:text-sm text-gray-600 font-medium">
-                    {durationMonths === 12 ? ' /ano' : ` /${durationMonths}M`}
+                    {durationMonths === 12 ? ` ${t('pricing.per_year')}` : ` /${durationMonths}M`}
                   </span>
                   {durationMonths > 1 && (
                     <div className="text-[10px] sm:text-xs font-semibold text-emerald-600 mt-1">
                       {durationMonths === 12
-                        ? 'Economize 12.400 MT (2 meses grátis)'
+                        ? `${t('pricing.save')} 12.400 MT (${t('pricing.2months_free')})`
                         : durationMonths === 6
-                        ? 'Economize 3.720 MT (10% Desconto)'
-                        : 'Economize 930 MT (5% Desconto)'}
+                        ? `${t('pricing.save')} 3.720 MT (10% ${t('pricing.discount')})`
+                        : `${t('pricing.save')} 930 MT (5% ${t('pricing.discount')})`}
                     </div>
                   )}
                 </div>
                 <ul className="space-y-2 sm:space-y-3 mb-4 sm:mb-8">
                   <li className="flex items-center text-xs sm:text-sm text-gray-700 group-hover:text-gray-900 transition-colors">
                     <Server className="h-4 w-4 sm:h-5 sm:w-5 text-primary-600 mr-2 flex-shrink-0 group-hover:scale-110 transition-transform" />
-                    Sites Ilimitados
+                    {t('pricing.enterprise_f1')}
                   </li>
                   <li className="flex items-center text-xs sm:text-sm text-gray-700 group-hover:text-gray-900 transition-colors">
                     <Mail className="h-4 w-4 sm:h-5 sm:w-5 text-primary-600 mr-2 flex-shrink-0 group-hover:scale-110 transition-transform" />
-                    Email Ilimitado
+                    {t('pricing.enterprise_f2')}
                   </li>
                   <li className="flex items-center text-xs sm:text-sm text-gray-700 group-hover:text-gray-900 transition-colors">
                     <Globe className="h-4 w-4 sm:h-5 sm:w-5 text-primary-600 mr-2 flex-shrink-0 group-hover:scale-110 transition-transform" />
-                    200 GB Armazenamento
+                    {t('pricing.enterprise_f3')}
                   </li>
                   <li className="flex items-center text-xs sm:text-sm text-gray-700 group-hover:text-gray-900 transition-colors">
                     <Zap className="h-4 w-4 sm:h-5 sm:w-5 text-primary-600 mr-2 flex-shrink-0 group-hover:scale-110 transition-transform" />
-                    Tráfego Ilimitado
+                    {t('pricing.enterprise_f4')}
                   </li>
                   <li className="flex items-center text-xs sm:text-sm text-gray-700 group-hover:text-gray-900 transition-colors">
                     <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-primary-600 mr-2 flex-shrink-0 group-hover:scale-110 transition-transform" />
-                    SSL + CDN Grátis
+                    {t('pricing.enterprise_f5')}
                   </li>
                 </ul>
               </div>
@@ -397,49 +392,49 @@ export default function Home() {
                 href={`/checkout?plan=enterprise&billingCycle=${durationMonths === 12 ? 'annual' : 'monthly'}`}
                 className="block w-full py-2.5 sm:py-3 text-center border-2 border-primary-600 text-primary-600 font-bold rounded-xl hover:bg-primary-50 hover:scale-105 active:scale-95 transition-all duration-300 text-xs sm:text-sm"
               >
-                Assinar Agora
+                {t('pricing.btn_enterprise')}
               </Link>
             </div>
           </div>
 
-          {/* Website Creation Service Banner - Mobile First */}
+          {/* Website Creation Service Banner */}
           <div id="criacao-sites" ref={siteCreationRef} className="anim-fade-up mt-6 sm:mt-10 bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-xl border border-gray-200 relative overflow-hidden hover:shadow-2xl transition-shadow duration-300">
             <div className="flex flex-col lg:flex-row items-center justify-between gap-4 sm:gap-6 relative z-10">
               <div className="flex-1">
                 <div className="inline-flex items-center space-x-1 sm:space-x-1.5 bg-primary-50 text-primary-800 border border-primary-200 px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-[11px] font-bold uppercase tracking-wider mb-2 sm:mb-2.5 hover:bg-primary-100 transition-colors cursor-default">
                   <Sparkles className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-primary-600 group-hover:scale-110 transition-transform" />
-                  <span>Serviço Premium</span>
+                  <span>{t('sites.badge')}</span>
                 </div>
                 <h3 className="text-lg sm:text-2xl sm:text-3xl font-extrabold text-gray-900 mb-1.5 sm:mb-2 group-hover:text-primary-600 transition-colors">
-                  Criação de Sites Profissionais
+                  {t('sites.title')}
                 </h3>
                 <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4 leading-relaxed max-w-2xl">
-                  Desenvolvemos a presença online completa da sua empresa em Moçambique com design exclusivo, moderno, rápido e otimizado para o Google.
+                  {t('sites.desc')}
                 </p>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-gray-700">
                   <div className="flex items-center space-x-1.5 sm:space-x-2 group cursor-default">
                     <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-emerald-600 flex-shrink-0 group-hover:scale-110 transition-transform" />
-                    <span className="group-hover:text-emerald-700 transition-colors">Design Responsivo</span>
+                    <span className="group-hover:text-emerald-700 transition-colors">{t('sites.feat_responsive')}</span>
                   </div>
                   <div className="flex items-center space-x-1.5 sm:space-x-2 group cursor-default">
                     <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-emerald-600 flex-shrink-0 group-hover:scale-110 transition-transform" />
-                    <span className="group-hover:text-emerald-700 transition-colors">Domínio + 1 Ano Grátis</span>
+                    <span className="group-hover:text-emerald-700 transition-colors">{t('sites.feat_domain')}</span>
                   </div>
                   <div className="flex items-center space-x-1.5 sm:space-x-2 group cursor-default">
                     <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-emerald-600 flex-shrink-0 group-hover:scale-110 transition-transform" />
-                    <span className="group-hover:text-emerald-700 transition-colors">WhatsApp & Redes</span>
+                    <span className="group-hover:text-emerald-700 transition-colors">{t('sites.feat_social')}</span>
                   </div>
                   <div className="flex items-center space-x-1.5 sm:space-x-2 group cursor-default">
                     <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-emerald-600 flex-shrink-0 group-hover:scale-110 transition-transform" />
-                    <span className="group-hover:text-emerald-700 transition-colors">Emails Ilimitados</span>
+                    <span className="group-hover:text-emerald-700 transition-colors">{t('sites.feat_emails')}</span>
                   </div>
                 </div>
               </div>
 
               <div className="w-full lg:w-72 bg-gradient-to-b from-gray-50 to-primary-50/40 rounded-xl sm:rounded-2xl p-3 sm:p-5 border border-gray-200 text-center flex flex-col justify-between shrink-0 shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300">
                 <div>
-                  <span className="text-[10px] sm:text-[11px] uppercase font-bold text-gray-500 tracking-wider block mb-1.5 sm:mb-2">Investimento Único</span>
+                  <span className="text-[10px] sm:text-[11px] uppercase font-bold text-gray-500 tracking-wider block mb-1.5 sm:mb-2">{t('sites.investment_title')}</span>
 
                   {/* Ticker animado */}
                   <div className="min-h-[60px] sm:min-h-[80px] flex flex-col items-center justify-center">
@@ -474,14 +469,14 @@ export default function Home() {
                     ))}
                   </div>
 
-                  <p className="text-[9px] sm:text-[10px] text-gray-400 mb-2 sm:mb-4 font-medium">Preço varia por tipo • Parcelado</p>
+                  <p className="text-[9px] sm:text-[10px] text-gray-400 mb-2 sm:mb-4 font-medium">{t('sites.investment_note')}</p>
                 </div>
 
                 <Link
                   href="/site-quote"
-                  className="w-full py-2 sm:py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold text-[10px] sm:text-xs sm:text-sm rounded-xl shadow transition duration-200 block text-center hover:scale-105 active:scale-95 transition-transform"
+                  className="w-full py-2 sm:py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold text-[10px] sm:text-xs sm:text-sm rounded-xl shadow transition duration-200 block text-center hover:scale-105 active:scale-95 transition-transform cursor-pointer"
                 >
-                  Ver Tipos de Site →
+                  {t('sites.btn_quote')}
                 </Link>
               </div>
             </div>
@@ -489,19 +484,19 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Systems for Rent Section - Mobile First */}
+      {/* Systems for Rent Section */}
       <section id="sistemas-aluguer" ref={systemsRentRef} className="anim-fade-up py-10 sm:py-16 px-3 sm:px-6 bg-gradient-to-b from-white to-purple-50">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-6 sm:mb-10">
             <div className="inline-flex items-center space-x-1.5 sm:space-x-2 bg-purple-100 text-purple-800 border border-purple-200 px-3 sm:px-4 py-1.5 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-3 sm:mb-4">
               <Star className="h-3 w-3 sm:h-4 sm:w-4 text-purple-600" />
-              <span>Novo Serviço</span>
+              <span>{t('systems.badge')}</span>
             </div>
             <h2 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-gray-900 mb-2 sm:mb-3">
-              Aluguel de Sistemas Profissionais
+              {t('systems.title')}
             </h2>
             <p className="text-sm sm:text-base text-gray-600 max-w-2xl mx-auto mb-4 sm:mb-6 px-2">
-              Alugue sistemas prontos para usar sem precisar desenvolver do zero. ERP, CRM, Gestão de Stocks, e muito mais.
+              {t('systems.desc')}
             </p>
           </div>
 
@@ -516,11 +511,11 @@ export default function Home() {
               href="/systems"
               className="inline-flex items-center space-x-2 bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs sm:text-sm px-6 sm:px-8 py-3 sm:py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95"
             >
-              <span>Ver Sistemas Disponíveis</span>
+              <span>{t('systems.btn_view')}</span>
               <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
             </Link>
             <p className="text-[10px] sm:text-xs text-gray-500 mt-2 sm:mt-3">
-              Ciclo mensal ou anual • Suporte incluído
+              {t('systems.subtext')}
             </p>
           </div>
         </div>
@@ -535,31 +530,31 @@ export default function Home() {
                 href="/"
                 className="text-sm text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1"
               >
-                ← Voltar ao Início
+                {t('blog.back_home')}
               </Link>
             </div>
             <h2 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-gray-900 mb-2 sm:mb-3">
-              Notícias e Atualizações
+              {t('blog.title')}
             </h2>
             <p className="text-sm sm:text-base text-gray-600 max-w-2xl mx-auto">
-              Fique por dentro das últimas novidades sobre hospedagem, tecnologia e dicas para o seu negócio online.
+              {t('blog.desc')}
             </p>
           </div>
 
           {/* Menu de Categorias */}
           <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mb-8 sm:mb-10">
             {[
-              { id: 'all', label: 'Todas' },
-              { id: 'news', label: 'Notícias' },
-              { id: 'tutorial', label: 'Tutoriais' },
-              { id: 'announcement', label: 'Anúncios' },
-              { id: 'update', label: 'Atualizações' },
-              { id: 'feature', label: 'Funcionalidades' }
+              { id: 'all', label: t('blog.cat_all') },
+              { id: 'news', label: t('blog.cat_news') },
+              { id: 'tutorial', label: t('blog.cat_tutorial') },
+              { id: 'announcement', label: t('blog.cat_announcement') },
+              { id: 'update', label: t('blog.cat_update') },
+              { id: 'feature', label: t('blog.cat_feature') }
             ].map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}
-                className={`px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all duration-300 ${
+                className={`px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all duration-300 cursor-pointer ${
                   selectedCategory === cat.id
                     ? 'bg-blue-600 text-white shadow-lg scale-105'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -576,7 +571,7 @@ export default function Home() {
             </div>
           ) : blogPosts.length > 0 ? (
             <div className="md:hidden">
-              {/* Mobile: 3 posts em coluna única com scroll */}
+              {/* Mobile: 3 posts em coluna única */}
               <div className="max-h-[600px] overflow-y-auto space-y-4">
                 {blogPosts.slice(0, 3).map((post) => (
                   <Link 
@@ -605,7 +600,7 @@ export default function Home() {
                         <div className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
                           <span>
-                            {new Date(post.publishedAt).toLocaleDateString('pt-MZ', {
+                            {new Date(post.publishedAt).toLocaleDateString(language === 'en' ? 'en-US' : 'pt-MZ', {
                               day: '2-digit',
                               month: '2-digit',
                               year: '2-digit'
@@ -658,7 +653,7 @@ export default function Home() {
                       <div className="flex items-center space-x-2">
                         <Calendar className="h-4 w-4" />
                         <span>
-                          {new Date(post.publishedAt).toLocaleDateString('pt-PT', {
+                          {new Date(post.publishedAt).toLocaleDateString(language === 'en' ? 'en-US' : 'pt-PT', {
                             day: '2-digit',
                             month: 'short',
                             year: 'numeric'
@@ -666,7 +661,7 @@ export default function Home() {
                         </span>
                       </div>
                       <span className="text-blue-600 font-semibold group-hover:underline">
-                        Ler mais →
+                        {t('blog.read_more')}
                       </span>
                     </div>
                   </div>
@@ -677,7 +672,7 @@ export default function Home() {
           
           {!blogLoading && blogPosts.length === 0 && (
             <div className="text-center py-12">
-              <p className="text-gray-500">Nenhuma notícia publicada ainda.</p>
+              <p className="text-gray-500">{t('blog.no_posts')}</p>
             </div>
           )}
 
@@ -686,7 +681,7 @@ export default function Home() {
               href="/blog"
               className="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm px-6 sm:px-8 py-3 sm:py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95"
             >
-              <span>Ver Todas as Notícias</span>
+              <span>{t('blog.btn_all_posts')}</span>
               <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
             </Link>
           </div>
@@ -696,9 +691,8 @@ export default function Home() {
       {/* Partners Section */}
       <PartnersSection />
 
-      {/* Footer com Fundo do Datacenter em Alta Tecnologia - Mobile First */}
+      {/* Footer */}
       <footer id="contacto" className="relative bg-slate-950 text-white py-10 sm:py-16 px-3 sm:px-4 overflow-hidden border-t border-slate-800">
-        {/* Imagem de Fundo Datacenter 100% Visível em Cores Reais */}
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-65"
           style={{ backgroundImage: "url('/footer-bg.jpg')" }}
@@ -713,7 +707,7 @@ export default function Home() {
                 <span className="text-xl sm:text-2xl font-bold tracking-tight group-hover:text-primary-300 transition-colors">WEHOSTHERE</span>
               </div>
               <p className="text-slate-400 text-xs sm:text-sm leading-relaxed mb-3 sm:mb-4">
-                Sua solução completa em hospedagem de sites, e-mail corporativo e servidores em Moçambique.
+                {t('footer.about')}
               </p>
               
               {/* Links das Redes Sociais */}
@@ -760,16 +754,16 @@ export default function Home() {
             </div>
 
             <div>
-              <h4 className="font-bold text-white mb-3 sm:mb-4 uppercase tracking-wider text-[10px] sm:text-xs">Produtos</h4>
+              <h4 className="font-bold text-white mb-3 sm:mb-4 uppercase tracking-wider text-[10px] sm:text-xs">{t('footer.products_title')}</h4>
               <ul className="space-y-1.5 sm:space-y-2 text-slate-400 text-[10px] sm:text-sm">
-                <li className="hover:text-primary-300 transition cursor-pointer hover:translate-x-1 hover:translate-y-[-2px] duration-300">Hospedagem de Sites</li>
-                <li className="hover:text-primary-300 transition cursor-pointer hover:translate-x-1 hover:translate-y-[-2px] duration-300">Email Corporativo</li>
-                <li className="hover:text-primary-300 transition cursor-pointer hover:translate-x-1 hover:translate-y-[-2px] duration-300">Servidores VPS</li>
-                <li className="hover:text-primary-300 transition cursor-pointer hover:translate-x-1 hover:translate-y-[-2px] duration-300">Registo de Domínios</li>
+                <li className="hover:text-primary-300 transition cursor-pointer hover:translate-x-1 duration-300">{t('footer.prod_hosting')}</li>
+                <li className="hover:text-primary-300 transition cursor-pointer hover:translate-x-1 duration-300">{t('footer.prod_email')}</li>
+                <li className="hover:text-primary-300 transition cursor-pointer hover:translate-x-1 duration-300">{t('footer.prod_vps')}</li>
+                <li className="hover:text-primary-300 transition cursor-pointer hover:translate-x-1 duration-300">{t('footer.prod_domains')}</li>
               </ul>
             </div>
             <div>
-              <h4 className="font-bold text-white mb-3 sm:mb-4 uppercase tracking-wider text-[10px] sm:text-xs">Suporte & Contacto</h4>
+              <h4 className="font-bold text-white mb-3 sm:mb-4 uppercase tracking-wider text-[10px] sm:text-xs">{t('footer.support_title')}</h4>
               <ul className="space-y-1.5 sm:space-y-2 text-slate-400 text-[10px] sm:text-sm">
                 <li className="transition flex items-center space-x-1.5 font-bold text-slate-200">
                   <a
@@ -798,33 +792,33 @@ export default function Home() {
                     <span>info@wehosthere.com</span>
                   </a>
                 </li>
-                <li className="hover:text-primary-300 transition cursor-pointer hover:translate-x-1 hover:translate-y-[-2px] duration-300">Central de Ajuda</li>
-                <li className="hover:text-primary-300 transition cursor-pointer hover:translate-x-1 hover:translate-y-[-2px] duration-300">Tutoriais & Documentação</li>
-                <li className="hover:text-primary-300 transition cursor-pointer hover:translate-x-1 hover:translate-y-[-2px] duration-300">Status do Sistema</li>
+                <li className="hover:text-primary-300 transition cursor-pointer hover:translate-x-1 duration-300">{t('footer.help_center')}</li>
+                <li className="hover:text-primary-300 transition cursor-pointer hover:translate-x-1 duration-300">{t('footer.tutorials')}</li>
+                <li className="hover:text-primary-300 transition cursor-pointer hover:translate-x-1 duration-300">{t('footer.status')}</li>
               </ul>
             </div>
             <div>
-              <h4 className="font-bold text-white mb-3 sm:mb-4 uppercase tracking-wider text-[10px] sm:text-xs">Newsletter</h4>
+              <h4 className="font-bold text-white mb-3 sm:mb-4 uppercase tracking-wider text-[10px] sm:text-xs">{t('newsletter.title')}</h4>
               <p className="text-slate-400 text-[10px] sm:text-xs mb-3 sm:mb-4">
-                Receba novidades e promoções exclusivas.
+                {t('newsletter.desc')}
               </p>
               <NewsletterForm />
             </div>
             <div>
-              <h4 className="font-bold text-white mb-3 sm:mb-4 uppercase tracking-wider text-[10px] sm:text-xs">Legal & Garantias</h4>
+              <h4 className="font-bold text-white mb-3 sm:mb-4 uppercase tracking-wider text-[10px] sm:text-xs">{t('footer.legal_title')}</h4>
               <ul className="space-y-1.5 sm:space-y-2 text-slate-400 text-[10px] sm:text-sm">
-                <li className="hover:text-primary-300 transition cursor-pointer hover:translate-x-1 hover:translate-y-[-2px] duration-300">
-                  <Link href="/terms" className="hover:text-primary-300">Termos de Serviço</Link>
+                <li className="hover:text-primary-300 transition cursor-pointer hover:translate-x-1 duration-300">
+                  <Link href="/terms" className="hover:text-primary-300">{t('footer.terms')}</Link>
                 </li>
-                <li className="hover:text-primary-300 transition cursor-pointer hover:translate-x-1 hover:translate-y-[-2px] duration-300">
-                  <Link href="/privacy" className="hover:text-primary-300">Política de Privacidade</Link>
+                <li className="hover:text-primary-300 transition cursor-pointer hover:translate-x-1 duration-300">
+                  <Link href="/privacy" className="hover:text-primary-300">{t('footer.privacy')}</Link>
                 </li>
-                <li className="hover:text-primary-300 transition cursor-pointer hover:translate-x-1 hover:translate-y-[-2px] duration-300">SLA 99.9% Uptime</li>
+                <li className="hover:text-primary-300 transition cursor-pointer hover:translate-x-1 duration-300">{t('footer.sla')}</li>
               </ul>
             </div>
           </div>
           <div className="border-t border-slate-800/80 mt-8 sm:mt-12 pt-6 sm:pt-8 text-center text-slate-400 text-[10px] sm:text-xs font-medium">
-            <p className="hover:text-slate-300 transition-colors cursor-default">&copy; {new Date().getFullYear()} WEHOSTHERE. Todos os direitos reservados. Moçambique.</p>
+            <p className="hover:text-slate-300 transition-colors cursor-default">&copy; {new Date().getFullYear()} {t('footer.copyright')}</p>
           </div>
         </div>
       </footer>

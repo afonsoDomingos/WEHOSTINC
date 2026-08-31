@@ -161,36 +161,35 @@ export default function Navbar() {
               onClick={closeMobileMenu}
               className="px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-medium text-gray-800 hover:bg-primary-50 hover:text-primary-600 transition"
             >
-              Planos de Hospedagem
+              {t('nav.plans')}
             </Link>
             <Link
               href="/#criacao-sites"
               onClick={closeMobileMenu}
               className="px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-semibold text-primary-700 bg-primary-50/80 border border-primary-100 flex items-center justify-between transition"
             >
-              <span>Criação de Sites</span>
-              <span className="text-[10px] sm:text-xs bg-primary-600 text-white px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full">a partir 12.000 MT</span>
+              <span>{t('nav.sites')}</span>
             </Link>
             <Link
               href="/systems"
               onClick={closeMobileMenu}
               className="px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-medium text-gray-800 hover:bg-primary-50 hover:text-primary-600 transition"
             >
-              Sistemas Prontos
+              {t('nav.systems')}
             </Link>
             <Link
               href="#recursos"
               onClick={closeMobileMenu}
               className="px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-medium text-gray-800 hover:bg-primary-50 hover:text-primary-600 transition"
             >
-              Recursos
+              {t('nav.resources')}
             </Link>
             <Link
               href="#contacto"
               onClick={closeMobileMenu}
               className="px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-medium text-gray-800 hover:bg-primary-50 hover:text-primary-600 transition"
             >
-              Contacto
+              {t('nav.contact')}
             </Link>
           </nav>
 
@@ -205,23 +204,23 @@ export default function Navbar() {
                       className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-primary-200 shrink-0"
                     />
                     <div className="min-w-0 flex-1">
-                      <p className="text-[10px] sm:text-xs text-gray-600 font-medium">Sessão iniciada como:</p>
+                      <p className="text-[10px] sm:text-xs text-gray-600 font-medium">{t('nav.dashboard')}:</p>
                       <p className="text-xs sm:text-sm text-gray-900 font-bold truncate">{user.name}</p>
                       <p className="text-[9px] sm:text-[10px] text-gray-500 truncate">{user.email}</p>
                     </div>
                   </div>
                 ) : (
                   <div className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-50 rounded-xl border border-gray-200 text-[10px] sm:text-xs text-gray-600 font-medium truncate">
-                    Sessão iniciada como: <strong className="text-gray-900 font-bold block">{user.email}</strong>
+                    {t('nav.dashboard')}: <strong className="text-gray-900 font-bold block">{user.email}</strong>
                   </div>
                 )}
                 <Link
-                  href="/dashboard"
+                  href={user.role === 'admin' || user.email.toLowerCase() === 'admin@wehosthere.com' ? '/admin' : '/dashboard'}
                   onClick={closeMobileMenu}
                   className="w-full text-center py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl text-sm sm:text-base font-bold text-white bg-primary-600 hover:bg-primary-700 shadow-md transition flex items-center justify-center space-x-1.5 sm:space-x-2"
                 >
                   <LayoutDashboard className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span>Meu Painel</span>
+                  <span>{user.role === 'admin' || user.email.toLowerCase() === 'admin@wehosthere.com' ? t('nav.admin') : t('nav.dashboard')}</span>
                 </Link>
                 <button
                   type="button"
@@ -229,7 +228,7 @@ export default function Navbar() {
                   className="w-full text-center py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl text-sm sm:text-base font-semibold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 transition flex items-center justify-center space-x-1.5 sm:space-x-2 cursor-pointer"
                 >
                   <LogOut className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span>Sair da Conta</span>
+                  <span>{t('nav.logout')}</span>
                 </button>
               </>
             ) : (
@@ -239,14 +238,14 @@ export default function Navbar() {
                   onClick={closeMobileMenu}
                   className="w-full text-center py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl text-sm sm:text-base font-semibold text-gray-800 bg-gray-100 hover:bg-gray-200 transition"
                 >
-                  Login
+                  {t('nav.login')}
                 </Link>
                 <Link
                   href="/register"
                   onClick={closeMobileMenu}
                   className="w-full text-center py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl text-sm sm:text-base font-semibold text-white bg-primary-600 hover:bg-primary-700 shadow-md transition"
                 >
-                  Criar Conta
+                  {t('nav.register')}
                 </Link>
               </>
             )}

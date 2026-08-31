@@ -6,29 +6,31 @@ import {
   LayoutDashboard, Globe, Mail, Database, Settings as SettingsIcon, 
   LifeBuoy, Sparkles, Link2, FileText, Star, Package, BookOpen, Activity, Bell, Users
 } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface DashboardSidebarProps {
   currentPath?: string;
 }
 
 export default function DashboardSidebar({ currentPath }: DashboardSidebarProps) {
+  const { t } = useLanguage();
   const pathname = usePathname();
 
   const navItems = [
-    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/dashboard/sites', label: 'Meus Domínios & Sites', icon: Globe },
-    { href: '/dashboard/systems', label: 'Sistemas para Aluguer', icon: Package },
-    { href: '/dashboard/orders', label: 'Meus Pedidos', icon: FileText },
-    { href: '/dashboard/site-quote', label: 'Solicitar Site', icon: Sparkles },
-    { href: '/dashboard/academy', label: 'Academia Web', icon: BookOpen },
-    { href: '/dashboard/domains', label: 'Comprar Domínio', icon: Link2 },
-    { href: '/dashboard/email', label: 'Email', icon: Mail },
-    { href: '/dashboard/notifications', label: 'Notificações', icon: Bell },
-    { href: '/dashboard/affiliates', label: 'Programa de Afiliados', icon: Users },
-    { href: '/dashboard/billing', label: 'Faturamento', icon: Database },
-    { href: '/dashboard/tickets', label: 'Suporte', icon: LifeBuoy },
-    { href: '/dashboard/uptime', label: 'Monitorar Uptime', icon: Activity },
-    { href: '/dashboard/settings', label: 'Configurações', icon: SettingsIcon },
+    { href: '/dashboard', label: t('dash.nav_dashboard'), icon: LayoutDashboard },
+    { href: '/dashboard/sites', label: t('dash.nav_sites'), icon: Globe },
+    { href: '/dashboard/systems', label: t('dash.nav_systems'), icon: Package },
+    { href: '/dashboard/orders', label: t('dash.nav_orders'), icon: FileText },
+    { href: '/dashboard/site-quote', label: t('dash.nav_quote'), icon: Sparkles },
+    { href: '/dashboard/academy', label: t('dash.nav_academy'), icon: BookOpen },
+    { href: '/dashboard/domains', label: t('dash.nav_domains'), icon: Link2 },
+    { href: '/dashboard/email', label: t('dash.nav_email'), icon: Mail },
+    { href: '/dashboard/notifications', label: t('dash.nav_notifications'), icon: Bell },
+    { href: '/dashboard/affiliates', label: t('dash.nav_affiliates'), icon: Users },
+    { href: '/dashboard/billing', label: t('dash.nav_billing'), icon: Database },
+    { href: '/dashboard/tickets', label: t('dash.nav_tickets'), icon: LifeBuoy },
+    { href: '/dashboard/uptime', label: t('dash.nav_uptime'), icon: Activity },
+    { href: '/dashboard/settings', label: t('dash.nav_settings'), icon: SettingsIcon },
   ];
 
   return (

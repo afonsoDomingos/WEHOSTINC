@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { X, Mail, Sparkles, CheckCircle, Loader2 } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function NewsletterPopup() {
+  const { t } = useLanguage();
   const [isVisible, setIsVisible] = useState(false);
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -84,10 +86,10 @@ export default function NewsletterPopup() {
             </div>
             <div className="min-w-0">
               <p className="font-semibold text-xs sm:text-sm sm:text-base truncate">
-                📰 Mantenha-se atualizado!
+                📰 {t('newsletter.title')}
               </p>
               <p className="text-[10px] sm:text-xs text-gray-600 hidden sm:block">
-                Receba novidades e atualizações da WEHOSTHERE
+                {t('newsletter.desc')}
               </p>
             </div>
           </div>
@@ -95,8 +97,8 @@ export default function NewsletterPopup() {
           {/* Botão de fechar */}
           <button
             onClick={handleClose}
-            className="p-1.5 sm:p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition flex-shrink-0"
-            title="Fechar"
+            className="p-1.5 sm:p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition flex-shrink-0 cursor-pointer"
+            title={t('common.close')}
           >
             <X className="h-4 w-4 sm:h-5 sm:w-5" />
           </button>
@@ -110,7 +112,7 @@ export default function NewsletterPopup() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Seu email"
+                placeholder={t('newsletter.placeholder')}
                 className="w-full px-3 sm:px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition text-xs sm:text-sm"
                 disabled={loading}
                 required
@@ -118,7 +120,7 @@ export default function NewsletterPopup() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full sm:w-auto px-3 sm:px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition flex items-center justify-center space-x-1.5 sm:space-x-2 disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm whitespace-nowrap"
+                className="w-full sm:w-auto px-3 sm:px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition flex items-center justify-center space-x-1.5 sm:space-x-2 disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm whitespace-nowrap cursor-pointer"
               >
                 {loading ? (
                   <>
@@ -128,7 +130,7 @@ export default function NewsletterPopup() {
                 ) : (
                   <>
                     <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                    <span>Subscrever</span>
+                    <span>{t('newsletter.btn_subscribe')}</span>
                   </>
                 )}
               </button>
@@ -140,7 +142,7 @@ export default function NewsletterPopup() {
         {status === 'success' && (
           <div className="mt-3 sm:mt-4 flex items-center space-x-2 text-emerald-600">
             <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5" />
-            <span className="font-semibold text-xs sm:text-sm">Subscrito com sucesso!</span>
+            <span className="font-semibold text-xs sm:text-sm">{t('newsletter.success')}</span>
           </div>
         )}
 
