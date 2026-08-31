@@ -115,11 +115,41 @@ export default function RootLayout({
   return (
     <html lang="pt-MZ">
       <head>
+        {/* Google AdSense — lido pelo Mediapartners-Google como script estático no <head> */}
         <meta name="google-adsense-account" content="ca-pub-5452584470581302" />
         <script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5452584470581302"
           crossOrigin="anonymous"
+        />
+        {/* Structured Data — Google entende a identidade do site */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              "name": "WEHOSTHERE",
+              "url": "https://www.wehosthere.com",
+              "logo": "https://www.wehosthere.com/logo.png",
+              "description": "Hospedagem de sites rápida e segura, email corporativo, registo de domínios e criação de sites profissionais em Moçambique.",
+              "address": {
+                "@type": "PostalAddress",
+                "addressCountry": "MZ",
+                "addressLocality": "Maputo"
+              },
+              "contactPoint": {
+                "@type": "ContactPoint",
+                "telephone": "+258-84-438-4702",
+                "contactType": "customer support",
+                "availableLanguage": ["Portuguese"]
+              },
+              "sameAs": [
+                "https://www.facebook.com/wehosthere",
+                "https://www.instagram.com/wehosthere"
+              ]
+            })
+          }}
         />
         <meta property="og:image" content="https://www.wehosthere.com/servidores-banner.png" />
         <meta property="og:image:secure_url" content="https://www.wehosthere.com/servidores-banner.png" />

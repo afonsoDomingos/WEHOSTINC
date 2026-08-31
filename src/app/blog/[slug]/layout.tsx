@@ -1,64 +1,64 @@
-import { Metadata } from 'next';
-import { connectDB } from '@/lib/mongodb';
+import type { Metadata } from 'next';
 
-interface Props {
+type Props = {
   params: { slug: string };
-  children: React.ReactNode;
-}
+};
 
+// Gerar metadata dinâmica para cada artigo com base no slug (Server Side)
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
-    await connectDB();
-    
-    const BlogPost = (await import('@/lib/models/BlogPost')).default;
-    const post = await BlogPost.findOne({ slug: params.slug, status: 'published' });
-    
-    if (!post) {
-      return {
-        title: 'Post não encontrado - WEHOSTHERE',
-        description: 'Post não encontrado no blog da WEHOSTHERE',
-      };
-    }
-    
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://wehosthere.com';
-    const imageUrl = post.coverImage || `${baseUrl}/images/default-og-image.jpg`;
-    
-    return {
-      title: `${post.title} - WEHOSTHERE`,
-      description: post.excerpt,
-      openGraph: {
-        title: post.title,
-        description: post.excerpt,
-        type: 'article',
-        publishedTime: post.publishedAt?.toISOString(),
-        authors: [post.author.name],
-        images: [
-          {
-            url: imageUrl,
-            width: 1200,
-            height: 630,
-            alt: post.title,
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.wehosthere.com';
+    const res = await fetch(`${baseUrl}/api/admin/blog/posts/${params.slug}`, {
+      next: { revalidate: 3600 }, // cache por 1 hora
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const post = data.post;
+      if (post) {
+        return {
+          title: `${post.title} | Blog WEHOSTHERE`,
+          description: post.excerpt || `Leia o artigo: ${post.title}`,
+          keywords: post.tags || [],
+          openGraph: {
+            type: 'article',
+            locale: 'pt_MZ',
+            url: `${baseUrl}/blog/${params.slug}`,
+            siteName: 'WEHOSTHERE',
+            title: post.title,
+            description: post.excerpt,
+            images: post.coverImage ? [{ url: post.coverImage, width: 1200, height: 630, alt: post.title }] : [],
+            publishedTime: post.publishedAt,
+            authors: [post.author?.name || 'WEHOSTHERE'],
           },
-        ],
-        url: `${baseUrl}/blog/${post.slug}`,
-        siteName: 'WEHOSTHERE',
-      },
-      twitter: {
-        card: 'summary_large_image',
-        title: post.title,
-        description: post.excerpt,
-        images: [imageUrl],
-      },
-    };
-  } catch (error) {
-    console.error('Erro ao gerar metadata:', error);
-    return {
-      title: 'Blog - WEHOSTHERE',
-      description: 'Blog da WEHOSTHERE',
-    };
+          twitter: {
+            card: 'summary_large_image',
+            title: post.title,
+            description: post.excerpt,
+            images: post.coverImage ? [post.coverImage] : [],
+          },
+          alternates: {
+            canonical: `${baseUrl}/blog/${params.slug}`,
+          },
+        };
+      }
+    }
+  } catch (e) {
+    console.warn('[Blog] Erro ao gerar metadata do artigo:', e);
   }
+
+  return {
+    title: 'Artigo | Blog WEHOSTHERE',
+    description: 'Leia mais artigos sobre hospedagem, domínios e tecnologia no blog da WEHOSTHERE.',
+    openGraph: {
+      type: 'article',
+      siteName: 'WEHOSTHERE',
+    },
+    alternates: {
+      canonical: `https://www.wehosthere.com/blog`,
+    },
+  };
 }
 
-export default function BlogPostLayout({ children }: Props) {
-  return <>{children}</>;
+export default function BlogSlugLayout({ children }: { children: React.ReactNode }) {
+  return children;
 }
