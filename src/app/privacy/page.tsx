@@ -92,18 +92,18 @@ export default function PrivacyPage() {
             </section>
 
             <section>
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">6. Cookies</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">6. Cookies e Publicidade (Google AdSense)</h2>
               <p>
-                Utilizamos cookies para melhorar a sua experiência de navegação:
+                Utilizamos cookies e tecnologias semelhantes para melhorar a sua experiência de navegação e exibir conteúdos relevantes:
               </p>
               <ul className="list-disc pl-6 space-y-2">
-                <li><strong>Cookies essenciais:</strong> Necessários para o funcionamento do site</li>
-                <li><strong>Cookies de desempenho:</strong> Analisam o uso do site para melhorias</li>
-                <li><strong>Cookies de funcionalidade:</strong> Recordam as suas preferências</li>
-                <li><strong>Cookies de marketing:</strong> Para personalizar conteúdo e anúncios</li>
+                <li><strong>Cookies essenciais:</strong> Necessários para o funcionamento seguro e autenticação no site.</li>
+                <li><strong>Cookies de desempenho:</strong> Analisam o uso do site e tráfego para melhorias contínuas.</li>
+                <li><strong>Cookies de funcionalidade:</strong> Recordam as suas preferências de idioma e tema.</li>
+                <li><strong>Cookies de publicidade (Google AdSense / DoubleClick):</strong> Terceiros, incluindo o Google, utilizam cookies (como o cookie DART) para veicular anúncios personalizados com base nas visitas anteriores dos utilizadores ao nosso site ou a outros sites na Internet.</li>
               </ul>
-              <p className="mt-2">
-                Você pode gerenciar as preferências de cookies nas configurações do seu navegador.
+              <p className="mt-3 text-sm text-gray-600">
+                Os utilizadores podem desativar a publicidade personalizada acedendo às <a href="https://www.google.com/settings/ads" target="_blank" rel="noopener noreferrer" className="text-primary-600 underline">Definições de Anúncios do Google</a> ou através do portal <a href="https://www.aboutads.info" target="_blank" rel="noopener noreferrer" className="text-primary-600 underline">aboutads.info</a>.
               </p>
             </section>
 
