@@ -9,6 +9,7 @@ import { auth } from '@/lib/auth';
 import BrandLogo from '@/components/BrandLogo';
 import PageLoader from '@/components/PageLoader';
 import FacebookPixel from '@/lib/facebookPixel';
+import { soundEffects } from '@/lib/soundEffects';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -41,6 +42,7 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    soundEffects.playClickSound();
     setError('');
     setLoading(true);
     try {
@@ -48,6 +50,8 @@ export default function LoginPage() {
       const user = await auth.loginAsync(email, password);
       console.log('[Login Normal] Usuário autenticado:', { email: user.email, status: user.status, role: user.role });
       
+      soundEffects.playLoginSuccessSound();
+
       // Rastrear CompleteRegistration no Facebook Pixel
       FacebookPixel.trackCustom('CompleteRegistration', {
         content_name: 'Login Realizado',
@@ -62,6 +66,7 @@ export default function LoginPage() {
         router.push('/dashboard');
       }
     } catch (err) {
+      soundEffects.playErrorSound();
       console.error('[Login Normal] Erro de login:', err);
       setError(err instanceof Error ? err.message : 'Credenciais inválidas. Tente novamente.');
     } finally {
@@ -70,6 +75,7 @@ export default function LoginPage() {
   };
 
   const handleGoogleLogin = async () => {
+    soundEffects.playClickSound();
     setError('');
     setGoogleLoading(true);
     try {

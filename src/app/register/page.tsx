@@ -11,6 +11,7 @@ import {
 import { auth } from '@/lib/auth';
 import BrandLogo from '@/components/BrandLogo';
 import FacebookPixel from '@/lib/facebookPixel';
+import { soundEffects } from '@/lib/soundEffects';
 
 const STEPS = [
   { id: 1, label: 'Conta', icon: User },
@@ -78,18 +79,27 @@ export default function RegisterPage() {
   const handleNext1 = async () => {
     setError('');
     const cleanEmail = email.trim().toLowerCase();
-    if (!name.trim()) return setError('Por favor, insira o seu nome completo.');
-    if (!cleanEmail || !cleanEmail.includes('@')) return setError('Insira um email válido.');
+    if (!name.trim()) {
+      soundEffects.playErrorSound();
+      return setError('Por favor, insira o seu nome completo.');
+    }
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      soundEffects.playErrorSound();
+      return setError('Insira um email válido.');
+    }
 
     try {
       setLoading(true);
       const users = await auth.fetchUsersAsync();
       const existing = users.find(u => u.email.trim().toLowerCase() === cleanEmail);
       if (existing) {
+        soundEffects.playErrorSound();
         return setError('Este endereço de e-mail já se encontra registado na plataforma WEHOSTHERE. Por favor, faça login.');
       }
+      soundEffects.playClickSound();
       setStep(2);
     } catch {
+      soundEffects.playClickSound();
       setStep(2);
     } finally {
       setLoading(false);
@@ -99,8 +109,15 @@ export default function RegisterPage() {
   // Step 2 validation
   const handleNext2 = () => {
     setError('');
-    if (password.length < 6) return setError('A senha deve ter pelo menos 6 caracteres.');
-    if (password !== confirmPassword) return setError('As senhas não coincidem.');
+    if (password.length < 6) {
+      soundEffects.playErrorSound();
+      return setError('A senha deve ter pelo menos 6 caracteres.');
+    }
+    if (password !== confirmPassword) {
+      soundEffects.playErrorSound();
+      return setError('As senhas não coincidem.');
+    }
+    soundEffects.playClickSound();
     setStep(3);
   };
 
@@ -108,7 +125,10 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    if (!agreed) return setError('Aceite os Termos de Serviço para continuar.');
+    if (!agreed) {
+      soundEffects.playErrorSound();
+      return setError('Aceite os Termos de Serviço para continuar.');
+    }
     setLoading(true);
     try {
       console.log('[Register Page] Iniciando registro:', { name, email, inviteToken });
@@ -118,6 +138,8 @@ export default function RegisterPage() {
       }
       console.log('[Register Page] Registro bem-sucedido, redirecionando');
       
+      soundEffects.playSuccessSound();
+
       // Rastrear Lead no Facebook Pixel
       FacebookPixel.trackLead({
         content_name: 'Registro de Conta',
@@ -127,6 +149,7 @@ export default function RegisterPage() {
       // Não fazer login automático - redirecionar para tela de confirmação
       router.push('/confirm-email?email=' + encodeURIComponent(email));
     } catch (err) {
+      soundEffects.playErrorSound();
       console.error('[Register Page] Erro no registro:', err);
       setError(err instanceof Error ? err.message : 'Erro ao criar conta.');
     } finally {
