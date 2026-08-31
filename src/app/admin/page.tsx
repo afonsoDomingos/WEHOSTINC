@@ -2497,57 +2497,100 @@ export default function AdminPage() {
                       
                       {/* Coluna Função / Role */}
                       <td className="py-2.5 sm:py-3.5 px-2 sm:px-4">
-                        {isSuperAdmin || user.role === 'super_admin' ? (
+                        {isSuperAdmin && !perms.canManageRoles ? (
+                          // Root super admin que não tem canManageRoles — mostrar badge estático
                           <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[9px] sm:text-xs font-extrabold bg-purple-100 text-purple-800 border border-purple-200">
                             <span>👑 Super Admin</span>
                           </span>
-                        ) : perms.canManageRoles ? (
-                          <select
-                            value={user.role || 'user'}
-                            onChange={(e) => {
-                              const newRole = e.target.value as 'user' | 'admin';
-                              setConfirmModalData({
-                                isOpen: true,
-                                title: newRole === 'admin' ? 'Promover a Administrador (Permissões Limitadas)' : 'Remover Permissões de Admin',
-                                message: newRole === 'admin'
-                                  ? `Tem certeza que deseja promover "${user.name}" (${user.email}) a Administrador? Este utilizador terá acesso operacional (clientes, pedidos, tickets, sites e academia), mas sem acesso a configurações gerais, finanças ou gestão de administradores.`
-                                  : `Tem certeza que deseja remover o cargo de Administrador de "${user.name}"?`,
-                                variant: newRole === 'admin' ? 'info' : 'warning',
-                                onConfirm: async () => {
-                                  const success = await auth.updateUserRole(user.id, newRole, user.email, adminUser?.email);
-                                  if (success) {
-                                    setUsers(prev => prev.map(u => u.id === user.id ? { ...u, role: newRole } : u));
-                                    setToastMsg({ 
-                                      title: 'Função Atualizada', 
-                                      message: `${user.name} agora é ${newRole === 'admin' ? 'Administrador 🛡️' : 'Utilizador Comum 👤'}.`, 
-                                      type: 'success' 
-                                    });
-                                  } else {
-                                    setToastMsg({ title: 'Erro', message: 'Falha ao atualizar função.', type: 'error' });
+                        ) : perms.canManageRoles ? (() => {
+                          // O utilizador atual é Super Admin — pode gerir todos os cargos
+                          const isRootTarget = user.email.toLowerCase() === 'admin@wehosthere.com' || user.id === 'admin_root';
+                          const isSelf = adminUser?.email?.toLowerCase() === user.email.toLowerCase();
+                          const currentRole = user.role || 'user';
+                          const isRootSuperAdmin = adminUser?.email?.toLowerCase() === 'admin@wehosthere.com' || adminUser?.id === 'admin_root';
+
+                          // Root admin não pode ser modificado, nem o utilizador pode alterar o próprio cargo
+                          if (isRootTarget || isSelf) {
+                            return (
+                              <span className={`inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[9px] sm:text-xs font-extrabold ${
+                                currentRole === 'super_admin' ? 'bg-purple-100 text-purple-800 border border-purple-200'
+                                : currentRole === 'admin' ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                                : 'bg-gray-100 text-gray-700 border border-gray-200'
+                              }`}>
+                                <span>{currentRole === 'super_admin' ? '👑 Super Admin' : currentRole === 'admin' ? '🛡️ Admin' : '👤 Utilizador'}</span>
+                              </span>
+                            );
+                          }
+
+                          return (
+                            <select
+                              value={currentRole}
+                              onChange={(e) => {
+                                const newRole = e.target.value as 'user' | 'admin' | 'super_admin';
+                                const roleLabels: Record<string, string> = {
+                                  user: 'Utilizador Comum 👤',
+                                  admin: 'Administrador 🛡️',
+                                  super_admin: 'Super Administrador 👑'
+                                };
+                                const roleTitles: Record<string, string> = {
+                                  user: 'Rebaixar para Utilizador Comum',
+                                  admin: 'Promover a Administrador',
+                                  super_admin: '⚠️ Promover a Super Administrador'
+                                };
+                                const roleMessages: Record<string, string> = {
+                                  user: `Tem certeza que deseja remover todos os privilégios administrativos de "${user.name}" (${user.email})? Este utilizador voltará a ser um utilizador comum.`,
+                                  admin: `Tem certeza que deseja promover "${user.name}" (${user.email}) a Administrador?\n\nEste utilizador terá acesso operacional ao painel admin (clientes, pedidos, tickets, sites e academia), mas sem acesso a finanças, configurações gerais ou gestão de outros administradores.`,
+                                  super_admin: `⚠️ ATENÇÃO: Está prestes a conceder poderes de SUPER ADMINISTRADOR a "${user.name}" (${user.email}).\n\nUm Super Admin tem acesso TOTAL ao sistema, incluindo gestão de outros administradores, finanças, configurações e dados sensíveis.\n\nTem ABSOLUTA CERTEZA que deseja continuar?`
+                                };
+                                setConfirmModalData({
+                                  isOpen: true,
+                                  title: roleTitles[newRole] || 'Alterar Cargo',
+                                  message: roleMessages[newRole] || '',
+                                  variant: newRole === 'super_admin' ? 'danger' : newRole === 'admin' ? 'info' : 'warning',
+                                  onConfirm: async () => {
+                                    const success = await auth.updateUserRole(user.id, newRole, user.email, adminUser?.email);
+                                    if (success) {
+                                      setUsers(prev => prev.map(u => u.id === user.id ? { ...u, role: newRole } : u));
+                                      setToastMsg({
+                                        title: 'Cargo Atualizado',
+                                        message: `${user.name} agora é ${roleLabels[newRole]}.`,
+                                        type: 'success'
+                                      });
+                                    } else {
+                                      setToastMsg({ title: 'Erro', message: 'Falha ao atualizar cargo. Verifique as permissões.', type: 'error' });
+                                    }
+                                    setConfirmModalData(null);
                                   }
-                                  setConfirmModalData(null);
-                                }
-                              });
-                            }}
-                            className={`px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg text-[9px] sm:text-xs font-bold outline-none border cursor-pointer ${
-                              user.role === 'admin'
-                                ? 'bg-indigo-50 text-indigo-700 border-indigo-300 ring-1 ring-indigo-400/30'
-                                : 'bg-gray-50 text-gray-700 border-gray-200 hover:border-gray-300'
-                            }`}
-                            title="Alterar cargo do utilizador (Apenas Super Admin)"
-                          >
-                            <option value="user">👤 Utilizador</option>
-                            <option value="admin">🛡️ Admin</option>
-                          </select>
-                        ) : (
+                                });
+                              }}
+                              className={`px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg text-[9px] sm:text-xs font-bold outline-none border cursor-pointer ${
+                                currentRole === 'super_admin'
+                                  ? 'bg-purple-50 text-purple-800 border-purple-300 ring-1 ring-purple-400/30'
+                                  : currentRole === 'admin'
+                                    ? 'bg-indigo-50 text-indigo-700 border-indigo-300 ring-1 ring-indigo-400/30'
+                                    : 'bg-gray-50 text-gray-700 border-gray-200 hover:border-gray-300'
+                              }`}
+                              title="Alterar cargo do utilizador"
+                            >
+                              <option value="user">👤 Utilizador</option>
+                              <option value="admin">🛡️ Admin</option>
+                              {isRootSuperAdmin && (
+                                <option value="super_admin">👑 Super Admin</option>
+                              )}
+                            </select>
+                          );
+                        })() : (
                           <span className={`inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[9px] sm:text-xs font-bold ${
-                            user.role === 'admin'
-                              ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
-                              : 'bg-gray-100 text-gray-700 border border-gray-200'
+                            user.role === 'super_admin'
+                              ? 'bg-purple-100 text-purple-800 border border-purple-200'
+                              : user.role === 'admin'
+                                ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                                : 'bg-gray-100 text-gray-700 border border-gray-200'
                           }`}>
-                            <span>{user.role === 'admin' ? '🛡️ Admin' : '👤 Utilizador'}</span>
+                            <span>{user.role === 'super_admin' ? '👑 Super Admin' : user.role === 'admin' ? '🛡️ Admin' : '👤 Utilizador'}</span>
                           </span>
                         )}
+
                       </td>
 
                       <td className="py-2.5 sm:py-3.5 px-2 sm:px-4">

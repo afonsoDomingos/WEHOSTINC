@@ -490,9 +490,9 @@ export async function POST(req: Request) {
         
         const existingTarget = await UserModel.findOne(filter).lean();
 
-        // Também não permitir alterar outro super_admin
-        if ((existingTarget as any)?.role === 'super_admin') {
-          return NextResponse.json({ error: 'Não é possível alterar as permissões de outro Super Administrador.' }, { status: 403 });
+        // Não permitir alterar outro super_admin — exceto pelo Super Admin root
+        if ((existingTarget as any)?.role === 'super_admin' && !isSuperAdminRequester) {
+          return NextResponse.json({ error: 'Apenas o Super Administrador principal pode alterar as permissões de outro Super Administrador.' }, { status: 403 });
         }
 
         await UserModel.updateMany(filter, { role: newRole });
