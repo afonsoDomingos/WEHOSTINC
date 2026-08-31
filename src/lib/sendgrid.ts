@@ -465,50 +465,87 @@ export async function sendCourseCompletionEmail(toEmail: string, userName: strin
   });
 }
 
-/** Email de notificação de promoção ou despromoção de Administrador */
-export async function sendRoleChangeEmail(toEmail: string, userName: string, newRole: 'admin' | 'user') {
+/** Email de notificação de promoção ou despromoção de Administrador / Super Administrador */
+export async function sendRoleChangeEmail(toEmail: string, userName: string, newRole: 'super_admin' | 'admin' | 'user') {
+  const isSuperAdmin = newRole === 'super_admin';
   const isAdmin = newRole === 'admin';
-  const targetUrl = isAdmin ? `${SITE_URL}/admin` : `${SITE_URL}/dashboard`;
+  const isElevated = isSuperAdmin || isAdmin;
+  const targetUrl = isElevated ? `${SITE_URL}/admin` : `${SITE_URL}/dashboard`;
+
+  let subject = `ℹ️ Atualização de Permissões na sua conta WEHOSTHERE`;
+  if (isSuperAdmin) {
+    subject = `👑 Acesso Total Concedido: Promovido a Super Administrador da WEHOSTHERE!`;
+  } else if (isAdmin) {
+    subject = `🛡️ Acesso Concedido: Promovido a Administrador da WEHOSTHERE!`;
+  }
+
+  const gradientHeader = isSuperAdmin
+    ? 'linear-gradient(135deg, #4c1d95, #6b21a8, #c026d3)' // Roxo Real Luxuoso
+    : isAdmin
+      ? 'linear-gradient(135deg, #1e40af, #3b82f6, #0284c7)' // Azul Índigo Operacional
+      : 'linear-gradient(135deg, #475569, #334155)'; // Neutro
 
   return sendEmail({
     to: toEmail,
-    subject: isAdmin 
-      ? `👑 Acesso Concedido: Você foi promovido a Administrador da WEHOSTHERE!`
-      : `ℹ️ Atualização de Permissões na sua conta WEHOSTHERE`,
+    subject,
     html: `
       <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;">
-        <div style="background:linear-gradient(135deg,${isAdmin ? '#6d28d9,#4f46e5' : '#475569,#334155'});padding:40px 32px;border-radius:16px 16px 0 0;text-align:center;">
+        <div style="background:${gradientHeader};padding:40px 32px;border-radius:16px 16px 0 0;text-align:center;">
           <img src="${SITE_URL}/logo.png" alt="WEHOSTHERE Logo" style="width:180px;height:auto;margin:0 auto 16px;display:block;" />
-          <p style="color:#ede9fe;margin:8px 0 0;font-size:14px;font-weight:600;">Gestão de Permissões</p>
+          <p style="color:#ede9fe;margin:8px 0 0;font-size:14px;font-weight:700;letter-spacing:0.5px;">
+            ${isSuperAdmin ? '👑 NÍVEL MÁXIMO DE ACESSO' : isAdmin ? '🛡️ GESTÃO OPERACIONAL' : '👤 ATUALIZAÇÃO DE PERFIL'}
+          </p>
         </div>
-        <div style="background:#f8fafc;padding:40px 32px;border-radius:0 0 16px 16px;border:1px solid #e2e8f0;">
+        <div style="background:#ffffff;padding:40px 32px;border-radius:0 0 16px 16px;border:1px solid #e2e8f0;border-top:none;">
           <p style="color:#334155;font-size:16px;line-height:1.7;">Olá, <strong>${userName}</strong>,</p>
           
-          ${isAdmin ? `
+          ${isSuperAdmin ? `
             <p style="color:#334155;font-size:15px;line-height:1.7;">
-              Informamos que a sua conta foi promovida para <strong>Administrador da plataforma WEHOSTHERE 👑</strong>.
+              Informamos com grande honra que a sua conta recebeu privilégios de <strong>Super Administrador da plataforma WEHOSTHERE 👑</strong>.
             </p>
-            <div style="background:#f5f3ff;border:1px solid #ddd6fe;border-radius:12px;padding:20px;margin:24px 0;">
-              <p style="margin:0 0 8px;font-weight:800;color:#5b21b6;font-size:15px;">Privilégios Administrativos Ativados:</p>
-              <ul style="margin:0;padding-left:20px;color:#475569;font-size:14px;line-height:1.8;">
-                <li>Acesso completo ao <strong>Painel Administrativo (/admin)</strong>.</li>
-                <li>Gestão de clientes, pedidos, faturas e serviços ativos.</li>
-                <li>Monitorização de uptime, tickets de suporte e configurações globais.</li>
+            <div style="background:#faf5ff;border:1px solid #e9d5ff;border-radius:12px;padding:22px;margin:24px 0;">
+              <p style="margin:0 0 10px;font-weight:800;color:#581c87;font-size:15px;">Privilégios Totais Concedidos:</p>
+              <ul style="margin:0;padding-left:20px;color:#475569;font-size:14px;line-height:1.9;">
+                <li>Acesso irrestrito a todas as abas do <strong>Painel Administrativo (/admin)</strong>.</li>
+                <li><strong>Gestão Financeira &amp; Payouts:</strong> Autorização e execução de transferências B2C.</li>
+                <li><strong>Gestão de Administradores:</strong> Promover, delegar e revogar cargos de outros utilizadores.</li>
+                <li><strong>Segurança &amp; Auditoria:</strong> Acesso a logs de segurança, presença e configurações de infraestrutura.</li>
               </ul>
             </div>
             <div style="text-align:center;margin:32px 0;">
-              <a href="${targetUrl}" style="background:linear-gradient(135deg,#6d28d9,#4f46e5);color:white;font-weight:700;padding:16px 36px;border-radius:10px;text-decoration:none;font-size:15px;display:inline-block;box-shadow:0 4px 12px rgba(109,40,217,0.25);">Acessar Painel Administrativo →</a>
+              <a href="${targetUrl}" style="background:linear-gradient(135deg,#7e22ce,#4c1d95);color:white;font-weight:800;padding:16px 36px;border-radius:10px;text-decoration:none;font-size:15px;display:inline-block;box-shadow:0 4px 14px rgba(126,34,206,0.35);">Aceder como Super Admin →</a>
+            </div>
+          ` : isAdmin ? `
+            <p style="color:#334155;font-size:15px;line-height:1.7;">
+              Informamos que a sua conta foi promovida para <strong>Administrador da plataforma WEHOSTHERE 🛡️</strong>.
+            </p>
+            <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:22px;margin:24px 0;">
+              <p style="margin:0 0 10px;font-weight:800;color:#1e40af;font-size:15px;">Privilégios Operacionais Ativados:</p>
+              <ul style="margin:0;padding-left:20px;color:#475569;font-size:14px;line-height:1.9;">
+                <li>Acesso ao <strong>Painel Administrativo (/admin)</strong> para gestão diária.</li>
+                <li>Gestão de clientes, encomendas de sites e serviços ativos.</li>
+                <li>Atendimento e resposta a <strong>tickets de suporte</strong> técnico.</li>
+                <li>Gestão de cursos, matrículas e certificados na <strong>Academia</strong>.</li>
+              </ul>
+            </div>
+            <div style="text-align:center;margin:32px 0;">
+              <a href="${targetUrl}" style="background:linear-gradient(135deg,#2563eb,#1d4ed8);color:white;font-weight:700;padding:16px 36px;border-radius:10px;text-decoration:none;font-size:15px;display:inline-block;box-shadow:0 4px 12px rgba(37,99,235,0.3);">Aceder ao Painel Administrativo →</a>
             </div>
           ` : `
             <p style="color:#334155;font-size:15px;line-height:1.7;">
-              Informamos que as permissões de Administrador da sua conta foram desativadas. A sua conta funciona agora com a função de <strong>Utilizador / Cliente Comum</strong>.
+              Informamos que as permissões administrativas da sua conta foram atualizadas. A sua conta funciona agora no modo de <strong>Utilizador / Cliente</strong>.
+            </p>
+            <p style="color:#64748b;font-size:14px;line-height:1.6;">
+              Continua a ter acesso total a todos os seus sites, contas de e-mail, domínios, faturas e cursos na Academia.
             </p>
             <div style="text-align:center;margin:32px 0;">
-              <a href="${targetUrl}" style="background:#334155;color:white;font-weight:700;padding:16px 36px;border-radius:10px;text-decoration:none;font-size:15px;display:inline-block;">Acessar Dashboard do Cliente →</a>
+              <a href="${targetUrl}" style="background:#334155;color:white;font-weight:700;padding:16px 36px;border-radius:10px;text-decoration:none;font-size:15px;display:inline-block;">Aceder ao Dashboard do Cliente →</a>
             </div>
           `}
           
-          <p style="color:#94a3b8;font-size:12px;margin:24px 0 0;text-align:center;">Equipa de Segurança WEHOSTHERE — Gestão de Acessos</p>
+          <p style="color:#94a3b8;font-size:12px;margin:28px 0 0;text-align:center;border-top:1px solid #f1f5f9;padding-top:16px;">
+            Equipa de Segurança &amp; Infraestrutura WEHOSTHERE
+          </p>
         </div>
       </div>`,
   });
