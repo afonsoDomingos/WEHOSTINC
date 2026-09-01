@@ -9,7 +9,8 @@ import {
   LogOut, Settings, Home, CheckCircle, Clock, XCircle, Search,
   ShoppingBag, MessageSquare, ExternalLink, Trash2, LifeBuoy, Send, ShieldCheck, CheckCircle2, AlertCircle,
   Paperclip, FileText, Image as ImageIcon, Download, File, X, Loader2, Tag, Shield, AlertTriangle,
-  Activity, Eye, EyeOff, Globe, Wifi, WifiOff, BarChart2, RefreshCw, UserPlus, Star, Plus, Edit, BookOpen, Bell, CreditCard, GraduationCap
+  Activity, Eye, EyeOff, Globe, Wifi, WifiOff, BarChart2, RefreshCw, UserPlus, Star, Plus, Edit, BookOpen, Bell, CreditCard, GraduationCap,
+  Handshake
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 import { dataManager, ServiceOrder, SupportTicket, TicketMessage, TicketAttachment, SecurityLog, SystemForRent, RentalRequest, SystemAccess, SocialProof } from '@/lib/data';
@@ -1341,20 +1342,24 @@ export default function AdminPage() {
     <div className="min-h-screen bg-gray-50 text-gray-900">
       {isLoggingOut && <PageLoader text="A encerrar a sua sessão com segurança... Até breve!" />}
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
+      <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-20">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-3 sm:py-4">
-            <div className="flex items-center space-x-3 sm:space-x-4">
+          <div className="flex justify-between items-center py-2.5 sm:py-3.5 gap-2 sm:gap-4">
+            <div className="flex items-center space-x-3 sm:space-x-4 shrink-0">
               <BrandLogo />
             </div>
-            <div className="flex items-center space-x-2 sm:space-x-3 sm:space-x-4">
-              <LanguageSelector />
+
+            {/* Menu Horizontal com Scroll Suave */}
+            <div className="flex items-center space-x-1.5 sm:space-x-2.5 overflow-x-auto no-scrollbar scroll-smooth py-1 px-1 max-w-full">
+              <div className="shrink-0">
+                <LanguageSelector />
+              </div>
 
               <button
                 type="button"
                 onClick={handleRefreshAdminData}
                 disabled={isRefreshingAdmin}
-                className="flex items-center space-x-1 sm:space-x-1.5 px-2 sm:px-3 py-1.5 text-[10px] sm:text-xs font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200/80 rounded-lg transition shadow-sm cursor-pointer disabled:opacity-50"
+                className="flex items-center space-x-1 sm:space-x-1.5 px-2 sm:px-2.5 py-1.5 text-[10px] sm:text-xs font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200/80 rounded-lg transition shadow-xs cursor-pointer disabled:opacity-50 shrink-0 whitespace-nowrap"
                 title="Sincronizar dados em tempo real com o MongoDB Atlas"
               >
                 <RefreshCw className={`h-3 w-3 sm:h-3.5 sm:w-3.5 text-purple-600 ${isRefreshingAdmin ? 'animate-spin' : ''}`} />
@@ -1364,7 +1369,7 @@ export default function AdminPage() {
               <button
                 type="button"
                 onClick={() => setHideSensitiveValues(!hideSensitiveValues)}
-                className="flex items-center space-x-1 sm:space-x-1.5 px-2 sm:px-3 py-1.5 text-[10px] sm:text-xs font-semibold text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-200/80 rounded-lg transition shadow-sm cursor-pointer"
+                className="flex items-center space-x-1 sm:space-x-1.5 px-2 sm:px-2.5 py-1.5 text-[10px] sm:text-xs font-semibold text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-200/80 rounded-lg transition shadow-xs cursor-pointer shrink-0 whitespace-nowrap"
                 title={hideSensitiveValues ? 'Mostrar valores sensíveis' : 'Esconder valores sensíveis'}
               >
                 {hideSensitiveValues ? (
@@ -1375,75 +1380,105 @@ export default function AdminPage() {
                 <span className="hidden sm:inline">{hideSensitiveValues ? 'Mostrar' : 'Esconder'}</span>
               </button>
 
+              <div className="h-4 w-px bg-gray-200 shrink-0 mx-0.5" />
+
               <Link
                 href="/"
-                className="flex items-center space-x-1.5 sm:space-x-2 text-gray-600 hover:text-primary-600 font-medium transition text-[10px] sm:text-xs sm:text-sm"
+                className="flex items-center space-x-1.5 text-gray-600 hover:text-primary-600 font-medium transition text-[10px] sm:text-xs sm:text-sm shrink-0 whitespace-nowrap px-2 py-1.5 rounded-lg hover:bg-gray-100/80"
               >
                 <Home className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-500" />
-                <span className="hidden sm:inline">Ver Site</span>
+                <span className="hidden md:inline">Ver Site</span>
               </Link>
+
+              <Link
+                href="/admin/comunicacao"
+                className="flex items-center space-x-1.5 text-gray-600 hover:text-blue-600 font-medium transition text-[10px] sm:text-xs sm:text-sm shrink-0 whitespace-nowrap px-2 py-1.5 rounded-lg hover:bg-blue-50/70"
+              >
+                <MessageSquare className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-500" />
+                <span>Comunicação</span>
+              </Link>
+
+              <Link
+                href="/admin/partners"
+                className="flex items-center space-x-1.5 text-gray-600 hover:text-indigo-600 font-medium transition text-[10px] sm:text-xs sm:text-sm shrink-0 whitespace-nowrap px-2 py-1.5 rounded-lg hover:bg-indigo-50/70"
+              >
+                <Handshake className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-indigo-500" />
+                <span>Parceiros</span>
+              </Link>
+
               <Link
                 href="/admin/affiliates"
-                className="flex items-center space-x-1.5 sm:space-x-2 text-gray-600 hover:text-blue-600 font-medium transition text-[10px] sm:text-xs sm:text-sm"
+                className="flex items-center space-x-1.5 text-gray-600 hover:text-blue-600 font-medium transition text-[10px] sm:text-xs sm:text-sm shrink-0 whitespace-nowrap px-2 py-1.5 rounded-lg hover:bg-blue-50/70"
               >
                 <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-500" />
-                <span className="hidden sm:inline">Afiliados</span>
+                <span>Afiliados</span>
               </Link>
+
               <Link
                 href="/admin/email-domains"
-                className="flex items-center space-x-1.5 sm:space-x-2 text-gray-600 hover:text-purple-600 font-medium transition text-[10px] sm:text-xs sm:text-sm"
+                className="flex items-center space-x-1.5 text-gray-600 hover:text-purple-600 font-medium transition text-[10px] sm:text-xs sm:text-sm shrink-0 whitespace-nowrap px-2 py-1.5 rounded-lg hover:bg-purple-50/70"
               >
                 <Globe className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-500" />
-                <span className="hidden sm:inline">Email</span>
+                <span>Email</span>
               </Link>
+
               <Link
                 href="/admin/blog"
-                className="flex items-center space-x-1.5 sm:space-x-2 text-gray-600 hover:text-green-600 font-medium transition text-[10px] sm:text-xs sm:text-sm"
+                className="flex items-center space-x-1.5 text-gray-600 hover:text-green-600 font-medium transition text-[10px] sm:text-xs sm:text-sm shrink-0 whitespace-nowrap px-2 py-1.5 rounded-lg hover:bg-green-50/70"
               >
                 <BookOpen className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-500" />
-                <span className="hidden sm:inline">Blog</span>
+                <span>Blog</span>
               </Link>
+
               <Link
                 href="/admin/academy"
-                className="flex items-center space-x-1.5 sm:space-x-2 text-gray-600 hover:text-indigo-600 font-medium transition text-[10px] sm:text-xs sm:text-sm"
+                className="flex items-center space-x-1.5 text-gray-600 hover:text-indigo-600 font-medium transition text-[10px] sm:text-xs sm:text-sm shrink-0 whitespace-nowrap px-2 py-1.5 rounded-lg hover:bg-indigo-50/70"
               >
                 <GraduationCap className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-indigo-500" />
-                <span className="hidden sm:inline">Cursos</span>
+                <span>Cursos</span>
               </Link>
+
               {perms.canAccessSystemSettings && (
                 <Link
                   href="/admin/settings"
-                  className="flex items-center space-x-1.5 sm:space-x-2 text-gray-600 hover:text-purple-600 font-medium transition text-[10px] sm:text-xs sm:text-sm"
+                  className="flex items-center space-x-1.5 text-gray-600 hover:text-purple-600 font-medium transition text-[10px] sm:text-xs sm:text-sm shrink-0 whitespace-nowrap px-2 py-1.5 rounded-lg hover:bg-purple-50/70"
                 >
                   <Settings className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-500" />
-                  <span className="hidden sm:inline">Configurações</span>
+                  <span>Configurações</span>
                 </Link>
               )}
+
               <Link
                 href="/test-payment"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center space-x-1.5 sm:space-x-2 text-gray-600 hover:text-green-600 font-medium transition text-[10px] sm:text-xs sm:text-sm"
+                className="flex items-center space-x-1.5 text-gray-600 hover:text-green-600 font-medium transition text-[10px] sm:text-xs sm:text-sm shrink-0 whitespace-nowrap px-2 py-1.5 rounded-lg hover:bg-green-50/70"
               >
                 <CreditCard className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-500" />
                 <span className="hidden sm:inline">Testar Pagamento</span>
               </Link>
+
+              <div className="h-4 w-px bg-gray-200 shrink-0 mx-0.5" />
+
               <button
                 onClick={() => {
                   auth.startClientView();
                   router.push('/dashboard');
                 }}
-                className="flex items-center space-x-1.5 p-1.5 sm:px-3 sm:py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold transition shadow-sm cursor-pointer shrink-0"
+                className="flex items-center space-x-1.5 p-1.5 sm:px-3 sm:py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold transition shadow-sm cursor-pointer shrink-0 whitespace-nowrap"
                 title="Visualizar o painel como cliente"
               >
                 <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 <span className="hidden md:inline">Ver como Cliente</span>
               </button>
 
-              <AdminNotificationCenter onNavigate={(url) => router.push(url)} />
+              <div className="shrink-0">
+                <AdminNotificationCenter onNavigate={(url) => router.push(url)} />
+              </div>
+
               <button
                 onClick={handleLogout}
-                className="flex items-center space-x-1.5 sm:space-x-2 text-gray-600 hover:text-red-600 font-medium transition text-[10px] sm:text-xs sm:text-sm cursor-pointer"
+                className="flex items-center space-x-1.5 sm:space-x-2 text-gray-600 hover:text-red-600 font-medium transition text-[10px] sm:text-xs sm:text-sm cursor-pointer shrink-0 whitespace-nowrap px-2 py-1.5 rounded-lg hover:bg-red-50"
               >
                 <LogOut className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 <span className="hidden sm:inline">Sair</span>
