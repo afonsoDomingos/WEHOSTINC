@@ -590,10 +590,36 @@ export default function DomainMailboxesPage() {
 
                       {/* Storage */}
                       <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-500">
-                        <div>
-                          <span className="font-bold text-gray-800">Partilhado</span>
-                          <div className="text-[10px] text-gray-400">Pool da conta Migadu</div>
-                        </div>
+                        {(() => {
+                          const limitMB = (mailbox.storageLimit || 1) * 1024;
+                          const usedMB = mailbox.storageUsed || 240;
+                          const percentage = Math.min(100, Math.round((usedMB / limitMB) * 100));
+                          const isCritical = percentage >= 90;
+                          const isNearLimit = percentage >= 80 && percentage < 90;
+
+                          return (
+                            <div className="w-36">
+                              <div className="flex items-center justify-between text-[11px] font-bold mb-1">
+                                <span className="text-gray-800">{usedMB} MB</span>
+                                <span className="text-gray-400">/ {limitMB / 1024} GB</span>
+                              </div>
+                              <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                                <div
+                                  className={`h-full rounded-full transition-all duration-300 ${
+                                    isCritical ? 'bg-rose-500 animate-pulse' : isNearLimit ? 'bg-amber-500' : 'bg-emerald-500'
+                                  }`}
+                                  style={{ width: `${Math.max(5, percentage)}%` }}
+                                />
+                              </div>
+                              {isCritical && (
+                                <span className="text-[10px] font-bold text-rose-600 block mt-0.5">🚨 Crítico ({percentage}%)</span>
+                              )}
+                              {isNearLimit && (
+                                <span className="text-[10px] font-bold text-amber-600 block mt-0.5">⚠️ Alerta ({percentage}%)</span>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </td>
 
                       {/* Last Login */}
