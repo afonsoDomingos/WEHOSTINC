@@ -753,6 +753,9 @@ export default function AdminPage() {
       }).catch(() => {}),
       fetch('/api/enrollments').then(r => r.json()).then(d => {
         if (d.enrollments) setAcademyEnrollments(d.enrollments);
+      }).catch(() => {}),
+      fetch('/api/webhooks/kivora').then(r => r.json()).then(d => {
+        if (d.events && d.events.length > 0) setWebhookEvents(d.events);
       }).catch(() => {})
     ]).finally(() => {
       setIsSyncingData(false);
@@ -778,6 +781,9 @@ export default function AdminPage() {
           setSelectedTicket(prev => prev ? fetched.find(t => t.id === prev.id) || prev : null);
         }
       });
+      fetch('/api/webhooks/kivora').then(r => r.json()).then(d => {
+        if (d.events && d.events.length > 0) setWebhookEvents(d.events);
+      }).catch(() => {});
       dataManager.fetchSystemsForRentAsync().then((fetched) => {
         if (fetched) setSystems(fetched);
       });

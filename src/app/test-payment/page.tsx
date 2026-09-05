@@ -6,6 +6,8 @@ import Image from 'next/image';
 export default function TestPaymentPage() {
   const [phone, setPhone] = useState('');
   const [amount, setAmount] = useState('1');
+  const [clientName, setClientName] = useState('Teste Admin');
+  const [clientEmail, setClientEmail] = useState('admin@wehosthere.com');
   const [paymentMethod, setPaymentMethod] = useState<'mpesa' | 'emola'>('mpesa');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
@@ -29,8 +31,8 @@ export default function TestPaymentPage() {
           amount: parseFloat(amount),
           reference: `TEST_REF_${Date.now().toString().slice(-6)}`,
           thirdPartyReference: `TEST_ORDER_${Date.now().toString().slice(-6)}`,
-          clientName: 'Teste Admin',
-          clientEmail: 'admin@wehosthere.com',
+          clientName: clientName || 'Teste Admin',
+          clientEmail: clientEmail || 'admin@wehosthere.com',
           serviceName: 'Teste de Pagamento'
         })
       });
@@ -140,6 +142,36 @@ export default function TestPaymentPage() {
                 placeholder="+258 84 123 4567"
               />
               <p className="text-xs sm:text-sm text-gray-500 mt-1.5">Formato: +258 XX XXX XXXX</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Nome do Cliente (para Painel e Kivora)
+              </label>
+              <input
+                type="text"
+                value={clientName}
+                onChange={(e) => setClientName(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
+                placeholder="Ex: João da Silva"
+              />
+              <p className="text-xs sm:text-sm text-gray-500 mt-1.5">Aparece na coluna CLIENTE da Kivora e Admin</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Email do Cliente (para Painel e Kivora)
+              </label>
+              <input
+                type="email"
+                value={clientEmail}
+                onChange={(e) => setClientEmail(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
+                placeholder="Ex: joao@exemplo.com"
+              />
+              <p className="text-xs sm:text-sm text-gray-500 mt-1.5">Aparece na coluna EMAIL da Kivora e Admin</p>
             </div>
           </div>
 

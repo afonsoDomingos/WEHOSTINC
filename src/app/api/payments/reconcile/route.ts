@@ -1,107 +1,86 @@
 import { NextResponse } from 'next/server';
-import { dataManager } from '@/lib/data';
+import { connectDB } from '@/lib/mongodb';
+import OrderModel from '@/lib/models/Order';
 import { kivora } from '@/lib/kivora';
 
-// ðŸ”’ BACKEND ROBUSTEZ: Sistema de reconciliaÃ§Ã£o de pagamentos
-// Este endpoint verifica pagamentos que podem ter falhado no webhook e reconcilia automaticamente
+// Sistema de reconciliação de pagamentos
+// Verifica pagamentos M-Pesa/eMola pendentes e reconcilia via Kivora
 
-export async function POST(req: Request) {
+export async function POST(_req: Request) {
   try {
-    console.log('[PAYMENT RECONCILIATION] Iniciando reconciliaÃ§Ã£o de pagamentos');
-    
-    // Buscar todos os pedidos com status 'pending' ou 'in_progress'
-    const orders = await dataManager.fetchOrdersAsync();
-    const pendingOrders = orders.filter((order: any) => 
-      order.status === 'pending' || order.status === 'in_progress'
-    );
-    
-    console.log(`[PAYMENT RECONCILIATION] Encontrados ${pendingOrders.length} pedidos pendentes`);
-    
+    console.log('[PAYMENT RECONCILIATION] Iniciando reconciliação de pagamentos');
+
+    await connectDB();
+
+    // Buscar pedidos pendentes M-Pesa/eMola que já têm ID Kivora associado
+    const pendingOrders = await OrderModel.find({
+      status: { $in: ['pending', 'in_progress'] },
+      kivoraPaymentId: { $exists: true, $ne: '' },
+      paymentMethod: { $in: ['mpesa', 'emola'] }
+    }).lean();
+
+    console.log(`[PAYMENT RECONCILIATION] Encontrados ${pendingOrders.length} pedidos M-Pesa/eMola pendentes com ID Kivora`);
+
     let reconciledCount = 0;
     let failedCount = 0;
     const results: any[] = [];
-    
+
     for (const order of pendingOrders) {
       try {
-        // Se o pedido tem referÃªncia de pagamento, verificar status na Kivora
-        if (order.reference) {
-          console.log(`[PAYMENT RECONCILIATION] Verificando pedido ${order.id} com referÃªncia ${order.reference}`);
-          
-          // Extrair paymentId da referÃªncia se possÃ­vel
-          const paymentId = order.reference.replace('REF_', '').split('_')[0];
-          
-          if (paymentId) {
-            // Consultar status do pagamento na Kivora
-            const paymentStatus = await kivora.getC2BPayment(paymentId);
-            
-            console.log(`[PAYMENT RECONCILIATION] Status do pagamento ${paymentId}:`, paymentStatus.status);
-            
-            // Se o pagamento foi completado na Kivora mas nÃ£o no sistema, reconciliar
-            // A Kivora retorna 'paid' para pagamentos completados
-            if (paymentStatus.status === 'paid' && order.status !== 'completed') {
-              console.log(`[PAYMENT RECONCILIATION] Reconciliando pedido ${order.id} - pagamento completado na Kivora`);
-              
-              // Atualizar status do pedido
-              dataManager.updateOrderStatus(order.id, 'completed');
-              
-              // Enviar notificaÃ§Ãµes
-              if (order.clientEmail) {
-                await sendReconciliationNotification(
-                  order.clientEmail,
-                  order.clientName || 'Cliente',
-                  order.serviceName || 'ServiÃ§o',
-                  order.amount || 0,
-                  order.reference
-                );
-              }
-              
-              reconciledCount++;
-              results.push({
-                orderId: order.id,
-                reference: order.reference,
-                previousStatus: order.status,
-                newStatus: 'completed',
-                reconciled: true
-              });
-            } else if (paymentStatus.status === 'failed' && order.status !== 'cancelled') {
-              console.log(`[PAYMENT RECONCILIATION] Cancelando pedido ${order.id} - pagamento falhou na Kivora`);
-              
-              // Atualizar status do pedido
-              dataManager.updateOrderStatus(order.id, 'cancelled');
-              
-              failedCount++;
-              results.push({
-                orderId: order.id,
-                reference: order.reference,
-                previousStatus: order.status,
-                newStatus: 'cancelled',
-                reconciled: true
-              });
-            } else {
-              console.log(`[PAYMENT RECONCILIATION] Pedido ${order.id} jÃ¡ com status correto: ${order.status}`);
-              results.push({
-                orderId: order.id,
-                reference: order.reference,
-                status: order.status,
-                reconciled: false,
-                reason: 'Status already correct'
-              });
-            }
-          } else {
-            console.log(`[PAYMENT RECONCILIATION] NÃ£o foi possÃ­vel extrair paymentId da referÃªncia ${order.reference}`);
-            results.push({
-              orderId: order.id,
-              reference: order.reference,
-              reconciled: false,
-              reason: 'Invalid reference format'
-            });
+        const paymentId = (order as any).kivoraPaymentId as string;
+        console.log(`[PAYMENT RECONCILIATION] Verificando pedido ${order.id} com Kivora paymentId: ${paymentId}`);
+
+        // Consultar status real do pagamento na Kivora
+        const paymentStatus = await kivora.getC2BPayment(paymentId);
+        console.log(`[PAYMENT RECONCILIATION] Status Kivora para ${paymentId}:`, paymentStatus.status);
+
+        if (paymentStatus.status === 'paid' && order.status !== 'completed') {
+          console.log(`[PAYMENT RECONCILIATION] Reconciliando pedido ${order.id} — pagamento confirmado na Kivora`);
+
+          await OrderModel.findOneAndUpdate({ id: order.id }, { status: 'completed' });
+
+          if ((order as any).clientEmail) {
+            await sendReconciliationNotification(
+              (order as any).clientEmail,
+              (order as any).clientName || 'Cliente',
+              (order as any).serviceName || 'Serviço',
+              (order as any).amount || 0,
+              order.id
+            );
           }
-        } else {
-          console.log(`[PAYMENT RECONCILIATION] Pedido ${order.id} nÃ£o tem referÃªncia de pagamento`);
+
+          reconciledCount++;
           results.push({
             orderId: order.id,
+            kivoraPaymentId: paymentId,
+            previousStatus: order.status,
+            newStatus: 'completed',
+            reconciled: true
+          });
+
+        } else if (paymentStatus.status === 'failed' && order.status !== 'cancelled') {
+          console.log(`[PAYMENT RECONCILIATION] Cancelando pedido ${order.id} — pagamento falhou na Kivora`);
+
+          await OrderModel.findOneAndUpdate({ id: order.id }, { status: 'cancelled' });
+
+          failedCount++;
+          results.push({
+            orderId: order.id,
+            kivoraPaymentId: paymentId,
+            previousStatus: order.status,
+            newStatus: 'cancelled',
+            reconciled: true
+          });
+
+        } else {
+          console.log(`[PAYMENT RECONCILIATION] Pedido ${order.id} sem alteração — Kivora: ${paymentStatus.status}, local: ${order.status}`);
+          results.push({
+            orderId: order.id,
+            kivoraPaymentId: paymentId,
+            kivoraStatus: paymentStatus.status,
+            localStatus: order.status,
             reconciled: false,
-            reason: 'No payment reference'
+            reason: 'No status change needed'
           });
         }
       } catch (error) {
@@ -114,19 +93,19 @@ export async function POST(req: Request) {
         });
       }
     }
-    
-    console.log(`[PAYMENT RECONCILIATION] ReconciliaÃ§Ã£o concluÃ­da: ${reconciledCount} reconciliados, ${failedCount} falhados`);
-    
+
+    console.log(`[PAYMENT RECONCILIATION] Concluído: ${reconciledCount} reconciliados, ${failedCount} falhados`);
+
     return NextResponse.json({
       success: true,
-      totalPending: pendingOrders.length,
+      totalChecked: pendingOrders.length,
       reconciled: reconciledCount,
       failed: failedCount,
       results
     });
-    
+
   } catch (error) {
-    console.error('[PAYMENT RECONCILIATION] Erro na reconciliaÃ§Ã£o:', error);
+    console.error('[PAYMENT RECONCILIATION] Erro na reconciliação:', error);
     return NextResponse.json({
       success: false,
       error: error instanceof Error ? error.message : 'Erro desconhecido'
@@ -134,7 +113,7 @@ export async function POST(req: Request) {
   }
 }
 
-// FunÃ§Ã£o auxiliar para enviar notificaÃ§Ã£o de reconciliaÃ§Ã£o
+// Notificação de reconciliação automática ao cliente
 async function sendReconciliationNotification(
   email: string,
   clientName: string,
@@ -143,21 +122,17 @@ async function sendReconciliationNotification(
   reference: string
 ) {
   try {
-    const subject = 'âœ… Pagamento Confirmado - WEHOSTHERE (ReconciliaÃ§Ã£o AutomÃ¡tica)';
-    const message = `OlÃ¡ ${clientName},\n\nO seu pagamento de ${amount} MZN para "${serviceName}" foi confirmado automaticamente pelo nosso sistema de reconciliaÃ§Ã£o.\n\nReferÃªncia: ${reference}\n\nO seu pedido estÃ¡ sendo processado.\n\nObrigado pela preferÃªncia!\nEquipe WEHOSTHERE`;
-    
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/send-email`, {
+    const subject = '? Pagamento Confirmado - WEHOSTHERE (Reconciliação Automática)';
+    const message = `Olá ${clientName},\n\nO seu pagamento de ${amount} MZN para "${serviceName}" foi confirmado automaticamente pelo nosso sistema.\n\nReferência: ${reference}\n\nO seu pedido está sendo processado.\n\nObrigado pela preferência!\nEquipe WEHOSTHERE`;
+
+    await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || ''}/api/send-email`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        to: email,
-        subject,
-        text: message
-      })
+      body: JSON.stringify({ to: email, subject, text: message })
     });
-    
-    console.log(`[PAYMENT RECONCILIATION] NotificaÃ§Ã£o enviada para ${email}`);
+
+    console.log(`[PAYMENT RECONCILIATION] Notificação enviada para ${email}`);
   } catch (error) {
-    console.error('[PAYMENT RECONCILIATION] Erro ao enviar notificaÃ§Ã£o:', error);
+    console.error('[PAYMENT RECONCILIATION] Erro ao enviar notificação:', error);
   }
 }

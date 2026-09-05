@@ -8,6 +8,8 @@ export interface IOrder extends Document {
   serviceName: string;
   amount: number;
   paymentMethod: 'mpesa' | 'emola' | 'card' | 'bank_transfer';
+  kivoraPaymentId?: string; // ID do pagamento na Kivora (pay_xxxxx) para reconciliação
+  reference?: string; // Referência da transação/checkout (REF_xxxxx)
   proofUrl?: string;
   proofName?: string;
   status: 'pending' | 'in_progress' | 'completed' | 'cancelled' | 'suspended';
@@ -23,6 +25,8 @@ const OrderSchema = new Schema<IOrder>({
   serviceName: { type: String, required: true },
   amount: { type: Number, required: true },
   paymentMethod: { type: String, enum: ['mpesa', 'emola', 'card', 'bank_transfer'], default: 'bank_transfer' },
+  kivoraPaymentId: { type: String }, // ID do pagamento na Kivora para reconciliação
+  reference: { type: String }, // Referência da transação/checkout (REF_xxxxx)
   proofUrl: { type: String },
   proofName: { type: String },
   status: { type: String, enum: ['pending', 'in_progress', 'completed', 'cancelled', 'suspended'], default: 'pending' },

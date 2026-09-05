@@ -19,14 +19,22 @@ export async function POST(req: Request) {
       phone = phone.substring(3);
     }
 
+    const paymentRef = reference || thirdPartyReference || `REF_${Date.now()}`;
+    const orderId = thirdPartyReference || `ORD-${Date.now().toString().slice(-6)}`;
+
     // Usar API Kivora como gateway para processar pagamento eMola
     const result = await kivora.createC2BPayment({
       phone,
       amount,
       currency: 'MZN',
-      reference: reference || thirdPartyReference || `REF_${Date.now()}`,
-      description: `Pagamento eMola via Kivora - ${reference || 'Serviço'}`,
+      reference: paymentRef,
+      description: `Pagamento eMola via Kivora - ${serviceName || reference || 'Serviço'}`,
       senderName: 'WEHOSTHERE', // Nome que aparece no telemóvel do cliente
+      customer: {
+        name: clientName || undefined,
+        email: clientEmail || undefined,
+        phone: msisdn
+      },
       metadata: {
         clientName,
         clientEmail,
@@ -36,6 +44,46 @@ export async function POST(req: Request) {
     });
 
     console.log('[EMOLA C2B VIA KIVORA RESPONSE]:', result);
+
+    // Persistir/Criar o pedido imediatamente no MongoDB com status 'pending' para que apareça no painel admin
+    if (result.id) {
+      try {
+        const { connectDB } = await import('@/lib/mongodb');
+        const OrderModel = (await import('@/lib/models/Order')).default;
+        await connectDB();
+
+        await OrderModel.findOneAndUpdate(
+          {
+            $or: [
+              { id: orderId },
+              { reference: paymentRef },
+              { kivoraPaymentId: result.id }
+            ]
+          },
+          {
+            $set: {
+              id: orderId,
+              clientName: clientName || 'Cliente eMola',
+              clientEmail: clientEmail || 'cliente@emola.mz',
+              clientPhone: msisdn,
+              serviceName: serviceName || 'Pagamento eMola',
+              amount,
+              paymentMethod: 'emola',
+              kivoraPaymentId: result.id,
+              reference: paymentRef,
+              status: 'pending'
+            },
+            $setOnInsert: {
+              createdAt: new Date().toISOString()
+            }
+          },
+          { upsert: true, new: true }
+        );
+        console.log(`[EMOLA C2B] Pedido ${orderId} registado no MongoDB com kivoraPaymentId ${result.id}`);
+      } catch (dbErr) {
+        console.error('[EMOLA C2B] Erro ao gravar pedido no MongoDB:', dbErr);
+      }
+    }
 
     return NextResponse.json(result);
   } catch (error) {

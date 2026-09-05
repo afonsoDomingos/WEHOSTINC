@@ -5,11 +5,13 @@ export interface KivoraC2BRequest {
   reference?: string; // Referência externa (ex: ORDER-1001)
   description?: string; // Descrição do pagamento
   senderName?: string; // Nome da entidade que aparece no telemóvel do cliente (ex: WEHOSTHERE)
+  customer?: KivoraCustomer; // Dados do cliente para exibição no dashboard da Kivora
   metadata?: {
     clientName?: string;
     clientEmail?: string;
     clientPhone?: string;
     serviceName?: string;
+    [key: string]: any;
   }; // Metadados para notificações
 }
 
@@ -88,6 +90,12 @@ export const kivora = {
       phone = phone.substring(3);
     }
 
+    const customerData = data.customer || {
+      name: data.metadata?.clientName || '',
+      email: data.metadata?.clientEmail || '',
+      phone: data.metadata?.clientPhone || phone
+    };
+
     const payload = {
       phone,
       amount: data.amount,
@@ -95,7 +103,21 @@ export const kivora = {
       reference: data.reference,
       description: data.description,
       senderName: data.senderName || 'WEHOSTHERE', // Nome da entidade que aparece no telemóvel
-      metadata: data.metadata // Incluir metadados do cliente para notificações
+      customer: (customerData.name || customerData.email) ? {
+        name: customerData.name || undefined,
+        email: customerData.email || undefined,
+        phone: customerData.phone || undefined
+      } : undefined,
+      metadata: {
+        ...data.metadata,
+        clientName: customerData.name || undefined,
+        clientEmail: customerData.email || undefined,
+        clientPhone: customerData.phone || undefined,
+        customerName: customerData.name || undefined,
+        customerEmail: customerData.email || undefined,
+        name: customerData.name || undefined,
+        email: customerData.email || undefined
+      }
     };
 
     try {

@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
-import { dataManager } from '@/lib/data';
+import { connectDB } from '@/lib/mongodb';
+import WebhookEventModel from '@/lib/models/WebhookEvent';
+import OrderModel from '@/lib/models/Order';
 import { apiEndpoint } from '@/lib/siteConfig';
+
 
 // 🔒 BACKEND ROBUSTEZ: Sistema de retry para webhooks falhados
 const WEBHOOK_RETRY_ATTEMPTS = 3;
@@ -32,10 +35,15 @@ async function withRetry<T>(
 export async function POST(req: Request) {
   let processed = false;
   let errorMessage = '';
-  
+  // Ler o body UMA SÓ VEZ antes do try — req.json() só pode ser chamado uma vez
+  let body: any = null;
   try {
-    const body = await req.json();
-    
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+  }
+
+  try {
     console.log('[KIVORA WEBHOOK] Evento recebido:', body);
     
     const { id, type, created_at, livemode, data: eventData } = body;
@@ -44,18 +52,24 @@ export async function POST(req: Request) {
     if (!id || !type || !eventData) {
       console.error('[KIVORA WEBHOOK] Estrutura de evento inválida:', body);
       errorMessage = 'Estrutura de evento inválida';
-      // Registrar evento mesmo com erro
-      dataManager.addWebhookEvent({
-        eventId: id,
-        eventType: type,
-        paymentId: eventData.id,
-        reference: eventData.reference,
-        status: eventData.status,
-        amount: eventData.amount,
-        currency: eventData.currency,
-        processed: false,
-        errorMessage
-      });
+      // Registrar evento de estrutura inválida no MongoDB
+      try {
+        await connectDB();
+        await WebhookEventModel.create({
+          eventId: id || 'unknown',
+          eventType: type || 'unknown',
+          paymentId: eventData?.id,
+          reference: eventData?.reference,
+          status: eventData?.status,
+          amount: eventData?.amount,
+          currency: eventData?.currency,
+          processed: false,
+          errorMessage,
+          createdAt: new Date().toISOString()
+        });
+      } catch (dbErr) {
+        console.error('[KIVORA WEBHOOK] Erro ao gravar evento inválido no MongoDB:', dbErr);
+      }
       return NextResponse.json({ error: 'Invalid event structure' }, { status: 400 });
     }
 
@@ -77,10 +91,8 @@ export async function POST(req: Request) {
         
       case 'payment.completed':
         console.log('[KIVORA WEBHOOK] Pagamento completado:', eventData.id);
-        // Atualizar status do pedido para 'completed' se houver referência (com retry)
-        if (eventData.reference) {
-          await withRetry(() => updateOrderStatus(eventData.reference, 'completed'));
-        }
+        // Atualizar status do pedido para 'completed' (com retry)
+        await withRetry(() => updateOrderStatus(eventData.reference || '', 'completed', eventData.id, eventData, metadata));
         // Enviar notificação de sucesso por email para cliente (com retry)
         if (clientEmail) {
           await withRetry(() => sendPaymentNotification(clientEmail, clientName, serviceName, 'completed', eventData.amount));
@@ -110,10 +122,8 @@ export async function POST(req: Request) {
         
         console.log('[KIVORA WEBHOOK] Detalhes da falha:', { failureCode, failureReason });
         
-        // Atualizar status do pedido para 'cancelled' se houver referência
-        if (eventData.reference) {
-          await updateOrderStatus(eventData.reference, 'cancelled');
-        }
+        // Atualizar status do pedido para 'cancelled'
+        await updateOrderStatus(eventData.reference || '', 'cancelled', eventData.id, eventData, metadata);
         // Enviar notificação de falha por email para cliente com motivo específico
         if (clientEmail) {
           await sendPaymentNotification(clientEmail, clientName, serviceName, 'failed', eventData.amount, failureReason);
@@ -158,7 +168,7 @@ export async function POST(req: Request) {
         processed = true;
     }
 
-    // Registrar evento no dataManager para monitoramento
+    // Registrar evento no MongoDB para monitoramento persistente (server-side)
     const failureReason = type === 'payment.failed' 
       ? (eventData.error?.message || eventData.failure_reason || eventData.error_message || eventData.errorMessage || 'Motivo não especificado')
       : undefined;
@@ -166,22 +176,29 @@ export async function POST(req: Request) {
       ? (eventData.error?.code || eventData.failure_code || eventData.error_code || eventData.errorCode || 'UNKNOWN')
       : undefined;
 
-    dataManager.addWebhookEvent({
-      eventId: id,
-      eventType: type,
-      paymentId: eventData.id,
-      reference: eventData.reference,
-      status: eventData.status,
-      amount: eventData.amount,
-      currency: eventData.currency,
-      clientName,
-      clientEmail,
-      serviceName,
-      processed,
-      errorMessage,
-      failureReason,
-      failureCode
-    });
+    try {
+      await connectDB();
+      await WebhookEventModel.create({
+        eventId: id,
+        eventType: type,
+        paymentId: eventData.id,
+        reference: eventData.reference,
+        status: eventData.status,
+        amount: eventData.amount,
+        currency: eventData.currency,
+        clientName,
+        clientEmail,
+        serviceName,
+        processed,
+        errorMessage,
+        failureReason,
+        failureCode,
+        createdAt: new Date().toISOString()
+      });
+      console.log('[KIVORA WEBHOOK] Evento gravado no MongoDB:', id);
+    } catch (dbErr) {
+      console.error('[KIVORA WEBHOOK] Erro ao gravar evento no MongoDB:', dbErr);
+    }
 
     // Responder com 200 OK para confirmar recebimento
     return NextResponse.json({ received: true, eventId: id });
@@ -190,19 +207,22 @@ export async function POST(req: Request) {
     console.error('[KIVORA WEBHOOK] Erro ao processar webhook:', error);
     errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
     
-    // Tentar registrar evento mesmo com erro
+    // Registrar evento falhado no MongoDB usando o body já lido
     try {
-      const body = await req.json();
-      dataManager.addWebhookEvent({
-        eventId: body.id || 'unknown',
-        eventType: body.type || 'unknown',
-        paymentId: body.data?.id,
-        reference: body.data?.reference,
-        processed: false,
-        errorMessage
-      });
+      if (body) {
+        await connectDB();
+        await WebhookEventModel.create({
+          eventId: body.id || 'unknown',
+          eventType: body.type || 'unknown',
+          paymentId: body.data?.id,
+          reference: body.data?.reference,
+          processed: false,
+          errorMessage,
+          createdAt: new Date().toISOString()
+        });
+      }
     } catch (e) {
-      console.error('[KIVORA WEBHOOK] Erro ao registrar evento falhado:', e);
+      console.error('[KIVORA WEBHOOK] Erro ao registrar evento falhado no MongoDB:', e);
     }
     
     return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 });
@@ -284,25 +304,84 @@ async function notifyAdminAboutPayment(
   }
 }
 
-// Função auxiliar para atualizar status do pedido
-async function updateOrderStatus(reference: string, status: 'completed' | 'cancelled') {
+// Função auxiliar para atualizar status do pedido via MongoDB
+async function updateOrderStatus(
+  reference: string,
+  status: 'completed' | 'cancelled',
+  kivoraPaymentId?: string,
+  eventData?: any,
+  metadata?: any
+) {
   try {
-    // Buscar pedido pela referência direta
-    const orders = await dataManager.fetchOrdersAsync();
-    const order = orders.find((o: any) => 
-      o.reference === reference || 
-      o.serviceName?.includes(reference) ||
-      o.serviceName?.includes(reference.replace('REF_', '').replace('ORDER_', ''))
-    );
-    
+    await connectDB();
+    const queryConditions: any[] = [];
+    if (kivoraPaymentId) {
+      queryConditions.push({ kivoraPaymentId });
+    }
+    if (reference) {
+      queryConditions.push({ reference });
+      queryConditions.push({ id: reference });
+      const cleanRef = reference.replace('REF_', '').replace('ORDER_', '');
+      if (cleanRef) {
+        queryConditions.push({ id: { $regex: new RegExp(cleanRef, 'i') } });
+      }
+    }
+
+    let order = queryConditions.length > 0
+      ? await OrderModel.findOne({ $or: queryConditions })
+      : null;
+
     if (order) {
       console.log(`[KIVORA WEBHOOK] Atualizando pedido ${order.id} para status: ${status}`);
-      dataManager.updateOrderStatus(order.id, status);
+      await OrderModel.findOneAndUpdate(
+        { id: order.id },
+        { 
+          status,
+          ...(kivoraPaymentId && !order.kivoraPaymentId ? { kivoraPaymentId } : {})
+        }
+      );
+    } else if (status === 'completed' && (kivoraPaymentId || reference)) {
+      // Se o pedido não existia (ex: fluxo rápido ou falha de rede prévia), criar agora
+      const fallbackId = reference || `ORD-${Date.now().toString().slice(-6)}`;
+      const clientName = metadata?.clientName || eventData?.customer?.name || 'Cliente';
+      const clientEmail = metadata?.clientEmail || eventData?.customer?.email || 'cliente@wehosthere.com';
+      const serviceName = metadata?.serviceName || 'Hospedagem Web';
+      const amount = Number(eventData?.amount) || 0;
+
+      console.log(`[KIVORA WEBHOOK] Criando pedido aprovado não localizado previamente: ${fallbackId}`);
+      await OrderModel.create({
+        id: fallbackId,
+        clientName,
+        clientEmail,
+        clientPhone: metadata?.clientPhone || eventData?.customer?.phone || '',
+        serviceName,
+        amount,
+        paymentMethod: 'mpesa',
+        kivoraPaymentId,
+        reference,
+        status: 'completed',
+        createdAt: new Date().toISOString()
+      });
     } else {
-      console.log(`[KIVORA WEBHOOK] Pedido não encontrado para referência: ${reference}`);
-      console.log(`[KIVORA WEBHOOK] Pedidos disponíveis:`, orders.map((o: any) => ({ id: o.id, reference: o.reference, serviceName: o.serviceName })));
+      console.log(`[KIVORA WEBHOOK] Pedido não encontrado para referência: ${reference}, paymentId: ${kivoraPaymentId}`);
     }
   } catch (error) {
     console.error('[KIVORA WEBHOOK] Erro ao atualizar pedido:', error);
+  }
+}
+
+// Endpoint GET para o painel admin consultar os últimos eventos de webhook registrados
+export async function GET() {
+  try {
+    await connectDB();
+    const events = await WebhookEventModel.find({})
+      .sort({ receivedAt: -1 })
+      .limit(50)
+      .lean();
+
+    return NextResponse.json({ events });
+  } catch (error) {
+    console.error('[KIVORA WEBHOOK GET] Erro ao buscar eventos:', error);
+    return NextResponse.json({ events: [] }, { status: 500 });
   }
 }
