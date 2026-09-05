@@ -3,16 +3,16 @@ import { connectDB } from '@/lib/mongodb';
 import OrderModel from '@/lib/models/Order';
 import { kivora } from '@/lib/kivora';
 
-// Sistema de reconciliação de pagamentos
+// Sistema de reconciliaÃ§Ã£o de pagamentos
 // Verifica pagamentos M-Pesa/eMola pendentes e reconcilia via Kivora
 
 export async function POST(_req: Request) {
   try {
-    console.log('[PAYMENT RECONCILIATION] Iniciando reconciliação de pagamentos');
+    console.log('[PAYMENT RECONCILIATION] Iniciando reconciliaÃ§Ã£o de pagamentos');
 
     await connectDB();
 
-    // Buscar pedidos pendentes M-Pesa/eMola que já têm ID Kivora associado
+    // Buscar pedidos pendentes M-Pesa/eMola que jÃ¡ tÃªm ID Kivora associado
     const pendingOrders = await OrderModel.find({
       status: { $in: ['pending', 'in_progress'] },
       kivoraPaymentId: { $exists: true, $ne: '' },
@@ -35,7 +35,7 @@ export async function POST(_req: Request) {
         console.log(`[PAYMENT RECONCILIATION] Status Kivora para ${paymentId}:`, paymentStatus.status);
 
         if (paymentStatus.status === 'paid' && order.status !== 'completed') {
-          console.log(`[PAYMENT RECONCILIATION] Reconciliando pedido ${order.id} — pagamento confirmado na Kivora`);
+          console.log(`[PAYMENT RECONCILIATION] Reconciliando pedido ${order.id} â€” pagamento confirmado na Kivora`);
 
           await OrderModel.findOneAndUpdate({ id: order.id }, { status: 'completed' });
 
@@ -43,7 +43,7 @@ export async function POST(_req: Request) {
             await sendReconciliationNotification(
               (order as any).clientEmail,
               (order as any).clientName || 'Cliente',
-              (order as any).serviceName || 'Serviço',
+              (order as any).serviceName || 'ServiÃ§o',
               (order as any).amount || 0,
               order.id
             );
@@ -59,7 +59,7 @@ export async function POST(_req: Request) {
           });
 
         } else if (paymentStatus.status === 'failed' && order.status !== 'cancelled') {
-          console.log(`[PAYMENT RECONCILIATION] Cancelando pedido ${order.id} — pagamento falhou na Kivora`);
+          console.log(`[PAYMENT RECONCILIATION] Cancelando pedido ${order.id} â€” pagamento falhou na Kivora`);
 
           await OrderModel.findOneAndUpdate({ id: order.id }, { status: 'cancelled' });
 
@@ -73,7 +73,7 @@ export async function POST(_req: Request) {
           });
 
         } else {
-          console.log(`[PAYMENT RECONCILIATION] Pedido ${order.id} sem alteração — Kivora: ${paymentStatus.status}, local: ${order.status}`);
+          console.log(`[PAYMENT RECONCILIATION] Pedido ${order.id} sem alteraÃ§Ã£o â€” Kivora: ${paymentStatus.status}, local: ${order.status}`);
           results.push({
             orderId: order.id,
             kivoraPaymentId: paymentId,
@@ -94,7 +94,7 @@ export async function POST(_req: Request) {
       }
     }
 
-    console.log(`[PAYMENT RECONCILIATION] Concluído: ${reconciledCount} reconciliados, ${failedCount} falhados`);
+    console.log(`[PAYMENT RECONCILIATION] ConcluÃ­do: ${reconciledCount} reconciliados, ${failedCount} falhados`);
 
     return NextResponse.json({
       success: true,
@@ -105,7 +105,7 @@ export async function POST(_req: Request) {
     });
 
   } catch (error) {
-    console.error('[PAYMENT RECONCILIATION] Erro na reconciliação:', error);
+    console.error('[PAYMENT RECONCILIATION] Erro na reconciliaÃ§Ã£o:', error);
     return NextResponse.json({
       success: false,
       error: error instanceof Error ? error.message : 'Erro desconhecido'
@@ -113,7 +113,7 @@ export async function POST(_req: Request) {
   }
 }
 
-// Notificação de reconciliação automática ao cliente
+// NotificaÃ§Ã£o de reconciliaÃ§Ã£o automÃ¡tica ao cliente
 async function sendReconciliationNotification(
   email: string,
   clientName: string,
@@ -122,8 +122,8 @@ async function sendReconciliationNotification(
   reference: string
 ) {
   try {
-    const subject = '? Pagamento Confirmado - WEHOSTHERE (Reconciliação Automática)';
-    const message = `Olá ${clientName},\n\nO seu pagamento de ${amount} MZN para "${serviceName}" foi confirmado automaticamente pelo nosso sistema.\n\nReferência: ${reference}\n\nO seu pedido está sendo processado.\n\nObrigado pela preferência!\nEquipe WEHOSTHERE`;
+    const subject = 'Pagamento Confirmado - WEHOSTHERE (ReconciliaÃ§Ã£o AutomÃ¡tica)';
+    const message = `OlÃ¡ ${clientName},\n\nO seu pagamento de ${amount} MZN para "${serviceName}" foi confirmado automaticamente pelo nosso sistema.\n\nReferÃªncia: ${reference}\n\nO seu pedido estÃ¡ sendo processado.\n\nObrigado pela preferÃªncia!\nEquipe WEHOSTHERE`;
 
     await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || ''}/api/send-email`, {
       method: 'POST',
@@ -131,8 +131,8 @@ async function sendReconciliationNotification(
       body: JSON.stringify({ to: email, subject, text: message })
     });
 
-    console.log(`[PAYMENT RECONCILIATION] Notificação enviada para ${email}`);
+    console.log(`[PAYMENT RECONCILIATION] NotificaÃ§Ã£o enviada para ${email}`);
   } catch (error) {
-    console.error('[PAYMENT RECONCILIATION] Erro ao enviar notificação:', error);
+    console.error('[PAYMENT RECONCILIATION] Erro ao enviar notificaÃ§Ã£o:', error);
   }
 }
