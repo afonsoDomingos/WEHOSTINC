@@ -14,8 +14,9 @@ export interface SocialProof {
 export interface UserFeedback {
   id: string;
   userId: string;
+  userName?: string;
   userEmail: string;
-  type: 'course' | 'lesson' | 'platform' | 'general';
+  type: 'course' | 'lesson' | 'platform' | 'general' | 'service';
   targetId?: string; // courseId ou lessonId se aplicável
   rating: number; // 1-5
   comment: string;

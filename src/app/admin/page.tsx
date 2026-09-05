@@ -10,7 +10,7 @@ import {
   ShoppingBag, MessageSquare, ExternalLink, Trash2, LifeBuoy, Send, ShieldCheck, CheckCircle2, AlertCircle,
   Paperclip, FileText, Image as ImageIcon, Download, File, X, Loader2, Tag, Shield, AlertTriangle,
   Activity, Eye, EyeOff, Globe, Wifi, WifiOff, BarChart2, RefreshCw, UserPlus, Star, Plus, Edit, BookOpen, Bell, CreditCard, GraduationCap,
-  Handshake
+  Handshake, MessageSquareHeart
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 import { dataManager, ServiceOrder, SupportTicket, TicketMessage, TicketAttachment, SecurityLog, SystemForRent, RentalRequest, SystemAccess, SocialProof } from '@/lib/data';
@@ -502,6 +502,9 @@ export default function AdminPage() {
   const [newProofAction, setNewProofAction] = useState('contratou o plano Profissional SSD');
   const [newProofTime, setNewProofTime] = useState('há 5 min');
   
+  // User Feedbacks State
+  const [userFeedbacks, setUserFeedbacks] = useState<any[]>([]);
+  
   // Newsletter State
   const [newsletterSubscribers, setNewsletterSubscribers] = useState<any[]>([]);
   const [newsletterSubject, setNewsletterSubject] = useState('');
@@ -756,6 +759,9 @@ export default function AdminPage() {
       }).catch(() => {}),
       fetch('/api/webhooks/kivora').then(r => r.json()).then(d => {
         if (d.events && d.events.length > 0) setWebhookEvents(d.events);
+      }).catch(() => {}),
+      fetch('/api/feedback').then(r => r.json()).then(d => {
+        if (d.feedbacks) setUserFeedbacks(d.feedbacks);
       }).catch(() => {})
     ]).finally(() => {
       setIsSyncingData(false);
@@ -783,6 +789,9 @@ export default function AdminPage() {
       });
       fetch('/api/webhooks/kivora').then(r => r.json()).then(d => {
         if (d.events && d.events.length > 0) setWebhookEvents(d.events);
+      }).catch(() => {});
+      fetch('/api/feedback').then(r => r.json()).then(d => {
+        if (d.feedbacks) setUserFeedbacks(d.feedbacks);
       }).catch(() => {});
       dataManager.fetchSystemsForRentAsync().then((fetched) => {
         if (fetched) setSystems(fetched);
@@ -2416,6 +2425,90 @@ export default function AdminPage() {
               </tbody>
             </table>
           </div>
+        </div>
+
+        {/* User Feedbacks & Ratings */}
+        <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-gray-100">
+            <div>
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center space-x-2">
+                <MessageSquareHeart className="h-5 w-5 sm:h-6 sm:w-6 text-amber-500" />
+                <span>Avaliações & Feedbacks dos Clientes</span>
+              </h2>
+              <p className="text-gray-500 text-[10px] sm:text-sm mt-0.5">
+                Opiniões, sugestões e notas enviadas diretamente pelos utilizadores na plataforma
+              </p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="bg-amber-100 text-amber-900 text-[10px] sm:text-xs font-extrabold px-3 py-1 rounded-full border border-amber-300 flex items-center gap-1">
+                <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
+                {userFeedbacks.length > 0 
+                  ? `${(userFeedbacks.reduce((acc, f) => acc + (f.rating || 0), 0) / userFeedbacks.length).toFixed(1)} / 5.0 Média` 
+                  : 'Sem avaliações'}
+              </span>
+              <span className="bg-blue-100 text-blue-800 text-[10px] sm:text-xs font-extrabold px-3 py-1 rounded-full border border-blue-300">
+                {userFeedbacks.length} Feedbacks
+              </span>
+            </div>
+          </div>
+
+          {userFeedbacks.length === 0 ? (
+            <div className="text-center py-10 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+              <MessageSquareHeart className="w-10 h-10 text-gray-400 mx-auto mb-2 opacity-60" />
+              <p className="text-sm font-semibold text-gray-700">Ainda não foram submetidos feedbacks</p>
+              <p className="text-xs text-gray-500 mt-1">Os feedbacks enviados pelos utilizadores através do botão flutuante aparecerão aqui em tempo real.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-gray-200 text-[11px] font-bold text-gray-500 uppercase tracking-wider bg-gray-50/50">
+                    <th className="py-2.5 px-3">Cliente</th>
+                    <th className="py-2.5 px-3">Classificação</th>
+                    <th className="py-2.5 px-3">Categoria</th>
+                    <th className="py-2.5 px-3">Comentário</th>
+                    <th className="py-2.5 px-3">Data</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 text-xs">
+                  {userFeedbacks.map((fb) => (
+                    <tr key={fb.id || fb._id} className="hover:bg-amber-50/30 transition">
+                      <td className="py-3 px-3">
+                        <div className="font-semibold text-gray-900">{fb.userName || 'Anónimo'}</div>
+                        <div className="text-[10px] text-gray-500">{fb.userEmail}</div>
+                      </td>
+                      <td className="py-3 px-3">
+                        <div className="flex items-center space-x-1">
+                          {[1, 2, 3, 4, 5].map((s) => (
+                            <Star
+                              key={s}
+                              className={`w-3.5 h-3.5 ${
+                                (fb.rating || 0) >= s
+                                  ? 'text-amber-400 fill-amber-400'
+                                  : 'text-gray-200'
+                              }`}
+                            />
+                          ))}
+                          <span className="font-bold text-gray-700 ml-1 text-xs">{fb.rating}/5</span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-3">
+                        <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-gray-700 capitalize border border-gray-200">
+                          {fb.category || 'Sugestão'}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 text-gray-700 max-w-xs break-words">
+                        "{fb.comment}"
+                      </td>
+                      <td className="py-3 px-3 text-[10px] text-gray-400 whitespace-nowrap">
+                        {fb.createdAt ? new Date(fb.createdAt).toLocaleDateString('pt-MZ') : 'Recente'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
         {/* Users Table */}

@@ -5,6 +5,7 @@ import "./globals.css";
 import ScrollToTop from "@/components/ScrollToTop";
 import AnalyticsTracker from "@/components/AnalyticsTracker";
 import SocialProofToast from "@/components/SocialProofToast";
+import FeedbackWidget from "@/components/FeedbackWidget";
 import { SITE_URL } from "@/lib/siteConfig";
 
 const poppins = Poppins({ 
@@ -207,6 +208,7 @@ export default function RootLayout({
             <AnalyticsTracker />
             <SocialProofToast />
             <ScrollUpCards />
+            <FeedbackWidget />
           </LanguageProvider>
         </Providers>
       </body>
