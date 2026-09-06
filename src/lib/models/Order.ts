@@ -7,6 +7,8 @@ export interface IOrder extends Document {
   clientPhone: string;
   serviceName: string;
   amount: number;
+  valorFaturado?: number;
+  valorPorFaturar?: number;
   paymentMethod: 'mpesa' | 'emola' | 'card' | 'bank_transfer';
   kivoraPaymentId?: string; // ID do pagamento na Kivora (pay_xxxxx) para reconciliação
   reference?: string; // Referência da transação/checkout (REF_xxxxx)
@@ -24,6 +26,8 @@ const OrderSchema = new Schema<IOrder>({
   clientPhone: { type: String, default: '' },
   serviceName: { type: String, required: true },
   amount: { type: Number, required: true },
+  valorFaturado: { type: Number },
+  valorPorFaturar: { type: Number },
   paymentMethod: { type: String, enum: ['mpesa', 'emola', 'card', 'bank_transfer'], default: 'bank_transfer' },
   kivoraPaymentId: { type: String }, // ID do pagamento na Kivora para reconciliação
   reference: { type: String }, // Referência da transação/checkout (REF_xxxxx)
@@ -32,7 +36,7 @@ const OrderSchema = new Schema<IOrder>({
   status: { type: String, enum: ['pending', 'in_progress', 'completed', 'cancelled', 'suspended'], default: 'pending' },
   cartRecoverySent: { type: Boolean, default: false },
   createdAt: { type: String, default: () => new Date().toISOString() },
-}, { timestamps: false, versionKey: false });
+}, { timestamps: false, versionKey: false, strict: false });
 
 const OrderModel: Model<IOrder> = mongoose.models.Order || mongoose.model<IOrder>('Order', OrderSchema);
 export default OrderModel;

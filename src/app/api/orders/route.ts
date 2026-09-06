@@ -103,7 +103,16 @@ export async function GET() {
   try {
     if (await tryMongo()) {
       const orders = await OrderModel.find({}).sort({ createdAt: -1 }).lean();
-      return NextResponse.json({ orders });
+      const mappedOrders = orders.map((o: any) => {
+        const amt = Number(o.amount ?? o.valorFaturado ?? o.valorPorFaturar ?? 0);
+        return {
+          ...o,
+          amount: amt,
+          valorFaturado: o.valorFaturado !== undefined ? Number(o.valorFaturado) : (o.status === 'completed' || o.status === 'approved' || o.status === 'active' ? amt : 0),
+          valorPorFaturar: o.valorPorFaturar !== undefined ? Number(o.valorPorFaturar) : (o.status === 'completed' || o.status === 'approved' || o.status === 'active' ? 0 : amt),
+        };
+      });
+      return NextResponse.json({ orders: mappedOrders });
     }
   } catch (e) { console.error('MongoDB indisponível (orders):', e); }
   return NextResponse.json({ orders: FALLBACK_ORDERS });

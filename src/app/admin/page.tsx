@@ -1280,7 +1280,30 @@ export default function AdminPage() {
     );
   }
 
-  const actualOrdersRevenue = orders.reduce((acc, order) => acc + (order.status !== 'cancelled' ? order.valorFaturado : 0), 0);
+  const getOrderAmount = (o: any) => {
+    if (o.status === 'cancelled') return 0;
+    const faturado = Number(o.valorFaturado);
+    if (!isNaN(faturado) && faturado > 0) return faturado;
+    const amount = Number(o.amount);
+    if (!isNaN(amount) && amount > 0) return amount;
+    const porFaturar = Number(o.valorPorFaturar);
+    if (!isNaN(porFaturar) && porFaturar > 0) return porFaturar;
+    return 0;
+  };
+
+  const isCompletedOrder = (status?: string) => {
+    return status === 'completed' || status === 'approved' || status === 'active';
+  };
+
+  const completedOrdersRevenue = orders
+    .filter(o => isCompletedOrder(o.status))
+    .reduce((acc, order) => acc + getOrderAmount(order), 0);
+
+  const allNonCancelledOrdersRevenue = orders
+    .filter(o => o.status !== 'cancelled')
+    .reduce((acc, order) => acc + getOrderAmount(order), 0);
+
+  const actualOrdersRevenue = completedOrdersRevenue > 0 ? completedOrdersRevenue : allNonCancelledOrdersRevenue;
 
   const clientUsers = users.filter(u => u.role !== 'admin' && u.email.toLowerCase() !== 'admin@wehosthere.com');
   const activeClients = clientUsers.filter(u => {
@@ -1299,12 +1322,28 @@ export default function AdminPage() {
 
   const totalRevenue = actualOrdersRevenue > 0 ? actualOrdersRevenue : mrr;
 
-  const averageTicket = orders.length > 0 ? Math.round(totalRevenue / orders.length) : (activeClients.length > 0 ? Math.round(mrr / activeClients.length) : 0);
+  const validOrdersCount = orders.filter(o => o.status !== 'cancelled').length;
+  const averageTicket = validOrdersCount > 0 
+    ? Math.round(totalRevenue / validOrdersCount) 
+    : (activeClients.length > 0 ? Math.round(mrr / activeClients.length) : 0);
 
-  const mpesaRevenue = orders.filter(o => o.paymentMethod === 'mpesa' && o.status !== 'cancelled').reduce((acc, o) => acc + (o.valorFaturado || 0), 0);
-  const emolaRevenue = orders.filter(o => o.paymentMethod === 'emola' && o.status !== 'cancelled').reduce((acc, o) => acc + (o.valorFaturado || 0), 0);
-  const cardRevenue = orders.filter(o => o.paymentMethod === 'card' && o.status !== 'cancelled').reduce((acc, o) => acc + (o.valorFaturado || 0), 0);
-  const validOrdersTotal = (mpesaRevenue + emolaRevenue + cardRevenue) || 1;
+  const isMpesa = (method?: string) => {
+    const m = (method || '').toLowerCase().replace(/[^a-z]/g, '');
+    return m === 'mpesa' || m.includes('mpesa') || m.includes('vodacom');
+  };
+  const isEmola = (method?: string) => {
+    const m = (method || '').toLowerCase().replace(/[^a-z]/g, '');
+    return m === 'emola' || m.includes('emola') || m.includes('movitel');
+  };
+  const isCard = (method?: string) => {
+    const m = (method || '').toLowerCase().replace(/[^a-z]/g, '');
+    return m === 'card' || m.includes('card') || m.includes('cartao') || m.includes('visa') || m.includes('master');
+  };
+
+  const mpesaRevenue = orders.filter(o => isMpesa(o.paymentMethod) && o.status !== 'cancelled').reduce((acc, o) => acc + getOrderAmount(o), 0);
+  const emolaRevenue = orders.filter(o => isEmola(o.paymentMethod) && o.status !== 'cancelled').reduce((acc, o) => acc + getOrderAmount(o), 0);
+  const cardRevenue = orders.filter(o => isCard(o.paymentMethod) && o.status !== 'cancelled').reduce((acc, o) => acc + getOrderAmount(o), 0);
+  const validOrdersTotal = (mpesaRevenue + emolaRevenue + cardRevenue) || actualOrdersRevenue || 1;
 
   const getUserStatus = (user: User) => {
     // Respeitar decisão explícita do Administrador
@@ -3124,7 +3163,7 @@ export default function AdminPage() {
                         <span className="font-semibold text-gray-900 text-[10px] sm:text-sm block">{order.serviceName}</span>
                       </td>
                       <td className="py-2.5 sm:py-3.5 px-2 sm:px-4">
-                        <span className="font-bold text-gray-900 text-[10px] sm:text-sm block">{(order.valorFaturado || 0).toLocaleString('pt-MZ')} MT</span>
+                        <span className="font-bold text-gray-900 text-[10px] sm:text-sm block">{getOrderAmount(order).toLocaleString('pt-MZ')} MT</span>
                         <span className="text-[9px] sm:text-xs text-gray-500 block uppercase">{order.paymentMethod || 'mpesa'}</span>
                       </td>
                       <td className="py-2.5 sm:py-3.5 px-2 sm:px-4">
