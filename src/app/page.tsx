@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from "next/link";
-import { Server, Mail, Shield, Zap, Globe, Users, Search, Sparkles, CheckCircle, Facebook, Phone, Linkedin, Star, ArrowRight, Play, Calendar, Eye, Instagram, ShoppingCart, Brain, CreditCard } from "lucide-react";
+import { Server, Mail, Shield, Zap, Globe, Users, Search, Sparkles, CheckCircle, Facebook, Phone, Linkedin, Star, ArrowRight, Play, Calendar, Eye, Instagram, ChevronLeft, ChevronRight, ShoppingCart, Brain, CreditCard } from "lucide-react";
 import { websiteTypes } from '@/lib/data';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 import { useLanguage } from '@/context/LanguageContext';
@@ -21,6 +21,9 @@ export default function Home() {
   const [blogPosts, setBlogPosts] = useState<any[]>([]);
   const [blogLoading, setBlogLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   // Ticker animado pelos tipos de sites e seus preços
   const tickerTypes = websiteTypes.filter(t => t.basePrice < 100000);
@@ -61,6 +64,40 @@ export default function Home() {
 
     fetchBlogPosts();
   }, [selectedCategory]);
+
+  // Carousel auto-slide
+  useEffect(() => {
+    if (blogPosts.length <= (isMobile ? 1 : 3) || isPaused) return;
+
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % Math.ceil(blogPosts.length / (isMobile ? 1 : 3)));
+    }, 5000); // 5 segundos por slide
+
+    return () => clearInterval(interval);
+  }, [blogPosts.length, isPaused, isMobile]);
+
+  // Detect mobile vs desktop
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % Math.ceil(blogPosts.length / (isMobile ? 1 : 3)));
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + Math.ceil(blogPosts.length / (isMobile ? 1 : 3))) % Math.ceil(blogPosts.length / (isMobile ? 1 : 3)));
+  };
+
+  const goToSlide = (index: number) => {
+    setCurrentSlide(index);
+  };
 
   // Refs de animação de scroll do Hero (callback refs)
   const badgeRef = useScrollAnimation<HTMLDivElement>();
@@ -628,52 +665,100 @@ export default function Home() {
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
             </div>
           ) : blogPosts.length > 0 ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-              {blogPosts.slice(0, 3).map((post) => (
-                <Link 
-                  key={post.id}
-                  href={`/blog/${post.slug}`}
-                  className="group bg-white rounded-xl sm:rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200 hover:border-blue-300 block"
+            <div 
+              className="relative"
+              onMouseEnter={() => setIsPaused(true)}
+              onMouseLeave={() => setIsPaused(false)}
+            >
+              {/* Navigation Arrows */}
+              {blogPosts.length > (isMobile ? 1 : 3) && (
+                <>
+                  <button
+                    onClick={prevSlide}
+                    className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 sm:-translate-x-4 z-10 bg-white/90 hover:bg-white text-gray-800 p-2 sm:p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
+                  >
+                    <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6" />
+                  </button>
+                  <button
+                    onClick={nextSlide}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 sm:translate-x-4 z-10 bg-white/90 hover:bg-white text-gray-800 p-2 sm:p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
+                  >
+                    <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" />
+                  </button>
+                </>
+              )}
+
+              {/* Carousel Container - Shows 3 cards at once on desktop, 1 on mobile */}
+              <div className="overflow-hidden">
+                <div 
+                  className="flex transition-transform duration-500 ease-in-out"
+                  style={{ transform: `translateX(-${currentSlide * (isMobile ? 100 : 33.333)}%)` }}
                 >
-                  {post.coverImage && (
-                    <div className="relative h-48 sm:h-56 overflow-hidden">
-                      <img
-                        src={post.coverImage}
-                        alt={post.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                      <div className="absolute top-3 left-3">
-                        <span className="bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full">
-                          {post.category}
-                        </span>
-                      </div>
+                  {blogPosts.map((post) => (
+                    <div key={post.id} className="w-full md:w-1/3 flex-shrink-0 px-2 sm:px-4">
+                      <Link 
+                        href={`/blog/${post.slug}`}
+                        className="group bg-white rounded-xl sm:rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200 hover:border-blue-300 block"
+                      >
+                        {post.coverImage && (
+                          <div className="relative h-48 sm:h-56 overflow-hidden">
+                            <img
+                              src={post.coverImage}
+                              alt={post.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                            <div className="absolute top-3 left-3">
+                              <span className="bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full">
+                                {post.category}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                        <div className="p-4 sm:p-6">
+                          <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                            {post.title}
+                          </h3>
+                          <p className="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4 line-clamp-3">
+                            {post.excerpt}
+                          </p>
+                          <div className="flex items-center justify-between text-xs sm:text-sm text-gray-500">
+                            <div className="flex items-center space-x-2">
+                              <Calendar className="h-4 w-4" />
+                              <span>
+                                {new Date(post.publishedAt).toLocaleDateString(language === 'en' ? 'en-US' : 'pt-PT', {
+                                  day: '2-digit',
+                                  month: 'short',
+                                  year: 'numeric'
+                                })}
+                              </span>
+                            </div>
+                            <span className="text-blue-600 font-semibold group-hover:underline">
+                              {t('blog.read_more')}
+                            </span>
+                          </div>
+                        </div>
+                      </Link>
                     </div>
-                  )}
-                  <div className="p-4 sm:p-6">
-                    <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3 line-clamp-2 group-hover:text-blue-600 transition-colors">
-                      {post.title}
-                    </h3>
-                    <p className="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4 line-clamp-3">
-                      {post.excerpt}
-                    </p>
-                    <div className="flex items-center justify-between text-xs sm:text-sm text-gray-500">
-                      <div className="flex items-center space-x-2">
-                        <Calendar className="h-4 w-4" />
-                        <span>
-                          {new Date(post.publishedAt).toLocaleDateString(language === 'en' ? 'en-US' : 'pt-PT', {
-                            day: '2-digit',
-                            month: 'short',
-                            year: 'numeric'
-                          })}
-                        </span>
-                      </div>
-                      <span className="text-blue-600 font-semibold group-hover:underline">
-                        {t('blog.read_more')}
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-              ))}
+                  ))}
+                </div>
+              </div>
+
+              {/* Dots Indicators - One dot per group of cards */}
+              {blogPosts.length > (isMobile ? 1 : 3) && (
+                <div className="flex justify-center gap-2 mt-6">
+                  {Array.from({ length: Math.ceil(blogPosts.length / (isMobile ? 1 : 3)) }).map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => goToSlide(index)}
+                      className={`h-2 rounded-full transition-all duration-300 ${
+                        currentSlide === index 
+                          ? 'w-8 bg-blue-600' 
+                          : 'w-2 bg-gray-300 hover:bg-gray-400'
+                      }`}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           ) : null}
           
