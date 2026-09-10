@@ -32,6 +32,7 @@ export default function AdminCommunicationPage() {
   const [templates, setTemplates] = useState<CommunicationTemplate[]>([]);
   const [logs, setLogs] = useState<CommunicationLog[]>([]);
   const [newsletterSubscribers, setNewsletterSubscribers] = useState<any[]>([]);
+  const [blogPosts, setBlogPosts] = useState<any[]>([]);
 
   // Abas do Painel ('manual' | 'bulk' | 'templates' | 'history')
   const [activeTab, setActiveTab] = useState<'manual' | 'bulk' | 'templates' | 'history'>('manual');
@@ -46,6 +47,7 @@ export default function AdminCommunicationPage() {
   const [manualTemplateId, setManualTemplateId] = useState('');
   const [manualSubject, setManualSubject] = useState('');
   const [manualBody, setManualBody] = useState('');
+  const [selectedBlogPost, setSelectedBlogPost] = useState('');
   const [isSendingManual, setIsSendingManual] = useState(false);
 
   // -------------------------------------------------------------
@@ -56,6 +58,7 @@ export default function AdminCommunicationPage() {
   const [bulkTemplateId, setBulkTemplateId] = useState('');
   const [bulkSubject, setBulkSubject] = useState('');
   const [bulkBody, setBulkBody] = useState('');
+  const [bulkSelectedBlogPost, setBulkSelectedBlogPost] = useState('');
   const [isConfirmingBulk, setIsConfirmingBulk] = useState(false);
   const [isSendingBulk, setIsSendingBulk] = useState(false);
 
@@ -103,6 +106,19 @@ export default function AdminCommunicationPage() {
       } catch (e) {
         console.warn('Subscritores newsletter não disponíveis:', e);
       }
+
+      // Carregar posts do blog publicados
+      try {
+        const blogResponse = await fetch('/api/admin/blog/posts');
+        if (blogResponse.ok) {
+          const blogData = await blogResponse.json();
+          if (blogData.success) {
+            setBlogPosts((blogData.posts || []).filter((post: any) => post.status === 'published'));
+          }
+        }
+      } catch (e) {
+        console.warn('Posts do blog não disponíveis:', e);
+      }
     } catch (err) {
       console.error('Erro ao carregar dados da central de comunicação:', err);
     }
@@ -119,6 +135,25 @@ export default function AdminCommunicationPage() {
     }
   };
 
+  // Selecionar Post de Blog no Envio Manual
+  const handleBlogPostSelect = (postId: string) => {
+    setSelectedBlogPost(postId);
+    if (!postId) return;
+    const post = blogPosts.find(p => p.id === postId);
+    if (post) {
+      setManualSubject(`📰 Novo Artigo: ${post.title}`);
+      setManualBody(`
+        <h2>${post.title}</h2>
+        <p><strong>Resumo:</strong> ${post.excerpt || post.content?.substring(0, 200) || 'Leia o artigo completo para saber mais.'}</p>
+        <p><strong>Categoria:</strong> ${post.category || 'Geral'}</p>
+        <p>Para ler o artigo completo, clique no link abaixo:</p>
+        <p><a href="https://www.wehosthere.com/blog/${post.slug}" style="color: #1e40af; text-decoration: underline;">Ler Artigo Completo</a></p>
+        <hr>
+        <p><em>Este é um artigo do blog WEHOSTHERE. Para mais informações, visite nosso site.</em></p>
+      `);
+    }
+  };
+
   // Selecionar Modelo no Envio em Massa
   const handleBulkTemplateSelect = (templateId: string) => {
     setBulkTemplateId(templateId);
@@ -127,6 +162,25 @@ export default function AdminCommunicationPage() {
     if (found) {
       setBulkSubject(found.subject);
       setBulkBody(found.body);
+    }
+  };
+
+  // Selecionar Post de Blog no Envio em Massa
+  const handleBulkBlogPostSelect = (postId: string) => {
+    setBulkSelectedBlogPost(postId);
+    if (!postId) return;
+    const post = blogPosts.find(p => p.id === postId);
+    if (post) {
+      setBulkSubject(`📰 Novo Artigo: ${post.title}`);
+      setBulkBody(`
+        <h2>${post.title}</h2>
+        <p><strong>Resumo:</strong> ${post.excerpt || post.content?.substring(0, 200) || 'Leia o artigo completo para saber mais.'}</p>
+        <p><strong>Categoria:</strong> ${post.category || 'Geral'}</p>
+        <p>Para ler o artigo completo, clique no link abaixo:</p>
+        <p><a href="https://www.wehosthere.com/blog/${post.slug}" style="color: #1e40af; text-decoration: underline;">Ler Artigo Completo</a></p>
+        <hr>
+        <p><em>Este é um artigo do blog WEHOSTHERE. Para mais informações, visite nosso site.</em></p>
+      `);
     }
   };
 
@@ -667,7 +721,25 @@ export default function AdminCommunicationPage() {
 
                 <div>
                   <label className="block text-xs font-bold text-gray-700 mb-1.5">
-                    3. Assunto da Mensagem
+                    3. Selecionar Artigo de Blog (Opcional)
+                  </label>
+                  <select
+                    value={selectedBlogPost}
+                    onChange={e => handleBlogPostSelect(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-sm text-gray-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                  >
+                    <option value="">-- Selecione um Artigo de Blog (opcional) --</option>
+                    {blogPosts.map(post => (
+                      <option key={post.id} value={post.id}>
+                        📰 {post.title} ({new Date(post.publishedAt || post.createdAt).toLocaleDateString('pt-MZ')})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                    4. Assunto da Mensagem
                   </label>
                   <input
                     type="text"
@@ -682,7 +754,7 @@ export default function AdminCommunicationPage() {
                 <div>
                   <div className="flex justify-between items-center mb-1.5">
                     <label className="block text-xs font-bold text-gray-700">
-                      4. Conteúdo da Mensagem
+                      5. Conteúdo da Mensagem
                     </label>
                     <span className="text-[11px] text-gray-500">Variáveis rápidas:</span>
                   </div>
@@ -854,6 +926,22 @@ export default function AdminCommunicationPage() {
                     {templates.map(t => (
                       <option key={t.id} value={t.id}>
                         📝 [{t.category}] {t.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Selecionar Artigo de Blog (Opcional)</label>
+                  <select
+                    value={bulkSelectedBlogPost}
+                    onChange={e => handleBulkBlogPostSelect(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-sm text-gray-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                  >
+                    <option value="">-- Selecione um Artigo de Blog (opcional) --</option>
+                    {blogPosts.map(post => (
+                      <option key={post.id} value={post.id}>
+                        📰 {post.title} ({new Date(post.publishedAt || post.createdAt).toLocaleDateString('pt-MZ')})
                       </option>
                     ))}
                   </select>
