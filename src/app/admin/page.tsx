@@ -1485,6 +1485,14 @@ export default function AdminPage() {
               </Link>
 
               <Link
+                href="/admin/pagamentos-mensais"
+                className="flex items-center space-x-1.5 text-gray-600 hover:text-emerald-600 font-medium transition text-[10px] sm:text-xs sm:text-sm shrink-0 whitespace-nowrap px-2 py-1.5 rounded-lg hover:bg-emerald-50/70"
+              >
+                <DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-500" />
+                <span>Pagamentos</span>
+              </Link>
+
+              <Link
                 href="/admin/academy"
                 className="flex items-center space-x-1.5 text-gray-600 hover:text-indigo-600 font-medium transition text-[10px] sm:text-xs sm:text-sm shrink-0 whitespace-nowrap px-2 py-1.5 rounded-lg hover:bg-indigo-50/70"
               >
