@@ -186,6 +186,31 @@ export default function DominiosPage() {
           </div>
         </section>
 
+        {/* Related Pages */}
+        <section>
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8">
+            Páginas Relacionadas
+          </h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Link href="/dominio-co-mz" className="block p-4 bg-white rounded-xl border border-gray-200 hover:border-primary-300 hover:shadow-md transition">
+              <h3 className="font-semibold text-gray-900 mb-1">Domínio .co.mz</h3>
+              <p className="text-sm text-gray-600">Saiba mais sobre domínios nacionais</p>
+            </Link>
+            <Link href="/hospedagem" className="block p-4 bg-white rounded-xl border border-gray-200 hover:border-primary-300 hover:shadow-md transition">
+              <h3 className="font-semibold text-gray-900 mb-1">Hospedagem</h3>
+              <p className="text-sm text-gray-600">Serviços de hospedagem web</p>
+            </Link>
+            <Link href="/criar-site" className="block p-4 bg-white rounded-xl border border-gray-200 hover:border-primary-300 hover:shadow-md transition">
+              <h3 className="font-semibold text-gray-900 mb-1">Criar Site</h3>
+              <p className="text-sm text-gray-600">Desenvolvimento web profissional</p>
+            </Link>
+            <Link href="/email-profissional" className="block p-4 bg-white rounded-xl border border-gray-200 hover:border-primary-300 hover:shadow-md transition">
+              <h3 className="font-semibold text-gray-900 mb-1">Email Profissional</h3>
+              <p className="text-sm text-gray-600">Email com domínio próprio</p>
+            </Link>
+          </div>
+        </section>
+
         {/* CTA */}
         <section className="text-center bg-gradient-to-r from-primary-600 to-primary-700 rounded-xl p-8 md:p-12 text-white">
           <h2 className="text-2xl md:text-3xl font-bold mb-4">

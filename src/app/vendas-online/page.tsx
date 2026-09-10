@@ -135,6 +135,31 @@ export default function VendasOnlinePage() {
           </ul>
         </section>
 
+        {/* Related Pages */}
+        <section>
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8">
+            Páginas Relacionadas
+          </h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Link href="/loja-online" className="block p-4 bg-white rounded-xl border border-gray-200 hover:border-primary-300 hover:shadow-md transition">
+              <h3 className="font-semibold text-gray-900 mb-1">Loja Online</h3>
+              <p className="text-sm text-gray-600">Crie sua loja</p>
+            </Link>
+            <Link href="/dropshipping" className="block p-4 bg-white rounded-xl border border-gray-200 hover:border-primary-300 hover:shadow-md transition">
+              <h3 className="font-semibold text-gray-900 mb-1">Dropshipping</h3>
+              <p className="text-sm text-gray-600">Venda sem estoque</p>
+            </Link>
+            <Link href="/pagamentos-online" className="block p-4 bg-white rounded-xl border border-gray-200 hover:border-primary-300 hover:shadow-md transition">
+              <h3 className="font-semibold text-gray-900 mb-1">Pagamentos Online</h3>
+              <p className="text-sm text-gray-600">Gateways de pagamento</p>
+            </Link>
+            <Link href="/inteligencia-artificial" className="block p-4 bg-white rounded-xl border border-gray-200 hover:border-primary-300 hover:shadow-md transition">
+              <h3 className="font-semibold text-gray-900 mb-1">Inteligência Artificial</h3>
+              <p className="text-sm text-gray-600">Marketing com IA</p>
+            </Link>
+          </div>
+        </section>
+
         <section className="text-center bg-gradient-to-r from-primary-600 to-primary-700 rounded-xl p-8 md:p-12 text-white">
           <h2 className="text-2xl md:text-3xl font-bold mb-4">
             Pronto para Começar a Vender Online?
