@@ -20,10 +20,17 @@ interface MonthlyPayment {
   year: number;
   month: number;
   amount: number;
-  status: 'paid' | 'pending' | 'overdue';
+  paidAmount: number;
+  remainingAmount: number;
+  status: 'paid' | 'partial' | 'pending' | 'overdue';
   paymentDate?: string;
   paymentMethod?: string;
   notes?: string;
+  installments?: {
+    total: number;
+    paid: number;
+    installmentAmount: number;
+  };
   createdAt: string;
 }
 
@@ -74,10 +81,14 @@ export default function MonthlyPaymentsPage() {
   const [formData, setFormData] = useState({
     clientId: '',
     amount: '',
+    paidAmount: '',
     paymentDate: '',
     paymentMethod: '',
-    status: 'pending' as 'paid' | 'pending' | 'overdue',
-    notes: ''
+    status: 'pending' as 'paid' | 'partial' | 'pending' | 'overdue',
+    notes: '',
+    isInstallment: false,
+    totalInstallments: '',
+    currentInstallment: ''
   });
 
   // Toast
@@ -185,10 +196,14 @@ export default function MonthlyPaymentsPage() {
     setFormData({
       clientId: '',
       amount: '',
+      paidAmount: '',
       paymentDate: new Date().toISOString().split('T')[0],
       paymentMethod: '',
       status: 'paid',
-      notes: ''
+      notes: '',
+      isInstallment: false,
+      totalInstallments: '',
+      currentInstallment: ''
     });
     setIsModalOpen(true);
   };
@@ -233,10 +248,14 @@ export default function MonthlyPaymentsPage() {
     setFormData({
       clientId: payment.clientId,
       amount: payment.amount.toString(),
+      paidAmount: payment.paidAmount?.toString() || '',
       paymentDate: payment.paymentDate || '',
       paymentMethod: payment.paymentMethod || '',
       status: payment.status,
-      notes: payment.notes || ''
+      notes: payment.notes || '',
+      isInstallment: !!payment.installments,
+      totalInstallments: payment.installments?.total?.toString() || '',
+      currentInstallment: payment.installments?.paid?.toString() || ''
     });
     setIsModalOpen(true);
   };
@@ -261,6 +280,20 @@ export default function MonthlyPaymentsPage() {
       return;
     }
 
+    const totalAmount = parseFloat(formData.amount);
+    const paidAmount = formData.paidAmount ? parseFloat(formData.paidAmount) : totalAmount;
+    const remainingAmount = totalAmount - paidAmount;
+
+    // Determine status based on payment
+    let paymentStatus = formData.status;
+    if (formData.isInstallment) {
+      paymentStatus = 'partial';
+    } else if (paidAmount > 0 && paidAmount < totalAmount) {
+      paymentStatus = 'partial';
+    } else if (paidAmount === totalAmount) {
+      paymentStatus = 'paid';
+    }
+
     const paymentData: MonthlyPayment = {
       id: editingPayment?.id || `pay_${Date.now()}`,
       clientId: client.id,
@@ -268,11 +301,18 @@ export default function MonthlyPaymentsPage() {
       clientEmail: client.email,
       year: selectedYear,
       month: selectedMonth,
-      amount: parseFloat(formData.amount),
-      status: formData.status,
+      amount: totalAmount,
+      paidAmount: paidAmount,
+      remainingAmount: remainingAmount,
+      status: paymentStatus,
       paymentDate: formData.paymentDate,
       paymentMethod: formData.paymentMethod,
       notes: formData.notes,
+      installments: formData.isInstallment ? {
+        total: parseInt(formData.totalInstallments),
+        paid: parseInt(formData.currentInstallment),
+        installmentAmount: totalAmount / parseInt(formData.totalInstallments)
+      } : undefined,
       createdAt: editingPayment?.createdAt || new Date().toISOString()
     };
 
@@ -291,11 +331,13 @@ export default function MonthlyPaymentsPage() {
   const getStatusBadge = (status: string) => {
     const badges = {
       paid: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+      partial: 'bg-blue-100 text-blue-700 border-blue-200',
       pending: 'bg-amber-100 text-amber-700 border-amber-200',
       overdue: 'bg-red-100 text-red-700 border-red-200'
     };
     const labels = {
       paid: 'Pago',
+      partial: 'Parcial',
       pending: 'Pendente',
       overdue: 'Atrasado'
     };
@@ -509,10 +551,14 @@ export default function MonthlyPaymentsPage() {
                           setFormData({
                             clientId: client.id,
                             amount: '',
+                            paidAmount: '',
                             paymentDate: new Date().toISOString().split('T')[0],
                             paymentMethod: '',
                             status: 'paid',
-                            notes: ''
+                            notes: '',
+                            isInstallment: false,
+                            totalInstallments: '',
+                            currentInstallment: ''
                           });
                           setIsModalOpen(true);
                         }}
@@ -561,7 +607,9 @@ export default function MonthlyPaymentsPage() {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900">Cliente</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900">Valor</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900">Valor Total</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900">Pago</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900">Restante</th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900">Data Pagamento</th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900">Método</th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900">Status</th>
@@ -571,7 +619,7 @@ export default function MonthlyPaymentsPage() {
                 <tbody className="divide-y divide-gray-200">
                   {filteredPayments.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                      <td colSpan={9} className="px-6 py-12 text-center text-gray-500">
                         Nenhum pagamento encontrado para os filtros selecionados.
                       </td>
                     </tr>
@@ -587,6 +635,12 @@ export default function MonthlyPaymentsPage() {
                         <td className="px-6 py-4 font-bold text-gray-900">
                           {payment.amount.toLocaleString('pt-MZ')} MT
                         </td>
+                        <td className="px-6 py-4 font-bold text-emerald-600">
+                          {payment.paidAmount.toLocaleString('pt-MZ')} MT
+                        </td>
+                        <td className="px-6 py-4 font-bold text-red-600">
+                          {payment.remainingAmount.toLocaleString('pt-MZ')} MT
+                        </td>
                         <td className="px-6 py-4 text-gray-600">
                           {payment.paymentDate ? new Date(payment.paymentDate).toLocaleDateString('pt-MZ') : '-'}
                         </td>
@@ -595,6 +649,11 @@ export default function MonthlyPaymentsPage() {
                         </td>
                         <td className="px-6 py-4">
                           {getStatusBadge(payment.status)}
+                          {payment.installments && (
+                            <span className="ml-2 text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">
+                              {payment.installments.paid}/{payment.installments.total}x
+                            </span>
+                          )}
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
@@ -708,10 +767,14 @@ export default function MonthlyPaymentsPage() {
                               setFormData({
                                 clientId: client.id,
                                 amount: '',
+                                paidAmount: '',
                                 paymentDate: new Date().toISOString().split('T')[0],
                                 paymentMethod: '',
                                 status: 'paid',
-                                notes: ''
+                                notes: '',
+                                isInstallment: false,
+                                totalInstallments: '',
+                                currentInstallment: ''
                               });
                               setIsModalOpen(true);
                             }}
@@ -774,7 +837,7 @@ export default function MonthlyPaymentsPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1.5">Valor (MT)</label>
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">Valor Total (MT)</label>
                 <input
                   type="number"
                   value={formData.amount}
@@ -784,6 +847,57 @@ export default function MonthlyPaymentsPage() {
                   required
                 />
               </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">Valor Pago (MT)</label>
+                <input
+                  type="number"
+                  value={formData.paidAmount}
+                  onChange={e => setFormData({ ...formData, paidAmount: e.target.value })}
+                  placeholder="Ex: 2500 (deixe vazio se pago total)"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm"
+                />
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="isInstallment"
+                  checked={formData.isInstallment}
+                  onChange={e => setFormData({ ...formData, isInstallment: e.target.checked })}
+                  className="accent-blue-600"
+                />
+                <label htmlFor="isInstallment" className="text-xs font-bold text-gray-700">
+                  Pagamento em Parcelas
+                </label>
+              </div>
+
+              {formData.isInstallment && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1.5">Total de Parcelas</label>
+                    <input
+                      type="number"
+                      value={formData.totalInstallments}
+                      onChange={e => setFormData({ ...formData, totalInstallments: e.target.value })}
+                      placeholder="Ex: 3"
+                      min="2"
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1.5">Parcela Atual</label>
+                    <input
+                      type="number"
+                      value={formData.currentInstallment}
+                      onChange={e => setFormData({ ...formData, currentInstallment: e.target.value })}
+                      placeholder="Ex: 1"
+                      min="1"
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm"
+                    />
+                  </div>
+                </div>
+              )}
 
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-1.5">Data de Pagamento</label>
@@ -818,6 +932,7 @@ export default function MonthlyPaymentsPage() {
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm"
                 >
                   <option value="paid">Pago</option>
+                  <option value="partial">Parcial</option>
                   <option value="pending">Pendente</option>
                   <option value="overdue">Atrasado</option>
                 </select>
@@ -876,14 +991,31 @@ export default function MonthlyPaymentsPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-gray-50 p-4 rounded-xl">
-                  <p className="text-xs text-gray-500 mb-1">Valor</p>
+                  <p className="text-xs text-gray-500 mb-1">Valor Total</p>
                   <p className="font-bold text-gray-900">{viewingPayment.amount.toLocaleString('pt-MZ')} MT</p>
+                </div>
+                <div className="bg-gray-50 p-4 rounded-xl">
+                  <p className="text-xs text-gray-500 mb-1">Valor Pago</p>
+                  <p className="font-bold text-emerald-600">{viewingPayment.paidAmount.toLocaleString('pt-MZ')} MT</p>
+                </div>
+                <div className="bg-gray-50 p-4 rounded-xl">
+                  <p className="text-xs text-gray-500 mb-1">Restante</p>
+                  <p className="font-bold text-red-600">{viewingPayment.remainingAmount.toLocaleString('pt-MZ')} MT</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-xl">
                   <p className="text-xs text-gray-500 mb-1">Status</p>
                   {getStatusBadge(viewingPayment.status)}
                 </div>
               </div>
+
+              {viewingPayment.installments && (
+                <div className="bg-purple-50 p-4 rounded-xl border border-purple-200">
+                  <p className="text-xs text-purple-600 mb-1 font-bold">Pagamento em Parcelas</p>
+                  <p className="font-bold text-purple-900">
+                    Parcela {viewingPayment.installments.paid} de {viewingPayment.installments.total}
+                  </p>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-gray-50 p-4 rounded-xl">
