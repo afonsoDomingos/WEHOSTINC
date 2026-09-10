@@ -27,28 +27,20 @@ export default function robots(): MetadataRoute.Robots {
           '/privacy', 
           '/systems', 
           '/ads.txt',
-          // Páginas SEO - Domínios
           '/dominios',
           '/dominio-co-mz',
-          // Páginas SEO - Hospedagem
           '/hospedagem',
           '/hospedagem-wordpress',
           '/vps',
-          // Páginas SEO - Email
           '/email-profissional',
           '/email-corporativo',
-          // Páginas SEO - Criação de Sites
           '/criar-site',
-          // Páginas SEO - E-commerce
           '/loja-online',
           '/vendas-online',
           '/dropshipping',
-          // Páginas SEO - Produtos Digitais
           '/produtos-digitais',
           '/plr',
-          // Páginas SEO - Inteligência Artificial
           '/inteligencia-artificial',
-          // Páginas SEO - Pagamentos
           '/pagamentos-online',
           '/scalepay',
         ],
