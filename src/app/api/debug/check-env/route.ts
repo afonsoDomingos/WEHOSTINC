@@ -1,29 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// ⛔ ENDPOINT DE DEBUG — BLOQUEADO EM PRODUÇÃO
-// Este endpoint existia para depuração de variáveis de ambiente.
-// Foi bloqueado por razões de segurança.
+// Verificação segura de configuração do Google OAuth
+// Não expõe valores de variáveis de ambiente, apenas status
 export async function GET(request: NextRequest) {
-  // Bloquear completamente em produção
-  if (process.env.NODE_ENV !== 'development') {
-    return NextResponse.json({ error: 'Not found' }, { status: 404 });
-  }
-
   try {
-    const envVars = {
-      hasClientId: !!process.env.GOOGLE_CLIENT_ID,
-      hasClientSecret: !!process.env.GOOGLE_CLIENT_SECRET,
-      hasNextAuthSecret: !!process.env.NEXTAUTH_SECRET,
-      hasNextAuthUrl: !!process.env.NEXTAUTH_URL,
-      // ⚠️ Nunca expor prefixos ou valores parciais em produção
-      nextAuthUrl: process.env.NEXTAUTH_URL || 'not set',
-      nodeEnv: process.env.NODE_ENV || 'not set'
-    };
+    // Verificar se Google OAuth está configurado sem expor valores
+    const googleClientId = process.env.GOOGLE_CLIENT_ID;
+    const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
+    const nextAuthSecret = process.env.NEXTAUTH_SECRET;
+    const nextAuthUrl = process.env.NEXTAUTH_URL;
+
+    const isGoogleConfigured = googleClientId && googleClientSecret && 
+      googleClientId !== 'your-google-client-id' && 
+      googleClientSecret !== 'your-google-client-secret';
+
+    const isNextAuthConfigured = nextAuthSecret && nextAuthUrl;
 
     return NextResponse.json({
       success: true,
-      environment: envVars,
-      allSet: envVars.hasClientId && envVars.hasClientSecret && envVars.hasNextAuthSecret && envVars.hasNextAuthUrl
+      googleOAuth: {
+        configured: isGoogleConfigured,
+        hasClientId: !!googleClientId,
+        hasClientSecret: !!googleClientSecret,
+        hasNextAuthSecret: !!nextAuthSecret,
+        hasNextAuthUrl: !!nextAuthUrl
+      },
+      allConfigured: isGoogleConfigured && isNextAuthConfigured
     });
   } catch (error) {
     console.error('[Debug Check Env] Erro:', error);
