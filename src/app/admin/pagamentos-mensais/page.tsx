@@ -27,6 +27,16 @@ interface MonthlyPayment {
   createdAt: string;
 }
 
+interface ManualClient {
+  id: string;
+  name: string;
+  email: string;
+  plan: string;
+  phone?: string;
+  address?: string;
+  createdAt: string;
+}
+
 export default function MonthlyPaymentsPage() {
   const router = useRouter();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -35,6 +45,7 @@ export default function MonthlyPaymentsPage() {
   // Dados
   const [clients, setClients] = useState<User[]>([]);
   const [payments, setPayments] = useState<MonthlyPayment[]>([]);
+  const [manualClients, setManualClients] = useState<ManualClient[]>([]);
 
   // Estados da UI
   const [activeTab, setActiveTab] = useState<'overview' | 'payments' | 'clients'>('overview');
@@ -48,6 +59,16 @@ export default function MonthlyPaymentsPage() {
   const [editingPayment, setEditingPayment] = useState<MonthlyPayment | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [viewingPayment, setViewingPayment] = useState<MonthlyPayment | null>(null);
+  
+  // Modal de adicionar cliente manual
+  const [isClientModalOpen, setIsClientModalOpen] = useState(false);
+  const [clientFormData, setClientFormData] = useState({
+    name: '',
+    email: '',
+    plan: '',
+    phone: '',
+    address: ''
+  });
 
   // Formulário
   const [formData, setFormData] = useState({
@@ -83,6 +104,12 @@ export default function MonthlyPaymentsPage() {
       if (storedPayments) {
         setPayments(JSON.parse(storedPayments));
       }
+
+      // Carregar clientes manuais do localStorage
+      const storedManualClients = localStorage.getItem('manualClients');
+      if (storedManualClients) {
+        setManualClients(JSON.parse(storedManualClients));
+      }
     } catch (err) {
       console.error('Erro ao carregar dados:', err);
     }
@@ -92,6 +119,31 @@ export default function MonthlyPaymentsPage() {
     setPayments(newPayments);
     localStorage.setItem('monthlyPayments', JSON.stringify(newPayments));
   };
+
+  const saveManualClients = (newClients: ManualClient[]) => {
+    setManualClients(newClients);
+    localStorage.setItem('manualClients', JSON.stringify(newClients));
+  };
+
+  // Combinar clientes da plataforma com clientes manuais
+  const allClients = [
+    ...clients.map(c => ({
+      id: c.id || c.email,
+      name: c.name || 'Sem Nome',
+      email: c.email,
+      plan: c.plan || 'N/A',
+      status: c.status || 'active',
+      isManual: false
+    })),
+    ...manualClients.map(c => ({
+      id: c.id,
+      name: c.name,
+      email: c.email,
+      plan: c.plan,
+      status: 'active',
+      isManual: true
+    }))
+  ];
 
   const months = [
     'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
@@ -110,9 +162,9 @@ export default function MonthlyPaymentsPage() {
     return matchesYear && matchesMonth && matchesStatus && matchesSearch;
   });
 
-  const unpaidClients = clients.filter(client => {
+  const unpaidClients = allClients.filter(client => {
     const hasPayment = payments.some(
-      p => p.clientId === (client.id || client.email) && 
+      p => p.clientId === client.id && 
       p.year === selectedYear && 
       p.month === selectedMonth &&
       p.status === 'paid'
@@ -139,6 +191,41 @@ export default function MonthlyPaymentsPage() {
       notes: ''
     });
     setIsModalOpen(true);
+  };
+
+  const handleAddClient = () => {
+    setClientFormData({
+      name: '',
+      email: '',
+      plan: '',
+      phone: '',
+      address: ''
+    });
+    setIsClientModalOpen(true);
+  };
+
+  const handleSaveClient = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!clientFormData.name || !clientFormData.email) {
+      setToast({ message: 'Nome e email são obrigatórios!', type: 'error' });
+      return;
+    }
+
+    const newClient: ManualClient = {
+      id: `manual_${Date.now()}`,
+      name: clientFormData.name,
+      email: clientFormData.email,
+      plan: clientFormData.plan || 'Personalizado',
+      phone: clientFormData.phone,
+      address: clientFormData.address,
+      createdAt: new Date().toISOString()
+    };
+
+    const newClients = [...manualClients, newClient];
+    saveManualClients(newClients);
+    setIsClientModalOpen(false);
+    setToast({ message: 'Cliente adicionado com sucesso!', type: 'success' });
   };
 
   const handleEditPayment = (payment: MonthlyPayment) => {
@@ -168,7 +255,7 @@ export default function MonthlyPaymentsPage() {
   const handleSavePayment = (e: React.FormEvent) => {
     e.preventDefault();
     
-    const client = clients.find(c => c.id === formData.clientId || c.email === formData.clientId);
+    const client = allClients.find(c => c.id === formData.clientId);
     if (!client) {
       setToast({ message: 'Cliente não encontrado!', type: 'error' });
       return;
@@ -176,8 +263,8 @@ export default function MonthlyPaymentsPage() {
 
     const paymentData: MonthlyPayment = {
       id: editingPayment?.id || `pay_${Date.now()}`,
-      clientId: client.id || client.email,
-      clientName: client.name || 'Sem Nome',
+      clientId: client.id,
+      clientName: client.name,
       clientEmail: client.email,
       year: selectedYear,
       month: selectedMonth,
@@ -383,7 +470,7 @@ export default function MonthlyPaymentsPage() {
                   <div className="p-3 bg-white/20 rounded-2xl">
                     <Users className="w-6 h-6" />
                   </div>
-                  <span className="text-3xl font-black">{clients.length}</span>
+                  <span className="text-3xl font-black">{allClients.length}</span>
                 </div>
                 <p className="text-blue-100 text-sm">Total de Clientes</p>
                 <p className="text-xs text-blue-200 mt-1">{filteredPayments.length} pagamentos registrados</p>
@@ -393,19 +480,34 @@ export default function MonthlyPaymentsPage() {
             {/* Unpaid Clients Alert */}
             {unpaidClients.length > 0 && (
               <div className="bg-red-50 border border-red-200 rounded-3xl p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <AlertCircle className="w-6 h-6 text-red-600" />
-                  <h3 className="text-lg font-bold text-red-900">Clientes Não Pagaram em {months[selectedMonth - 1]} {selectedYear}</h3>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <AlertCircle className="w-6 h-6 text-red-600" />
+                    <h3 className="text-lg font-bold text-red-900">Clientes Não Pagaram em {months[selectedMonth - 1]} {selectedYear}</h3>
+                  </div>
+                  <button
+                    onClick={handleAddClient}
+                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Adicionar Cliente Manual
+                  </button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {unpaidClients.slice(0, 6).map(client => (
-                    <div key={client.id || client.email} className="bg-white p-4 rounded-xl border border-red-200">
-                      <p className="font-bold text-gray-900">{client.name || 'Sem Nome'}</p>
+                    <div key={client.id} className="bg-white p-4 rounded-xl border border-red-200">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="font-bold text-gray-900">{client.name}</p>
+                        {client.isManual && (
+                          <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">Manual</span>
+                        )}
+                      </div>
                       <p className="text-sm text-gray-600">{client.email}</p>
+                      <p className="text-xs text-gray-500">{client.plan}</p>
                       <button
                         onClick={() => {
                           setFormData({
-                            clientId: client.id || client.email,
+                            clientId: client.id,
                             amount: '',
                             paymentDate: new Date().toISOString().split('T')[0],
                             paymentMethod: '',
@@ -436,13 +538,22 @@ export default function MonthlyPaymentsPage() {
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-bold text-gray-900">Pagamentos Registrados</h2>
-              <button
-                onClick={handleAddPayment}
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl font-bold transition cursor-pointer"
-              >
-                <Plus className="w-4 h-4" />
-                Adicionar Pagamento
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleAddClient}
+                  className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2.5 rounded-xl font-bold transition cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  Adicionar Cliente
+                </button>
+                <button
+                  onClick={handleAddPayment}
+                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl font-bold transition cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  Adicionar Pagamento
+                </button>
+              </div>
             </div>
 
             <div className="bg-white border border-gray-200/80 rounded-3xl overflow-hidden shadow-xs">
@@ -528,7 +639,16 @@ export default function MonthlyPaymentsPage() {
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-bold text-gray-900">Clientes Não Pagaram</h2>
-              <span className="text-sm text-gray-600">{unpaidClients.length} clientes</span>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleAddClient}
+                  className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2.5 rounded-xl font-bold transition cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  Adicionar Cliente
+                </button>
+                <span className="text-sm text-gray-600">{unpaidClients.length} clientes</span>
+              </div>
             </div>
 
             <div className="bg-white border border-gray-200/80 rounded-3xl overflow-hidden shadow-xs">
@@ -538,6 +658,7 @@ export default function MonthlyPaymentsPage() {
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900">Cliente</th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900">Email</th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900">Plano</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900">Tipo</th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900">Status</th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900">Ações</th>
                   </tr>
@@ -545,21 +666,32 @@ export default function MonthlyPaymentsPage() {
                 <tbody className="divide-y divide-gray-200">
                   {unpaidClients.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                      <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
                         Todos os clientes pagaram este mês! 🎉
                       </td>
                     </tr>
                   ) : (
                     unpaidClients.map(client => (
-                      <tr key={client.id || client.email} className="hover:bg-gray-50">
+                      <tr key={client.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 font-medium text-gray-900">
-                          {client.name || 'Sem Nome'}
+                          {client.name}
                         </td>
                         <td className="px-6 py-4 text-gray-600">
                           {client.email}
                         </td>
                         <td className="px-6 py-4 text-gray-600">
-                          {client.plan || 'N/A'}
+                          {client.plan}
+                        </td>
+                        <td className="px-6 py-4">
+                          {client.isManual ? (
+                            <span className="px-3 py-1 rounded-full text-xs font-bold border bg-purple-100 text-purple-700 border-purple-200">
+                              Manual
+                            </span>
+                          ) : (
+                            <span className="px-3 py-1 rounded-full text-xs font-bold border bg-blue-100 text-blue-700 border-blue-200">
+                              Plataforma
+                            </span>
+                          )}
                         </td>
                         <td className="px-6 py-4">
                           <span className={`px-3 py-1 rounded-full text-xs font-bold border ${
@@ -574,7 +706,7 @@ export default function MonthlyPaymentsPage() {
                           <button
                             onClick={() => {
                               setFormData({
-                                clientId: client.id || client.email,
+                                clientId: client.id,
                                 amount: '',
                                 paymentDate: new Date().toISOString().split('T')[0],
                                 paymentMethod: '',
@@ -624,11 +756,20 @@ export default function MonthlyPaymentsPage() {
                   required
                 >
                   <option value="">Selecione um cliente</option>
-                  {clients.map(client => (
-                    <option key={client.id || client.email} value={client.id || client.email}>
-                      {client.name || 'Sem Nome'} ({client.email})
-                    </option>
-                  ))}
+                  <optgroup label="Clientes da Plataforma">
+                    {clients.map(client => (
+                      <option key={client.id || client.email} value={client.id || client.email}>
+                        {client.name || 'Sem Nome'} ({client.email})
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="Clientes Manuais">
+                    {manualClients.map(client => (
+                      <option key={client.id} value={client.id}>
+                        {client.name} ({client.email}) - Manual
+                      </option>
+                    ))}
+                  </optgroup>
                 </select>
               </div>
 
@@ -774,6 +915,97 @@ export default function MonthlyPaymentsPage() {
                 <p className="text-sm text-gray-700">{new Date(viewingPayment.createdAt).toLocaleString('pt-MZ')}</p>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Adicionar Cliente Manual */}
+      {isClientModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white border border-gray-100 rounded-3xl max-w-md w-full p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-150">
+            <button
+              onClick={() => setIsClientModalOpen(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-1.5 rounded-full hover:bg-gray-100 transition cursor-pointer"
+            >
+              <X className="w-6 h-6" />
+            </button>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-6">Adicionar Cliente Manual</h3>
+
+            <form onSubmit={handleSaveClient} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">Nome do Cliente *</label>
+                <input
+                  type="text"
+                  value={clientFormData.name}
+                  onChange={e => setClientFormData({ ...clientFormData, name: e.target.value })}
+                  placeholder="Ex: João Silva"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">Email *</label>
+                <input
+                  type="email"
+                  value={clientFormData.email}
+                  onChange={e => setClientFormData({ ...clientFormData, email: e.target.value })}
+                  placeholder="Ex: joao@exemplo.com"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">Plano</label>
+                <input
+                  type="text"
+                  value={clientFormData.plan}
+                  onChange={e => setClientFormData({ ...clientFormData, plan: e.target.value })}
+                  placeholder="Ex: Basic, Pro, Enterprise"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">Telefone</label>
+                <input
+                  type="text"
+                  value={clientFormData.phone}
+                  onChange={e => setClientFormData({ ...clientFormData, phone: e.target.value })}
+                  placeholder="Ex: +258 84 123 4567"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">Endereço</label>
+                <textarea
+                  value={clientFormData.address}
+                  onChange={e => setClientFormData({ ...clientFormData, address: e.target.value })}
+                  placeholder="Endereço completo..."
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm"
+                  rows={2}
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsClientModalOpen(false)}
+                  className="flex-1 py-2.5 rounded-xl text-gray-700 hover:bg-gray-100 text-sm font-bold transition-colors cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold transition cursor-pointer"
+                >
+                  Adicionar Cliente
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
