@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from "next/link";
-import { Server, Mail, Shield, Zap, Globe, Users, Search, Sparkles, CheckCircle, Facebook, Phone, Linkedin, Star, ArrowRight, Play, Calendar, Eye, Instagram, ChevronLeft, ChevronRight } from "lucide-react";
+import { Server, Mail, Shield, Zap, Globe, Users, Search, Sparkles, CheckCircle, Facebook, Phone, Linkedin, Star, ArrowRight, Play, Calendar, Eye, Instagram, ChevronLeft, ChevronRight, ShoppingCart, Brain, CreditCard } from "lucide-react";
 import { websiteTypes } from '@/lib/data';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 import { useLanguage } from '@/context/LanguageContext';
@@ -179,6 +179,64 @@ export default function Home() {
               <h3 className="text-sm sm:text-base lg:text-lg font-bold text-gray-900 mb-1 group-hover:text-purple-700 transition-colors">{t('features.support_title')}</h3>
               <p className="text-xs sm:text-sm text-gray-500 leading-tight">{t('features.support_desc')}</p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Serviços Especializados - SEO Pages */}
+      <section className="anim-fade-up py-10 sm:py-16 px-3 sm:px-6 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-6 sm:mb-10">
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-gray-900 mb-2 sm:mb-3">
+              Serviços Especializados
+            </h2>
+            <p className="text-sm sm:text-base text-gray-600 max-w-2xl mx-auto">
+              Soluções completas para impulsionar seu negócio online em Moçambique
+            </p>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6">
+            <Link href="/dominios" className="group">
+              <div className="text-center p-4 sm:p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border border-blue-100 hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer">
+                <Globe className="h-8 w-8 sm:h-10 sm:w-10 text-primary-600 mx-auto mb-2 sm:mb-3 group-hover:scale-110 transition-transform" />
+                <h3 className="text-sm sm:text-base lg:text-lg font-bold text-gray-900 mb-1 group-hover:text-primary-600 transition-colors">Domínios</h3>
+                <p className="text-xs sm:text-sm text-gray-600">Registre seu domínio .co.mz</p>
+              </div>
+            </Link>
+            <Link href="/hospedagem-wordpress" className="group">
+              <div className="text-center p-4 sm:p-6 bg-gradient-to-br from-emerald-50 to-green-50 rounded-2xl border border-emerald-100 hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer">
+                <Server className="h-8 w-8 sm:h-10 sm:w-10 text-emerald-600 mx-auto mb-2 sm:mb-3 group-hover:scale-110 transition-transform" />
+                <h3 className="text-sm sm:text-base lg:text-lg font-bold text-gray-900 mb-1 group-hover:text-emerald-600 transition-colors">WordPress</h3>
+                <p className="text-xs sm:text-sm text-gray-600">Hospedagem otimizada</p>
+              </div>
+            </Link>
+            <Link href="/email-profissional" className="group">
+              <div className="text-center p-4 sm:p-6 bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl border border-purple-100 hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer">
+                <Mail className="h-8 w-8 sm:h-10 sm:w-10 text-purple-600 mx-auto mb-2 sm:mb-3 group-hover:scale-110 transition-transform" />
+                <h3 className="text-sm sm:text-base lg:text-lg font-bold text-gray-900 mb-1 group-hover:text-purple-600 transition-colors">Email Profissional</h3>
+                <p className="text-xs sm:text-sm text-gray-600">Email com domínio próprio</p>
+              </div>
+            </Link>
+            <Link href="/loja-online" className="group">
+              <div className="text-center p-4 sm:p-6 bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl border border-amber-100 hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer">
+                <ShoppingCart className="h-8 w-8 sm:h-10 sm:w-10 text-amber-600 mx-auto mb-2 sm:mb-3 group-hover:scale-110 transition-transform" />
+                <h3 className="text-sm sm:text-base lg:text-lg font-bold text-gray-900 mb-1 group-hover:text-amber-600 transition-colors">Loja Online</h3>
+                <p className="text-xs sm:text-sm text-gray-600">Venda produtos online</p>
+              </div>
+            </Link>
+            <Link href="/inteligencia-artificial" className="group">
+              <div className="text-center p-4 sm:p-6 bg-gradient-to-br from-cyan-50 to-blue-50 rounded-2xl border border-cyan-100 hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer">
+                <Brain className="h-8 w-8 sm:h-10 sm:w-10 text-cyan-600 mx-auto mb-2 sm:mb-3 group-hover:scale-110 transition-transform" />
+                <h3 className="text-sm sm:text-base lg:text-lg font-bold text-gray-900 mb-1 group-hover:text-cyan-600 transition-colors">Inteligência Artificial</h3>
+                <p className="text-xs sm:text-sm text-gray-600">IA para seu negócio</p>
+              </div>
+            </Link>
+            <Link href="/pagamentos-online" className="group">
+              <div className="text-center p-4 sm:p-6 bg-gradient-to-br from-rose-50 to-red-50 rounded-2xl border border-rose-100 hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer">
+                <CreditCard className="h-8 w-8 sm:h-10 sm:w-10 text-rose-600 mx-auto mb-2 sm:mb-3 group-hover:scale-110 transition-transform" />
+                <h3 className="text-sm sm:text-base lg:text-lg font-bold text-gray-900 mb-1 group-hover:text-rose-600 transition-colors">Pagamentos Online</h3>
+                <p className="text-xs sm:text-sm text-gray-600">M-Pesa e cartões</p>
+              </div>
+            </Link>
           </div>
         </div>
       </section>
