@@ -790,11 +790,10 @@ export default function Home() {
             <div>
               <h4 className="font-bold text-white mb-3 sm:mb-4 uppercase tracking-wider text-[10px] sm:text-xs">{t('footer.products_title')}</h4>
               <ul className="space-y-1.5 sm:space-y-2 text-slate-400 text-[10px] sm:text-sm">
-                <li className="hover:text-primary-300 transition cursor-pointer hover:translate-x-1 duration-300">{t('footer.prod_hosting')}</li>
-                <li className="hover:text-primary-300 transition cursor-pointer hover:translate-x-1 duration-300">{t('footer.prod_email')}</li>
-                <li className="hover:text-primary-300 transition cursor-pointer hover:translate-x-1 duration-300">{t('footer.prod_vps')}</li>
-                <li className="hover:text-primary-300 transition cursor-pointer hover:translate-x-1 duration-300">{t('footer.prod_domains')}</li>
-                <li><Link href="/dominios" className="hover:text-primary-300 transition hover:translate-x-1 duration-300 block">Domínios</Link></li>
+                <li><Link href="/hospedagem" className="hover:text-primary-300 transition hover:translate-x-1 duration-300 block">{t('footer.prod_hosting')}</Link></li>
+                <li><Link href="/email-corporativo" className="hover:text-primary-300 transition hover:translate-x-1 duration-300 block">{t('footer.prod_email')}</Link></li>
+                <li><Link href="/vps" className="hover:text-primary-300 transition hover:translate-x-1 duration-300 block">{t('footer.prod_vps')}</Link></li>
+                <li><Link href="/dominios" className="hover:text-primary-300 transition hover:translate-x-1 duration-300 block">{t('footer.prod_domains')}</Link></li>
                 <li><Link href="/hospedagem-wordpress" className="hover:text-primary-300 transition hover:translate-x-1 duration-300 block">WordPress</Link></li>
                 <li><Link href="/email-profissional" className="hover:text-primary-300 transition hover:translate-x-1 duration-300 block">Email Profissional</Link></li>
                 <li><Link href="/loja-online" className="hover:text-primary-300 transition hover:translate-x-1 duration-300 block">Loja Online</Link></li>
