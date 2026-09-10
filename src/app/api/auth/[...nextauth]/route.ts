@@ -7,7 +7,23 @@ const requiredEnvVars = ['NEXTAUTH_SECRET', 'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_S
 const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
 
 if (missingEnvVars.length > 0) {
-  console.error('[NextAuth] Variáveis de ambiente faltando:', missingEnvVars);
+  console.error('[NextAuth] ❌ VARIÁVEIS DE AMBIENTE FALTANDO:', missingEnvVars);
+  console.error('[NextAuth] ⚠️ Google OAuth NÃO funcionará sem estas variáveis');
+}
+
+// Validar configuração do Google OAuth antes de inicializar
+const googleClientId = process.env.GOOGLE_CLIENT_ID;
+const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
+const nextAuthSecret = process.env.NEXTAUTH_SECRET;
+const nextAuthUrl = process.env.NEXTAUTH_URL;
+
+const isGoogleConfigured = googleClientId && googleClientSecret && 
+  googleClientId !== 'your-google-client-id' && 
+  googleClientSecret !== 'your-google-client-secret';
+
+if (!isGoogleConfigured) {
+  console.error('[NextAuth] ❌ Google OAuth NÃO configurado corretamente');
+  console.error('[NextAuth] Verifique GOOGLE_CLIENT_ID e GOOGLE_CLIENT_SECRET no .env.local');
 }
 
 // 🔒 Header interno para autenticar chamadas server-side à /api/users
@@ -23,14 +39,16 @@ function getInternalHeaders(): Record<string, string> {
 export const GET = NextAuth({
   providers: [
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID || '',
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+      clientId: googleClientId || '',
+      clientSecret: googleClientSecret || '',
       authorization: {
         params: {
           // 🔒 Solicitar apenas o mínimo necessário de permissões Google
           scope: 'openid email profile',
         },
       },
+      // Adicionar tratamento de erros no provider
+      checks: ['none'],
     }),
   ],
   cookies: {
@@ -73,6 +91,12 @@ export const GET = NextAuth({
   },
   callbacks: {
     async signIn({ user, account }: any) {
+      // 🔒 Verificar se Google OAuth está configurado
+      if (!isGoogleConfigured) {
+        console.error('[Google OAuth] ❌ Provider não configurado - login negado');
+        return false;
+      }
+
       // 🔒 Apenas processar login via Google OAuth
       if (account?.provider !== 'google') return false;
 
@@ -313,7 +337,7 @@ export const GET = NextAuth({
   },
   pages: {
     signIn: '/login',
-    error: '/login',
+    error: '/login?error=OAuthError',
   },
   session: {
     strategy: 'jwt',
