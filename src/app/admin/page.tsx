@@ -2537,7 +2537,7 @@ export default function AdminPage() {
                         </span>
                       </td>
                       <td className="py-3 px-3 text-gray-700 max-w-xs break-words">
-                        "{fb.comment}"
+                        &ldquo;{fb.comment}&rdquo;
                       </td>
                       <td className="py-3 px-3 text-[10px] text-gray-400 whitespace-nowrap">
                         {fb.createdAt ? new Date(fb.createdAt).toLocaleDateString('pt-MZ') : 'Recente'}

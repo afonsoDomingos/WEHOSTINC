@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { Plus, Edit, Trash2, Eye, Calendar, Tag, Filter, BarChart3, Home, ArrowLeft, ChevronRight } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, Calendar, Tag, Filter, BarChart3, Home, ArrowLeft, ChevronRight, ChevronDown } from 'lucide-react';
 
 interface BlogPost {
   id: string;
@@ -23,6 +23,7 @@ export default function AdminBlogPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusDropdown, setStatusDropdown] = useState<string | null>(null);
 
   const fetchPosts = useCallback(async () => {
     try {
@@ -58,6 +59,26 @@ export default function AdminBlogPage() {
       }
     } catch (error) {
       console.error('Erro ao remover post:', error);
+    }
+  };
+
+  const handleStatusChange = async (id: string, newStatus: string) => {
+    try {
+      const response = await fetch(`/api/admin/blog/posts/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+      
+      if (response.ok) {
+        fetchPosts();
+        setStatusDropdown(null);
+      } else {
+        alert('Erro ao alterar status');
+      }
+    } catch (error) {
+      console.error('Erro ao alterar status:', error);
+      alert('Erro ao alterar status');
     }
   };
 
@@ -243,9 +264,43 @@ export default function AdminBlogPage() {
                         <span className="text-xs sm:text-sm text-gray-900">{getCategoryLabel(post.category)}</span>
                       </td>
                       <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(post.status)}`}>
-                          {getStatusLabel(post.status)}
-                        </span>
+                        <div className="relative">
+                          <button
+                            onClick={() => setStatusDropdown(statusDropdown === post.id ? null : post.id)}
+                            className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(post.status)} hover:opacity-80 transition-opacity flex items-center gap-1`}
+                          >
+                            {getStatusLabel(post.status)}
+                            <ChevronDown size={12} />
+                          </button>
+                          
+                          {statusDropdown === post.id && (
+                            <div className="absolute left-0 mt-2 w-40 bg-white rounded-lg shadow-lg border z-10">
+                              <div className="py-1">
+                                <button
+                                  onClick={() => handleStatusChange(post.id, 'draft')}
+                                  className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 flex items-center gap-2"
+                                >
+                                  <span className="w-2 h-2 rounded-full bg-gray-400"></span>
+                                  Rascunho
+                                </button>
+                                <button
+                                  onClick={() => handleStatusChange(post.id, 'published')}
+                                  className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 flex items-center gap-2"
+                                >
+                                  <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                                  Publicado
+                                </button>
+                                <button
+                                  onClick={() => handleStatusChange(post.id, 'archived')}
+                                  className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 flex items-center gap-2"
+                                >
+                                  <span className="w-2 h-2 rounded-full bg-red-500"></span>
+                                  Arquivado
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </td>
                       <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
                         <div className="flex items-center gap-1">
