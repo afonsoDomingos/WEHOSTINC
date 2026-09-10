@@ -143,13 +143,16 @@ export default function AdminCommunicationPage() {
     if (post) {
       setManualSubject(`📰 Novo Artigo: ${post.title}`);
       setManualBody(`
-        <h2>${post.title}</h2>
+        ${post.coverImage ? `<img src="${post.coverImage}" alt="${post.title}" style="max-width: 100%; height: auto; border-radius: 8px; margin-bottom: 20px;">` : ''}
+        <h2 style="color: #1e40af; margin-bottom: 10px;">${post.title}</h2>
         <p><strong>Resumo:</strong> ${post.excerpt || post.content?.substring(0, 200) || 'Leia o artigo completo para saber mais.'}</p>
         <p><strong>Categoria:</strong> ${post.category || 'Geral'}</p>
-        <p>Para ler o artigo completo, clique no link abaixo:</p>
-        <p><a href="https://www.wehosthere.com/blog/${post.slug}" style="color: #1e40af; text-decoration: underline;">Ler Artigo Completo</a></p>
-        <hr>
-        <p><em>Este é um artigo do blog WEHOSTHERE. Para mais informações, visite nosso site.</em></p>
+        <p style="margin-top: 20px;">Para ler o artigo completo, clique no botão abaixo:</p>
+        <p style="margin-top: 15px;">
+          <a href="https://www.wehosthere.com/blog/${post.slug}" style="display: inline-block; background-color: #1e40af; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Ler Artigo Completo</a>
+        </p>
+        <hr style="margin-top: 30px; border: none; border-top: 1px solid #e5e7eb;">
+        <p style="color: #6b7280; font-size: 12px; margin-top: 15px;"><em>Este é um artigo do blog WEHOSTHERE. Para mais informações, visite nosso site.</em></p>
       `);
     }
   };
@@ -173,13 +176,16 @@ export default function AdminCommunicationPage() {
     if (post) {
       setBulkSubject(`📰 Novo Artigo: ${post.title}`);
       setBulkBody(`
-        <h2>${post.title}</h2>
+        ${post.coverImage ? `<img src="${post.coverImage}" alt="${post.title}" style="max-width: 100%; height: auto; border-radius: 8px; margin-bottom: 20px;">` : ''}
+        <h2 style="color: #1e40af; margin-bottom: 10px;">${post.title}</h2>
         <p><strong>Resumo:</strong> ${post.excerpt || post.content?.substring(0, 200) || 'Leia o artigo completo para saber mais.'}</p>
         <p><strong>Categoria:</strong> ${post.category || 'Geral'}</p>
-        <p>Para ler o artigo completo, clique no link abaixo:</p>
-        <p><a href="https://www.wehosthere.com/blog/${post.slug}" style="color: #1e40af; text-decoration: underline;">Ler Artigo Completo</a></p>
-        <hr>
-        <p><em>Este é um artigo do blog WEHOSTHERE. Para mais informações, visite nosso site.</em></p>
+        <p style="margin-top: 20px;">Para ler o artigo completo, clique no botão abaixo:</p>
+        <p style="margin-top: 15px;">
+          <a href="https://www.wehosthere.com/blog/${post.slug}" style="display: inline-block; background-color: #1e40af; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Ler Artigo Completo</a>
+        </p>
+        <hr style="margin-top: 30px; border: none; border-top: 1px solid #e5e7eb;">
+        <p style="color: #6b7280; font-size: 12px; margin-top: 15px;"><em>Este é um artigo do blog WEHOSTHERE. Para mais informações, visite nosso site.</em></p>
       `);
     }
   };
