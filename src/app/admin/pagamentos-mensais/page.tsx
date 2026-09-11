@@ -187,75 +187,14 @@ export default function MonthlyPaymentsPage() {
     }
   };
 
-  const savePayments = async (newPayments: MonthlyPayment[], paymentData?: MonthlyPayment) => {
+  const savePayments = (newPayments: MonthlyPayment[]) => {
     setPayments(newPayments);
     localStorage.setItem('monthlyPayments', JSON.stringify(newPayments));
-
-    // Se foi uma edição de pagamento específico, atualizar apenas esse no MongoDB
-    if (paymentData && editingPayment) {
-      try {
-        const response = await fetch('/api/monthly-payments', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(paymentData)
-        });
-        if (response.ok) {
-          console.log('Pagamento atualizado no MongoDB:', paymentData.id);
-        } else {
-          console.warn('Erro ao atualizar pagamento no MongoDB:', response.status);
-        }
-      } catch (e) {
-        console.warn('Erro ao atualizar pagamento no MongoDB:', e);
-      }
-    } else if (paymentData && !editingPayment) {
-      // Se é um novo pagamento, criar no MongoDB
-      try {
-        const response = await fetch('/api/monthly-payments', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(paymentData)
-        });
-        if (response.ok) {
-          console.log('Pagamento criado no MongoDB:', paymentData.id);
-        } else {
-          console.warn('Erro ao criar pagamento no MongoDB:', response.status);
-        }
-      } catch (e) {
-        console.warn('Erro ao criar pagamento no MongoDB:', e);
-      }
-    }
   };
 
-  const saveManualClients = async (newClients: ManualClient[]) => {
+  const saveManualClients = (newClients: ManualClient[]) => {
     setManualClients(newClients);
     localStorage.setItem('manualClients', JSON.stringify(newClients));
-
-    // Tentar salvar no MongoDB
-    try {
-      for (const client of newClients) {
-        try {
-          await fetch('/api/manual-clients', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(client)
-          });
-        } catch (e) {
-          // Se POST falhar, tentar PUT para atualizar
-          try {
-            await fetch('/api/manual-clients', {
-              method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(client)
-            });
-          } catch (e2) {
-            console.warn('Erro ao sincronizar cliente com MongoDB:', e2);
-          }
-        }
-      }
-      console.log('Clientes manuais sincronizados com MongoDB');
-    } catch (e) {
-      console.warn('Erro ao sincronizar clientes manuais com MongoDB:', e);
-    }
   };
 
   // Combinar clientes da plataforma com clientes manuais
@@ -466,7 +405,9 @@ export default function MonthlyPaymentsPage() {
           const updatedClients = manualClients.map(c =>
             c.id === editingClient.id ? data.client : c
           );
-          saveManualClients(updatedClients);
+          // Atualizar estado e localStorage apenas, API já foi chamada
+          setManualClients(updatedClients);
+          localStorage.setItem('manualClients', JSON.stringify(updatedClients));
           setToast({ message: 'Cliente atualizado com sucesso!', type: 'success' });
         } else {
           throw new Error('Erro ao atualizar cliente');
@@ -482,7 +423,9 @@ export default function MonthlyPaymentsPage() {
         if (response.ok) {
           const data = await response.json();
           const newClients = [...manualClients, data.client];
-          saveManualClients(newClients);
+          // Atualizar estado e localStorage apenas, API já foi chamada
+          setManualClients(newClients);
+          localStorage.setItem('manualClients', JSON.stringify(newClients));
           setToast({ message: 'Cliente adicionado com sucesso!', type: 'success' });
         } else {
           const error = await response.json();
@@ -564,9 +507,9 @@ export default function MonthlyPaymentsPage() {
     setToast({ message: 'Pagamento eliminado com sucesso!', type: 'success' });
   };
 
-  const handleSavePayment = (e: React.FormEvent) => {
+  const handleSavePayment = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const client = allClients.find(c => c.id === formData.clientId);
     if (!client) {
       setToast({ message: 'Cliente não encontrado!', type: 'error' });
@@ -579,7 +522,7 @@ export default function MonthlyPaymentsPage() {
 
     // Determine status based on payment - only override if user selected paid/partial
     let paymentStatus = formData.status;
-    
+
     // Only auto-calculate status if it's paid/partial and user didn't manually set it
     if (formData.status === 'paid' || formData.status === 'partial') {
       if (formData.isInstallment) {
@@ -619,12 +562,44 @@ export default function MonthlyPaymentsPage() {
 
     let newPayments;
     if (editingPayment) {
+      // Editar pagamento existente - chamar API PUT primeiro
+      try {
+        const response = await fetch('/api/monthly-payments', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(paymentData)
+        });
+        if (response.ok) {
+          console.log('Pagamento atualizado no MongoDB:', paymentData.id);
+        } else {
+          console.warn('Erro ao atualizar pagamento no MongoDB:', response.status);
+        }
+      } catch (e) {
+        console.warn('Erro ao atualizar pagamento no MongoDB:', e);
+      }
       newPayments = payments.map(p => p.id === editingPayment.id ? paymentData : p);
     } else {
+      // Criar novo pagamento - chamar API POST primeiro
+      try {
+        const response = await fetch('/api/monthly-payments', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(paymentData)
+        });
+        if (response.ok) {
+          console.log('Pagamento criado no MongoDB:', paymentData.id);
+        } else {
+          console.warn('Erro ao criar pagamento no MongoDB:', response.status);
+        }
+      } catch (e) {
+        console.warn('Erro ao criar pagamento no MongoDB:', e);
+      }
       newPayments = [...payments, paymentData];
     }
 
-    savePayments(newPayments, paymentData);
+    // Atualizar estado e localStorage
+    setPayments(newPayments);
+    localStorage.setItem('monthlyPayments', JSON.stringify(newPayments));
     setIsModalOpen(false);
     setToast({ message: editingPayment ? 'Pagamento atualizado!' : 'Pagamento adicionado!', type: 'success' });
   };
