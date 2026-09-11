@@ -1276,61 +1276,48 @@ export default function MonthlyPaymentsPage() {
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900">Cliente</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900">Email</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900">Plano</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900">Tipo</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900">Deve</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900">Status Pagamento</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900">Ações</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-900">Cliente</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-900">Plano</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-900">Deve</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-900">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {filteredUnpaidClients.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                      <td colSpan={4} className="px-4 py-12 text-center text-gray-500">
                         Todos os clientes pagaram este mês! 🎉
                       </td>
                     </tr>
                   ) : (
                     filteredUnpaidClients.map(client => (
                       <tr key={client.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 font-medium text-gray-900">
-                          {client.name}
-                        </td>
-                        <td className="px-6 py-4 text-gray-600">
-                          {client.email}
-                        </td>
-                        <td className="px-6 py-4 text-gray-600">
-                          {client.plan}
-                        </td>
-                        <td className="px-6 py-4">
+                        <td className="px-4 py-3">
+                          <div className="font-medium text-gray-900 text-sm">{client.name}</div>
+                          <div className="text-xs text-gray-500 truncate max-w-[150px]">{client.email}</div>
                           {client.isManual ? (
-                            <span className="px-3 py-1 rounded-full text-xs font-bold border bg-purple-100 text-purple-700 border-purple-200">
+                            <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold border bg-purple-100 text-purple-700 border-purple-200">
                               Manual
                             </span>
                           ) : (
-                            <span className="px-3 py-1 rounded-full text-xs font-bold border bg-blue-100 text-blue-700 border-blue-200">
+                            <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold border bg-blue-100 text-blue-700 border-blue-200">
                               Plataforma
                             </span>
                           )}
                         </td>
-                        <td className="px-6 py-4 font-bold text-red-600">
-                          {client.owesAmount.toLocaleString('pt-MZ')} MT
+                        <td className="px-4 py-3 text-gray-600 text-sm">
+                          {client.plan}
                         </td>
-                        <td className="px-6 py-4">
-                          {client.paymentStatus === 'partial' ? (
-                            <span className="px-3 py-1 rounded-full text-xs font-bold border bg-blue-100 text-blue-700 border-blue-200">
-                              Parcial ({client.totalPaid.toLocaleString('pt-MZ')} MT pago)
-                            </span>
-                          ) : (
-                            <span className="px-3 py-1 rounded-full text-xs font-bold border bg-red-100 text-red-700 border-red-200">
-                              Não Pagou
-                            </span>
+                        <td className="px-4 py-3 font-bold text-red-600 text-sm">
+                          {client.owesAmount.toLocaleString('pt-MZ')} MT
+                          {client.paymentStatus === 'partial' && (
+                            <div className="text-[10px] text-blue-600 font-normal">
+                              ({client.totalPaid.toLocaleString('pt-MZ')} MT pago)
+                            </div>
                           )}
                         </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-2">
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-1">
                             <button
                               onClick={() => {
                                 setFormData({
@@ -1347,10 +1334,10 @@ export default function MonthlyPaymentsPage() {
                                 });
                                 setIsModalOpen(true);
                               }}
-                              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-xs font-bold transition cursor-pointer"
+                              className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white px-2 py-1.5 rounded-lg text-[10px] font-bold transition cursor-pointer"
                             >
                               <Plus className="w-3 h-3" />
-                              {client.paymentStatus === 'partial' ? 'Adicionar Pagamento' : 'Registrar Pagamento'}
+                              {client.paymentStatus === 'partial' ? 'Adicionar' : 'Registrar'}
                             </button>
                             {client.isManual && (
                               <>
@@ -1361,17 +1348,17 @@ export default function MonthlyPaymentsPage() {
                                       handleEditClient(manualClient);
                                     }
                                   }}
-                                  className="p-2 hover:bg-gray-100 rounded-lg transition cursor-pointer"
+                                  className="p-1.5 hover:bg-gray-100 rounded-lg transition cursor-pointer"
                                   title="Editar"
                                 >
-                                  <Edit className="w-4 h-4 text-gray-600" />
+                                  <Edit className="w-3 h-3 text-gray-600" />
                                 </button>
                                 <button
                                   onClick={() => handleDeleteClient(client.id)}
-                                  className="p-2 hover:bg-red-100 rounded-lg transition cursor-pointer"
+                                  className="p-1.5 hover:bg-red-100 rounded-lg transition cursor-pointer"
                                   title="Eliminar"
                                 >
-                                  <Trash2 className="w-4 h-4 text-red-600" />
+                                  <Trash2 className="w-3 h-3 text-red-600" />
                                 </button>
                               </>
                             )}
