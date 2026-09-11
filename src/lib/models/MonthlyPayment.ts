@@ -20,6 +20,7 @@ export interface IMonthlyPayment extends Document {
     installmentAmount: number;
   };
   isManualClient?: boolean;
+  source?: 'webhook' | 'manual';
   createdAt: string;
 }
 
@@ -48,6 +49,7 @@ const MonthlyPaymentSchema = new Schema<IMonthlyPayment>(
       installmentAmount: { type: Number }
     },
     isManualClient: { type: Boolean, default: false },
+    source: { type: String, enum: ['webhook', 'manual'], default: 'manual' },
     createdAt: { type: String, required: true }
   },
   { timestamps: true }

@@ -39,7 +39,8 @@ export async function POST(req: Request) {
       paymentMethod,
       notes,
       installments,
-      isManualClient
+      isManualClient,
+      source
     } = body;
 
     if (!clientId || !clientName || !clientEmail || !year || !month || !amount) {
@@ -64,6 +65,7 @@ export async function POST(req: Request) {
       notes,
       installments,
       isManualClient,
+      source: source || 'manual',
       createdAt: new Date().toISOString()
     });
 

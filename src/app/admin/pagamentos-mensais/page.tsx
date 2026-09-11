@@ -32,6 +32,7 @@ interface MonthlyPayment {
     installmentAmount: number;
   };
   isManualClient?: boolean;
+  source?: 'webhook' | 'manual';
   createdAt: string;
 }
 
@@ -77,6 +78,7 @@ export default function MonthlyPaymentsPage() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'paid' | 'partial' | 'pending' | 'overdue' | 'none'>('all');
   const [paymentMethodFilter, setPaymentMethodFilter] = useState<'all' | 'M-Pesa' | 'Transferência' | 'Cartão' | 'Dinheiro'>('all');
   const [clientTypeFilter, setClientTypeFilter] = useState<'all' | 'platform' | 'manual'>('all');
+  const [paymentSourceFilter, setPaymentSourceFilter] = useState<'all' | 'webhook' | 'manual'>('all');
   const [installmentFilter, setInstallmentFilter] = useState<'all' | 'installments' | 'single'>('all');
   const [minAmountFilter, setMinAmountFilter] = useState('');
   const [selectedClientFilter, setSelectedClientFilter] = useState('');
@@ -251,10 +253,11 @@ export default function MonthlyPaymentsPage() {
       (installmentFilter === 'single' && !payment.installments);
     const matchesMinAmount = minAmountFilter === '' || payment.amount >= parseFloat(minAmountFilter);
     const matchesClient = selectedClientFilter === '' || payment.clientId === selectedClientFilter;
+    const matchesPaymentSource = paymentSourceFilter === 'all' || payment.source === paymentSourceFilter;
 
     return matchesYear && matchesMonth && matchesStatus && matchesSearch &&
            matchesPaymentMethod && matchesClientType && matchesInstallment &&
-           matchesMinAmount && matchesClient;
+           matchesMinAmount && matchesClient && matchesPaymentSource;
   });
 
   const unpaidClients = allClients.map(client => {
@@ -557,6 +560,7 @@ export default function MonthlyPaymentsPage() {
         installmentAmount: totalAmount / parseInt(formData.totalInstallments)
       } : undefined,
       isManualClient: client.isManual,
+      source: editingPayment?.source || 'manual',
       createdAt: editingPayment?.createdAt || new Date().toISOString()
     };
 
@@ -767,6 +771,18 @@ export default function MonthlyPaymentsPage() {
                   >
                     <option value="all">Todos</option>
                     <option value="platform">Plataforma</option>
+                    <option value="manual">Manual</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Origem do Pagamento</label>
+                  <select
+                    value={paymentSourceFilter}
+                    onChange={e => setPaymentSourceFilter(e.target.value as any)}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm"
+                  >
+                    <option value="all">Todos</option>
+                    <option value="webhook">Webhook (M-Pesa)</option>
                     <option value="manual">Manual</option>
                   </select>
                 </div>
@@ -1043,6 +1059,18 @@ export default function MonthlyPaymentsPage() {
                   >
                     <option value="all">Todos</option>
                     <option value="platform">Plataforma</option>
+                    <option value="manual">Manual</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Origem do Pagamento</label>
+                  <select
+                    value={paymentSourceFilter}
+                    onChange={e => setPaymentSourceFilter(e.target.value as any)}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm"
+                  >
+                    <option value="all">Todos</option>
+                    <option value="webhook">Webhook (M-Pesa)</option>
                     <option value="manual">Manual</option>
                   </select>
                 </div>
