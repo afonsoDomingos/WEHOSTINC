@@ -501,9 +501,12 @@ export default function AdminPage() {
   const [newProofLocation, setNewProofLocation] = useState('Maputo');
   const [newProofAction, setNewProofAction] = useState('contratou o plano Profissional SSD');
   const [newProofTime, setNewProofTime] = useState('há 5 min');
-  
+
   // User Feedbacks State
   const [userFeedbacks, setUserFeedbacks] = useState<any[]>([]);
+
+  // Monthly Payments State
+  const [monthlyPayments, setMonthlyPayments] = useState<any[]>([]);
   
   // Newsletter State
   const [newsletterSubscribers, setNewsletterSubscribers] = useState<any[]>([]);
@@ -750,6 +753,10 @@ export default function AdminPage() {
       dataManager.fetchSystemsForRentAsync().then(s => { if (s) setSystems(s); }),
       dataManager.fetchRentalRequestsAsync().then(r => { if (r) setRentalRequests(r); }),
       dataManager.fetchSystemAccessesAsync().then(a => { if (a) setSystemAccesses(a); }),
+      // Monthly Payments
+      fetch('/api/monthly-payments').then(r => r.json()).then(d => {
+        if (d.payments) setMonthlyPayments(d.payments);
+      }).catch(() => {}),
       // Academy Data
       fetch('/api/certificates').then(r => r.json()).then(d => {
         if (d.certificates) setAcademyCertificates(d.certificates);
@@ -802,6 +809,9 @@ export default function AdminPage() {
       dataManager.fetchSystemAccessesAsync().then((fetched) => {
         if (fetched) setSystemAccesses(fetched);
       });
+      fetch('/api/monthly-payments').then(r => r.json()).then(d => {
+        if (d.payments) setMonthlyPayments(d.payments);
+      }).catch(() => {});
       fetchAnalytics();
       dataManager.fetchSecurityLogsAsync().then((fetched) => {
         if (fetched) setSecurityLogs(fetched);
@@ -1305,6 +1315,13 @@ export default function AdminPage() {
 
   const actualOrdersRevenue = completedOrdersRevenue > 0 ? completedOrdersRevenue : allNonCancelledOrdersRevenue;
 
+  // Adicionar pagamentos mensais ao cálculo de receita
+  const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().getMonth() + 1;
+  const monthlyPaymentsRevenue = monthlyPayments
+    .filter(p => p.year === currentYear && p.month === currentMonth && (p.status === 'paid' || p.status === 'partial'))
+    .reduce((acc, p) => acc + (p.paidAmount || 0), 0);
+
   const clientUsers = users.filter(u => u.role !== 'admin' && u.email.toLowerCase() !== 'admin@wehosthere.com');
   const activeClients = clientUsers.filter(u => {
     const isExplicitActive = u.status === 'active';
@@ -1320,7 +1337,7 @@ export default function AdminPage() {
     return acc + (planPrices[effectivePlan as keyof typeof planPrices] || 550);
   }, 0);
 
-  const totalRevenue = actualOrdersRevenue > 0 ? actualOrdersRevenue : mrr;
+  const totalRevenue = actualOrdersRevenue > 0 ? actualOrdersRevenue + monthlyPaymentsRevenue : mrr + monthlyPaymentsRevenue;
 
   const validOrdersCount = orders.filter(o => o.status !== 'cancelled').length;
   const averageTicket = validOrdersCount > 0 
