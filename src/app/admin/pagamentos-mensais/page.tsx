@@ -89,6 +89,7 @@ export default function MonthlyPaymentsPage() {
   
   // Modal de adicionar cliente manual
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
+  const [editingClient, setEditingClient] = useState<ManualClient | null>(null);
   const [clientFormData, setClientFormData] = useState({
     name: '',
     email: '',
@@ -130,30 +131,87 @@ export default function MonthlyPaymentsPage() {
       const allUsers = await auth.fetchUsersAsync();
       setClients((allUsers || []).filter((u: User) => u.role !== 'admin' && u.role !== 'super_admin'));
 
-      // Carregar pagamentos do localStorage
-      const storedPayments = localStorage.getItem('monthlyPayments');
-      if (storedPayments) {
-        setPayments(JSON.parse(storedPayments));
+      // Carregar pagamentos do MongoDB
+      try {
+        const paymentsRes = await fetch('/api/monthly-payments');
+        if (paymentsRes.ok) {
+          const data = await paymentsRes.json();
+          setPayments(data.payments || []);
+        } else {
+          // Fallback para localStorage se API falhar
+          const storedPayments = localStorage.getItem('monthlyPayments');
+          if (storedPayments) {
+            setPayments(JSON.parse(storedPayments));
+          }
+        }
+      } catch (e) {
+        console.warn('Erro ao carregar pagamentos do MongoDB, usando localStorage:', e);
+        const storedPayments = localStorage.getItem('monthlyPayments');
+        if (storedPayments) {
+          setPayments(JSON.parse(storedPayments));
+        }
       }
 
-      // Carregar clientes manuais do localStorage
-      const storedManualClients = localStorage.getItem('manualClients');
-      if (storedManualClients) {
-        setManualClients(JSON.parse(storedManualClients));
+      // Carregar clientes manuais do MongoDB
+      try {
+        const clientsRes = await fetch('/api/manual-clients');
+        if (clientsRes.ok) {
+          const data = await clientsRes.json();
+          setManualClients(data.clients || []);
+        } else {
+          // Fallback para localStorage se API falhar
+          const storedManualClients = localStorage.getItem('manualClients');
+          if (storedManualClients) {
+            setManualClients(JSON.parse(storedManualClients));
+          }
+        }
+      } catch (e) {
+        console.warn('Erro ao carregar clientes manuais do MongoDB, usando localStorage:', e);
+        const storedManualClients = localStorage.getItem('manualClients');
+        if (storedManualClients) {
+          setManualClients(JSON.parse(storedManualClients));
+        }
       }
     } catch (err) {
       console.error('Erro ao carregar dados:', err);
     }
   };
 
-  const savePayments = (newPayments: MonthlyPayment[]) => {
+  const savePayments = async (newPayments: MonthlyPayment[]) => {
     setPayments(newPayments);
     localStorage.setItem('monthlyPayments', JSON.stringify(newPayments));
+
+    // Tentar salvar no MongoDB
+    try {
+      // Sincronizar com MongoDB (simplificado - em produção seria melhor)
+      for (const payment of newPayments) {
+        await fetch('/api/monthly-payments', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payment)
+        }).catch(() => {}); // Ignorar erros
+      }
+    } catch (e) {
+      console.warn('Erro ao sincronizar pagamentos com MongoDB:', e);
+    }
   };
 
-  const saveManualClients = (newClients: ManualClient[]) => {
+  const saveManualClients = async (newClients: ManualClient[]) => {
     setManualClients(newClients);
     localStorage.setItem('manualClients', JSON.stringify(newClients));
+
+    // Tentar salvar no MongoDB
+    try {
+      for (const client of newClients) {
+        await fetch('/api/manual-clients', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(client)
+        }).catch(() => {}); // Ignorar erros
+      }
+    } catch (e) {
+      console.warn('Erro ao sincronizar clientes manuais com MongoDB:', e);
+    }
   };
 
   // Combinar clientes da plataforma com clientes manuais
@@ -290,6 +348,7 @@ export default function MonthlyPaymentsPage() {
   };
 
   const handleAddClient = () => {
+    setEditingClient(null);
     setClientFormData({
       name: '',
       email: '',
@@ -300,28 +359,100 @@ export default function MonthlyPaymentsPage() {
     setIsClientModalOpen(true);
   };
 
-  const handleSaveClient = (e: React.FormEvent) => {
+  const handleEditClient = (client: ManualClient) => {
+    setEditingClient(client);
+    setClientFormData({
+      name: client.name,
+      email: client.email,
+      plan: client.plan,
+      phone: client.phone || '',
+      address: client.address || ''
+    });
+    setIsClientModalOpen(true);
+  };
+
+  const handleSaveClient = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!clientFormData.name || !clientFormData.email) {
       setToast({ message: 'Nome e email são obrigatórios!', type: 'error' });
       return;
     }
 
-    const newClient: ManualClient = {
-      id: `manual_${Date.now()}`,
-      name: clientFormData.name,
-      email: clientFormData.email,
-      plan: clientFormData.plan || 'Personalizado',
-      phone: clientFormData.phone,
-      address: clientFormData.address,
-      createdAt: new Date().toISOString()
-    };
+    try {
+      if (editingClient) {
+        // Editar cliente existente
+        const response = await fetch('/api/manual-clients', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: editingClient.id,
+            ...clientFormData
+          })
+        });
 
-    const newClients = [...manualClients, newClient];
-    saveManualClients(newClients);
-    setIsClientModalOpen(false);
-    setToast({ message: 'Cliente adicionado com sucesso!', type: 'success' });
+        if (response.ok) {
+          const data = await response.json();
+          const updatedClients = manualClients.map(c =>
+            c.id === editingClient.id ? data.client : c
+          );
+          saveManualClients(updatedClients);
+          setToast({ message: 'Cliente atualizado com sucesso!', type: 'success' });
+        } else {
+          throw new Error('Erro ao atualizar cliente');
+        }
+      } else {
+        // Criar novo cliente
+        const response = await fetch('/api/manual-clients', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(clientFormData)
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const newClients = [...manualClients, data.client];
+          saveManualClients(newClients);
+          setToast({ message: 'Cliente adicionado com sucesso!', type: 'success' });
+        } else {
+          const error = await response.json();
+          throw new Error(error.error || 'Erro ao criar cliente');
+        }
+      }
+
+      setIsClientModalOpen(false);
+      setEditingClient(null);
+    } catch (error) {
+      console.error('Erro ao salvar cliente:', error);
+      setToast({ message: 'Erro ao salvar cliente. Tente novamente.', type: 'error' });
+    }
+  };
+
+  const handleDeleteClient = async (clientId: string) => {
+    if (!confirm('Tem certeza que deseja eliminar este cliente?')) return;
+
+    try {
+      const response = await fetch(`/api/manual-clients?id=${clientId}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        const newClients = manualClients.filter(c => c.id !== clientId);
+        saveManualClients(newClients);
+        setToast({ message: 'Cliente eliminado com sucesso!', type: 'success' });
+      } else {
+        // Fallback para localStorage se API falhar
+        const newClients = manualClients.filter(c => c.id !== clientId);
+        saveManualClients(newClients);
+        setToast({ message: 'Cliente eliminado (localStorage)', type: 'success' });
+      }
+    } catch (error) {
+      console.error('Erro ao eliminar cliente:', error);
+      // Fallback para localStorage
+      const newClients = manualClients.filter(c => c.id !== clientId);
+      saveManualClients(newClients);
+      setToast({ message: 'Cliente eliminado (localStorage)', type: 'success' });
+    }
   };
 
   const handleEditPayment = (payment: MonthlyPayment) => {
@@ -704,26 +835,51 @@ export default function MonthlyPaymentsPage() {
                           </div>
                         )}
                       </div>
-                      <button
-                        onClick={() => {
-                          setFormData({
-                            clientId: client.id,
-                            amount: client.paymentStatus === 'partial' ? client.totalExpected.toString() : '',
-                            paidAmount: client.paymentStatus === 'partial' ? client.owesAmount.toString() : '',
-                            paymentDate: new Date().toISOString().split('T')[0],
-                            paymentMethod: '',
-                            status: client.paymentStatus === 'partial' ? 'partial' : 'paid',
-                            notes: '',
-                            isInstallment: false,
-                            totalInstallments: '',
-                            currentInstallment: ''
-                          });
-                          setIsModalOpen(true);
-                        }}
-                        className="mt-2 text-xs bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg transition cursor-pointer"
-                      >
-                        {client.paymentStatus === 'partial' ? 'Adicionar Pagamento' : 'Registrar Pagamento'}
-                      </button>
+                      <div className="mt-2 flex items-center gap-2">
+                        <button
+                          onClick={() => {
+                            setFormData({
+                              clientId: client.id,
+                              amount: client.paymentStatus === 'partial' ? client.totalExpected.toString() : '',
+                              paidAmount: client.paymentStatus === 'partial' ? client.owesAmount.toString() : '',
+                              paymentDate: new Date().toISOString().split('T')[0],
+                              paymentMethod: '',
+                              status: client.paymentStatus === 'partial' ? 'partial' : 'paid',
+                              notes: '',
+                              isInstallment: false,
+                              totalInstallments: '',
+                              currentInstallment: ''
+                            });
+                            setIsModalOpen(true);
+                          }}
+                          className="flex-1 text-xs bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg transition cursor-pointer"
+                        >
+                          {client.paymentStatus === 'partial' ? 'Adicionar Pagamento' : 'Registrar Pagamento'}
+                        </button>
+                        {client.isManual && (
+                          <>
+                            <button
+                              onClick={() => {
+                                const manualClient = manualClients.find(c => c.id === client.id);
+                                if (manualClient) {
+                                  handleEditClient(manualClient);
+                                }
+                              }}
+                              className="p-2 hover:bg-gray-100 rounded-lg transition cursor-pointer"
+                              title="Editar"
+                            >
+                              <Edit className="w-4 h-4 text-gray-600" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteClient(client.id)}
+                              className="p-2 hover:bg-red-100 rounded-lg transition cursor-pointer"
+                              title="Eliminar"
+                            >
+                              <Trash2 className="w-4 h-4 text-red-600" />
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -1043,27 +1199,52 @@ export default function MonthlyPaymentsPage() {
                           )}
                         </td>
                         <td className="px-6 py-4">
-                          <button
-                            onClick={() => {
-                              setFormData({
-                                clientId: client.id,
-                                amount: client.paymentStatus === 'partial' ? client.totalExpected.toString() : '',
-                                paidAmount: client.paymentStatus === 'partial' ? client.owesAmount.toString() : '',
-                                paymentDate: new Date().toISOString().split('T')[0],
-                                paymentMethod: '',
-                                status: client.paymentStatus === 'partial' ? 'partial' : 'paid',
-                                notes: '',
-                                isInstallment: false,
-                                totalInstallments: '',
-                                currentInstallment: ''
-                              });
-                              setIsModalOpen(true);
-                            }}
-                            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-xs font-bold transition cursor-pointer"
-                          >
-                            <Plus className="w-3 h-3" />
-                            {client.paymentStatus === 'partial' ? 'Adicionar Pagamento' : 'Registrar Pagamento'}
-                          </button>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => {
+                                setFormData({
+                                  clientId: client.id,
+                                  amount: client.paymentStatus === 'partial' ? client.totalExpected.toString() : '',
+                                  paidAmount: client.paymentStatus === 'partial' ? client.owesAmount.toString() : '',
+                                  paymentDate: new Date().toISOString().split('T')[0],
+                                  paymentMethod: '',
+                                  status: client.paymentStatus === 'partial' ? 'partial' : 'paid',
+                                  notes: '',
+                                  isInstallment: false,
+                                  totalInstallments: '',
+                                  currentInstallment: ''
+                                });
+                                setIsModalOpen(true);
+                              }}
+                              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-xs font-bold transition cursor-pointer"
+                            >
+                              <Plus className="w-3 h-3" />
+                              {client.paymentStatus === 'partial' ? 'Adicionar Pagamento' : 'Registrar Pagamento'}
+                            </button>
+                            {client.isManual && (
+                              <>
+                                <button
+                                  onClick={() => {
+                                    const manualClient = manualClients.find(c => c.id === client.id);
+                                    if (manualClient) {
+                                      handleEditClient(manualClient);
+                                    }
+                                  }}
+                                  className="p-2 hover:bg-gray-100 rounded-lg transition cursor-pointer"
+                                  title="Editar"
+                                >
+                                  <Edit className="w-4 h-4 text-gray-600" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteClient(client.id)}
+                                  className="p-2 hover:bg-red-100 rounded-lg transition cursor-pointer"
+                                  title="Eliminar"
+                                >
+                                  <Trash2 className="w-4 h-4 text-red-600" />
+                                </button>
+                              </>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -1343,7 +1524,9 @@ export default function MonthlyPaymentsPage() {
               <X className="w-6 h-6" />
             </button>
 
-            <h3 className="text-xl font-bold text-gray-900 mb-6">Adicionar Cliente Manual</h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-6">
+              {editingClient ? 'Editar Cliente Manual' : 'Adicionar Cliente Manual'}
+            </h3>
 
             <form onSubmit={handleSaveClient} className="space-y-4">
               <div>
