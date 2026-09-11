@@ -74,7 +74,7 @@ export default function MonthlyPaymentsPage() {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'paid' | 'partial' | 'pending' | 'overdue'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'paid' | 'partial' | 'pending' | 'overdue' | 'none'>('all');
   const [paymentMethodFilter, setPaymentMethodFilter] = useState<'all' | 'M-Pesa' | 'Transferência' | 'Cartão' | 'Dinheiro'>('all');
   const [clientTypeFilter, setClientTypeFilter] = useState<'all' | 'platform' | 'manual'>('all');
   const [installmentFilter, setInstallmentFilter] = useState<'all' | 'installments' | 'single'>('all');
@@ -360,6 +360,20 @@ export default function MonthlyPaymentsPage() {
     return null;
   }).filter((client): client is NonNullable<typeof client> => client !== null);
 
+  // Apply filters to unpaid clients
+  const filteredUnpaidClients = unpaidClients.filter(client => {
+    const matchesClientType = clientTypeFilter === 'all' ||
+      (clientTypeFilter === 'platform' && !client.isManual) ||
+      (clientTypeFilter === 'manual' && client.isManual);
+    const matchesPaymentStatus = statusFilter === 'all' ||
+      (statusFilter === 'none' && client.paymentStatus === 'none') ||
+      (statusFilter === 'partial' && client.paymentStatus === 'partial');
+    const matchesSearch =
+      client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      client.email.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesClientType && matchesPaymentStatus && matchesSearch;
+  });
+
   const totalCollected = payments
     .filter(p => p.year === selectedYear && p.month === selectedMonth && (p.status === 'paid' || p.status === 'partial'))
     .reduce((sum, p) => sum + p.paidAmount, 0);
@@ -515,9 +529,20 @@ export default function MonthlyPaymentsPage() {
     setIsViewModalOpen(true);
   };
 
-  const handleDeletePayment = (paymentId: string) => {
+  const handleDeletePayment = async (paymentId: string) => {
     const newPayments = payments.filter(p => p.id !== paymentId);
     savePayments(newPayments);
+
+    // Tentar eliminar do MongoDB
+    try {
+      await fetch(`/api/monthly-payments?id=${paymentId}`, {
+        method: 'DELETE'
+      });
+      console.log('Pagamento eliminado do MongoDB');
+    } catch (e) {
+      console.warn('Erro ao eliminar pagamento do MongoDB:', e);
+    }
+
     setToast({ message: 'Pagamento eliminado com sucesso!', type: 'success' });
   };
 
@@ -1175,7 +1200,47 @@ export default function MonthlyPaymentsPage() {
                   <Plus className="w-4 h-4" />
                   Adicionar Cliente
                 </button>
-                <span className="text-sm text-gray-600">{unpaidClients.length} clientes</span>
+                <span className="text-sm text-gray-600">{filteredUnpaidClients.length} clientes</span>
+              </div>
+            </div>
+
+            {/* Filters */}
+            <div className="bg-white border border-gray-200/80 rounded-3xl p-6 shadow-xs">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Tipo de Cliente</label>
+                  <select
+                    value={clientTypeFilter}
+                    onChange={e => setClientTypeFilter(e.target.value as any)}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm"
+                  >
+                    <option value="all">Todos</option>
+                    <option value="platform">Plataforma</option>
+                    <option value="manual">Manual</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Status Pagamento</label>
+                  <select
+                    value={statusFilter}
+                    onChange={e => setStatusFilter(e.target.value as any)}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm"
+                  >
+                    <option value="all">Todos</option>
+                    <option value="none">Não Pagou</option>
+                    <option value="partial">Parcial</option>
+                  </select>
+                </div>
+                <div className="md:col-span-2 lg:col-span-2">
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Buscar por Nome ou Email</label>
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={e => setSearchTerm(e.target.value)}
+                    placeholder="Digite nome ou email..."
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm"
+                  />
+                </div>
               </div>
             </div>
 
@@ -1193,14 +1258,14 @@ export default function MonthlyPaymentsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {unpaidClients.length === 0 ? (
+                  {filteredUnpaidClients.length === 0 ? (
                     <tr>
                       <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
                         Todos os clientes pagaram este mês! 🎉
                       </td>
                     </tr>
                   ) : (
-                    unpaidClients.map(client => (
+                    filteredUnpaidClients.map(client => (
                       <tr key={client.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 font-medium text-gray-900">
                           {client.name}
