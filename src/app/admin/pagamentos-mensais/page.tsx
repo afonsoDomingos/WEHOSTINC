@@ -136,19 +136,24 @@ export default function MonthlyPaymentsPage() {
         const paymentsRes = await fetch('/api/monthly-payments');
         if (paymentsRes.ok) {
           const data = await paymentsRes.json();
-          setPayments(data.payments || []);
+          const mongoPayments = data.payments || [];
+          setPayments(mongoPayments);
+          localStorage.setItem('monthlyPayments', JSON.stringify(mongoPayments));
+          console.log('Pagamentos carregados do MongoDB:', mongoPayments.length);
         } else {
-          // Fallback para localStorage se API falhar
-          const storedPayments = localStorage.getItem('monthlyPayments');
-          if (storedPayments) {
-            setPayments(JSON.parse(storedPayments));
-          }
+          console.warn('API de pagamentos retornou erro:', paymentsRes.status);
+          throw new Error('API error');
         }
       } catch (e) {
         console.warn('Erro ao carregar pagamentos do MongoDB, usando localStorage:', e);
         const storedPayments = localStorage.getItem('monthlyPayments');
         if (storedPayments) {
-          setPayments(JSON.parse(storedPayments));
+          const localPayments = JSON.parse(storedPayments);
+          setPayments(localPayments);
+          console.log('Pagamentos carregados do localStorage:', localPayments.length);
+        } else {
+          setPayments([]);
+          console.log('Nenhum pagamento encontrado no localStorage');
         }
       }
 
@@ -157,19 +162,24 @@ export default function MonthlyPaymentsPage() {
         const clientsRes = await fetch('/api/manual-clients');
         if (clientsRes.ok) {
           const data = await clientsRes.json();
-          setManualClients(data.clients || []);
+          const mongoClients = data.clients || [];
+          setManualClients(mongoClients);
+          localStorage.setItem('manualClients', JSON.stringify(mongoClients));
+          console.log('Clientes manuais carregados do MongoDB:', mongoClients.length);
         } else {
-          // Fallback para localStorage se API falhar
-          const storedManualClients = localStorage.getItem('manualClients');
-          if (storedManualClients) {
-            setManualClients(JSON.parse(storedManualClients));
-          }
+          console.warn('API de clientes manuais retornou erro:', clientsRes.status);
+          throw new Error('API error');
         }
       } catch (e) {
         console.warn('Erro ao carregar clientes manuais do MongoDB, usando localStorage:', e);
         const storedManualClients = localStorage.getItem('manualClients');
         if (storedManualClients) {
-          setManualClients(JSON.parse(storedManualClients));
+          const localClients = JSON.parse(storedManualClients);
+          setManualClients(localClients);
+          console.log('Clientes manuais carregados do localStorage:', localClients.length);
+        } else {
+          setManualClients([]);
+          console.log('Nenhum cliente manual encontrado no localStorage');
         }
       }
     } catch (err) {
@@ -183,14 +193,28 @@ export default function MonthlyPaymentsPage() {
 
     // Tentar salvar no MongoDB
     try {
-      // Sincronizar com MongoDB (simplificado - em produção seria melhor)
+      // Para cada pagamento, tentar criar ou atualizar
       for (const payment of newPayments) {
-        await fetch('/api/monthly-payments', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payment)
-        }).catch(() => {}); // Ignorar erros
+        try {
+          await fetch('/api/monthly-payments', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payment)
+          });
+        } catch (e) {
+          // Se POST falhar, tentar PUT para atualizar
+          try {
+            await fetch('/api/monthly-payments', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payment)
+            });
+          } catch (e2) {
+            console.warn('Erro ao sincronizar pagamento com MongoDB:', e2);
+          }
+        }
       }
+      console.log('Pagamentos sincronizados com MongoDB');
     } catch (e) {
       console.warn('Erro ao sincronizar pagamentos com MongoDB:', e);
     }
@@ -203,12 +227,26 @@ export default function MonthlyPaymentsPage() {
     // Tentar salvar no MongoDB
     try {
       for (const client of newClients) {
-        await fetch('/api/manual-clients', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(client)
-        }).catch(() => {}); // Ignorar erros
+        try {
+          await fetch('/api/manual-clients', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(client)
+          });
+        } catch (e) {
+          // Se POST falhar, tentar PUT para atualizar
+          try {
+            await fetch('/api/manual-clients', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(client)
+            });
+          } catch (e2) {
+            console.warn('Erro ao sincronizar cliente com MongoDB:', e2);
+          }
+        }
       }
+      console.log('Clientes manuais sincronizados com MongoDB');
     } catch (e) {
       console.warn('Erro ao sincronizar clientes manuais com MongoDB:', e);
     }
