@@ -45,6 +45,20 @@ interface ManualClient {
   createdAt: string;
 }
 
+interface UnpaidClient {
+  id: string;
+  name: string;
+  email: string;
+  plan: string;
+  status: string;
+  isManual: boolean;
+  owesAmount: number;
+  hasPayment: boolean;
+  paymentStatus: 'none' | 'partial';
+  totalPaid?: number;
+  totalExpected?: number;
+}
+
 export default function MonthlyPaymentsPage() {
   const router = useRouter();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -169,6 +183,17 @@ export default function MonthlyPaymentsPage() {
 
   const years = [2024, 2025, 2026, 2027];
 
+  // Helper function to get expected amount based on plan
+  const getExpectedAmountForPlan = (plan: string): number => {
+    const planAmounts: { [key: string]: number } = {
+      'Básico': 5000,
+      'Padrão': 10000,
+      'Premium': 20000,
+      'Enterprise': 50000
+    };
+    return planAmounts[plan] || 0;
+  };
+
   const filteredPayments = payments.filter(payment => {
     const matchesYear = payment.year === selectedYear;
     const matchesMonth = payment.month === selectedMonth;
@@ -191,15 +216,53 @@ export default function MonthlyPaymentsPage() {
            matchesMinAmount && matchesClient;
   });
 
-  const unpaidClients = allClients.filter(client => {
-    const hasPayment = payments.some(
-      p => p.clientId === client.id && 
-      p.year === selectedYear && 
-      p.month === selectedMonth &&
-      p.status === 'paid'
+  const unpaidClients = allClients.map(client => {
+    const clientPayments = payments.filter(
+      p => p.clientId === client.id &&
+      p.year === selectedYear &&
+      p.month === selectedMonth
     );
-    return !hasPayment;
-  });
+
+    if (clientPayments.length === 0) {
+      // No payment at all - client owes full amount (based on plan or default)
+      return {
+        id: client.id,
+        name: client.name,
+        email: client.email,
+        plan: client.plan,
+        status: client.status,
+        isManual: client.isManual,
+        owesAmount: client.plan ? getExpectedAmountForPlan(client.plan) : 0,
+        hasPayment: false,
+        paymentStatus: 'none' as const
+      };
+    }
+
+    // Has payments - check if fully paid
+    const totalPaid = clientPayments.reduce((sum, p) => sum + p.paidAmount, 0);
+    const totalExpected = clientPayments.reduce((sum, p) => sum + p.amount, 0);
+    const remainingAmount = totalExpected - totalPaid;
+
+    if (remainingAmount > 0) {
+      // Partial payment - still owes money
+      return {
+        id: client.id,
+        name: client.name,
+        email: client.email,
+        plan: client.plan,
+        status: client.status,
+        isManual: client.isManual,
+        owesAmount: remainingAmount,
+        hasPayment: true,
+        paymentStatus: 'partial' as const,
+        totalPaid,
+        totalExpected
+      };
+    }
+
+    // Fully paid
+    return null;
+  }).filter((client): client is NonNullable<typeof client> => client !== null);
 
   const totalCollected = payments
     .filter(p => p.year === selectedYear && p.month === selectedMonth && (p.status === 'paid' || p.status === 'partial'))
@@ -629,15 +692,27 @@ export default function MonthlyPaymentsPage() {
                       </div>
                       <p className="text-sm text-gray-600">{client.email}</p>
                       <p className="text-xs text-gray-500">{client.plan}</p>
+                      <div className="mt-2 flex items-center justify-between">
+                        <div>
+                          <p className="text-xs text-gray-500">Deve</p>
+                          <p className="font-bold text-red-600">{client.owesAmount.toLocaleString('pt-MZ')} MT</p>
+                        </div>
+                        {client.paymentStatus === 'partial' && (
+                          <div className="text-right">
+                            <p className="text-xs text-gray-500">Pago</p>
+                            <p className="font-bold text-emerald-600">{client.totalPaid.toLocaleString('pt-MZ')} MT</p>
+                          </div>
+                        )}
+                      </div>
                       <button
                         onClick={() => {
                           setFormData({
                             clientId: client.id,
-                            amount: '',
-                            paidAmount: '',
+                            amount: client.paymentStatus === 'partial' ? client.totalExpected.toString() : '',
+                            paidAmount: client.paymentStatus === 'partial' ? client.owesAmount.toString() : '',
                             paymentDate: new Date().toISOString().split('T')[0],
                             paymentMethod: '',
-                            status: 'paid',
+                            status: client.paymentStatus === 'partial' ? 'partial' : 'paid',
                             notes: '',
                             isInstallment: false,
                             totalInstallments: '',
@@ -647,7 +722,7 @@ export default function MonthlyPaymentsPage() {
                         }}
                         className="mt-2 text-xs bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg transition cursor-pointer"
                       >
-                        Registrar Pagamento
+                        {client.paymentStatus === 'partial' ? 'Adicionar Pagamento' : 'Registrar Pagamento'}
                       </button>
                     </div>
                   ))}
@@ -918,14 +993,15 @@ export default function MonthlyPaymentsPage() {
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900">Email</th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900">Plano</th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900">Tipo</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900">Status</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900">Deve</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900">Status Pagamento</th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-900">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {unpaidClients.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                      <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
                         Todos os clientes pagaram este mês! 🎉
                       </td>
                     </tr>
@@ -952,25 +1028,30 @@ export default function MonthlyPaymentsPage() {
                             </span>
                           )}
                         </td>
+                        <td className="px-6 py-4 font-bold text-red-600">
+                          {client.owesAmount.toLocaleString('pt-MZ')} MT
+                        </td>
                         <td className="px-6 py-4">
-                          <span className={`px-3 py-1 rounded-full text-xs font-bold border ${
-                            client.status === 'active' 
-                              ? 'bg-emerald-100 text-emerald-700 border-emerald-200'
-                              : 'bg-amber-100 text-amber-700 border-amber-200'
-                          }`}>
-                            {client.status === 'active' ? 'Ativo' : 'Pendente'}
-                          </span>
+                          {client.paymentStatus === 'partial' ? (
+                            <span className="px-3 py-1 rounded-full text-xs font-bold border bg-blue-100 text-blue-700 border-blue-200">
+                              Parcial ({client.totalPaid.toLocaleString('pt-MZ')} MT pago)
+                            </span>
+                          ) : (
+                            <span className="px-3 py-1 rounded-full text-xs font-bold border bg-red-100 text-red-700 border-red-200">
+                              Não Pagou
+                            </span>
+                          )}
                         </td>
                         <td className="px-6 py-4">
                           <button
                             onClick={() => {
                               setFormData({
                                 clientId: client.id,
-                                amount: '',
-                                paidAmount: '',
+                                amount: client.paymentStatus === 'partial' ? client.totalExpected.toString() : '',
+                                paidAmount: client.paymentStatus === 'partial' ? client.owesAmount.toString() : '',
                                 paymentDate: new Date().toISOString().split('T')[0],
                                 paymentMethod: '',
-                                status: 'paid',
+                                status: client.paymentStatus === 'partial' ? 'partial' : 'paid',
                                 notes: '',
                                 isInstallment: false,
                                 totalInstallments: '',
@@ -981,7 +1062,7 @@ export default function MonthlyPaymentsPage() {
                             className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-xs font-bold transition cursor-pointer"
                           >
                             <Plus className="w-3 h-3" />
-                            Registrar Pagamento
+                            {client.paymentStatus === 'partial' ? 'Adicionar Pagamento' : 'Registrar Pagamento'}
                           </button>
                         </td>
                       </tr>
