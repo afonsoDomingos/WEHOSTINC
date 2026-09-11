@@ -385,8 +385,20 @@ export default function MonthlyPaymentsPage() {
     .reduce((sum, p) => sum + p.paidAmount, 0);
 
   const totalPending = payments
-    .filter(p => p.year === selectedYear && p.month === selectedMonth && (p.status === 'pending' || p.status === 'partial'))
-    .reduce((sum, p) => sum + p.remainingAmount, 0);
+    .filter(p => p.year === selectedYear && p.month === selectedMonth)
+    .reduce((sum, p) => {
+      if (p.status === 'pending') {
+        // Pagamento pendente: soma o valor total
+        return sum + p.amount;
+      } else if (p.status === 'partial') {
+        // Pagamento parcial: soma o valor restante
+        return sum + p.remainingAmount;
+      } else if (p.status === 'overdue') {
+        // Pagamento atrasado: soma o valor total (considera como pendente)
+        return sum + p.amount;
+      }
+      return sum;
+    }, 0);
 
   const handleAddPayment = () => {
     setEditingPayment(null);
