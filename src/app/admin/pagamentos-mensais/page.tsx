@@ -559,15 +559,22 @@ export default function MonthlyPaymentsPage() {
     const paidAmount = formData.paidAmount ? parseFloat(formData.paidAmount) : totalAmount;
     const remainingAmount = totalAmount - paidAmount;
 
-    // Determine status based on payment
+    // Determine status based on payment - only override if user selected paid/partial
     let paymentStatus = formData.status;
-    if (formData.isInstallment) {
-      paymentStatus = 'partial';
-    } else if (paidAmount > 0 && paidAmount < totalAmount) {
-      paymentStatus = 'partial';
-    } else if (paidAmount === totalAmount) {
-      paymentStatus = 'paid';
+    
+    // Only auto-calculate status if it's paid/partial and user didn't manually set it
+    if (formData.status === 'paid' || formData.status === 'partial') {
+      if (formData.isInstallment) {
+        paymentStatus = 'partial';
+      } else if (paidAmount > 0 && paidAmount < totalAmount) {
+        paymentStatus = 'partial';
+      } else if (paidAmount === totalAmount) {
+        paymentStatus = 'paid';
+      } else if (paidAmount === 0) {
+        paymentStatus = 'pending';
+      }
     }
+    // If user selected pending or overdue, respect that choice
 
     const paymentData: MonthlyPayment = {
       id: editingPayment?.id || `pay_${Date.now()}`,
