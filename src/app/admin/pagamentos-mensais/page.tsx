@@ -31,6 +31,7 @@ interface MonthlyPayment {
     paid: number;
     installmentAmount: number;
   };
+  isManualClient?: boolean;
   createdAt: string;
 }
 
@@ -59,7 +60,12 @@ export default function MonthlyPaymentsPage() {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'paid' | 'pending' | 'overdue'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'paid' | 'partial' | 'pending' | 'overdue'>('all');
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState<'all' | 'M-Pesa' | 'Transferência' | 'Cartão' | 'Dinheiro'>('all');
+  const [clientTypeFilter, setClientTypeFilter] = useState<'all' | 'platform' | 'manual'>('all');
+  const [installmentFilter, setInstallmentFilter] = useState<'all' | 'installments' | 'single'>('all');
+  const [minAmountFilter, setMinAmountFilter] = useState('');
+  const [selectedClientFilter, setSelectedClientFilter] = useState('');
 
   // Modal de edição/adição
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -167,10 +173,22 @@ export default function MonthlyPaymentsPage() {
     const matchesYear = payment.year === selectedYear;
     const matchesMonth = payment.month === selectedMonth;
     const matchesStatus = statusFilter === 'all' || payment.status === statusFilter;
-    const matchesSearch = 
+    const matchesSearch =
       payment.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       payment.clientEmail.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesYear && matchesMonth && matchesStatus && matchesSearch;
+    const matchesPaymentMethod = paymentMethodFilter === 'all' || payment.paymentMethod === paymentMethodFilter;
+    const matchesClientType = clientTypeFilter === 'all' ||
+      (clientTypeFilter === 'platform' && !payment.isManualClient) ||
+      (clientTypeFilter === 'manual' && payment.isManualClient);
+    const matchesInstallment = installmentFilter === 'all' ||
+      (installmentFilter === 'installments' && payment.installments) ||
+      (installmentFilter === 'single' && !payment.installments);
+    const matchesMinAmount = minAmountFilter === '' || payment.amount >= parseFloat(minAmountFilter);
+    const matchesClient = selectedClientFilter === '' || payment.clientId === selectedClientFilter;
+
+    return matchesYear && matchesMonth && matchesStatus && matchesSearch &&
+           matchesPaymentMethod && matchesClientType && matchesInstallment &&
+           matchesMinAmount && matchesClient;
   });
 
   const unpaidClients = allClients.filter(client => {
@@ -184,12 +202,12 @@ export default function MonthlyPaymentsPage() {
   });
 
   const totalCollected = payments
-    .filter(p => p.year === selectedYear && p.month === selectedMonth && p.status === 'paid')
-    .reduce((sum, p) => sum + p.amount, 0);
+    .filter(p => p.year === selectedYear && p.month === selectedMonth && (p.status === 'paid' || p.status === 'partial'))
+    .reduce((sum, p) => sum + p.paidAmount, 0);
 
   const totalPending = payments
-    .filter(p => p.year === selectedYear && p.month === selectedMonth && p.status === 'pending')
-    .reduce((sum, p) => sum + p.amount, 0);
+    .filter(p => p.year === selectedYear && p.month === selectedMonth && (p.status === 'pending' || p.status === 'partial'))
+    .reduce((sum, p) => sum + p.remainingAmount, 0);
 
   const handleAddPayment = () => {
     setEditingPayment(null);
@@ -313,6 +331,7 @@ export default function MonthlyPaymentsPage() {
         paid: parseInt(formData.currentInstallment),
         installmentAmount: totalAmount / parseInt(formData.totalInstallments)
       } : undefined,
+      isManualClient: client.isManual,
       createdAt: editingPayment?.createdAt || new Date().toISOString()
     };
 
@@ -429,7 +448,7 @@ export default function MonthlyPaymentsPage() {
           <div className="space-y-6">
             {/* Filters */}
             <div className="bg-white border border-gray-200/80 rounded-3xl p-6 shadow-xs">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-gray-700 mb-1.5">Ano</label>
                   <select
@@ -463,8 +482,72 @@ export default function MonthlyPaymentsPage() {
                   >
                     <option value="all">Todos</option>
                     <option value="paid">Pagos</option>
+                    <option value="partial">Parciais</option>
                     <option value="pending">Pendentes</option>
                     <option value="overdue">Atrasados</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Método de Pagamento</label>
+                  <select
+                    value={paymentMethodFilter}
+                    onChange={e => setPaymentMethodFilter(e.target.value as any)}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm"
+                  >
+                    <option value="all">Todos</option>
+                    <option value="M-Pesa">M-Pesa</option>
+                    <option value="Transferência">Transferência</option>
+                    <option value="Cartão">Cartão</option>
+                    <option value="Dinheiro">Dinheiro</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Tipo de Cliente</label>
+                  <select
+                    value={clientTypeFilter}
+                    onChange={e => setClientTypeFilter(e.target.value as any)}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm"
+                  >
+                    <option value="all">Todos</option>
+                    <option value="platform">Plataforma</option>
+                    <option value="manual">Manual</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Pagamento</label>
+                  <select
+                    value={installmentFilter}
+                    onChange={e => setInstallmentFilter(e.target.value as any)}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm"
+                  >
+                    <option value="all">Todos</option>
+                    <option value="installments">Parcelados</option>
+                    <option value="single">Único</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Valor Mínimo (MT)</label>
+                  <input
+                    type="number"
+                    value={minAmountFilter}
+                    onChange={e => setMinAmountFilter(e.target.value)}
+                    placeholder="Ex: 1000"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Cliente Específico</label>
+                  <select
+                    value={selectedClientFilter}
+                    onChange={e => setSelectedClientFilter(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm"
+                  >
+                    <option value="">Todos</option>
+                    {allClients.map(client => (
+                      <option key={client.id} value={client.id}>
+                        {client.name} ({client.email})
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div>
@@ -599,6 +682,123 @@ export default function MonthlyPaymentsPage() {
                   <Plus className="w-4 h-4" />
                   Adicionar Pagamento
                 </button>
+              </div>
+            </div>
+
+            {/* Filters */}
+            <div className="bg-white border border-gray-200/80 rounded-3xl p-6 shadow-xs">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Ano</label>
+                  <select
+                    value={selectedYear}
+                    onChange={e => setSelectedYear(parseInt(e.target.value))}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm"
+                  >
+                    {years.map(year => (
+                      <option key={year} value={year}>{year}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Mês</label>
+                  <select
+                    value={selectedMonth}
+                    onChange={e => setSelectedMonth(parseInt(e.target.value))}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm"
+                  >
+                    {months.map((month, index) => (
+                      <option key={index} value={index + 1}>{month}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Status</label>
+                  <select
+                    value={statusFilter}
+                    onChange={e => setStatusFilter(e.target.value as any)}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm"
+                  >
+                    <option value="all">Todos</option>
+                    <option value="paid">Pagos</option>
+                    <option value="partial">Parciais</option>
+                    <option value="pending">Pendentes</option>
+                    <option value="overdue">Atrasados</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Método de Pagamento</label>
+                  <select
+                    value={paymentMethodFilter}
+                    onChange={e => setPaymentMethodFilter(e.target.value as any)}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm"
+                  >
+                    <option value="all">Todos</option>
+                    <option value="M-Pesa">M-Pesa</option>
+                    <option value="Transferência">Transferência</option>
+                    <option value="Cartão">Cartão</option>
+                    <option value="Dinheiro">Dinheiro</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Tipo de Cliente</label>
+                  <select
+                    value={clientTypeFilter}
+                    onChange={e => setClientTypeFilter(e.target.value as any)}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm"
+                  >
+                    <option value="all">Todos</option>
+                    <option value="platform">Plataforma</option>
+                    <option value="manual">Manual</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Pagamento</label>
+                  <select
+                    value={installmentFilter}
+                    onChange={e => setInstallmentFilter(e.target.value as any)}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm"
+                  >
+                    <option value="all">Todos</option>
+                    <option value="installments">Parcelados</option>
+                    <option value="single">Único</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Valor Mínimo (MT)</label>
+                  <input
+                    type="number"
+                    value={minAmountFilter}
+                    onChange={e => setMinAmountFilter(e.target.value)}
+                    placeholder="Ex: 1000"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Cliente Específico</label>
+                  <select
+                    value={selectedClientFilter}
+                    onChange={e => setSelectedClientFilter(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm"
+                  >
+                    <option value="">Todos</option>
+                    {allClients.map(client => (
+                      <option key={client.id} value={client.id}>
+                        {client.name} ({client.email})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="md:col-span-2 lg:col-span-4">
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Buscar por Nome ou Email</label>
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={e => setSearchTerm(e.target.value)}
+                    placeholder="Digite nome ou email..."
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm"
+                  />
+                </div>
               </div>
             </div>
 
