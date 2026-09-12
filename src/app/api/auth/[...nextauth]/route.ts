@@ -137,9 +137,9 @@ export const GET = NextAuth({
           (user as any).dueDate = existingUser.dueDate;
           (user as any).createdAt = existingUser.createdAt;
           
-          // Se o usuário já estiver ativo, permitir login diretamente
-          if (existingUser.status === 'active') {
-            console.log('[Google OAuth] Login permitido para utilizador ativo:', user.email);
+          // Se o usuário for admin/super_admin ou já estiver ativo, permitir login diretamente
+          if (existingUser.role === 'admin' || existingUser.role === 'super_admin' || existingUser.status === 'active') {
+            console.log('[Google OAuth] Login permitido para utilizador ativo ou admin:', user.email);
             return true;
           }
           

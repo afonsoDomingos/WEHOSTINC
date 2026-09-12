@@ -363,7 +363,7 @@ export const auth = {
         serverUser = resData.user;
       }
     } catch (err) {
-      if (err instanceof Error && (err.message.includes('Usuário não encontrado') || err.message.includes('Senha incorreta') || err.message.includes('suspensa'))) {
+      if (err instanceof Error) {
         throw err;
       }
       // Se houver erro de conexão e local também falhou, lançar erro
@@ -813,10 +813,13 @@ export const auth = {
     if (typeof window === 'undefined') return false;
     const userData = JSON.parse(localStorage.getItem(`user_${userId}`) || '{}');
     userData.role = role;
+    if (role === 'admin' || role === 'super_admin') {
+      userData.status = 'active';
+    }
     localStorage.setItem(`user_${userId}`, JSON.stringify(userData));
 
     const currentList = auth.getUsers();
-    const updatedList = currentList.map(u => u.id === userId ? { ...u, role } : u);
+    const updatedList = currentList.map(u => u.id === userId ? { ...u, role, ...(role === 'admin' || role === 'super_admin' ? { status: 'active' } : {}) } : u);
     localStorage.setItem('wehosthere_all_users', JSON.stringify(updatedList));
 
     try {
@@ -890,6 +893,21 @@ export const auth = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'update_password', userId: user.id, email: user.email, password: newPassword })
     }).catch(err => console.error('Erro ao sincronizar senha com servidor:', err));
+  },
+
+  // Administrador define ou redefine senha de um utilizador diretamente no servidor
+  adminSetUserPassword: async (userId: string, userEmail: string, newPassword: string): Promise<boolean> => {
+    try {
+      const res = await fetch(apiEndpoint('/api/users'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update_password', userId, email: userEmail, password: newPassword })
+      });
+      const data = await res.json();
+      return Boolean(data.success);
+    } catch {
+      return false;
+    }
   }
 
 };

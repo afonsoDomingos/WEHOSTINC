@@ -171,15 +171,21 @@ export async function POST(req: Request) {
           return NextResponse.json({ error: 'Usuário não encontrado.' }, { status: 401 });
         }
 
+        // Se o usuário não tem senha configurada (conta Google)
+        if (!userDoc.password) {
+          return NextResponse.json(
+            { error: 'Esta conta foi registada com o Google. Por favor, clique no botão "Entrar com Google" para aceder.' },
+            { status: 400 }
+          );
+        }
+
         // 🔒 Comparar com bcrypt — com migração automática para passwords antigas em plaintext
         let passwordMatch = false;
-        if (userDoc.password) {
-          if (userDoc.password.startsWith('$2')) {
-            passwordMatch = await bcrypt.compare(targetPassword, userDoc.password);
-          } else if (userDoc.password === targetPassword) {
-            // Migração automática e transparente de contas antigas para bcrypt
-            passwordMatch = true;
-          }
+        if (userDoc.password.startsWith('$2')) {
+          passwordMatch = await bcrypt.compare(targetPassword, userDoc.password);
+        } else if (userDoc.password === targetPassword) {
+          // Migração automática e transparente de contas antigas para bcrypt
+          passwordMatch = true;
         }
 
         // 🔒 Fallback de emergência para admin (garante acesso imediato com nova ou antiga senha)
@@ -495,7 +501,11 @@ export async function POST(req: Request) {
           return NextResponse.json({ error: 'Apenas o Super Administrador principal pode alterar as permissões de outro Super Administrador.' }, { status: 403 });
         }
 
-        await UserModel.updateMany(filter, { role: newRole });
+        const updateFields: any = { role: newRole };
+        if (newRole === 'admin' || newRole === 'super_admin') {
+          updateFields.status = 'active';
+        }
+        await UserModel.updateMany(filter, { $set: updateFields });
 
         // Enviar e-mail de notificação de cargo
         if (existingTarget?.email) {
@@ -518,7 +528,7 @@ export async function POST(req: Request) {
 
       FALLBACK_USERS = FALLBACK_USERS.map(u =>
         (targetId && u.id.toLowerCase() === targetId) || (targetEmail && u.email.toLowerCase() === targetEmail)
-          ? { ...u, role: newRole }
+          ? { ...u, role: newRole, ...(newRole === 'admin' || newRole === 'super_admin' ? { status: 'active' } : {}) }
           : u
       );
       return NextResponse.json({ success: true, users: FALLBACK_USERS });

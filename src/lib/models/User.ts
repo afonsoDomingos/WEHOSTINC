@@ -7,7 +7,7 @@ export interface IUser extends Document {
   password?: string;
   plan: 'none' | 'basic' | 'pro' | 'enterprise';
   status: 'active' | 'pending' | 'suspended';
-  role: 'admin' | 'user';
+  role: 'super_admin' | 'admin' | 'user';
   dueDate?: number;
   avatar?: string;
   confirmationCode?: string;
@@ -23,7 +23,7 @@ const UserSchema = new Schema<IUser>({
   password: { type: String },
   plan: { type: String, enum: ['none', 'basic', 'pro', 'enterprise'], default: 'none' },
   status: { type: String, enum: ['active', 'pending', 'suspended'], default: 'active' },
-  role: { type: String, enum: ['admin', 'user'], default: 'user' },
+  role: { type: String, enum: ['super_admin', 'admin', 'user'], default: 'user' },
   dueDate: { type: Number },
   avatar: { type: String, default: '' },
   confirmationCode: { type: String },

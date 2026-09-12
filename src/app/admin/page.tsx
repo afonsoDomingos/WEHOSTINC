@@ -10,7 +10,7 @@ import {
   ShoppingBag, MessageSquare, ExternalLink, Trash2, LifeBuoy, Send, ShieldCheck, CheckCircle2, AlertCircle,
   Paperclip, FileText, Image as ImageIcon, Download, File, X, Loader2, Tag, Shield, AlertTriangle,
   Activity, Eye, EyeOff, Globe, Wifi, WifiOff, BarChart2, RefreshCw, UserPlus, Star, Plus, Edit, BookOpen, Bell, CreditCard, GraduationCap,
-  Handshake, MessageSquareHeart
+  Handshake, MessageSquareHeart, Key
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 import { dataManager, ServiceOrder, SupportTicket, TicketMessage, TicketAttachment, SecurityLog, SystemForRent, RentalRequest, SystemAccess, SocialProof } from '@/lib/data';
@@ -263,6 +263,11 @@ export default function AdminPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [newName, setNewName] = useState('');
   const [newEmail, setNewEmail] = useState('');
+
+  // Modal Definir Senha de Utilizador
+  const [passwordModalUser, setPasswordModalUser] = useState<User | null>(null);
+  const [newPasswordValue, setNewPasswordValue] = useState('');
+  const [savingPassword, setSavingPassword] = useState(false);
   const [newPassword, setNewPassword] = useState('@Admin123@');
   const [newPlan, setNewPlan] = useState<'basic' | 'pro' | 'enterprise'>('pro');
   const [newDueDate, setNewDueDate] = useState<number>(29);
@@ -2881,6 +2886,17 @@ export default function AdminPage() {
                             <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
                           </button>
 
+                          <button
+                            onClick={() => {
+                              setPasswordModalUser(user);
+                              setNewPasswordValue('');
+                            }}
+                            className="p-1 sm:p-1.5 text-amber-600 hover:text-amber-800 hover:bg-amber-50 rounded-md transition cursor-pointer"
+                            title={`Definir ou redefinir senha para ${user.name}`}
+                          >
+                            <Key className="h-3 w-3 sm:h-4 sm:w-4" />
+                          </button>
+
                           {!isTargetAdmin && (
                             <button
                               onClick={() => {
@@ -4179,6 +4195,111 @@ export default function AdminPage() {
           onConfirm={confirmModalData.onConfirm}
           onCancel={() => setConfirmModalData(null)}
         />
+      )}
+
+      {/* Modal Definir Senha de Utilizador */}
+      {passwordModalUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-100 relative">
+            <div className="flex items-center justify-between mb-4 border-b border-gray-100 pb-3">
+              <div className="flex items-center space-x-2">
+                <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+                  <Key className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-gray-900">Definir Senha de Acesso</h3>
+                  <p className="text-xs text-gray-500 font-medium">{passwordModalUser.name} ({passwordModalUser.email})</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setPasswordModalUser(null)}
+                className="text-gray-400 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-100 transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+                  Nova Senha para o Utilizador
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={newPasswordValue}
+                    onChange={(e) => setNewPasswordValue(e.target.value)}
+                    placeholder="Introduza a nova senha (mínimo 6 caracteres)"
+                    className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-mono text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition"
+                  />
+                </div>
+                <div className="flex justify-between items-center mt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%&*';
+                      let generated = '';
+                      for (let i = 0; i < 12; i++) {
+                        generated += chars.charAt(Math.floor(Math.random() * chars.length));
+                      }
+                      setNewPasswordValue(generated);
+                    }}
+                    className="text-xs font-bold text-indigo-600 hover:text-indigo-800 transition cursor-pointer flex items-center space-x-1"
+                  >
+                    <span>⚡ Gerar senha aleatória segura</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-3 bg-amber-50/70 border border-amber-200/70 rounded-xl text-xs text-amber-900 leading-relaxed">
+                💡 Esta ação altera a senha diretamente no banco de dados e permite que <strong>{passwordModalUser.name}</strong> faça login imediatamente com este email e a nova senha definida.
+              </div>
+
+              <div className="flex items-center justify-end space-x-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setPasswordModalUser(null)}
+                  className="px-4 py-2 text-xs sm:text-sm font-semibold text-gray-600 hover:text-gray-800 bg-gray-100 hover:bg-gray-200 rounded-xl transition cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  disabled={newPasswordValue.length < 6 || savingPassword}
+                  onClick={async () => {
+                    setSavingPassword(true);
+                    const success = await auth.adminSetUserPassword(passwordModalUser.id, passwordModalUser.email, newPasswordValue);
+                    setSavingPassword(false);
+                    if (success) {
+                      setToastMsg({
+                        type: 'success',
+                        title: 'Senha Atualizada',
+                        message: `Nova senha configurada com sucesso para ${passwordModalUser.email}.`
+                      });
+                      setPasswordModalUser(null);
+                    } else {
+                      setToastMsg({
+                        type: 'error',
+                        title: 'Erro ao Definir Senha',
+                        message: 'Não foi possível atualizar a senha no servidor. Tente novamente.'
+                      });
+                    }
+                  }}
+                  className="px-5 py-2 text-xs sm:text-sm font-bold text-white bg-amber-600 hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition shadow-md cursor-pointer flex items-center space-x-1.5"
+                >
+                  {savingPassword ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>A guardar...</span>
+                    </>
+                  ) : (
+                    <span>Guardar Nova Senha</span>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Toast Notification */}
