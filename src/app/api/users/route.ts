@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import mongoose from 'mongoose';
 import { connectDB } from '@/lib/mongodb';
 import UserModel from '@/lib/models/User';
 import { addAdminNotification, dispatchMessage } from '@/lib/notifications';
@@ -10,6 +11,33 @@ import { EmailDomain } from '@/models/EmailDomain';
 import { EmailMailbox } from '@/models/EmailMailbox';
 import EmailAccountModel from '@/lib/models/EmailAccount';
 import SiteModel from '@/lib/models/Site';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+function buildUserFilter(targetId?: string, targetEmail?: string) {
+  const cleanId = String(targetId || '').trim();
+  const cleanEmail = String(targetEmail || '').trim().toLowerCase();
+  const orConditions: any[] = [];
+
+  if (cleanEmail) {
+    orConditions.push({ email: cleanEmail });
+    orConditions.push({ email: { $regex: new RegExp(`^${cleanEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } });
+  }
+
+  if (cleanId) {
+    orConditions.push({ id: cleanId });
+    orConditions.push({ id: cleanId.toLowerCase() });
+    orConditions.push({ id: cleanId.toUpperCase() });
+    if (/^[0-9a-fA-F]{24}$/.test(cleanId)) {
+      try {
+        orConditions.push({ _id: new mongoose.Types.ObjectId(cleanId) });
+      } catch {}
+    }
+  }
+
+  return orConditions.length > 0 ? { $or: orConditions } : { id: '___non_existent___' };
+}
 
 const DEFAULT_ADMIN_HASH = '$2a$12$uKp3eU0f.E8ZTuQJg2B3K.Ekqb7BqmPLoHdwmdu7pmtdIeUGaq7wG';
 
@@ -287,7 +315,7 @@ export async function POST(req: Request) {
     }
 
     if (action === 'update_password') {
-      const targetId = (userId || body.id || '').toLowerCase();
+      const targetId = String(userId || body.id || '').trim();
       const targetEmail = safeEmail || (body.email || '').trim().toLowerCase();
 
       if (!safePassword) {
@@ -302,9 +330,7 @@ export async function POST(req: Request) {
         : await bcrypt.hash(safePassword, 12);
 
       if (useMongo) {
-        const filter = targetEmail
-          ? { $or: [{ id: targetId }, { email: targetEmail }] }
-          : { id: targetId };
+        const filter = buildUserFilter(targetId, targetEmail);
 
         const updated = await UserModel.findOneAndUpdate(
           filter,
@@ -313,7 +339,7 @@ export async function POST(req: Request) {
         ).lean();
 
         if (!updated) {
-          return NextResponse.json({ error: 'Usuário não encontrado.' }, { status: 404 });
+          return NextResponse.json({ error: 'Usuário não encontrado no banco de dados.' }, { status: 404 });
         }
 
         const { password: _pw, confirmationCode: _cc, confirmationCodeExpiresAt: _cce, ...safeUser } = updated as any;
@@ -321,12 +347,12 @@ export async function POST(req: Request) {
       }
 
       FALLBACK_USERS = FALLBACK_USERS.map(u =>
-        (targetId && u.id.toLowerCase() === targetId) || (targetEmail && u.email.toLowerCase() === targetEmail)
+        (targetId && (u.id === targetId || u.id.toLowerCase() === targetId.toLowerCase())) || (targetEmail && u.email.toLowerCase() === targetEmail)
           ? { ...u, password: hashedPassword }
           : u
       );
       const updatedFallback = FALLBACK_USERS.find(u =>
-        (targetId && u.id.toLowerCase() === targetId) || (targetEmail && u.email.toLowerCase() === targetEmail)
+        (targetId && (u.id === targetId || u.id.toLowerCase() === targetId.toLowerCase())) || (targetEmail && u.email.toLowerCase() === targetEmail)
       );
       if (!updatedFallback) {
         return NextResponse.json({ error: 'Usuário não encontrado.' }, { status: 404 });
@@ -414,120 +440,166 @@ export async function POST(req: Request) {
     }
 
     if (action === 'update_status') {
-      const targetId = (userId || body.id || '').toLowerCase();
+      const targetId = String(userId || body.id || '').trim();
       const targetEmail = (body.email || body.userEmail || '').trim().toLowerCase();
       if (useMongo) {
-        const filter = targetEmail
-          ? { $or: [{ id: targetId }, { email: targetEmail }] }
-          : { id: targetId };
+        const filter = buildUserFilter(targetId, targetEmail);
         await UserModel.updateMany(filter, { status });
         const users = await UserModel.find({}).lean();
         return NextResponse.json({ success: true, users });
       }
       FALLBACK_USERS = FALLBACK_USERS.map(u =>
-        (targetId && u.id.toLowerCase() === targetId) || (targetEmail && u.email.toLowerCase() === targetEmail)
+        (targetId && (u.id === targetId || u.id.toLowerCase() === targetId.toLowerCase())) || (targetEmail && u.email.toLowerCase() === targetEmail)
           ? { ...u, status } : u
       );
       return NextResponse.json({ success: true, users: FALLBACK_USERS });
     }
 
     if (action === 'update_due_date') {
-      const targetId = (userId || body.id || '').toLowerCase();
+      const targetId = String(userId || body.id || '').trim();
       const targetEmail = (body.email || body.userEmail || '').trim().toLowerCase();
       const newDueDate = Number(body.dueDate) || 29;
 
       if (useMongo) {
-        const filter = targetEmail
-          ? { $or: [{ id: targetId }, { email: targetEmail }] }
-          : { id: targetId };
+        const filter = buildUserFilter(targetId, targetEmail);
         await UserModel.updateMany(filter, { dueDate: newDueDate });
         const users = await UserModel.find({}).lean();
         return NextResponse.json({ success: true, users, dueDate: newDueDate });
       }
       FALLBACK_USERS = FALLBACK_USERS.map(u =>
-        (targetId && u.id.toLowerCase() === targetId) || (targetEmail && u.email.toLowerCase() === targetEmail)
+        (targetId && (u.id === targetId || u.id.toLowerCase() === targetId.toLowerCase())) || (targetEmail && u.email.toLowerCase() === targetEmail)
           ? { ...u, dueDate: newDueDate } : u
       );
       return NextResponse.json({ success: true, users: FALLBACK_USERS, dueDate: newDueDate });
     }
 
     if (action === 'update_avatar') {
+      const targetId = String(userId || body.id || '').trim();
       if (useMongo) {
-        await UserModel.findOneAndUpdate({ id: userId }, { avatar });
+        await UserModel.findOneAndUpdate(buildUserFilter(targetId, body.email), { avatar });
         const users = await UserModel.find({}).lean();
         return NextResponse.json({ success: true, users });
       }
-      FALLBACK_USERS = FALLBACK_USERS.map(u => u.id === userId ? { ...u, avatar } : u);
+      FALLBACK_USERS = FALLBACK_USERS.map(u => (u.id === targetId || u.id.toLowerCase() === targetId.toLowerCase()) ? { ...u, avatar } : u);
       return NextResponse.json({ success: true, users: FALLBACK_USERS });
     }
 
     if (action === 'update_role') {
-      const targetId = (userId || body.id || '').toLowerCase();
-      const targetEmail = (body.email || body.userEmail || '').trim().toLowerCase();
+      const targetId = String(userId || body.id || body.userId || '').trim();
+      const targetEmail = String(email || body.email || body.userEmail || '').trim().toLowerCase();
       const newRole = body.role;
-      const requestedByEmail = (body.requestedByEmail || '').trim().toLowerCase();
+      const requestedByEmail = String(body.requestedByEmail || '').trim().toLowerCase();
 
       if (!newRole || !['user', 'admin', 'super_admin'].includes(newRole)) {
         return NextResponse.json({ error: 'Role inválida. Use "user", "admin" ou "super_admin".' }, { status: 400 });
       }
 
-      // Apenas Super Admin pode atribuir roles
-      const isSuperAdminRequester = requestedByEmail === 'admin@wehosthere.com';
-      if (!isSuperAdminRequester) {
-        // Verificar no MongoDB se o requestedBy é super_admin
-        if (useMongo && requestedByEmail) {
-          const requester = await UserModel.findOne({ email: requestedByEmail }).lean();
-          if (!requester || (requester as any).role !== 'super_admin') {
-            return NextResponse.json({ error: 'Apenas o Super Administrador pode gerir permissões de cargos.' }, { status: 403 });
-          }
-        }
+      if (!targetId && !targetEmail) {
+        return NextResponse.json({ error: 'ID ou e-mail do utilizador é obrigatório.' }, { status: 400 });
       }
 
       // Proteger: não permitir tocar no Super Admin root
-      const isRootAdmin = targetEmail === 'admin@wehosthere.com' || targetId === 'admin_root';
+      const isRootAdmin = targetEmail === 'admin@wehosthere.com' || targetId.toLowerCase() === 'admin_root';
       if (isRootAdmin) {
         return NextResponse.json({ error: 'Não é possível alterar as permissões do Super Administrador principal.' }, { status: 403 });
       }
 
+      // Validação do solicitante
+      const isRootSuperAdmin = requestedByEmail === 'admin@wehosthere.com';
+      if (!isRootSuperAdmin && requestedByEmail && useMongo) {
+        const requester = await UserModel.findOne({
+          email: { $regex: new RegExp(`^${requestedByEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') }
+        }).lean();
+        const requesterRole = (requester as any)?.role;
+        if (!requester || (requesterRole !== 'super_admin' && requesterRole !== 'admin')) {
+          console.warn('[Users API update_role] Permissão negada para solicitante:', requestedByEmail, 'Role:', requesterRole);
+          return NextResponse.json({ error: 'Apenas administradores podem gerir permissões de cargos.' }, { status: 403 });
+        }
+      }
+
       if (useMongo) {
-        const filter = targetEmail
-          ? { $or: [{ id: targetId }, { email: targetEmail }] }
-          : { id: targetId };
-        
-        const existingTarget = await UserModel.findOne(filter).lean();
+        const filter = buildUserFilter(targetId, targetEmail);
+        const existingTarget = await UserModel.findOne(filter);
+
+        if (!existingTarget) {
+          console.error('[Users API update_role] ❌ Utilizador não encontrado no MongoDB Atlas:', { targetId, targetEmail });
+          return NextResponse.json({ 
+            error: `Utilizador não encontrado no banco de dados MongoDB Atlas (${targetEmail || targetId}).` 
+          }, { status: 404 });
+        }
 
         // Não permitir alterar outro super_admin — exceto pelo Super Admin root
-        if ((existingTarget as any)?.role === 'super_admin' && !isSuperAdminRequester) {
-          return NextResponse.json({ error: 'Apenas o Super Administrador principal pode alterar as permissões de outro Super Administrador.' }, { status: 403 });
+        if (existingTarget.role === 'super_admin' && !isRootSuperAdmin && newRole !== 'super_admin') {
+          return NextResponse.json({ error: 'Apenas o Super Administrador principal pode despromover outro Super Administrador.' }, { status: 403 });
         }
 
-        const updateFields: any = { role: newRole };
+        // 1. Atualizar e salvar o documento diretamente via Mongoose (dispara validações e garante gravação)
+        existingTarget.role = newRole;
         if (newRole === 'admin' || newRole === 'super_admin') {
-          updateFields.status = 'active';
+          existingTarget.status = 'active';
         }
-        await UserModel.updateMany(filter, { $set: updateFields });
+        await existingTarget.save();
+
+        // 2. Sincronizar em massa por email e id para garantir consistência total no MongoDB
+        const cleanEmail = existingTarget.email.toLowerCase();
+        await UserModel.updateMany(
+          {
+            $or: [
+              { _id: existingTarget._id },
+              { id: existingTarget.id },
+              { email: cleanEmail },
+              { email: { $regex: new RegExp(`^${cleanEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } }
+            ]
+          },
+          {
+            $set: {
+              role: newRole,
+              ...(newRole === 'admin' || newRole === 'super_admin' ? { status: 'active' } : {})
+            }
+          }
+        );
+
+        console.log(`[Users API update_role] ✅ Cargo atualizado com sucesso no MongoDB Atlas para "${newRole}" em: ${cleanEmail} (ID: ${existingTarget.id})`);
 
         // Enviar e-mail de notificação de cargo
         if (existingTarget?.email) {
-          sendRoleChangeEmail(existingTarget.email, (existingTarget as any).name || existingTarget.email, newRole as any).catch(err => {
+          sendRoleChangeEmail(existingTarget.email, existingTarget.name || existingTarget.email, newRole as any).catch(err => {
             console.error('[UsersAPI] Erro ao enviar email de mudança de cargo:', err);
           });
         }
 
         const users = await UserModel.find({}).lean();
-        return NextResponse.json({ success: true, users });
+        const safeUsers = users.map(({ password: _pw, confirmationCode: _cc, confirmationCodeExpiresAt: _cce, ...u }: any) => u);
+        return NextResponse.json({ 
+          success: true, 
+          user: {
+            id: existingTarget.id,
+            name: existingTarget.name,
+            email: existingTarget.email,
+            role: newRole,
+            status: existingTarget.status
+          },
+          users: safeUsers 
+        });
       }
 
-      const localTarget = FALLBACK_USERS.find(u => (targetId && u.id.toLowerCase() === targetId) || (targetEmail && u.email.toLowerCase() === targetEmail));
-      if (localTarget?.role === 'super_admin') {
+      // Fallback em memória
+      const localTarget = FALLBACK_USERS.find(u =>
+        (targetId && (u.id.toLowerCase() === targetId.toLowerCase() || u.id === targetId)) ||
+        (targetEmail && u.email.toLowerCase() === targetEmail)
+      );
+      if (!localTarget) {
+        return NextResponse.json({ error: 'Utilizador não encontrado.' }, { status: 404 });
+      }
+      if (localTarget.role === 'super_admin' && !isRootSuperAdmin && newRole !== 'super_admin') {
         return NextResponse.json({ error: 'Não é possível alterar as permissões de um Super Administrador.' }, { status: 403 });
       }
-      if (localTarget?.email) {
+      if (localTarget.email) {
         sendRoleChangeEmail(localTarget.email, localTarget.name || localTarget.email, newRole as any).catch(() => {});
       }
 
       FALLBACK_USERS = FALLBACK_USERS.map(u =>
-        (targetId && u.id.toLowerCase() === targetId) || (targetEmail && u.email.toLowerCase() === targetEmail)
+        (u.id === localTarget.id || u.email.toLowerCase() === localTarget.email.toLowerCase())
           ? { ...u, role: newRole, ...(newRole === 'admin' || newRole === 'super_admin' ? { status: 'active' } : {}) }
           : u
       );

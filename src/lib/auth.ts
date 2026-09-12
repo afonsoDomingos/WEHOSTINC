@@ -630,33 +630,23 @@ export const auth = {
 
           const serverKeySet = new Set(serverUsers.map(u => u.id));
 
-          // 1. Atualizar lista com usuários do servidor, priorizando a alteração recente do Admin local
+          // 1. Atualizar lista com usuários do servidor (MongoDB Atlas é a fonte da verdade)
           const updatedUsers: User[] = serverUsers.map(serverUser => {
             const localMatch = localMap.get(serverUser.id) || Array.from(localMap.values()).find(l => l.email.trim().toLowerCase() === serverUser.email.trim().toLowerCase());
-            if (localMatch) {
-              const effectiveStatus = localMatch.status || serverUser.status || 'active';
-              const effectivePlan = localMatch.plan || serverUser.plan || 'basic';
-
-              // Se o status local difere do servidor, avisar o servidor
-              if (serverUser.status !== effectiveStatus) {
-                fetch(apiEndpoint('/api/users'), {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ action: 'update_status', userId: serverUser.id, email: serverUser.email, status: effectiveStatus })
-                }).catch(() => {});
-              }
-
-              return {
-                ...serverUser,
-                ...localMatch,
-                status: effectiveStatus,
-                plan: effectivePlan
-              };
-            }
-            return {
+            const role = serverUser.role || localMatch?.role || 'user';
+            const status = serverUser.status || localMatch?.status || 'active';
+            const plan = serverUser.plan || localMatch?.plan || 'none';
+            const merged: User = {
+              ...(localMatch || {}),
               ...serverUser,
-              status: serverUser.status || 'active'
+              role,
+              status,
+              plan
             };
+            if (typeof window !== 'undefined') {
+              localStorage.setItem(`user_${serverUser.id}`, JSON.stringify(merged));
+            }
+            return merged;
           });
 
           // 2. Preservar apenas usuários criados muito recentemente (< 15s) que ainda não chegaram ao servidor
@@ -808,35 +798,82 @@ export const auth = {
     }
   },
 
-  // Atualizar função/role do usuário (user | admin | super_admin)
+  // Atualizar função/role do usuário (user | admin | super_admin) - Database First
   updateUserRole: async (userId: string, role: 'user' | 'admin' | 'super_admin', userEmail?: string, requestedByEmail?: string): Promise<boolean> => {
     if (typeof window === 'undefined') return false;
-    const userData = JSON.parse(localStorage.getItem(`user_${userId}`) || '{}');
-    userData.role = role;
-    if (role === 'admin' || role === 'super_admin') {
-      userData.status = 'active';
-    }
-    localStorage.setItem(`user_${userId}`, JSON.stringify(userData));
-
-    const currentList = auth.getUsers();
-    const updatedList = currentList.map(u => u.id === userId ? { ...u, role, ...(role === 'admin' || role === 'super_admin' ? { status: 'active' } : {}) } : u);
-    localStorage.setItem('wehosthere_all_users', JSON.stringify(updatedList));
+    const users = auth.getUsers();
+    let userData = users.find(u => u.id === userId || (userEmail && u.email.toLowerCase() === userEmail.toLowerCase()));
+    const targetEmail = userEmail || userData?.email || '';
 
     try {
       const currentUser = auth.getActualUser() || auth.getCurrentUser();
       const requester = requestedByEmail || currentUser?.email || 'admin@wehosthere.com';
+
+      // 1. Gravar primeiro no banco de dados MongoDB Atlas (Database-First)
       const res = await fetch(apiEndpoint('/api/users'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'update_role', userId, email: userEmail || userData.email, role, requestedByEmail: requester })
+        body: JSON.stringify({ 
+          action: 'update_role', 
+          userId, 
+          email: targetEmail, 
+          role, 
+          requestedByEmail: requester 
+        })
       });
+
       const data = await res.json();
+      if (!res.ok || !data.success) {
+        console.error('Falha ao atualizar cargo no MongoDB Atlas:', data?.error || res.statusText);
+        return false;
+      }
+
+      // 2. Com a gravação no MongoDB Atlas confirmada, atualizar o cache local
+      if (userData) {
+        userData.role = role;
+        if (role === 'admin' || role === 'super_admin') {
+          userData.status = 'active';
+        }
+        localStorage.setItem(`user_${userData.id}`, JSON.stringify(userData));
+      }
+      if (userId) {
+        const stored = localStorage.getItem(`user_${userId}`);
+        if (stored) {
+          try {
+            const p = JSON.parse(stored);
+            p.role = role;
+            if (role === 'admin' || role === 'super_admin') p.status = 'active';
+            localStorage.setItem(`user_${userId}`, JSON.stringify(p));
+          } catch {}
+        }
+      }
+
       if (data.users && Array.isArray(data.users)) {
         localStorage.setItem('wehosthere_all_users', JSON.stringify(data.users));
+      } else {
+        const currentList = auth.getUsers();
+        const updatedList = currentList.map(u =>
+          (u.id === userId || (targetEmail && u.email.toLowerCase() === targetEmail.toLowerCase()))
+            ? { ...u, role, ...(role === 'admin' || role === 'super_admin' ? { status: 'active' as const } : {}) }
+            : u
+        );
+        localStorage.setItem('wehosthere_all_users', JSON.stringify(updatedList));
       }
-      return Boolean(data.success);
+
+      // 3. Se o utilizador promovido for o utilizador atualmente logado, atualizar a sessão em tempo real
+      const currentSession = auth.getActualUser();
+      if (currentSession && (currentSession.id === userId || (targetEmail && currentSession.email?.toLowerCase() === targetEmail.toLowerCase()))) {
+        const updatedSession = {
+          ...currentSession,
+          role,
+          ...(role === 'admin' || role === 'super_admin' ? { status: 'active' as const } : {})
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ user: updatedSession }));
+      }
+
+      return true;
     } catch (err) {
-      console.error('Erro de sync de role:', err);
+      console.error('Erro ao comunicar com o servidor para atualizar cargo:', err);
       return false;
     }
   },
