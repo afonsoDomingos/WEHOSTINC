@@ -279,6 +279,7 @@ function CheckoutContent() {
             console.log('[PAYMENT POLLING] Pagamento falhou/cancelado');
             clearInterval(pollingInterval);
             setIsPollingPayment(false);
+            setLoading(false); // 🔧 CORREÇÃO: desbloquear botão quando pagamento falha
             setPushStatus('expired');
             setRetryCount(0);
             setError('Pagamento não foi confirmado. Por favor, tente novamente.');
@@ -306,6 +307,7 @@ function CheckoutContent() {
             console.error('[PAYMENT POLLING] Máximo de retries atingido');
             clearInterval(pollingInterval);
             setIsPollingPayment(false);
+            setLoading(false); // 🔧 CORREÇÃO: desbloquear botão após máximo de retries
             setPushStatus('expired');
             setRetryCount(0);
             setError('Erro de conexão. Verifique sua internet e tente novamente.');
@@ -320,6 +322,7 @@ function CheckoutContent() {
       const timeout = setTimeout(() => {
         clearInterval(pollingInterval);
         setIsPollingPayment(false);
+        setLoading(false); // 🔧 CORREÇÃO: desbloquear botão após timeout
         setPushStatus('expired');
         setRetryCount(0);
         setError('Tempo de verificação expirado. Se você pagou, aguarde o e-mail de confirmação.');
@@ -852,6 +855,10 @@ function CheckoutContent() {
         setCountdown(60); // Countdown aumentado para 60 segundos
         setPushStatus('waiting');
         setPushModal(true);
+        
+        // 🔧 CORREÇÃO: Sempre resetar o loading após abrir o modal de confirmação.
+        // O botão principal não deve ficar travado em "Processando..." enquanto o modal está aberto.
+        setLoading(false);
       } else if (paymentMethod === 'bank_transfer') {
         // 🔒 SEGURANÇA: Para transferência bancária, apenas criar pedido como 'in_progress'
         // Admin deve aprovar manualmente após verificar comprovativo
@@ -1069,6 +1076,7 @@ function CheckoutContent() {
                     onClick={() => {
                       setPushModal(false);
                       setIsPollingPayment(false);
+                      setLoading(false); // 🔧 CORREÇÃO: garantir que o botão principal fica desbloqueado
                     }}
                     className="w-full py-3 text-xs font-semibold text-gray-500 hover:text-gray-800 transition min-h-[44px]"
                   >
