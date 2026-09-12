@@ -60,7 +60,7 @@ export default function SitesPage() {
       return;
     }
     
-    if ((currentUser.role === 'admin' || currentUser.email.toLowerCase() === 'admin@wehosthere.com') && !auth.isClientViewActive()) {
+    if (auth.isAdminUser(currentUser) && !auth.isClientViewActive()) {
       router.push('/admin');
       return;
     }

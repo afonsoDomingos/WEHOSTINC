@@ -98,11 +98,11 @@ export default function Navbar() {
                     </div>
                   )}
                   <Link
-                    href={user.role === 'admin' || user.email.toLowerCase() === 'admin@wehosthere.com' ? '/admin' : '/dashboard'}
+                    href={auth.isAdminUser(user) ? '/admin' : '/dashboard'}
                     className="px-3 sm:px-4 py-2 sm:py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-sm hover:shadow transition flex items-center space-x-1.5 sm:space-x-2"
                   >
                     <LayoutDashboard className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                    <span className="hidden sm:inline">{user.role === 'admin' || user.email.toLowerCase() === 'admin@wehosthere.com' ? t('nav.admin') : t('nav.dashboard')}</span>
+                    <span className="hidden sm:inline">{auth.isAdminUser(user) ? t('nav.admin') : t('nav.dashboard')}</span>
                     <span className="sm:hidden">Painel</span>
                   </Link>
                 </div>
@@ -215,12 +215,12 @@ export default function Navbar() {
                   </div>
                 )}
                 <Link
-                  href={user.role === 'admin' || user.email.toLowerCase() === 'admin@wehosthere.com' ? '/admin' : '/dashboard'}
+                  href={auth.isAdminUser(user) ? '/admin' : '/dashboard'}
                   onClick={closeMobileMenu}
                   className="w-full text-center py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl text-sm sm:text-base font-bold text-white bg-primary-600 hover:bg-primary-700 shadow-md transition flex items-center justify-center space-x-1.5 sm:space-x-2"
                 >
                   <LayoutDashboard className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span>{user.role === 'admin' || user.email.toLowerCase() === 'admin@wehosthere.com' ? t('nav.admin') : t('nav.dashboard')}</span>
+                  <span>{auth.isAdminUser(user) ? t('nav.admin') : t('nav.dashboard')}</span>
                 </Link>
                 <button
                   type="button"

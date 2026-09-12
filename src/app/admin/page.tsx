@@ -1379,7 +1379,7 @@ export default function AdminPage() {
     const currentDay = today.getDate();
     const dueDay = user.dueDate || 29;
 
-    return user.role === 'admin' ? 'active' : 'pending';
+    return auth.isAdminUser(user) ? 'active' : 'pending';
   };
 
   const filteredUsers = users.filter((user) => {
@@ -2678,6 +2678,7 @@ export default function AdminPage() {
                   {filteredUsers.map((user) => {
                     const userClientOrders = orders.filter(o => o.clientEmail.toLowerCase() === user.email.toLowerCase() || o.clientName.toLowerCase() === user.name.toLowerCase());
                     const userClientSites = sites.filter(s => (s.userEmail || '').toLowerCase() === user.email.toLowerCase());
+                    const isTargetAdmin = auth.isAdminUser(user);
                     const isSuperAdmin = user.email.toLowerCase() === 'admin@wehosthere.com' || user.id === 'admin_root';
 
                     return (
@@ -2685,8 +2686,10 @@ export default function AdminPage() {
                       <td className="py-2.5 sm:py-3.5 px-2 sm:px-4">
                         <div className="flex items-center space-x-1.5">
                           <span className="font-semibold text-gray-900 text-[10px] sm:text-sm">{user.name}</span>
-                          {user.role === 'admin' && (
-                            <span className="text-[10px]" title="Administrador">👑</span>
+                          {(user.role === 'admin' || user.role === 'super_admin') && (
+                            <span className="text-[10px]" title={user.role === 'super_admin' ? 'Super Administrador' : 'Administrador'}>
+                              {user.role === 'super_admin' ? '👑' : '🛡️'}
+                            </span>
                           )}
                         </div>
                         <span className="text-[9px] sm:text-xs text-gray-500 font-mono block sm:hidden">{user.email}</span>
@@ -2810,7 +2813,7 @@ export default function AdminPage() {
                         )}
                       </td>
                       <td className="py-2.5 sm:py-3.5 px-2 sm:px-4 text-gray-600 text-[10px] sm:text-sm font-medium hidden sm:table-cell">
-                        {isSuperAdmin ? (
+                        {isTargetAdmin ? (
                           <span className="text-gray-400 font-mono text-xs">N/A</span>
                         ) : (
                           <select
@@ -2832,9 +2835,13 @@ export default function AdminPage() {
                         )}
                       </td>
                       <td className="py-2.5 sm:py-3.5 px-2 sm:px-4">
-                        {isSuperAdmin ? (
-                          <span className="inline-block px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[9px] sm:text-xs font-bold bg-purple-100 text-purple-700 border border-purple-200">
-                            👑 Sistema
+                        {isTargetAdmin ? (
+                          <span className={`inline-block px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[9px] sm:text-xs font-bold ${
+                            user.role === 'super_admin' || isSuperAdmin
+                              ? 'bg-purple-100 text-purple-700 border border-purple-200'
+                              : 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                          }`}>
+                            {user.role === 'super_admin' || isSuperAdmin ? '👑 Super Admin' : '🛡️ Admin'}
                           </span>
                         ) : (
                           <select
@@ -2874,7 +2881,7 @@ export default function AdminPage() {
                             <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
                           </button>
 
-                          {!isSuperAdmin && (
+                          {!isTargetAdmin && (
                             <button
                               onClick={() => {
                                 const currentSt = user.status || 'active';
@@ -2892,7 +2899,7 @@ export default function AdminPage() {
                             </button>
                           )}
 
-                          {!isSuperAdmin && (
+                          {!isTargetAdmin && (
                             <button
                               onClick={() => {
                                 setConfirmModalData({

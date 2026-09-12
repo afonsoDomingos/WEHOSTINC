@@ -101,7 +101,7 @@ export default function LoginPage() {
         status: 'success'
       });
       
-      if (user.role === 'admin' || user.email === 'admin@wehosthere.com') {
+      if (auth.isAdminUser(user)) {
         console.log('[Login Normal] Redirecionando para admin');
         router.push('/admin');
       } else {

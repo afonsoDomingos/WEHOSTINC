@@ -93,7 +93,7 @@ export default function EmailDomainsPage() {
     // Auto-initialize wehosthere.com for admin if it doesn't exist
     const autoInitialize = async () => {
       const user = auth.getCurrentUser();
-      if (user && user.role === 'admin') {
+      if (user && auth.isAdminUser(user)) {
         // Check if wehosthere.com already exists
         try {
           const response = await fetch('/api/email-providers/migadu/domains');

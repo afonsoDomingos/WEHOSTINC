@@ -66,7 +66,7 @@ export default function ChapterViewPage() {
       setLessons(allLessons);
       
       // Verificar pagamento de forma otimizada (apenas para este curso específico)
-      const isAdmin = currentUser.role === 'admin';
+      const isAdmin = auth.isAdminUser(currentUser);
       const isProOrEnterprise = currentUser.plan === 'pro' || currentUser.plan === 'enterprise';
       
       if (isAdmin || isProOrEnterprise) {

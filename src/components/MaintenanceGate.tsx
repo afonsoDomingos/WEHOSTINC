@@ -13,7 +13,7 @@ export default function MaintenanceGate({ children }: { children: React.ReactNod
   const checkMaintenance = async () => {
     try {
       const user = auth.getCurrentUser();
-      setIsAdmin(user?.role === 'admin');
+      setIsAdmin(auth.isAdminUser(user));
 
       const res = await fetch('/api/system/maintenance', { cache: 'no-store' });
       if (res.ok) {

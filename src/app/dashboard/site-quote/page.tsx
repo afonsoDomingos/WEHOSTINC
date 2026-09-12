@@ -96,7 +96,7 @@ function SiteQuoteContent() {
     if (currentUser) {
       setUser(currentUser);
       // Only redirect admin users - regular users can access the quote page
-      if ((currentUser.role === 'admin' || currentUser.email.toLowerCase() === 'admin@wehosthere.com') && !auth.isClientViewActive()) {
+      if (auth.isAdminUser(currentUser) && !auth.isClientViewActive()) {
         router.push('/admin');
         return;
       }

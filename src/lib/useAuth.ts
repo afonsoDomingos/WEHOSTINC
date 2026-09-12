@@ -115,8 +115,8 @@ export function useAuth(options: UseAuthOptions = { redirectToAdmin: true, redir
       if (currentUser) {
         console.log('[useAuth] Usuário encontrado no fallback:', currentUser.email);
         
-        if (options.redirectToAdmin && (currentUser.role === 'admin' || currentUser.email.toLowerCase() === 'admin@wehosthere.com')) {
-          console.log('[useAuth] Usuário é admin, redirecionando para admin');
+        if (options.redirectToAdmin && auth.isAdminUser(currentUser) && !auth.isClientViewActive()) {
+          console.log('[useAuth] Usuário é admin/super_admin, redirecionando para admin');
           router.push('/admin');
         } else {
           setUser(currentUser);

@@ -27,7 +27,7 @@ export default function DashboardNav({ userName, userAvatar, onLogout, onRefresh
   const [isRefreshing, setIsRefreshing] = useState(false);
   const pathname = usePathname();
   const actualUser = auth.getActualUser();
-  const isActualAdmin = actualUser?.role === 'admin' || actualUser?.email.toLowerCase() === 'admin@wehosthere.com';
+  const isActualAdmin = auth.isAdminUser(actualUser);
 
   const handleRefreshClick = () => {
     setIsRefreshing(true);
