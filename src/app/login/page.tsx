@@ -67,13 +67,16 @@ export default function LoginPage() {
       fetch('/api/debug/check-env')
         .then(res => res.json())
         .then(data => {
-          if (!data.success || !data.allSet) {
+          const isConfigured = data.success && (data.allConfigured ?? data.allSet ?? data.googleOAuth?.configured ?? true);
+          if (!isConfigured) {
             console.warn('[Login] Google OAuth não está configurado');
             setGoogleConfigured(false);
+          } else {
+            setGoogleConfigured(true);
           }
         })
         .catch(() => {
-          console.warn('[Login] Não foi possível verificar configuração do Google OAuth');
+          console.warn('[Login] Não foi possível verificar configuração do Google OAuth, mantendo ativado');
         });
     } catch (err) {
       console.error('Erro no useEffect:', err);
