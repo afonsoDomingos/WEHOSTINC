@@ -3,6 +3,9 @@ import { connectDB } from '@/lib/mongodb';
 import Affiliate from '@/lib/models/Affiliate';
 import AffiliateClick from '@/lib/models/AffiliateClick';
 
+// URL absoluta para evitar loops de redirecionamento HTTP→HTTPS via proxy Vercel
+const HOME_URL = 'https://www.wehosthere.com/';
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { affiliateCode: string } }
@@ -15,11 +18,11 @@ export async function GET(
     // Find affiliate by code
     const affiliate = await Affiliate.findOne({ affiliateCode });
     if (!affiliate) {
-      return NextResponse.redirect(new URL('/', request.url));
+      return NextResponse.redirect(HOME_URL, { status: 307 });
     }
 
     if (affiliate.status !== 'active') {
-      return NextResponse.redirect(new URL('/', request.url));
+      return NextResponse.redirect(HOME_URL, { status: 307 });
     }
 
     // Get client info
@@ -98,8 +101,8 @@ export async function GET(
     }
 
 
-    // Set cookie for affiliate tracking (30 days)
-    const response = NextResponse.redirect(new URL('/', request.url));
+    // Set cookie for affiliate tracking (30 days) e redirecionar para home com URL absoluta
+    const response = NextResponse.redirect(HOME_URL, { status: 307 });
     response.cookies.set('affiliate_code', affiliateCode, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -111,6 +114,6 @@ export async function GET(
 
   } catch (error) {
     console.error('Erro ao rastrear clique de afiliado:', error);
-    return NextResponse.redirect(new URL('/', request.url));
+    return NextResponse.redirect(HOME_URL, { status: 307 });
   }
 }

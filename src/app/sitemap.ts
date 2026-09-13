@@ -37,39 +37,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'weekly',
       priority: 0.8,
     },
-    // Páginas de autenticação
-    {
-      url: `${BASE_URL}/login`,
-      lastModified: oneMonthAgo,
-      changeFrequency: 'monthly',
-      priority: 0.6,
-    },
-    {
-      url: `${BASE_URL}/forgot-password`,
-      lastModified: oneMonthAgo,
-      changeFrequency: 'monthly',
-      priority: 0.5,
-    },
-    {
-      url: `${BASE_URL}/confirm-email`,
-      lastModified: oneMonthAgo,
-      changeFrequency: 'monthly',
-      priority: 0.5,
-    },
-    // Páginas de checkout
-    {
-      url: `${BASE_URL}/checkout`,
-      lastModified: oneWeekAgo,
-      changeFrequency: 'weekly',
-      priority: 0.7,
-    },
-    // Páginas de serviços
-    {
-      url: `${BASE_URL}/webmail`,
-      lastModified: threeMonthsAgo,
-      changeFrequency: 'monthly',
-      priority: 0.5,
-    },
+    // NOTA SEO: /login, /forgot-password, /confirm-email, /checkout e /webmail
+    // foram removidos do sitemap propositadamente:
+    //  - /login tem noindex explícito no layout
+    //  - /forgot-password e /confirm-email são páginas de autenticação sem conteúdo indexável
+    //  - /checkout é uma página de compra dinâmica (client-side) sem conteúdo estático
+    //  - /webmail redireciona para serviço externo
     // Páginas legais
     {
       url: `${BASE_URL}/terms`,

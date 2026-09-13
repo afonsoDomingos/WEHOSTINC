@@ -46,15 +46,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     console.warn('[Blog] Erro ao gerar metadata do artigo:', e);
   }
 
+  // SEO FIX: Post não encontrado — marcar como noindex para evitar Soft 404.
+  // Não usar canonical apontando para /blog, pois isso cria duplicatas no Search Console.
   return {
-    title: 'Artigo | Blog WEHOSTHERE',
-    description: 'Leia mais artigos sobre hospedagem, domínios e tecnologia no blog da WEHOSTHERE.',
-    openGraph: {
-      type: 'article',
-      siteName: 'WEHOSTHERE',
-    },
-    alternates: {
-      canonical: `https://www.wehosthere.com/blog`,
+    title: 'Artigo não encontrado | Blog WEHOSTHERE',
+    description: 'Este artigo não foi encontrado. Explore outros artigos sobre hospedagem e tecnologia no blog da WEHOSTHERE.',
+    robots: {
+      index: false,
+      follow: true,
     },
   };
 }
