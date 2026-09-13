@@ -89,14 +89,29 @@ export function useAuth(options: UseAuthOptions = { redirectToAdmin: true, redir
       }
 
       // Verificar se é admin / super_admin
-      if (options.redirectToAdmin && auth.isAdminUser(currentUser) && !auth.isClientViewActive()) {
-        console.log('[useAuth] Usuário é admin/super_admin, redirecionando para admin');
-        router.push('/admin');
-        if (isMounted) {
-          setLoading(false);
-          setAuthChecked(true);
+      if (options.redirectToAdmin && !auth.isClientViewActive()) {
+        if (auth.isAdminUser(currentUser)) {
+          console.log('[useAuth] Usuário é admin/super_admin, redirecionando para admin');
+          window.location.replace('/admin');
+          return;
         }
-        return;
+
+        // Se localmente ainda não é admin, verificar no servidor
+        if (currentUser.email) {
+          fetch('/api/users?email=' + encodeURIComponent(currentUser.email))
+            .then(r => r.json())
+            .then(data => {
+              const serverUser = data.user || (data.users && data.users.find((u: any) => u.email?.toLowerCase() === currentUser?.email?.toLowerCase()));
+              if (serverUser && (serverUser.role === 'admin' || serverUser.role === 'super_admin')) {
+                console.log('[useAuth] Promoção a admin detectada no servidor! Redirecionando para /admin');
+                const updated = { ...currentUser, role: serverUser.role, status: serverUser.status || 'active' };
+                localStorage.setItem('wehosthere_auth', JSON.stringify({ user: updated }));
+                localStorage.setItem(`user_${serverUser.id || currentUser?.id}`, JSON.stringify(updated));
+                window.location.replace('/admin');
+              }
+            })
+            .catch(() => {});
+        }
       }
 
       // Usuário autenticado com sucesso

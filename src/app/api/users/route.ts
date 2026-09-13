@@ -110,8 +110,25 @@ export async function GET(request: Request) {
   }
 
   try {
+    const url = new URL(request.url);
+    const emailParam = url.searchParams.get('email');
+    const targetEmail = emailParam?.trim().toLowerCase();
+
     if (await tryMongo()) {
       await ensureAdmin();
+      if (targetEmail) {
+        const singleUser = await UserModel.findOne({
+          $or: [
+            { email: targetEmail },
+            { email: { $regex: new RegExp(`^${targetEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } }
+          ]
+        }).lean();
+        if (singleUser) {
+          const { password: _pw, confirmationCode: _cc, confirmationCodeExpiresAt: _cce, ...safeUser } = singleUser as any;
+          return NextResponse.json({ success: true, user: safeUser });
+        }
+      }
+
       const users = await UserModel.find({}).lean();
       // 🔒 NUNCA retornar passwords ou códigos de confirmação na resposta
       const safeUsers = users.map(({ password: _pw, confirmationCode: _cc, confirmationCodeExpiresAt: _cce, ...u }: any) => u);
@@ -177,8 +194,12 @@ export async function POST(req: Request) {
       }
 
       if (useMongo) {
-        await ensureAdmin();
-        const userDoc = await UserModel.findOne({ email: targetEmail }).lean();
+        const userDoc = await UserModel.findOne({
+          $or: [
+            { email: targetEmail },
+            { email: { $regex: new RegExp(`^${targetEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } }
+          ]
+        }).lean();
         
         if (!userDoc) {
           // Registrar tentativa falha com IP e país

@@ -103,10 +103,10 @@ export default function LoginPage() {
       
       if (auth.isAdminUser(user)) {
         console.log('[Login Normal] Redirecionando para admin');
-        router.push('/admin');
+        window.location.href = '/admin';
       } else {
         console.log('[Login Normal] Redirecionando para dashboard');
-        router.push('/dashboard');
+        window.location.href = '/dashboard';
       }
     } catch (err) {
       soundEffects.playErrorSound();

@@ -112,13 +112,31 @@ export default function DashboardPage() {
     }
     
     if (!currentUser) {
-      router.push('/login');
+      window.location.href = '/login';
       return;
     }
     
     if (auth.isAdminUser(currentUser) && !auth.isClientViewActive()) {
-      router.push('/admin');
+      window.location.replace('/admin');
       return;
+    }
+
+    // 🔄 Se o utilizador não tem role de admin localmente, verificar imediatamente no servidor
+    // para utilizadores que foram promovidos a Super Admin recentemente
+    if (!auth.isClientViewActive() && currentUser.email) {
+      fetch('/api/users?email=' + encodeURIComponent(currentUser.email))
+        .then(r => r.json())
+        .then(data => {
+          const serverUser = data.user || (data.users && data.users.find((u: any) => u.email?.toLowerCase() === currentUser?.email?.toLowerCase()));
+          if (serverUser && (serverUser.role === 'admin' || serverUser.role === 'super_admin')) {
+            console.log('[Dashboard] Utilizador promovido no servidor detectado! Redirecionando para /admin');
+            const updated = { ...currentUser, role: serverUser.role, status: serverUser.status || 'active' };
+            localStorage.setItem('wehosthere_auth', JSON.stringify({ user: updated }));
+            localStorage.setItem(`user_${serverUser.id || currentUser?.id}`, JSON.stringify(updated));
+            window.location.replace('/admin');
+          }
+        })
+        .catch(() => {});
     }
     
     setUser(currentUser);

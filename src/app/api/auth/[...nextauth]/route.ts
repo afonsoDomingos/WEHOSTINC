@@ -1,6 +1,8 @@
 import NextAuth from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import { sendWelcomeEmail, sendLoginNotificationEmail } from '@/lib/sendgrid';
+import { connectDB } from '@/lib/mongodb';
+import UserModel from '@/lib/models/User';
 
 // Validar configuração do NextAuth
 const requiredEnvVars = ['NEXTAUTH_SECRET', 'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET'];
@@ -106,28 +108,18 @@ export const GET = NextAuth({
       }
 
       try {
-        const baseUrl = process.env.NEXTAUTH_URL || 'https://wehosthere.com';
-        const apiUrl = `${baseUrl}/api/users`;
+        await connectDB();
+        const cleanEmail = (user.email || '').toLowerCase().trim();
 
-        // Buscar utilizadores com autenticação interna (server-side)
-        const usersResponse = await fetch(apiUrl, {
-          headers: getInternalHeaders(),
-        });
-
-        if (!usersResponse.ok) {
-          console.error('[Google OAuth] Falha ao buscar utilizadores:', usersResponse.status);
-          return false;
-        }
-
-        const usersData = await usersResponse.json();
-        const users = usersData.users || [];
-
-        const existingUser = users.find(
-          (u: any) => u.email.toLowerCase() === (user.email || '').toLowerCase()
-        );
+        const existingUser = await UserModel.findOne({
+          $or: [
+            { email: cleanEmail },
+            { email: { $regex: new RegExp(`^${cleanEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } }
+          ]
+        }).lean() as any;
 
         if (existingUser) {
-          console.log('[Google OAuth] Usuário encontrado:', { email: user.email, status: existingUser.status, plan: existingUser.plan });
+          console.log('[Google OAuth] Usuário encontrado no MongoDB:', { email: user.email, status: existingUser.status, role: existingUser.role });
           
           // Propagar dados do usuário para o objeto user
           (user as any).id = existingUser.id;
@@ -146,7 +138,6 @@ export const GET = NextAuth({
           // Se o usuário estiver pendente, negar login (será tratado no redirect callback)
           if (existingUser.status === 'pending') {
             console.warn('[Google OAuth] Conta pendente de confirmação:', user.email);
-            // Armazenar no objeto user para uso no redirect callback
             (user as any).needsConfirmation = true;
             return true;
           }
@@ -160,12 +151,12 @@ export const GET = NextAuth({
         console.log('[Google OAuth] Criando novo utilizador Google:', user.email);
 
         const confirmationCode = Math.floor(100000 + Math.random() * 900000).toString();
-        const confirmationCodeExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // 24 horas
+        const confirmationCodeExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
         const newUser = {
           id: `USER-${Date.now()}`,
           name: user.name || 'Utilizador Google',
-          email: user.email,
+          email: cleanEmail,
           plan: 'none' as const,
           status: 'pending' as const,
           role: 'user' as const,
@@ -175,32 +166,19 @@ export const GET = NextAuth({
           confirmationCodeExpiresAt,
         };
 
-        // Criar utilizador via API com autenticação interna
-        const createResponse = await fetch(apiUrl, {
-          method: 'POST',
-          headers: getInternalHeaders(),
-          body: JSON.stringify({ action: 'register', user: newUser }),
-        });
-
-        if (createResponse.ok) {
-          console.log('[Google OAuth] Utilizador criado com sucesso:', user.email);
-        } else {
-          console.error('[Google OAuth] Falha ao criar utilizador via API');
-        }
+        await UserModel.create(newUser);
+        console.log('[Google OAuth] Utilizador criado com sucesso no MongoDB:', cleanEmail);
 
         // Enviar email de boas-vindas com código de confirmação
         sendWelcomeEmail(newUser.email, newUser.name, newUser.plan, confirmationCode).catch((err: any) => {
           console.error('[Google OAuth] Erro ao enviar email de boas-vindas:', err);
         });
 
-        // Propagar dados do novo usuário para o objeto user
         (user as any).id = newUser.id;
         (user as any).role = newUser.role;
         (user as any).plan = newUser.plan;
         (user as any).status = newUser.status;
         (user as any).createdAt = newUser.createdAt;
-        
-        // Conta criada mas precisa de confirmação — permitir login mas marcar para redirecionamento
         (user as any).needsConfirmation = true;
         return true;
       } catch (error) {
@@ -210,20 +188,17 @@ export const GET = NextAuth({
     },
 
     async session({ session, token }: any) {
-      console.log('[NextAuth Session] Session callback iniciado:', { session, token });
       if (session.user && token.sub) {
         session.user.id = token.sub;
         session.user.email = token.email;
         session.user.name = token.name;
         session.user.image = token.picture;
-        // Propagar campos adicionais do token para a sessão
         session.user.role = token.role || 'user';
         session.user.plan = token.plan || 'none';
         session.user.status = token.status || 'active';
         session.user.dueDate = token.dueDate;
         session.user.createdAt = token.createdAt;
       }
-      console.log('[NextAuth Session] Session final:', session);
       
       // Enviar notificação de login (apenas na primeira criação de sessão)
       if (session.user && session.user.email && !token.loginNotified) {
@@ -241,97 +216,76 @@ export const GET = NextAuth({
           console.error('[NextAuth Session] Erro ao enviar notificação de login:', err);
         });
         
-        // Marcar como notificado para evitar duplicatas
         token.loginNotified = true;
-      }
-      
-      // Sincronizar com sistema customizado de autenticação
-      if (session.user && session.user.email) {
-        try {
-          const baseUrl = process.env.NEXTAUTH_URL || 'https://wehosthere.com';
-          const apiUrl = `${baseUrl}/api/users`;
-          
-          // Buscar dados completos do usuário do servidor
-          const usersResponse = await fetch(apiUrl, {
-            headers: getInternalHeaders(),
-          });
-          
-          if (usersResponse.ok) {
-            const usersData = await usersResponse.json();
-            const users = usersData.users || [];
-            const existingUser = users.find(
-              (u: any) => u.email.toLowerCase() === session.user.email.toLowerCase()
-            );
-            
-            if (existingUser) {
-              // Adicionar dados do usuário à sessão para compatibilidade
-              session.user.plan = existingUser.plan || 'none';
-              session.user.status = existingUser.status || 'active';
-              session.user.role = existingUser.role || 'user';
-              session.user.dueDate = existingUser.dueDate;
-              session.user.createdAt = existingUser.createdAt;
-              
-              console.log('[NextAuth Session] Usuário sincronizado com sistema customizado:', {
-                email: session.user.email,
-                plan: session.user.plan,
-                status: session.user.status
-              });
-            }
-          }
-        } catch (error) {
-          console.error('[NextAuth Session] Erro ao sincronizar com sistema customizado:', error);
-        }
       }
       
       return session;
     },
 
     async jwt({ token, user }: any) {
-      console.log('[NextAuth JWT] JWT callback iniciado:', { token, user });
       if (user) {
         token.sub = user.id || token.sub;
         token.email = user.email;
         token.name = user.name;
         token.picture = user.image;
-        // Preservar flag de confirmação necessária
         token.needsConfirmation = (user as any).needsConfirmation || false;
-        // Propagar campos adicionais do usuário
         token.role = (user as any).role || 'user';
         token.plan = (user as any).plan || 'none';
         token.status = (user as any).status || 'active';
         token.dueDate = (user as any).dueDate;
         token.createdAt = (user as any).createdAt;
       }
-      console.log('[NextAuth JWT] Token final:', token);
+
+      // Sincronizar role e status com MongoDB Atlas em tempo real
+      if (token?.email) {
+        try {
+          await connectDB();
+          const cleanEmail = token.email.toLowerCase().trim();
+          const dbUser = await UserModel.findOne({
+            $or: [
+              { email: cleanEmail },
+              { email: { $regex: new RegExp(`^${cleanEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } }
+            ]
+          }).lean() as any;
+          if (dbUser) {
+            token.role = dbUser.role || token.role || 'user';
+            token.status = dbUser.status || token.status || 'active';
+            token.plan = dbUser.plan || token.plan || 'none';
+          }
+        } catch (e) {
+          console.warn('[NextAuth JWT] Erro ao sincronizar token com MongoDB:', e);
+        }
+      }
+
       return token;
     },
 
-    // 🔒 Validar callbackUrl para prevenir Open Redirect
+    // 🔒 Validar callbackUrl para prevenir Open Redirect e direcionar Super Admin para /admin
     async redirect({ url, baseUrl, token }: any) {
-      console.log('[NextAuth Redirect] url:', url, 'baseUrl:', baseUrl, 'token:', token);
-      
-      // Verificar se o usuário precisa de confirmação de email
+      // 1. Verificar se o usuário precisa de confirmação de email
       if (token?.needsConfirmation && token?.email) {
         const confirmUrl = `/confirm-email?email=${encodeURIComponent(token.email)}`;
-        console.log('[NextAuth Redirect] Redirecionando para confirmação de email:', confirmUrl);
         return `${baseUrl}${confirmUrl}`;
+      }
+      
+      // 2. 👑 SUPER ADMIN E ADMIN: SEMPRE redirecionar diretamente para /admin
+      if (token?.role === 'super_admin' || token?.role === 'admin') {
+        console.log('[NextAuth Redirect] Redirecionando admin/super_admin diretamente para /admin');
+        return `${baseUrl}/admin`;
       }
       
       // Permitir apenas URLs relativas ou do mesmo domínio
       if (url.startsWith('/')) {
         const finalUrl = `${baseUrl}${url}`;
-        console.log('[NextAuth Redirect] Redirecionando para (relativa):', finalUrl);
         return finalUrl;
       }
       try {
         if (new URL(url).origin === new URL(baseUrl).origin) {
-          console.log('[NextAuth Redirect] Redirecionando para (mesmo domínio):', url);
           return url;
         }
       } catch {
         // URL inválida — usar base
       }
-      console.log('[NextAuth Redirect] Redirecionando para (base):', baseUrl);
       return baseUrl;
     },
   },

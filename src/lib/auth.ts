@@ -299,49 +299,7 @@ export const auth = {
     // Obter localização do cliente (IP e país)
     const { ipAddress, country } = await getClientLocation();
     
-    // 1. 🔒 NÃO validar localmente com password em plaintext - ir direto para servidor
-    // Em produção, sempre validar no servidor
-    const isProduction = process.env.NODE_ENV === 'production';
-    
-    if (!isProduction) {
-      // Em desenvolvimento, tentar validação local (sem password em localStorage)
-      let users = auth.getUsers();
-      let user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
-
-      if (user) {
-        let userData: any = user;
-        if (typeof window !== 'undefined') {
-          const stored = localStorage.getItem(`user_${user.id}`);
-          if (stored) {
-            try {
-              userData = JSON.parse(stored);
-            } catch {
-              userData = user;
-            }
-          }
-        }
-
-        // 🔒 NÃO verificar password localmente - sempre validar no servidor
-        // Em desenvolvimento, aceitar login local sem password para facilitar testes
-        if (userData.status === 'suspended') {
-          throw new Error('Sua conta encontra-se suspensa por questões de faturação ou incumprimento dos termos. Por favor, entre em contacto com o suporte WEHOSTHERE (+258 84 438 4702).');
-        }
-
-        clearFailedAttempts(email);
-
-        // Salvar sessão (sem password)
-        const { password: _pw, ...userDataSafe } = userData as any;
-        const session = { user: userDataSafe };
-        if (typeof window !== 'undefined') {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
-        }
-
-        console.log('[Login] Login local bem-sucedido para:', email);
-        return userDataSafe;
-      }
-    }
-
-    // 2. VALIDAÇÃO NO SERVIDOR (MongoDB Atlas) - sempre em produção
+    // 1. 🔒 VALIDAÇÃO NO SERVIDOR (MongoDB Atlas) - Database First sempre
     let serverUser: User | null = null;
     try {
       const res = await fetch(apiEndpoint('/api/users'), {
