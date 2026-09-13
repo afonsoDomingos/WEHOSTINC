@@ -1,8 +1,7 @@
-﻿import type { Metadata } from 'next';
+import type { Metadata } from 'next';
 import { SITE_URL } from '@/lib/siteConfig';
 
-// SEO: Página de confirmação de email — não deve ser indexada.
-// É uma página de estado temporário no fluxo de registo.
+// SEO: Pagina de confirmacao de email - nao deve ser indexada.
 export const metadata: Metadata = {
   title: 'Confirmar Email',
   description: 'Verifique o seu email para confirmar o registo na WEHOSTHERE.',

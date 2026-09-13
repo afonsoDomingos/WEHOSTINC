@@ -1,11 +1,10 @@
-﻿import type { Metadata } from 'next';
+import type { Metadata } from 'next';
 import { SITE_URL } from '@/lib/siteConfig';
 
-// SEO: Página de recuperação de password — não deve ser indexada.
-// Não tem conteúdo relevante para pesquisa orgânica.
+// SEO: Pagina de recuperacao de password - nao deve ser indexada.
 export const metadata: Metadata = {
   title: 'Recuperar Password',
-  description: 'Recupere o acesso à sua conta WEHOSTHERE.',
+  description: 'Recupere o acesso a sua conta WEHOSTHERE.',
   alternates: { canonical: `${SITE_URL}/forgot-password` },
   robots: {
     index: false,
