@@ -209,6 +209,8 @@ function CheckoutContent() {
       timer = setInterval(() => setCountdown(prev => prev - 1), 1000);
     } else if (pushModal && pushStatus === 'waiting' && countdown === 0) {
       setPushStatus('expired');
+      setIsPollingPayment(false);
+      setLoading(false);
       
       // Disparar e-mail automático de notificação de tempo expirado ao cliente
       if (email) {
@@ -233,6 +235,7 @@ function CheckoutContent() {
       if (e.key === 'Escape' && pushModal) {
         setPushModal(false);
         setIsPollingPayment(false);
+        setLoading(false);
       }
     };
     
@@ -1117,7 +1120,11 @@ function CheckoutContent() {
 
                   <button
                     type="button"
-                    onClick={() => setPushModal(false)}
+                    onClick={() => {
+                      setPushModal(false);
+                      setIsPollingPayment(false);
+                      setLoading(false);
+                    }}
                     className="w-full py-3 text-xs font-semibold text-gray-600 hover:text-gray-900 border border-gray-200 rounded-xl transition min-h-[44px]"
                   >
                     {t.changeNumberOrMethod}
