@@ -94,7 +94,10 @@ export const metadata: Metadata = {
   },
   manifest: '/manifest.json',
   verification: {
-    google: '-WIDb6-E1CZzvXz2qkam2i118tdjPuEsgdnpbTpA7_0',
+    google: [
+      '-WIDb6-E1CZzvXz2qkam2i118tdjPuEsgdnpbTpA7_0',
+      'qv9KkmeWVR-rCTkCP4KxWRkN0E1IJKDkrjsv40nDZ1w',
+    ],
   },
   other: {
     'google-adsense-account': 'ca-pub-5452584470581302',
@@ -116,6 +119,9 @@ export default function RootLayout({
   return (
     <html lang="pt-MZ">
       <head>
+        {/* Google Site Verification — Múltiplas Contas Search Console */}
+        <meta name="google-site-verification" content="-WIDb6-E1CZzvXz2qkam2i118tdjPuEsgdnpbTpA7_0" />
+        <meta name="google-site-verification" content="qv9KkmeWVR-rCTkCP4KxWRkN0E1IJKDkrjsv40nDZ1w" />
         {/* Google AdSense — lido pelo Mediapartners-Google como script estático no <head> */}
         <meta name="google-adsense-account" content="ca-pub-5452584470581302" />
         <script
