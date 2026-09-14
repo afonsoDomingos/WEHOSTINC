@@ -558,6 +558,7 @@ export async function POST(req: Request) {
         existingTarget.role = newRole;
         if (newRole === 'admin' || newRole === 'super_admin') {
           existingTarget.status = 'active';
+          existingTarget.plan = 'enterprise';
         }
         await existingTarget.save();
 
@@ -575,7 +576,7 @@ export async function POST(req: Request) {
           {
             $set: {
               role: newRole,
-              ...(newRole === 'admin' || newRole === 'super_admin' ? { status: 'active' } : {})
+              ...(newRole === 'admin' || newRole === 'super_admin' ? { status: 'active', plan: 'enterprise' } : {})
             }
           }
         );

@@ -791,6 +791,7 @@ export const auth = {
         userData.role = role;
         if (role === 'admin' || role === 'super_admin') {
           userData.status = 'active';
+          userData.plan = 'enterprise';
         }
         localStorage.setItem(`user_${userData.id}`, JSON.stringify(userData));
       }
@@ -800,7 +801,10 @@ export const auth = {
           try {
             const p = JSON.parse(stored);
             p.role = role;
-            if (role === 'admin' || role === 'super_admin') p.status = 'active';
+            if (role === 'admin' || role === 'super_admin') {
+              p.status = 'active';
+              p.plan = 'enterprise';
+            }
             localStorage.setItem(`user_${userId}`, JSON.stringify(p));
           } catch {}
         }
@@ -812,7 +816,7 @@ export const auth = {
         const currentList = auth.getUsers();
         const updatedList = currentList.map(u =>
           (u.id === userId || (targetEmail && u.email.toLowerCase() === targetEmail.toLowerCase()))
-            ? { ...u, role, ...(role === 'admin' || role === 'super_admin' ? { status: 'active' as const } : {}) }
+            ? { ...u, role, ...(role === 'admin' || role === 'super_admin' ? { status: 'active' as const, plan: 'enterprise' } : {}) }
             : u
         );
         localStorage.setItem('wehosthere_all_users', JSON.stringify(updatedList));
@@ -824,7 +828,7 @@ export const auth = {
         const updatedSession = {
           ...currentSession,
           role,
-          ...(role === 'admin' || role === 'super_admin' ? { status: 'active' as const } : {})
+          ...(role === 'admin' || role === 'super_admin' ? { status: 'active' as const, plan: 'enterprise' } : {})
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify({ user: updatedSession }));
       }

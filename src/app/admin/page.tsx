@@ -2840,35 +2840,31 @@ export default function AdminPage() {
                         )}
                       </td>
                       <td className="py-2.5 sm:py-3.5 px-2 sm:px-4">
-                        {isTargetAdmin ? (
-                          <span className={`inline-block px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[9px] sm:text-xs font-bold ${
-                            user.role === 'super_admin' || isSuperAdmin
-                              ? 'bg-purple-100 text-purple-700 border border-purple-200'
-                              : 'bg-indigo-50 text-indigo-700 border border-indigo-200'
-                          }`}>
-                            {user.role === 'super_admin' || isSuperAdmin ? '👑 Super Admin' : '🛡️ Admin'}
-                          </span>
-                        ) : (
-                          <select
-                            value={user.status || 'pending'}
-                            onChange={(e) => {
-                              const newSt = e.target.value as 'active' | 'pending' | 'suspended';
-                              auth.updateUserStatus(user.id, newSt);
-                              setUsers(prev => prev.map(u => u.id === user.id ? { ...u, status: newSt } : u));
-                            }}
-                            className={`px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-lg text-[9px] sm:text-xs font-bold outline-none border cursor-pointer ${
-                              (user.status || 'pending') === 'active'
-                                ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
-                                : (user.status || 'pending') === 'pending'
-                                ? 'bg-amber-50 text-amber-700 border-amber-300'
-                                : 'bg-red-50 text-red-700 border-red-300'
-                            }`}
-                          >
-                            <option value="pending">Sem Assinatura (⏰)</option>
-                            <option value="active">Assinatura Ativa (✓)</option>
-                            <option value="suspended">Suspenso (✗)</option>
-                          </select>
-                        )}
+                        <select
+                          value={user.status || 'pending'}
+                          onChange={(e) => {
+                            const newSt = e.target.value as 'active' | 'pending' | 'suspended';
+                            auth.updateUserStatus(user.id, newSt);
+                            setUsers(prev => prev.map(u => u.id === user.id ? { ...u, status: newSt } : u));
+                            setToastMsg({
+                              title: 'Status Atualizado',
+                              message: `Status de ${user.name} alterado para ${newSt === 'active' ? 'Ativo' : newSt === 'pending' ? 'Pendente' : 'Suspenso'}.`,
+                              type: 'success'
+                            });
+                          }}
+                          className={`px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-lg text-[9px] sm:text-xs font-bold outline-none border cursor-pointer ${
+                            (user.status || 'pending') === 'active'
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                              : (user.status || 'pending') === 'pending'
+                              ? 'bg-amber-50 text-amber-700 border-amber-300'
+                              : 'bg-red-50 text-red-700 border-red-300'
+                          }`}
+                          title="Alterar estado do utilizador"
+                        >
+                          <option value="active">🟢 Ativo (✓)</option>
+                          <option value="pending">🟡 Pendente (⏰)</option>
+                          <option value="suspended">🔴 Suspenso (✗)</option>
+                        </select>
                       </td>
                       <td className="py-2.5 sm:py-3.5 px-2 sm:px-4 text-gray-500 text-[10px] sm:text-sm hidden sm:table-cell">
                         {user.createdAt ? new Date(user.createdAt).toLocaleDateString('pt-BR') : 'N/A'}
