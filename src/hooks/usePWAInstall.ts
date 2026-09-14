@@ -21,10 +21,16 @@ export function usePWAInstall() {
     checkIsInstalled();
 
     // Listen for beforeinstallprompt
+    // Só interceptar fora da página de login (para não bloquear o banner nativo sem mostrar o customizado)
     const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setIsInstallable(true);
+      const isLoginPage = window.location.pathname === '/login' || window.location.pathname === '/';
+      if (!isLoginPage) {
+        // Fora do login: capturar evento para mostrar banner customizado
+        e.preventDefault();
+        setDeferredPrompt(e as BeforeInstallPromptEvent);
+        setIsInstallable(true);
+      }
+      // Na página de login: não fazemos preventDefault(), o browser mostra o banner nativo
     };
 
     // Listen for app installed
