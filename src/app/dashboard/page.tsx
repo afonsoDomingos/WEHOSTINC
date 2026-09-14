@@ -111,12 +111,16 @@ export default function DashboardPage() {
       currentUser = auth.getCurrentUser();
     }
     
+    console.log('[Dashboard Auth Check] Session status:', status, 'Session user:', session?.user, 'Local user:', currentUser);
+
     if (!currentUser) {
+      console.log('[Dashboard Auth Check] Nenhum utilizador encontrado, redirecionando para /login');
       window.location.href = '/login';
       return;
     }
     
     if (auth.isAdminUser(currentUser) && !auth.isClientViewActive()) {
+      console.log('[Dashboard Auth Check] 👑 Admin detetado localmente! Redirecionando para /admin');
       window.location.replace('/admin');
       return;
     }
@@ -124,19 +128,21 @@ export default function DashboardPage() {
     // 🔄 Se o utilizador não tem role de admin localmente, verificar imediatamente no servidor
     // para utilizadores que foram promovidos a Super Admin recentemente
     if (!auth.isClientViewActive() && currentUser.email) {
+      console.log('[Dashboard Auth Check] Verificando no servidor para:', currentUser.email);
       fetch('/api/users?email=' + encodeURIComponent(currentUser.email))
         .then(r => r.json())
         .then(data => {
+          console.log('[Dashboard Server User Response]:', data);
           const serverUser = data.user || (data.users && data.users.find((u: any) => u.email?.toLowerCase() === currentUser?.email?.toLowerCase()));
           if (serverUser && (serverUser.role === 'admin' || serverUser.role === 'super_admin')) {
-            console.log('[Dashboard] Utilizador promovido no servidor detectado! Redirecionando para /admin');
-            const updated = { ...currentUser, role: serverUser.role, status: serverUser.status || 'active' };
+            console.log('[Dashboard] 👑 Utilizador promovido no servidor detectado! Redirecionando para /admin:', serverUser);
+            const updated = { ...currentUser, role: serverUser.role, status: serverUser.status || 'active', plan: serverUser.plan || 'enterprise' };
             localStorage.setItem('wehosthere_auth', JSON.stringify({ user: updated }));
             localStorage.setItem(`user_${serverUser.id || currentUser?.id}`, JSON.stringify(updated));
             window.location.replace('/admin');
           }
         })
-        .catch(() => {});
+        .catch(err => console.error('[Dashboard Server User Error]:', err));
     }
     
     setUser(currentUser);

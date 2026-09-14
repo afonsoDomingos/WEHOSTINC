@@ -9,9 +9,14 @@ export async function GET(req: NextRequest) {
 
   try {
     const secret = process.env.NEXTAUTH_SECRET;
-    const token = await getToken({ req, secret });
 
-    console.log('[Auth Redirect] Token lido do cookie:', { email: token?.email, role: token?.role });
+    // Tentar ler token (produção HTTPS ou desenvolvimento HTTP)
+    let token = await getToken({ req, secret, secureCookie: process.env.NODE_ENV === 'production' });
+    if (!token) {
+      token = await getToken({ req, secret, secureCookie: false });
+    }
+
+    console.log('[Auth Redirect Route] Cookie Token:', { email: token?.email, role: token?.role });
 
     const email = token?.email?.toLowerCase().trim();
 
@@ -24,15 +29,19 @@ export async function GET(req: NextRequest) {
         ]
       }).lean() as any;
 
+      console.log('[Auth Redirect Route] DB User encontrado:', { email: dbUser?.email, role: dbUser?.role, status: dbUser?.status });
+
       if (dbUser && (dbUser.role === 'admin' || dbUser.role === 'super_admin')) {
-        console.log('[Auth Redirect] ✅ Admin confirmado no MongoDB. Redirecionando para /admin:', email);
+        console.log('[Auth Redirect Route] 👑 ADMIN CONFIRMADO! Redirecionando para /admin');
         return NextResponse.redirect(`${baseUrl}/admin`);
       }
+    } else {
+      console.warn('[Auth Redirect Route] ⚠️ Nenhum email encontrado no token JWT');
     }
   } catch (error) {
-    console.error('[Auth Redirect] ❌ Erro no redirecionador por role:', error);
+    console.error('[Auth Redirect Route] ❌ Erro:', error);
   }
 
-  console.log('[Auth Redirect] Redirecionando para /dashboard (cliente)');
+  console.log('[Auth Redirect Route] 👤 Redirecionando cliente para /dashboard');
   return NextResponse.redirect(`${baseUrl}/dashboard`);
 }

@@ -247,6 +247,9 @@ export const GET = NextAuth({
               { email: { $regex: new RegExp(`^${cleanEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } }
             ]
           }).lean() as any;
+          
+          console.log('[NextAuth JWT Callback] DB User findOne:', { email: cleanEmail, found: !!dbUser, role: dbUser?.role, status: dbUser?.status });
+          
           if (dbUser) {
             token.role = dbUser.role || token.role || 'user';
             token.status = dbUser.status || token.status || 'active';
@@ -257,6 +260,7 @@ export const GET = NextAuth({
         }
       }
 
+      console.log('[NextAuth JWT Final Token]:', { email: token?.email, role: token?.role, status: token?.status });
       return token;
     },
 
