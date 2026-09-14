@@ -131,7 +131,7 @@ export default function LoginPage() {
       });
       
       // Redireciona o navegador diretamente para a página de autorização do Google
-      const result = await signIn('google', { callbackUrl: '/dashboard' });
+      const result = await signIn('google', { callbackUrl: '/api/auth/redirect-role' });
       console.log('[Google Login] Result do signIn:', result);
     } catch (err) {
       console.error('[Google Login] Erro ao conectar com Google:', err);
