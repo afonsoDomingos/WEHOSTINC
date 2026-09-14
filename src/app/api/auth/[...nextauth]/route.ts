@@ -260,31 +260,18 @@ export const GET = NextAuth({
       return token;
     },
 
-    // 🔒 Validar callbackUrl para prevenir Open Redirect e direcionar Super Admin para /admin
-    async redirect({ url, baseUrl, token }: any) {
-      // 1. Verificar se o usuário precisa de confirmação de email
-      if (token?.needsConfirmation && token?.email) {
-        const confirmUrl = `/confirm-email?email=${encodeURIComponent(token.email)}`;
-        return `${baseUrl}${confirmUrl}`;
-      }
-      
-      // 2. 👑 SUPER ADMIN E ADMIN: SEMPRE redirecionar diretamente para /admin
-      if (token?.role === 'super_admin' || token?.role === 'admin') {
-        console.log('[NextAuth Redirect] Redirecionando admin/super_admin diretamente para /admin');
-        return `${baseUrl}/admin`;
-      }
-      
-      // Permitir apenas URLs relativas ou do mesmo domínio
+    // 🔒 Validar callbackUrl para permitir redirecionamentos seguros
+    async redirect({ url, baseUrl }: any) {
+      // Permitir URLs relativas (ex: /api/auth/redirect-role ou /admin)
       if (url.startsWith('/')) {
-        const finalUrl = `${baseUrl}${url}`;
-        return finalUrl;
+        return `${baseUrl}${url}`;
       }
       try {
         if (new URL(url).origin === new URL(baseUrl).origin) {
           return url;
         }
       } catch {
-        // URL inválida — usar base
+        // URL inválida — usar baseUrl
       }
       return baseUrl;
     },
