@@ -10,8 +10,14 @@ export async function GET(req: NextRequest) {
   try {
     const secret = process.env.NEXTAUTH_SECRET;
 
-    // Tentar ler token (produção HTTPS ou desenvolvimento HTTP)
-    let token = await getToken({ req, secret, secureCookie: process.env.NODE_ENV === 'production' });
+    // Tentar ler token de todas as formas e nomes de cookie possíveis
+    let token = await getToken({ req, secret, cookieName: 'next-auth.session-token' });
+    if (!token) {
+      token = await getToken({ req, secret, cookieName: '__Secure-next-auth.session-token' });
+    }
+    if (!token) {
+      token = await getToken({ req, secret, secureCookie: process.env.NODE_ENV === 'production' });
+    }
     if (!token) {
       token = await getToken({ req, secret, secureCookie: false });
     }
