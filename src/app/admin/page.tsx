@@ -4,6 +4,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useSession, signOut as nextAuthSignOut } from 'next-auth/react';
 import { 
   Users, Server, Mail, Database, TrendingUp, DollarSign,
   LogOut, Settings, Home, CheckCircle, Clock, XCircle, Search,
@@ -242,6 +243,7 @@ function getCountryFlag(countryName: string): string {
 
 export default function AdminPage() {
   const router = useRouter();
+  const { data: session, status: sessionStatus } = useSession();
   const [users, setUsers] = useState<User[]>([]);
   const [sites, setSites] = useState<any[]>([]);
   const [emails, setEmails] = useState<any[]>([]);
@@ -696,29 +698,56 @@ export default function AdminPage() {
   };
 
   useEffect(() => {
-    // Simulação de admin check
-    const currentUser = auth.getCurrentUser();
+    // Aguardar NextAuth resolver antes de verificar autenticação
+    if (sessionStatus === 'loading') return;
+
+    // 1️⃣ Verificar sessão NextAuth (Google OAuth)
+    let currentUser: User | null = null;
+    if (sessionStatus === 'authenticated' && session?.user) {
+      const sessionRole = (session.user as any)?.role || 'user';
+      currentUser = {
+        id: (session.user as any)?.id || session.user.email || '',
+        name: session.user.name || '',
+        email: session.user.email || '',
+        plan: (session.user as any)?.plan || 'enterprise',
+        status: (session.user as any)?.status || 'active',
+        role: sessionRole as any,
+        avatar: session.user.image || undefined,
+        dueDate: (session.user as any)?.dueDate,
+        createdAt: (session.user as any)?.createdAt || new Date().toISOString()
+      };
+      console.log('[Admin Auth] Sessão NextAuth encontrada:', { email: currentUser.email, role: currentUser.role });
+    }
+
+    // 2️⃣ Fallback: sistema customizado (localStorage)
     if (!currentUser) {
+      currentUser = auth.getCurrentUser();
+    }
+
+    if (!currentUser) {
+      console.log('[Admin Auth] Sem sessão, redirecionando para /login');
       router.push('/login');
       return;
     }
+
+    console.log('[Admin Auth] Utilizador encontrado:', { email: currentUser.email, role: currentUser.role });
 
     // Verificar role localmente primeiro
     const localIsAdmin = auth.isAdminUser(currentUser);
 
     if (!localIsAdmin) {
-      // 🔄 Sessão local pode estar desatualizada (utilizador foi promovido após login)
-      // Verificar role no servidor antes de rejeitar o acesso
+      // 🔄 Sessão local pode estar desatualizada — verificar no servidor
       fetch('/api/users?action=me&email=' + encodeURIComponent(currentUser.email))
         .then(r => r.json())
         .then(data => {
-          const serverUser = data.user || (data.users && data.users.find((u: any) => u.email?.toLowerCase() === currentUser.email.toLowerCase()));
+          const serverUser = data.user || (data.users && data.users.find((u: any) => u.email?.toLowerCase() === currentUser!.email.toLowerCase()));
           if (serverUser && (serverUser.role === 'admin' || serverUser.role === 'super_admin')) {
             // Promovido! Atualizar sessão local e recarregar
             const updatedSession = { user: { ...currentUser, role: serverUser.role } };
             localStorage.setItem('wehosthere_auth', JSON.stringify(updatedSession));
             window.location.reload();
           } else {
+            console.warn('[Admin Auth] Utilizador sem permissão admin. Redirecionando para dashboard.');
             router.push('/dashboard');
           }
         })
@@ -824,7 +853,7 @@ export default function AdminPage() {
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [router, fetchAnalytics]);
+  }, [router, fetchAnalytics, session, sessionStatus]);
 
   // Refresh analytics when period changes
   useEffect(() => {
