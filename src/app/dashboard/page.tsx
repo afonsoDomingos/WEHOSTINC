@@ -250,13 +250,14 @@ export default function DashboardPage() {
 
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setIsLoggingOut(true);
-    setTimeout(() => {
-      // Fazer logout de ambos os sistemas
-      auth.logout();
-      signOut({ callbackUrl: '/' });
-    }, 400);
+    await auth.logout();
+    try {
+      signOut({ callbackUrl: '/?logged_out=1' });
+    } catch (_) {
+      window.location.href = '/?logged_out=1';
+    }
   };
 
   if (loading) {

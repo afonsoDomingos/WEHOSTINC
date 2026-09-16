@@ -8,6 +8,7 @@ import { Menu, X, LayoutDashboard, LogOut, User as UserIcon } from 'lucide-react
 import BrandLogo from '@/components/BrandLogo';
 import PageLoader from '@/components/PageLoader';
 import LanguageSelector from '@/components/LanguageSelector';
+import Toast from '@/components/Toast';
 import { useLanguage } from '@/context/LanguageContext';
 import { auth, User } from '@/lib/auth';
 
@@ -18,8 +19,23 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [showLogoutToast, setShowLogoutToast] = useState(false);
 
   useEffect(() => {
+    // Verificar se acabou de fazer logout via URL ou sessionStorage
+    try {
+      if (typeof window !== 'undefined') {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('logged_out') === '1' || sessionStorage.getItem('wehost_logout_feedback') === 'true') {
+          sessionStorage.removeItem('wehost_logout_feedback');
+          setShowLogoutToast(true);
+          const url = new URL(window.location.href);
+          url.searchParams.delete('logged_out');
+          window.history.replaceState({}, '', url.pathname + (url.search ? url.search : ''));
+        }
+      }
+    } catch (_) {}
+
     const syncUser = () => {
       // 1. Tentar NextAuth
       if (session?.user) {
@@ -67,6 +83,7 @@ export default function Navbar() {
       await signOut({ redirect: false });
     } catch (_) {}
     setTimeout(() => {
+      setShowLogoutToast(true);
       router.push('/');
       setIsLoggingOut(false);
     }, 300);
@@ -75,6 +92,15 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm transition-all">
       {isLoggingOut && <PageLoader text="A encerrar a sua sessão com segurança..." />}
+      {showLogoutToast && (
+        <Toast
+          type="success"
+          title="Sessão Encerrada com Sucesso"
+          message="A sua conta foi desvinculada e os dados de navegação foram protegidos com segurança. Até breve!"
+          onClose={() => setShowLogoutToast(false)}
+          duration={5000}
+        />
+      )}
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
         <div className="flex justify-between items-center py-2.5 sm:py-3 md:py-4">
           

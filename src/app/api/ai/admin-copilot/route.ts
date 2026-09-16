@@ -336,12 +336,23 @@ function generateAdminLocalResponse(query: string, data: any): string {
       `Consultar cotações e orçamentos em: [/site-quote](/site-quote)`;
   }
 
-  // Email Migadu
-  if (lower.includes('email') || lower.includes('outlook') || lower.includes('migadu') || lower.includes('dns') || lower.includes('imap') || lower.includes('smtp')) {
+  // Comunicação em Massa / Newsletter
+  if (lower.includes('massa') || lower.includes('comunicação') || lower.includes('newsletter') || lower.includes('broadcast')) {
+    return `Comunicação em Massa e Disparo de Emails:\n\n` +
+      `• Total de Subscritores na Newsletter: ${data.newsletter?.totalSubscribers || 0}\n` +
+      `• Pode criar comunicados oficiais, avisos de manutenção e newsletters em massa.\n\n` +
+      `Aceder à central de comunicação em: [/admin/comunicacao](/admin/comunicacao)`;
+  }
+
+  // Email Migadu e Configuração DNS
+  if (lower.includes('migadu') || lower.includes('dns') || (lower.includes('configurar') && lower.includes('email')) || lower.includes('imap') || lower.includes('smtp')) {
     return `Configuração de Email Corporativo WEHOSTHERE (Migadu):\n\n` +
       `• Servidor IMAP: imap.migadu.com (Porta 993 SSL)\n` +
       `• Servidor SMTP: smtp.migadu.com (Porta 465 SSL)\n` +
-      `• Registos DNS: MX 1 (aspmx.migadu.com, 10), MX 2 (aspmx2.migadu.com, 20), SPF (v=spf1 include:spf.migadu.com ~all)\n\n` +
+      `• Registos DNS Oficiais:\n` +
+      `  - MX 1: aspmx.migadu.com (Prioridade 10)\n` +
+      `  - MX 2: aspmx2.migadu.com (Prioridade 20)\n` +
+      `  - SPF: v=spf1 include:spf.migadu.com ~all\n\n` +
       `Gestão de domínios de email em: [/email-profissional](/email-profissional)`;
   }
 
@@ -404,13 +415,14 @@ function generateAdminLocalResponse(query: string, data: any): string {
     return `Programa de Afiliados:\n\n• Total de Afiliados: ${data.affiliates.total}\n• Comissões Pendentes de Saque: ${data.affiliates.pendingCommissions} (Total: ${data.affiliates.pendingAmount?.toLocaleString('pt-MZ') || 0} MZN)\n\nGerir saques e aprovar comissões em: [/admin/affiliates](/admin/affiliates)`;
   }
 
-  // Visão Geral Executiva
+  // Visão Geral Executiva (Status Geral / Métricas)
   return `WEHOSTHERE AI Copilot — Painel Executivo:\n\n` +
     `• Utilizadores: ${data.users.total} (${data.users.active} ativos)\n` +
     `• Pedidos: ${data.orders.total} (${data.orders.completed} concluídos)\n` +
     `• Faturas Pendentes: ${data.payments.pendingCount}\n` +
     `• Tickets Abertos: ${data.tickets.open}\n` +
-    `• Sites Ativos: ${data.sites.total} | Domínios: ${data.domains.total}\n\n` +
+    `• Sites Ativos: ${data.sites.total} | Domínios: ${data.domains.total}\n` +
+    `• Visitas Registadas: ${data.analytics?.totalVisits || 0}\n\n` +
     `Como posso ajudar com a operação da plataforma?`;
 }
 
@@ -487,8 +499,25 @@ function generateClientLocalResponse(query: string, clientData: any): string {
       `Para testar ou efetuar pagamentos: [/test-payment](/test-payment)`;
   }
 
-  // Suporte e Meus Serviços (se o cliente tiver dados)
-  if (clientData && (lower.includes('meu pedido') || lower.includes('meu serviço') || lower.includes('meu ticket') || lower.includes('minha conta'))) {
+  // Suporte Técnico e Abertura de Tickets
+  if (lower.includes('ticket') || lower.includes('suporte') || lower.includes('chamado') || lower.includes('ajuda') || lower.includes('atendimento')) {
+    if (clientData && clientData.tickets && clientData.tickets.length > 0) {
+      const ticketsText = clientData.tickets.map((t: any, idx: number) =>
+        `${idx + 1}. [${t.priority?.toUpperCase() || 'NORMAL'}] ${t.subject} — Estado: ${t.status}`
+      ).join('\n');
+      return `Os Seus Chamados de Suporte Técnico:\n\n${ticketsText}\n\nAceda e responda no painel: [/dashboard/tickets](/dashboard/tickets)`;
+    }
+
+    return `Suporte Técnico WEHOSTHERE:\n\n` +
+      `Estamos disponíveis 24/7 para auxiliá-lo com qualquer questão técnica ou comercial:\n` +
+      `• Abrir ou acompanhar chamados no Painel: [/dashboard/tickets](/dashboard/tickets)\n` +
+      `• Atendimento Oficial via WhatsApp: +258 84 438 4702\n` +
+      `• Email de Suporte Oficial: info@wehosthere.com\n\n` +
+      `Se já for cliente, inicie sessão em [/dashboard](/dashboard) para suporte prioritário com a nossa equipa de engenharia.`;
+  }
+
+  // Meus Serviços / Meus Pedidos (se o cliente tiver dados)
+  if (clientData && (lower.includes('meu pedido') || lower.includes('meu serviço') || lower.includes('minha conta'))) {
     const ordersText = clientData.orders?.length > 0 
       ? clientData.orders.map((o: any, idx: number) => `${idx + 1}. ${o.serviceName} (${o.amount?.toLocaleString('pt-MZ')} MZN) — Estado: ${o.status}`).join('\n')
       : 'Nenhum pedido recente registado.';

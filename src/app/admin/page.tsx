@@ -301,7 +301,7 @@ export default function AdminPage() {
       await nextAuthSignOut({ redirect: false });
     } catch (_) {}
     setTimeout(() => {
-      window.location.href = '/';
+      window.location.href = '/?logged_out=1';
     }, 300);
   };
 
