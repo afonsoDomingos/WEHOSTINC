@@ -165,9 +165,10 @@ ${WEHOSTHERE_KNOWLEDGE}
 
 REGRAS DE FORMATAÇÃO E RESPOSTA:
 1. IMPORTANTE: NUNCA USE ASTERISCOS (**) OU (*) PARA NEGRITO OU ITÁLICO. O texto deve ser 100% limpo, sem caracteres de formatação crua.
-2. Use títulos com emojis, listas com marcadores simples (• ou -) e quebras de linha limpas.
-3. Quando sugerir uma página do sistema, inclua o link clicável (ex: /admin/pagamentos-mensais ou /admin/comunicacao).
-4. Responda em Português de forma profissional, direta e executiva.
+2. NUNCA USE EMOJIS AMADORES OU INFANTIS (como 🤖, 👥, 🛒, 💰, 🎫, 🌐, 📢, 👉). Mantenha uma linguagem executiva, sóbria, elegante e profissional de nível empresarial.
+3. Use listas com marcadores simples e limpos (•) e quebras de linha organizadas.
+4. Quando sugerir uma página do sistema, inclua o link clicável (ex: /admin/pagamentos-mensais ou /admin/comunicacao).
+5. Responda em Português de forma profissional, direta e executiva.
 `;
 
     // 1. Tentar Google Gemini se a chave existir
@@ -239,7 +240,7 @@ REGRAS DE FORMATAÇÃO E RESPOSTA:
       }
     }
 
-    // 3. Motor Inteligente Nativo da WEHOSTHERE com todos os dados vivos (Sem asteriscos)
+    // 3. Motor Inteligente Nativo da WEHOSTHERE com todos os dados vivos (Sem asteriscos e sem emojis amadores)
     const smartLocalAnswer = generateEnrichedCleanLocalResponse(cleanQuery, liveData);
     return NextResponse.json({ success: true, answer: smartLocalAnswer, provider: 'local-engine-v2' });
 
@@ -249,7 +250,7 @@ REGRAS DE FORMATAÇÃO E RESPOSTA:
   }
 }
 
-// Resposta inteligente local limpa (Sem qualquer asterisco **)
+// Resposta inteligente local profissional e limpa (Sem asteriscos e sem emojis amadores)
 function generateEnrichedCleanLocalResponse(query: string, data: any): string {
   const lower = query.toLowerCase();
 
@@ -257,33 +258,33 @@ function generateEnrichedCleanLocalResponse(query: string, data: any): string {
   if (lower.includes('último') || lower.includes('recent') || lower.includes('quem se cadastrou') || (lower.includes('utilizador') && lower.includes('cadastr'))) {
     if (data.users.recent && data.users.recent.length > 0) {
       const list = data.users.recent.map((u: any, idx: number) => 
-        `${idx + 1}. ${u.name || 'Sem nome'} (${u.email}) — Plano: ${u.plan || 'none'} | Status: ${u.status}`
+        `${idx + 1}. ${u.name || 'Sem nome'} (${u.email}) — Plano: ${u.plan || 'Nenhum'} | Estado: ${u.status === 'active' ? 'Ativo' : 'Pendente'}`
       ).join('\n');
-      return `👥 Últimos Utilizadores Registados no Banco de Dados:\n\n${list}\n\n• Total de Contas: ${data.users.total} (${data.users.active} ativas, ${data.users.pending} pendentes)\n\n👉 Gerir utilizadores em: [/admin](/admin)`;
+      return `Utilizadores Registados Recentemente:\n\n${list}\n\n• Total de Contas: ${data.users.total} (${data.users.active} ativas, ${data.users.pending} pendentes)\n\nGerir utilizadores em: [/admin](/admin)`;
     }
-    return `👥 Total de Utilizadores: ${data.users.total} cadastrados (${data.users.active} ativos).\n👉 Veja a lista completa no painel de [/admin](/admin)`;
+    return `Total de Utilizadores: ${data.users.total} registados (${data.users.active} ativos).\nConsulte a lista completa em [/admin](/admin)`;
   }
 
   // Pedidos e Vendas
   if (lower.includes('pedido') || lower.includes('venda') || lower.includes('compra')) {
     if (data.orders.recent && data.orders.recent.length > 0) {
       const list = data.orders.recent.map((o: any, idx: number) =>
-        `${idx + 1}. ${o.clientName || o.clientEmail} — ${o.serviceName} | ${o.amount?.toLocaleString('pt-MZ')} MZN (${o.paymentMethod}) — Status: ${o.status}`
+        `${idx + 1}. ${o.clientName || o.clientEmail} — ${o.serviceName} | ${o.amount?.toLocaleString('pt-MZ')} MZN (${o.paymentMethod}) — Estado: ${o.status}`
       ).join('\n');
-      return `🛒 Relatório de Pedidos & Vendas:\n\n• Total de Pedidos: ${data.orders.total}\n• Concluídos: ${data.orders.completed} | Pendentes: ${data.orders.pending}\n\nÚltimos Pedidos:\n${list}\n\n👉 Acompanhe notificações de vendas em [/admin/notifications](/admin/notifications)`;
+      return `Relatório de Pedidos & Vendas:\n\n• Total de Pedidos: ${data.orders.total}\n• Concluídos: ${data.orders.completed} | Pendentes: ${data.orders.pending}\n\nÚltimos Pedidos:\n${list}\n\nAcompanhar vendas em [/admin/notifications](/admin/notifications)`;
     }
-    return `🛒 Total de Pedidos Registados: ${data.orders.total} (${data.orders.completed} concluídos).`;
+    return `Total de Pedidos Registados: ${data.orders.total} (${data.orders.completed} concluídos).`;
   }
 
   // Pagamentos, faturas, devedores
   if (lower.includes('fatura') || lower.includes('pagamento') || lower.includes('devedor') || lower.includes('m-pesa') || lower.includes('atras')) {
     if (data.payments.overdueList && data.payments.overdueList.length > 0) {
       const list = data.payments.overdueList.map((p: any, idx: number) =>
-        `${idx + 1}. ${p.clientName || p.clientEmail} — ${p.remainingAmount || p.amount} MZN (Mês ${p.month}/${p.year}) — Status: ${p.status}`
+        `${idx + 1}. ${p.clientName || p.clientEmail} — ${p.remainingAmount || p.amount} MZN (Mês ${p.month}/${p.year}) — Estado: ${p.status}`
       ).join('\n');
-      return `💰 Faturas com Ação Pendente (${data.payments.pendingCount}):\n\n${list}\n\n👉 Gerir cobranças e lançar pagamentos em: [/admin/pagamentos-mensais](/admin/pagamentos-mensais)`;
+      return `Faturas com Ação Pendente (${data.payments.pendingCount}):\n\n${list}\n\nGerir cobranças e lançar pagamentos em: [/admin/pagamentos-mensais](/admin/pagamentos-mensais)`;
     }
-    return `💰 Finanças: Não existem faturas em atraso no momento. Todas as mensalidades estão em dia!\n👉 Ver balanço em: [/admin/pagamentos-mensais](/admin/pagamentos-mensais)`;
+    return `Finanças: Não existem faturas em atraso no momento. Todas as mensalidades estão em dia.\nVer balanço em: [/admin/pagamentos-mensais](/admin/pagamentos-mensais)`;
   }
 
   // Suporte e Tickets
@@ -292,33 +293,33 @@ function generateEnrichedCleanLocalResponse(query: string, data: any): string {
       const list = data.tickets.recent.map((t: any, idx: number) =>
         `${idx + 1}. [${t.priority?.toUpperCase() || 'MÉDIA'}] ${t.subject} — ${t.userName} (${t.userEmail})`
       ).join('\n');
-      return `🎫 Tickets de Suporte em Aberto (${data.tickets.open}):\n\n${list}\n\n👉 Responder aos clientes no painel de tickets.`;
+      return `Tickets de Suporte em Aberto (${data.tickets.open}):\n\n${list}\n\nResponder aos clientes no painel de tickets.`;
     }
-    return `🎫 Suporte: Não há tickets pendentes de resposta no momento. Todos os chamados foram respondidos!`;
+    return `Suporte: Não há tickets pendentes de resposta no momento. Todos os chamados foram respondidos.`;
   }
 
   // Afiliados e Comissões
   if (lower.includes('afiliado') || lower.includes('comiss')) {
-    return `🤝 Programa de Afiliados:\n\n• Total de Afiliados: ${data.affiliates.total}\n• Comissões Pendentes de Saque: ${data.affiliates.pendingCommissions} (Total: ${data.affiliates.pendingAmount?.toLocaleString('pt-MZ') || 0} MZN)\n\n👉 Gerir saques e aprovar comissões em: [/admin/affiliates](/admin/affiliates)`;
+    return `Programa de Afiliados:\n\n• Total de Afiliados: ${data.affiliates.total}\n• Comissões Pendentes de Saque: ${data.affiliates.pendingCommissions} (Total: ${data.affiliates.pendingAmount?.toLocaleString('pt-MZ') || 0} MZN)\n\nGerir saques e aprovar comissões em: [/admin/affiliates](/admin/affiliates)`;
   }
 
   // Newsletter e Marketing
   if (lower.includes('newsletter') || lower.includes('subscritor') || lower.includes('assinante')) {
-    return `📢 Marketing & Newsletter:\n\n• Total de Assinantes: ${data.newsletter.totalSubscribers}\n• Carrinhos Abandonados: ${data.abandonedCarts.count}\n\n👉 Enviar newsletter ou comunicado em massa em: [/admin/comunicacao](/admin/comunicacao)`;
+    return `Marketing & Newsletter:\n\n• Total de Assinantes: ${data.newsletter.totalSubscribers}\n• Carrinhos Abandonados: ${data.abandonedCarts.count}\n\nEnviar newsletter ou comunicado em massa em: [/admin/comunicacao](/admin/comunicacao)`;
   }
 
   // Emails e Domínios
   if (lower.includes('email') || lower.includes('domínio') || lower.includes('migadu') || lower.includes('dns')) {
-    return `📧 Infraestrutura de Email & Domínios:\n\n• Domínios Configurados: ${data.domains.total}\n\nRegistos DNS Oficiais:\n• MX 1: aspmx.migadu.com (Prioridade 10)\n• MX 2: aspmx2.migadu.com (Prioridade 20)\n• SPF: v=spf1 include:spf.migadu.com ~all\n\n👉 Gerir domínios e caixas de correio em: [/admin/email-domains](/admin/email-domains)`;
+    return `Infraestrutura de Email & Domínios:\n\n• Domínios Configurados: ${data.domains.total}\n\nRegistos DNS Oficiais:\n• MX 1: aspmx.migadu.com (Prioridade 10)\n• MX 2: aspmx2.migadu.com (Prioridade 20)\n• SPF: v=spf1 include:spf.migadu.com ~all\n\nGerir domínios e caixas de correio em: [/admin/email-domains](/admin/email-domains)`;
   }
 
   // Resposta Geral de Visão Global
-  return `🤖 WEHOSTHERE AI Copilot — Visão Geral do Sistema:\n\n` +
-    `• 👥 Utilizadores: ${data.users.total} (${data.users.active} ativos)\n` +
-    `• 🛒 Pedidos: ${data.orders.total} (${data.orders.completed} concluídos)\n` +
-    `• 💰 Faturas Pendentes: ${data.payments.pendingCount}\n` +
-    `• 🎫 Tickets Abertos: ${data.tickets.open}\n` +
-    `• 🌐 Sites Ativos: ${data.sites.total} | Domínios: ${data.domains.total}\n` +
-    `• 📢 Assinantes Newsletter: ${data.newsletter.totalSubscribers}\n\n` +
-    `Como posso ajudar especificamente agora? Pode pedir relatórios detalhados, listas de clientes, ajuda com DNS ou redação de mensagens!`;
+  return `WEHOSTHERE AI Copilot — Visão Geral do Sistema:\n\n` +
+    `• Utilizadores: ${data.users.total} (${data.users.active} ativos)\n` +
+    `• Pedidos: ${data.orders.total} (${data.orders.completed} concluídos)\n` +
+    `• Faturas Pendentes: ${data.payments.pendingCount}\n` +
+    `• Tickets Abertos: ${data.tickets.open}\n` +
+    `• Sites Ativos: ${data.sites.total} | Domínios: ${data.domains.total}\n` +
+    `• Assinantes Newsletter: ${data.newsletter.totalSubscribers}\n\n` +
+    `Como posso ajudar com a operação da plataforma? Pode solicitar relatórios detalhados, listas de clientes, ajuda com DNS ou redação de comunicados.`;
 }

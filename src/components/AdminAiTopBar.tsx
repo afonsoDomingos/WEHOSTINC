@@ -3,8 +3,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
-  Mic, MicOff, Send, Sparkles, X, Bot, ArrowRight, 
-  Copy, Check, RefreshCw, Layers, ShieldCheck, DollarSign, Users, Mail
+  Mic, MicOff, Send, Sparkles, X, ArrowRight, 
+  Copy, Check, RefreshCw, BarChart3, Users, ShoppingBag, 
+  CreditCard, LifeBuoy, Handshake, Globe, Mail
 } from 'lucide-react';
 
 interface ChatMessage {
@@ -138,7 +139,7 @@ export default function AdminAiTopBar() {
         {
           id: (Date.now() + 1).toString(),
           role: 'assistant',
-          content: '⚠️ Ocorreu um erro ao comunicar com a IA. Por favor, tente novamente.',
+          content: 'Ocorreu um erro ao comunicar com o Copilot. Por favor, tente novamente.',
           timestamp: new Date()
         }
       ]);
@@ -154,19 +155,22 @@ export default function AdminAiTopBar() {
   };
 
   const quickPrompts = [
-    { label: '📊 Status Geral', prompt: 'Resuma o status geral de utilizadores, vendas e métricas hoje' },
-    { label: '👥 Últimos Clientes', prompt: 'Quem são os últimos utilizadores registados no sistema?' },
-    { label: '🛒 Pedidos Recentes', prompt: 'Mostre a lista dos últimos pedidos e vendas realizadas' },
-    { label: '💰 Faturas Pendentes', prompt: 'Quais faturas ou clientes têm pagamentos pendentes?' },
-    { label: '🎫 Tickets Abertos', prompt: 'Temos algum chamado de suporte ou ticket em aberto?' },
-    { label: '🤝 Comissões Afiliados', prompt: 'Qual o valor total de comissões pendentes de afiliados?' },
-    { label: '📧 Configuração DNS', prompt: 'Como configurar os registos DNS do email Migadu?' },
-    { label: '📢 Enviar Comunicado', prompt: 'Como enviar um email em massa para todos os clientes?' },
+    { label: 'Visão Geral do Sistema', icon: BarChart3, prompt: 'Resuma o status geral de utilizadores, vendas e métricas hoje' },
+    { label: 'Utilizadores Recentes', icon: Users, prompt: 'Quem são os últimos utilizadores registados no sistema?' },
+    { label: 'Pedidos & Vendas', icon: ShoppingBag, prompt: 'Mostre a lista dos últimos pedidos e vendas realizadas' },
+    { label: 'Faturas Pendentes', icon: CreditCard, prompt: 'Quais faturas ou clientes têm pagamentos pendentes?' },
+    { label: 'Tickets de Suporte', icon: LifeBuoy, prompt: 'Temos algum chamado de suporte ou ticket em aberto?' },
+    { label: 'Comissões de Afiliados', icon: Handshake, prompt: 'Qual o valor total de comissões pendentes de afiliados?' },
+    { label: 'Configuração DNS', icon: Globe, prompt: 'Como configurar os registos DNS do email Migadu?' },
+    { label: 'Comunicação em Massa', icon: Mail, prompt: 'Como enviar um email em massa para todos os clientes?' },
   ];
 
   const formatContent = (rawText: string) => {
-    // 1. Remover asteriscos duplos (**) ou simples (*)
-    const cleanText = (rawText || '').replace(/\*\*/g, '').replace(/\*/g, '');
+    // 1. Remover asteriscos duplos (**) ou simples (*) e emojis infantis/informais
+    const cleanText = (rawText || '')
+      .replace(/\*\*/g, '')
+      .replace(/\*/g, '')
+      .replace(/[\u{1F916}\u{1F465}\u{1F6D2}\u{1F4B0}\u{1F3AB}\u{1F310}\u{1F4E2}\u{1F449}\u{1F91D}\u{1F4E7}\u{2705}\u{26A0}\u{FE0F}]/gu, '');
 
     // 2. Transformar links markdown [Texto](/rota) em botões de navegação
     const parts = cleanText.split(/(\[[^\]]+\]\([^)]+\))/g);
@@ -183,7 +187,7 @@ export default function AdminAiTopBar() {
               setIsOpen(false);
               router.push(href);
             }}
-            className="inline-flex items-center text-amber-400 hover:text-amber-300 font-bold underline underline-offset-2 mx-1 transition cursor-pointer"
+            className="inline-flex items-center text-primary-600 hover:text-primary-700 font-bold underline underline-offset-2 mx-1 transition cursor-pointer"
           >
             {linkText}
           </button>
@@ -325,10 +329,11 @@ export default function AdminAiTopBar() {
                   <button
                     key={idx}
                     onClick={() => handleSend(item.prompt)}
-                    className="flex items-center text-left text-xs bg-white/60 hover:bg-white/95 border border-white/80 hover:border-primary-300 p-3 rounded-2xl transition-all text-gray-700 hover:text-primary-700 shadow-2xs hover:shadow-xs group cursor-pointer backdrop-blur-sm"
+                    className="flex items-center text-left text-xs bg-white/60 hover:bg-white border border-white/80 hover:border-primary-300 p-3 rounded-2xl transition-all text-gray-700 hover:text-primary-700 shadow-2xs hover:shadow-xs group cursor-pointer backdrop-blur-sm"
                   >
-                    <span className="font-semibold">{item.label}</span>
-                    <ArrowRight className="w-3.5 h-3.5 ml-auto text-gray-400 group-hover:text-primary-600 transition-transform group-hover:translate-x-0.5" />
+                    <item.icon className="w-4 h-4 text-primary-600 mr-2.5 shrink-0 transition-transform group-hover:scale-110" />
+                    <span className="font-semibold truncate">{item.label}</span>
+                    <ArrowRight className="w-3.5 h-3.5 ml-auto text-gray-400 group-hover:text-primary-600 transition-transform group-hover:translate-x-0.5 shrink-0" />
                   </button>
                 ))}
               </div>
