@@ -154,8 +154,12 @@ export default function AdminAiTopBar() {
   };
 
   const quickPrompts = [
-    { label: '📊 Status Geral', prompt: 'Resuma o status geral de utilizadores e vendas hoje' },
-    { label: '💰 Pagamentos Pendentes', prompt: 'Quais faturas ou clientes têm pagamentos pendentes?' },
+    { label: '📊 Status Geral', prompt: 'Resuma o status geral de utilizadores, vendas e métricas hoje' },
+    { label: '👥 Últimos Clientes', prompt: 'Quem são os últimos utilizadores registados no sistema?' },
+    { label: '🛒 Pedidos Recentes', prompt: 'Mostre a lista dos últimos pedidos e vendas realizadas' },
+    { label: '💰 Faturas Pendentes', prompt: 'Quais faturas ou clientes têm pagamentos pendentes?' },
+    { label: '🎫 Tickets Abertos', prompt: 'Temos algum chamado de suporte ou ticket em aberto?' },
+    { label: '🤝 Comissões Afiliados', prompt: 'Qual o valor total de comissões pendentes de afiliados?' },
     { label: '📧 Configuração DNS', prompt: 'Como configurar os registos DNS do email Migadu?' },
     { label: '📢 Enviar Comunicado', prompt: 'Como enviar um email em massa para todos os clientes?' },
   ];
