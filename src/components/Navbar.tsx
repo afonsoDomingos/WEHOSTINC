@@ -95,10 +95,10 @@ export default function Navbar() {
       {showLogoutToast && (
         <Toast
           type="success"
-          title="Sessão Encerrada com Sucesso"
-          message="A sua conta foi desvinculada e os dados de navegação foram protegidos com segurança. Até breve!"
+          title="Sessão Encerrada"
+          message="A sua conta foi desvinculada com segurança. Até breve!"
           onClose={() => setShowLogoutToast(false)}
-          duration={5000}
+          duration={4000}
         />
       )}
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
