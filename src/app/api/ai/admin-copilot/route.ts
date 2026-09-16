@@ -51,7 +51,6 @@ Sobre a WEHOSTHERE:
   * Servidores VPS: [/vps](/vps)
   * Entrar / Painel do Cliente: [/dashboard](/dashboard)
   * Abrir Chamado de Suporte: [/dashboard/tickets](/dashboard/tickets)
-  * Teste de Pagamento: [/test-payment](/test-payment)
 `;
 
 export async function POST(request: NextRequest) {
@@ -499,7 +498,7 @@ function generateClientLocalResponse(query: string, clientData: any): string {
       `• Cartões Visa e Mastercard (via ScalePay)\n` +
       `• Transferência Bancária (BCI, Standard Bank, Millennium BIM)\n\n` +
       `O seu serviço é provisionado automaticamente assim que o pagamento for confirmado.\n` +
-      `Para testar ou efetuar pagamentos: [/test-payment](/test-payment)`;
+      `Pode escolher o seu plano e subscrever diretamente em: [/hospedagem](/hospedagem)`;
   }
 
   // Suporte Técnico e Abertura de Tickets
