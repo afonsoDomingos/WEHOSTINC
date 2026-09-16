@@ -230,7 +230,7 @@ export default function AdminAiTopBar({ isGlobalRoot = false }: AdminAiTopBarPro
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  // Sugestões Rápidas: Dinâmicas de acordo com o papel do utilizador
+  // Sugestões Rápidas: Separadas com rigor entre Administrador (apenas no /admin) e Clientes/Visitantes
   const adminQuickPrompts = [
     { label: 'Visão Geral do Sistema', icon: BarChart3, prompt: 'Resuma o status geral de utilizadores, vendas e métricas hoje' },
     { label: 'Utilizadores Recentes', icon: Users, prompt: 'Quem são os últimos utilizadores registados no sistema?' },
@@ -243,7 +243,7 @@ export default function AdminAiTopBar({ isGlobalRoot = false }: AdminAiTopBarPro
   ];
 
   const clientQuickPrompts = [
-    { label: 'Planos & Preços', icon: Server, prompt: 'Quais são os planos de hospedagem disponíveis e os preços?' },
+    { label: 'Planos de Hospedagem', icon: Server, prompt: 'Quais são os planos de hospedagem disponíveis e os preços?' },
     { label: 'Registo de Domínio .co.mz', icon: Globe, prompt: 'Como registar e qual o preço de um domínio .co.mz?' },
     { label: 'Email Profissional', icon: Mail, prompt: 'Como funciona e como configurar o email corporativo Migadu?' },
     { label: 'Criação de Sites', icon: Sparkles, prompt: 'Como pedir um orçamento para criação de site ou loja online?' },
@@ -251,7 +251,9 @@ export default function AdminAiTopBar({ isGlobalRoot = false }: AdminAiTopBarPro
     { label: 'Suporte Técnico', icon: LifeBuoy, prompt: 'Como abrir um ticket de suporte técnico?' },
   ];
 
-  const activeQuickPrompts = isAdminUser ? adminQuickPrompts : clientQuickPrompts;
+  // 🔒 REGRA ESTRITA: Perguntas de administração APENAS aparecem se for administrador E estiver dentro da rota /admin
+  const showAdminPrompts = isOnAdminRoute && isAdminUser;
+  const activeQuickPrompts = showAdminPrompts ? adminQuickPrompts : clientQuickPrompts;
 
   const formatContent = (rawText: string) => {
     const cleanText = (rawText || '')
@@ -307,7 +309,7 @@ export default function AdminAiTopBar({ isGlobalRoot = false }: AdminAiTopBarPro
                 WEHOSTHERE AI Copilot
               </span>
               <span className="text-[10px] text-gray-600 font-medium block">
-                {isAdminUser ? 'Assistente Operacional Inteligente' : 'Assistente de Atendimento & Suporte'}
+                {showAdminPrompts ? 'Assistente Operacional Inteligente' : 'Assistente de Atendimento & Suporte'}
               </span>
             </div>
           </div>
