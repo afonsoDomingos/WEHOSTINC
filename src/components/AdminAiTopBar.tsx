@@ -8,7 +8,7 @@ import {
   Mic, MicOff, Send, Sparkles, X, ArrowRight, 
   Copy, Check, RefreshCw, BarChart3, Users, ShoppingBag, 
   CreditCard, LifeBuoy, Handshake, Globe, Mail,
-  Minimize2, Maximize2, Pin, PinOff, Bot
+  Minimize2, Maximize2, Pin, PinOff, Bot, Eye, EyeOff
 } from 'lucide-react';
 
 interface ChatMessage {
@@ -28,6 +28,7 @@ export default function AdminAiTopBar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [isFloating, setIsFloating] = useState(false);
+  const [showOnPublicPages, setShowOnPublicPages] = useState(true);
   const [loading, setLoading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -64,12 +65,16 @@ export default function AdminAiTopBar() {
     setIsAdminUser(false);
   }, [session]);
 
-  // Carregar preferência de modo flutuante do localStorage
+  // Carregar preferências de modo flutuante e páginas públicas do localStorage
   useEffect(() => {
     try {
       const saved = localStorage.getItem('wehost_ai_floating');
       if (saved === 'true') {
         setIsFloating(true);
+      }
+      const savedPublic = localStorage.getItem('wehost_ai_show_public');
+      if (savedPublic !== null) {
+        setShowOnPublicPages(savedPublic === 'true');
       }
     } catch (_) {}
   }, []);
@@ -83,6 +88,18 @@ export default function AdminAiTopBar() {
       } catch (_) {}
       return next;
     });
+  };
+
+  const togglePublicVisibility = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setShowOnPublicPages(prev => {
+      const next = !prev;
+      try {
+        localStorage.setItem('wehost_ai_show_public', String(next));
+      } catch (_) {}
+      return next;
+    });
+    setIsOpen(false);
   };
 
   const handleSend = async (textToSend?: string) => {
@@ -288,13 +305,25 @@ export default function AdminAiTopBar() {
           </div>
 
           <div className="flex items-center space-x-1.5">
-            <button
-              onClick={toggleFloatingMode}
-              className="p-1.5 rounded-xl text-gray-500 hover:text-primary-600 hover:bg-white/50 transition cursor-pointer"
-              title={isFloating ? 'Fixar na barra do topo' : 'Mudar para modo flutuante de canto'}
-            >
-              {isFloating ? <Minimize2 className="w-4 h-4" /> : <Pin className="w-4 h-4" />}
-            </button>
+            {!isOnAdminRoute && (
+              <button
+                onClick={togglePublicVisibility}
+                className="p-1.5 rounded-xl text-gray-500 hover:text-red-600 hover:bg-white/50 transition cursor-pointer"
+                title="Desativar flutuante na página inicial e site público"
+              >
+                <EyeOff className="w-4 h-4" />
+              </button>
+            )}
+
+            {isOnAdminRoute && (
+              <button
+                onClick={toggleFloatingMode}
+                className="p-1.5 rounded-xl text-gray-500 hover:text-primary-600 hover:bg-white/50 transition cursor-pointer"
+                title={isFloating ? 'Fixar na barra do topo' : 'Mudar para modo flutuante de canto'}
+              >
+                {isFloating ? <Minimize2 className="w-4 h-4" /> : <Pin className="w-4 h-4" />}
+              </button>
+            )}
 
             {messages.length > 0 && (
               <button
@@ -398,8 +427,8 @@ export default function AdminAiTopBar() {
     );
   };
 
-  // Se não estiver em rota de admin e não for utilizador admin autenticado, não renderizar nada
-  if (!isOnAdminRoute && !isAdminUser) {
+  // Se não estiver em rota de admin: só renderizar se for utilizador admin e tiver a opção pública ativa
+  if (!isOnAdminRoute && (!isAdminUser || !showOnPublicPages)) {
     return null;
   }
 
