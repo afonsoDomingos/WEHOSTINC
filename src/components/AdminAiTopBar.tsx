@@ -400,19 +400,59 @@ export default function AdminAiTopBar({ isGlobalRoot = false }: AdminAiTopBarPro
             )}
           </div>
         )}
+
+        {/* Campo de Input no Painel para o Modo Flutuante */}
+        {isGlobalRoot && (
+          <div className="pt-3 mt-auto border-t border-gray-200/50 flex items-center space-x-2">
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleSend();
+                }
+              }}
+              placeholder={isListening ? 'A ouvir voz...' : 'Digite a sua pergunta ao Copilot...'}
+              className="flex-1 bg-white/80 border border-gray-200/80 rounded-full px-3.5 py-2 text-xs sm:text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/30 font-medium shadow-2xs"
+            />
+            {query.trim() && (
+              <button
+                type="button"
+                onClick={() => handleSend()}
+                disabled={loading}
+                className="p-2 rounded-full bg-primary-600 hover:bg-primary-700 text-white shadow-sm transition cursor-pointer"
+                title="Enviar"
+              >
+                <Send className="w-3.5 h-3.5" />
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={toggleVoice}
+              className={`p-2 rounded-full transition cursor-pointer ${
+                isListening ? 'bg-red-500/20 text-red-600 animate-bounce' : 'bg-white/80 text-gray-600 hover:text-gray-900 border border-gray-200/60'
+              }`}
+              title={isListening ? 'Parar voz' : 'Falar por voz'}
+            >
+              {isListening ? <MicOff className="w-3.5 h-3.5 text-red-600" /> : <Mic className="w-3.5 h-3.5" />}
+            </button>
+          </div>
+        )}
       </div>
     );
   };
 
-  // 🔹 MODO GLOBAL ROOT (Para páginas públicas fora do /admin)
+  // 🔹 MODO GLOBAL ROOT (Para páginas públicas fora do /admin — posicionado abaixo da navbar)
   if (isGlobalRoot) {
     if (isOnAdminRoute || !isAdminUser || !showOnPublicPages) {
       return null;
     }
 
     return (
-      <div className="fixed top-3 right-4 sm:right-6 z-50 flex flex-col items-end">
-        {/* Botão Launcher Flutuante no Topo com Aurora Glow */}
+      <div className="fixed top-20 sm:top-24 right-4 sm:right-6 z-40 flex flex-col items-end">
+        {/* Botão Launcher Flutuante Abaixo da Navbar com Aurora Glow */}
         <div className="relative group">
           <div 
             className={`absolute -inset-1 rounded-full blur-md transition-all duration-500 ${
