@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { auth } from '@/lib/auth';
 import { apiEndpoint } from '@/lib/siteConfig';
+import FacebookPixel from '@/lib/facebookPixel';
 
 // Gera ou reutiliza um sessionId persistido em sessionStorage
 function getSessionId(): string {
@@ -28,7 +29,10 @@ export default function AnalyticsTracker() {
     lastPage.current = pathname;
 
     // Não rastrear rotas de API ou admin
-    if (pathname.startsWith('/api') || pathname === '/admin') return;
+    if (pathname.startsWith('/api') || pathname.startsWith('/admin')) return;
+
+    // Rastrear PageView no Facebook Pixel nas navegações SPA
+    FacebookPixel.trackPageView();
 
     const sessionId = getSessionId();
     const currentUser = auth.getCurrentUser();
