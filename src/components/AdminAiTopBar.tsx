@@ -203,21 +203,21 @@ export default function AdminAiTopBar() {
       <div className="relative group">
         {/* Glow Multicolorido Aurora (Borda luminosa) */}
         <div 
-          className={`absolute -inset-[1.5px] rounded-full opacity-80 blur-[2px] transition duration-500 group-hover:opacity-100 ${
+          className={`absolute -inset-[1.5px] rounded-full opacity-85 blur-[2.5px] transition duration-500 group-hover:opacity-100 ${
             isListening 
               ? 'animate-pulse bg-gradient-to-r from-red-500 via-pink-500 to-amber-500' 
-              : 'bg-gradient-to-r from-orange-500 via-amber-400 via-emerald-400 via-cyan-400 to-indigo-500'
+              : 'bg-gradient-to-r from-sky-400 via-primary-500 via-cyan-300 via-emerald-400 to-amber-400'
           }`}
         />
 
-        {/* Linha Fina Brilhante no Topo (Efeito do screenshot) */}
-        <div className="absolute top-0 inset-x-4 h-[1px] bg-gradient-to-r from-transparent via-amber-300 via-emerald-300 to-transparent opacity-90 rounded-full" />
+        {/* Linha Fina Brilhante no Topo */}
+        <div className="absolute top-0 inset-x-4 h-[1px] bg-gradient-to-r from-transparent via-sky-200 via-cyan-200 to-transparent opacity-90 rounded-full" />
 
-        {/* Estrutura da Cápsula */}
-        <div className="relative flex items-center bg-[#0d1117]/95 backdrop-blur-xl rounded-full px-4 py-2 shadow-2xl border border-white/10 hover:border-white/20 transition-all duration-300">
+        {/* Estrutura da Cápsula — Azul Oficial WEHOSTHERE */}
+        <div className="relative flex items-center bg-gradient-to-r from-[#075985] via-[#0369a1] to-[#0284c7] backdrop-blur-xl rounded-full px-4 py-2 shadow-xl shadow-primary-900/20 border border-white/20 hover:border-white/35 transition-all duration-300">
           
           {/* Logótipo WEHOSTHERE */}
-          <div className="flex items-center justify-center w-7 h-7 rounded-full bg-white/10 mr-2.5 shrink-0 overflow-hidden p-1 border border-white/15 shadow-sm">
+          <div className="flex items-center justify-center w-7 h-7 rounded-full bg-white/20 mr-2.5 shrink-0 overflow-hidden p-1 border border-white/30 shadow-xs">
             <img 
               src="/icon-192.png" 
               alt="WEHOSTHERE" 
@@ -244,7 +244,7 @@ export default function AdminAiTopBar() {
               }
             }}
             placeholder={isListening ? 'A ouvir a sua voz...' : 'Digite o seu comando...'}
-            className="w-full bg-transparent text-gray-100 placeholder-gray-400 text-sm md:text-base focus:outline-none font-medium tracking-wide"
+            className="w-full bg-transparent text-white placeholder-sky-100/75 text-sm md:text-base focus:outline-none font-medium tracking-wide"
           />
 
           {/* Botões de Ação (Voz e Envio) */}
@@ -254,7 +254,7 @@ export default function AdminAiTopBar() {
                 type="button"
                 onClick={() => handleSend()}
                 disabled={loading}
-                className="p-1.5 rounded-full bg-primary-600 hover:bg-primary-500 text-white transition-all transform active:scale-95 shadow-md"
+                className="p-1.5 rounded-full bg-white hover:bg-sky-50 text-primary-700 font-bold transition-all transform active:scale-95 shadow-md"
                 title="Enviar comando"
               >
                 <Send className="w-3.5 h-3.5" />
@@ -266,13 +266,13 @@ export default function AdminAiTopBar() {
               onClick={toggleVoice}
               className={`p-2 rounded-full transition-all duration-300 ${
                 isListening
-                  ? 'bg-red-500/20 text-red-400 animate-bounce'
-                  : 'text-gray-400 hover:text-white hover:bg-white/10'
+                  ? 'bg-red-500/30 text-white animate-bounce'
+                  : 'text-sky-100 hover:text-white hover:bg-white/15'
               }`}
               title={isListening ? 'Parar de ouvir' : 'Falar com a IA por voz'}
             >
               {isListening ? (
-                <MicOff className="w-4 h-4 text-red-400" />
+                <MicOff className="w-4 h-4 text-white" />
               ) : (
                 <Mic className="w-4 h-4" />
               )}
