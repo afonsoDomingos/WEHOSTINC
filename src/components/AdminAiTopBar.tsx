@@ -117,7 +117,7 @@ export default function AdminAiTopBar({ isGlobalRoot = false }: AdminAiTopBarPro
         body: JSON.stringify({
           query: text,
           history: messages.slice(-4).map(m => ({ role: m.role, content: m.content })),
-          userRole: isAdminUser ? 'admin' : (userEmail ? 'client' : 'guest'),
+          userRole: (isOnAdminRoute && isAdminUser) ? 'admin' : (userEmail ? 'client' : 'guest'),
           userEmail: userEmail || undefined
         })
       });

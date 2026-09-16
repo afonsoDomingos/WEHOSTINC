@@ -64,11 +64,11 @@ export async function POST(request: NextRequest) {
 
     const cleanQuery = query.trim();
 
-    // 1. Verificar autenticação e permissões reais no MongoDB
+    // 1. Verificar autenticação e permissões reais no MongoDB (Apenas se clientRole for admin)
     let isAdmin = false;
     let verifiedEmail: string | null = null;
 
-    if (clientEmail && typeof clientEmail === 'string') {
+    if (clientRole === 'admin' && clientEmail && typeof clientEmail === 'string') {
       const emailLower = clientEmail.toLowerCase().trim();
       verifiedEmail = emailLower;
       if (emailLower === 'info@wehosthere.com' || emailLower === 'admin@wehosthere.com') {
@@ -88,6 +88,8 @@ export async function POST(request: NextRequest) {
           }
         } catch (_) {}
       }
+    } else if (clientEmail && typeof clientEmail === 'string') {
+      verifiedEmail = clientEmail.toLowerCase().trim();
     }
 
     // 2. Montar contexto de acordo com o papel (Role) do utilizador
@@ -174,9 +176,11 @@ DADOS EM TEMPO REAL DO BANCO DE DADOS:
 ${WEHOSTHERE_PUBLIC_KNOWLEDGE}
 
 REGRAS OBRIGATÓRIAS:
-1. NUNCA USE ASTERISCOS (**) OU (*) PARA FORMATAÇÃO. Responda em texto limpo.
-2. NUNCA USE EMOJIS AMADORES (🤖, 👥, 🛒, 💰, etc.). Use marcadores simples (•) e linguagem executiva.
-3. Inclua links Markdown para o painel (ex: [/admin/pagamentos-mensais](/admin/pagamentos-mensais), [/admin/comunicacao](/admin/comunicacao)).
+1. Se o utilizador perguntar sobre planos, preços, domínios, sites, emails ou métodos de pagamento, responda com os dados comerciais reais de produtos.
+2. Se o utilizador pedir relatórios, visão geral, pedidos, utilizadores ou finanças, utilize os dados do banco de dados acima.
+3. NUNCA USE ASTERISCOS (**) OU (*) PARA FORMATAÇÃO. Responda em texto limpo.
+4. NUNCA USE EMOJIS AMADORES (🤖, 👥, 🛒, 💰, etc.). Use marcadores simples (•) e linguagem executiva.
+5. Inclua links Markdown para o painel (ex: [/admin/pagamentos-mensais](/admin/pagamentos-mensais), [/admin/comunicacao](/admin/comunicacao)).
 `;
 
     } else {
@@ -306,6 +310,42 @@ DIRETRIZES E RESTRIÇÕES DE SEGURANÇA CRÍTICAS:
 function generateAdminLocalResponse(query: string, data: any): string {
   const lower = query.toLowerCase();
 
+  // Planos de Hospedagem e Preços
+  if (lower.includes('plano') || lower.includes('hospedagem') || lower.includes('preço') || lower.includes('custo') || lower.includes('quanto custa')) {
+    return `Planos de Hospedagem de Sites WEHOSTHERE:\n\n` +
+      `• Plano Básico (550 MT/mês):\n  - 10GB SSD de alta velocidade\n  - 100GB de Tráfego mensal\n  - 5 Contas de Email Profissional\n  - Certificado SSL Gratuito\n\n` +
+      `• Plano Profissional (1.200 MT/mês) — Mais Popular:\n  - 30GB SSD NVMe ultrarrápido\n  - Tráfego Ilimitado\n  - Contas de Email Ilimitadas\n  - Backups Automáticos\n\n` +
+      `• Plano Enterprise / VPS (3.500 MT/mês):\n  - 100GB SSD NVMe com recursos dedicados\n  - IP Dedicado e Suporte VIP 24/7\n\n` +
+      `Gerir ou consultar serviços em: [/hospedagem](/hospedagem)`;
+  }
+
+  // Domínios
+  if (lower.includes('domínio') || lower.includes('.co.mz') || lower.includes('.com') || lower.includes('registar')) {
+    return `Registo de Domínios na WEHOSTHERE:\n\n` +
+      `• Domínio .co.mz: 2.500 MT / ano (Moçambique)\n` +
+      `• Domínio .com: 1.500 MT / ano\n` +
+      `• Total de Domínios Registados no Sistema: ${data.domains.total}\n\n` +
+      `Pesquisa e gestão de domínios em: [/dominios](/dominios)`;
+  }
+
+  // Criação de Sites
+  if (lower.includes('site') || lower.includes('criar') || lower.includes('desenvolver') || lower.includes('loja') || lower.includes('orçamento')) {
+    return `Criação de Sites Profissionais WEHOSTHERE:\n\n` +
+      `• Sites Institucionais e Lojas Online completas a partir de 12.000 MT\n` +
+      `• Total de Sites Ativos no Sistema: ${data.sites.total}\n\n` +
+      `Consultar cotações e orçamentos em: [/site-quote](/site-quote)`;
+  }
+
+  // Email Migadu
+  if (lower.includes('email') || lower.includes('outlook') || lower.includes('migadu') || lower.includes('dns') || lower.includes('imap') || lower.includes('smtp')) {
+    return `Configuração de Email Corporativo WEHOSTHERE (Migadu):\n\n` +
+      `• Servidor IMAP: imap.migadu.com (Porta 993 SSL)\n` +
+      `• Servidor SMTP: smtp.migadu.com (Porta 465 SSL)\n` +
+      `• Registos DNS: MX 1 (aspmx.migadu.com, 10), MX 2 (aspmx2.migadu.com, 20), SPF (v=spf1 include:spf.migadu.com ~all)\n\n` +
+      `Gestão de domínios de email em: [/email-profissional](/email-profissional)`;
+  }
+
+  // Utilizadores Recentes / Lista
   if (lower.includes('último') || lower.includes('recent') || lower.includes('utilizador') || lower.includes('cliente')) {
     if (data.users.recent && data.users.recent.length > 0) {
       const list = data.users.recent.map((u: any, idx: number) => 
@@ -316,6 +356,7 @@ function generateAdminLocalResponse(query: string, data: any): string {
     return `Total de Utilizadores: ${data.users.total} registados (${data.users.active} ativos).\nConsulte a lista completa em [/admin](/admin)`;
   }
 
+  // Pedidos e Vendas
   if (lower.includes('pedido') || lower.includes('venda') || lower.includes('compra')) {
     if (data.orders.recent && data.orders.recent.length > 0) {
       const list = data.orders.recent.map((o: any, idx: number) =>
@@ -326,7 +367,8 @@ function generateAdminLocalResponse(query: string, data: any): string {
     return `Total de Pedidos Registados: ${data.orders.total} (${data.orders.completed} concluídos).`;
   }
 
-  if (lower.includes('fatura') || lower.includes('pagamento') || lower.includes('devedor') || lower.includes('atras')) {
+  // Faturas e Pagamentos Pendentes
+  if (lower.includes('fatura') || lower.includes('devedor') || lower.includes('atras') || lower.includes('cobrança')) {
     if (data.payments.overdueList && data.payments.overdueList.length > 0) {
       const list = data.payments.overdueList.map((p: any, idx: number) =>
         `${idx + 1}. ${p.clientName || p.clientEmail} — ${p.remainingAmount || p.amount} MZN (Mês ${p.month}/${p.year}) — Estado: ${p.status}`
@@ -336,6 +378,17 @@ function generateAdminLocalResponse(query: string, data: any): string {
     return `Finanças: Não existem faturas em atraso no momento. Todas as mensalidades estão em dia.\nVer balanço em: [/admin/pagamentos-mensais](/admin/pagamentos-mensais)`;
   }
 
+  // Métodos de Pagamento em Geral
+  if (lower.includes('pagamento') || lower.includes('m-pesa') || lower.includes('emola') || lower.includes('cartão')) {
+    return `Métodos de Pagamento Aceites em Moçambique:\n\n` +
+      `• M-Pesa (Vodacom)\n` +
+      `• E-Mola (Movitel)\n` +
+      `• Cartões Visa e Mastercard (ScalePay)\n` +
+      `• Transferência Bancária (BCI, Standard Bank, Millennium BIM)\n\n` +
+      `Testar pagamentos em: [/test-payment](/test-payment)`;
+  }
+
+  // Tickets de Suporte
   if (lower.includes('ticket') || lower.includes('suporte') || lower.includes('chamado')) {
     if (data.tickets.recent && data.tickets.recent.length > 0) {
       const list = data.tickets.recent.map((t: any, idx: number) =>
@@ -346,10 +399,12 @@ function generateAdminLocalResponse(query: string, data: any): string {
     return `Suporte: Não há tickets pendentes de resposta no momento.`;
   }
 
+  // Afiliados
   if (lower.includes('afiliado') || lower.includes('comiss')) {
     return `Programa de Afiliados:\n\n• Total de Afiliados: ${data.affiliates.total}\n• Comissões Pendentes de Saque: ${data.affiliates.pendingCommissions} (Total: ${data.affiliates.pendingAmount?.toLocaleString('pt-MZ') || 0} MZN)\n\nGerir saques e aprovar comissões em: [/admin/affiliates](/admin/affiliates)`;
   }
 
+  // Visão Geral Executiva
   return `WEHOSTHERE AI Copilot — Painel Executivo:\n\n` +
     `• Utilizadores: ${data.users.total} (${data.users.active} ativos)\n` +
     `• Pedidos: ${data.orders.total} (${data.orders.completed} concluídos)\n` +
