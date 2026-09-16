@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import { auth } from '@/lib/auth';
 import { 
   Mic, MicOff, Send, Sparkles, X, ArrowRight, 
   Copy, Check, RefreshCw, BarChart3, Users, ShoppingBag, 
@@ -18,6 +20,9 @@ interface ChatMessage {
 
 export default function AdminAiTopBar() {
   const router = useRouter();
+  const pathname = usePathname() || '';
+  const { data: session } = useSession();
+  const [isAdminUser, setIsAdminUser] = useState(false);
   const [query, setQuery] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -31,7 +36,33 @@ export default function AdminAiTopBar() {
   const recognitionRef = useRef<any>(null);
   const handleSendRef = useRef<(text?: string) => Promise<void>>(async () => {});
 
+  const isOnAdminRoute = pathname.startsWith('/admin');
+  const shouldRenderFloating = isFloating || !isOnAdminRoute;
   const isExpanded = isOpen || isFocused;
+
+  // Verificar se utilizador atual tem privilégios de administrador
+  useEffect(() => {
+    // 1. Verificar sessão NextAuth
+    if (session?.user) {
+      const role = (session.user as any)?.role;
+      const email = session.user.email?.toLowerCase();
+      if (role === 'admin' || role === 'super_admin' || email === 'info@wehosthere.com' || email === 'admin@wehosthere.com') {
+        setIsAdminUser(true);
+        return;
+      }
+    }
+
+    // 2. Verificar autenticação em localStorage
+    try {
+      const localUser = auth.getCurrentUser();
+      if (localUser && (localUser.role === 'admin' || localUser.role === 'super_admin' || localUser.email === 'info@wehosthere.com' || localUser.email === 'admin@wehosthere.com')) {
+        setIsAdminUser(true);
+        return;
+      }
+    } catch (_) {}
+
+    setIsAdminUser(false);
+  }, [session]);
 
   // Carregar preferência de modo flutuante do localStorage
   useEffect(() => {
@@ -367,8 +398,13 @@ export default function AdminAiTopBar() {
     );
   };
 
-  // 🔹 MODO FLUTUANTE DE CANTO (Floating Corner Widget)
-  if (isFloating) {
+  // Se não estiver em rota de admin e não for utilizador admin autenticado, não renderizar nada
+  if (!isOnAdminRoute && !isAdminUser) {
+    return null;
+  }
+
+  // 🔹 MODO FLUTUANTE DE CANTO (Floating Corner Widget em todas as páginas públicas ou quando ativado)
+  if (shouldRenderFloating) {
     return (
       <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
         {renderResponsePanel()}
@@ -413,7 +449,7 @@ export default function AdminAiTopBar() {
     );
   }
 
-  // 🔹 MODO TOPO (Top Bar Capsule)
+  // 🔹 MODO TOPO (Top Bar Capsule nas rotas de admin)
   return (
     <div className="w-full bg-white/80 backdrop-blur-md border-b border-gray-100/80 sticky top-0 z-40 py-2 shadow-2xs">
       <div className="relative w-full max-w-2xl mx-auto px-4 z-50">
