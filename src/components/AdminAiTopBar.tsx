@@ -467,8 +467,25 @@ export default function AdminAiTopBar({ isGlobalRoot = false }: AdminAiTopBarPro
 
   // 🔹 MODO GLOBAL ROOT (Para páginas públicas e dashboard — posicionado abaixo da navbar)
   if (isGlobalRoot) {
-    if (isOnAdminRoute || !showOnPublicPages) {
+    if (isOnAdminRoute) {
       return null;
+    }
+
+    // Se estiver oculto pelo utilizador: exibir mini aba discreta na lateral para reabrir
+    if (!showOnPublicPages) {
+      return (
+        <div 
+          onClick={togglePublicVisibility}
+          className="fixed top-20 sm:top-24 right-0 z-40 bg-gradient-to-l from-[#075985] to-[#0284c7] text-white py-1.5 px-2 rounded-l-2xl shadow-xl cursor-pointer hover:px-3 transition-all duration-300 flex items-center space-x-1.5 opacity-80 hover:opacity-100 group border-y border-l border-white/30"
+          title="Exibir WEHOSTHERE AI Copilot"
+        >
+          <div className="w-4 h-4 rounded-full bg-white/20 p-0.5 flex items-center justify-center">
+            <img src="/icon-192.png" alt="AI" className="w-full h-full object-contain rounded-full" />
+          </div>
+          <span className="text-[10px] font-black tracking-wider uppercase hidden group-hover:inline transition-all">AI</span>
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+        </div>
+      );
     }
 
     return (
@@ -496,16 +513,27 @@ export default function AdminAiTopBar({ isGlobalRoot = false }: AdminAiTopBarPro
             <span className="text-xs font-black tracking-wide hidden sm:inline">AI Copilot</span>
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
 
+            {/* Botão de Voz */}
             <button
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 toggleVoice();
               }}
-              className="p-1 rounded-full hover:bg-white/20 transition text-sky-100"
+              className="p-1 rounded-full hover:bg-white/20 transition text-sky-100 cursor-pointer"
               title="Falar por voz"
             >
               {isListening ? <MicOff className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-400 animate-bounce" /> : <Mic className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
+            </button>
+
+            {/* Botão para Fechar / Ocultar Flutuante */}
+            <button
+              type="button"
+              onClick={togglePublicVisibility}
+              className="p-1 rounded-full hover:bg-white/20 transition text-sky-200 hover:text-white cursor-pointer"
+              title="Ocultar botão flutuante"
+            >
+              <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
           </div>
         </div>
