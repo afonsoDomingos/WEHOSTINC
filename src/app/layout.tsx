@@ -216,7 +216,7 @@ export default function RootLayout({
             <SocialProofToast />
             <ScrollUpCards />
             <FeedbackWidget />
-            <AdminAiTopBar />
+            <AdminAiTopBar isGlobalRoot={true} />
           </LanguageProvider>
         </Providers>
       </body>

@@ -18,7 +18,11 @@ interface ChatMessage {
   timestamp: Date;
 }
 
-export default function AdminAiTopBar() {
+interface AdminAiTopBarProps {
+  isGlobalRoot?: boolean;
+}
+
+export default function AdminAiTopBar({ isGlobalRoot = false }: AdminAiTopBarProps) {
   const router = useRouter();
   const pathname = usePathname() || '';
   const { data: session } = useSession();
@@ -27,7 +31,6 @@ export default function AdminAiTopBar() {
   const [isListening, setIsListening] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
-  const [isFloating, setIsFloating] = useState(false);
   const [showOnPublicPages, setShowOnPublicPages] = useState(true);
   const [loading, setLoading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -38,7 +41,6 @@ export default function AdminAiTopBar() {
   const handleSendRef = useRef<(text?: string) => Promise<void>>(async () => {});
 
   const isOnAdminRoute = pathname.startsWith('/admin');
-  const shouldRenderFloating = isFloating || !isOnAdminRoute;
   const isExpanded = isOpen || isFocused;
 
   // Verificar se utilizador atual tem privilégios de administrador
@@ -65,30 +67,15 @@ export default function AdminAiTopBar() {
     setIsAdminUser(false);
   }, [session]);
 
-  // Carregar preferências de modo flutuante e páginas públicas do localStorage
+  // Carregar preferências de páginas públicas do localStorage
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('wehost_ai_floating');
-      if (saved === 'true') {
-        setIsFloating(true);
-      }
       const savedPublic = localStorage.getItem('wehost_ai_show_public');
       if (savedPublic !== null) {
         setShowOnPublicPages(savedPublic === 'true');
       }
     } catch (_) {}
   }, []);
-
-  const toggleFloatingMode = (e?: React.MouseEvent) => {
-    e?.stopPropagation();
-    setIsFloating(prev => {
-      const next = !prev;
-      try {
-        localStorage.setItem('wehost_ai_floating', String(next));
-      } catch (_) {}
-      return next;
-    });
-  };
 
   const togglePublicVisibility = (e?: React.MouseEvent) => {
     e?.stopPropagation();
@@ -285,9 +272,9 @@ export default function AdminAiTopBar() {
       <div
         ref={panelRef}
         className={`${
-          shouldRenderFloating
+          isGlobalRoot
             ? 'absolute top-full right-0 mt-3 w-[92vw] sm:w-[480px]'
-            : 'absolute top-full left-4 right-4 mt-3'
+            : 'absolute top-full inset-x-0 mt-3 w-full'
         } bg-white/45 backdrop-blur-2xl border border-white/70 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.15),0_0_0_1px_rgba(255,255,255,0.6)_inset] ring-1 ring-black/5 rounded-3xl p-5 text-gray-900 overflow-hidden transition-all duration-300 animate-in fade-in slide-in-from-top-3 max-h-[520px] flex flex-col z-50`}
       >
         {/* Cabeçalho do Painel */}
@@ -305,23 +292,13 @@ export default function AdminAiTopBar() {
           </div>
 
           <div className="flex items-center space-x-1.5">
-            {!isOnAdminRoute && (
+            {isGlobalRoot && (
               <button
                 onClick={togglePublicVisibility}
                 className="p-1.5 rounded-xl text-gray-500 hover:text-red-600 hover:bg-white/50 transition cursor-pointer"
                 title="Desativar flutuante na página inicial e site público"
               >
                 <EyeOff className="w-4 h-4" />
-              </button>
-            )}
-
-            {isOnAdminRoute && (
-              <button
-                onClick={toggleFloatingMode}
-                className="p-1.5 rounded-xl text-gray-500 hover:text-primary-600 hover:bg-white/50 transition cursor-pointer"
-                title={isFloating ? 'Fixar na barra do topo' : 'Mudar para modo flutuante'}
-              >
-                {isFloating ? <Minimize2 className="w-4 h-4" /> : <Pin className="w-4 h-4" />}
               </button>
             )}
 
@@ -427,13 +404,12 @@ export default function AdminAiTopBar() {
     );
   };
 
-  // Se não estiver em rota de admin: só renderizar se for utilizador admin e tiver a opção pública ativa
-  if (!isOnAdminRoute && (!isAdminUser || !showOnPublicPages)) {
-    return null;
-  }
+  // 🔹 MODO GLOBAL ROOT (Para páginas públicas fora do /admin)
+  if (isGlobalRoot) {
+    if (isOnAdminRoute || !isAdminUser || !showOnPublicPages) {
+      return null;
+    }
 
-  // 🔹 MODO FLUTUANTE NO TOPO (Floating Top Launcher Widget)
-  if (shouldRenderFloating) {
     return (
       <div className="fixed top-3 right-4 sm:right-6 z-50 flex flex-col items-end">
         {/* Botão Launcher Flutuante no Topo com Aurora Glow */}
@@ -478,140 +454,125 @@ export default function AdminAiTopBar() {
     );
   }
 
-  // 🔹 MODO TOPO (Top Bar Capsule nas rotas de admin)
+  // 🔹 MODO INLINE NO TOPO DO ADMIN (Sempre visível diretamente com o campo de texto)
   return (
-    <div className="w-full bg-white/80 backdrop-blur-md border-b border-gray-100/80 sticky top-0 z-40 py-2 shadow-2xs">
-      <div className="relative w-full max-w-2xl mx-auto px-4 z-50">
-        <div className="relative group">
-          {/* Glow Multicolorido Aurora */}
-          <div 
-            className={`absolute -inset-[1.5px] rounded-full blur-[2.5px] transition-all duration-500 ${
-              isListening 
-                ? 'opacity-100 animate-pulse bg-gradient-to-r from-red-500 via-pink-500 to-amber-500' 
-                : isExpanded
-                  ? 'opacity-100 bg-gradient-to-r from-primary-500 via-sky-400 via-indigo-500 to-amber-400'
-                  : 'opacity-85 group-hover:opacity-100 bg-gradient-to-r from-sky-400 via-primary-500 via-cyan-300 via-emerald-400 to-amber-400'
+    <div className="relative w-full max-w-2xl mx-auto px-4 z-40">
+      <div className="relative group">
+        {/* Glow Multicolorido Aurora */}
+        <div 
+          className={`absolute -inset-[1.5px] rounded-full blur-[2.5px] transition-all duration-500 ${
+            isListening 
+              ? 'opacity-100 animate-pulse bg-gradient-to-r from-red-500 via-pink-500 to-amber-500' 
+              : isExpanded
+                ? 'opacity-100 bg-gradient-to-r from-primary-500 via-sky-400 via-indigo-500 to-amber-400'
+                : 'opacity-85 group-hover:opacity-100 bg-gradient-to-r from-sky-400 via-primary-500 via-cyan-300 via-emerald-400 to-amber-400'
+          }`}
+        />
+
+        {/* Linha Fina Brilhante no Topo */}
+        <div className="absolute top-0 inset-x-4 h-[1px] bg-gradient-to-r from-transparent via-sky-200 via-cyan-200 to-transparent opacity-90 rounded-full" />
+
+        {/* Estrutura da Cápsula — Muda para Branco ao Clicar / Focar */}
+        <div 
+          onClick={() => {
+            setIsFocused(true);
+            if (messages.length > 0 || !isOpen) setIsOpen(true);
+            inputRef.current?.focus();
+          }}
+          className={`relative flex items-center rounded-full px-4 py-2 shadow-md transition-all duration-300 cursor-text ${
+            isExpanded
+              ? 'bg-white/95 backdrop-blur-xl border border-primary-300 shadow-primary-500/10 ring-2 ring-primary-500/15'
+              : 'bg-gradient-to-r from-[#075985] via-[#0369a1] to-[#0284c7] backdrop-blur-xl border border-white/20 hover:border-white/35 shadow-primary-900/20'
+          }`}
+        >
+          
+          {/* Logótipo WEHOSTHERE */}
+          <div className={`flex items-center justify-center w-7 h-7 rounded-full mr-2.5 shrink-0 overflow-hidden p-1 transition-all duration-300 ${
+            isExpanded 
+              ? 'bg-primary-50 border border-primary-200 shadow-2xs' 
+              : 'bg-white/20 border border-white/30 shadow-xs'
+          }`}>
+            <img 
+              src="/icon-192.png" 
+              alt="WEHOSTHERE" 
+              className="w-full h-full object-contain rounded-full"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = '/logo.png';
+              }}
+            />
+          </div>
+
+          {/* Campo de Texto */}
+          <input
+            ref={inputRef}
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onFocus={() => {
+              setIsFocused(true);
+              setIsOpen(true);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleSend();
+              }
+            }}
+            placeholder={isListening ? 'A ouvir a sua voz...' : 'Digite o seu comando...'}
+            className={`w-full bg-transparent text-sm md:text-base focus:outline-none font-medium tracking-wide transition-colors duration-300 ${
+              isExpanded
+                ? 'text-gray-900 placeholder-gray-400'
+                : 'text-white placeholder-sky-100/75'
             }`}
           />
 
-          {/* Linha Fina Brilhante no Topo */}
-          <div className="absolute top-0 inset-x-4 h-[1px] bg-gradient-to-r from-transparent via-sky-200 via-cyan-200 to-transparent opacity-90 rounded-full" />
-
-          {/* Estrutura da Cápsula — Muda para Branco ao Clicar / Focar */}
-          <div 
-            onClick={() => {
-              setIsFocused(true);
-              if (messages.length > 0 || !isOpen) setIsOpen(true);
-              inputRef.current?.focus();
-            }}
-            className={`relative flex items-center rounded-full px-4 py-2 shadow-xl transition-all duration-300 cursor-text ${
-              isExpanded
-                ? 'bg-white/95 backdrop-blur-xl border border-primary-300 shadow-primary-500/10 ring-2 ring-primary-500/15'
-                : 'bg-gradient-to-r from-[#075985] via-[#0369a1] to-[#0284c7] backdrop-blur-xl border border-white/20 hover:border-white/35 shadow-primary-900/20'
-            }`}
-          >
-            
-            {/* Logótipo WEHOSTHERE */}
-            <div className={`flex items-center justify-center w-7 h-7 rounded-full mr-2.5 shrink-0 overflow-hidden p-1 transition-all duration-300 ${
-              isExpanded 
-                ? 'bg-primary-50 border border-primary-200 shadow-2xs' 
-                : 'bg-white/20 border border-white/30 shadow-xs'
-            }`}>
-              <img 
-                src="/icon-192.png" 
-                alt="WEHOSTHERE" 
-                className="w-full h-full object-contain rounded-full"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = '/logo.png';
-                }}
-              />
-            </div>
-
-            {/* Campo de Texto */}
-            <input
-              ref={inputRef}
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onFocus={() => {
-                setIsFocused(true);
-                setIsOpen(true);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  handleSend();
-                }
-              }}
-              placeholder={isListening ? 'A ouvir a sua voz...' : 'Digite o seu comando...'}
-              className={`w-full bg-transparent text-sm md:text-base focus:outline-none font-medium tracking-wide transition-colors duration-300 ${
-                isExpanded
-                  ? 'text-gray-900 placeholder-gray-400'
-                  : 'text-white placeholder-sky-100/75'
-              }`}
-            />
-
-            {/* Botões de Ação (Voz, Flutuar e Envio) */}
-            <div className="flex items-center space-x-1.5 shrink-0 ml-2">
-              {query.trim() && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleSend();
-                  }}
-                  disabled={loading}
-                  className={`p-1.5 rounded-full font-bold transition-all transform active:scale-95 shadow-md ${
-                    isExpanded
-                      ? 'bg-primary-600 hover:bg-primary-700 text-white'
-                      : 'bg-white hover:bg-sky-50 text-primary-700'
-                  }`}
-                  title="Enviar comando"
-                >
-                  <Send className="w-3.5 h-3.5" />
-                </button>
-              )}
-
+          {/* Botões de Ação (Voz e Envio) */}
+          <div className="flex items-center space-x-1.5 shrink-0 ml-2">
+            {query.trim() && (
               <button
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  toggleVoice();
+                  handleSend();
                 }}
-                className={`p-2 rounded-full transition-all duration-300 ${
-                  isListening
-                    ? 'bg-red-500/30 text-red-500 animate-bounce'
-                    : isExpanded
-                      ? 'text-gray-400 hover:text-gray-800 hover:bg-gray-100'
-                      : 'text-sky-100 hover:text-white hover:bg-white/15'
-                }`}
-                title={isListening ? 'Parar de ouvir' : 'Falar com a IA por voz'}
-              >
-                {isListening ? (
-                  <MicOff className="w-4 h-4 text-red-500" />
-                ) : (
-                  <Mic className="w-4 h-4" />
-                )}
-              </button>
-
-              <button
-                type="button"
-                onClick={toggleFloatingMode}
-                className={`p-1.5 rounded-full transition-all duration-300 ${
+                disabled={loading}
+                className={`p-1.5 rounded-full font-bold transition-all transform active:scale-95 shadow-md cursor-pointer ${
                   isExpanded
-                    ? 'text-gray-400 hover:text-primary-600 hover:bg-gray-100'
-                    : 'text-sky-200 hover:text-white hover:bg-white/15'
+                    ? 'bg-primary-600 hover:bg-primary-700 text-white'
+                    : 'bg-white hover:bg-sky-50 text-primary-700'
                 }`}
-                title="Tornar flutuante no canto"
+                title="Enviar comando"
               >
-                <Pin className="w-3.5 h-3.5" />
+                <Send className="w-3.5 h-3.5" />
               </button>
-            </div>
+            )}
+
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleVoice();
+              }}
+              className={`p-2 rounded-full transition-all duration-300 cursor-pointer ${
+                isListening
+                  ? 'bg-red-500/30 text-red-500 animate-bounce'
+                  : isExpanded
+                    ? 'text-gray-400 hover:text-gray-800 hover:bg-gray-100'
+                    : 'text-sky-100 hover:text-white hover:bg-white/15'
+              }`}
+              title={isListening ? 'Parar de ouvir' : 'Falar com a IA por voz'}
+            >
+              {isListening ? (
+                <MicOff className="w-4 h-4 text-red-500" />
+              ) : (
+                <Mic className="w-4 h-4" />
+              )}
+            </button>
           </div>
         </div>
-
-        {renderResponsePanel()}
       </div>
+
+      {renderResponsePanel()}
     </div>
   );
 }
