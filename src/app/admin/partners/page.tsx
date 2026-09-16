@@ -30,14 +30,8 @@ export default function AdminPartnersPage() {
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
-    const user = auth.getCurrentUser();
-    if (!user || (user.role !== 'admin' && user.role !== 'super_admin')) {
-      router.push('/login');
-      return;
-    }
-
     loadPartners();
-  }, [router]);
+  }, []);
 
   const loadPartners = async () => {
     try {

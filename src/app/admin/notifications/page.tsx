@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
+import { auth } from '@/lib/auth';
 
 interface SalesNotification {
   _id: string;
@@ -48,7 +49,8 @@ export default function AdminNotificationsPage() {
   const fetchNotifications = async () => {
     try {
       setLoading(true);
-      const userId = localStorage.getItem('userId');
+      const user = auth.getCurrentUser();
+      const userId = localStorage.getItem('userId') || user?.id;
       if (!userId) return;
 
       const response = await fetch(`/api/notifications/sales?userId=${userId}&status=${filter === 'all' ? 'all' : filter}`);

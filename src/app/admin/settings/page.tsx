@@ -6,14 +6,14 @@ import {
   Bell, BellOff, RefreshCw, ShoppingBag, User as UserIcon, Lock, Shield, ArrowLeft, Home
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
-import { useAuth } from '@/lib/useAuth';
+import { useAdminGuard } from '@/hooks/useAdminGuard';
 import PageLoader from '@/components/PageLoader';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import Link from 'next/link';
 
 export default function AdminSettingsPage() {
   const router = useRouter();
-  const { user, loading } = useAuth({ redirectToAdmin: false, redirectToLogin: true });
+  const { user, loading } = useAdminGuard();
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
   

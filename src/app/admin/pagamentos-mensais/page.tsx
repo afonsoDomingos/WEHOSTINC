@@ -119,14 +119,12 @@ export default function MonthlyPaymentsPage() {
 
   useEffect(() => {
     const user = auth.getCurrentUser();
-    if (!user || (user.role !== 'admin' && user.role !== 'super_admin')) {
-      router.push('/login');
-      return;
+    if (user) {
+      setCurrentUser(user);
     }
-    setCurrentUser(user);
     loadData();
     setLoading(false);
-  }, [router]);
+  }, []);
 
   const loadData = async () => {
     try {
