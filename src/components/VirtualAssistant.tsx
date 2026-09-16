@@ -25,7 +25,7 @@ const faqData: FAQItem[] = [
     id: 'domain-2',
     category: 'Domínio',
     question: 'Quanto custa um domínio .co.mz?',
-    answer: 'O domínio .co.mz custa 2.500 MT por ano. Inclui renovação automática e suporte DNS gratuito.',
+    answer: 'O domínio .co.mz custa 3.000 MT por ano. Inclui renovação automática e suporte DNS gratuito.',
     icon: <Globe className="w-5 h-5 text-primary-600" />
   },
   {

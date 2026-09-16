@@ -24,9 +24,10 @@ Sobre a WEHOSTHERE:
   * Plano Enterprise / VPS (3.500 MT/mês): 100GB NVMe SSD, Recursos Dedicados, 8GB RAM, IP Dedicado, Suporte VIP 24/7.
   * Hospedagem WordPress: Otimizada com cache LiteSpeed, instalação em 1 clique e atualizações automáticas.
 - Registo de Domínios:
-  * .co.mz : 2.500 MT / ano (Identidade oficial para empresas em Moçambique, configuração DNS completa).
-  * .com : 1.500 MT / ano.
-  * .org, .net, .mz e outros disponíveis.
+  * .co.mz : 3.000 MT / ano (Identidade oficial para empresas em Moçambique, configuração DNS completa e ativação).
+  * .com : 1.250 MT / ano.
+  * .org.mz : 3.000 MT / ano.
+  * .net : 1.300 MT / ano.
 - Criação e Desenvolvimento de Sites:
   * Sites Profissionais completos e responsivos a partir de 12.000 MT (Landing Pages, Lojas Virtuais com M-Pesa, Portais Corporativos e Sistemas sob medida).
 - Email Corporativo (Migadu):
@@ -322,8 +323,9 @@ function generateAdminLocalResponse(query: string, data: any): string {
   // Domínios
   if (lower.includes('domínio') || lower.includes('.co.mz') || lower.includes('.com') || lower.includes('registar')) {
     return `Registo de Domínios na WEHOSTHERE:\n\n` +
-      `• Domínio .co.mz: 2.500 MT / ano (Moçambique)\n` +
-      `• Domínio .com: 1.500 MT / ano\n` +
+      `• Domínio .co.mz: 3.000 MT / ano (Identidade oficial para empresas em Moçambique)\n` +
+      `• Domínio .com: 1.250 MT / ano\n` +
+      `• Domínio .org.mz: 3.000 MT / ano | .net: 1.300 MT / ano\n` +
       `• Total de Domínios Registados no Sistema: ${data.domains.total}\n\n` +
       `Pesquisa e gestão de domínios em: [/dominios](/dominios)`;
   }
@@ -456,9 +458,10 @@ function generateClientLocalResponse(query: string, clientData: any): string {
   // Domínios (.co.mz, .com, etc.)
   if (lower.includes('domínio') || lower.includes('.co.mz') || lower.includes('.com') || lower.includes('registar')) {
     return `Registo de Domínios na WEHOSTHERE:\n\n` +
-      `• Domínio .co.mz: 2.500 MT / ano (Identidade oficial para empresas em Moçambique)\n` +
-      `• Domínio .com: 1.500 MT / ano\n` +
-      `• Domínios .org / .net: Disponíveis a preços competitivos\n\n` +
+      `• Domínio .co.mz: 3.000 MT / ano (Identidade oficial para empresas em Moçambique)\n` +
+      `• Domínio .com: 1.250 MT / ano\n` +
+      `• Domínio .org.mz: 3.000 MT / ano\n` +
+      `• Domínio .net: 1.300 MT / ano\n\n` +
       `O registo inclui gestão completa de DNS e ativação rápida.\n` +
       `Pesquise a disponibilidade do seu domínio em: [/dominios](/dominios)`;
   }
