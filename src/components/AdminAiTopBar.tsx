@@ -281,23 +281,23 @@ export default function AdminAiTopBar() {
         </div>
       </div>
 
-      {/* 🚀 Painel de Respostas & Ações da IA (Efeito Vidro Fosco / Glassmorphism) */}
+      {/* 🚀 Painel de Respostas & Ações da IA (Efeito Vidro Fosco Translúcido / Glassmorphism) */}
       {isOpen && (
         <div
           ref={panelRef}
-          className="absolute top-full left-4 right-4 mt-3 bg-white/80 backdrop-blur-2xl border border-white/90 shadow-[0_20px_50px_rgba(0,0,0,0.12),0_0_0_1px_rgba(255,255,255,0.7)_inset] ring-1 ring-black/5 rounded-3xl p-5 text-gray-800 overflow-hidden transition-all duration-300 animate-in fade-in slide-in-from-top-3 max-h-[520px] flex flex-col z-50"
+          className="absolute top-full left-4 right-4 mt-3 bg-white/45 backdrop-blur-2xl border border-white/70 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.15),0_0_0_1px_rgba(255,255,255,0.6)_inset] ring-1 ring-black/5 rounded-3xl p-5 text-gray-900 overflow-hidden transition-all duration-300 animate-in fade-in slide-in-from-top-3 max-h-[520px] flex flex-col z-50"
         >
           {/* Cabeçalho do Painel */}
-          <div className="flex items-center justify-between pb-3.5 border-b border-gray-200/50">
+          <div className="flex items-center justify-between pb-3.5 border-b border-gray-200/40">
             <div className="flex items-center space-x-2.5">
-              <div className="w-7 h-7 rounded-xl bg-white shadow-2xs border border-gray-200/80 flex items-center justify-center overflow-hidden p-1">
+              <div className="w-7 h-7 rounded-xl bg-white/70 backdrop-blur-md shadow-2xs border border-white/80 flex items-center justify-center overflow-hidden p-1">
                 <img src="/icon-192.png" alt="WEHOSTHERE" className="w-full h-full object-contain rounded-lg" />
               </div>
               <div>
                 <span className="text-xs font-black uppercase tracking-wider text-gray-900 flex items-center gap-1.5">
                   WEHOSTHERE AI Copilot
                 </span>
-                <span className="text-[10px] text-gray-500 font-medium block">Assistente Operacional Inteligente</span>
+                <span className="text-[10px] text-gray-600 font-medium block">Assistente Operacional Inteligente</span>
               </div>
             </div>
 
@@ -305,14 +305,14 @@ export default function AdminAiTopBar() {
               {messages.length > 0 && (
                 <button
                   onClick={() => setMessages([])}
-                  className="text-xs font-semibold text-gray-500 hover:text-gray-900 transition px-2.5 py-1 rounded-lg hover:bg-white/60 cursor-pointer"
+                  className="text-xs font-semibold text-gray-600 hover:text-gray-900 transition px-2.5 py-1 rounded-lg hover:bg-white/50 cursor-pointer"
                 >
                   Limpar
                 </button>
               )}
               <button
                 onClick={() => setIsOpen(false)}
-                className="p-1.5 rounded-xl text-gray-400 hover:text-gray-800 hover:bg-white/60 transition cursor-pointer"
+                className="p-1.5 rounded-xl text-gray-500 hover:text-gray-900 hover:bg-white/50 transition cursor-pointer"
                 title="Fechar"
               >
                 <X className="w-4 h-4" />
@@ -323,13 +323,13 @@ export default function AdminAiTopBar() {
           {/* Sugestões Rápidas (Chips) quando o chat estiver vazio */}
           {messages.length === 0 && (
             <div className="py-4 space-y-3">
-              <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Perguntas Rápidas:</p>
+              <p className="text-xs text-gray-600 font-bold uppercase tracking-wider">Perguntas Rápidas:</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {quickPrompts.map((item, idx) => (
                   <button
                     key={idx}
                     onClick={() => handleSend(item.prompt)}
-                    className="flex items-center text-left text-xs bg-white/60 hover:bg-white border border-white/80 hover:border-primary-300 p-3 rounded-2xl transition-all text-gray-700 hover:text-primary-700 shadow-2xs hover:shadow-xs group cursor-pointer backdrop-blur-sm"
+                    className="flex items-center text-left text-xs bg-white/40 hover:bg-white/75 border border-white/60 hover:border-primary-400 p-3 rounded-2xl transition-all text-gray-800 hover:text-primary-700 shadow-2xs hover:shadow-xs group cursor-pointer backdrop-blur-md"
                   >
                     <item.icon className="w-4 h-4 text-primary-600 mr-2.5 shrink-0 transition-transform group-hover:scale-110" />
                     <span className="font-semibold truncate">{item.label}</span>
@@ -354,7 +354,7 @@ export default function AdminAiTopBar() {
                     className={`max-w-[92%] rounded-2xl px-4 py-3 text-xs sm:text-sm ${
                       msg.role === 'user'
                         ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold rounded-br-xs shadow-md'
-                        : 'bg-white/85 border border-white/90 text-gray-800 rounded-bl-xs shadow-sm backdrop-blur-md ring-1 ring-black/5'
+                        : 'bg-white/50 border border-white/70 text-gray-900 rounded-bl-xs shadow-xs backdrop-blur-md ring-1 ring-black/5'
                     }`}
                   >
                     <div className="whitespace-pre-wrap leading-relaxed">
@@ -362,14 +362,14 @@ export default function AdminAiTopBar() {
                     </div>
 
                     {msg.role === 'assistant' && (
-                      <div className="mt-2.5 pt-2 border-t border-gray-100/80 flex items-center justify-between text-[11px] text-gray-500 font-medium">
-                        <span className="flex items-center gap-1 font-semibold text-gray-600">
+                      <div className="mt-2.5 pt-2 border-t border-gray-200/40 flex items-center justify-between text-[11px] text-gray-600 font-medium">
+                        <span className="flex items-center gap-1.5 font-bold text-gray-700">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                           WEHOSTHERE AI
                         </span>
                         <button
                           onClick={() => copyToClipboard(msg.content, msg.id)}
-                          className="flex items-center space-x-1 hover:text-gray-900 px-2 py-0.5 rounded-md hover:bg-gray-100 transition cursor-pointer"
+                          className="flex items-center space-x-1 hover:text-gray-900 px-2 py-0.5 rounded-md hover:bg-white/60 transition cursor-pointer"
                         >
                           {copiedId === msg.id ? (
                             <>
@@ -390,7 +390,7 @@ export default function AdminAiTopBar() {
               ))}
 
               {loading && (
-                <div className="flex items-center space-x-2 text-xs font-bold text-primary-600 py-3 px-3 bg-white/80 backdrop-blur-md rounded-xl border border-white/90 shadow-xs w-fit">
+                <div className="flex items-center space-x-2 text-xs font-bold text-primary-600 py-3 px-3 bg-white/50 backdrop-blur-md rounded-xl border border-white/70 shadow-xs w-fit">
                   <RefreshCw className="w-3.5 h-3.5 animate-spin text-primary-600" />
                   <span>A consultar banco de dados e processar resposta...</span>
                 </div>
