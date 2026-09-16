@@ -20,6 +20,7 @@ export default function AdminAiTopBar() {
   const [query, setQuery] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const [loading, setLoading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -27,6 +28,8 @@ export default function AdminAiTopBar() {
   const panelRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
   const handleSendRef = useRef<(text?: string) => Promise<void>>(async () => {});
+
+  const isExpanded = isOpen || isFocused;
 
   const handleSend = async (textToSend?: string) => {
     const text = (textToSend || query).trim();
@@ -127,6 +130,7 @@ export default function AdminAiTopBar() {
         !inputRef.current.contains(event.target as Node)
       ) {
         setIsOpen(false);
+        setIsFocused(false);
       }
     };
 
@@ -148,6 +152,7 @@ export default function AdminAiTopBar() {
         recognitionRef.current.start();
         setIsListening(true);
         setIsOpen(true);
+        setIsFocused(true);
       } catch (e) {
         console.error('Erro ao iniciar microfone:', e);
         setIsListening(false);
@@ -192,6 +197,7 @@ export default function AdminAiTopBar() {
             type="button"
             onClick={() => {
               setIsOpen(false);
+              setIsFocused(false);
               router.push(href);
             }}
             className="inline-flex items-center text-primary-600 hover:text-primary-700 font-bold underline underline-offset-2 mx-1 transition cursor-pointer"
@@ -206,25 +212,42 @@ export default function AdminAiTopBar() {
 
   return (
     <div className="relative w-full max-w-2xl mx-auto px-4 py-2 z-50">
-      {/* 🔮 Top Bar Input Capsule com Aurora Glow */}
+      {/* 🔮 Top Bar Input Capsule com Aurora Glow & Transição de Cor */}
       <div className="relative group">
-        {/* Glow Multicolorido Aurora (Borda luminosa) */}
+        {/* Glow Multicolorido Aurora */}
         <div 
-          className={`absolute -inset-[1.5px] rounded-full opacity-85 blur-[2.5px] transition duration-500 group-hover:opacity-100 ${
+          className={`absolute -inset-[1.5px] rounded-full blur-[2.5px] transition-all duration-500 ${
             isListening 
-              ? 'animate-pulse bg-gradient-to-r from-red-500 via-pink-500 to-amber-500' 
-              : 'bg-gradient-to-r from-sky-400 via-primary-500 via-cyan-300 via-emerald-400 to-amber-400'
+              ? 'opacity-100 animate-pulse bg-gradient-to-r from-red-500 via-pink-500 to-amber-500' 
+              : isExpanded
+                ? 'opacity-100 bg-gradient-to-r from-primary-500 via-sky-400 via-indigo-500 to-amber-400'
+                : 'opacity-85 group-hover:opacity-100 bg-gradient-to-r from-sky-400 via-primary-500 via-cyan-300 via-emerald-400 to-amber-400'
           }`}
         />
 
         {/* Linha Fina Brilhante no Topo */}
         <div className="absolute top-0 inset-x-4 h-[1px] bg-gradient-to-r from-transparent via-sky-200 via-cyan-200 to-transparent opacity-90 rounded-full" />
 
-        {/* Estrutura da Cápsula — Azul Oficial WEHOSTHERE */}
-        <div className="relative flex items-center bg-gradient-to-r from-[#075985] via-[#0369a1] to-[#0284c7] backdrop-blur-xl rounded-full px-4 py-2 shadow-xl shadow-primary-900/20 border border-white/20 hover:border-white/35 transition-all duration-300">
+        {/* Estrutura da Cápsula — Muda para Branco ao Clicar / Focar */}
+        <div 
+          onClick={() => {
+            setIsFocused(true);
+            if (messages.length > 0 || !isOpen) setIsOpen(true);
+            inputRef.current?.focus();
+          }}
+          className={`relative flex items-center rounded-full px-4 py-2 shadow-xl transition-all duration-300 cursor-text ${
+            isExpanded
+              ? 'bg-white/95 backdrop-blur-xl border border-primary-300 shadow-primary-500/10 ring-2 ring-primary-500/15'
+              : 'bg-gradient-to-r from-[#075985] via-[#0369a1] to-[#0284c7] backdrop-blur-xl border border-white/20 hover:border-white/35 shadow-primary-900/20'
+          }`}
+        >
           
           {/* Logótipo WEHOSTHERE */}
-          <div className="flex items-center justify-center w-7 h-7 rounded-full bg-white/20 mr-2.5 shrink-0 overflow-hidden p-1 border border-white/30 shadow-xs">
+          <div className={`flex items-center justify-center w-7 h-7 rounded-full mr-2.5 shrink-0 overflow-hidden p-1 transition-all duration-300 ${
+            isExpanded 
+              ? 'bg-primary-50 border border-primary-200 shadow-2xs' 
+              : 'bg-white/20 border border-white/30 shadow-xs'
+          }`}>
             <img 
               src="/icon-192.png" 
               alt="WEHOSTHERE" 
@@ -242,7 +265,8 @@ export default function AdminAiTopBar() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onFocus={() => {
-              if (messages.length > 0) setIsOpen(true);
+              setIsFocused(true);
+              setIsOpen(true);
             }}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
@@ -251,7 +275,11 @@ export default function AdminAiTopBar() {
               }
             }}
             placeholder={isListening ? 'A ouvir a sua voz...' : 'Digite o seu comando...'}
-            className="w-full bg-transparent text-white placeholder-sky-100/75 text-sm md:text-base focus:outline-none font-medium tracking-wide"
+            className={`w-full bg-transparent text-sm md:text-base focus:outline-none font-medium tracking-wide transition-colors duration-300 ${
+              isExpanded
+                ? 'text-gray-900 placeholder-gray-400'
+                : 'text-white placeholder-sky-100/75'
+            }`}
           />
 
           {/* Botões de Ação (Voz e Envio) */}
@@ -259,9 +287,16 @@ export default function AdminAiTopBar() {
             {query.trim() && (
               <button
                 type="button"
-                onClick={() => handleSend()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleSend();
+                }}
                 disabled={loading}
-                className="p-1.5 rounded-full bg-white hover:bg-sky-50 text-primary-700 font-bold transition-all transform active:scale-95 shadow-md"
+                className={`p-1.5 rounded-full font-bold transition-all transform active:scale-95 shadow-md ${
+                  isExpanded
+                    ? 'bg-primary-600 hover:bg-primary-700 text-white'
+                    : 'bg-white hover:bg-sky-50 text-primary-700'
+                }`}
                 title="Enviar comando"
               >
                 <Send className="w-3.5 h-3.5" />
@@ -270,16 +305,21 @@ export default function AdminAiTopBar() {
 
             <button
               type="button"
-              onClick={toggleVoice}
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleVoice();
+              }}
               className={`p-2 rounded-full transition-all duration-300 ${
                 isListening
-                  ? 'bg-red-500/30 text-white animate-bounce'
-                  : 'text-sky-100 hover:text-white hover:bg-white/15'
+                  ? 'bg-red-500/30 text-red-500 animate-bounce'
+                  : isExpanded
+                    ? 'text-gray-400 hover:text-gray-800 hover:bg-gray-100'
+                    : 'text-sky-100 hover:text-white hover:bg-white/15'
               }`}
               title={isListening ? 'Parar de ouvir' : 'Falar com a IA por voz'}
             >
               {isListening ? (
-                <MicOff className="w-4 h-4 text-white" />
+                <MicOff className="w-4 h-4 text-red-500" />
               ) : (
                 <Mic className="w-4 h-4" />
               )}
