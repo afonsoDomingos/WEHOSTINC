@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ChevronUp } from 'lucide-react';
+import { ChevronUp, ChevronDown } from 'lucide-react';
 
 export default function ScrollToTop() {
   const [isVisible, setIsVisible] = useState(false);
@@ -11,8 +11,8 @@ export default function ScrollToTop() {
     const handleScroll = () => {
       const totalScroll = document.documentElement.scrollHeight - window.innerHeight;
       const currentScroll = window.scrollY;
-      
-      if (currentScroll > 250) {
+
+      if (currentScroll > 100) {
         setIsVisible(true);
       } else {
         setIsVisible(false);
@@ -21,10 +21,13 @@ export default function ScrollToTop() {
       if (totalScroll > 0) {
         const progress = Math.min(Math.max((currentScroll / totalScroll) * 100, 0), 100);
         setScrollProgress(progress);
+      } else {
+        setScrollProgress(0);
       }
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -35,42 +38,73 @@ export default function ScrollToTop() {
     });
   };
 
+  const scrollToBottom = () => {
+    window.scrollTo({
+      top: document.documentElement.scrollHeight,
+      behavior: 'smooth',
+    });
+  };
+
   if (!isVisible) return null;
 
+  const roundedPercentage = Math.round(scrollProgress);
+
   return (
-    <div className="fixed bottom-5 right-5 z-50 animate-in fade-in zoom-in-75 duration-300">
-      <button
-        type="button"
-        onClick={scrollToTop}
-        aria-label="Voltar ao topo"
-        className="relative group p-2.5 sm:p-3 bg-slate-950/85 hover:bg-slate-900 text-white rounded-full border border-primary-500/30 shadow-lg shadow-primary-950/40 backdrop-blur-xl transition-all duration-300 hover:scale-110 active:scale-95 cursor-pointer flex items-center justify-center overflow-hidden"
-      >
-        {/* Glow neon ring on hover */}
-        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary-500/20 via-sky-500/20 to-emerald-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xs" />
+    <div className="fixed bottom-6 right-5 z-40 animate-in fade-in zoom-in-90 duration-300">
+      {/* Cápsula Vertical Flutuante de Scroll */}
+      <div className="relative group bg-white/95 backdrop-blur-xl border border-gray-200/90 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.12),0_0_0_1px_rgba(255,255,255,0.8)_inset] rounded-full p-1.5 flex flex-col items-center gap-1 w-11 sm:w-12 transition-all duration-300 hover:shadow-primary-500/15 hover:border-primary-300">
+        
+        {/* Botão Superior — Subir ao Topo */}
+        <button
+          type="button"
+          onClick={scrollToTop}
+          aria-label="Rolar para o topo"
+          title="Rolar para o topo"
+          className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-sky-50 hover:bg-sky-100 text-[#0284c7] hover:text-[#0369a1] flex items-center justify-center transition-all duration-200 active:scale-90 cursor-pointer shadow-2xs group/up"
+        >
+          <ChevronUp className="w-4 h-4 sm:w-4.5 sm:h-4.5 stroke-[2.5] group-hover/up:-translate-y-0.5 transition-transform" />
+        </button>
 
-        {/* Dynamic circular SVG scroll progress ring */}
-        <svg className="absolute inset-0 w-full h-full -rotate-90 p-0.5" viewBox="0 0 36 36">
-          <path
-            className="text-slate-800"
-            strokeWidth="2.5"
-            stroke="currentColor"
-            fill="none"
-            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-          />
-          <path
-            className="text-primary-500 transition-all duration-150"
-            strokeDasharray={`${scrollProgress}, 100`}
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            stroke="currentColor"
-            fill="none"
-            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-          />
-        </svg>
+        {/* Indicador de Percentagem Central */}
+        <div className="py-0.5 text-center select-none">
+          <span className="text-[10px] sm:text-[11px] font-black text-slate-700 tracking-tighter block font-mono">
+            {roundedPercentage}%
+          </span>
+        </div>
 
-        {/* Chevron icon with bounce animation */}
-        <ChevronUp className="h-4 w-4 sm:h-4.5 sm:w-4.5 text-primary-400 group-hover:text-white group-hover:-translate-y-0.5 transition-all duration-200 relative z-10" />
-      </button>
+        {/* Botão Inferior — Descer ao Fundo com anel de progresso em Azul WEHOSTHERE */}
+        <button
+          type="button"
+          onClick={scrollToBottom}
+          aria-label="Rolar para o fundo"
+          title="Rolar para o fundo"
+          className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center transition-all duration-200 active:scale-90 cursor-pointer group/down overflow-hidden"
+        >
+          {/* Fundo SVG com anel de progresso circular dinâmico */}
+          <svg className="absolute inset-0 w-full h-full -rotate-90 p-0.5" viewBox="0 0 36 36">
+            {/* Trilha do anel */}
+            <path
+              className="text-sky-100"
+              strokeWidth="3"
+              stroke="currentColor"
+              fill="none"
+              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+            />
+            {/* Progresso azul WEHOSTHERE */}
+            <path
+              className="text-[#0284c7] transition-all duration-150"
+              strokeDasharray={`${scrollProgress}, 100`}
+              strokeWidth="3"
+              strokeLinecap="round"
+              stroke="currentColor"
+              fill="none"
+              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+            />
+          </svg>
+
+          <ChevronDown className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-[#0284c7] stroke-[2.5] relative z-10 group-hover/down:translate-y-0.5 transition-transform" />
+        </button>
+      </div>
     </div>
   );
 }
