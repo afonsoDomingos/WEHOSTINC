@@ -396,20 +396,50 @@ export const auth = {
   },
 
 
-  // Logout
-  logout: (): void => {
+  // Logout Completo & Seguro de todos os sistemas (LocalStorage, SessionStorage, Cookies e NextAuth)
+  logout: async (): Promise<void> => {
     if (typeof window !== 'undefined') {
+      // 1. Limpar sessão principal de autenticação e contas ativas
       localStorage.removeItem(STORAGE_KEY);
-      
-      // Limpeza completa de todos os cookies de sessão no navegador
+      localStorage.removeItem('wehost_active_webmail_account');
+      localStorage.removeItem('webmail_account');
+      localStorage.removeItem('wehosthere_impersonated_user');
+
+      // 2. Limpar todo o SessionStorage (impersonações, modo preview de admin, caches temporários)
+      try {
+        sessionStorage.removeItem('wehosthere_impersonated_user');
+        sessionStorage.removeItem('wehosthere_view_as_client');
+        sessionStorage.removeItem('wehosthere_original_admin');
+        sessionStorage.clear();
+      } catch (e) {}
+
+      // 3. Limpeza exaustiva de todos os cookies no navegador em vários paths
       try {
         const cookies = document.cookie.split(';');
+        const paths = ['/', '/admin', '/dashboard', '/api', '/webmail'];
+        const domain = window.location.hostname;
         for (let i = 0; i < cookies.length; i++) {
           const cookie = cookies[i];
           const eqPos = cookie.indexOf('=');
           const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
-          document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+          if (name) {
+            paths.forEach(p => {
+              document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=${p};`;
+              document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=${p}; domain=${domain};`;
+            });
+          }
         }
+      } catch (e) {}
+
+      // 4. Invalidar sessão NextAuth via endpoint oficial do servidor
+      try {
+        fetch('/api/auth/signout', { method: 'POST' }).catch(() => {});
+      } catch (e) {}
+
+      // 5. Notificar todos os componentes e abas ativas
+      try {
+        window.dispatchEvent(new Event('storage'));
+        window.dispatchEvent(new CustomEvent('wehost_auth_change', { detail: { user: null } }));
       } catch (e) {}
     }
   },

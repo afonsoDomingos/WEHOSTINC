@@ -294,12 +294,15 @@ export default function AdminPage() {
   const [visitStats, setVisitStats] = useState<{ total: number; uniqueVisitors: number; topPages: Array<{ page: string; count: number }> }>({ total: 0, uniqueVisitors: 0, topPages: [] });
   const [visitStatsPeriod, setVisitStatsPeriod] = useState<'today' | 'week' | 'month' | 'all'>('all');
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setIsLoggingOut(true);
+    await auth.logout();
+    try {
+      await nextAuthSignOut({ redirect: false });
+    } catch (_) {}
     setTimeout(() => {
-      auth.logout();
-      router.push('/');
-    }, 400);
+      window.location.href = '/';
+    }, 300);
   };
 
   // Função para criar payout B2C

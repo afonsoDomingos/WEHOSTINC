@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useSession, signOut } from 'next-auth/react';
 import { Menu, X, LayoutDashboard, LogOut, User as UserIcon } from 'lucide-react';
 import BrandLogo from '@/components/BrandLogo';
 import PageLoader from '@/components/PageLoader';
@@ -13,26 +14,62 @@ import { auth, User } from '@/lib/auth';
 export default function Navbar() {
   const router = useRouter();
   const { t } = useLanguage();
+  const { data: session } = useSession();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   useEffect(() => {
-    setUser(auth.getCurrentUser());
-  }, []);
+    const syncUser = () => {
+      // 1. Tentar NextAuth
+      if (session?.user) {
+        const nextAuthUser: User = {
+          id: (session.user as any)?.id || session.user.email || '',
+          name: session.user.name || '',
+          email: session.user.email || '',
+          plan: (session.user as any)?.plan || 'none',
+          status: (session.user as any)?.status || 'active',
+          role: (session.user as any)?.role || 'user',
+          avatar: session.user.image || undefined,
+          createdAt: new Date().toISOString()
+        };
+        setUser(nextAuthUser);
+        return;
+      }
+
+      // 2. Tentar Auth local
+      setUser(auth.getCurrentUser());
+    };
+
+    syncUser();
+
+    // Ouvir alterações de sessão/storage em tempo real
+    const handleAuthChange = () => syncUser();
+    window.addEventListener('storage', handleAuthChange);
+    window.addEventListener('wehost_auth_change', handleAuthChange);
+
+    return () => {
+      window.removeEventListener('storage', handleAuthChange);
+      window.removeEventListener('wehost_auth_change', handleAuthChange);
+    };
+  }, [session]);
 
   const closeMobileMenu = () => {
     setMobileMenuOpen(false);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setIsLoggingOut(true);
+    await auth.logout();
+    setUser(null);
+    closeMobileMenu();
+    try {
+      await signOut({ redirect: false });
+    } catch (_) {}
     setTimeout(() => {
-      auth.logout();
-      setUser(null);
-      closeMobileMenu();
       router.push('/');
-    }, 400);
+      setIsLoggingOut(false);
+    }, 300);
   };
 
   return (

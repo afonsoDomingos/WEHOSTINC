@@ -46,30 +46,44 @@ export default function AdminAiTopBar({ isGlobalRoot = false }: AdminAiTopBarPro
 
   // Verificar se utilizador atual tem privilégios de administrador ou sessão de cliente
   useEffect(() => {
-    // 1. Verificar sessão NextAuth
-    if (session?.user) {
-      const email = session.user.email?.toLowerCase();
-      setUserEmail(email || null);
-      const role = (session.user as any)?.role;
-      if (role === 'admin' || role === 'super_admin' || email === 'info@wehosthere.com' || email === 'admin@wehosthere.com') {
-        setIsAdminUser(true);
-        return;
-      }
-    }
-
-    // 2. Verificar autenticação em localStorage
-    try {
-      const localUser = auth.getCurrentUser();
-      if (localUser) {
-        setUserEmail(localUser.email?.toLowerCase() || null);
-        if (localUser.role === 'admin' || localUser.role === 'super_admin' || localUser.email === 'info@wehosthere.com' || localUser.email === 'admin@wehosthere.com') {
+    const syncAuthState = () => {
+      // 1. Verificar sessão NextAuth
+      if (session?.user) {
+        const email = session.user.email?.toLowerCase();
+        setUserEmail(email || null);
+        const role = (session.user as any)?.role;
+        if (role === 'admin' || role === 'super_admin' || email === 'info@wehosthere.com' || email === 'admin@wehosthere.com') {
           setIsAdminUser(true);
           return;
         }
       }
-    } catch (_) {}
 
-    setIsAdminUser(false);
+      // 2. Verificar autenticação em localStorage
+      try {
+        const localUser = auth.getCurrentUser();
+        if (localUser) {
+          setUserEmail(localUser.email?.toLowerCase() || null);
+          if (localUser.role === 'admin' || localUser.role === 'super_admin' || localUser.email === 'info@wehosthere.com' || localUser.email === 'admin@wehosthere.com') {
+            setIsAdminUser(true);
+            return;
+          }
+        }
+      } catch (_) {}
+
+      setUserEmail(null);
+      setIsAdminUser(false);
+    };
+
+    syncAuthState();
+
+    const handleAuthChange = () => syncAuthState();
+    window.addEventListener('storage', handleAuthChange);
+    window.addEventListener('wehost_auth_change', handleAuthChange);
+
+    return () => {
+      window.removeEventListener('storage', handleAuthChange);
+      window.removeEventListener('wehost_auth_change', handleAuthChange);
+    };
   }, [session]);
 
   // Carregar preferências de páginas públicas do localStorage

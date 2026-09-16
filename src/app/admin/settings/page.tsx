@@ -101,9 +101,9 @@ export default function AdminSettingsPage() {
     }
   };
 
-  const handleLogout = () => {
-    auth.logout();
-    router.push('/');
+  const handleLogout = async () => {
+    await auth.logout();
+    window.location.href = '/';
   };
 
   if (loading) {
