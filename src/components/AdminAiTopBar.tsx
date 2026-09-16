@@ -285,8 +285,8 @@ export default function AdminAiTopBar() {
       <div
         ref={panelRef}
         className={`${
-          isFloating
-            ? 'absolute bottom-full right-0 mb-3 w-[92vw] sm:w-[480px]'
+          shouldRenderFloating
+            ? 'absolute top-full right-0 mt-3 w-[92vw] sm:w-[480px]'
             : 'absolute top-full left-4 right-4 mt-3'
         } bg-white/45 backdrop-blur-2xl border border-white/70 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.15),0_0_0_1px_rgba(255,255,255,0.6)_inset] ring-1 ring-black/5 rounded-3xl p-5 text-gray-900 overflow-hidden transition-all duration-300 animate-in fade-in slide-in-from-top-3 max-h-[520px] flex flex-col z-50`}
       >
@@ -319,7 +319,7 @@ export default function AdminAiTopBar() {
               <button
                 onClick={toggleFloatingMode}
                 className="p-1.5 rounded-xl text-gray-500 hover:text-primary-600 hover:bg-white/50 transition cursor-pointer"
-                title={isFloating ? 'Fixar na barra do topo' : 'Mudar para modo flutuante de canto'}
+                title={isFloating ? 'Fixar na barra do topo' : 'Mudar para modo flutuante'}
               >
                 {isFloating ? <Minimize2 className="w-4 h-4" /> : <Pin className="w-4 h-4" />}
               </button>
@@ -432,19 +432,17 @@ export default function AdminAiTopBar() {
     return null;
   }
 
-  // 🔹 MODO FLUTUANTE DE CANTO (Floating Corner Widget em todas as páginas públicas ou quando ativado)
+  // 🔹 MODO FLUTUANTE NO TOPO (Floating Top Launcher Widget)
   if (shouldRenderFloating) {
     return (
-      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
-        {renderResponsePanel()}
-
-        {/* Botão Launcher Flutuante com Aurora Glow */}
+      <div className="fixed top-3 right-4 sm:right-6 z-50 flex flex-col items-end">
+        {/* Botão Launcher Flutuante no Topo com Aurora Glow */}
         <div className="relative group">
           <div 
             className={`absolute -inset-1 rounded-full blur-md transition-all duration-500 ${
               isListening
                 ? 'opacity-100 animate-pulse bg-gradient-to-r from-red-500 via-pink-500 to-amber-500'
-                : 'opacity-80 group-hover:opacity-100 bg-gradient-to-r from-sky-400 via-primary-500 to-amber-400'
+                : 'opacity-85 group-hover:opacity-100 bg-gradient-to-r from-sky-400 via-primary-500 to-amber-400'
             }`}
           />
 
@@ -453,9 +451,9 @@ export default function AdminAiTopBar() {
               setIsOpen(prev => !prev);
               setIsFocused(true);
             }}
-            className="relative flex items-center space-x-2.5 bg-gradient-to-r from-[#075985] via-[#0369a1] to-[#0284c7] hover:from-[#0369a1] hover:to-[#0284c7] text-white px-4 py-3 rounded-full shadow-2xl border border-white/30 cursor-pointer transition-all duration-300 transform active:scale-95"
+            className="relative flex items-center space-x-2 bg-gradient-to-r from-[#075985] via-[#0369a1] to-[#0284c7] hover:from-[#0369a1] hover:to-[#0284c7] text-white px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-full shadow-2xl border border-white/30 cursor-pointer transition-all duration-300 transform active:scale-95"
           >
-            <div className="w-6 h-6 rounded-full bg-white/20 p-0.5 border border-white/40 flex items-center justify-center">
+            <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-white/20 p-0.5 border border-white/40 flex items-center justify-center">
               <img src="/icon-192.png" alt="AI" className="w-full h-full object-contain rounded-full" />
             </div>
             <span className="text-xs font-black tracking-wide hidden sm:inline">AI Copilot</span>
@@ -470,10 +468,12 @@ export default function AdminAiTopBar() {
               className="p-1 rounded-full hover:bg-white/20 transition text-sky-100"
               title="Falar por voz"
             >
-              {isListening ? <MicOff className="w-4 h-4 text-red-400 animate-bounce" /> : <Mic className="w-4 h-4" />}
+              {isListening ? <MicOff className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-400 animate-bounce" /> : <Mic className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
             </button>
           </div>
         </div>
+
+        {renderResponsePanel()}
       </div>
     );
   }
