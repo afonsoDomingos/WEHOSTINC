@@ -26,6 +26,62 @@ export default function AdminAiTopBar() {
   const inputRef = useRef<HTMLInputElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
+  const handleSendRef = useRef<(text?: string) => Promise<void>>(async () => {});
+
+  const handleSend = async (textToSend?: string) => {
+    const text = (textToSend || query).trim();
+    if (!text || loading) return;
+
+    const userMsg: ChatMessage = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: text,
+      timestamp: new Date()
+    };
+
+    setMessages(prev => [...prev, userMsg]);
+    setQuery('');
+    setIsOpen(true);
+    setLoading(true);
+
+    try {
+      const response = await fetch('/api/ai/admin-copilot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: text,
+          history: messages.slice(-4).map(m => ({ role: m.role, content: m.content }))
+        })
+      });
+
+      const data = await response.json();
+      const assistantMsg: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: data.answer || 'Não consegui obter uma resposta para este comando.',
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, assistantMsg]);
+    } catch (err) {
+      console.error('[AI Top Bar] Erro:', err);
+      setMessages(prev => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: 'Ocorreu um erro ao comunicar com o Copilot. Por favor, tente novamente.',
+          timestamp: new Date()
+        }
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    handleSendRef.current = handleSend;
+  });
 
   // Inicializar SpeechRecognition do navegador (voz)
   useEffect(() => {
@@ -42,7 +98,9 @@ export default function AdminAiTopBar() {
           setQuery(transcript);
           setIsListening(false);
           // Auto submeter ao reconhecer voz
-          handleSend(transcript);
+          if (handleSendRef.current) {
+            handleSendRef.current(transcript);
+          }
         };
 
         recognition.onerror = (event: any) => {
@@ -97,57 +155,6 @@ export default function AdminAiTopBar() {
     }
   };
 
-  const handleSend = async (textToSend?: string) => {
-    const text = (textToSend || query).trim();
-    if (!text || loading) return;
-
-    const userMsg: ChatMessage = {
-      id: Date.now().toString(),
-      role: 'user',
-      content: text,
-      timestamp: new Date()
-    };
-
-    setMessages(prev => [...prev, userMsg]);
-    setQuery('');
-    setIsOpen(true);
-    setLoading(true);
-
-    try {
-      const response = await fetch('/api/ai/admin-copilot', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          query: text,
-          history: messages.slice(-4).map(m => ({ role: m.role, content: m.content }))
-        })
-      });
-
-      const data = await response.json();
-      const assistantMsg: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: data.answer || 'Não consegui obter uma resposta para este comando.',
-        timestamp: new Date()
-      };
-
-      setMessages(prev => [...prev, assistantMsg]);
-    } catch (err) {
-      console.error('[AI Top Bar] Erro:', err);
-      setMessages(prev => [
-        ...prev,
-        {
-          id: (Date.now() + 1).toString(),
-          role: 'assistant',
-          content: 'Ocorreu um erro ao comunicar com o Copilot. Por favor, tente novamente.',
-          timestamp: new Date()
-        }
-      ]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const copyToClipboard = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
     setCopiedId(id);
@@ -166,11 +173,11 @@ export default function AdminAiTopBar() {
   ];
 
   const formatContent = (rawText: string) => {
-    // 1. Remover asteriscos duplos (**) ou simples (*) e emojis infantis/informais
+    // 1. Remover asteriscos duplos (**) ou simples (*) e emojis compatíveis
     const cleanText = (rawText || '')
       .replace(/\*\*/g, '')
       .replace(/\*/g, '')
-      .replace(/[\u{1F916}\u{1F465}\u{1F6D2}\u{1F4B0}\u{1F3AB}\u{1F310}\u{1F4E2}\u{1F449}\u{1F91D}\u{1F4E7}\u{2705}\u{26A0}\u{FE0F}]/gu, '');
+      .replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]|[\u2600-\u27BF]/g, '');
 
     // 2. Transformar links markdown [Texto](/rota) em botões de navegação
     const parts = cleanText.split(/(\[[^\]]+\]\([^)]+\))/g);
