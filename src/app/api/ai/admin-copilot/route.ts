@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
       affiliates: { total: 0, pendingCommissions: 0, pendingAmount: 0 },
       newsletter: { totalSubscribers: 0 },
       abandonedCarts: { count: 0 },
-      analytics: { visitsToday: 0, uniqueVisitors: 0 }
+      analytics: { totalVisits: 0 }
     };
 
     try {
@@ -148,47 +148,26 @@ export async function POST(request: NextRequest) {
 
     // Montar o Prompt do Sistema com TODOS os dados reais do MongoDB
     const systemPrompt = `
-Você é o **WEHOSTHERE AI Copilot**, o assistente executivo e de inteligência operacional de elite do painel de administração da WEHOSTHERE.
+Você é o WEHOSTHERE AI Copilot, assistente executivo e operacional de elite do painel de administração da WEHOSTHERE.
 
 Você tem acesso direto aos dados e endpoints em tempo real do banco de dados MongoDB da plataforma:
 
-📊 DADOS ATUAIS EM TEMPO REAL NO BANCO DE DADOS:
-- 👥 UTILIZADORES:
-  * Total de Utilizadores: ${liveData.users.total}
-  * Ativos: ${liveData.users.active} | Pendentes de Confirmação: ${liveData.users.pending}
-  * Últimos 5 Utilizadores Registados: ${JSON.stringify(liveData.users.recent)}
-
-- 🛒 PEDIDOS & VENDAS:
-  * Total de Pedidos: ${liveData.orders.total} (Concluídos: ${liveData.orders.completed}, Pendentes: ${liveData.orders.pending})
-  * Últimos Pedidos: ${JSON.stringify(liveData.orders.recent)}
-
-- 💰 FATURAÇÃO & PAGAMENTOS MENSAIS:
-  * Faturas com Pagamento Pendente/Atrasado: ${liveData.payments.pendingCount}
-  * Clientes com Faturas Pendentes: ${JSON.stringify(liveData.payments.overdueList)}
-
-- 🎫 SUPORTE & TICKETS:
-  * Total de Tickets: ${liveData.tickets.total}
-  * Tickets em Aberto / Aguardando Resposta: ${liveData.tickets.open}
-  * Lista de Tickets Abertos: ${JSON.stringify(liveData.tickets.recent)}
-
-- 🌐 SITES & DOMÍNIOS:
-  * Sites Ativos Criados: ${liveData.sites.total}
-  * Domínios de Email Corporativo: ${liveData.domains.total} (Detalhes: ${JSON.stringify(liveData.domains.list)})
-
-- 🤝 AFILIADOS & MARKETING:
-  * Total de Afiliados: ${liveData.affiliates.total}
-  * Comissões Pendentes de Saque: ${liveData.affiliates.pendingCommissions} (Total: ${liveData.affiliates.pendingAmount} MZN)
-  * Assinantes da Newsletter: ${liveData.newsletter.totalSubscribers}
-  * Carrinhos Abandonados: ${liveData.abandonedCarts.count}
-  * Total de Visitas Registadas: ${liveData.analytics.totalVisits}
+DADOS ATUAIS EM TEMPO REAL NO BANCO DE DADOS:
+- UTILIZADORES: Total: ${liveData.users.total} | Ativos: ${liveData.users.active} | Pendentes: ${liveData.users.pending} | Recentes: ${JSON.stringify(liveData.users.recent)}
+- PEDIDOS: Total: ${liveData.orders.total} | Concluídos: ${liveData.orders.completed} | Pendentes: ${liveData.orders.pending} | Recentes: ${JSON.stringify(liveData.orders.recent)}
+- FATURAÇÃO & PAGAMENTOS: Faturas Pendentes: ${liveData.payments.pendingCount} | Lista: ${JSON.stringify(liveData.payments.overdueList)}
+- SUPORTE & TICKETS: Total: ${liveData.tickets.total} | Abertos: ${liveData.tickets.open} | Lista: ${JSON.stringify(liveData.tickets.recent)}
+- SITES & DOMÍNIOS: Sites Ativos: ${liveData.sites.total} | Domínios: ${liveData.domains.total} (Detalhes: ${JSON.stringify(liveData.domains.list)})
+- AFILIADOS: Total: ${liveData.affiliates.total} | Comissões Pendentes: ${liveData.affiliates.pendingCommissions} (${liveData.affiliates.pendingAmount} MZN)
+- MARKETING: Newsletter: ${liveData.newsletter.totalSubscribers} assinantes | Carrinhos Abandonados: ${liveData.abandonedCarts.count} | Visitas: ${liveData.analytics.totalVisits}
 
 ${WEHOSTHERE_KNOWLEDGE}
 
-DIRETRIZES DE RESPOSTA:
-1. Use SEMPRE os dados reais e exatos fornecidos acima quando o administrador perguntar sobre utilizadores, faturas, vendas, tickets, domínios ou métricas.
-2. Responda em Português de forma profissional, elegante, clara e direta com formatação Markdown (tabelas, listas, negrito).
-3. Quando sugerir uma ação ou módulo, inclua o link clicável correspondente (ex: "/admin/pagamentos-mensais", "/admin/comunicacao", "/admin/email-domains", "/admin/affiliates").
-4. Se o administrador pedir para redigir um email, proposta ou resposta de ticket, entregue o texto pronto para envio.
+REGRAS DE FORMATAÇÃO E RESPOSTA:
+1. IMPORTANTE: NUNCA USE ASTERISCOS (**) OU (*) PARA NEGRITO OU ITÁLICO. O texto deve ser 100% limpo, sem caracteres de formatação crua.
+2. Use títulos com emojis, listas com marcadores simples (• ou -) e quebras de linha limpas.
+3. Quando sugerir uma página do sistema, inclua o link clicável (ex: /admin/pagamentos-mensais ou /admin/comunicacao).
+4. Responda em Português de forma profissional, direta e executiva.
 `;
 
     // 1. Tentar Google Gemini se a chave existir
@@ -199,7 +178,7 @@ DIRETRIZES DE RESPOSTA:
           { role: 'user', parts: [{ text: systemPrompt }] },
           ...history.map((h: any) => ({
             role: h.role === 'assistant' ? 'model' : 'user',
-            parts: [{ text: h.content }]
+            parts: [{ text: h.content.replace(/\*\*/g, '').replace(/\*/g, '') }]
           })),
           { role: 'user', parts: [{ text: cleanQuery }] }
         ];
@@ -217,7 +196,8 @@ DIRETRIZES DE RESPOSTA:
           const data = await geminiRes.json();
           const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
           if (reply) {
-            return NextResponse.json({ success: true, answer: reply, provider: 'gemini' });
+            const sanitized = reply.replace(/\*\*/g, '').replace(/\*/g, '');
+            return NextResponse.json({ success: true, answer: sanitized, provider: 'gemini' });
           }
         }
       } catch (err) {
@@ -239,7 +219,7 @@ DIRETRIZES DE RESPOSTA:
             model: 'gpt-4o-mini',
             messages: [
               { role: 'system', content: systemPrompt },
-              ...history.map((h: any) => ({ role: h.role, content: h.content })),
+              ...history.map((h: any) => ({ role: h.role, content: h.content.replace(/\*\*/g, '').replace(/\*/g, '') })),
               { role: 'user', content: cleanQuery }
             ],
             temperature: 0.7,
@@ -250,7 +230,8 @@ DIRETRIZES DE RESPOSTA:
           const data = await openaiRes.json();
           const reply = data?.choices?.[0]?.message?.content;
           if (reply) {
-            return NextResponse.json({ success: true, answer: reply, provider: 'openai' });
+            const sanitized = reply.replace(/\*\*/g, '').replace(/\*/g, '');
+            return NextResponse.json({ success: true, answer: sanitized, provider: 'openai' });
           }
         }
       } catch (err) {
@@ -258,8 +239,8 @@ DIRETRIZES DE RESPOSTA:
       }
     }
 
-    // 3. Motor Inteligente Nativo da WEHOSTHERE com todos os dados vivos
-    const smartLocalAnswer = generateEnrichedLocalResponse(cleanQuery, liveData);
+    // 3. Motor Inteligente Nativo da WEHOSTHERE com todos os dados vivos (Sem asteriscos)
+    const smartLocalAnswer = generateEnrichedCleanLocalResponse(cleanQuery, liveData);
     return NextResponse.json({ success: true, answer: smartLocalAnswer, provider: 'local-engine-v2' });
 
   } catch (error) {
@@ -268,76 +249,76 @@ DIRETRIZES DE RESPOSTA:
   }
 }
 
-// Resposta inteligente local nativa baseada na análise profunda dos dados do banco
-function generateEnrichedLocalResponse(query: string, data: any): string {
+// Resposta inteligente local limpa (Sem qualquer asterisco **)
+function generateEnrichedCleanLocalResponse(query: string, data: any): string {
   const lower = query.toLowerCase();
 
   // Últimos utilizadores ou lista de clientes
   if (lower.includes('último') || lower.includes('recent') || lower.includes('quem se cadastrou') || (lower.includes('utilizador') && lower.includes('cadastr'))) {
     if (data.users.recent && data.users.recent.length > 0) {
       const list = data.users.recent.map((u: any, idx: number) => 
-        `${idx + 1}. **${u.name || 'Sem nome'}** (${u.email}) — Plano: \`${u.plan || 'none'}\` | Status: *${u.status}*`
+        `${idx + 1}. ${u.name || 'Sem nome'} (${u.email}) — Plano: ${u.plan || 'none'} | Status: ${u.status}`
       ).join('\n');
-      return `👥 **Últimos Utilizadores Registados no Banco de Dados:**\n\n${list}\n\n- **Total de Contas:** ${data.users.total} (${data.users.active} ativas, ${data.users.pending} pendentes)\n\n👉 Gerir utilizadores em: [/admin](/admin).`;
+      return `👥 Últimos Utilizadores Registados no Banco de Dados:\n\n${list}\n\n• Total de Contas: ${data.users.total} (${data.users.active} ativas, ${data.users.pending} pendentes)\n\n👉 Gerir utilizadores em: [/admin](/admin)`;
     }
-    return `👥 **Total de Utilizadores:** ${data.users.total} cadastrados (${data.users.active} ativos).\n👉 Veja a lista completa no painel de [/admin](/admin).`;
+    return `👥 Total de Utilizadores: ${data.users.total} cadastrados (${data.users.active} ativos).\n👉 Veja a lista completa no painel de [/admin](/admin)`;
   }
 
   // Pedidos e Vendas
   if (lower.includes('pedido') || lower.includes('venda') || lower.includes('compra')) {
     if (data.orders.recent && data.orders.recent.length > 0) {
       const list = data.orders.recent.map((o: any, idx: number) =>
-        `${idx + 1}. **${o.clientName || o.clientEmail}** — ${o.serviceName} | **${o.amount?.toLocaleString('pt-MZ')} MZN** (${o.paymentMethod}) — Status: *${o.status}*`
+        `${idx + 1}. ${o.clientName || o.clientEmail} — ${o.serviceName} | ${o.amount?.toLocaleString('pt-MZ')} MZN (${o.paymentMethod}) — Status: ${o.status}`
       ).join('\n');
-      return `🛒 **Relatório de Pedidos & Vendas:**\n\n- **Total de Pedidos:** ${data.orders.total}\n- **Concluídos:** ${data.orders.completed} | **Pendentes:** ${data.orders.pending}\n\n**Últimos Pedidos:**\n${list}\n\n👉 Acompanhe notificações de vendas em [/admin/notifications](/admin/notifications).`;
+      return `🛒 Relatório de Pedidos & Vendas:\n\n• Total de Pedidos: ${data.orders.total}\n• Concluídos: ${data.orders.completed} | Pendentes: ${data.orders.pending}\n\nÚltimos Pedidos:\n${list}\n\n👉 Acompanhe notificações de vendas em [/admin/notifications](/admin/notifications)`;
     }
-    return `🛒 **Total de Pedidos Registados:** ${data.orders.total} (${data.orders.completed} concluídos).`;
+    return `🛒 Total de Pedidos Registados: ${data.orders.total} (${data.orders.completed} concluídos).`;
   }
 
   // Pagamentos, faturas, devedores
   if (lower.includes('fatura') || lower.includes('pagamento') || lower.includes('devedor') || lower.includes('m-pesa') || lower.includes('atras')) {
     if (data.payments.overdueList && data.payments.overdueList.length > 0) {
       const list = data.payments.overdueList.map((p: any, idx: number) =>
-        `${idx + 1}. **${p.clientName || p.clientEmail}** — ${p.remainingAmount || p.amount} MZN (Mês ${p.month}/${p.year}) — *${p.status}*`
+        `${idx + 1}. ${p.clientName || p.clientEmail} — ${p.remainingAmount || p.amount} MZN (Mês ${p.month}/${p.year}) — Status: ${p.status}`
       ).join('\n');
-      return `💰 **Faturas com Ação Pendente (${data.payments.pendingCount}):**\n\n${list}\n\n👉 Gerir cobranças e lançar pagamentos em: [/admin/pagamentos-mensais](/admin/pagamentos-mensais).`;
+      return `💰 Faturas com Ação Pendente (${data.payments.pendingCount}):\n\n${list}\n\n👉 Gerir cobranças e lançar pagamentos em: [/admin/pagamentos-mensais](/admin/pagamentos-mensais)`;
     }
-    return `💰 **Finanças:** Não existem faturas em atraso no momento. Todas as mensalidades estão em dia!\n👉 Ver balanço em: [/admin/pagamentos-mensais](/admin/pagamentos-mensais).`;
+    return `💰 Finanças: Não existem faturas em atraso no momento. Todas as mensalidades estão em dia!\n👉 Ver balanço em: [/admin/pagamentos-mensais](/admin/pagamentos-mensais)`;
   }
 
   // Suporte e Tickets
   if (lower.includes('ticket') || lower.includes('suporte') || lower.includes('atendimento') || lower.includes('chamado')) {
     if (data.tickets.recent && data.tickets.recent.length > 0) {
       const list = data.tickets.recent.map((t: any, idx: number) =>
-        `${idx + 1}. **[${t.priority?.toUpperCase() || 'MÉDIA'}]** ${t.subject} — *${t.userName}* (${t.userEmail})`
+        `${idx + 1}. [${t.priority?.toUpperCase() || 'MÉDIA'}] ${t.subject} — ${t.userName} (${t.userEmail})`
       ).join('\n');
-      return `🎫 **Tickets de Suporte em Aberto (${data.tickets.open}):**\n\n${list}\n\n👉 Responder aos clientes no painel de tickets.`;
+      return `🎫 Tickets de Suporte em Aberto (${data.tickets.open}):\n\n${list}\n\n👉 Responder aos clientes no painel de tickets.`;
     }
-    return `🎫 **Suporte:** Não há tickets pendentes de resposta no momento. Todos os chamados foram respondidos!`;
+    return `🎫 Suporte: Não há tickets pendentes de resposta no momento. Todos os chamados foram respondidos!`;
   }
 
   // Afiliados e Comissões
   if (lower.includes('afiliado') || lower.includes('comiss')) {
-    return `🤝 **Programa de Afiliados:**\n\n- **Total de Afiliados Registados:** ${data.affiliates.total}\n- **Comissões Pendentes de Saque:** ${data.affiliates.pendingCommissions} (Total: **${data.affiliates.pendingAmount?.toLocaleString('pt-MZ') || 0} MZN**)\n\n👉 Gerir saques e aprovar comissões em: [/admin/affiliates](/admin/affiliates).`;
+    return `🤝 Programa de Afiliados:\n\n• Total de Afiliados: ${data.affiliates.total}\n• Comissões Pendentes de Saque: ${data.affiliates.pendingCommissions} (Total: ${data.affiliates.pendingAmount?.toLocaleString('pt-MZ') || 0} MZN)\n\n👉 Gerir saques e aprovar comissões em: [/admin/affiliates](/admin/affiliates)`;
   }
 
   // Newsletter e Marketing
   if (lower.includes('newsletter') || lower.includes('subscritor') || lower.includes('assinante')) {
-    return `📢 **Marketing & Newsletter:**\n\n- **Total de Assinantes:** ${data.newsletter.totalSubscribers}\n- **Carrinhos Abandonados:** ${data.abandonedCarts.count}\n\n👉 Enviar newsletter ou comunicado em massa em: [/admin/comunicacao](/admin/comunicacao).`;
+    return `📢 Marketing & Newsletter:\n\n• Total de Assinantes: ${data.newsletter.totalSubscribers}\n• Carrinhos Abandonados: ${data.abandonedCarts.count}\n\n👉 Enviar newsletter ou comunicado em massa em: [/admin/comunicacao](/admin/comunicacao)`;
   }
 
   // Emails e Domínios
   if (lower.includes('email') || lower.includes('domínio') || lower.includes('migadu') || lower.includes('dns')) {
-    return `📧 **Infraestrutura de Email & Domínios:**\n\n- **Domínios Configurados:** ${data.domains.total}\n\n**Registos DNS Oficiais:**\n- **MX 1:** \`aspmx.migadu.com\` (Prioridade 10)\n- **MX 2:** \`aspmx2.migadu.com\` (Prioridade 20)\n- **SPF:** \`v=spf1 include:spf.migadu.com ~all\`\n\n👉 Gerir domínios e caixas de correio em: [/admin/email-domains](/admin/email-domains).`;
+    return `📧 Infraestrutura de Email & Domínios:\n\n• Domínios Configurados: ${data.domains.total}\n\nRegistos DNS Oficiais:\n• MX 1: aspmx.migadu.com (Prioridade 10)\n• MX 2: aspmx2.migadu.com (Prioridade 20)\n• SPF: v=spf1 include:spf.migadu.com ~all\n\n👉 Gerir domínios e caixas de correio em: [/admin/email-domains](/admin/email-domains)`;
   }
 
   // Resposta Geral de Visão Global
-  return `🤖 **WEHOSTHERE AI Copilot — Visão Geral do Sistema:**\n\n` +
-    `• 👥 **Utilizadores:** ${data.users.total} (${data.users.active} ativos)\n` +
-    `• 🛒 **Pedidos:** ${data.orders.total} (${data.orders.completed} concluídos)\n` +
-    `• 💰 **Faturas Pendentes:** ${data.payments.pendingCount}\n` +
-    `• 🎫 **Tickets Abertos:** ${data.tickets.open}\n` +
-    `• 🌐 **Sites Ativos:** ${data.sites.total} | **Domínios:** ${data.domains.total}\n` +
-    `• 📢 **Assinantes Newsletter:** ${data.newsletter.totalSubscribers}\n\n` +
+  return `🤖 WEHOSTHERE AI Copilot — Visão Geral do Sistema:\n\n` +
+    `• 👥 Utilizadores: ${data.users.total} (${data.users.active} ativos)\n` +
+    `• 🛒 Pedidos: ${data.orders.total} (${data.orders.completed} concluídos)\n` +
+    `• 💰 Faturas Pendentes: ${data.payments.pendingCount}\n` +
+    `• 🎫 Tickets Abertos: ${data.tickets.open}\n` +
+    `• 🌐 Sites Ativos: ${data.sites.total} | Domínios: ${data.domains.total}\n` +
+    `• 📢 Assinantes Newsletter: ${data.newsletter.totalSubscribers}\n\n` +
     `Como posso ajudar especificamente agora? Pode pedir relatórios detalhados, listas de clientes, ajuda com DNS ou redação de mensagens!`;
 }

@@ -24,6 +24,7 @@ import { API_URL, apiEndpoint } from '@/lib/siteConfig';
 import AdminNotificationCenter from '@/components/AdminNotificationCenter';
 import { dispatchMessage, addAdminNotification } from '@/lib/notifications';
 import { soundEffects } from '@/lib/soundEffects';
+import AdminAiTopBar from '@/components/AdminAiTopBar';
 
 const ADMIN_CANNED_RESPONSES = [
   {
@@ -1600,6 +1601,11 @@ export default function AdminPage() {
           </div>
         </div>
       </header>
+
+      {/* 🔮 AI Copilot Top Bar — Posicionado imediatamente APÓS a barra de navegação */}
+      <div className="bg-[#0b0f19] border-b border-gray-800/80 shadow-inner py-1">
+        <AdminAiTopBar />
+      </div>
 
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
         {/* ───── ANALYTICS — Quem está Online & Visitantes ───── */}

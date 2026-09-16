@@ -164,6 +164,35 @@ export default function AdminAiTopBar() {
     { label: '📢 Enviar Comunicado', prompt: 'Como enviar um email em massa para todos os clientes?' },
   ];
 
+  const formatContent = (rawText: string) => {
+    // 1. Remover asteriscos duplos (**) ou simples (*)
+    const cleanText = (rawText || '').replace(/\*\*/g, '').replace(/\*/g, '');
+
+    // 2. Transformar links markdown [Texto](/rota) em botões de navegação
+    const parts = cleanText.split(/(\[[^\]]+\]\([^)]+\))/g);
+
+    return parts.map((part, index) => {
+      const match = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+      if (match) {
+        const [, linkText, href] = match;
+        return (
+          <button
+            key={index}
+            type="button"
+            onClick={() => {
+              setIsOpen(false);
+              router.push(href);
+            }}
+            className="inline-flex items-center text-amber-400 hover:text-amber-300 font-bold underline underline-offset-2 mx-1 transition cursor-pointer"
+          >
+            {linkText}
+          </button>
+        );
+      }
+      return <span key={index}>{part}</span>;
+    });
+  };
+
   return (
     <div className="relative w-full max-w-2xl mx-auto px-4 py-2 z-50">
       {/* 🔮 Top Bar Input Capsule com Aurora Glow */}
@@ -313,7 +342,7 @@ export default function AdminAiTopBar() {
                     }`}
                   >
                     <div className="whitespace-pre-wrap leading-relaxed">
-                      {msg.content}
+                      {formatContent(msg.content)}
                     </div>
 
                     {msg.role === 'assistant' && (
