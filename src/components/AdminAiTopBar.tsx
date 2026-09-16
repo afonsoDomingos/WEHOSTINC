@@ -8,7 +8,7 @@ import {
   Mic, MicOff, Send, Sparkles, X, ArrowRight, 
   Copy, Check, RefreshCw, BarChart3, Users, ShoppingBag, 
   CreditCard, LifeBuoy, Handshake, Globe, Mail,
-  Minimize2, Maximize2, Pin, PinOff, Bot, Eye, EyeOff
+  Server, EyeOff
 } from 'lucide-react';
 
 interface ChatMessage {
@@ -27,6 +27,7 @@ export default function AdminAiTopBar({ isGlobalRoot = false }: AdminAiTopBarPro
   const pathname = usePathname() || '';
   const { data: session } = useSession();
   const [isAdminUser, setIsAdminUser] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -43,12 +44,13 @@ export default function AdminAiTopBar({ isGlobalRoot = false }: AdminAiTopBarPro
   const isOnAdminRoute = pathname.startsWith('/admin');
   const isExpanded = isOpen || isFocused;
 
-  // Verificar se utilizador atual tem privilégios de administrador
+  // Verificar se utilizador atual tem privilégios de administrador ou sessão de cliente
   useEffect(() => {
     // 1. Verificar sessão NextAuth
     if (session?.user) {
-      const role = (session.user as any)?.role;
       const email = session.user.email?.toLowerCase();
+      setUserEmail(email || null);
+      const role = (session.user as any)?.role;
       if (role === 'admin' || role === 'super_admin' || email === 'info@wehosthere.com' || email === 'admin@wehosthere.com') {
         setIsAdminUser(true);
         return;
@@ -58,9 +60,12 @@ export default function AdminAiTopBar({ isGlobalRoot = false }: AdminAiTopBarPro
     // 2. Verificar autenticação em localStorage
     try {
       const localUser = auth.getCurrentUser();
-      if (localUser && (localUser.role === 'admin' || localUser.role === 'super_admin' || localUser.email === 'info@wehosthere.com' || localUser.email === 'admin@wehosthere.com')) {
-        setIsAdminUser(true);
-        return;
+      if (localUser) {
+        setUserEmail(localUser.email?.toLowerCase() || null);
+        if (localUser.role === 'admin' || localUser.role === 'super_admin' || localUser.email === 'info@wehosthere.com' || localUser.email === 'admin@wehosthere.com') {
+          setIsAdminUser(true);
+          return;
+        }
       }
     } catch (_) {}
 
@@ -111,7 +116,9 @@ export default function AdminAiTopBar({ isGlobalRoot = false }: AdminAiTopBarPro
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           query: text,
-          history: messages.slice(-4).map(m => ({ role: m.role, content: m.content }))
+          history: messages.slice(-4).map(m => ({ role: m.role, content: m.content })),
+          userRole: isAdminUser ? 'admin' : (userEmail ? 'client' : 'guest'),
+          userEmail: userEmail || undefined
         })
       });
 
@@ -197,7 +204,7 @@ export default function AdminAiTopBar({ isGlobalRoot = false }: AdminAiTopBarPro
 
   const toggleVoice = () => {
     if (!recognitionRef.current) {
-      alert('O seu navegador não suporta reconhecimento de voz direto. Pode digitar o seu comando!');
+      alert('O seu navegador não suporta reconhecimento de voz direto. Pode digitar a sua pergunta!');
       return;
     }
 
@@ -223,7 +230,8 @@ export default function AdminAiTopBar({ isGlobalRoot = false }: AdminAiTopBarPro
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const quickPrompts = [
+  // Sugestões Rápidas: Dinâmicas de acordo com o papel do utilizador
+  const adminQuickPrompts = [
     { label: 'Visão Geral do Sistema', icon: BarChart3, prompt: 'Resuma o status geral de utilizadores, vendas e métricas hoje' },
     { label: 'Utilizadores Recentes', icon: Users, prompt: 'Quem são os últimos utilizadores registados no sistema?' },
     { label: 'Pedidos & Vendas', icon: ShoppingBag, prompt: 'Mostre a lista dos últimos pedidos e vendas realizadas' },
@@ -233,6 +241,17 @@ export default function AdminAiTopBar({ isGlobalRoot = false }: AdminAiTopBarPro
     { label: 'Configuração DNS', icon: Globe, prompt: 'Como configurar os registos DNS do email Migadu?' },
     { label: 'Comunicação em Massa', icon: Mail, prompt: 'Como enviar um email em massa para todos os clientes?' },
   ];
+
+  const clientQuickPrompts = [
+    { label: 'Planos & Preços', icon: Server, prompt: 'Quais são os planos de hospedagem disponíveis e os preços?' },
+    { label: 'Registo de Domínio .co.mz', icon: Globe, prompt: 'Como registar e qual o preço de um domínio .co.mz?' },
+    { label: 'Email Profissional', icon: Mail, prompt: 'Como funciona e como configurar o email corporativo Migadu?' },
+    { label: 'Criação de Sites', icon: Sparkles, prompt: 'Como pedir um orçamento para criação de site ou loja online?' },
+    { label: 'Formas de Pagamento', icon: CreditCard, prompt: 'Quais são os métodos de pagamento aceites em Moçambique?' },
+    { label: 'Suporte Técnico', icon: LifeBuoy, prompt: 'Como abrir um ticket de suporte técnico?' },
+  ];
+
+  const activeQuickPrompts = isAdminUser ? adminQuickPrompts : clientQuickPrompts;
 
   const formatContent = (rawText: string) => {
     const cleanText = (rawText || '')
@@ -287,7 +306,9 @@ export default function AdminAiTopBar({ isGlobalRoot = false }: AdminAiTopBarPro
               <span className="text-xs font-black uppercase tracking-wider text-gray-900 flex items-center gap-1.5">
                 WEHOSTHERE AI Copilot
               </span>
-              <span className="text-[10px] text-gray-600 font-medium block">Assistente Operacional Inteligente</span>
+              <span className="text-[10px] text-gray-600 font-medium block">
+                {isAdminUser ? 'Assistente Operacional Inteligente' : 'Assistente de Atendimento & Suporte'}
+              </span>
             </div>
           </div>
 
@@ -296,7 +317,7 @@ export default function AdminAiTopBar({ isGlobalRoot = false }: AdminAiTopBarPro
               <button
                 onClick={togglePublicVisibility}
                 className="p-1.5 rounded-xl text-gray-500 hover:text-red-600 hover:bg-white/50 transition cursor-pointer"
-                title="Desativar flutuante na página inicial e site público"
+                title="Ocultar botão flutuante"
               >
                 <EyeOff className="w-4 h-4" />
               </button>
@@ -328,7 +349,7 @@ export default function AdminAiTopBar({ isGlobalRoot = false }: AdminAiTopBarPro
           <div className="py-4 space-y-3">
             <p className="text-xs text-gray-600 font-bold uppercase tracking-wider">Perguntas Rápidas:</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              {quickPrompts.map((item, idx) => (
+              {activeQuickPrompts.map((item, idx) => (
                 <button
                   key={idx}
                   onClick={() => handleSend(item.prompt)}
@@ -395,7 +416,7 @@ export default function AdminAiTopBar({ isGlobalRoot = false }: AdminAiTopBarPro
             {loading && (
               <div className="flex items-center space-x-2 text-xs font-bold text-primary-600 py-3 px-3 bg-white/50 backdrop-blur-md rounded-xl border border-white/70 shadow-xs w-fit">
                 <RefreshCw className="w-3.5 h-3.5 animate-spin text-primary-600" />
-                <span>A consultar banco de dados e processar resposta...</span>
+                <span>A consultar informações e processar resposta...</span>
               </div>
             )}
           </div>
@@ -444,9 +465,9 @@ export default function AdminAiTopBar({ isGlobalRoot = false }: AdminAiTopBarPro
     );
   };
 
-  // 🔹 MODO GLOBAL ROOT (Para páginas públicas fora do /admin — posicionado abaixo da navbar)
+  // 🔹 MODO GLOBAL ROOT (Para páginas públicas e dashboard — posicionado abaixo da navbar)
   if (isGlobalRoot) {
-    if (isOnAdminRoute || !isAdminUser || !showOnPublicPages) {
+    if (isOnAdminRoute || !showOnPublicPages) {
       return null;
     }
 
