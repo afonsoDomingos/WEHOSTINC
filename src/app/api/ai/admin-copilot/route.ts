@@ -307,46 +307,48 @@ DIRETRIZES E RESTRIÇÕES DE SEGURANÇA CRÍTICAS:
 }
 
 // 👑 Respostas Locais para Administrador
+// 👑 Respostas Locais para Administrador
 function generateAdminLocalResponse(query: string, data: any): string {
   const lower = query.toLowerCase();
 
-  // Planos de Hospedagem e Preços
-  if (lower.includes('plano') || lower.includes('hospedagem') || lower.includes('preço') || lower.includes('custo') || lower.includes('quanto custa')) {
-    return `Planos de Hospedagem de Sites WEHOSTHERE:\n\n` +
-      `• Plano Básico (550 MT/mês):\n  - 10GB SSD de alta velocidade\n  - 100GB de Tráfego mensal\n  - 5 Contas de Email Profissional\n  - Certificado SSL Gratuito\n\n` +
-      `• Plano Profissional (1.200 MT/mês) — Mais Popular:\n  - 30GB SSD NVMe ultrarrápido\n  - Tráfego Ilimitado\n  - Contas de Email Ilimitadas\n  - Backups Automáticos\n\n` +
-      `• Plano Enterprise / VPS (3.500 MT/mês):\n  - 100GB SSD NVMe com recursos dedicados\n  - IP Dedicado e Suporte VIP 24/7\n\n` +
-      `Gerir ou consultar serviços em: [/hospedagem](/hospedagem)`;
-  }
-
-  // Domínios
-  if (lower.includes('domínio') || lower.includes('.co.mz') || lower.includes('.com') || lower.includes('registar')) {
+  // 1. Domínios (.co.mz, .com, registo, etc.)
+  if (
+    lower.includes('domínio') || 
+    lower.includes('dominio') || 
+    lower.includes('.co.mz') || 
+    lower.includes('.org.mz') || 
+    lower.includes('.com') || 
+    lower.includes('.net') || 
+    (lower.includes('regist') && (lower.includes('nome') || lower.includes('marca') || lower.includes('extens')))
+  ) {
     return `Registo de Domínios na WEHOSTHERE:\n\n` +
+      `Tabela de Preços Oficial:\n` +
       `• Domínio .co.mz: 3.000 MT / ano (Identidade oficial para empresas em Moçambique)\n` +
-      `• Domínio .com: 1.250 MT / ano\n` +
-      `• Domínio .org.mz: 3.000 MT / ano | .net: 1.300 MT / ano\n` +
-      `• Total de Domínios Registados no Sistema: ${data.domains.total}\n\n` +
+      `• Domínio .com: 1.250 MT / ano (Mais popular mundialmente)\n` +
+      `• Domínio .org.mz: 3.000 MT / ano | .net: 1.300 MT / ano\n\n` +
+      `• Total de Domínios no Sistema: ${data.domains?.total || 0}\n\n` +
       `Pesquisa e gestão de domínios em: [/dominios](/dominios)`;
   }
 
-  // Criação de Sites
-  if (lower.includes('site') || lower.includes('criar') || lower.includes('desenvolver') || lower.includes('loja') || lower.includes('orçamento')) {
+  // 2. Criação de Sites
+  if (
+    lower.includes('criar site') || 
+    lower.includes('criação de site') || 
+    lower.includes('criacao de site') || 
+    lower.includes('desenvolver site') || 
+    lower.includes('loja online') || 
+    lower.includes('orçamento') || 
+    lower.includes('orcamento') || 
+    (lower.includes('site') && (lower.includes('criar') || lower.includes('desenvolver') || lower.includes('loja')))
+  ) {
     return `Criação de Sites Profissionais WEHOSTHERE:\n\n` +
       `• Sites Institucionais e Lojas Online completas a partir de 12.000 MT\n` +
-      `• Total de Sites Ativos no Sistema: ${data.sites.total}\n\n` +
+      `• Total de Sites Ativos no Sistema: ${data.sites?.total || 0}\n\n` +
       `Consultar cotações e orçamentos em: [/site-quote](/site-quote)`;
   }
 
-  // Comunicação em Massa / Newsletter
-  if (lower.includes('massa') || lower.includes('comunicação') || lower.includes('newsletter') || lower.includes('broadcast')) {
-    return `Comunicação em Massa e Disparo de Emails:\n\n` +
-      `• Total de Subscritores na Newsletter: ${data.newsletter?.totalSubscribers || 0}\n` +
-      `• Pode criar comunicados oficiais, avisos de manutenção e newsletters em massa.\n\n` +
-      `Aceder à central de comunicação em: [/admin/comunicacao](/admin/comunicacao)`;
-  }
-
-  // Email Migadu e Configuração DNS
-  if (lower.includes('migadu') || lower.includes('dns') || (lower.includes('configurar') && lower.includes('email')) || lower.includes('imap') || lower.includes('smtp')) {
+  // 3. Email Migadu e Configuração DNS
+  if (lower.includes('migadu') || lower.includes('dns') || (lower.includes('configurar') && lower.includes('email')) || lower.includes('imap') || lower.includes('smtp') || lower.includes('webmail')) {
     return `Configuração de Email Corporativo WEHOSTHERE (Migadu):\n\n` +
       `• Servidor IMAP: imap.migadu.com (Porta 993 SSL)\n` +
       `• Servidor SMTP: smtp.migadu.com (Porta 465 SSL)\n` +
@@ -357,31 +359,47 @@ function generateAdminLocalResponse(query: string, data: any): string {
       `Gestão de domínios de email em: [/email-profissional](/email-profissional)`;
   }
 
-  // Utilizadores Recentes / Lista
-  if (lower.includes('último') || lower.includes('recent') || lower.includes('utilizador') || lower.includes('cliente')) {
-    if (data.users.recent && data.users.recent.length > 0) {
+  // 4. Servidores VPS
+  if (lower.includes('vps') || lower.includes('dedicado')) {
+    return `Servidores VPS de Alta Performance WEHOSTHERE:\n\n` +
+      `• A partir de 3.500 MT/mês\n` +
+      `• 100GB SSD NVMe, Recursos 100% Dedicados, IP Dedicado e Suporte VIP 24/7\n\n` +
+      `Gerir servidores em: [/vps](/vps)`;
+  }
+
+  // 5. Comunicação em Massa / Newsletter
+  if (lower.includes('massa') || lower.includes('comunicação') || lower.includes('comunicacao') || lower.includes('newsletter') || lower.includes('broadcast')) {
+    return `Comunicação em Massa e Disparo de Emails:\n\n` +
+      `• Total de Subscritores na Newsletter: ${data.newsletter?.totalSubscribers || 0}\n` +
+      `• Pode criar comunicados oficiais, avisos de manutenção e newsletters em massa.\n\n` +
+      `Aceder à central de comunicação em: [/admin/comunicacao](/admin/comunicacao)`;
+  }
+
+  // 6. Utilizadores Recentes / Lista
+  if (lower.includes('último') || lower.includes('ultimo') || lower.includes('recent') || lower.includes('utilizador') || lower.includes('cliente')) {
+    if (data.users?.recent && data.users.recent.length > 0) {
       const list = data.users.recent.map((u: any, idx: number) => 
         `${idx + 1}. ${u.name || 'Sem nome'} (${u.email}) — Plano: ${u.plan || 'Nenhum'} | Estado: ${u.status === 'active' ? 'Ativo' : 'Pendente'}`
       ).join('\n');
       return `Utilizadores Registados Recentemente:\n\n${list}\n\n• Total de Contas: ${data.users.total} (${data.users.active} ativas, ${data.users.pending} pendentes)\n\nGerir utilizadores em: [/admin](/admin)`;
     }
-    return `Total de Utilizadores: ${data.users.total} registados (${data.users.active} ativos).\nConsulte a lista completa em [/admin](/admin)`;
+    return `Total de Utilizadores: ${data.users?.total || 0} registados (${data.users?.active || 0} ativos).\nConsulte a lista completa em [/admin](/admin)`;
   }
 
-  // Pedidos e Vendas
+  // 7. Pedidos e Vendas
   if (lower.includes('pedido') || lower.includes('venda') || lower.includes('compra')) {
-    if (data.orders.recent && data.orders.recent.length > 0) {
+    if (data.orders?.recent && data.orders.recent.length > 0) {
       const list = data.orders.recent.map((o: any, idx: number) =>
         `${idx + 1}. ${o.clientName || o.clientEmail} — ${o.serviceName} | ${o.amount?.toLocaleString('pt-MZ')} MZN (${o.paymentMethod}) — Estado: ${o.status}`
       ).join('\n');
       return `Relatório de Pedidos & Vendas:\n\n• Total de Pedidos: ${data.orders.total}\n• Concluídos: ${data.orders.completed} | Pendentes: ${data.orders.pending}\n\nÚltimos Pedidos:\n${list}\n\nAcompanhar vendas em [/admin/notifications](/admin/notifications)`;
     }
-    return `Total de Pedidos Registados: ${data.orders.total} (${data.orders.completed} concluídos).`;
+    return `Total de Pedidos Registados: ${data.orders?.total || 0} (${data.orders?.completed || 0} concluídos).`;
   }
 
-  // Faturas e Pagamentos Pendentes
-  if (lower.includes('fatura') || lower.includes('devedor') || lower.includes('atras') || lower.includes('cobrança')) {
-    if (data.payments.overdueList && data.payments.overdueList.length > 0) {
+  // 8. Faturas e Pagamentos Pendentes
+  if (lower.includes('fatura') || lower.includes('devedor') || lower.includes('atras') || lower.includes('cobrança') || lower.includes('cobranca')) {
+    if (data.payments?.overdueList && data.payments.overdueList.length > 0) {
       const list = data.payments.overdueList.map((p: any, idx: number) =>
         `${idx + 1}. ${p.clientName || p.clientEmail} — ${p.remainingAmount || p.amount} MZN (Mês ${p.month}/${p.year}) — Estado: ${p.status}`
       ).join('\n');
@@ -390,8 +408,8 @@ function generateAdminLocalResponse(query: string, data: any): string {
     return `Finanças: Não existem faturas em atraso no momento. Todas as mensalidades estão em dia.\nVer balanço em: [/admin/pagamentos-mensais](/admin/pagamentos-mensais)`;
   }
 
-  // Métodos de Pagamento em Geral
-  if (lower.includes('pagamento') || lower.includes('m-pesa') || lower.includes('emola') || lower.includes('cartão')) {
+  // 9. Métodos de Pagamento em Geral
+  if (lower.includes('pagamento') || lower.includes('m-pesa') || lower.includes('mpesa') || lower.includes('emola') || lower.includes('cartão') || lower.includes('cartao')) {
     return `Métodos de Pagamento Aceites em Moçambique:\n\n` +
       `• M-Pesa (Vodacom)\n` +
       `• E-Mola (Movitel)\n` +
@@ -400,9 +418,9 @@ function generateAdminLocalResponse(query: string, data: any): string {
       `Testar pagamentos em: [/test-payment](/test-payment)`;
   }
 
-  // Tickets de Suporte
+  // 10. Tickets de Suporte
   if (lower.includes('ticket') || lower.includes('suporte') || lower.includes('chamado')) {
-    if (data.tickets.recent && data.tickets.recent.length > 0) {
+    if (data.tickets?.recent && data.tickets.recent.length > 0) {
       const list = data.tickets.recent.map((t: any, idx: number) =>
         `${idx + 1}. [${t.priority?.toUpperCase() || 'MÉDIA'}] ${t.subject} — ${t.userName} (${t.userEmail})`
       ).join('\n');
@@ -411,18 +429,27 @@ function generateAdminLocalResponse(query: string, data: any): string {
     return `Suporte: Não há tickets pendentes de resposta no momento.`;
   }
 
-  // Afiliados
+  // 11. Afiliados
   if (lower.includes('afiliado') || lower.includes('comiss')) {
-    return `Programa de Afiliados:\n\n• Total de Afiliados: ${data.affiliates.total}\n• Comissões Pendentes de Saque: ${data.affiliates.pendingCommissions} (Total: ${data.affiliates.pendingAmount?.toLocaleString('pt-MZ') || 0} MZN)\n\nGerir saques e aprovar comissões em: [/admin/affiliates](/admin/affiliates)`;
+    return `Programa de Afiliados:\n\n• Total de Afiliados: ${data.affiliates?.total || 0}\n• Comissões Pendentes de Saque: ${data.affiliates?.pendingCommissions || 0} (Total: ${data.affiliates?.pendingAmount?.toLocaleString('pt-MZ') || 0} MZN)\n\nGerir saques e aprovar comissões em: [/admin/affiliates](/admin/affiliates)`;
   }
 
-  // Visão Geral Executiva (Status Geral / Métricas)
+  // 12. Planos de Hospedagem
+  if (lower.includes('plano') || lower.includes('hospedagem') || lower.includes('alojamento') || lower.includes('preço') || lower.includes('preco') || lower.includes('custo') || lower.includes('quanto custa')) {
+    return `Planos de Hospedagem de Sites WEHOSTHERE:\n\n` +
+      `• Plano Básico (550 MT/mês):\n  - 10GB SSD de alta velocidade\n  - 100GB de Tráfego mensal\n  - 5 Contas de Email Profissional\n  - Certificado SSL Gratuito\n\n` +
+      `• Plano Profissional (1.200 MT/mês) — Mais Popular:\n  - 30GB SSD NVMe ultrarrápido\n  - Tráfego Ilimitado\n  - Contas de Email Ilimitadas\n  - Backups Automáticos\n\n` +
+      `• Plano Enterprise / VPS (3.500 MT/mês):\n  - 100GB SSD NVMe com recursos dedicados\n  - IP Dedicado e Suporte VIP 24/7\n\n` +
+      `Gerir ou consultar serviços em: [/hospedagem](/hospedagem)`;
+  }
+
+  // 13. Visão Geral Executiva (Status Geral / Métricas)
   return `WEHOSTHERE AI Copilot — Painel Executivo:\n\n` +
-    `• Utilizadores: ${data.users.total} (${data.users.active} ativos)\n` +
-    `• Pedidos: ${data.orders.total} (${data.orders.completed} concluídos)\n` +
-    `• Faturas Pendentes: ${data.payments.pendingCount}\n` +
-    `• Tickets Abertos: ${data.tickets.open}\n` +
-    `• Sites Ativos: ${data.sites.total} | Domínios: ${data.domains.total}\n` +
+    `• Utilizadores: ${data.users?.total || 0} (${data.users?.active || 0} ativos)\n` +
+    `• Pedidos: ${data.orders?.total || 0} (${data.orders?.completed || 0} concluídos)\n` +
+    `• Faturas Pendentes: ${data.payments?.pendingCount || 0}\n` +
+    `• Tickets Abertos: ${data.tickets?.open || 0}\n` +
+    `• Sites Ativos: ${data.sites?.total || 0} | Domínios: ${data.domains?.total || 0}\n` +
     `• Visitas Registadas: ${data.analytics?.totalVisits || 0}\n\n` +
     `Como posso ajudar com a operação da plataforma?`;
 }
@@ -445,44 +472,72 @@ function generateClientLocalResponse(query: string, clientData: any): string {
     return `Por motivos de segurança e privacidade corporativa, informações financeiras globais e dados administrativos da WEHOSTHERE são estritamente confidenciais.\n\nPosso ajudá-lo com:\n• Escolha do melhor plano de hospedagem para o seu site\n• Registo e pesquisa de domínios .co.mz\n• Configuração de email profissional no seu telemóvel ou Outlook\n• Criação de sites sob medida\n\nConsulte os nossos serviços em [/hospedagem](/hospedagem) ou fale connosco pelo WhatsApp (+258 84 438 4702).`;
   }
 
-  // Planos de Hospedagem
-  if (lower.includes('plano') || lower.includes('hospedagem') || lower.includes('preço') || lower.includes('custo') || lower.includes('quanto custa')) {
-    return `Planos de Hospedagem de Sites WEHOSTHERE:\n\n` +
-      `• Plano Básico (550 MT/mês):\n  - 10GB SSD de alta velocidade\n  - 100GB de Tráfego mensal\n  - 5 Contas de Email Profissional\n  - Certificado SSL Gratuito\n\n` +
-      `• Plano Profissional (1.200 MT/mês) — Mais Popular:\n  - 30GB SSD NVMe ultrarrápido\n  - Tráfego Ilimitado\n  - Contas de Email Ilimitadas\n  - Backups Automáticos\n\n` +
-      `• Plano Enterprise / VPS (3.500 MT/mês):\n  - 100GB SSD NVMe com recursos dedicados\n  - IP Dedicado e Suporte VIP 24/7\n\n` +
-      `Pode contratar ou saber mais detalhes em: [/hospedagem](/hospedagem)`;
-  }
-
-  // Domínios (.co.mz, .com, etc.)
-  if (lower.includes('domínio') || lower.includes('.co.mz') || lower.includes('.com') || lower.includes('registar')) {
+  // 1. Domínios (.co.mz, .com, registar domínio, preços de domínio) -> Prioritário!
+  if (
+    lower.includes('domínio') || 
+    lower.includes('dominio') || 
+    lower.includes('.co.mz') || 
+    lower.includes('.org.mz') || 
+    lower.includes('.com') || 
+    lower.includes('.net') || 
+    lower.includes('whois') || 
+    (lower.includes('regist') && (lower.includes('nome') || lower.includes('marca') || lower.includes('extens')))
+  ) {
     return `Registo de Domínios na WEHOSTHERE:\n\n` +
-      `• Domínio .co.mz: 3.000 MT / ano (Identidade oficial para empresas em Moçambique)\n` +
-      `• Domínio .com: 1.250 MT / ano\n` +
-      `• Domínio .org.mz: 3.000 MT / ano\n` +
-      `• Domínio .net: 1.300 MT / ano\n\n` +
-      `O registo inclui gestão completa de DNS e ativação rápida.\n` +
-      `Pesquise a disponibilidade do seu domínio em: [/dominios](/dominios)`;
+      `Tabela Oficial de Preços de Domínios:\n` +
+      `• Domínio .co.mz: 3.000 MT / ano (Extensão nacional oficial recomendada para empresas em Moçambique)\n` +
+      `• Domínio .com: 1.250 MT / ano (Mais popular a nível mundial)\n` +
+      `• Domínio .org.mz: 3.000 MT / ano (Ideal para ONGs e instituições)\n` +
+      `• Domínio .net: 1.300 MT / ano (Ideal para tecnologia e infraestruturas)\n\n` +
+      `Como registar o seu domínio:\n` +
+      `1. Aceda à pesquisa em: [/dominios](/dominios)\n` +
+      `2. Digite o nome pretendido para verificar a disponibilidade imediata\n` +
+      `3. Adicione ao carrinho e complete o pagamento via M-Pesa, E-Mola ou Cartão\n` +
+      `4. Inclui gestão completa de DNS (ativação do .co.mz em 24h a 48h pela entidade nacional e ativação em poucos minutos para .com).\n\n` +
+      `Pesquise e registe já em: [/dominios](/dominios)`;
   }
 
-  // Criação de Sites
-  if (lower.includes('site') || lower.includes('criar') || lower.includes('desenvolver') || lower.includes('loja') || lower.includes('orçamento')) {
+  // 2. Criação de Sites / Lojas Virtuais / Orçamento
+  if (
+    lower.includes('criar site') || 
+    lower.includes('criação de site') || 
+    lower.includes('criacao de site') || 
+    lower.includes('desenvolver site') || 
+    lower.includes('loja online') || 
+    lower.includes('e-commerce') || 
+    lower.includes('landing page') || 
+    lower.includes('orçamento') || 
+    lower.includes('orcamento') || 
+    lower.includes('web design') || 
+    (lower.includes('site') && (lower.includes('criar') || lower.includes('fazer') || lower.includes('desenvolver') || lower.includes('loja') || lower.includes('cust')))
+  ) {
     return `Criação de Sites Profissionais WEHOSTHERE:\n\n` +
       `Desenvolvemos websites modernos, 100% responsivos para telemóveis e otimizados para o Google:\n` +
       `• Sites Institucionais e Corporativos\n` +
-      `• Lojas Virtuais com Pagamento por M-Pesa / Cartão\n` +
+      `• Lojas Virtuais com Pagamento Automático por M-Pesa e Cartão\n` +
       `• Landing Pages de Alta Conversão\n` +
-      `• Sistemas Web Sob Medida\n\n` +
-      `Planos de criação a partir de 12.000 MT. Peça uma proposta personalizada em: [/site-quote](/site-quote)`;
+      `• Sistemas Web e Portais Sob Medida\n\n` +
+      `Planos de desenvolvimento a partir de 12.000 MT.\n` +
+      `Peça uma proposta personalizada em: [/site-quote](/site-quote)`;
   }
 
-  // Configuração de Email / DNS
-  if (lower.includes('email') || lower.includes('outlook') || lower.includes('migadu') || lower.includes('dns') || lower.includes('imap') || lower.includes('smtp')) {
+  // 3. Email Corporativo / Migadu / Webmail
+  if (
+    lower.includes('email') || 
+    lower.includes('e-mail') || 
+    lower.includes('webmail') || 
+    lower.includes('migadu') || 
+    lower.includes('outlook') || 
+    lower.includes('imap') || 
+    lower.includes('smtp') || 
+    lower.includes('caixa de correio')
+  ) {
     return `Configuração de Email Corporativo WEHOSTHERE:\n\n` +
-      `• Webmail direto: webmail.seudominio.co.mz (ou através da plataforma Migadu)\n` +
+      `Tenha emails profissionais com o seu próprio domínio (ex: contato@suaempresa.co.mz):\n` +
+      `• Aceda ao Webmail diretamente em: [/webmail](/webmail)\n` +
       `• Servidor de Entrada (IMAP): imap.migadu.com (Porta 993, SSL/TLS ativado)\n` +
-      `• Servidor de Saída (SMTP): smtp.migadu.com (Porta 465, SSL/TLS ativado)\n` +
-      `• Nome de Utilizador: o seu email completo (ex: nome@seudominio.co.mz)\n\n` +
+      `• Servidor de Saída (SMTP): smtp.migadu.com (Porta 465 SSL ou 587 STARTTLS)\n` +
+      `• Nome de Utilizador: o seu email completo\n\n` +
       `Registos DNS Oficiais:\n` +
       `• MX 1: aspmx.migadu.com (Prioridade 10)\n` +
       `• MX 2: aspmx2.migadu.com (Prioridade 20)\n` +
@@ -490,19 +545,42 @@ function generateClientLocalResponse(query: string, clientData: any): string {
       `Mais informações em: [/email-profissional](/email-profissional)`;
   }
 
-  // Pagamentos (M-Pesa, E-Mola, Cartão)
-  if (lower.includes('pagamento') || lower.includes('m-pesa') || lower.includes('emola') || lower.includes('cartão') || lower.includes('banco')) {
+  // 4. Servidores VPS e Cloud
+  if (lower.includes('vps') || lower.includes('dedicado') || lower.includes('servidor virtual') || lower.includes('cloud server')) {
+    return `Servidores VPS de Alta Performance WEHOSTHERE:\n\n` +
+      `Servidores dedicados virtuais com máxima velocidade e isolamento total:\n` +
+      `• A partir de 3.500 MT/mês\n` +
+      `• Armazenamento ultrarrápido 100GB NVMe SSD\n` +
+      `• Recursos de CPU e RAM 100% Dedicados\n` +
+      `• Acesso Root completo, IP Dedicado e Suporte VIP 24/7\n\n` +
+      `Consulte as configurações disponíveis em: [/vps](/vps)`;
+  }
+
+  // 5. Pagamentos (M-Pesa, E-Mola, Cartão, Bancos)
+  if (
+    lower.includes('pagamento') || 
+    lower.includes('pagar') || 
+    lower.includes('m-pesa') || 
+    lower.includes('mpesa') || 
+    lower.includes('emola') || 
+    lower.includes('e-mola') || 
+    lower.includes('cartão') || 
+    lower.includes('cartao') || 
+    lower.includes('banco') || 
+    lower.includes('transferência') || 
+    lower.includes('transferencia')
+  ) {
     return `Métodos de Pagamento Aceites em Moçambique:\n\n` +
       `• M-Pesa (Vodacom): Pagamento instantâneo via telemóvel\n` +
       `• E-Mola (Movitel): Rápido e prático\n` +
       `• Cartões Visa e Mastercard (via ScalePay)\n` +
       `• Transferência Bancária (BCI, Standard Bank, Millennium BIM)\n\n` +
-      `O seu serviço é provisionado automaticamente assim que o pagamento for confirmado.\n` +
-      `Pode escolher o seu plano e subscrever diretamente em: [/hospedagem](/hospedagem)`;
+      `O seu serviço é ativado automaticamente após a confirmação do pagamento.\n` +
+      `Consulte os serviços em: [/hospedagem](/hospedagem)`;
   }
 
-  // Suporte Técnico e Abertura de Tickets
-  if (lower.includes('ticket') || lower.includes('suporte') || lower.includes('chamado') || lower.includes('ajuda') || lower.includes('atendimento')) {
+  // 6. Suporte Técnico e Abertura de Tickets
+  if (lower.includes('ticket') || lower.includes('suporte') || lower.includes('chamado') || lower.includes('ajuda') || lower.includes('contacto') || lower.includes('contato') || lower.includes('whatsapp') || lower.includes('atendimento')) {
     if (clientData && clientData.tickets && clientData.tickets.length > 0) {
       const ticketsText = clientData.tickets.map((t: any, idx: number) =>
         `${idx + 1}. [${t.priority?.toUpperCase() || 'NORMAL'}] ${t.subject} — Estado: ${t.status}`
@@ -518,8 +596,8 @@ function generateClientLocalResponse(query: string, clientData: any): string {
       `Se já for cliente, inicie sessão em [/dashboard](/dashboard) para suporte prioritário com a nossa equipa de engenharia.`;
   }
 
-  // Meus Serviços / Meus Pedidos (se o cliente tiver dados)
-  if (clientData && (lower.includes('meu pedido') || lower.includes('meu serviço') || lower.includes('minha conta'))) {
+  // 7. Meus Serviços / Meus Pedidos (se o cliente tiver dados)
+  if (clientData && (lower.includes('meu pedido') || lower.includes('meu serviço') || lower.includes('meu servico') || lower.includes('minha conta'))) {
     const ordersText = clientData.orders?.length > 0 
       ? clientData.orders.map((o: any, idx: number) => `${idx + 1}. ${o.serviceName} (${o.amount?.toLocaleString('pt-MZ')} MZN) — Estado: ${o.status}`).join('\n')
       : 'Nenhum pedido recente registado.';
@@ -527,13 +605,34 @@ function generateClientLocalResponse(query: string, clientData: any): string {
     return `Os Seus Serviços na WEHOSTHERE:\n\nÚltimos Pedidos:\n${ordersText}\n\nAceda ao painel completo em: [/dashboard](/dashboard) ou abra um ticket de suporte em [/dashboard/tickets](/dashboard/tickets)`;
   }
 
+  // 8. Planos de Hospedagem (Quando a pergunta é sobre hospedagem ou planos em geral)
+  if (
+    lower.includes('hospedagem') || 
+    lower.includes('alojamento') || 
+    lower.includes('hosting') || 
+    lower.includes('wordpress') || 
+    lower.includes('plano') || 
+    lower.includes('preço') || 
+    lower.includes('preco') || 
+    lower.includes('custo') || 
+    lower.includes('quanto custa') || 
+    lower.includes('servidor')
+  ) {
+    return `Planos de Hospedagem de Sites WEHOSTHERE:\n\n` +
+      `• Plano Básico (550 MT/mês):\n  - 10GB SSD de alta velocidade\n  - 100GB de Tráfego mensal\n  - 5 Contas de Email Profissional\n  - Certificado SSL Gratuito\n\n` +
+      `• Plano Profissional (1.200 MT/mês) — Mais Popular:\n  - 30GB SSD NVMe ultrarrápido\n  - Tráfego Ilimitado\n  - Contas de Email Ilimitadas\n  - Backups Automáticos\n\n` +
+      `• Plano Enterprise / VPS (3.500 MT/mês):\n  - 100GB SSD NVMe com recursos dedicados\n  - IP Dedicado e Suporte VIP 24/7\n\n` +
+      `Pode contratar ou saber mais detalhes em: [/hospedagem](/hospedagem)`;
+  }
+
   // Resposta Geral de Atendimento ao Cliente
   return `Olá! Sou o WEHOSTHERE AI Copilot, o seu assistente inteligente.\n\n` +
     `Como posso ajudá-lo hoje?\n` +
-    `• Consultar planos de hospedagem e preços: [/hospedagem](/hospedagem)\n` +
     `• Registar um domínio .co.mz ou .com: [/dominios](/dominios)\n` +
+    `• Consultar planos de hospedagem e preços: [/hospedagem](/hospedagem)\n` +
     `• Pedir orçamento para criar um site: [/site-quote](/site-quote)\n` +
     `• Configuração de email profissional: [/email-profissional](/email-profissional)\n` +
     `• Abrir um chamado de suporte: [/dashboard/tickets](/dashboard/tickets)\n\n` +
     `Digite a sua dúvida ou selecione uma das opções acima!`;
 }
+
