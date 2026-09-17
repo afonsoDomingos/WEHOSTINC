@@ -67,17 +67,14 @@ export async function POST(req: Request) {
       const subject = `⭐ Novo Feedback de Cliente: ${rating}/5 estrelas (${name})`;
       const message = `Olá Administrador,\n\nUm utilizador submeteu um novo feedback na plataforma:\n\n• Nome: ${name}\n• E-mail: ${email}\n• Classificação: ${rating}/5 estrelas\n• Categoria: ${category || 'Geral'}\n• Comentário: "${comment}"\n• Data: ${new Date().toLocaleString('pt-MZ')}\n\nConsulte o painel para mais informações.\nEquipe WEHOSTHERE`;
 
-      fetch(apiEndpoint('/api/send-email'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          to: adminEmail,
-          subject,
-          text: message
-        })
-      }).catch(() => {});
+      const { sendEmail } = await import('@/lib/sendgrid');
+      sendEmail({
+        to: adminEmail,
+        subject,
+        text: message
+      }).catch(err => console.warn('[API FEEDBACK] Erro ao enviar email de notificação:', err));
     } catch (emailErr) {
-      console.warn('[API FEEDBACK] Erro ao enviar email de notificação:', emailErr);
+      console.warn('[API FEEDBACK] Erro ao preparar email de notificação:', emailErr);
     }
 
     return NextResponse.json({ success: true, feedback: newFeedback });

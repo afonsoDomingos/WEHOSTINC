@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
+import { connectDB } from '@/lib/mongodb';
+import CommunicationLogModel from '@/lib/models/CommunicationLog';
 import { dispatchMessage, DEFAULT_TEMPLATES, replaceTemplateVariables } from '@/lib/notifications';
 
-let serverCommunicationLogs: any[] = [];
 let serverCommunicationTemplates: any[] = [...DEFAULT_TEMPLATES];
 
 export async function GET(req: Request) {
@@ -15,9 +16,20 @@ export async function GET(req: Request) {
     });
   }
 
+  let logs: any[] = [];
+  try {
+    await connectDB();
+    logs = await CommunicationLogModel.find({})
+      .sort({ sentAt: -1, createdAt: -1 })
+      .limit(200)
+      .lean();
+  } catch (err) {
+    console.error('[Communication API GET] Erro ao buscar logs do MongoDB:', err);
+  }
+
   return NextResponse.json({
     success: true,
-    logs: serverCommunicationLogs,
+    logs,
     templates: serverCommunicationTemplates
   });
 }

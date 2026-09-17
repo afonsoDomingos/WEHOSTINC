@@ -95,7 +95,7 @@ export async function POST(req: Request) {
         await withRetry(() => updateOrderStatus(eventData.reference || '', 'completed', eventData.id, eventData, metadata));
         // Enviar notificação de sucesso por email para cliente (com retry)
         if (clientEmail) {
-          await withRetry(() => sendPaymentNotification(clientEmail, clientName, serviceName, 'completed', eventData.amount));
+          await withRetry(() => sendPaymentNotification(clientEmail, clientName, serviceName, 'completed', eventData.amount, undefined, eventData.reference));
         }
         // Notificar admin sobre pagamento confirmado (com retry)
         await withRetry(() => notifyAdminAboutPayment(clientName, clientEmail || '', serviceName, 'completed', eventData.amount, eventData.reference));
@@ -126,7 +126,7 @@ export async function POST(req: Request) {
         await withRetry(() => updateOrderStatus(eventData.reference || '', 'cancelled', eventData.id, eventData, metadata));
         // Enviar notificação de falha por email para cliente com motivo específico
         if (clientEmail) {
-          await sendPaymentNotification(clientEmail, clientName, serviceName, 'failed', eventData.amount, failureReason);
+          await sendPaymentNotification(clientEmail, clientName, serviceName, 'failed', eventData.amount, failureReason, eventData.reference);
         }
         // Notificar admin sobre pagamento falhado com motivo específico
         await notifyAdminAboutPayment(clientName, clientEmail || '', serviceName, 'failed', eventData.amount, eventData.reference, failureReason);
@@ -236,33 +236,95 @@ async function sendPaymentNotification(
   serviceName: string,
   status: 'completed' | 'failed',
   amount?: number,
-  failureReason?: string
+  failureReason?: string,
+  reference?: string
 ) {
   try {
     console.log(`[KIVORA WEBHOOK] Enviando notificação ${status} para ${email}`);
-    
-    const subject = status === 'completed' 
-      ? '✅ Pagamento Confirmado - WEHOSTHERE'
-      : '❌ Pagamento Falhou - WEHOSTHERE';
-    
-    const message = status === 'completed'
-      ? `Olá ${clientName},\n\nO seu pagamento de ${amount || 0} MZN para "${serviceName}" foi confirmado com sucesso!\n\nO seu pedido está sendo processado.\n\nObrigado pela preferência!\nEquipe WEHOSTHERE`
-      : `Olá ${clientName},\n\nInfelizmente, o pagamento de ${amount || 0} MZN para "${serviceName}" falhou.\n\nMotivo: ${failureReason || 'Não especificado'}\n\nPor favor, tente novamente ou entre em contato com o suporte.\n\nEquipe WEHOSTHERE`;
+    const { dispatchMessage } = await import('@/lib/notifications');
 
-    // Chamar API de email correta
-    await fetch(apiEndpoint('/api/send-email'), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        to: email,
-        subject,
-        text: message
-      })
-    }).catch(err => console.error('[KIVORA WEBHOOK] Erro ao enviar email:', err));
-    
-    console.log(`[KIVORA WEBHOOK] Notificação ${status} enviada para ${email}`);
+    if (status === 'completed') {
+      // 1. Enviar confirmação de pagamento para o cliente
+      await dispatchMessage({
+        recipientEmail: email,
+        recipientName: clientName || 'Cliente',
+        templateId: 'payment-confirmed',
+        variables: {
+          numero_pedido: reference || 'N/A',
+          valor: `${Number(amount || 0).toLocaleString('pt-MZ')} MT`
+        },
+        isAutomatic: true,
+        eventType: 'kivora_payment_success'
+      });
+
+      // 2. Auto-provisionamento: gerar e enviar credenciais cPanel se for serviço de hospedagem
+      try {
+        const { generateHostingCredentials } = await import('@/lib/provisioning');
+        const creds = generateHostingCredentials(reference || 'ORD', email);
+        await dispatchMessage({
+          recipientEmail: email,
+          recipientName: clientName || 'Cliente',
+          templateId: 'service-credentials',
+          variables: {
+            numero_pedido: reference || 'ORD',
+            utilizador: creds.username,
+            palavra_passe: creds.password,
+            link_painel: creds.cpanelUrl,
+            link_webmail: creds.webmailUrl,
+            servidor_dns1: creds.nameserver1,
+            servidor_dns2: creds.nameserver2
+          },
+          isAutomatic: true,
+          eventType: 'service_auto_provisioned'
+        });
+      } catch (credErr) {
+        console.error('[KIVORA WEBHOOK] Erro ao enviar credenciais de acesso:', credErr);
+      }
+
+      // 3. Se o serviço for um curso, matricular e enviar boas-vindas
+      if (serviceName?.toLowerCase().includes('curso')) {
+        try {
+          const { CourseModel } = await import('@/lib/models/CourseModel');
+          const courses = await CourseModel.find({});
+          const matchingCourse = courses.find((course: any) => 
+            course.title.toLowerCase().includes(serviceName.toLowerCase()) ||
+            serviceName.toLowerCase().includes(course.title.toLowerCase())
+          );
+          if (matchingCourse) {
+            await dispatchMessage({
+              recipientEmail: email,
+              recipientName: clientName || 'Cliente',
+              templateId: 'course_enrollment',
+              variables: {
+                courseTitle: matchingCourse.title
+              },
+              isAutomatic: true,
+              eventType: 'course_auto_enrollment'
+            });
+          }
+        } catch (courseErr) {
+          console.error('[KIVORA WEBHOOK] Erro ao processar curso no webhook:', courseErr);
+        }
+      }
+    } else {
+      // Falha no pagamento
+      await dispatchMessage({
+        recipientEmail: email,
+        recipientName: clientName || 'Cliente',
+        templateId: 'payment-failed',
+        variables: {
+          numero_pedido: reference || 'N/A',
+          valor: `${Number(amount || 0).toLocaleString('pt-MZ')} MT`,
+          motivo_falha: failureReason || 'Não especificado'
+        },
+        isAutomatic: true,
+        eventType: 'kivora_payment_failed'
+      });
+    }
+
+    console.log(`[KIVORA WEBHOOK] Notificação ${status} enviada com sucesso para ${email}`);
   } catch (error) {
-    console.error('[KIVORA WEBHOOK] Erro ao enviar notificação:', error);
+    console.error('[KIVORA WEBHOOK] Erro ao enviar notificação de pagamento:', error);
   }
 }
 
@@ -278,27 +340,38 @@ async function notifyAdminAboutPayment(
 ) {
   try {
     console.log(`[KIVORA WEBHOOK] Notificando admin sobre pagamento ${status}`);
-    
+    const { addAdminNotification } = await import('@/lib/notifications');
+    const { sendEmail } = await import('@/lib/sendgrid');
+
     const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL || 'info@wehosthere.com';
     const subject = status === 'completed'
-      ? `💰 Novo Pagamento Confirmado: ${clientName} - ${amount} MZN`
-      : `⚠️ Pagamento Falhou: ${clientName} - ${amount} MZN`;
+      ? `💰 Novo Pagamento Confirmado: ${clientName} - ${amount || 0} MZN`
+      : `⚠️ Pagamento Falhou: ${clientName} - ${amount || 0} MZN`;
     
     const message = status === 'completed'
-      ? `Olá Administrador,\n\nNovo pagamento confirmado:\n\n• Cliente: ${clientName} (${clientEmail})\n• Serviço: ${serviceName}\n• Valor: ${amount} MZN\n• Referência: ${reference}\n• Data: ${new Date().toLocaleString('pt-MZ')}\n\nVerifique o pedido no painel admin.\nEquipe WEHOSTHERE`
-      : `Olá Administrador,\n\nPagamento falhou:\n\n• Cliente: ${clientName} (${clientEmail})\n• Serviço: ${serviceName}\n• Valor: ${amount} MZN\n• Referência: ${reference}\n• Motivo: ${failureReason || 'Não especificado'}\n• Data: ${new Date().toLocaleString('pt-MZ')}\n\nVerifique o pedido no painel admin.\nEquipe WEHOSTHERE`;
+      ? `Olá Administrador,\n\nNovo pagamento confirmado via Kivora:\n\n• Cliente: ${clientName} (${clientEmail})\n• Serviço: ${serviceName}\n• Valor: ${amount || 0} MZN\n• Referência: ${reference || 'N/A'}\n• Data: ${new Date().toLocaleString('pt-MZ')}\n\nVerifique o pedido no painel admin.\nEquipe WEHOSTHERE`
+      : `Olá Administrador,\n\nPagamento falhou na Kivora:\n\n• Cliente: ${clientName} (${clientEmail})\n• Serviço: ${serviceName}\n• Valor: ${amount || 0} MZN\n• Referência: ${reference || 'N/A'}\n• Motivo: ${failureReason || 'Não especificado'}\n• Data: ${new Date().toLocaleString('pt-MZ')}\n\nVerifique o pedido no painel admin.\nEquipe WEHOSTHERE`;
 
-    await fetch(apiEndpoint('/api/send-email'), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        to: adminEmail,
-        subject,
-        text: message
-      })
-    }).catch(err => console.error('[KIVORA WEBHOOK] Erro ao notificar admin:', err));
+    // 1. Notificação no painel admin (MongoDB)
+    addAdminNotification({
+      title: subject,
+      message: status === 'completed' 
+        ? `Pagamento de ${amount || 0} MZN confirmado via Kivora para ${serviceName}. Ref: ${reference || 'N/A'}`
+        : `Pagamento de ${amount || 0} MZN falhou via Kivora. Motivo: ${failureReason || 'Não especificado'}`,
+      type: status === 'completed' ? 'payment_success' : 'payment_failed',
+      userEmail: clientEmail,
+      userName: clientName,
+      link: '/admin?tab=orders'
+    });
+
+    // 2. Notificação por e-mail para o administrador
+    await sendEmail({
+      to: adminEmail,
+      subject,
+      text: message
+    });
     
-    console.log(`[KIVORA WEBHOOK] Admin notificado sobre pagamento ${status}`);
+    console.log(`[KIVORA WEBHOOK] Admin notificado com sucesso sobre pagamento ${status}`);
   } catch (error) {
     console.error('[KIVORA WEBHOOK] Erro ao notificar admin:', error);
   }
