@@ -13,6 +13,22 @@ export const metadata: Metadata = {
     title: 'PLR - Produtos com Direitos de Revenda em Moçambique | WEHOSTHERE',
     description: 'Aprenda sobre produtos PLR em Moçambique. Compre, edite e revenda produtos digitais.',
     url: 'https://www.wehosthere.com/plr',
+    images: [
+      {
+        url: 'https://www.wehosthere.com/servidores-banner.png',
+        secureUrl: 'https://www.wehosthere.com/servidores-banner.png',
+        width: 1200,
+        height: 630,
+        type: 'image/png',
+        alt: 'WEHOSTHERE — PLR - Produtos com Direitos de Revenda',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'PLR - Produtos com Direitos de Revenda | WEHOSTHERE',
+    description: 'Compre, edite e revenda produtos digitais com direitos de marca própria.',
+    images: ['https://www.wehosthere.com/servidores-banner.png'],
   },
   alternates: {
     canonical: 'https://www.wehosthere.com/plr',

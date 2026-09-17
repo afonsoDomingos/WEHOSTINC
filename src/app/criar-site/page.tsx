@@ -13,6 +13,22 @@ export const metadata: Metadata = {
     title: 'Criar Site em Moçambique - Desenvolvimento Web Profissional | WEHOSTHERE',
     description: 'Crie seu site profissional em Moçambique com a WEHOSTHERE. Desenvolvimento web customizado e responsivo.',
     url: 'https://www.wehosthere.com/criar-site',
+    images: [
+      {
+        url: 'https://www.wehosthere.com/servidores-banner.png',
+        secureUrl: 'https://www.wehosthere.com/servidores-banner.png',
+        width: 1200,
+        height: 630,
+        type: 'image/png',
+        alt: 'WEHOSTHERE — Criar Site Profissional em Moçambique',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Criar Site em Moçambique | WEHOSTHERE',
+    description: 'Desenvolvimento web customizado, responsivo e otimizado para SEO. Orçamento personalizado.',
+    images: ['https://www.wehosthere.com/servidores-banner.png'],
   },
   alternates: {
     canonical: 'https://www.wehosthere.com/criar-site',

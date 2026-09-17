@@ -13,6 +13,22 @@ export const metadata: Metadata = {
     title: 'Hospedagem de Sites em Moçambique - Servidor Rápido e Seguro | WEHOSTHERE',
     description: 'Hospedagem de sites profissional em Moçambique com a WEHOSTHERE. Servidores rápidos, seguros e suporte local 24/7.',
     url: 'https://www.wehosthere.com/hospedagem',
+    images: [
+      {
+        url: 'https://www.wehosthere.com/servidores-banner.png',
+        secureUrl: 'https://www.wehosthere.com/servidores-banner.png',
+        width: 1200,
+        height: 630,
+        type: 'image/png',
+        alt: 'WEHOSTHERE — Hospedagem de Sites Profissional em Moçambique',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Hospedagem de Sites em Moçambique | WEHOSTHERE',
+    description: 'Hospedagem profissional com servidores rápidos, seguros e suporte local 24/7.',
+    images: ['https://www.wehosthere.com/servidores-banner.png'],
   },
   alternates: {
     canonical: 'https://www.wehosthere.com/hospedagem',

@@ -13,6 +13,22 @@ export const metadata: Metadata = {
     title: 'Servidor VPS em Moçambique - Dedicado Virtual de Alta Performance | WEHOSTHERE',
     description: 'Servidores VPS de alta performance em Moçambique com a WEHOSTHERE. CPU dedicada e acesso root.',
     url: 'https://www.wehosthere.com/vps',
+    images: [
+      {
+        url: 'https://www.wehosthere.com/servidores-banner.png',
+        secureUrl: 'https://www.wehosthere.com/servidores-banner.png',
+        width: 1200,
+        height: 630,
+        type: 'image/png',
+        alt: 'WEHOSTHERE — Servidores VPS de Alta Performance em Moçambique',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Servidor VPS em Moçambique | WEHOSTHERE',
+    description: 'VPS com CPU e RAM dedicados, IP dedicado e acesso root. Ideal para lojas online.',
+    images: ['https://www.wehosthere.com/servidores-banner.png'],
   },
   alternates: {
     canonical: 'https://www.wehosthere.com/vps',

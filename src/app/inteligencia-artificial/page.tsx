@@ -13,6 +13,22 @@ export const metadata: Metadata = {
     title: 'Inteligência Artificial para Negócios em Moçambique | WEHOSTHERE',
     description: 'Descubra como usar inteligência artificial em seu negócio. Ferramentas de IA e automação.',
     url: 'https://www.wehosthere.com/inteligencia-artificial',
+    images: [
+      {
+        url: 'https://www.wehosthere.com/servidores-banner.png',
+        secureUrl: 'https://www.wehosthere.com/servidores-banner.png',
+        width: 1200,
+        height: 630,
+        type: 'image/png',
+        alt: 'WEHOSTHERE — Inteligência Artificial para Negócios em Moçambique',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Inteligência Artificial para Negócios | WEHOSTHERE',
+    description: 'Ferramentas de IA e automação para empresas em Moçambique.',
+    images: ['https://www.wehosthere.com/servidores-banner.png'],
   },
   alternates: {
     canonical: 'https://www.wehosthere.com/inteligencia-artificial',

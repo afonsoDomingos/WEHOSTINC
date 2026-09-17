@@ -13,6 +13,22 @@ export const metadata: Metadata = {
     title: 'Domínio .co.mz - Registrar Domínio Nacional de Moçambique | WEHOSTHERE',
     description: 'Registre o seu domínio .co.mz em Moçambique com a WEHOSTHERE. Facilitamos todo o processo de registro nacional.',
     url: 'https://www.wehosthere.com/dominio-co-mz',
+    images: [
+      {
+        url: 'https://www.wehosthere.com/servidores-banner.png',
+        secureUrl: 'https://www.wehosthere.com/servidores-banner.png',
+        width: 1200,
+        height: 630,
+        type: 'image/png',
+        alt: 'WEHOSTHERE — Registo de Domínio .co.mz Nacional de Moçambique',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Domínio .co.mz em Moçambique | WEHOSTHERE',
+    description: 'Registre o seu domínio .co.mz com suporte local. Processo rápido e simples.',
+    images: ['https://www.wehosthere.com/servidores-banner.png'],
   },
   alternates: {
     canonical: 'https://www.wehosthere.com/dominio-co-mz',

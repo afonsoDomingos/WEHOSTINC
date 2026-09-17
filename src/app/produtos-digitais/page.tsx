@@ -13,6 +13,22 @@ export const metadata: Metadata = {
     title: 'Produtos Digitais em Moçambique - Vender e Criar Conteúdo Digital | WEHOSTHERE',
     description: 'Aprenda sobre produtos digitais em Moçambique. Crie e venda ebooks, cursos e software.',
     url: 'https://www.wehosthere.com/produtos-digitais',
+    images: [
+      {
+        url: 'https://www.wehosthere.com/servidores-banner.png',
+        secureUrl: 'https://www.wehosthere.com/servidores-banner.png',
+        width: 1200,
+        height: 630,
+        type: 'image/png',
+        alt: 'WEHOSTHERE — Produtos Digitais - Criar e Vender Online',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Produtos Digitais em Moçambique | WEHOSTHERE',
+    description: 'Crie e venda ebooks, cursos online e software. Modelo de negócio escalável.',
+    images: ['https://www.wehosthere.com/servidores-banner.png'],
   },
   alternates: {
     canonical: 'https://www.wehosthere.com/produtos-digitais',

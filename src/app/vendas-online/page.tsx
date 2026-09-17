@@ -13,6 +13,22 @@ export const metadata: Metadata = {
     title: 'Vendas Online em Moçambique - Como Vender na Internet | WEHOSTHERE',
     description: 'Aprenda a fazer vendas online em Moçambique. Estratégias de e-commerce e marketing digital.',
     url: 'https://www.wehosthere.com/vendas-online',
+    images: [
+      {
+        url: 'https://www.wehosthere.com/servidores-banner.png',
+        secureUrl: 'https://www.wehosthere.com/servidores-banner.png',
+        width: 1200,
+        height: 630,
+        type: 'image/png',
+        alt: 'WEHOSTHERE — Vendas Online e E-commerce em Moçambique',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Vendas Online em Moçambique | WEHOSTHERE',
+    description: 'Estratégias de e-commerce e marketing digital para vender na internet em Moçambique.',
+    images: ['https://www.wehosthere.com/servidores-banner.png'],
   },
   alternates: {
     canonical: 'https://www.wehosthere.com/vendas-online',

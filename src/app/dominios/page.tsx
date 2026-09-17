@@ -13,6 +13,22 @@ export const metadata: Metadata = {
     title: 'Domínios em Moçambique - Registrar e Comprar Domínios | WEHOSTHERE',
     description: 'Registre o seu domínio em Moçambique com a WEHOSTHERE. Oferecemos domínios .co.mz, .com, .org e mais.',
     url: 'https://www.wehosthere.com/dominios',
+    images: [
+      {
+        url: 'https://www.wehosthere.com/servidores-banner.png',
+        secureUrl: 'https://www.wehosthere.com/servidores-banner.png',
+        width: 1200,
+        height: 630,
+        type: 'image/png',
+        alt: 'WEHOSTHERE — Registo de Domínios .co.mz e .com em Moçambique',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Domínios em Moçambique | WEHOSTHERE',
+    description: 'Registre o seu domínio .co.mz ou .com com a WEHOSTHERE. Suporte local e ativação rápida.',
+    images: ['https://www.wehosthere.com/servidores-banner.png'],
   },
   alternates: {
     canonical: 'https://www.wehosthere.com/dominios',

@@ -13,6 +13,22 @@ export const metadata: Metadata = {
     title: 'ScalePay - Gateway de Pagamento em Moçambique | WEHOSTHERE',
     description: 'ScalePay é a solução de pagamentos digitais da WEHOSTHERE. Aceite pagamentos online em Moçambique.',
     url: 'https://www.wehosthere.com/scalepay',
+    images: [
+      {
+        url: 'https://www.wehosthere.com/servidores-banner.png',
+        secureUrl: 'https://www.wehosthere.com/servidores-banner.png',
+        width: 1200,
+        height: 630,
+        type: 'image/png',
+        alt: 'WEHOSTHERE — ScalePay Gateway de Pagamento Digital em Moçambique',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'ScalePay - Pagamentos Digitais | WEHOSTHERE',
+    description: 'Aceite pagamentos online, cartões e pagamentos móveis em Moçambique.',
+    images: ['https://www.wehosthere.com/servidores-banner.png'],
   },
   alternates: {
     canonical: 'https://www.wehosthere.com/scalepay',

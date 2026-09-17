@@ -13,6 +13,22 @@ export const metadata: Metadata = {
     title: 'Criar Loja Online em Moçambique - E-commerce Profissional | WEHOSTHERE',
     description: 'Crie sua loja online em Moçambique com a WEHOSTHERE. E-commerce profissional com pagamentos M-Pesa.',
     url: 'https://www.wehosthere.com/loja-online',
+    images: [
+      {
+        url: 'https://www.wehosthere.com/servidores-banner.png',
+        secureUrl: 'https://www.wehosthere.com/servidores-banner.png',
+        width: 1200,
+        height: 630,
+        type: 'image/png',
+        alt: 'WEHOSTHERE — Criar Loja Online Profissional em Moçambique',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Criar Loja Online em Moçambique | WEHOSTHERE',
+    description: 'E-commerce com pagamento M-Pesa, gestão de produtos e design responsivo.',
+    images: ['https://www.wehosthere.com/servidores-banner.png'],
   },
   alternates: {
     canonical: 'https://www.wehosthere.com/loja-online',

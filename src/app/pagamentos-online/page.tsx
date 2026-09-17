@@ -13,6 +13,22 @@ export const metadata: Metadata = {
     title: 'Pagamentos Online em Moçambique - Gateway de Pagamento | WEHOSTHERE',
     description: 'Soluções de pagamentos online em Moçambique. Integre M-Pesa e gateways de pagamento.',
     url: 'https://www.wehosthere.com/pagamentos-online',
+    images: [
+      {
+        url: 'https://www.wehosthere.com/servidores-banner.png',
+        secureUrl: 'https://www.wehosthere.com/servidores-banner.png',
+        width: 1200,
+        height: 630,
+        type: 'image/png',
+        alt: 'WEHOSTHERE — Pagamentos Online e Gateway em Moçambique',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Pagamentos Online em Moçambique | WEHOSTHERE',
+    description: 'Integre M-Pesa, E-Mola e cartões na sua loja online. Solução completa.',
+    images: ['https://www.wehosthere.com/servidores-banner.png'],
   },
   alternates: {
     canonical: 'https://www.wehosthere.com/pagamentos-online',

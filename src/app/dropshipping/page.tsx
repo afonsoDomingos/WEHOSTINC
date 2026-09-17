@@ -13,6 +13,22 @@ export const metadata: Metadata = {
     title: 'Dropshipping em Moçambique - Modelo de Negócio Sem Estoque | WEHOSTHERE',
     description: 'Aprenda sobre dropshipping em Moçambique. Modelo de negócio de vendas online sem estoque.',
     url: 'https://www.wehosthere.com/dropshipping',
+    images: [
+      {
+        url: 'https://www.wehosthere.com/servidores-banner.png',
+        secureUrl: 'https://www.wehosthere.com/servidores-banner.png',
+        width: 1200,
+        height: 630,
+        type: 'image/png',
+        alt: 'WEHOSTHERE — Dropshipping em Moçambique',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Dropshipping em Moçambique | WEHOSTHERE',
+    description: 'Venda produtos online sem estoque com dropshipping. Modelo de negócio escalável.',
+    images: ['https://www.wehosthere.com/servidores-banner.png'],
   },
   alternates: {
     canonical: 'https://www.wehosthere.com/dropshipping',

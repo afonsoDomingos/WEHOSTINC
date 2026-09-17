@@ -13,6 +13,22 @@ export const metadata: Metadata = {
     title: 'Email Profissional em Moçambique - Criar Email com Domínio Próprio | WEHOSTHERE',
     description: 'Crie seu email profissional em Moçambique com a WEHOSTHERE. Email com domínio próprio e suporte local.',
     url: 'https://www.wehosthere.com/email-profissional',
+    images: [
+      {
+        url: 'https://www.wehosthere.com/servidores-banner.png',
+        secureUrl: 'https://www.wehosthere.com/servidores-banner.png',
+        width: 1200,
+        height: 630,
+        type: 'image/png',
+        alt: 'WEHOSTHERE — Email Profissional com Domínio Próprio em Moçambique',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Email Profissional em Moçambique | WEHOSTHERE',
+    description: 'Crie email com domínio próprio em Moçambique. Suporte local e interface moderna.',
+    images: ['https://www.wehosthere.com/servidores-banner.png'],
   },
   alternates: {
     canonical: 'https://www.wehosthere.com/email-profissional',

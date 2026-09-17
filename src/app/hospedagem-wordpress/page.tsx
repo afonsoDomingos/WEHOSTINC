@@ -13,6 +13,22 @@ export const metadata: Metadata = {
     title: 'Hospedagem WordPress em Moçambique - Otimizada e Rápida | WEHOSTHERE',
     description: 'Hospedagem WordPress otimizada em Moçambique com a WEHOSTHERE. Instalação em um clique e performance máxima.',
     url: 'https://www.wehosthere.com/hospedagem-wordpress',
+    images: [
+      {
+        url: 'https://www.wehosthere.com/servidores-banner.png',
+        secureUrl: 'https://www.wehosthere.com/servidores-banner.png',
+        width: 1200,
+        height: 630,
+        type: 'image/png',
+        alt: 'WEHOSTHERE — Hospedagem WordPress Otimizada em Moçambique',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Hospedagem WordPress em Moçambique | WEHOSTHERE',
+    description: 'WordPress rápido com instalação em 1 clique, atualizações automáticas e SSL gratuito.',
+    images: ['https://www.wehosthere.com/servidores-banner.png'],
   },
   alternates: {
     canonical: 'https://www.wehosthere.com/hospedagem-wordpress',

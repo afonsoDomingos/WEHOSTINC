@@ -13,6 +13,22 @@ export const metadata: Metadata = {
     title: 'Email Corporativo em Moçambique - Soluções Avançadas para Empresas | WEHOSTHERE',
     description: 'Email corporativo avançado em Moçambique com a WEHOSTHERE. Calendário compartilhado e integração CRM.',
     url: 'https://www.wehosthere.com/email-corporativo',
+    images: [
+      {
+        url: 'https://www.wehosthere.com/servidores-banner.png',
+        secureUrl: 'https://www.wehosthere.com/servidores-banner.png',
+        width: 1200,
+        height: 630,
+        type: 'image/png',
+        alt: 'WEHOSTHERE — Email Corporativo Avançado em Moçambique',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Email Corporativo em Moçambique | WEHOSTHERE',
+    description: 'Solução de email corporativo com calendário compartilhado e suporte prioritário.',
+    images: ['https://www.wehosthere.com/servidores-banner.png'],
   },
   alternates: {
     canonical: 'https://www.wehosthere.com/email-corporativo',
