@@ -23,8 +23,10 @@ export const metadata: Metadata = {
     images: [
       {
         url: 'https://www.wehosthere.com/servidores-banner.png',
+        secureUrl: 'https://www.wehosthere.com/servidores-banner.png',
         width: 1200,
         height: 630,
+        type: 'image/png',
         alt: 'WEHOSTHERE Blog',
       },
     ],

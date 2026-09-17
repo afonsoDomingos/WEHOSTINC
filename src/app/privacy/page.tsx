@@ -1,5 +1,36 @@
+import type { Metadata } from 'next';
 import Navbar from '@/components/Navbar';
 import Link from 'next/link';
+import { SITE_URL } from '@/lib/siteConfig';
+
+export const metadata: Metadata = {
+  title: 'Política de Privacidade | WEHOSTHERE',
+  description: 'A WEHOSTHERE valoriza a sua privacidade. Saiba como recolhemos, utilizamos e protegemos os seus dados pessoais em conformidade com as melhores práticas.',
+  alternates: { canonical: `${SITE_URL}/privacy` },
+  openGraph: {
+    type: 'website',
+    locale: 'pt_MZ',
+    url: `${SITE_URL}/privacy`,
+    title: 'Política de Privacidade | WEHOSTHERE',
+    description: 'Saiba como a WEHOSTHERE protege a sua privacidade e os seus dados pessoais.',
+    images: [
+      {
+        url: `${SITE_URL}/servidores-banner.png`,
+        secureUrl: `${SITE_URL}/servidores-banner.png`,
+        width: 1200,
+        height: 630,
+        type: 'image/png',
+        alt: 'WEHOSTHERE — Política de Privacidade',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Política de Privacidade | WEHOSTHERE',
+    description: 'Saiba como a WEHOSTHERE protege a sua privacidade.',
+    images: [`${SITE_URL}/servidores-banner.png`],
+  },
+};
 
 export default function PrivacyPage() {
   return (

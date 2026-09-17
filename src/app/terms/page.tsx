@@ -1,5 +1,36 @@
+import type { Metadata } from 'next';
 import Navbar from '@/components/Navbar';
 import Link from 'next/link';
+import { SITE_URL } from '@/lib/siteConfig';
+
+export const metadata: Metadata = {
+  title: 'Termos de Serviço | WEHOSTHERE',
+  description: 'Conheça os Termos de Serviço da WEHOSTHERE. Regras, condições e diretrizes de utilização dos nossos serviços de hospedagem, domínios e soluções web.',
+  alternates: { canonical: `${SITE_URL}/terms` },
+  openGraph: {
+    type: 'website',
+    locale: 'pt_MZ',
+    url: `${SITE_URL}/terms`,
+    title: 'Termos de Serviço | WEHOSTHERE',
+    description: 'Conheça os Termos de Serviço da WEHOSTHERE para serviços de hospedagem e tecnologia.',
+    images: [
+      {
+        url: `${SITE_URL}/servidores-banner.png`,
+        secureUrl: `${SITE_URL}/servidores-banner.png`,
+        width: 1200,
+        height: 630,
+        type: 'image/png',
+        alt: 'WEHOSTHERE — Termos de Serviço',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Termos de Serviço | WEHOSTHERE',
+    description: 'Conheça os Termos de Serviço da WEHOSTHERE.',
+    images: [`${SITE_URL}/servidores-banner.png`],
+  },
+};
 
 export default function TermsPage() {
   return (

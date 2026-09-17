@@ -1,63 +1,94 @@
 import type { Metadata } from 'next';
+import { SITE_URL } from '@/lib/siteConfig';
 
-type Props = {
+interface Props {
   params: { slug: string };
-};
+  children: React.ReactNode;
+}
 
-// Gerar metadata dinâmica para cada artigo com base no slug (Server Side)
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  const DEFAULT_IMAGE = `${SITE_URL}/servidores-banner.png`;
+  const canonicalUrl = `${SITE_URL}/blog/${params.slug}`;
+
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.wehosthere.com';
-    const res = await fetch(`${baseUrl}/api/admin/blog/posts/${params.slug}`, {
-      next: { revalidate: 3600 }, // cache por 1 hora
-    });
-    if (res.ok) {
-      const data = await res.json();
-      const post = data.post;
-      if (post) {
-        return {
-          title: `${post.title} | Blog WEHOSTHERE`,
-          description: post.excerpt || `Leia o artigo: ${post.title}`,
-          keywords: post.tags || [],
-          openGraph: {
-            type: 'article',
-            locale: 'pt_MZ',
-            url: `${baseUrl}/blog/${params.slug}`,
-            siteName: 'WEHOSTHERE',
-            title: post.title,
-            description: post.excerpt,
-            images: post.coverImage ? [{ url: post.coverImage, width: 1200, height: 630, alt: post.title }] : [],
-            publishedTime: post.publishedAt,
-            authors: [post.author?.name || 'WEHOSTHERE'],
-          },
-          twitter: {
-            card: 'summary_large_image',
-            title: post.title,
-            description: post.excerpt,
-            images: post.coverImage ? [post.coverImage] : [],
-          },
-          alternates: {
-            canonical: `${baseUrl}/blog/${params.slug}`,
-          },
-        };
-      }
+    const { connectDB } = await import('@/lib/mongodb');
+    await connectDB();
+    const BlogPost = (await import('@/lib/models/BlogPost')).default;
+    const post: any = await BlogPost.findOne({ slug: params.slug, status: 'published' }).lean();
+
+    if (post && typeof post === 'object' && !Array.isArray(post)) {
+      const imageUrl = post.coverImage?.startsWith('http') 
+        ? post.coverImage 
+        : post.coverImage?.startsWith('/')
+        ? `${SITE_URL}${post.coverImage}`
+        : DEFAULT_IMAGE;
+
+      const title = `${post.title} | WEHOSTHERE Blog`;
+      const description = post.excerpt || 'Artigo sobre tecnologia, hospedagem e negócios em Moçambique.';
+
+      return {
+        title,
+        description,
+        alternates: { canonical: canonicalUrl },
+        openGraph: {
+          type: 'article',
+          locale: 'pt_MZ',
+          url: canonicalUrl,
+          title,
+          description,
+          images: [
+            {
+              url: imageUrl,
+              secureUrl: imageUrl,
+              width: 1200,
+              height: 630,
+              type: 'image/png',
+              alt: post.title,
+            },
+          ],
+        },
+        twitter: {
+          card: 'summary_large_image',
+          title,
+          description,
+          images: [imageUrl],
+        },
+      };
     }
-  } catch (e) {
-    console.warn('[Blog] Erro ao gerar metadata do artigo:', e);
+  } catch (err) {
+    console.error('Error generating metadata for blog post:', err);
   }
 
-  // SEO FIX: Post não encontrado — marcar como noindex para evitar Soft 404.
-  // Não usar canonical apontando para /blog, pois isso cria duplicatas no Search Console.
   return {
-    title: 'Artigo não encontrado | Blog WEHOSTHERE',
-    description: 'Este artigo não foi encontrado. Explore outros artigos sobre hospedagem e tecnologia no blog da WEHOSTHERE.',
-    robots: {
-      index: false,
-      follow: true,
+    title: 'Artigo do Blog | WEHOSTHERE',
+    description: 'Artigos, novidades e tutoriais sobre tecnologia e hospedagem em Moçambique.',
+    alternates: { canonical: canonicalUrl },
+    openGraph: {
+      type: 'article',
+      locale: 'pt_MZ',
+      url: canonicalUrl,
+      title: 'Artigo do Blog | WEHOSTHERE',
+      description: 'Artigos, novidades e tutoriais sobre tecnologia e hospedagem em Moçambique.',
+      images: [
+        {
+          url: DEFAULT_IMAGE,
+          secureUrl: DEFAULT_IMAGE,
+          width: 1200,
+          height: 630,
+          type: 'image/png',
+          alt: 'WEHOSTHERE Blog',
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: 'Artigo do Blog | WEHOSTHERE',
+      description: 'Artigos, novidades e tutoriais sobre tecnologia e hospedagem em Moçambique.',
+      images: [DEFAULT_IMAGE],
     },
   };
 }
 
-export default function BlogSlugLayout({ children }: { children: React.ReactNode }) {
-  return children;
+export default function BlogPostLayout({ children }: Props) {
+  return <>{children}</>;
 }
