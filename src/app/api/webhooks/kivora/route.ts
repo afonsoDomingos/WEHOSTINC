@@ -122,8 +122,8 @@ export async function POST(req: Request) {
         
         console.log('[KIVORA WEBHOOK] Detalhes da falha:', { failureCode, failureReason });
         
-        // Atualizar status do pedido para 'cancelled'
-        await updateOrderStatus(eventData.reference || '', 'cancelled', eventData.id, eventData, metadata);
+        // Atualizar status do pedido para 'cancelled' (com retry — igual ao payment.completed)
+        await withRetry(() => updateOrderStatus(eventData.reference || '', 'cancelled', eventData.id, eventData, metadata));
         // Enviar notificação de falha por email para cliente com motivo específico
         if (clientEmail) {
           await sendPaymentNotification(clientEmail, clientName, serviceName, 'failed', eventData.amount, failureReason);

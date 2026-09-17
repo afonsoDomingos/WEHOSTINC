@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { dataManager } from '@/lib/data';
+import { connectDB } from '@/lib/mongodb';
+import OrderModel from '@/lib/models/Order';
 
 export async function GET(req: Request) {
   try {
@@ -14,36 +15,50 @@ export async function GET(req: Request) {
       );
     }
 
-    // Buscar pedidos
-    const orders = await dataManager.fetchOrdersAsync();
-    
-    // Encontrar pedido por orderId ou reference
-    const order = orders.find((o: any) => {
-      if (orderId) return o.id === orderId;
-      if (reference) {
-        return o.reference === reference || 
-               o.serviceName?.includes(reference) ||
-               o.serviceName?.includes(reference.replace('REF_', '').replace('ORDER_', ''));
+    // 🔒 CORREÇÃO: Consultar MongoDB diretamente (fonte de verdade do webhook)
+    // Evita dependência de dataManager/localStorage no contexto server-side
+    await connectDB();
+
+    // Construir query de busca flexível (mesmo critério usado pelo webhook)
+    const queryConditions: any[] = [];
+
+    if (orderId) {
+      queryConditions.push({ id: orderId });
+    }
+
+    if (reference) {
+      queryConditions.push({ reference });
+      queryConditions.push({ kivoraPaymentId: reference });
+      // Suportar referências com prefixo REF_ ou ORDER_
+      const cleanRef = reference.replace('REF_', '').replace('ORDER_', '');
+      if (cleanRef && cleanRef !== reference) {
+        queryConditions.push({ reference: { $regex: new RegExp(cleanRef, 'i') } });
+        queryConditions.push({ id: { $regex: new RegExp(cleanRef, 'i') } });
       }
-      return false;
-    });
+    }
+
+    const order = queryConditions.length > 0
+      ? await OrderModel.findOne({ $or: queryConditions }).lean()
+      : null;
 
     if (!order) {
+      console.log('[PAYMENT STATUS] Pedido não encontrado:', { orderId, reference });
+      // Retornar pending para continuar o polling (pedido pode ainda não ter sido criado)
       return NextResponse.json(
-        { error: 'Pedido não encontrado' },
+        { error: 'Pedido não encontrado', status: 'pending' },
         { status: 404 }
       );
     }
 
-    console.log('[PAYMENT STATUS] Consulta:', { orderId, reference, status: order.status });
+    console.log('[PAYMENT STATUS] Consulta:', { orderId, reference, status: (order as any).status });
 
     return NextResponse.json({
-      orderId: order.id,
-      reference: order.reference,
-      status: order.status,
-      amount: order.amount,
-      paymentMethod: order.paymentMethod,
-      createdAt: order.createdAt
+      orderId: (order as any).id,
+      reference: (order as any).reference,
+      status: (order as any).status,
+      amount: (order as any).amount,
+      paymentMethod: (order as any).paymentMethod,
+      createdAt: (order as any).createdAt
     });
   } catch (error) {
     console.error('[PAYMENT STATUS] Erro:', error);

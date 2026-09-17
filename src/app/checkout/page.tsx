@@ -246,6 +246,7 @@ function CheckoutContent() {
   // 🔒 SEGURANÇA: Polling de status de pagamento - verificar confirmação do webhook
   useEffect(() => {
     let pollingInterval: NodeJS.Timeout;
+    let stopped = false; // 🔧 Flag para evitar race condition no primeiro poll imediato
 
     if (isPollingPayment && currentReference) {
       console.log('[PAYMENT POLLING] Iniciando verificação de status para reference:', currentReference);
@@ -266,6 +267,7 @@ function CheckoutContent() {
           
           if (data.status === 'completed') {
             console.log('[PAYMENT POLLING] Pagamento confirmado pelo webhook!');
+            stopped = true;
             clearInterval(pollingInterval);
             setIsPollingPayment(false);
             setPushModal(false);
@@ -280,6 +282,7 @@ function CheckoutContent() {
             await finalizeOrder();
           } else if (data.status === 'cancelled' || data.status === 'failed') {
             console.log('[PAYMENT POLLING] Pagamento falhou/cancelado');
+            stopped = true;
             clearInterval(pollingInterval);
             setIsPollingPayment(false);
             setLoading(false); // 🔧 CORREÇÃO: desbloquear botão quando pagamento falha
@@ -293,7 +296,9 @@ function CheckoutContent() {
             console.log('[PAYMENT POLLING] Próxima verificação em', nextInterval/1000, 'segundos');
             
             clearInterval(pollingInterval);
-            pollingInterval = setInterval(pollWithRetry, nextInterval);
+            if (!stopped) {
+              pollingInterval = setInterval(pollWithRetry, nextInterval);
+            }
           }
         } catch (err) {
           console.error('[PAYMENT POLLING] Erro ao verificar status:', err);
@@ -305,9 +310,12 @@ function CheckoutContent() {
             console.log('[PAYMENT POLLING] Retry', attempt, 'em', nextInterval/1000, 'segundos');
             
             clearInterval(pollingInterval);
-            pollingInterval = setInterval(pollWithRetry, nextInterval);
+            if (!stopped) {
+              pollingInterval = setInterval(pollWithRetry, nextInterval);
+            }
           } else {
             console.error('[PAYMENT POLLING] Máximo de retries atingido');
+            stopped = true;
             clearInterval(pollingInterval);
             setIsPollingPayment(false);
             setLoading(false); // 🔧 CORREÇÃO: desbloquear botão após máximo de retries
@@ -318,12 +326,18 @@ function CheckoutContent() {
         }
       };
       
-      // Iniciar polling
-      pollingInterval = setInterval(pollWithRetry, 5000); // Começa com 5 segundos
+      // Iniciar polling — primeira verificação imediata, depois de 5s em diante
+      pollWithRetry().then(() => {
+        // Só inicia o intervalo se o primeiro poll não resolveu o pagamento
+        if (!stopped) {
+          pollingInterval = setInterval(pollWithRetry, 5000);
+        }
+      });
       
       // Parar polling após 3 minutos (timeout aumentado)
       const timeout = setTimeout(() => {
         clearInterval(pollingInterval);
+        stopped = true;
         setIsPollingPayment(false);
         setLoading(false); // 🔧 CORREÇÃO: desbloquear botão após timeout
         setPushStatus('expired');
@@ -332,11 +346,13 @@ function CheckoutContent() {
       }, 180000); // 3 minutos
       
       return () => {
+        stopped = true;
         clearInterval(pollingInterval);
         clearTimeout(timeout);
       };
     }
   }, [isPollingPayment, currentReference, analytics, grandTotal, isAffiliateVerification, isCoursePayment, paymentMethod]);
+
 
   const handleRetryPush = async () => {
     setPushStatus('waiting');
