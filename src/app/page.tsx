@@ -121,7 +121,7 @@ export default function Home() {
         {/* Imagem de Fundo estática */}
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-70"
-          style={{ backgroundImage: "url('/servidores-banner.png')" }}
+          style={{ backgroundImage: "url('/datacenter-bg.jpg')" }}
         />
         <div className="absolute inset-0 bg-gradient-to-b from-slate-950/65 via-slate-950/70 to-slate-950" />
 

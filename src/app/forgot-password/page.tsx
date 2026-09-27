@@ -42,7 +42,7 @@ export default function ForgotPasswordPage() {
       {/* Fundo */}
       <div
         className="absolute inset-0 bg-cover bg-center opacity-30"
-        style={{ backgroundImage: "url('/servidores-banner.png')" }}
+        style={{ backgroundImage: "url('/datacenter-bg.jpg')" }}
       />
       <div className="absolute inset-0 bg-gradient-to-br from-slate-950/90 via-slate-900/85 to-primary-950/80" />
 

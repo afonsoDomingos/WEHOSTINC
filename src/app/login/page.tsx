@@ -148,7 +148,7 @@ export default function LoginPage() {
       {/* Fundo Datacenter */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-30"
-        style={{ backgroundImage: "url('/servidores-banner.png')" }}
+        style={{ backgroundImage: "url('/datacenter-bg.jpg')" }}
       />
       <div className="absolute inset-0 bg-gradient-to-br from-slate-950/90 via-slate-900/85 to-primary-950/80" />
 
