@@ -265,14 +265,23 @@ export default function VirtualAssistant() {
           background: #a1a1a1;
         }
       `}</style>
-      {/* Floating Button */}
+      {/* Floating Button com Avatar do Assistente */}
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 left-6 z-50 bg-primary-600 hover:bg-primary-700 text-white p-2.5 sm:p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 group"
-          title="Assistente Virtual"
+          className="fixed bottom-6 left-6 z-50 bg-white p-1 rounded-full shadow-2xl hover:shadow-primary-500/30 transition-all duration-300 hover:scale-110 group border-2 border-primary-500 flex items-center justify-center cursor-pointer"
+          title="Assistente Virtual WEHOSTHERE"
         >
-          <MessageCircle className="h-4 w-4 sm:h-4.5 sm:w-4.5 group-hover:scale-110 transition-transform" />
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden flex items-center justify-center bg-white relative">
+            <Image
+              src="/avatar.png"
+              alt="Assistente Virtual"
+              width={48}
+              height={48}
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform"
+            />
+            <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full animate-pulse" />
+          </div>
         </button>
       )}
 
@@ -283,18 +292,21 @@ export default function VirtualAssistant() {
           <div className="bg-gradient-to-r from-primary-600 to-primary-700 text-white p-2.5 sm:p-3 flex-shrink-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-1.5 sm:space-x-2">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-lg flex items-center justify-center overflow-hidden p-1 shadow-md">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-full flex items-center justify-center overflow-hidden p-0.5 shadow-md border-2 border-white/60">
                   <Image
-                    src="/logo.png"
-                    alt="WEHOSTHERE"
+                    src="/avatar.png"
+                    alt="WEHOSTHERE Assistente"
                     width={40}
                     height={40}
-                    className="w-full h-full object-contain"
+                    className="w-full h-full object-cover rounded-full"
                   />
                 </div>
                 <div>
                   <h3 className="font-bold text-[10px] sm:text-xs">WEHOSTHERE</h3>
-                  <p className="text-[9px] sm:text-[10px] text-primary-100">Assistente Virtual</p>
+                  <p className="text-[9px] sm:text-[10px] text-primary-100 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    Assistente Virtual
+                  </p>
                 </div>
               </div>
               <div className="flex items-center space-x-1.5 sm:space-x-2">

@@ -315,8 +315,8 @@ export default function AdminAiTopBar({ isGlobalRoot = false }: AdminAiTopBarPro
         {/* Cabeçalho do Painel */}
         <div className="flex items-center justify-between pb-3.5 border-b border-gray-200/40">
           <div className="flex items-center space-x-2.5">
-            <div className="w-7 h-7 rounded-xl bg-white/70 backdrop-blur-md shadow-2xs border border-white/80 flex items-center justify-center overflow-hidden p-1">
-              <img src="/icon-192.png" alt="WEHOSTHERE" className="w-full h-full object-contain rounded-lg" />
+            <div className="w-8 h-8 rounded-full bg-white shadow-xs border border-white/80 flex items-center justify-center overflow-hidden p-0.5">
+              <img src="/avatar.png" alt="WEHOSTHERE AI" className="w-full h-full object-cover rounded-full" />
             </div>
             <div>
               <span className="text-xs font-black uppercase tracking-wider text-gray-900 flex items-center gap-1.5">
@@ -404,7 +404,9 @@ export default function AdminAiTopBar({ isGlobalRoot = false }: AdminAiTopBarPro
                   {msg.role === 'assistant' && (
                     <div className="mt-2.5 pt-2 border-t border-gray-200/40 flex items-center justify-between text-[11px] text-gray-600 font-medium">
                       <span className="flex items-center gap-1.5 font-bold text-gray-700">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        <div className="w-4 h-4 rounded-full overflow-hidden bg-white border border-gray-200 shadow-2xs shrink-0">
+                          <img src="/avatar.png" alt="WEHOSTHERE AI" className="w-full h-full object-cover rounded-full" />
+                        </div>
                         WEHOSTHERE AI
                       </span>
                       <button
@@ -495,8 +497,8 @@ export default function AdminAiTopBar({ isGlobalRoot = false }: AdminAiTopBarPro
           className="fixed top-20 sm:top-24 right-0 z-40 bg-gradient-to-l from-[#075985] to-[#0284c7] text-white py-1.5 px-2 rounded-l-2xl shadow-xl cursor-pointer hover:px-3 transition-all duration-300 flex items-center space-x-1.5 opacity-80 hover:opacity-100 group border-y border-l border-white/30"
           title="Exibir WEHOSTHERE AI Copilot"
         >
-          <div className="w-4 h-4 rounded-full bg-white/20 p-0.5 flex items-center justify-center">
-            <img src="/icon-192.png" alt="AI" className="w-full h-full object-contain rounded-full" />
+          <div className="w-5 h-5 rounded-full bg-white p-0.5 flex items-center justify-center overflow-hidden">
+            <img src="/avatar.png" alt="AI" className="w-full h-full object-cover rounded-full" />
           </div>
           <span className="text-[10px] font-black tracking-wider uppercase hidden group-hover:inline transition-all">AI</span>
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -523,8 +525,8 @@ export default function AdminAiTopBar({ isGlobalRoot = false }: AdminAiTopBarPro
             }}
             className="relative flex items-center space-x-2 bg-gradient-to-r from-[#075985] via-[#0369a1] to-[#0284c7] hover:from-[#0369a1] hover:to-[#0284c7] text-white px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-full shadow-2xl border border-white/30 cursor-pointer transition-all duration-300 transform active:scale-95"
           >
-            <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-white/20 p-0.5 border border-white/40 flex items-center justify-center">
-              <img src="/icon-192.png" alt="AI" className="w-full h-full object-contain rounded-full" />
+            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-white p-0.5 border border-white/40 shadow-xs flex items-center justify-center overflow-hidden">
+              <img src="/avatar.png" alt="AI Copilot" className="w-full h-full object-cover rounded-full" />
             </div>
             <span className="text-xs font-black tracking-wide hidden sm:inline">AI Copilot</span>
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
@@ -591,16 +593,16 @@ export default function AdminAiTopBar({ isGlobalRoot = false }: AdminAiTopBarPro
           }`}
         >
           
-          {/* Logótipo WEHOSTHERE */}
-          <div className={`flex items-center justify-center w-7 h-7 rounded-full mr-2.5 shrink-0 overflow-hidden p-1 transition-all duration-300 ${
+          {/* Avatar WEHOSTHERE AI */}
+          <div className={`flex items-center justify-center w-7 h-7 rounded-full mr-2.5 shrink-0 overflow-hidden p-0.5 transition-all duration-300 ${
             isExpanded 
-              ? 'bg-primary-50 border border-primary-200 shadow-2xs' 
-              : 'bg-white/20 border border-white/30 shadow-xs'
+              ? 'bg-white border border-primary-200 shadow-2xs' 
+              : 'bg-white border border-white/30 shadow-xs'
           }`}>
             <img 
-              src="/icon-192.png" 
-              alt="WEHOSTHERE" 
-              className="w-full h-full object-contain rounded-full"
+              src="/avatar.png" 
+              alt="WEHOSTHERE AI" 
+              className="w-full h-full object-cover rounded-full"
               onError={(e) => {
                 (e.target as HTMLImageElement).src = '/logo.png';
               }}
