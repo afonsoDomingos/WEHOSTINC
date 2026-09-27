@@ -150,14 +150,6 @@ export default function Home() {
               {t('hero.title_full')}
             </h1>
 
-            {/* Subtítulo */}
-            <p
-              ref={subtitleRef}
-              className="anim-fade-up anim-delay-300 text-sm sm:text-base lg:text-lg text-slate-200 mb-6 sm:mb-8 max-w-2xl lg:max-w-none mx-auto font-semibold drop-shadow px-2 lg:px-0"
-            >
-              {t('hero.subtitle')}
-            </p>
-
             {/* Domain Search */}
             <div ref={searchRef} className="anim-zoom-in anim-delay-400 px-2 lg:px-0">
               <DomainSearch />
