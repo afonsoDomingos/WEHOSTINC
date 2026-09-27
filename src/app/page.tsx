@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from "next/link";
+import Image from "next/image";
 import { Server, Mail, Shield, Zap, Globe, Users, Search, Sparkles, CheckCircle, Facebook, Phone, Linkedin, Star, ArrowRight, Play, Calendar, Eye, Instagram, ChevronLeft, ChevronRight } from "lucide-react";
 import { websiteTypes } from '@/lib/data';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
@@ -116,8 +117,8 @@ export default function Home() {
       {/* Navbar Responsivo */}
       <Navbar />
 
-      {/* Hero + Banner unificados — fundo estático, sem layout shift ao pesquisar */}
-      <section id="infraestrutura" className="relative min-h-[600px] sm:min-h-[700px] px-4 bg-slate-950 text-white overflow-hidden shadow-2xl w-full flex items-start justify-center pb-0">
+      {/* Hero + Banner — two-column on desktop, stacked on mobile */}
+      <section id="infraestrutura" className="relative min-h-[600px] sm:min-h-[700px] px-4 bg-slate-950 text-white overflow-hidden shadow-2xl w-full flex items-center justify-center pb-0">
         {/* Imagem de Fundo estática */}
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-70"
@@ -125,39 +126,114 @@ export default function Home() {
         />
         <div className="absolute inset-0 bg-gradient-to-b from-slate-950/65 via-slate-950/70 to-slate-950" />
 
-        {/* Conteúdo */}
-        <div className="relative z-10 w-full max-w-7xl mx-auto text-center pt-16 sm:pt-24 pb-8 sm:pb-10">
+        {/* Grid de 2 colunas no desktop, 1 coluna no mobile */}
+        <div className="relative z-10 w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-0 lg:gap-8 items-center pt-16 sm:pt-20 pb-8 sm:pb-10">
 
-          {/* Badge */}
-          <div
-            ref={badgeRef}
-            className="anim-fade-down inline-flex items-center space-x-2 bg-primary-600/30 border border-primary-400/50 text-primary-200 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs sm:text-sm font-bold mb-4 sm:mb-6 backdrop-blur-md shadow-lg"
-          >
-            <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 text-primary-300" />
-            <span className="hidden sm:inline">{t('hero.badge')}</span>
-            <span className="sm:hidden">{t('hero.badge_mobile')}</span>
+          {/* Coluna Esquerda — Conteúdo textual */}
+          <div className="text-center lg:text-left">
+
+            {/* Badge */}
+            <div
+              ref={badgeRef}
+              className="anim-fade-down inline-flex items-center space-x-2 bg-primary-600/30 border border-primary-400/50 text-primary-200 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs sm:text-sm font-bold mb-4 sm:mb-6 backdrop-blur-md shadow-lg"
+            >
+              <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 text-primary-300" />
+              <span className="hidden sm:inline">{t('hero.badge')}</span>
+              <span className="sm:hidden">{t('hero.badge_mobile')}</span>
+            </div>
+
+            {/* Título principal */}
+            <h1
+              ref={titleRef}
+              className="anim-typewriter anim-delay-200 text-2xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold text-white mb-3 sm:mb-4 tracking-tight leading-tight drop-shadow-lg"
+            >
+              {t('hero.title_full')}
+            </h1>
+
+            {/* Subtítulo */}
+            <p
+              ref={subtitleRef}
+              className="anim-fade-up anim-delay-300 text-sm sm:text-base lg:text-lg text-slate-200 mb-6 sm:mb-8 max-w-2xl lg:max-w-none mx-auto font-semibold drop-shadow px-2 lg:px-0"
+            >
+              {t('hero.subtitle')}
+            </p>
+
+            {/* Domain Search */}
+            <div ref={searchRef} className="anim-zoom-in anim-delay-400 px-2 lg:px-0">
+              <DomainSearch />
+            </div>
+
+            {/* Trust badges */}
+            <div className="anim-fade-up anim-delay-500 flex flex-wrap justify-center lg:justify-start gap-2 sm:gap-3 mt-5 sm:mt-6 px-2 lg:px-0">
+              <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-slate-300 bg-white/5 border border-white/10 px-2.5 py-1 rounded-full backdrop-blur-sm">
+                <span className="text-emerald-400">✓</span> SSL Grátis
+              </span>
+              <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-slate-300 bg-white/5 border border-white/10 px-2.5 py-1 rounded-full backdrop-blur-sm">
+                <span className="text-emerald-400">✓</span> Uptime 99.9%
+              </span>
+              <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-slate-300 bg-white/5 border border-white/10 px-2.5 py-1 rounded-full backdrop-blur-sm">
+                📱 M-Pesa & E-Mola
+              </span>
+              <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-slate-300 bg-white/5 border border-white/10 px-2.5 py-1 rounded-full backdrop-blur-sm">
+                🇲🇿 Feito para Moçambique
+              </span>
+            </div>
           </div>
 
-          {/* Título principal */}
-          <h1
-            ref={titleRef}
-            className="anim-typewriter anim-delay-200 text-2xl sm:text-4xl lg:text-6xl font-extrabold text-white mb-3 sm:mb-4 tracking-tight leading-tight drop-shadow-lg"
-          >
-            {t('hero.title_full')}
-          </h1>
+          {/* Coluna Direita — Mascote animado (oculto no mobile pequeno, visível a partir de sm) */}
+          <div className="hidden lg:flex items-end justify-center relative">
+            {/* Glow de fundo atrás do mascote */}
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-72 h-72 bg-primary-500/20 rounded-full blur-3xl" />
+            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-48 h-48 bg-sky-400/15 rounded-full blur-2xl" />
 
-          {/* Subtítulo */}
-          <p
-            ref={subtitleRef}
-            className="anim-fade-up anim-delay-300 text-sm sm:text-base lg:text-xl text-slate-200 mb-6 sm:mb-8 max-w-2xl mx-auto font-semibold drop-shadow px-2"
-          >
-            {t('hero.subtitle')}
-          </p>
-
-          {/* Domain Search */}
-          <div ref={searchRef} className="anim-zoom-in anim-delay-400 px-2">
-            <DomainSearch />
+            {/* Mascote flutuante */}
+            <div
+              className="relative mascote-float"
+              style={{
+                animation: 'mascoteFloat 4s ease-in-out infinite',
+              }}
+            >
+              <style>{`
+                @keyframes mascoteFloat {
+                  0%, 100% { transform: translateY(0px) rotate(-1deg); }
+                  50% { transform: translateY(-18px) rotate(1deg); }
+                }
+                .mascote-float { filter: drop-shadow(0 20px 40px rgba(37, 99, 235, 0.35)); }
+              `}</style>
+              <Image
+                src="/mascote-transparent.png"
+                alt="Mascote WEHOSTHERE"
+                width={440}
+                height={440}
+                priority
+                className="w-64 xl:w-96 h-auto object-contain select-none"
+                draggable={false}
+              />
+            </div>
           </div>
+
+          {/* Mascote mini no mobile — peek no canto inferior direito */}
+          <div className="lg:hidden flex justify-center mt-2">
+            <div style={{ animation: 'mascoteFloat 4s ease-in-out infinite' }}>
+              <style>{`
+                @keyframes mascoteFloat {
+                  0%, 100% { transform: translateY(0px) rotate(-1deg); }
+                  50% { transform: translateY(-12px) rotate(1deg); }
+                }
+              `}</style>
+              <Image
+                src="/mascote-transparent.png"
+                alt="Mascote WEHOSTHERE"
+                width={200}
+                height={200}
+                priority
+                className="w-36 sm:w-48 h-auto object-contain select-none"
+                style={{ filter: 'drop-shadow(0 12px 24px rgba(37, 99, 235, 0.4))' }}
+                draggable={false}
+              />
+            </div>
+          </div>
+
         </div>
       </section>
 
