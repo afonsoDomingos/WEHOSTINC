@@ -179,11 +179,14 @@ async function persistSearchLog(
       searchedAt: new Date()
     };
 
-    await Promise.allSettled(
+    // Disparar e-mail de alerta com timeout de segurança para não atrasar a resposta
+    const emailPromise = Promise.allSettled(
       Array.from(recipientEmails).map(adminEmail =>
         sendDomainSearchAlertEmail(adminEmail, alertData)
       )
     );
+    const timeoutPromise = new Promise(resolve => setTimeout(resolve, 1500));
+    await Promise.race([emailPromise, timeoutPromise]);
   } catch (err) {
     // Falha silenciosa — não afecta a resposta rápida ao visitante
     console.warn('[DomainSearchLog] Falha no processamento de log/alerta de pesquisa:', err);
@@ -229,13 +232,11 @@ export async function GET(req: NextRequest) {
   const userId = req.headers.get('x-user-id') || undefined;
   const userEmail = req.headers.get('x-user-email') || undefined;
 
-  // Persistir log no MongoDB e disparar alerta de e-mail aos administradores (não bloqueia a resposta)
-  persistSearchLog(fullDomain, cleanSld, extension, isAvailable, price, ip, userAgent, userId, userEmail);
-
-  // Consultar disponibilidade das alternativas em paralelo
+  // Consultar disponibilidade das alternativas e persistir log no MongoDB em paralelo.
+  // O await garante que a função serverless (Vercel) aguarda a gravação no MongoDB antes de terminar.
   const altTLDs = DOMAIN_PRICES.filter(tld => tld.extension !== extension);
 
-  const alternatives = await Promise.all(
+  const alternativesPromise = Promise.all(
     altTLDs.map(async (tld) => {
       const altFullDomain = `${cleanSld}${tld.extension}`;
       let altTaken = reservedWords.includes(cleanSld);
@@ -250,6 +251,11 @@ export async function GET(req: NextRequest) {
       };
     })
   );
+
+  const [_, alternatives] = await Promise.all([
+    persistSearchLog(fullDomain, cleanSld, extension, isAvailable, price, ip, userAgent, userId, userEmail),
+    alternativesPromise,
+  ]);
 
   const smartSuggestions = generateSmartDomainSuggestions(cleanSld, extension);
 

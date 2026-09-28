@@ -16,7 +16,12 @@ export async function GET(req: NextRequest) {
     const sortBy = searchParams.get('sortBy') || 'lastSearchedAt'; // lastSearchedAt | searchCount | domain
     const q = (searchParams.get('q') || '').trim().toLowerCase();
 
-    const query: any = {};
+    const baseCondition: any = {
+      sld: { $exists: true, $ne: '' },
+      domain: { $regex: '^[a-z0-9]', $options: 'i' },
+    };
+
+    const query: any = { ...baseCondition };
 
     if (filter === 'available') query.isAvailable = true;
     if (filter === 'taken') query.isAvailable = false;
@@ -45,11 +50,11 @@ export async function GET(req: NextRequest) {
 
     // Estatísticas gerais
     const [totalSearches, totalAvailable, totalTaken, totalCheckoutLeads, topSearched] = await Promise.all([
-      DomainSearchLog.countDocuments(),
-      DomainSearchLog.countDocuments({ isAvailable: true }),
-      DomainSearchLog.countDocuments({ isAvailable: false }),
-      DomainSearchLog.countDocuments({ hasCheckoutAttempt: true }),
-      DomainSearchLog.find()
+      DomainSearchLog.countDocuments(baseCondition),
+      DomainSearchLog.countDocuments({ ...baseCondition, isAvailable: true }),
+      DomainSearchLog.countDocuments({ ...baseCondition, isAvailable: false }),
+      DomainSearchLog.countDocuments({ ...baseCondition, hasCheckoutAttempt: true }),
+      DomainSearchLog.find(baseCondition)
         .sort({ searchCount: -1 })
         .limit(5)
         .lean(),
