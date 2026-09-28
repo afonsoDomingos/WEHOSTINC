@@ -145,7 +145,11 @@ export default function Home() {
 
           {/* Coluna Esquerda — expande para 100% quando mascote sai */}
           <div
-            className="text-center lg:text-left w-full"
+            className={`w-full flex flex-col transition-all duration-500 ${
+              isSearchFocused
+                ? 'items-center text-center'
+                : 'items-center lg:items-start text-center lg:text-left'
+            }`}
             style={{
               flex: isSearchFocused ? '1 1 100%' : '1 1 50%',
               transition: 'flex 0.5s cubic-bezier(0.4,0,0.2,1)',
@@ -165,18 +169,24 @@ export default function Home() {
             {/* Título principal */}
             <h1
               ref={titleRef}
-              className="anim-typewriter anim-delay-200 text-2xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold text-white mb-3 sm:mb-4 tracking-tight leading-tight drop-shadow-lg"
+              className={`anim-typewriter anim-delay-200 text-2xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold text-white mb-3 sm:mb-4 tracking-tight leading-tight drop-shadow-lg transition-all duration-500 ${
+                isSearchFocused ? 'text-center mx-auto max-w-4xl' : ''
+              }`}
             >
               {t('hero.title_full')}
             </h1>
 
             {/* Domain Search */}
-            <div ref={searchRef} className="anim-zoom-in anim-delay-400 px-2 lg:px-0">
+            <div ref={searchRef} className={`anim-zoom-in anim-delay-400 px-2 lg:px-0 w-full transition-all duration-500 ${
+              isSearchFocused ? 'max-w-4xl mx-auto' : ''
+            }`}>
               <DomainSearch onFocusChange={setIsSearchFocused} />
             </div>
 
             {/* Trust badges */}
-            <div className="anim-fade-up anim-delay-500 flex flex-wrap justify-center lg:justify-start gap-2 sm:gap-3 mt-5 sm:mt-6 px-2 lg:px-0">
+            <div className={`anim-fade-up anim-delay-500 flex flex-wrap gap-2 sm:gap-3 mt-5 sm:mt-6 px-2 lg:px-0 transition-all duration-500 ${
+              isSearchFocused ? 'justify-center' : 'justify-center lg:justify-start'
+            }`}>
               <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-slate-300 bg-white/5 border border-white/10 px-2.5 py-1 rounded-full backdrop-blur-sm">
                 <span className="text-emerald-400">✓</span> SSL Grátis
               </span>

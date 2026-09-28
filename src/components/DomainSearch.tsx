@@ -31,6 +31,19 @@ export default function DomainSearch({ onFocusChange }: DomainSearchProps = {}) 
   const [networkError, setNetworkError] = useState<string | null>(null);
   const slowTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleContainerFocus = () => {
+    onFocusChange?.(true);
+  };
+
+  const handleContainerBlur = (e: React.FocusEvent) => {
+    if (searchContainerRef.current && searchContainerRef.current.contains(e.relatedTarget as Node)) {
+      return;
+    }
+    onFocusChange?.(false);
+  };
+
   // Detectar mudanças de estado de rede em tempo real
   useEffect(() => {
     const handleOffline = () => {
@@ -155,7 +168,12 @@ export default function DomainSearch({ onFocusChange }: DomainSearchProps = {}) 
       )}
 
       {/* Box de Pesquisa Principal */}
-      <div className="bg-white p-2.5 sm:p-3 md:p-4 rounded-2xl sm:rounded-3xl shadow-2xl border border-gray-200/80 w-full overflow-hidden">
+      <div 
+        ref={searchContainerRef}
+        onFocus={handleContainerFocus}
+        onBlur={handleContainerBlur}
+        className="bg-white p-2.5 sm:p-3 md:p-4 rounded-2xl sm:rounded-3xl shadow-2xl border border-gray-200/80 w-full overflow-hidden"
+      >
         <form onSubmit={handleSearch} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2.5 w-full">
           
           {/* Input do nome de domínio */}
@@ -165,8 +183,6 @@ export default function DomainSearch({ onFocusChange }: DomainSearchProps = {}) 
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              onFocus={() => onFocusChange?.(true)}
-              onBlur={() => onFocusChange?.(false)}
               placeholder={t('hero.search_placeholder')}
               className="w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-2.5 sm:py-3.5 bg-gray-50 border border-gray-200 rounded-xl sm:rounded-2xl outline-none focus:ring-2 focus:ring-primary-500 font-medium text-gray-900 text-xs sm:text-sm md:text-base placeholder-gray-400"
               required
