@@ -13,7 +13,7 @@ export interface IDomainSearchLog extends Document {
   userName?: string;        // customer name from checkout
   userPhone?: string;       // customer phone / M-Pesa from checkout
   hasCheckoutAttempt?: boolean; // if customer proceeded to checkout with this domain
-  checkoutStatus?: 'pending' | 'completed' | 'failed' | 'abandoned';
+  checkoutStatus?: 'pending' | 'completed' | 'failed' | 'abandoned' | 'bank_transfer_pending';
   checkoutOrderId?: string;
   firstSearchedAt: Date;
   lastSearchedAt: Date;
@@ -35,7 +35,7 @@ const DomainSearchLogSchema = new Schema<IDomainSearchLog>(
     userName: { type: String },
     userPhone: { type: String },
     hasCheckoutAttempt: { type: Boolean, default: false, index: true },
-    checkoutStatus: { type: String, enum: ['pending', 'completed', 'failed', 'abandoned'] },
+    checkoutStatus: { type: String, enum: ['pending', 'completed', 'failed', 'abandoned', 'bank_transfer_pending'] },
     checkoutOrderId: { type: String },
     firstSearchedAt: { type: Date, default: Date.now },
     lastSearchedAt: { type: Date, default: Date.now },

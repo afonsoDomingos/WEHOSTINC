@@ -12,9 +12,10 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
     const limit = Math.min(100, parseInt(searchParams.get('limit') || '50'));
-    const filter = searchParams.get('filter') || 'all'; // all | available | taken | checkout
+    const filter = searchParams.get('filter') || 'all'; // all | available | taken | checkout | completed | searches_only
     const sortBy = searchParams.get('sortBy') || 'lastSearchedAt'; // lastSearchedAt | searchCount | domain
     const q = (searchParams.get('q') || '').trim().toLowerCase();
+    const isExport = searchParams.get('export') === 'true';
 
     const baseCondition: any = {
       domain: { $regex: '^[a-z0-9]', $options: 'i' },
@@ -25,6 +26,8 @@ export async function GET(req: NextRequest) {
     if (filter === 'available') query.isAvailable = true;
     if (filter === 'taken') query.isAvailable = false;
     if (filter === 'checkout') query.hasCheckoutAttempt = true;
+    if (filter === 'completed') query.checkoutStatus = 'completed';
+    if (filter === 'searches_only') query.hasCheckoutAttempt = { $ne: true };
     if (q) {
       query.$or = [
         { domain: { $regex: q, $options: 'i' } },
@@ -36,23 +39,25 @@ export async function GET(req: NextRequest) {
     }
 
     const sortOrder: any = { [sortBy]: -1 };
-    const skip = (page - 1) * limit;
+    const effectiveLimit = isExport ? 2000 : limit;
+    const skip = isExport ? 0 : (page - 1) * limit;
 
     const [logs, total] = await Promise.all([
       DomainSearchLog.find(query)
         .sort(sortOrder)
         .skip(skip)
-        .limit(limit)
+        .limit(effectiveLimit)
         .lean(),
       DomainSearchLog.countDocuments(query),
     ]);
 
     // Estatísticas gerais
-    const [totalSearches, totalAvailable, totalTaken, totalCheckoutLeads, topSearched] = await Promise.all([
+    const [totalSearches, totalAvailable, totalTaken, totalCheckoutLeads, totalCompleted, topSearched] = await Promise.all([
       DomainSearchLog.countDocuments(baseCondition),
       DomainSearchLog.countDocuments({ ...baseCondition, isAvailable: true }),
       DomainSearchLog.countDocuments({ ...baseCondition, isAvailable: false }),
       DomainSearchLog.countDocuments({ ...baseCondition, hasCheckoutAttempt: true }),
+      DomainSearchLog.countDocuments({ ...baseCondition, checkoutStatus: 'completed' }),
       DomainSearchLog.find(baseCondition)
         .sort({ searchCount: -1 })
         .limit(5)
@@ -62,16 +67,17 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       logs,
       pagination: {
-        page,
-        limit,
+        page: isExport ? 1 : page,
+        limit: effectiveLimit,
         total,
-        totalPages: Math.ceil(total / limit),
+        totalPages: Math.ceil(total / effectiveLimit),
       },
       stats: {
         totalSearches,
         totalAvailable,
         totalTaken,
         totalCheckoutLeads,
+        totalCompleted,
         topSearched,
       },
     });

@@ -5,7 +5,8 @@ import {
   sendCourseEnrollmentEmail, 
   sendCoursePurchaseEmail, 
   sendCourseCompletionEmail, 
-  sendRoleChangeEmail 
+  sendRoleChangeEmail,
+  sendInvoiceEmail
 } from '@/lib/sendgrid';
 
 export const dynamic = 'force-dynamic';
@@ -13,7 +14,7 @@ export const dynamic = 'force-dynamic';
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { type, from, to, subject, body: msgBody, text, html, userName, courseTitle, amount, certificateNumber, verificationUrl, role } = body;
+    const { type, from, to, subject, body: msgBody, text, html, userName, courseTitle, amount, certificateNumber, verificationUrl, role, invoiceRef, plan } = body;
 
     // Validação básica para tipos específicos ou genéricos
     if (!to) {
@@ -25,7 +26,9 @@ export async function POST(req: Request) {
 
     let result;
 
-    if (type === 'course_enrollment') {
+    if (type === 'invoice') {
+      result = await sendInvoiceEmail(to, userName || 'Cliente', invoiceRef || 'FAT-001', `${(amount || 0).toLocaleString('pt-MZ')} MT`, plan || 'Serviços WEHOSTHERE');
+    } else if (type === 'course_enrollment') {
       result = await sendCourseEnrollmentEmail(to, userName || 'Aluno', courseTitle || 'Curso');
     } else if (type === 'course_purchase') {
       result = await sendCoursePurchaseEmail(to, userName || 'Aluno', courseTitle || 'Curso', amount || 500);

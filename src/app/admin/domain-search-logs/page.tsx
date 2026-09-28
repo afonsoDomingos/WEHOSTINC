@@ -7,7 +7,7 @@ import {
   ArrowLeft, Search, RefreshCw, Trash2, Globe, CheckCircle, XCircle,
   Clock, TrendingUp, BarChart2, Monitor, Smartphone, AlertTriangle,
   ChevronLeft, ChevronRight, Filter, Activity, Eye, Phone, ShoppingBag,
-  MessageCircle, ExternalLink, UserCheck
+  MessageCircle, ExternalLink, UserCheck, Download, FileSpreadsheet, Zap
 } from 'lucide-react';
 import { auth } from '@/lib/auth';
 import PageLoader from '@/components/PageLoader';
@@ -28,7 +28,7 @@ interface DomainSearchLogEntry {
   userName?: string;
   userPhone?: string;
   hasCheckoutAttempt?: boolean;
-  checkoutStatus?: 'pending' | 'completed' | 'failed' | 'abandoned';
+  checkoutStatus?: 'pending' | 'completed' | 'failed' | 'abandoned' | 'bank_transfer_pending';
   checkoutOrderId?: string;
   firstSearchedAt: string;
   lastSearchedAt: string;
@@ -39,6 +39,7 @@ interface Stats {
   totalAvailable: number;
   totalTaken: number;
   totalCheckoutLeads?: number;
+  totalCompleted?: number;
   topSearched: DomainSearchLogEntry[];
 }
 
@@ -106,9 +107,10 @@ export default function DomainSearchLogsPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [pagination, setPagination] = useState<Pagination>({ page: 1, limit: 50, total: 0, totalPages: 0 });
   const [searchQ, setSearchQ] = useState('');
-  const [filterAvailability, setFilterAvailability] = useState<'all' | 'available' | 'taken' | 'checkout'>('all');
+  const [filterAvailability, setFilterAvailability] = useState<'all' | 'available' | 'taken' | 'checkout' | 'completed' | 'searches_only'>('all');
   const [sortBy, setSortBy] = useState<'lastSearchedAt' | 'searchCount' | 'domain'>('lastSearchedAt');
   const [refreshing, setRefreshing] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [clearing, setClearing] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -152,6 +154,70 @@ export default function DomainSearchLogsPage() {
     const interval = setInterval(() => fetchLogs(pagination.page, true), 30000);
     return () => clearInterval(interval);
   }, [fetchLogs, pagination.page]);
+
+  const handleExportCSV = async () => {
+    setExporting(true);
+    try {
+      showToast('A preparar ficheiro CSV...', 'success');
+      const res = await fetch(`/api/admin/domain-search-logs?export=true&filter=${filterAvailability}&q=${encodeURIComponent(searchQ)}`);
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      const exportLogs: DomainSearchLogEntry[] = data.logs || [];
+
+      if (exportLogs.length === 0) {
+        showToast('Nenhum registo encontrado para exportar.', 'error');
+        return;
+      }
+
+      const headers = [
+        'Domínio',
+        'Extensão',
+        'Estado',
+        'Buscas',
+        'Nome Cliente',
+        'E-mail',
+        'Telefone',
+        'Status Checkout',
+        'ID Pedido',
+        'Dispositivo',
+        'IP',
+        'Primeira Pesquisa',
+        'Última Pesquisa'
+      ];
+
+      const rows = exportLogs.map(l => [
+        `"${(l.domain || '').replace(/"/g, '""')}"`,
+        `"${(l.extension || '').replace(/"/g, '""')}"`,
+        l.isAvailable ? 'Disponível' : 'Ocupado',
+        l.searchCount || 1,
+        `"${(l.userName || '').replace(/"/g, '""')}"`,
+        `"${(l.userEmail || '').replace(/"/g, '""')}"`,
+        `"${(l.userPhone || '').replace(/"/g, '""')}"`,
+        `"${(l.checkoutStatus || (l.hasCheckoutAttempt ? 'Pendente' : 'Nenhuma')).replace(/"/g, '""')}"`,
+        `"${(l.checkoutOrderId || '').replace(/"/g, '""')}"`,
+        detectDevice(l.userAgent),
+        `"${(l.ip || '').replace(/"/g, '""')}"`,
+        l.firstSearchedAt ? `"${new Date(l.firstSearchedAt).toLocaleString('pt-MZ')}"` : '""',
+        l.lastSearchedAt ? `"${new Date(l.lastSearchedAt).toLocaleString('pt-MZ')}"` : '""',
+      ]);
+
+      const csvContent = '\uFEFF' + [headers.join(';'), ...rows.map(r => r.join(';'))].join('\r\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `wehost_leads_dominios_${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      showToast(`${exportLogs.length} registos exportados com sucesso!`, 'success');
+    } catch {
+      showToast('Erro ao exportar dados em CSV', 'error');
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const handleClearLogs = async () => {
     setClearing(true);
@@ -206,10 +272,19 @@ export default function DomainSearchLogsPage() {
             <span className="text-slate-700">/</span>
             <div className="flex items-center gap-2">
               <Globe className="w-5 h-5 text-blue-400" />
-              <h1 className="text-lg font-bold text-white">Pesquisas de Domínios</h1>
+              <h1 className="text-lg font-bold text-white">Pesquisas & Leads de Domínios</h1>
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <button
+              onClick={handleExportCSV}
+              disabled={exporting}
+              title="Exportar dados filtrados para CSV / Excel"
+              className="flex items-center gap-1.5 text-sm text-emerald-300 hover:text-white bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/30 px-3 py-2 rounded-lg transition-all"
+            >
+              <Download className={`w-4 h-4 ${exporting ? 'animate-bounce' : ''}`} />
+              <span className="hidden sm:inline">{exporting ? 'A Exportar...' : 'Exportar CSV'}</span>
+            </button>
             <button
               onClick={() => fetchLogs(pagination.page, true)}
               disabled={refreshing}
@@ -233,7 +308,7 @@ export default function DomainSearchLogsPage() {
 
         {/* Stats Cards */}
         {stats && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
             <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
               <div className="flex items-center gap-2 mb-1">
                 <Activity className="w-4 h-4 text-blue-400" />
@@ -270,19 +345,93 @@ export default function DomainSearchLogsPage() {
               <p className="text-2xl font-bold text-purple-300">{(stats.totalCheckoutLeads || 0).toLocaleString()}</p>
               <p className="text-xs text-purple-400/70 mt-0.5">tentaram comprar</p>
             </div>
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 col-span-2 sm:col-span-4 lg:col-span-1">
+            <div className="bg-slate-900 border border-emerald-800/60 rounded-xl p-4 bg-gradient-to-br from-emerald-950/30 to-slate-900">
+              <div className="flex items-center gap-2 mb-1">
+                <CheckCircle className="w-4 h-4 text-emerald-400" />
+                <span className="text-xs text-emerald-300 font-medium uppercase tracking-wider">Pagos / Concluídos</span>
+              </div>
+              <p className="text-2xl font-bold text-emerald-300">{(stats.totalCompleted || 0).toLocaleString()}</p>
+              <p className="text-xs text-emerald-400/70 mt-0.5">vendas finalizadas</p>
+            </div>
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
               <div className="flex items-center gap-2 mb-1">
                 <TrendingUp className="w-4 h-4 text-amber-400" />
-                <span className="text-xs text-slate-400 font-medium uppercase tracking-wider">Top Pesquisado</span>
+                <span className="text-xs text-slate-400 font-medium uppercase tracking-wider">Top Buscado</span>
               </div>
               {stats.topSearched[0] ? (
                 <>
                   <p className="text-sm font-bold text-white truncate">{stats.topSearched[0].domain}</p>
-                  <p className="text-xs text-slate-500 mt-0.5">{stats.topSearched[0].searchCount}× pesquisado</p>
+                  <p className="text-xs text-slate-500 mt-0.5">{stats.topSearched[0].searchCount}× pesquisas</p>
                 </>
               ) : (
                 <p className="text-slate-500 text-sm">—</p>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Funil de Conversão Comercial */}
+        {stats && stats.totalSearches > 0 && (
+          <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-5 shadow-lg">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Zap className="w-4 h-4 text-amber-400" />
+                <h2 className="text-sm font-bold text-white uppercase tracking-wider">Funil de Conversão Comercial</h2>
+              </div>
+              <span className="text-xs text-slate-400">Tempo real</span>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {/* Etapa 1 */}
+              <div className="bg-slate-950/80 border border-slate-800/80 rounded-xl p-4">
+                <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
+                  <span>1. Pesquisas de Domínio</span>
+                  <span className="text-blue-400 font-bold">100%</span>
+                </div>
+                <div className="text-2xl font-black text-white">{stats.totalSearches.toLocaleString()}</div>
+                <p className="text-[11px] text-slate-500 mt-1">Visitantes buscando domínios</p>
+                <div className="w-full bg-slate-800 h-2 rounded-full mt-3 overflow-hidden">
+                  <div className="bg-blue-500 h-full rounded-full w-full" />
+                </div>
+              </div>
+
+              {/* Etapa 2 */}
+              <div className="bg-slate-950/80 border border-purple-900/40 rounded-xl p-4">
+                <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
+                  <span>2. Avançaram para Checkout</span>
+                  <span className="text-purple-400 font-bold">
+                    {stats.totalSearches > 0 ? (((stats.totalCheckoutLeads || 0) / stats.totalSearches) * 100).toFixed(1) : 0}%
+                  </span>
+                </div>
+                <div className="text-2xl font-black text-purple-300">{(stats.totalCheckoutLeads || 0).toLocaleString()}</div>
+                <p className="text-[11px] text-purple-400/70 mt-1">Leads com intenção direta de compra</p>
+                <div className="w-full bg-slate-800 h-2 rounded-full mt-3 overflow-hidden">
+                  <div
+                    className="bg-purple-500 h-full rounded-full transition-all duration-500"
+                    style={{ width: `${Math.min(100, Math.max(5, stats.totalSearches > 0 ? (((stats.totalCheckoutLeads || 0) / stats.totalSearches) * 100) : 0))}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Etapa 3 */}
+              <div className="bg-slate-950/80 border border-emerald-900/40 rounded-xl p-4">
+                <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
+                  <span>3. Vendas Concluídas</span>
+                  <span className="text-emerald-400 font-bold">
+                    {stats.totalCheckoutLeads && stats.totalCheckoutLeads > 0 
+                      ? (((stats.totalCompleted || 0) / stats.totalCheckoutLeads) * 100).toFixed(1) 
+                      : (stats.totalSearches > 0 ? (((stats.totalCompleted || 0) / stats.totalSearches) * 100).toFixed(1) : 0)}% conv.
+                  </span>
+                </div>
+                <div className="text-2xl font-black text-emerald-400">{(stats.totalCompleted || 0).toLocaleString()}</div>
+                <p className="text-[11px] text-emerald-400/70 mt-1">Domínios pagos e ativados com sucesso</p>
+                <div className="w-full bg-slate-800 h-2 rounded-full mt-3 overflow-hidden">
+                  <div
+                    className="bg-emerald-500 h-full rounded-full transition-all duration-500"
+                    style={{ width: `${Math.min(100, Math.max(3, stats.totalSearches > 0 ? (((stats.totalCompleted || 0) / stats.totalSearches) * 100) : 0))}%` }}
+                  />
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -327,6 +476,70 @@ export default function DomainSearchLogsPage() {
           </div>
         )}
 
+        {/* Segment Tabs / Pills */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1">
+          <button
+            onClick={() => setFilterAvailability('all')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+              filterAvailability === 'all'
+                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                : 'bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800'
+            }`}
+          >
+            Todos ({stats?.totalSearches ?? 0})
+          </button>
+          <button
+            onClick={() => setFilterAvailability('checkout')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 ${
+              filterAvailability === 'checkout'
+                ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
+                : 'bg-slate-900 text-purple-300 hover:text-white hover:bg-slate-800 border border-purple-900/40'
+            }`}
+          >
+            🔥 Leads Checkout ({stats?.totalCheckoutLeads ?? 0})
+          </button>
+          <button
+            onClick={() => setFilterAvailability('completed')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 ${
+              filterAvailability === 'completed'
+                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
+                : 'bg-slate-900 text-emerald-400 hover:text-white hover:bg-slate-800 border border-emerald-900/40'
+            }`}
+          >
+            ✅ Pagos / Concluídos ({stats?.totalCompleted ?? 0})
+          </button>
+          <button
+            onClick={() => setFilterAvailability('searches_only')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+              filterAvailability === 'searches_only'
+                ? 'bg-slate-700 text-white shadow-md'
+                : 'bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800'
+            }`}
+          >
+            Apenas Buscas
+          </button>
+          <button
+            onClick={() => setFilterAvailability('available')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+              filterAvailability === 'available'
+                ? 'bg-emerald-700 text-white shadow-md'
+                : 'bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800'
+            }`}
+          >
+            Disponíveis ({stats?.totalAvailable ?? 0})
+          </button>
+          <button
+            onClick={() => setFilterAvailability('taken')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+              filterAvailability === 'taken'
+                ? 'bg-red-700 text-white shadow-md'
+                : 'bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800'
+            }`}
+          >
+            Ocupados ({stats?.totalTaken ?? 0})
+          </button>
+        </div>
+
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
@@ -347,9 +560,11 @@ export default function DomainSearchLogsPage() {
               className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 cursor-pointer"
             >
               <option value="all">Todos os Estados</option>
+              <option value="checkout">🛒 Leads Checkout</option>
+              <option value="completed">✅ Pagos / Concluídos</option>
+              <option value="searches_only">🔍 Apenas Buscas</option>
               <option value="available">✓ Disponíveis</option>
               <option value="taken">✕ Ocupados</option>
-              <option value="checkout">🛒 Tentaram Comprar (Checkout)</option>
             </select>
             <select
               value={sortBy}
@@ -362,7 +577,7 @@ export default function DomainSearchLogsPage() {
             </select>
             <button
               onClick={() => fetchLogs(1)}
-              className="bg-blue-600 hover:bg-blue-500 text-white text-sm px-4 py-2.5 rounded-lg font-medium transition-colors"
+              className="bg-blue-600 hover:bg-blue-500 text-white text-sm px-4 py-2.5 rounded-lg font-medium transition-colors cursor-pointer"
             >
               Filtrar
             </button>
@@ -423,11 +638,19 @@ export default function DomainSearchLogsPage() {
                             <span className="font-bold text-white">{log.sld}</span>
                             <span className="text-slate-400 text-xs font-mono">{log.extension}</span>
                           </div>
-                          {log.hasCheckoutAttempt && (
-                            <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-bold text-purple-300 bg-purple-500/20 px-2 py-0.5 rounded-md border border-purple-500/30">
-                              <ShoppingBag className="w-3 h-3" /> Tentativa Checkout
+                          {log.checkoutStatus === 'completed' ? (
+                            <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-bold text-emerald-300 bg-emerald-500/20 px-2 py-0.5 rounded-md border border-emerald-500/40">
+                              <CheckCircle className="w-3 h-3 text-emerald-400" /> Pedido Pago
                             </span>
-                          )}
+                          ) : log.checkoutStatus === 'bank_transfer_pending' ? (
+                            <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-bold text-amber-300 bg-amber-500/20 px-2 py-0.5 rounded-md border border-amber-500/40">
+                              <Clock className="w-3 h-3 text-amber-400" /> Transf. Bancária
+                            </span>
+                          ) : log.hasCheckoutAttempt ? (
+                            <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-bold text-purple-300 bg-purple-500/20 px-2 py-0.5 rounded-md border border-purple-500/30">
+                              <ShoppingBag className="w-3 h-3 text-purple-400" /> Lead Checkout
+                            </span>
+                          ) : null}
                         </td>
 
                         {/* Available */}

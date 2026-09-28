@@ -6,7 +6,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { 
   Server, ShieldCheck, Lock, Check, CreditCard, 
   Smartphone, Bitcoin, ArrowLeft, CheckCircle2, AlertCircle, RefreshCw,
-  Landmark, Paperclip, FileText, Image as ImageIcon, Upload, Loader2, Lock as LockIcon
+  Landmark, Paperclip, FileText, Image as ImageIcon, Upload, Loader2, Lock as LockIcon,
+  Globe, MessageCircle, Copy
 } from 'lucide-react';
 import { hostingPlans, HostingPlan, dataManager } from '@/lib/data';
 import { auth } from '@/lib/auth';
@@ -72,6 +73,16 @@ function CheckoutContent() {
   const [proofUrl, setProofUrl] = useState('');
   const [proofName, setProofName] = useState('');
   const [uploadingProof, setUploadingProof] = useState(false);
+
+  // Estado para copiar Nameservers
+  const [copiedNs, setCopiedNs] = useState<string | null>(null);
+  const copyToClipboard = (text: string) => {
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(text);
+      setCopiedNs(text);
+      setTimeout(() => setCopiedNs(null), 2500);
+    }
+  };
 
   const handleProofUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -667,6 +678,22 @@ function CheckoutContent() {
             })
           }).catch(err => console.error('[Checkout] Erro ao enviar email de curso:', err));
         }
+
+        // Se o pagamento foi concluído, enviar e-mail com fatura oficial para o cliente
+        if (orderStatus === 'completed') {
+          fetch(apiEndpoint('/api/send-email'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'invoice',
+              to: email,
+              userName: name,
+              invoiceRef: paymentReference,
+              amount: grandTotal,
+              plan: serviceName
+            })
+          }).catch(err => console.error('[Checkout] Erro ao enviar fatura ao cliente:', err));
+        }
       } catch (err) {
         console.error('[Checkout] Erro ao preparar notificação admin:', err);
       }
@@ -1020,6 +1047,53 @@ function CheckoutContent() {
             </button>
           )}
 
+          {/* Guia de Primeiros Passos & DNS do Domínio */}
+          {domainParam && (
+            <div className="bg-gradient-to-br from-slate-900 to-slate-950 text-white rounded-2xl p-4 sm:p-5 mb-4 text-left border border-slate-800 shadow-xl space-y-3">
+              <div className="flex items-center gap-2">
+                <Globe className="w-4 h-4 text-emerald-400" />
+                <span className="text-xs font-bold text-white uppercase tracking-wider">Ativação & DNS do Domínio</span>
+              </div>
+              <p className="text-xs text-slate-300">
+                O domínio <strong className="text-emerald-400 font-mono">{domainParam}</strong> foi registrado! Configure os Nameservers da WEHOSTHERE:
+              </p>
+
+              <div className="space-y-2 bg-slate-950/80 p-3 rounded-xl border border-slate-800/80 text-xs font-mono">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400">NS1:</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-emerald-300 font-bold">ns1.wehosthere.com</span>
+                    <button
+                      type="button"
+                      onClick={() => copyToClipboard('ns1.wehosthere.com')}
+                      className="text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-200 px-2 py-0.5 rounded cursor-pointer transition"
+                    >
+                      {copiedNs === 'ns1.wehosthere.com' ? '✓ Copiado' : 'Copiar'}
+                    </button>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400">NS2:</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-emerald-300 font-bold">ns2.wehosthere.com</span>
+                    <button
+                      type="button"
+                      onClick={() => copyToClipboard('ns2.wehosthere.com')}
+                      className="text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-200 px-2 py-0.5 rounded cursor-pointer transition"
+                    >
+                      {copiedNs === 'ns2.wehosthere.com' ? '✓ Copiado' : 'Copiar'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between text-[11px] text-slate-400 pt-0.5">
+                <span>⚡ Propagação de DNS estimada:</span>
+                <span className="text-amber-400 font-semibold">15min a 2h</span>
+              </div>
+            </div>
+          )}
+
           {/* FLUXO DE MENSAGEM SEGUNDO O E-MAIL DO CLIENTE */}
           {checkoutAccountStatus === 'logged_in' && (
             <button
@@ -1193,6 +1267,20 @@ function CheckoutContent() {
                     <RefreshCw className="h-5 w-5" />
                     {t.resendPush}
                   </button>
+
+                  <a
+                    href={`https://wa.me/258844384702?text=${encodeURIComponent(
+                      `Olá WeHost! Tive dificuldades com a notificação do PIN no M-Pesa/e-Mola (${ddi} ${phonePayment || whatsapp}) para ${
+                        domainParam ? `o domínio ${domainParam}` : selectedPlan?.name || 'serviço'
+                      } (Valor: ${(isCoursePayment ? courseAmountParam : (isAffiliateVerification ? verificationAmount : grandTotal)).toLocaleString('pt-MZ')} MT). Podem ajudar-me a finalizar?`
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow transition text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer min-h-[46px]"
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                    <span>Concluir Pagamento pelo WhatsApp</span>
+                  </a>
 
                   <button
                     type="button"
@@ -1770,6 +1858,23 @@ function CheckoutContent() {
                 <span>Comprar agora</span>
               )}
             </button>
+
+            {/* Suporte WhatsApp no Checkout */}
+            <div className="pt-2 text-center">
+              <a
+                href={`https://wa.me/258844384702?text=${encodeURIComponent(
+                  `Olá WeHost! Estou no checkout a finalizar o pedido para ${
+                    domainParam ? `o domínio ${domainParam}` : selectedPlan?.name || 'serviço'
+                  } (Valor: ${(isCoursePayment ? courseAmountParam : (isAffiliateVerification ? verificationAmount : grandTotal)).toLocaleString('pt-MZ')} MT) e gostaria de apoio.`
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 w-full py-3 px-4 bg-emerald-50 hover:bg-emerald-100/80 text-emerald-800 font-semibold text-xs sm:text-sm rounded-xl border border-emerald-200 transition-all hover:scale-[1.01] cursor-pointer"
+              >
+                <MessageCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>Dúvidas ou dificuldades no pagamento? Fale no WhatsApp</span>
+              </a>
+            </div>
 
           </form>
         </div>
