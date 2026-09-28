@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
     const limit = Math.min(100, parseInt(searchParams.get('limit') || '50'));
-    const filter = searchParams.get('filter') || 'all'; // all | available | taken
+    const filter = searchParams.get('filter') || 'all'; // all | available | taken | checkout
     const sortBy = searchParams.get('sortBy') || 'lastSearchedAt'; // lastSearchedAt | searchCount | domain
     const q = (searchParams.get('q') || '').trim().toLowerCase();
 
@@ -20,7 +20,16 @@ export async function GET(req: NextRequest) {
 
     if (filter === 'available') query.isAvailable = true;
     if (filter === 'taken') query.isAvailable = false;
-    if (q) query.domain = { $regex: q, $options: 'i' };
+    if (filter === 'checkout') query.hasCheckoutAttempt = true;
+    if (q) {
+      query.$or = [
+        { domain: { $regex: q, $options: 'i' } },
+        { userEmail: { $regex: q, $options: 'i' } },
+        { userName: { $regex: q, $options: 'i' } },
+        { userPhone: { $regex: q, $options: 'i' } },
+        { ip: { $regex: q, $options: 'i' } },
+      ];
+    }
 
     const sortOrder: any = { [sortBy]: -1 };
     const skip = (page - 1) * limit;
@@ -35,10 +44,11 @@ export async function GET(req: NextRequest) {
     ]);
 
     // Estatísticas gerais
-    const [totalSearches, totalAvailable, totalTaken, topSearched] = await Promise.all([
+    const [totalSearches, totalAvailable, totalTaken, totalCheckoutLeads, topSearched] = await Promise.all([
       DomainSearchLog.countDocuments(),
       DomainSearchLog.countDocuments({ isAvailable: true }),
       DomainSearchLog.countDocuments({ isAvailable: false }),
+      DomainSearchLog.countDocuments({ hasCheckoutAttempt: true }),
       DomainSearchLog.find()
         .sort({ searchCount: -1 })
         .limit(5)
@@ -57,12 +67,49 @@ export async function GET(req: NextRequest) {
         totalSearches,
         totalAvailable,
         totalTaken,
+        totalCheckoutLeads,
         topSearched,
       },
     });
   } catch (err: any) {
     console.error('[AdminDomainSearchLogs] Erro:', err);
     return NextResponse.json({ error: 'Erro ao carregar logs de pesquisa.' }, { status: 500 });
+  }
+}
+
+/**
+ * POST — Registrar ou atualizar tentativa de checkout para um domínio pesquisado
+ */
+export async function POST(req: NextRequest) {
+  try {
+    await connectDB();
+    const body = await req.json();
+    const { domain, userName, userEmail, userPhone, checkoutStatus, checkoutOrderId } = body;
+
+    if (!domain) {
+      return NextResponse.json({ error: 'Domínio é obrigatório.' }, { status: 400 });
+    }
+
+    const updated = await DomainSearchLog.findOneAndUpdate(
+      { domain: domain.trim().toLowerCase() },
+      {
+        $set: {
+          userName: userName || undefined,
+          userEmail: userEmail ? userEmail.trim().toLowerCase() : undefined,
+          userPhone: userPhone ? userPhone.trim() : undefined,
+          hasCheckoutAttempt: true,
+          checkoutStatus: checkoutStatus || 'pending',
+          checkoutOrderId: checkoutOrderId || undefined,
+          lastSearchedAt: new Date()
+        }
+      },
+      { new: true }
+    );
+
+    return NextResponse.json({ success: true, log: updated });
+  } catch (err: any) {
+    console.error('[AdminDomainSearchLogs] Erro ao registrar lead de checkout:', err);
+    return NextResponse.json({ error: 'Erro interno ao registrar lead.' }, { status: 500 });
   }
 }
 

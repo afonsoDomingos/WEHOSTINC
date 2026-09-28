@@ -867,6 +867,22 @@ function CheckoutContent() {
           })
         }).catch(err => console.warn(`${paymentMethod.toUpperCase()} API Call:`, err));
 
+        // 🔗 Registrar lead de checkout associado ao domínio pesquisado
+        if (domainParam) {
+          fetch(apiEndpoint('/api/admin/domain-search-logs'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              domain: domainParam,
+              userName: name,
+              userEmail: email,
+              userPhone: phone,
+              checkoutStatus: 'pending',
+              checkoutOrderId: paymentReference
+            })
+          }).catch(() => {});
+        }
+
         // 🔒 SEGURANÇA: Salvar reference para polling - NÃO confirmar imediatamente
         setCurrentReference(paymentReference);
         

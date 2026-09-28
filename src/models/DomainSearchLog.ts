@@ -9,7 +9,12 @@ export interface IDomainSearchLog extends Document {
   ip: string;               // visitor IP
   userAgent: string;        // visitor browser / device
   userId?: string;          // if the visitor was logged in
-  userEmail?: string;       // if the visitor was logged in
+  userEmail?: string;       // if the visitor was logged in or entered in checkout
+  userName?: string;        // customer name from checkout
+  userPhone?: string;       // customer phone / M-Pesa from checkout
+  hasCheckoutAttempt?: boolean; // if customer proceeded to checkout with this domain
+  checkoutStatus?: 'pending' | 'completed' | 'failed' | 'abandoned';
+  checkoutOrderId?: string;
   firstSearchedAt: Date;
   lastSearchedAt: Date;
   createdAt: Date;
@@ -26,7 +31,12 @@ const DomainSearchLogSchema = new Schema<IDomainSearchLog>(
     ip: { type: String, default: 'unknown' },
     userAgent: { type: String, default: '' },
     userId: { type: String, index: true },
-    userEmail: { type: String },
+    userEmail: { type: String, index: true },
+    userName: { type: String },
+    userPhone: { type: String },
+    hasCheckoutAttempt: { type: Boolean, default: false, index: true },
+    checkoutStatus: { type: String, enum: ['pending', 'completed', 'failed', 'abandoned'] },
+    checkoutOrderId: { type: String },
     firstSearchedAt: { type: Date, default: Date.now },
     lastSearchedAt: { type: Date, default: Date.now },
   },

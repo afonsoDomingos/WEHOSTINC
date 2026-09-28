@@ -6,7 +6,8 @@ import { useRouter } from 'next/navigation';
 import {
   ArrowLeft, Search, RefreshCw, Trash2, Globe, CheckCircle, XCircle,
   Clock, TrendingUp, BarChart2, Monitor, Smartphone, AlertTriangle,
-  ChevronLeft, ChevronRight, Filter, Activity, Eye
+  ChevronLeft, ChevronRight, Filter, Activity, Eye, Phone, ShoppingBag,
+  MessageCircle, ExternalLink, UserCheck
 } from 'lucide-react';
 import { auth } from '@/lib/auth';
 import PageLoader from '@/components/PageLoader';
@@ -24,6 +25,11 @@ interface DomainSearchLogEntry {
   userAgent: string;
   userId?: string;
   userEmail?: string;
+  userName?: string;
+  userPhone?: string;
+  hasCheckoutAttempt?: boolean;
+  checkoutStatus?: 'pending' | 'completed' | 'failed' | 'abandoned';
+  checkoutOrderId?: string;
   firstSearchedAt: string;
   lastSearchedAt: string;
 }
@@ -32,6 +38,7 @@ interface Stats {
   totalSearches: number;
   totalAvailable: number;
   totalTaken: number;
+  totalCheckoutLeads?: number;
   topSearched: DomainSearchLogEntry[];
 }
 
@@ -99,7 +106,7 @@ export default function DomainSearchLogsPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [pagination, setPagination] = useState<Pagination>({ page: 1, limit: 50, total: 0, totalPages: 0 });
   const [searchQ, setSearchQ] = useState('');
-  const [filterAvailability, setFilterAvailability] = useState<'all' | 'available' | 'taken'>('all');
+  const [filterAvailability, setFilterAvailability] = useState<'all' | 'available' | 'taken' | 'checkout'>('all');
   const [sortBy, setSortBy] = useState<'lastSearchedAt' | 'searchCount' | 'domain'>('lastSearchedAt');
   const [refreshing, setRefreshing] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
@@ -226,14 +233,14 @@ export default function DomainSearchLogsPage() {
 
         {/* Stats Cards */}
         {stats && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
             <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
               <div className="flex items-center gap-2 mb-1">
                 <Activity className="w-4 h-4 text-blue-400" />
                 <span className="text-xs text-slate-400 font-medium uppercase tracking-wider">Total</span>
               </div>
               <p className="text-2xl font-bold text-white">{stats.totalSearches.toLocaleString()}</p>
-              <p className="text-xs text-slate-500 mt-0.5">domínios únicos pesquisados</p>
+              <p className="text-xs text-slate-500 mt-0.5">domínios únicos</p>
             </div>
             <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
               <div className="flex items-center gap-2 mb-1">
@@ -255,14 +262,22 @@ export default function DomainSearchLogsPage() {
               <p className="text-2xl font-bold text-red-400">{stats.totalTaken.toLocaleString()}</p>
               <p className="text-xs text-slate-500 mt-0.5">já registados</p>
             </div>
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+            <div className="bg-slate-900 border border-purple-800/60 rounded-xl p-4 bg-gradient-to-br from-purple-950/30 to-slate-900">
+              <div className="flex items-center gap-2 mb-1">
+                <ShoppingBag className="w-4 h-4 text-purple-400" />
+                <span className="text-xs text-purple-300 font-medium uppercase tracking-wider">Leads Checkout</span>
+              </div>
+              <p className="text-2xl font-bold text-purple-300">{(stats.totalCheckoutLeads || 0).toLocaleString()}</p>
+              <p className="text-xs text-purple-400/70 mt-0.5">tentaram comprar</p>
+            </div>
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 col-span-2 sm:col-span-4 lg:col-span-1">
               <div className="flex items-center gap-2 mb-1">
                 <TrendingUp className="w-4 h-4 text-amber-400" />
                 <span className="text-xs text-slate-400 font-medium uppercase tracking-wider">Top Pesquisado</span>
               </div>
               {stats.topSearched[0] ? (
                 <>
-                  <p className="text-base font-bold text-white truncate">{stats.topSearched[0].domain}</p>
+                  <p className="text-sm font-bold text-white truncate">{stats.topSearched[0].domain}</p>
                   <p className="text-xs text-slate-500 mt-0.5">{stats.topSearched[0].searchCount}× pesquisado</p>
                 </>
               ) : (
@@ -318,22 +333,23 @@ export default function DomainSearchLogsPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
             <input
               type="text"
-              placeholder="Pesquisar domínio..."
+              placeholder="Pesquisar domínio, nome, e-mail, telefone ou IP..."
               value={searchQ}
               onChange={e => setSearchQ(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && fetchLogs(1)}
               className="w-full bg-slate-900 border border-slate-700 rounded-lg pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
             />
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap sm:flex-nowrap gap-2">
             <select
               value={filterAvailability}
               onChange={e => setFilterAvailability(e.target.value as any)}
               className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 cursor-pointer"
             >
-              <option value="all">Todos</option>
-              <option value="available">Disponíveis</option>
-              <option value="taken">Ocupados</option>
+              <option value="all">Todos os Estados</option>
+              <option value="available">✓ Disponíveis</option>
+              <option value="taken">✕ Ocupados</option>
+              <option value="checkout">🛒 Tentaram Comprar (Checkout)</option>
             </select>
             <select
               value={sortBy}
@@ -368,7 +384,7 @@ export default function DomainSearchLogsPage() {
           {logs.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 gap-3 text-slate-500">
               <Globe className="w-12 h-12 opacity-20" />
-              <p className="text-sm">Nenhuma pesquisa de domínio registada ainda.</p>
+              <p className="text-sm">Nenhuma pesquisa de domínio registada com os filtros atuais.</p>
               <p className="text-xs opacity-60">As pesquisas aparecem aqui em tempo real quando os visitantes pesquisam domínios.</p>
             </div>
           ) : (
@@ -378,85 +394,124 @@ export default function DomainSearchLogsPage() {
                   <tr className="border-b border-slate-800 text-xs text-slate-500 uppercase tracking-wider">
                     <th className="text-left px-5 py-3 font-medium">Domínio</th>
                     <th className="text-left px-4 py-3 font-medium hidden sm:table-cell">Estado</th>
-                    <th className="text-left px-4 py-3 font-medium hidden md:table-cell">Visitante</th>
-                    <th className="text-left px-4 py-3 font-medium hidden lg:table-cell">Utilizador</th>
-                    <th className="text-center px-4 py-3 font-medium">Vezes</th>
-                    <th className="text-right px-5 py-3 font-medium">Última Pesquisa</th>
+                    <th className="text-left px-4 py-3 font-medium hidden md:table-cell">Dispositivo / IP</th>
+                    <th className="text-left px-4 py-3 font-medium">Cliente &amp; Contacto</th>
+                    <th className="text-center px-4 py-3 font-medium">Buscas</th>
+                    <th className="text-right px-5 py-3 font-medium">Data / Ação</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/60">
-                  {logs.map((log) => (
-                    <tr
-                      key={log._id}
-                      className="hover:bg-slate-800/40 transition-colors group"
-                    >
-                      {/* Domain */}
-                      <td className="px-5 py-3.5">
-                        <div className="flex items-center gap-2">
-                          <Globe className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
-                          <span className="font-medium text-white">{log.sld}</span>
-                          <span className="text-slate-500 text-xs">{log.extension}</span>
-                        </div>
-                        {/* First searched date (mobile) */}
-                        <p className="text-xs text-slate-600 mt-0.5 sm:hidden">
-                          1ª pesquisa: {timeAgo(log.firstSearchedAt)}
-                        </p>
-                      </td>
+                  {logs.map((log) => {
+                    const cleanPhone = (log.userPhone || '').replace(/\D/g, '');
+                    const formattedPhone = cleanPhone.startsWith('258') ? cleanPhone : `258${cleanPhone}`;
+                    const whatsappMsg = encodeURIComponent(
+                      `Olá ${log.userName || ''}! Notámos que pesquisou pelo domínio ${log.domain} na WEHOSTHERE. Podemos ajudar a garantir o registo e ativar o seu website?`
+                    );
+                    const whatsappUrl = `https://wa.me/${formattedPhone}?text=${whatsappMsg}`;
 
-                      {/* Available */}
-                      <td className="px-4 py-3.5 hidden sm:table-cell">
-                        {log.isAvailable ? (
-                          <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-full">
-                            <CheckCircle className="w-3 h-3" /> Disponível
+                    return (
+                      <tr
+                        key={log._id}
+                        className={`hover:bg-slate-800/40 transition-colors group ${
+                          log.hasCheckoutAttempt ? 'bg-purple-950/10' : ''
+                        }`}
+                      >
+                        {/* Domain */}
+                        <td className="px-5 py-3.5">
+                          <div className="flex items-center gap-2">
+                            <Globe className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
+                            <span className="font-bold text-white">{log.sld}</span>
+                            <span className="text-slate-400 text-xs font-mono">{log.extension}</span>
+                          </div>
+                          {log.hasCheckoutAttempt && (
+                            <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-bold text-purple-300 bg-purple-500/20 px-2 py-0.5 rounded-md border border-purple-500/30">
+                              <ShoppingBag className="w-3 h-3" /> Tentativa Checkout
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Available */}
+                        <td className="px-4 py-3.5 hidden sm:table-cell">
+                          {log.isAvailable ? (
+                            <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-full border border-emerald-500/20">
+                              <CheckCircle className="w-3 h-3" /> Disponível
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-xs font-medium text-red-400 bg-red-500/10 px-2 py-1 rounded-full border border-red-500/20">
+                              <XCircle className="w-3 h-3" /> Ocupado
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Visitor */}
+                        <td className="px-4 py-3.5 hidden md:table-cell">
+                          <div className="flex items-center gap-1.5">
+                            <DeviceIcon userAgent={log.userAgent} />
+                            <span className="text-slate-400 font-mono text-xs">{log.ip}</span>
+                          </div>
+                        </td>
+
+                        {/* Auth User & Customer Info */}
+                        <td className="px-4 py-3.5">
+                          {log.userName || log.userEmail || log.userPhone ? (
+                            <div className="space-y-0.5">
+                              {log.userName && (
+                                <p className="text-xs font-bold text-white flex items-center gap-1">
+                                  <UserCheck className="w-3 h-3 text-blue-400" />
+                                  {log.userName}
+                                </p>
+                              )}
+                              {log.userEmail && (
+                                <p className="text-[11px] text-blue-400 truncate max-w-[180px]">
+                                  {log.userEmail}
+                                </p>
+                              )}
+                              {log.userPhone && (
+                                <p className="text-[11px] text-emerald-400 font-mono flex items-center gap-1">
+                                  <Phone className="w-2.5 h-2.5" />
+                                  {log.userPhone}
+                                </p>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-slate-600 text-xs italic">Visitante Anónimo</span>
+                          )}
+                        </td>
+
+                        {/* Search count */}
+                        <td className="px-4 py-3.5 text-center">
+                          <span className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold ${
+                            log.searchCount >= 5
+                              ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                              : log.searchCount >= 2
+                              ? 'bg-blue-500/15 text-blue-400 border border-blue-500/30'
+                              : 'bg-slate-800 text-slate-400'
+                          }`}>
+                            {log.searchCount}
                           </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 text-xs font-medium text-red-400 bg-red-500/10 px-2 py-1 rounded-full">
-                            <XCircle className="w-3 h-3" /> Ocupado
-                          </span>
-                        )}
-                      </td>
+                        </td>
 
-                      {/* Visitor */}
-                      <td className="px-4 py-3.5 hidden md:table-cell">
-                        <div className="flex items-center gap-1.5">
-                          <DeviceIcon userAgent={log.userAgent} />
-                          <span className="text-slate-400 font-mono text-xs">{log.ip}</span>
-                        </div>
-                      </td>
-
-                      {/* Auth user */}
-                      <td className="px-4 py-3.5 hidden lg:table-cell">
-                        {log.userEmail ? (
-                          <span className="text-blue-400 text-xs">{log.userEmail}</span>
-                        ) : (
-                          <span className="text-slate-600 text-xs italic">Anónimo</span>
-                        )}
-                      </td>
-
-                      {/* Search count */}
-                      <td className="px-4 py-3.5 text-center">
-                        <span className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold ${
-                          log.searchCount >= 5
-                            ? 'bg-amber-500/20 text-amber-400'
-                            : log.searchCount >= 2
-                            ? 'bg-blue-500/15 text-blue-400'
-                            : 'bg-slate-800 text-slate-400'
-                        }`}>
-                          {log.searchCount}
-                        </span>
-                      </td>
-
-                      {/* Last searched */}
-                      <td className="px-5 py-3.5 text-right">
-                        <div>
-                          <span className="text-slate-400 text-xs">{timeAgo(log.lastSearchedAt)}</span>
-                          <p className="text-slate-600 text-[10px] mt-0.5 hidden sm:block">
-                            1ª: {timeAgo(log.firstSearchedAt)}
-                          </p>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                        {/* Last searched & WhatsApp button */}
+                        <td className="px-5 py-3.5 text-right">
+                          <div className="flex flex-col items-end gap-1">
+                            <span className="text-slate-400 text-xs font-mono">{timeAgo(log.lastSearchedAt)}</span>
+                            {log.userPhone && cleanPhone.length >= 8 && (
+                              <a
+                                href={whatsappUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[11px] font-bold shadow-xs transition-all hover:scale-105 cursor-pointer"
+                                title="Contactar cliente pelo WhatsApp"
+                              >
+                                <MessageCircle className="w-3 h-3" />
+                                <span>WhatsApp</span>
+                              </a>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
