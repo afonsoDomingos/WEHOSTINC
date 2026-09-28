@@ -68,129 +68,114 @@ import { sendDomainSearchAlertEmail } from '@/lib/sendgrid';
 import { addAdminNotification } from '@/lib/notifications';
 
 /**
- * Persiste o log de pesquisa no MongoDB e notifica administradores em tempo real (fire-and-forget).
+ * Persiste o log de pesquisa no MongoDB — SEMPRE aguardado antes de responder.
+ * Retorna o searchCount actualizado.
  */
-async function persistSearchLog(
+async function saveSearchLogToDB(
+  fullDomain: string,
+  sld: string,
+  extension: string,
+  isAvailable: boolean,
+  ip: string,
+  userAgent: string,
+  userId?: string,
+  userEmail?: string
+): Promise<number> {
+  await connectDB();
+
+  const existing = await DomainSearchLog.findOne({ domain: fullDomain });
+  let searchCount = 1;
+
+  if (existing) {
+    existing.searchCount += 1;
+    existing.lastSearchedAt = new Date();
+    existing.isAvailable = isAvailable;
+    existing.ip = ip;
+    existing.userAgent = userAgent;
+    if (userId) { existing.userId = userId; existing.userEmail = userEmail; }
+    await existing.save();
+    searchCount = existing.searchCount;
+  } else {
+    await DomainSearchLog.create({
+      domain: fullDomain,
+      sld,
+      extension,
+      isAvailable,
+      searchCount: 1,
+      ip,
+      userAgent,
+      userId: userId || undefined,
+      userEmail: userEmail || undefined,
+      firstSearchedAt: new Date(),
+      lastSearchedAt: new Date(),
+    });
+  }
+
+  return searchCount;
+}
+
+/**
+ * Dispara notificações (email + painel admin) em background sem bloquear.
+ */
+function fireNotificationsAsync(
   fullDomain: string,
   sld: string,
   extension: string,
   isAvailable: boolean,
   price: number | undefined,
+  searchCount: number,
   ip: string,
   userAgent: string,
-  userId?: string,
   userEmail?: string
 ) {
-  try {
-    await connectDB();
-
-    const existing = await DomainSearchLog.findOne({ domain: fullDomain });
-    let searchCount = 1;
-
-    if (existing) {
-      // Atualiza o log existente: incrementa o contador e actualiza timestamp
-      existing.searchCount += 1;
-      existing.lastSearchedAt = new Date();
-      existing.isAvailable = isAvailable;
-      existing.ip = ip;
-      existing.userAgent = userAgent;
-      if (userId) { existing.userId = userId; existing.userEmail = userEmail; }
-      await existing.save();
-      searchCount = existing.searchCount;
-    } else {
-      // Cria um novo registo de pesquisa
-      await DomainSearchLog.create({
-        domain: fullDomain,
-        sld,
-        extension,
-        isAvailable,
-        searchCount: 1,
-        ip,
-        userAgent,
-        userId: userId || undefined,
-        userEmail: userEmail || undefined,
-        firstSearchedAt: new Date(),
-        lastSearchedAt: new Date(),
-      });
-    }
-
-    // 1. Criar notificação interna no painel do administrador
+  // fire-and-forget — não bloqueia a resposta HTTP
+  (async () => {
     try {
-      addAdminNotification({
-        title: `🔍 Pesquisa: ${fullDomain} [${isAvailable ? 'Disponível' : 'Ocupado'}]`,
-        message: `${userEmail ? `Utilizador (${userEmail})` : `Visitante anónimo (IP: ${ip})`} pesquisou pelo domínio "${fullDomain}".`,
-        type: 'system',
-        link: '/admin/domain-search-logs',
-        userEmail: userEmail || undefined,
-        metadata: {
-          domain: fullDomain,
-          isAvailable,
-          ip,
-          searchCount
-        }
-      });
-    } catch (notifErr) {
-      console.warn('[DomainSearchLog] Falha ao criar notificação de admin:', notifErr);
+      // Notificação interna no painel admin
+      try {
+        addAdminNotification({
+          title: `🔍 Pesquisa: ${fullDomain} [${isAvailable ? 'Disponível' : 'Ocupado'}]`,
+          message: `${userEmail ? `Utilizador (${userEmail})` : `Visitante anónimo (IP: ${ip})`} pesquisou pelo domínio "${fullDomain}".`,
+          type: 'system',
+          link: '/admin/domain-search-logs',
+          userEmail: userEmail || undefined,
+          metadata: { domain: fullDomain, isAvailable, ip, searchCount }
+        });
+      } catch (notifErr) {
+        console.warn('[DomainSearchLog] Falha na notificação admin:', notifErr);
+      }
+
+      // E-mail de alerta aos administradores
+      const recipientEmails = new Set<string>();
+      try {
+        const UserModel = (await import('@/lib/models/User')).default;
+        const adminUsers = await UserModel.find(
+          { role: { $in: ['admin', 'super_admin'] }, status: { $ne: 'suspended' } },
+          { email: 1 }
+        ).lean();
+        adminUsers.forEach((u: any) => {
+          if (u.email && typeof u.email === 'string') {
+            recipientEmails.add(u.email.toLowerCase().trim());
+          }
+        });
+      } catch {}
+
+      if (process.env.ADMIN_EMAIL) recipientEmails.add(process.env.ADMIN_EMAIL.toLowerCase().trim());
+      if (process.env.EMAIL_USER?.includes('@')) recipientEmails.add(process.env.EMAIL_USER.toLowerCase().trim());
+      if (recipientEmails.size === 0) recipientEmails.add('info@wehosthere.com');
+
+      await Promise.allSettled(
+        Array.from(recipientEmails).map(adminEmail =>
+          sendDomainSearchAlertEmail(adminEmail, {
+            domain: fullDomain, sld, extension, isAvailable, price,
+            searchCount, ip, userAgent, userEmail, searchedAt: new Date()
+          })
+        )
+      );
+    } catch (err) {
+      console.warn('[DomainSearchLog] Falha nas notificações:', err);
     }
-
-    // 2. Coletar e-mails de administradores e super administradores
-    const recipientEmails = new Set<string>();
-
-    try {
-      const UserModel = (await import('@/lib/models/User')).default;
-      const adminUsers = await UserModel.find(
-        { role: { $in: ['admin', 'super_admin'] }, status: { $ne: 'suspended' } },
-        { email: 1 }
-      ).lean();
-
-      adminUsers.forEach((u: any) => {
-        if (u.email && typeof u.email === 'string') {
-          recipientEmails.add(u.email.toLowerCase().trim());
-        }
-      });
-    } catch (dbErr) {
-      console.warn('[DomainSearchLog] Falha ao consultar administradores no DB:', dbErr);
-    }
-
-    // Adicionar e-mails configurados no ambiente
-    if (process.env.ADMIN_EMAIL) {
-      recipientEmails.add(process.env.ADMIN_EMAIL.toLowerCase().trim());
-    }
-    if (process.env.EMAIL_USER && process.env.EMAIL_USER.includes('@')) {
-      recipientEmails.add(process.env.EMAIL_USER.toLowerCase().trim());
-    }
-
-    // Fallback padrão se nenhum foi encontrado
-    if (recipientEmails.size === 0) {
-      recipientEmails.add('info@wehosthere.com');
-    }
-
-    // 3. Disparar e-mail de alerta para todos os administradores em paralelo
-    const alertData = {
-      domain: fullDomain,
-      sld,
-      extension,
-      isAvailable,
-      price,
-      searchCount,
-      ip,
-      userAgent,
-      userEmail,
-      searchedAt: new Date()
-    };
-
-    // Disparar e-mail de alerta com timeout de segurança para não atrasar a resposta
-    const emailPromise = Promise.allSettled(
-      Array.from(recipientEmails).map(adminEmail =>
-        sendDomainSearchAlertEmail(adminEmail, alertData)
-      )
-    );
-    const timeoutPromise = new Promise(resolve => setTimeout(resolve, 1500));
-    await Promise.race([emailPromise, timeoutPromise]);
-  } catch (err) {
-    // Falha silenciosa — não afecta a resposta rápida ao visitante
-    console.warn('[DomainSearchLog] Falha no processamento de log/alerta de pesquisa:', err);
-  }
+  })();
 }
 
 export async function GET(req: NextRequest) {
@@ -252,10 +237,21 @@ export async function GET(req: NextRequest) {
     })
   );
 
-  const [_, alternatives] = await Promise.all([
-    persistSearchLog(fullDomain, cleanSld, extension, isAvailable, price, ip, userAgent, userId, userEmail),
+  // 1. Aguardar gravação no MongoDB + consulta de alternativas em PARALELO
+  // saveSearchLogToDB é awaited — garante persistência mesmo em serverless/Vercel
+  let searchCount = 1;
+  const [savedCount, alternatives] = await Promise.all([
+    saveSearchLogToDB(fullDomain, cleanSld, extension, isAvailable, ip, userAgent, userId, userEmail).catch((err) => {
+      console.error('[DomainSearchLog] Falha CRÍTICA ao guardar no MongoDB:', err);
+      return 1;
+    }),
     alternativesPromise,
   ]);
+  searchCount = savedCount as number;
+
+  // 2. Notificações em background — não bloqueiam a resposta HTTP
+  fireNotificationsAsync(fullDomain, cleanSld, extension, isAvailable, price, searchCount, ip, userAgent, userEmail);
+
 
   const smartSuggestions = generateSmartDomainSuggestions(cleanSld, extension);
 
