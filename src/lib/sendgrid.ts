@@ -551,3 +551,124 @@ export async function sendRoleChangeEmail(toEmail: string, userName: string, new
   });
 }
 
+export interface DomainSearchAlertData {
+  domain: string;
+  sld: string;
+  extension: string;
+  isAvailable: boolean;
+  price?: number;
+  searchCount: number;
+  ip: string;
+  userAgent?: string;
+  userEmail?: string;
+  userName?: string;
+  searchedAt: Date;
+}
+
+/**
+ * Notificação por e-mail para Administrador quando um visitante pesquisa por um domínio
+ */
+export async function sendDomainSearchAlertEmail(toEmail: string, data: DomainSearchAlertData) {
+  const adminUrl = `${SITE_URL}/admin/domain-search-logs`;
+  const formattedDate = new Intl.DateTimeFormat('pt-MZ', {
+    dateStyle: 'full',
+    timeStyle: 'medium',
+    timeZone: 'Africa/Maputo'
+  }).format(data.searchedAt);
+
+  const statusColor = data.isAvailable ? '#059669' : '#dc2626';
+  const statusBg = data.isAvailable ? '#ecfdf5' : '#fef2f2';
+  const statusBorder = data.isAvailable ? '#a7f3d0' : '#fecaca';
+  const statusText = data.isAvailable ? '✓ DISPONÍVEL PARA REGISTO' : '✕ OCUPADO / JÁ REGISTADO';
+
+  const userAgentShort = data.userAgent
+    ? data.userAgent.includes('Mobile')
+      ? '📱 Dispositivo Móvel'
+      : '💻 Computador / Desktop'
+    : 'Desconhecido';
+
+  const subject = data.isAvailable
+    ? `🎯 Oportunidade: Pesquisa de Domínio "${data.domain}" [DISPONÍVEL]`
+    : `🔍 Alerta: Pesquisa de Domínio "${data.domain}" [OCUPADO]`;
+
+  return sendEmail({
+    to: toEmail,
+    subject,
+    html: `
+      <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:620px;margin:0 auto;color:#111;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e2e8f0;box-shadow:0 4px 20px rgba(0,0,0,0.06);">
+        <div style="background:linear-gradient(135deg,#0f172a,#1e293b);padding:32px 28px;text-align:center;">
+          <img src="${SITE_URL}/logo.png" alt="WEHOSTHERE Logo" style="width:160px;height:auto;margin:0 auto 12px;display:block;" />
+          <div style="display:inline-block;background:rgba(255,255,255,0.1);backdrop-filter:blur(8px);padding:6px 14px;border-radius:20px;margin-top:6px;">
+            <span style="color:#38bdf8;font-size:12px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;">⚡ Alerta de Pesquisa em Tempo Real</span>
+          </div>
+        </div>
+
+        <div style="padding:32px 28px;background:#ffffff;">
+          <h2 style="color:#0f172a;font-size:20px;font-weight:800;margin:0 0 8px;text-align:center;">
+            Alguém acabou de pesquisar um domínio!
+          </h2>
+          <p style="color:#64748b;font-size:14px;text-align:center;margin:0 0 24px;">
+            Um visitante realizou uma consulta no verificador de domínios da plataforma.
+          </p>
+
+          <!-- Status Card -->
+          <div style="background:${statusBg};border:2px solid ${statusBorder};border-radius:12px;padding:20px;text-align:center;margin-bottom:24px;">
+            <p style="font-size:12px;font-weight:700;color:${statusColor};text-transform:uppercase;letter-spacing:1px;margin:0 0 6px;">
+              ${statusText}
+            </p>
+            <p style="font-family:monospace;font-size:26px;font-weight:900;color:#0f172a;margin:0 0 8px;letter-spacing:0.5px;">
+              ${data.domain}
+            </p>
+            ${data.price ? `<p style="color:#059669;font-weight:700;font-size:15px;margin:0;">Preço Estimado: ${data.price.toLocaleString('pt-MZ')} MT/ano</p>` : ''}
+          </div>
+
+          <!-- Informações Detalhadas -->
+          <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:20px;margin-bottom:24px;">
+            <p style="color:#0f172a;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;margin:0 0 14px;">
+              📊 Detalhes da Consulta
+            </p>
+            <table style="width:100%;border-collapse:collapse;font-size:13px;">
+              <tr style="border-bottom:1px solid #e2e8f0;">
+                <td style="padding:8px 0;color:#64748b;font-weight:600;">Visitante:</td>
+                <td style="padding:8px 0;color:#0f172a;text-align:right;font-weight:700;">
+                  ${data.userEmail ? `${data.userName ? `${data.userName} (` : ''}${data.userEmail}${data.userName ? ')' : ''}` : '👤 Visitante Anónimo'}
+                </td>
+              </tr>
+              <tr style="border-bottom:1px solid #e2e8f0;">
+                <td style="padding:8px 0;color:#64748b;font-weight:600;">Endereço IP:</td>
+                <td style="padding:8px 0;color:#0f172a;text-align:right;font-family:monospace;">${data.ip || 'Desconhecido'}</td>
+              </tr>
+              <tr style="border-bottom:1px solid #e2e8f0;">
+                <td style="padding:8px 0;color:#64748b;font-weight:600;">Dispositivo:</td>
+                <td style="padding:8px 0;color:#0f172a;text-align:right;">${userAgentShort}</td>
+              </tr>
+              <tr style="border-bottom:1px solid #e2e8f0;">
+                <td style="padding:8px 0;color:#64748b;font-weight:600;">Total de Buscas deste Domínio:</td>
+                <td style="padding:8px 0;color:#0f172a;text-align:right;font-weight:700;">
+                  <span style="background:#e0e7ff;color:#3730a3;padding:2px 8px;border-radius:6px;">${data.searchCount}x</span>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:8px 0;color:#64748b;font-weight:600;">Data e Hora:</td>
+                <td style="padding:8px 0;color:#0f172a;text-align:right;">${formattedDate}</td>
+              </tr>
+            </table>
+          </div>
+
+          <!-- Botão de Ação -->
+          <div style="text-align:center;margin:32px 0 16px;">
+            <a href="${adminUrl}" style="background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#ffffff;font-weight:700;padding:16px 36px;border-radius:10px;text-decoration:none;font-size:15px;display:inline-block;box-shadow:0 4px 14px rgba(37,99,235,0.35);">
+              Abrir Painel de Pesquisas de Domínio →
+            </a>
+          </div>
+        </div>
+
+        <div style="background:#f8fafc;padding:20px 28px;text-align:center;border-top:1px solid #e2e8f0;font-size:12px;color:#94a3b8;">
+          <p style="margin:0 0 4px;">WEHOSTHERE &mdash; Plataforma de Hospedagem Profissional em Moçambique</p>
+          <p style="margin:0;">Notificação interna automática gerada pelo sistema de inteligência de domínios.</p>
+        </div>
+      </div>`,
+  });
+}
+
+
