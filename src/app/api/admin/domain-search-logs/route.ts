@@ -17,7 +17,6 @@ export async function GET(req: NextRequest) {
     const q = (searchParams.get('q') || '').trim().toLowerCase();
 
     const baseCondition: any = {
-      sld: { $exists: true, $ne: '' },
       domain: { $regex: '^[a-z0-9]', $options: 'i' },
     };
 
