@@ -101,12 +101,6 @@ export default function Home() {
     setCurrentSlide(index);
   };
 
-  // Refs de animação de scroll do Hero (callback refs)
-  const badgeRef = useScrollAnimation<HTMLDivElement>();
-  const titleRef = useScrollAnimation<HTMLHeadingElement>();
-  const subtitleRef = useScrollAnimation<HTMLParagraphElement>();
-  const searchRef = useScrollAnimation<HTMLDivElement>();
-
   // Refs para scroll reveal das outras seções
   const featuresRef = useScrollAnimation<HTMLDivElement>();
   const pricingRef = useScrollAnimation<HTMLDivElement>();
@@ -158,8 +152,7 @@ export default function Home() {
 
             {/* Badge */}
             <div
-              ref={badgeRef}
-              className="anim-fade-down inline-flex items-center space-x-2 bg-primary-600/30 border border-primary-400/50 text-primary-200 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs sm:text-sm font-bold mb-4 sm:mb-6 backdrop-blur-md shadow-lg"
+              className="inline-flex items-center space-x-2 bg-primary-600/30 border border-primary-400/50 text-primary-200 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs sm:text-sm font-bold mb-4 sm:mb-6 backdrop-blur-md shadow-lg"
             >
               <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 text-primary-300" />
               <span className="hidden sm:inline">{t('hero.badge')}</span>
@@ -168,8 +161,7 @@ export default function Home() {
 
             {/* Título principal */}
             <h1
-              ref={titleRef}
-              className={`anim-typewriter anim-delay-200 text-2xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold text-white mb-3 sm:mb-4 tracking-tight leading-tight drop-shadow-lg transition-all duration-500 ${
+              className={`text-2xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold text-white mb-3 sm:mb-4 tracking-tight leading-tight drop-shadow-lg transition-all duration-500 ${
                 isSearchFocused ? 'text-center mx-auto max-w-4xl' : ''
               }`}
             >
@@ -177,14 +169,14 @@ export default function Home() {
             </h1>
 
             {/* Domain Search */}
-            <div ref={searchRef} className={`anim-zoom-in anim-delay-400 px-2 lg:px-0 w-full transition-all duration-500 ${
+            <div className={`px-2 lg:px-0 w-full transition-all duration-500 ${
               isSearchFocused ? 'max-w-4xl mx-auto' : ''
             }`}>
               <DomainSearch onFocusChange={setIsSearchFocused} />
             </div>
 
             {/* Trust badges */}
-            <div className={`anim-fade-up anim-delay-500 flex flex-wrap gap-2 sm:gap-3 mt-5 sm:mt-6 px-2 lg:px-0 transition-all duration-500 ${
+            <div className={`flex flex-wrap gap-2 sm:gap-3 mt-5 sm:mt-6 px-2 lg:px-0 transition-all duration-500 ${
               isSearchFocused ? 'justify-center' : 'justify-center lg:justify-start'
             }`}>
               <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-slate-300 bg-white/5 border border-white/10 px-2.5 py-1 rounded-full backdrop-blur-sm">
