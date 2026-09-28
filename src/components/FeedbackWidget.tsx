@@ -10,6 +10,7 @@ const FIVE_MINUTES_MS = 5 * 60 * 1000;
 export default function FeedbackWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const [isAssistantOpen, setIsAssistantOpen] = useState(false);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -44,22 +45,45 @@ export default function FeedbackWidget() {
     }
   }, []);
 
+  // Sincronizar com o estado do Assistente Virtual
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleAssistantState = (e: Event) => {
+      const customEvent = e as CustomEvent<{ open: boolean }>;
+      setIsAssistantOpen(!!customEvent.detail?.open);
+    };
+
+    window.addEventListener('wehost:assistant-state', handleAssistantState);
+
+    return () => {
+      window.removeEventListener('wehost:assistant-state', handleAssistantState);
+    };
+  }, []);
+
+  const handleToggleOpen = (nextOpen: boolean) => {
+    setIsOpen(nextOpen);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('wehost:feedback-state', { detail: { open: nextOpen } }));
+    }
+  };
+
   const handleDismiss = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsVisible(false);
     sessionStorage.setItem('wehost_feedback_dismissed', 'true');
   };
 
-  if (!isVisible) return null;
+  if (!isVisible || isAssistantOpen) return null;
 
   return (
     <>
-      {/* Floating Button com transição suave */}
-      <div className="fixed bottom-20 sm:bottom-6 left-4 sm:left-6 z-40 animate-in fade-in slide-in-from-bottom-5 duration-500">
+      {/* Floating Button com posição exclusiva empilhada acima do Assistente Virtual para nunca colidir */}
+      <div className="fixed bottom-22 sm:bottom-24 left-4 sm:left-6 z-40 animate-in fade-in slide-in-from-bottom-5 duration-500">
         <div className="relative group">
           <button
             type="button"
-            onClick={() => setIsOpen(true)}
+            onClick={() => handleToggleOpen(true)}
             className="flex items-center space-x-2 pl-3.5 pr-8 py-2.5 bg-gray-900/95 hover:bg-black text-white text-xs font-bold rounded-full shadow-2xl hover:shadow-primary-500/20 transition-all duration-200 backdrop-blur border border-white/15 hover:scale-105 cursor-pointer"
             aria-label="Dar Feedback"
             title="Deixe a sua opinião ou sugestão"
@@ -93,7 +117,7 @@ export default function FeedbackWidget() {
           <div className="w-full max-w-lg">
             <FeedbackForm 
               onClose={() => {
-                setIsOpen(false);
+                handleToggleOpen(false);
                 sessionStorage.setItem('wehost_feedback_dismissed', 'true');
                 setIsVisible(false);
               }} 

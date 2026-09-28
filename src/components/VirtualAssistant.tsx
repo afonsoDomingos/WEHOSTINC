@@ -164,6 +164,8 @@ export default function VirtualAssistant() {
   const [userPlan, setUserPlan] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+
   // Check if user is logged in and get plan info
   useEffect(() => {
     const authData = localStorage.getItem('wehosthere_auth');
@@ -182,12 +184,26 @@ export default function VirtualAssistant() {
       setIsOpen(true);
     };
 
+    const handleFeedbackState = (e: Event) => {
+      const customEvent = e as CustomEvent<{ open: boolean }>;
+      setIsFeedbackOpen(!!customEvent.detail?.open);
+    };
+
     window.addEventListener('openVirtualAssistant', handleOpenAssistant);
+    window.addEventListener('wehost:feedback-state', handleFeedbackState);
 
     return () => {
       window.removeEventListener('openVirtualAssistant', handleOpenAssistant);
+      window.removeEventListener('wehost:feedback-state', handleFeedbackState);
     };
   }, []);
+
+  const handleToggleOpen = (nextOpen: boolean) => {
+    setIsOpen(nextOpen);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('wehost:assistant-state', { detail: { open: nextOpen } }));
+    }
+  };
 
   const filteredFAQs = faqData.filter(faq => {
     const matchesCategory = selectedCategory === 'Todas' || faq.category === selectedCategory;
@@ -266,9 +282,9 @@ export default function VirtualAssistant() {
         }
       `}</style>
       {/* Floating Button com Avatar do Assistente */}
-      {!isOpen && (
+      {!isOpen && !isFeedbackOpen && (
         <button
-          onClick={() => setIsOpen(true)}
+          onClick={() => handleToggleOpen(true)}
           className="fixed bottom-6 left-6 z-50 bg-white p-1 rounded-full shadow-2xl hover:shadow-primary-500/30 transition-all duration-300 hover:scale-110 group border-2 border-primary-500 flex items-center justify-center cursor-pointer"
           title="Assistente Virtual WEHOSTHERE"
         >
@@ -317,7 +333,7 @@ export default function VirtualAssistant() {
                   </div>
                 )}
                 <button
-                  onClick={() => setIsOpen(false)}
+                  onClick={() => handleToggleOpen(false)}
                   className="p-1 hover:bg-white/20 rounded-lg transition"
                 >
                   <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
