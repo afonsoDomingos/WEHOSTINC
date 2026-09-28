@@ -196,7 +196,7 @@ export default function Home() {
 
           {/* Coluna Direita — Mascote desktop: desliza para fora quando pesquisa */}
           <div
-            className="hidden lg:flex items-end justify-center relative overflow-hidden"
+            className="hidden lg:flex items-end justify-center relative"
             style={{
               flex: isSearchFocused ? '0 0 0%' : '0 0 50%',
               opacity: isSearchFocused ? 0 : 1,
@@ -207,22 +207,33 @@ export default function Home() {
           >
             {/* Glow de fundo atrás do mascote */}
             <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-72 h-72 bg-primary-500/20 rounded-full blur-3xl" />
-            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-48 h-48 bg-sky-400/15 rounded-full blur-2xl" />
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-48 h-48 bg-sky-400/15 rounded-full blur-2xl" />
 
-            {/* Mascote flutuante */}
+            {/* Clip container — corta ligeiramente o fundo do mascote durante a animação */}
             <div
-              className="relative mascote-glow"
-              style={{ animation: 'mascoteFloat 4s ease-in-out infinite' }}
+              className="relative flex items-end justify-center"
+              style={{
+                overflow: 'hidden',
+                paddingBottom: 0,
+                // Clip no fundo para esconder pés e criar efeito de emersão
+                clipPath: 'inset(0 0 12px 0)',
+              }}
             >
-              <Image
-                src="/mascote-transparent.png"
-                alt="Mascote WEHOSTHERE"
-                width={440}
-                height={440}
-                priority
-                className="w-64 xl:w-96 h-auto object-contain select-none"
-                draggable={false}
-              />
+              {/* Mascote flutuante */}
+              <div
+                className="relative mascote-glow"
+                style={{ animation: 'mascoteFloat 4s ease-in-out infinite' }}
+              >
+                <Image
+                  src="/mascote-transparent.png"
+                  alt="Mascote WEHOSTHERE"
+                  width={440}
+                  height={440}
+                  priority
+                  className="w-64 xl:w-96 h-auto object-contain select-none"
+                  draggable={false}
+                />
+              </div>
             </div>
           </div>
 
