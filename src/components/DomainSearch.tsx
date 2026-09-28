@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, CheckCircle2, XCircle, Globe, ArrowRight, Sparkles, Loader2, Rocket, Flame, WifiOff, Wifi, AlertTriangle } from 'lucide-react';
+import { Search, CheckCircle2, XCircle, Globe, ArrowRight, Sparkles, Loader2, Rocket, Flame, WifiOff, Wifi, AlertTriangle, X } from 'lucide-react';
 import { DOMAIN_PRICES, checkDomainRealAsync, DomainCheckResult } from '@/lib/domains';
 import { hostingPlans } from '@/lib/data';
 import { soundEffects } from '@/lib/soundEffects';
@@ -31,17 +31,37 @@ export default function DomainSearch({ onFocusChange }: DomainSearchProps = {}) 
   const [networkError, setNetworkError] = useState<string | null>(null);
   const slowTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const [isFocused, setIsFocused] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
 
+  // Notificar o componente pai (page.tsx) para manter o banner expandido e o mascote fora
+  // enquanto houver foco, pesquisa em andamento ou resultado de pesquisa ativo
+  useEffect(() => {
+    const isExpanded = isFocused || isSearching || !!result;
+    onFocusChange?.(isExpanded);
+  }, [isFocused, isSearching, result, onFocusChange]);
+
   const handleContainerFocus = () => {
-    onFocusChange?.(true);
+    setIsFocused(true);
   };
 
   const handleContainerBlur = (e: React.FocusEvent) => {
     if (searchContainerRef.current && searchContainerRef.current.contains(e.relatedTarget as Node)) {
       return;
     }
-    onFocusChange?.(false);
+    setIsFocused(false);
+  };
+
+  const handleClearSearch = () => {
+    soundEffects.playClickSound();
+    setQuery('');
+    setResult(null);
+    setIsSearching(false);
+    setIsFocused(false);
+    setNetworkError(null);
+    if (document.activeElement instanceof HTMLElement && searchContainerRef.current?.contains(document.activeElement)) {
+      document.activeElement.blur();
+    }
   };
 
   // Detectar mudanças de estado de rede em tempo real
@@ -182,11 +202,27 @@ export default function DomainSearch({ onFocusChange }: DomainSearchProps = {}) 
             <input
               type="text"
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                setQuery(val);
+                if (!val.trim() && result) {
+                  setResult(null);
+                }
+              }}
               placeholder={t('hero.search_placeholder')}
-              className="w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-2.5 sm:py-3.5 bg-gray-50 border border-gray-200 rounded-xl sm:rounded-2xl outline-none focus:ring-2 focus:ring-primary-500 font-medium text-gray-900 text-xs sm:text-sm md:text-base placeholder-gray-400"
+              className="w-full pl-10 sm:pl-12 pr-10 sm:pr-12 py-2.5 sm:py-3.5 bg-gray-50 border border-gray-200 rounded-xl sm:rounded-2xl outline-none focus:ring-2 focus:ring-primary-500 font-medium text-gray-900 text-xs sm:text-sm md:text-base placeholder-gray-400"
               required
             />
+            {(query || result) && (
+              <button
+                type="button"
+                onClick={handleClearSearch}
+                className="absolute right-2.5 sm:right-3 top-1/2 transform -translate-y-1/2 p-1 text-gray-400 hover:text-gray-700 hover:bg-gray-200/70 rounded-full transition cursor-pointer"
+                title="Limpar pesquisa"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
           </div>
 
           {/* Seletor de Extensão TLD + Botão Pesquisar */}
@@ -298,14 +334,25 @@ export default function DomainSearch({ onFocusChange }: DomainSearchProps = {}) 
               </div>
             </div>
 
-            {result.isAvailable && (
-              <div className="bg-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl border border-gray-200 shadow-sm flex flex-row sm:flex-col items-center sm:items-end justify-between shrink-0">
-                <span className="text-[10px] sm:text-[11px] font-bold text-gray-400 uppercase tracking-wider">{t('domain.pkg_domain_only')}</span>
-                <span className="text-base sm:text-lg font-black text-primary-600">
-                  {result.price.toLocaleString('pt-MZ')} MT <span className="text-[10px] sm:text-xs text-gray-500 font-normal">{t('pricing.per_year')}</span>
-                </span>
-              </div>
-            )}
+            <div className="flex items-center gap-2 sm:flex-col sm:items-end justify-between shrink-0">
+              {result.isAvailable && (
+                <div className="bg-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl border border-gray-200 shadow-sm flex flex-row sm:flex-col items-center sm:items-end justify-between">
+                  <span className="text-[10px] sm:text-[11px] font-bold text-gray-400 uppercase tracking-wider">{t('domain.pkg_domain_only')}</span>
+                  <span className="text-base sm:text-lg font-black text-primary-600">
+                    {result.price.toLocaleString('pt-MZ')} MT <span className="text-[10px] sm:text-xs text-gray-500 font-normal">{t('pricing.per_year')}</span>
+                  </span>
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={handleClearSearch}
+                className="inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 text-xs font-semibold transition cursor-pointer border border-gray-200 shadow-xs"
+                title="Limpar pesquisa e fechar resultados"
+              >
+                <X className="h-3.5 w-3.5" />
+                <span>Limpar</span>
+              </button>
+            </div>
           </div>
 
           {/* Opções de Contratação com Preços Transparentes */}
