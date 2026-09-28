@@ -123,6 +123,14 @@ export default function DomainSearch({ onFocusChange }: DomainSearchProps = {}) 
       const searchResult = await checkDomainRealAsync(fullQuery);
       console.log(`[DomainSearch] Resultado:`, searchResult);
       setResult(searchResult);
+      // 📊 Evento GTM / GA4 — pesquisa de domínio
+      if (typeof window !== 'undefined' && Array.isArray((window as any).dataLayer)) {
+        (window as any).dataLayer.push({
+          event: 'domain_search',
+          domain_name: fullQuery,
+          domain_available: searchResult?.isAvailable ?? null,
+        });
+      }
       if (searchResult?.isAvailable) {
         soundEffects.playSuccessSound();
       } else {
@@ -151,11 +159,32 @@ export default function DomainSearch({ onFocusChange }: DomainSearchProps = {}) 
 
   const handleRegisterOnly = (domain: string, price: number) => {
     soundEffects.playDomainRegisteredSound();
+    // 📊 Evento GTM — início de checkout
+    if (typeof window !== 'undefined' && Array.isArray((window as any).dataLayer)) {
+      (window as any).dataLayer.push({
+        event: 'begin_checkout',
+        domain_name: domain,
+        value: price,
+        currency: 'MZN',
+        checkout_type: 'domain_only',
+      });
+    }
     router.push(`/checkout?plan=none&domain=${encodeURIComponent(domain)}&domainPrice=${price}`);
   };
 
   const handleRegisterWithHosting = (domain: string, price: number, planId: string = selectedHostingPlan, cycle: string = hostingCycle) => {
     soundEffects.playDomainRegisteredSound();
+    // 📊 Evento GTM — início de checkout com hospedagem
+    if (typeof window !== 'undefined' && Array.isArray((window as any).dataLayer)) {
+      (window as any).dataLayer.push({
+        event: 'begin_checkout',
+        domain_name: domain,
+        value: price,
+        currency: 'MZN',
+        checkout_type: 'domain_with_hosting',
+        hosting_plan: planId,
+      });
+    }
     router.push(`/checkout?plan=${planId}&billingCycle=${cycle}&domain=${encodeURIComponent(domain)}&domainPrice=${price}`);
   };
 

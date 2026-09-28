@@ -162,9 +162,25 @@ class AnalyticsManager {
   }
 
   private sendToGoogleAnalytics(event: AnalyticsEvent): void {
-    if (typeof window !== 'undefined' && (window as any).gtag) {
+    if (typeof window === 'undefined') return;
+    const w = window as any;
+
+    // Push para dataLayer (GTM)
+    if (Array.isArray(w.dataLayer)) {
+      w.dataLayer.push({
+        event: event.eventName,
+        event_category: event.category,
+        event_label: event.label,
+        value: event.value,
+        session_id: event.sessionId,
+        ...event.metadata
+      });
+    }
+
+    // Enviar também via gtag direto (GA4)
+    if (w.gtag) {
       try {
-        (window as any).gtag('event', event.eventName, {
+        w.gtag('event', event.eventName, {
           event_category: event.category,
           event_label: event.label,
           value: event.value,

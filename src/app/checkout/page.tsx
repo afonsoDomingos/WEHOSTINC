@@ -277,6 +277,19 @@ function CheckoutContent() {
             const serviceType = isCoursePayment ? 'course' : (isAffiliateVerification ? 'affiliate' : 'hosting');
             analytics.trackPaymentCompleted(paymentMethod, grandTotal, currentReference || '');
             analytics.trackConversion(serviceType, grandTotal);
+
+            // 📊 Evento GTM — compra concluída (ecommerce)
+            if (typeof window !== 'undefined' && Array.isArray((window as any).dataLayer)) {
+              (window as any).dataLayer.push({
+                event: 'purchase',
+                transaction_id: currentReference || `TXN-${Date.now()}`,
+                value: grandTotal,
+                currency: 'MZN',
+                payment_method: paymentMethod,
+                service_type: serviceType,
+                domain: domainParam || undefined,
+              });
+            }
             
             // Criar pedido com status completed e finalizar
             await finalizeOrder();
