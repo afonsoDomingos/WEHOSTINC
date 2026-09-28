@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dns from 'dns/promises';
 import { DOMAIN_PRICES, sanitizeDomainName, getDomainPrice, generateSmartDomainSuggestions } from '@/lib/domains';
+import { connectDB } from '@/lib/mongodb';
+import { DomainSearchLog } from '@/models/DomainSearchLog';
 
 /**
  * Verifica se um domínio possui registros DNS ativos na internet.
@@ -62,6 +64,56 @@ async function isDomainTakenViaDNS(domain: string): Promise<boolean> {
   return false; // Domínio 100% Livre para registro!
 }
 
+/**
+ * Persiste o log de pesquisa no MongoDB (fire-and-forget, não bloqueia a resposta).
+ */
+async function persistSearchLog(
+  fullDomain: string,
+  sld: string,
+  extension: string,
+  isAvailable: boolean,
+  ip: string,
+  userAgent: string,
+  userId?: string,
+  userEmail?: string
+) {
+  try {
+    await connectDB();
+
+    const existing = await DomainSearchLog.findOne({ domain: fullDomain });
+
+    if (existing) {
+      // Atualiza o log existente: incrementa o contador e actualiza timestamp
+      existing.searchCount += 1;
+      existing.lastSearchedAt = new Date();
+      existing.isAvailable = isAvailable;
+      // Se o mesmo utilizador pesquisou, actualiza o IP/UA mais recente
+      existing.ip = ip;
+      existing.userAgent = userAgent;
+      if (userId) { existing.userId = userId; existing.userEmail = userEmail; }
+      await existing.save();
+    } else {
+      // Cria um novo registo de pesquisa
+      await DomainSearchLog.create({
+        domain: fullDomain,
+        sld,
+        extension,
+        isAvailable,
+        searchCount: 1,
+        ip,
+        userAgent,
+        userId: userId || undefined,
+        userEmail: userEmail || undefined,
+        firstSearchedAt: new Date(),
+        lastSearchedAt: new Date(),
+      });
+    }
+  } catch (err) {
+    // Falha silenciosa — não afecta a resposta ao utilizador
+    console.warn('[DomainSearchLog] Falha ao persistir log de pesquisa:', err);
+  }
+}
+
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const rawDomain = searchParams.get('domain');
@@ -89,6 +141,20 @@ export async function GET(req: NextRequest) {
   }
 
   const isAvailable = !isTaken;
+
+  // Extrair IP e user-agent do pedido
+  const ip =
+    req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+    req.headers.get('x-real-ip') ||
+    'unknown';
+  const userAgent = req.headers.get('user-agent') || '';
+
+  // Extrair utilizador autenticado dos headers (se o middleware de sessão os adicionar)
+  const userId = req.headers.get('x-user-id') || undefined;
+  const userEmail = req.headers.get('x-user-email') || undefined;
+
+  // Persistir log no MongoDB de forma assíncrona (não bloqueia a resposta)
+  persistSearchLog(fullDomain, cleanSld, extension, isAvailable, ip, userAgent, userId, userEmail);
 
   // Consultar disponibilidade das alternativas em paralelo
   const altTLDs = DOMAIN_PRICES.filter(tld => tld.extension !== extension);

@@ -1532,6 +1532,15 @@ export default function AdminPage() {
               </Link>
 
               <Link
+                href="/admin/domain-search-logs"
+                className="flex items-center space-x-1.5 text-gray-600 hover:text-amber-600 font-medium transition text-[10px] sm:text-xs sm:text-sm shrink-0 whitespace-nowrap px-2 py-1.5 rounded-lg hover:bg-amber-50/70"
+                title="Histórico e tendências de pesquisas de domínios"
+              >
+                <Search className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-amber-500" />
+                <span>Pesquisas</span>
+              </Link>
+
+              <Link
                 href="/admin/blog"
                 className="flex items-center space-x-1.5 text-gray-600 hover:text-green-600 font-medium transition text-[10px] sm:text-xs sm:text-sm shrink-0 whitespace-nowrap px-2 py-1.5 rounded-lg hover:bg-green-50/70"
               >
