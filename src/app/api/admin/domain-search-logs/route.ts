@@ -204,11 +204,25 @@ export async function POST(req: NextRequest) {
 }
 
 /**
- * DELETE — Limpar todos os logs (apenas admin)
+ * DELETE — Limpar logs (por id, por domain ou todos)
  */
 export async function DELETE(req: NextRequest) {
   try {
     await connectDB();
+    const { searchParams } = new URL(req.url);
+    const domain = searchParams.get('domain');
+    const id = searchParams.get('id');
+
+    if (id) {
+      const result = await DomainSearchLog.deleteOne({ _id: id });
+      return NextResponse.json({ deleted: result.deletedCount });
+    }
+
+    if (domain) {
+      const result = await DomainSearchLog.deleteOne({ domain: domain.trim().toLowerCase() });
+      return NextResponse.json({ deleted: result.deletedCount });
+    }
+
     const result = await DomainSearchLog.deleteMany({});
     return NextResponse.json({ deleted: result.deletedCount });
   } catch (err: any) {
