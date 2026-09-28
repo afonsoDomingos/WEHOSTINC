@@ -11,7 +11,11 @@ import { useLanguage } from '@/context/LanguageContext';
 // Timeout de conexão lenta em ms
 const SLOW_CONNECTION_TIMEOUT = 8000;
 
-export default function DomainSearch() {
+interface DomainSearchProps {
+  onFocusChange?: (isFocused: boolean) => void;
+}
+
+export default function DomainSearch({ onFocusChange }: DomainSearchProps = {}) {
   const router = useRouter();
   const { t } = useLanguage();
   const [query, setQuery] = useState('');
@@ -161,6 +165,8 @@ export default function DomainSearch() {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+              onFocus={() => onFocusChange?.(true)}
+              onBlur={() => onFocusChange?.(false)}
               placeholder={t('hero.search_placeholder')}
               className="w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-2.5 sm:py-3.5 bg-gray-50 border border-gray-200 rounded-xl sm:rounded-2xl outline-none focus:ring-2 focus:ring-primary-500 font-medium text-gray-900 text-xs sm:text-sm md:text-base placeholder-gray-400"
               required

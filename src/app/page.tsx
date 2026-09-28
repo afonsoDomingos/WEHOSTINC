@@ -25,6 +25,7 @@ export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   // Ticker animado pelos tipos de sites e seus preços
   const tickerTypes = websiteTypes.filter(t => t.basePrice < 100000);
@@ -126,11 +127,30 @@ export default function Home() {
         />
         <div className="absolute inset-0 bg-gradient-to-b from-slate-950/65 via-slate-950/70 to-slate-950" />
 
-        {/* Grid de 2 colunas no desktop, 1 coluna no mobile */}
-        <div className="relative z-10 w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-0 lg:gap-8 items-center pt-16 sm:pt-20 pb-8 sm:pb-10">
+        {/* Keyframes globais do mascote */}
+        <style>{`
+          @keyframes mascoteFloat {
+            0%, 100% { transform: translateY(0px) rotate(-1deg); }
+            50% { transform: translateY(-18px) rotate(1deg); }
+          }
+          @keyframes mascoteFloatMini {
+            0%, 100% { transform: translateY(0px) rotate(-1deg); }
+            50% { transform: translateY(-10px) rotate(1deg); }
+          }
+          .mascote-glow { filter: drop-shadow(0 20px 40px rgba(37, 99, 235, 0.35)); }
+        `}</style>
 
-          {/* Coluna Esquerda — Conteúdo textual */}
-          <div className="text-center lg:text-left">
+        {/* Layout principal — flex para transição suave entre 2-col e 1-col */}
+        <div className="relative z-10 w-full max-w-7xl mx-auto flex flex-col lg:flex-row gap-0 lg:gap-8 items-center pt-16 sm:pt-20 pb-8 sm:pb-10">
+
+          {/* Coluna Esquerda — expande para 100% quando mascote sai */}
+          <div
+            className="text-center lg:text-left w-full"
+            style={{
+              flex: isSearchFocused ? '1 1 100%' : '1 1 50%',
+              transition: 'flex 0.5s cubic-bezier(0.4,0,0.2,1)',
+            }}
+          >
 
             {/* Badge */}
             <div
@@ -152,7 +172,7 @@ export default function Home() {
 
             {/* Domain Search */}
             <div ref={searchRef} className="anim-zoom-in anim-delay-400 px-2 lg:px-0">
-              <DomainSearch />
+              <DomainSearch onFocusChange={setIsSearchFocused} />
             </div>
 
             {/* Trust badges */}
@@ -164,7 +184,7 @@ export default function Home() {
                 <span className="text-emerald-400">✓</span> Uptime 99.9%
               </span>
               <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-slate-300 bg-white/5 border border-white/10 px-2.5 py-1 rounded-full backdrop-blur-sm">
-                📱 M-Pesa & E-Mola
+                📱 M-Pesa &amp; E-Mola
               </span>
               <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-slate-300 bg-white/5 border border-white/10 px-2.5 py-1 rounded-full backdrop-blur-sm">
                 🇲🇿 Feito para Moçambique
@@ -172,26 +192,26 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Coluna Direita — Mascote animado (oculto no mobile pequeno, visível a partir de sm) */}
-          <div className="hidden lg:flex items-end justify-center relative">
+          {/* Coluna Direita — Mascote desktop: desliza para fora quando pesquisa */}
+          <div
+            className="hidden lg:flex items-end justify-center relative overflow-hidden"
+            style={{
+              flex: isSearchFocused ? '0 0 0%' : '0 0 50%',
+              opacity: isSearchFocused ? 0 : 1,
+              transform: isSearchFocused ? 'translateX(60px) scale(0.8)' : 'translateX(0px) scale(1)',
+              transition: 'flex 0.5s cubic-bezier(0.4,0,0.2,1), opacity 0.4s ease, transform 0.5s cubic-bezier(0.4,0,0.2,1)',
+              pointerEvents: isSearchFocused ? 'none' : 'auto',
+            }}
+          >
             {/* Glow de fundo atrás do mascote */}
             <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-72 h-72 bg-primary-500/20 rounded-full blur-3xl" />
             <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-48 h-48 bg-sky-400/15 rounded-full blur-2xl" />
 
             {/* Mascote flutuante */}
             <div
-              className="relative mascote-float"
-              style={{
-                animation: 'mascoteFloat 4s ease-in-out infinite',
-              }}
+              className="relative mascote-glow"
+              style={{ animation: 'mascoteFloat 4s ease-in-out infinite' }}
             >
-              <style>{`
-                @keyframes mascoteFloat {
-                  0%, 100% { transform: translateY(0px) rotate(-1deg); }
-                  50% { transform: translateY(-18px) rotate(1deg); }
-                }
-                .mascote-float { filter: drop-shadow(0 20px 40px rgba(37, 99, 235, 0.35)); }
-              `}</style>
               <Image
                 src="/mascote-transparent.png"
                 alt="Mascote WEHOSTHERE"
@@ -204,22 +224,24 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Mascote mini no mobile — peek no canto inferior direito */}
-          <div className="lg:hidden flex justify-center mt-2">
-            <div style={{ animation: 'mascoteFloat 4s ease-in-out infinite' }}>
-              <style>{`
-                @keyframes mascoteFloat {
-                  0%, 100% { transform: translateY(0px) rotate(-1deg); }
-                  50% { transform: translateY(-12px) rotate(1deg); }
-                }
-              `}</style>
+          {/* Mascote mini no mobile — some quando foca */}
+          <div
+            className="lg:hidden flex justify-center mt-2 overflow-hidden"
+            style={{
+              maxHeight: isSearchFocused ? '0px' : '200px',
+              opacity: isSearchFocused ? 0 : 1,
+              transform: isSearchFocused ? 'scale(0.7) translateY(20px)' : 'scale(1) translateY(0px)',
+              transition: 'max-height 0.45s ease, opacity 0.35s ease, transform 0.4s ease',
+            }}
+          >
+            <div style={{ animation: 'mascoteFloatMini 4s ease-in-out infinite' }}>
               <Image
                 src="/mascote-transparent.png"
                 alt="Mascote WEHOSTHERE"
                 width={200}
                 height={200}
                 priority
-                className="w-36 sm:w-48 h-auto object-contain select-none"
+                className="w-32 sm:w-44 h-auto object-contain select-none"
                 style={{ filter: 'drop-shadow(0 12px 24px rgba(37, 99, 235, 0.4))' }}
                 draggable={false}
               />
