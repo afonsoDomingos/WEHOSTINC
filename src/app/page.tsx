@@ -230,7 +230,7 @@ export default function Home() {
                   width={440}
                   height={440}
                   priority
-                  className="w-64 xl:w-96 h-auto object-contain select-none"
+                  className="w-52 xl:w-72 h-auto object-contain select-none"
                   draggable={false}
                 />
               </div>
