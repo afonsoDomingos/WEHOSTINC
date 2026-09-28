@@ -81,6 +81,66 @@ export async function GET(req: NextRequest) {
   }
 }
 
+import { addAdminNotification } from '@/lib/notifications';
+import { sendDomainLeadAlertEmail, DomainLeadAlertData } from '@/lib/sendgrid';
+
+/**
+ * Dispara notificações (email + painel admin) para lead de checkout em background
+ */
+function fireLeadNotificationsAsync(data: DomainLeadAlertData) {
+  (async () => {
+    try {
+      // 1. Notificação no painel administrativo
+      try {
+        await addAdminNotification({
+          title: `🔥 Lead Quente: Tentativa de Compra (${data.domain})`,
+          message: `${data.userName || 'Cliente'} (${data.userPhone || data.userEmail || 'Contacto não informado'}) iniciou o checkout do domínio "${data.domain}".`,
+          type: 'order_new',
+          link: '/admin/domain-search-logs?filter=checkout',
+          userEmail: data.userEmail || undefined,
+          metadata: {
+            domain: data.domain,
+            userName: data.userName,
+            userPhone: data.userPhone,
+            checkoutOrderId: data.checkoutOrderId,
+            checkoutStatus: data.checkoutStatus,
+          },
+        });
+      } catch (notifErr) {
+        console.warn('[DomainLead] Falha na notificação admin interna:', notifErr);
+      }
+
+      // 2. Coletar emails dos administradores
+      const recipientEmails = new Set<string>();
+      try {
+        const UserModel = (await import('@/lib/models/User')).default;
+        const adminUsers = await UserModel.find(
+          { role: { $in: ['admin', 'super_admin'] }, status: { $ne: 'suspended' } },
+          { email: 1 }
+        ).lean();
+        adminUsers.forEach((u: any) => {
+          if (u.email && typeof u.email === 'string') {
+            recipientEmails.add(u.email.toLowerCase().trim());
+          }
+        });
+      } catch {}
+
+      if (process.env.ADMIN_EMAIL) recipientEmails.add(process.env.ADMIN_EMAIL.toLowerCase().trim());
+      if (process.env.EMAIL_USER?.includes('@')) recipientEmails.add(process.env.EMAIL_USER.toLowerCase().trim());
+      if (recipientEmails.size === 0) recipientEmails.add('info@wehosthere.com');
+
+      // 3. Enviar e-mail de alerta de lead
+      await Promise.allSettled(
+        Array.from(recipientEmails).map(adminEmail =>
+          sendDomainLeadAlertEmail(adminEmail, data)
+        )
+      );
+    } catch (err) {
+      console.warn('[DomainLead] Falha ao enviar notificações de lead:', err);
+    }
+  })();
+}
+
 /**
  * POST — Registrar ou atualizar tentativa de checkout para um domínio pesquisado
  */
@@ -94,21 +154,47 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Domínio é obrigatório.' }, { status: 400 });
     }
 
+    const cleanDomain = String(domain).trim().toLowerCase();
+    const parts = cleanDomain.split('.');
+    const sld = parts[0];
+    const extension = '.' + parts.slice(1).join('.');
+
     const updated = await DomainSearchLog.findOneAndUpdate(
-      { domain: domain.trim().toLowerCase() },
+      { domain: cleanDomain },
       {
         $set: {
-          userName: userName || undefined,
-          userEmail: userEmail ? userEmail.trim().toLowerCase() : undefined,
-          userPhone: userPhone ? userPhone.trim() : undefined,
+          userName: userName ? String(userName).trim() : undefined,
+          userEmail: userEmail ? String(userEmail).trim().toLowerCase() : undefined,
+          userPhone: userPhone ? String(userPhone).trim() : undefined,
           hasCheckoutAttempt: true,
           checkoutStatus: checkoutStatus || 'pending',
           checkoutOrderId: checkoutOrderId || undefined,
-          lastSearchedAt: new Date()
+          lastSearchedAt: new Date(),
+        },
+        $setOnInsert: {
+          domain: cleanDomain,
+          sld,
+          extension,
+          isAvailable: true,
+          searchCount: 1,
+          firstSearchedAt: new Date(),
         }
       },
-      { new: true }
+      { new: true, upsert: true }
     );
+
+    // Disparar notificações de lead apenas quando for tentativa inicial/pendente
+    if (checkoutStatus !== 'completed') {
+      fireLeadNotificationsAsync({
+        domain: cleanDomain,
+        userName: userName ? String(userName).trim() : undefined,
+        userEmail: userEmail ? String(userEmail).trim().toLowerCase() : undefined,
+        userPhone: userPhone ? String(userPhone).trim() : undefined,
+        checkoutStatus: checkoutStatus || 'pending',
+        checkoutOrderId: checkoutOrderId || undefined,
+        attemptedAt: new Date(),
+      });
+    }
 
     return NextResponse.json({ success: true, log: updated });
   } catch (err: any) {

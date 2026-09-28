@@ -290,6 +290,22 @@ function CheckoutContent() {
                 domain: domainParam || undefined,
               });
             }
+
+            // 🔗 Atualizar status do lead de domínio para completed
+            if (domainParam) {
+              fetch(apiEndpoint('/api/admin/domain-search-logs'), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  domain: domainParam,
+                  userName: name,
+                  userEmail: email,
+                  userPhone: phonePayment || whatsapp,
+                  checkoutStatus: 'completed',
+                  checkoutOrderId: currentReference || undefined
+                })
+              }).catch(() => {});
+            }
             
             // Criar pedido com status completed e finalizar
             await finalizeOrder();
@@ -908,6 +924,21 @@ function CheckoutContent() {
         // O botão principal não deve ficar travado em "Processando..." enquanto o modal está aberto.
         setLoading(false);
       } else if (paymentMethod === 'bank_transfer') {
+        // 🔗 Registrar lead de checkout para transferência bancária
+        if (domainParam) {
+          fetch(apiEndpoint('/api/admin/domain-search-logs'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              domain: domainParam,
+              userName: name,
+              userEmail: email,
+              userPhone: phonePayment || whatsapp,
+              checkoutStatus: 'bank_transfer_pending',
+              checkoutOrderId: `BANK_${Date.now().toString().slice(-6)}`
+            })
+          }).catch(() => {});
+        }
         // 🔒 SEGURANÇA: Para transferência bancária, apenas criar pedido como 'in_progress'
         // Admin deve aprovar manualmente após verificar comprovativo
         await finalizeOrder(false);

@@ -671,4 +671,131 @@ export async function sendDomainSearchAlertEmail(toEmail: string, data: DomainSe
   });
 }
 
+export interface DomainLeadAlertData {
+  domain: string;
+  userName?: string;
+  userEmail?: string;
+  userPhone?: string;
+  checkoutStatus?: string;
+  checkoutOrderId?: string;
+  attemptedAt: Date;
+}
+
+/**
+ * Notificação por e-mail para Administrador quando um cliente avança para checkout com um domínio (Lead Quente)
+ */
+export async function sendDomainLeadAlertEmail(toEmail: string, data: DomainLeadAlertData) {
+  const adminUrl = `${SITE_URL}/admin/domain-search-logs?filter=checkout`;
+  const formattedDate = new Intl.DateTimeFormat('pt-MZ', {
+    dateStyle: 'full',
+    timeStyle: 'medium',
+    timeZone: 'Africa/Maputo'
+  }).format(data.attemptedAt);
+
+  // Formatação do telefone para WhatsApp (Moçambique +258)
+  let whatsappUrl = '';
+  if (data.userPhone) {
+    const digits = data.userPhone.replace(/\D/g, '');
+    const cleanPhone = digits.startsWith('258') ? digits : digits.length === 9 ? `258${digits}` : digits;
+    const initialMsg = encodeURIComponent(
+      `Olá ${data.userName || ''}! Notámos que iniciou o registo do domínio "${data.domain}" na WEHOSTHERE. Podemos ajudar a concluir a sua ativação?`
+    );
+    whatsappUrl = `https://wa.me/${cleanPhone}?text=${initialMsg}`;
+  }
+
+  const subject = `🔥 Lead Quente: Tentativa de Compra do Domínio "${data.domain}"`;
+
+  return sendEmail({
+    to: toEmail,
+    subject,
+    html: `
+      <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:620px;margin:0 auto;color:#111;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e2e8f0;box-shadow:0 4px 20px rgba(0,0,0,0.06);">
+        <div style="background:linear-gradient(135deg,#7c2d12,#ea580c);padding:32px 28px;text-align:center;">
+          <img src="${SITE_URL}/logo.png" alt="WEHOSTHERE Logo" style="width:160px;height:auto;margin:0 auto 12px;display:block;" />
+          <div style="display:inline-block;background:rgba(255,255,255,0.18);backdrop-filter:blur(8px);padding:6px 16px;border-radius:20px;margin-top:6px;">
+            <span style="color:#ffffff;font-size:12px;font-weight:800;letter-spacing:0.8px;text-transform:uppercase;">🔥 NOVO LEAD QUENTE — TENTATIVA DE COMPRA</span>
+          </div>
+        </div>
+
+        <div style="padding:32px 28px;background:#ffffff;">
+          <h2 style="color:#0f172a;font-size:22px;font-weight:800;margin:0 0 8px;text-align:center;">
+            Um cliente avançou para o checkout!
+          </h2>
+          <p style="color:#64748b;font-size:14px;text-align:center;margin:0 0 24px;">
+            O cliente preencheu os dados de contacto e iniciou o processo de checkout para registar o domínio abaixo.
+          </p>
+
+          <!-- Card do Domínio -->
+          <div style="background:#fff7ed;border:2px solid #fed7aa;border-radius:12px;padding:20px;text-align:center;margin-bottom:24px;">
+            <p style="font-size:11px;font-weight:800;color:#c2410c;text-transform:uppercase;letter-spacing:1px;margin:0 0 6px;">
+              Domínio Solicitado
+            </p>
+            <p style="font-family:monospace;font-size:26px;font-weight:900;color:#0f172a;margin:0 0 6px;letter-spacing:0.5px;">
+              ${data.domain}
+            </p>
+            ${data.checkoutOrderId ? `<p style="font-size:12px;color:#64748b;margin:0;">Ref. Pagamento: <strong style="color:#0f172a;">${data.checkoutOrderId}</strong></p>` : ''}
+          </div>
+
+          <!-- Informações de Contacto do Lead -->
+          <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:20px;margin-bottom:24px;">
+            <p style="color:#0f172a;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;margin:0 0 14px;">
+              👤 Dados de Contacto do Cliente
+            </p>
+            <table style="width:100%;border-collapse:collapse;font-size:14px;">
+              <tr style="border-bottom:1px solid #e2e8f0;">
+                <td style="padding:10px 0;color:#64748b;font-weight:600;">Nome Completo:</td>
+                <td style="padding:10px 0;color:#0f172a;text-align:right;font-weight:700;">
+                  ${data.userName || '<span style="color:#94a3b8;font-weight:normal;">Não informado</span>'}
+                </td>
+              </tr>
+              <tr style="border-bottom:1px solid #e2e8f0;">
+                <td style="padding:10px 0;color:#64748b;font-weight:600;">Telefone / Celular:</td>
+                <td style="padding:10px 0;color:#0f172a;text-align:right;font-weight:700;">
+                  ${data.userPhone ? `<a href="tel:${data.userPhone}" style="color:#2563eb;text-decoration:none;">${data.userPhone}</a>` : '<span style="color:#94a3b8;font-weight:normal;">Não informado</span>'}
+                </td>
+              </tr>
+              <tr style="border-bottom:1px solid #e2e8f0;">
+                <td style="padding:10px 0;color:#64748b;font-weight:600;">E-mail:</td>
+                <td style="padding:10px 0;color:#0f172a;text-align:right;font-weight:700;">
+                  ${data.userEmail ? `<a href="mailto:${data.userEmail}" style="color:#2563eb;text-decoration:none;">${data.userEmail}</a>` : '<span style="color:#94a3b8;font-weight:normal;">Não informado</span>'}
+                </td>
+              </tr>
+              <tr style="border-bottom:1px solid #e2e8f0;">
+                <td style="padding:10px 0;color:#64748b;font-weight:600;">Status do Checkout:</td>
+                <td style="padding:10px 0;color:#0f172a;text-align:right;">
+                  <span style="background:#fef3c7;color:#92400e;font-weight:700;font-size:12px;padding:3px 10px;border-radius:6px;text-transform:uppercase;">
+                    ${data.checkoutStatus || 'Pendente'}
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:10px 0;color:#64748b;font-weight:600;">Data e Hora:</td>
+                <td style="padding:10px 0;color:#0f172a;text-align:right;">${formattedDate}</td>
+              </tr>
+            </table>
+          </div>
+
+          <!-- Ações Rápidas de Fechamento -->
+          <div style="margin:24px 0 16px;text-align:center;">
+            ${whatsappUrl ? `
+              <a href="${whatsappUrl}" target="_blank" style="background:#22c55e;color:#ffffff;font-weight:800;padding:14px 28px;border-radius:10px;text-decoration:none;font-size:15px;display:inline-block;margin:6px 4px;box-shadow:0 4px 14px rgba(34,197,94,0.35);">
+                💬 Falar com Cliente no WhatsApp →
+              </a>
+            ` : ''}
+            <a href="${adminUrl}" style="background:#0f172a;color:#ffffff;font-weight:700;padding:14px 28px;border-radius:10px;text-decoration:none;font-size:15px;display:inline-block;margin:6px 4px;">
+              Ver no Painel de Leads →
+            </a>
+          </div>
+        </div>
+
+        <div style="background:#f8fafc;padding:20px 28px;text-align:center;border-top:1px solid #e2e8f0;font-size:12px;color:#94a3b8;">
+          <p style="margin:0 0 4px;">WEHOSTHERE &mdash; Gestão Inteligente de Vendas e Leads</p>
+          <p style="margin:0;">Notificação gerada automaticamente para recuperação de carrinho e leads quentes.</p>
+        </div>
+      </div>
+    `,
+  });
+}
+
+
 
