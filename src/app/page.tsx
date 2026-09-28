@@ -209,31 +209,20 @@ export default function Home() {
             <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-72 h-72 bg-primary-500/20 rounded-full blur-3xl" />
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-48 h-48 bg-sky-400/15 rounded-full blur-2xl" />
 
-            {/* Clip container — corta ligeiramente o fundo do mascote durante a animação */}
+            {/* Mascote flutuante */}
             <div
-              className="relative flex items-end justify-center"
-              style={{
-                overflow: 'hidden',
-                paddingBottom: 0,
-                // Clip no fundo para esconder pés e criar efeito de emersão
-                clipPath: 'inset(0 0 12px 0)',
-              }}
+              className="relative mascote-glow"
+              style={{ animation: 'mascoteFloat 4s ease-in-out infinite' }}
             >
-              {/* Mascote flutuante */}
-              <div
-                className="relative mascote-glow"
-                style={{ animation: 'mascoteFloat 4s ease-in-out infinite' }}
-              >
-                <Image
-                  src="/mascote-transparent.png"
-                  alt="Mascote WEHOSTHERE"
-                  width={440}
-                  height={440}
-                  priority
-                  className="w-52 xl:w-72 h-auto object-contain select-none"
-                  draggable={false}
-                />
-              </div>
+              <Image
+                src="/mascote-transparent.png"
+                alt="Mascote WEHOSTHERE"
+                width={440}
+                height={440}
+                priority
+                className="w-52 xl:w-72 h-auto object-contain select-none"
+                draggable={false}
+              />
             </div>
           </div>
 
