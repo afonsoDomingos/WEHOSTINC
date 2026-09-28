@@ -51,9 +51,25 @@ function detectDevice(userAgent: string): 'mobile' | 'tablet' | 'desktop' {
 
 function DeviceIcon({ userAgent }: { userAgent: string }) {
   const device = detectDevice(userAgent);
-  if (device === 'mobile') return <Smartphone className="w-3.5 h-3.5 text-blue-400" title="Mobile" />;
-  if (device === 'tablet') return <Smartphone className="w-3.5 h-3.5 text-purple-400" title="Tablet" />;
-  return <Monitor className="w-3.5 h-3.5 text-slate-400" title="Desktop" />;
+  if (device === 'mobile') {
+    return (
+      <span title="Dispositivo Móvel (Smartphone)" className="inline-flex items-center">
+        <Smartphone className="w-3.5 h-3.5 text-blue-400" />
+      </span>
+    );
+  }
+  if (device === 'tablet') {
+    return (
+      <span title="Tablet" className="inline-flex items-center">
+        <Smartphone className="w-3.5 h-3.5 text-purple-400" />
+      </span>
+    );
+  }
+  return (
+    <span title="Computador (Desktop / Laptop)" className="inline-flex items-center">
+      <Monitor className="w-3.5 h-3.5 text-slate-400" />
+    </span>
+  );
 }
 
 function timeAgo(dateStr: string) {
@@ -161,7 +177,7 @@ export default function DomainSearchLogsPage() {
         title="Apagar todos os logs?"
         message="Esta acção é irreversível. Todos os registos de pesquisa de domínios serão permanentemente apagados."
         confirmText={clearing ? 'A apagar...' : 'Apagar tudo'}
-        confirmClassName="bg-red-600 hover:bg-red-700 text-white"
+        variant="danger"
         onConfirm={handleClearLogs}
         onCancel={() => setShowClearConfirm(false)}
       />
