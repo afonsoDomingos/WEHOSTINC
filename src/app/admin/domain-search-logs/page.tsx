@@ -42,14 +42,15 @@ interface Pagination {
   totalPages: number;
 }
 
-function detectDevice(userAgent: string): 'mobile' | 'tablet' | 'desktop' {
+function detectDevice(userAgent?: string | null): 'mobile' | 'tablet' | 'desktop' {
+  if (!userAgent || typeof userAgent !== 'string') return 'desktop';
   const ua = userAgent.toLowerCase();
   if (/mobile|android|iphone|ipod/i.test(ua)) return 'mobile';
   if (/tablet|ipad/i.test(ua)) return 'tablet';
   return 'desktop';
 }
 
-function DeviceIcon({ userAgent }: { userAgent: string }) {
+function DeviceIcon({ userAgent }: { userAgent?: string | null }) {
   const device = detectDevice(userAgent);
   if (device === 'mobile') {
     return (
@@ -72,15 +73,23 @@ function DeviceIcon({ userAgent }: { userAgent: string }) {
   );
 }
 
-function timeAgo(dateStr: string) {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'agora mesmo';
-  if (mins < 60) return `há ${mins}m`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `há ${hrs}h`;
-  const days = Math.floor(hrs / 24);
-  return `há ${days}d`;
+function timeAgo(dateStr?: string | Date | null) {
+  if (!dateStr) return '—';
+  try {
+    const date = typeof dateStr === 'string' ? new Date(dateStr) : dateStr;
+    const time = date.getTime();
+    if (isNaN(time)) return '—';
+    const diff = Date.now() - time;
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'agora mesmo';
+    if (mins < 60) return `há ${mins}m`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `há ${hrs}h`;
+    const days = Math.floor(hrs / 24);
+    return `há ${days}d`;
+  } catch {
+    return '—';
+  }
 }
 
 export default function DomainSearchLogsPage() {
@@ -116,7 +125,7 @@ export default function DomainSearchLogsPage() {
       const res = await fetch(`/api/admin/domain-search-logs?${params}`);
       if (!res.ok) throw new Error('Erro ao carregar logs');
       const data = await res.json();
-      setLogs(data.logs || []);
+      setLogs(Array.isArray(data.logs) ? data.logs : []);
       setStats(data.stats || null);
       setPagination(data.pagination || { page: 1, limit: 50, total: 0, totalPages: 0 });
     } catch (err) {
@@ -128,14 +137,8 @@ export default function DomainSearchLogsPage() {
   }, [filterAvailability, sortBy, searchQ]);
 
   useEffect(() => {
-    // Auth check
-    const admin = auth.getCurrentUser();
-    if (!admin || admin.role !== 'admin') {
-      router.push('/login');
-      return;
-    }
     fetchLogs(1);
-  }, [fetchLogs, router]);
+  }, [fetchLogs]);
 
   // Auto-refresh every 30 seconds
   useEffect(() => {
