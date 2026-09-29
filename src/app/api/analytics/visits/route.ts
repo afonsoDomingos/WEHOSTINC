@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import AnalyticsVisitModel from '@/lib/models/AnalyticsVisit';
+import { checkAndNotifyMilestones } from '@/lib/analyticsMilestones';
+import AnalyticsMilestoneModel from '@/lib/models/AnalyticsMilestone';
 
 let FALLBACK_VISITS: any[] = [];
 
@@ -41,6 +43,14 @@ export async function GET(req: NextRequest) {
         return acc;
       }, {});
 
+      // Buscar marcos actuais de visualizações e visitantes únicos
+      const milestones = await AnalyticsMilestoneModel.find().lean();
+      const viewsMilestone = milestones.find((m: any) => m.key === 'page_views');
+      const uniqueMilestone = milestones.find((m: any) => m.key === 'unique_visitors');
+
+      // Executa verificação em background se houver novos marcos a disparar
+      checkAndNotifyMilestones().catch(() => {});
+
       return NextResponse.json({
         total: totalCount || visits.length,
         uniqueVisitors: uniqueSessions,
@@ -49,6 +59,18 @@ export async function GET(req: NextRequest) {
           .sort(([, a], [, b]) => (b as number) - (a as number))
           .slice(0, 5)
           .map(([page, count]) => ({ page, count })),
+        milestones: {
+          pageViews: {
+            lastMilestone: viewsMilestone?.lastMilestone || Math.floor((totalCount || visits.length) / 100) * 100,
+            nextMilestone: (viewsMilestone?.lastMilestone ? viewsMilestone.lastMilestone + 100 : Math.floor((totalCount || visits.length) / 100) * 100 + 100),
+            step: 100
+          },
+          uniqueVisitors: {
+            lastMilestone: uniqueMilestone?.lastMilestone || Math.floor(uniqueSessions / 10) * 10,
+            nextMilestone: (uniqueMilestone?.lastMilestone ? uniqueMilestone.lastMilestone + 10 : Math.floor(uniqueSessions / 10) * 10 + 10),
+            step: 10
+          }
+        }
       });
     }
   } catch (e) { console.error('MongoDB error (analytics/visits):', e); }
@@ -93,6 +115,13 @@ export async function POST(req: NextRequest) {
     try {
       await connectDB();
       await AnalyticsVisitModel.create(visitData);
+
+      // Verificar marcos de crescimento (+100 visualizações e +10 visitantes únicos)
+      // Executa de forma assíncrona em background para retorno instantâneo da requisição
+      checkAndNotifyMilestones().catch(err => {
+        console.error('[Analytics] Erro ao verificar marcos após visita:', err);
+      });
+
       return NextResponse.json({ success: true });
     } catch (dbErr) {
       console.error('Erro ao guardar visita no Mongo, guardando em fallback:', dbErr);

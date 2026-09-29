@@ -291,7 +291,7 @@ export default function AdminPage() {
   // Analytics State
   const [onlineUsers, setOnlineUsers] = useState<Array<{ userEmail: string; userName: string; lastSeen: string; currentPage: string; isOnline: boolean }>>([]);
   const [recentPresence, setRecentPresence] = useState<Array<{ userEmail: string; userName: string; lastSeen: string; currentPage: string; isOnline: boolean }>>([]);
-  const [visitStats, setVisitStats] = useState<{ total: number; uniqueVisitors: number; topPages: Array<{ page: string; count: number }> }>({ total: 0, uniqueVisitors: 0, topPages: [] });
+  const [visitStats, setVisitStats] = useState<{ total: number; uniqueVisitors: number; topPages: Array<{ page: string; count: number }>; milestones?: any }>({ total: 0, uniqueVisitors: 0, topPages: [] });
   const [visitStatsPeriod, setVisitStatsPeriod] = useState<'today' | 'week' | 'month' | 'all'>('all');
 
   const handleLogout = async () => {
@@ -597,7 +597,7 @@ export default function AdminPage() {
       }
       if (visitsRes.ok) {
         const data = await visitsRes.json();
-        setVisitStats({ total: data.total || 0, uniqueVisitors: data.uniqueVisitors || 0, topPages: data.topPages || [] });
+        setVisitStats({ total: data.total || 0, uniqueVisitors: data.uniqueVisitors || 0, topPages: data.topPages || [], milestones: data.milestones });
       }
     } catch (e) {}
   }, [visitStatsPeriod]);
@@ -1728,6 +1728,25 @@ export default function AdminPage() {
                   <p className="text-2xl sm:text-3xl font-extrabold text-primary-700">{formatSensitiveValue(visitStats.total, false)}</p>
                 )}
                 <p className="text-[10px] sm:text-xs text-primary-500 mt-0.5">páginas vistas</p>
+                {visitStats.milestones?.pageViews && (
+                  <div className="mt-2 pt-2 border-t border-primary-200/50">
+                    <div className="flex items-center justify-between text-[9px] sm:text-[10px] text-primary-600 font-medium">
+                      <span>Próximo e-mail (+100):</span>
+                      <span className="font-bold">{visitStats.milestones.pageViews.nextMilestone}</span>
+                    </div>
+                    <div className="w-full bg-primary-200/60 h-1.5 rounded-full overflow-hidden mt-1">
+                      <div
+                        className="bg-primary-600 h-full rounded-full transition-all duration-500"
+                        style={{
+                          width: `${Math.min(100, Math.max(0, ((visitStats.total % 100) / 100) * 100))}%`
+                        }}
+                      />
+                    </div>
+                    <p className="text-[8px] sm:text-[9px] text-primary-500 mt-0.5 text-right font-medium">
+                      faltam {Math.max(0, 100 - (visitStats.total % 100))} para o alerta
+                    </p>
+                  </div>
+                )}
               </div>
               <div className="bg-emerald-50 rounded-xl p-3 sm:p-4 border border-emerald-100">
                 <div className="flex items-center space-x-1.5 sm:space-x-2 mb-1">
@@ -1743,6 +1762,25 @@ export default function AdminPage() {
                   <p className="text-2xl sm:text-3xl font-extrabold text-emerald-700">{formatSensitiveValue(visitStats.uniqueVisitors, false)}</p>
                 )}
                 <p className="text-[10px] sm:text-xs text-emerald-500 mt-0.5">sessões distintas</p>
+                {visitStats.milestones?.uniqueVisitors && (
+                  <div className="mt-2 pt-2 border-t border-emerald-200/50">
+                    <div className="flex items-center justify-between text-[9px] sm:text-[10px] text-emerald-600 font-medium">
+                      <span>Próximo e-mail (+10):</span>
+                      <span className="font-bold">{visitStats.milestones.uniqueVisitors.nextMilestone}</span>
+                    </div>
+                    <div className="w-full bg-emerald-200/60 h-1.5 rounded-full overflow-hidden mt-1">
+                      <div
+                        className="bg-emerald-600 h-full rounded-full transition-all duration-500"
+                        style={{
+                          width: `${Math.min(100, Math.max(0, ((visitStats.uniqueVisitors % 10) / 10) * 100))}%`
+                        }}
+                      />
+                    </div>
+                    <p className="text-[8px] sm:text-[9px] text-emerald-600 mt-0.5 text-right font-medium">
+                      faltam {Math.max(0, 10 - (visitStats.uniqueVisitors % 10))} para o alerta
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 

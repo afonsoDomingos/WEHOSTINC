@@ -927,6 +927,123 @@ export async function sendSiteQuoteAlertEmail(toEmail: string, data: SiteQuoteAl
   });
 }
 
+export interface AnalyticsMilestoneEmailData {
+  type: 'page_views' | 'unique_visitors';
+  milestone: number;
+  totalPageViews: number;
+  totalUniqueVisitors: number;
+  topPages?: Array<{ page: string; count: number }>;
+}
+
+/**
+ * Envia um e-mail comemorativo automático ao Admin quando o site atinge um novo marco
+ * de +100 visualizações ou +10 visitantes únicos.
+ */
+export async function sendAnalyticsMilestoneEmail(data: AnalyticsMilestoneEmailData) {
+  const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL || process.env.ADMIN_EMAIL || 'info@wehosthere.com';
+  const adminUrl = `${SITE_URL}/admin`;
+
+  const isViews = data.type === 'page_views';
+  const formattedMilestone = new Intl.NumberFormat('pt-MZ').format(data.milestone);
+  const formattedTotalViews = new Intl.NumberFormat('pt-MZ').format(data.totalPageViews);
+  const formattedUniqueVisitors = new Intl.NumberFormat('pt-MZ').format(data.totalUniqueVisitors);
+
+  const title = isViews
+    ? `🎉 Marco de ${formattedMilestone} Visualizações Atingido!`
+    : `🚀 Novo Marco: ${formattedMilestone} Visitantes Únicos!`;
+
+  const subtitle = isViews
+    ? `O seu site WEHOSTHERE acaba de ultrapassar a marca de <strong>${formattedMilestone} páginas vistas</strong> (+100 visualizações)!`
+    : `O seu site acaba de receber a visita de <strong>${formattedMilestone} sessões/visitantes únicos</strong> (+10 novos visitantes)!`;
+
+  const topPagesRows = (data.topPages || []).slice(0, 4).map((p, idx) => `
+    <tr style="border-bottom:1px solid #f1f5f9;">
+      <td style="padding:8px 6px;color:#64748b;font-weight:700;width:28px;">#${idx + 1}</td>
+      <td style="padding:8px 6px;color:#0f172a;font-family:monospace;font-size:13px;font-weight:600;">${p.page}</td>
+      <td style="padding:8px 6px;color:#2563eb;text-align:right;font-weight:700;">${new Intl.NumberFormat('pt-MZ').format(p.count)} vistas</td>
+    </tr>
+  `).join('');
+
+  return sendEmail({
+    to: adminEmail,
+    subject: isViews
+      ? `📈 [Crescimento] Novo Marco: +100 Visualizações (${formattedMilestone} vistas no total)!`
+      : `👥 [Audiência] Novo Marco: +10 Visitantes Únicos (${formattedMilestone} pessoas)!`,
+    html: `
+      <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:620px;margin:0 auto;color:#0f172a;border-radius:18px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,0.08);border:1px solid #e2e8f0;background:#ffffff;">
+        <!-- Cabeçalho -->
+        <div style="background:linear-gradient(135deg, ${isViews ? '#2563eb, #1d4ed8, #0ea5e9' : '#059669, #10b981, #065f46'});padding:36px 30px;text-align:center;color:#ffffff;">
+          <div style="display:inline-block;padding:6px 14px;background:rgba(255,255,255,0.2);border-radius:999px;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;backdrop-blur-sm:10px;">
+            ${isViews ? '📊 Marco de Visualizações (+100)' : '👥 Marco de Audiência Única (+10)'}
+          </div>
+          <h1 style="margin:0 0 8px;font-size:26px;font-weight:800;letter-spacing:-0.5px;color:#ffffff;">
+            ${title}
+          </h1>
+          <p style="margin:0;font-size:14px;color:${isViews ? '#bfdbfe' : '#a7f3d0'};line-height:1.5;">
+            ${subtitle}
+          </p>
+        </div>
+
+        <!-- Conteúdo Principal -->
+        <div style="padding:32px 28px;">
+          <!-- Cartão Central com o Grande Número -->
+          <div style="background:linear-gradient(180deg,#f8fafc,#f1f5f9);border-radius:14px;padding:24px;text-align:center;border:1px solid #e2e8f0;margin-bottom:24px;">
+            <div style="font-size:12px;text-transform:uppercase;letter-spacing:1.5px;color:#64748b;font-weight:700;margin-bottom:6px;">
+              ${isViews ? 'Total de Páginas Vistas' : 'Total de Visitantes Únicos'}
+            </div>
+            <div style="font-size:46px;font-weight:900;color:${isViews ? '#1d4ed8' : '#059669'};line-height:1;margin-bottom:8px;letter-spacing:-1px;">
+              ${formattedMilestone}
+            </div>
+            <div style="display:inline-block;background:${isViews ? '#dbeafe' : '#d1fae5'};color:${isViews ? '#1e40af' : '#065f46'};font-size:12px;font-weight:700;padding:4px 12px;border-radius:999px;">
+              ${isViews ? '🔥 +100 páginas vistas acumuladas' : '🎯 +10 novos utilizadores distintos'}
+            </div>
+          </div>
+
+          <!-- Grade de Comparação -->
+          <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
+            <tr>
+              <td style="width:50%;padding:14px;background:#f8fafc;border-radius:12px 0 0 12px;border:1px solid #e2e8f0;border-right:none;text-align:center;">
+                <div style="font-size:11px;color:#64748b;text-transform:uppercase;font-weight:700;">Visualizações Totais</div>
+                <div style="font-size:22px;font-weight:800;color:#0f172a;margin-top:4px;">${formattedTotalViews}</div>
+              </td>
+              <td style="width:50%;padding:14px;background:#f8fafc;border-radius:0 12px 12px 0;border:1px solid #e2e8f0;text-align:center;">
+                <div style="font-size:11px;color:#64748b;text-transform:uppercase;font-weight:700;">Visitantes Únicos</div>
+                <div style="font-size:22px;font-weight:800;color:#059669;margin-top:4px;">${formattedUniqueVisitors}</div>
+              </td>
+            </tr>
+          </table>
+
+          ${topPagesRows ? `
+            <!-- Top Páginas Acedidas -->
+            <div style="margin-bottom:28px;">
+              <h3 style="margin:0 0 12px;font-size:13px;text-transform:uppercase;letter-spacing:1px;color:#64748b;font-weight:700;">
+                🔥 Páginas Mais Acedidas
+              </h3>
+              <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                ${topPagesRows}
+              </table>
+            </div>
+          ` : ''}
+
+          <!-- Ação do Admin -->
+          <div style="text-align:center;padding:12px 0 8px;">
+            <a href="${adminUrl}" style="background:#0f172a;color:#ffffff;font-weight:700;padding:14px 28px;border-radius:12px;text-decoration:none;font-size:14px;display:inline-block;box-shadow:0 4px 14px rgba(15,23,42,0.25);">
+              📊 Abrir Painel de Visitantes em Tempo Real →
+            </a>
+          </div>
+        </div>
+
+        <!-- Rodapé -->
+        <div style="background:#f8fafc;padding:20px 28px;text-align:center;border-top:1px solid #e2e8f0;font-size:12px;color:#94a3b8;">
+          <p style="margin:0 0 4px;">WEHOSTHERE &mdash; Monitoramento Inteligente de Tráfego & Audiência</p>
+          <p style="margin:0;">Notificação gerada automaticamente a cada marco de +100 visualizações e +10 visitantes únicos.</p>
+        </div>
+      </div>
+    `,
+  });
+}
+
+
 
 
 
