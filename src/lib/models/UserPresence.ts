@@ -7,6 +7,7 @@ export interface IUserPresence extends Document {
   currentPage: string;
   sessionId: string;
   isOnline: boolean;
+  isGuest?: boolean;
 }
 
 const UserPresenceSchema = new Schema<IUserPresence>({
@@ -16,6 +17,7 @@ const UserPresenceSchema = new Schema<IUserPresence>({
   currentPage: { type: String, default: '/' },
   sessionId: { type: String, default: '' },
   isOnline: { type: Boolean, default: true },
+  isGuest: { type: Boolean, default: false },
 }, { timestamps: false, versionKey: false });
 
 UserPresenceSchema.index({ lastSeen: -1 });

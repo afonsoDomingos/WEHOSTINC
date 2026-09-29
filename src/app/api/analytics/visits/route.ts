@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import AnalyticsVisitModel from '@/lib/models/AnalyticsVisit';
+import UserPresenceModel from '@/lib/models/UserPresence';
 import { checkAndNotifyMilestones } from '@/lib/analyticsMilestones';
 import AnalyticsMilestoneModel from '@/lib/models/AnalyticsMilestone';
 
@@ -115,6 +116,29 @@ export async function POST(req: NextRequest) {
     try {
       await connectDB();
       await AnalyticsVisitModel.create(visitData);
+
+      // Actualizar presença online em tempo real associada a esta visita
+      const isGuestVisit = !userEmail || !userEmail.trim();
+      const visitPresenceEmail = isGuestVisit
+        ? `visitante_${(sessionId || 'anon').slice(-8)}@guest.local`
+        : userEmail.toLowerCase().trim();
+      const visitPresenceName = isGuestVisit
+        ? `Visitante #${(sessionId || 'anon').slice(-4).toUpperCase()}`
+        : userEmail;
+
+      UserPresenceModel.findOneAndUpdate(
+        { userEmail: visitPresenceEmail },
+        {
+          userEmail: visitPresenceEmail,
+          userName: visitPresenceName,
+          lastSeen: now,
+          currentPage: page,
+          sessionId: sessionId || '',
+          isOnline: true,
+          isGuest: isGuestVisit
+        },
+        { upsert: true }
+      ).catch(() => {});
 
       // Verificar marcos de crescimento (+100 visualizações e +10 visitantes únicos)
       // Executa de forma assíncrona em background para retorno instantâneo da requisição

@@ -49,32 +49,41 @@ export default function AnalyticsTracker() {
     }).catch(() => {}); // silencioso
   }, [pathname]);
 
-  // Actualizar presença do utilizador autenticado
+  // Actualizar presença do utilizador ou visitante (tempo real)
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
     const updatePresence = () => {
-      const currentUser = auth.getCurrentUser();
-      if (!currentUser || !currentUser.email || auth.isAdminUser(currentUser)) return;
+      // Não rastrear presença dentro de rotas de API ou no painel de administração
+      if (pathname.startsWith('/api') || pathname.startsWith('/admin')) return;
 
       const sessionId = getSessionId();
+      if (!sessionId) return;
+
+      const currentUser = auth.getCurrentUser();
+      const isAdmin = currentUser && auth.isAdminUser(currentUser);
+      if (isAdmin) return; // Não incluir o administrador a navegar na lista de utilizadores online
+
+      const isGuest = !currentUser || !currentUser.email;
+
       fetch(apiEndpoint('/api/analytics/presence'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userEmail: currentUser.email,
-          userName: currentUser.name,
+          userEmail: isGuest ? '' : currentUser.email,
+          userName: isGuest ? '' : (currentUser.name || currentUser.email),
           currentPage: pathname,
           sessionId,
+          isGuest,
         }),
       }).catch(() => {}); // silencioso
     };
 
-    // Actualizar imediatamente
+    // Actualizar presença imediatamente ao navegar para a página
     updatePresence();
 
-    // Actualizar a cada 2 minutos enquanto o utilizador está activo
-    presenceInterval.current = setInterval(updatePresence, 2 * 60 * 1000);
+    // Heartbeat de presença a cada 35 segundos enquanto a página estiver aberta
+    presenceInterval.current = setInterval(updatePresence, 35 * 1000);
 
     return () => {
       if (presenceInterval.current) clearInterval(presenceInterval.current);

@@ -289,8 +289,8 @@ export default function AdminPage() {
   const [academyTab, setAcademyTab] = useState<'orders' | 'enrollments' | 'certificates'>('orders');
 
   // Analytics State
-  const [onlineUsers, setOnlineUsers] = useState<Array<{ userEmail: string; userName: string; lastSeen: string; currentPage: string; isOnline: boolean }>>([]);
-  const [recentPresence, setRecentPresence] = useState<Array<{ userEmail: string; userName: string; lastSeen: string; currentPage: string; isOnline: boolean }>>([]);
+  const [onlineUsers, setOnlineUsers] = useState<Array<{ userEmail: string; userName: string; lastSeen: string; currentPage: string; isOnline: boolean; isGuest?: boolean }>>([]);
+  const [recentPresence, setRecentPresence] = useState<Array<{ userEmail: string; userName: string; lastSeen: string; currentPage: string; isOnline: boolean; isGuest?: boolean }>>([]);
   const [visitStats, setVisitStats] = useState<{ total: number; uniqueVisitors: number; topPages: Array<{ page: string; count: number }>; milestones?: any }>({ total: 0, uniqueVisitors: 0, topPages: [] });
   const [visitStatsPeriod, setVisitStatsPeriod] = useState<'today' | 'week' | 'month' | 'all'>('all');
 
@@ -1645,14 +1645,23 @@ export default function AdminPage() {
                 onlineUsers.map(u => (
                   <div key={u.userEmail} className="flex items-center space-x-2 sm:space-x-3 px-3 sm:px-5 py-2 sm:py-3 hover:bg-gray-50 transition">
                     <div className="relative">
-                      <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center text-white font-bold text-[10px] sm:text-sm flex-shrink-0">
+                      <div className={`w-7 h-7 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-white font-bold text-[10px] sm:text-sm flex-shrink-0 ${
+                        u.isGuest
+                          ? 'bg-gradient-to-br from-slate-600 to-slate-800'
+                          : 'bg-gradient-to-br from-primary-500 to-purple-600'
+                      }`}>
                         {u.userName?.charAt(0)?.toUpperCase() || '?'}
                       </div>
-                      <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-white rounded-full" />
+                      <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-white rounded-full animate-pulse" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[10px] sm:text-sm font-semibold text-gray-900 truncate">{u.userName}</p>
-                      <p className="text-[10px] sm:text-xs text-gray-500 truncate">{u.currentPage}</p>
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-[10px] sm:text-sm font-semibold text-gray-900 truncate">{u.userName}</p>
+                        {u.isGuest && (
+                          <span className="text-[8px] bg-slate-100 text-slate-600 font-medium px-1 rounded">Visitante</span>
+                        )}
+                      </div>
+                      <p className="text-[10px] sm:text-xs text-gray-500 truncate font-mono">{u.currentPage}</p>
                     </div>
                     <span className="text-[9px] sm:text-[10px] text-emerald-600 font-bold bg-emerald-50 px-1 sm:px-1.5 py-0.5 rounded-full whitespace-nowrap">ONLINE</span>
                   </div>
@@ -1664,22 +1673,24 @@ export default function AdminPage() {
             {recentPresence.filter(p => !onlineUsers.find(o => o.userEmail === p.userEmail)).length > 0 && (
               <div className="border-t border-gray-100">
                 <p className="px-3 sm:px-5 py-1.5 sm:py-2 text-[9px] sm:text-[10px] uppercase tracking-wider text-gray-400 font-semibold bg-gray-50">Vistos recentemente</p>
-                <div className="divide-y divide-gray-50 max-h-32 sm:max-h-40 overflow-y-auto">
+                <div className="divide-y divide-gray-50 max-h-40 sm:max-h-52 overflow-y-auto">
                   {recentPresence
                     .filter(p => !onlineUsers.find(o => o.userEmail === p.userEmail))
-                    .slice(0, 5)
+                    .slice(0, 10)
                     .map(u => {
                       const lastSeenDate = new Date(u.lastSeen);
                       const diffMin = Math.floor((Date.now() - lastSeenDate.getTime()) / 60000);
-                      const timeLabel = diffMin < 60 ? `${diffMin}m atrás` : `${Math.floor(diffMin / 60)}h atrás`;
+                      const timeLabel = diffMin < 1 ? 'agora mesmo' : diffMin < 60 ? `${diffMin}m atrás` : `${Math.floor(diffMin / 60)}h atrás`;
                       return (
                         <div key={u.userEmail} className="flex items-center space-x-2 sm:space-x-3 px-3 sm:px-5 py-2 sm:py-2.5 hover:bg-gray-50 transition">
-                          <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-bold text-[10px] sm:text-xs flex-shrink-0">
+                          <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center font-bold text-[10px] sm:text-xs flex-shrink-0 ${
+                            u.isGuest ? 'bg-slate-200 text-slate-600' : 'bg-primary-100 text-primary-700'
+                          }`}>
                             {u.userName?.charAt(0)?.toUpperCase() || '?'}
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-[10px] sm:text-xs font-semibold text-gray-700 truncate">{u.userName}</p>
-                            <p className="text-[9px] sm:text-[10px] text-gray-400 truncate">{u.currentPage}</p>
+                            <p className="text-[9px] sm:text-[10px] text-gray-400 truncate font-mono">{u.currentPage}</p>
                           </div>
                           <span className="text-[9px] sm:text-[10px] text-gray-400 whitespace-nowrap">{timeLabel}</span>
                         </div>
