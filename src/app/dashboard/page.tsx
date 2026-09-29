@@ -395,9 +395,13 @@ export default function DashboardPage() {
             {/* Banner de Instalação PWA */}
             {showPWAInstallBanner && (
               <div className="bg-purple-50 border-2 border-purple-300 rounded-xl sm:rounded-2xl p-3 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 text-purple-900 shadow-sm">
-                <div className="flex items-start gap-2 sm:gap-3">
-                  <div className="bg-purple-100 p-2 rounded-lg">
-                    <Download className="h-5 w-5 text-purple-600" />
+                <div className="flex items-start gap-3">
+                  <div className="w-11 h-11 sm:w-12 sm:h-12 flex-shrink-0 bg-white rounded-xl p-1 shadow-sm border border-purple-200 flex items-center justify-center">
+                    <img 
+                      src="/mascote-transparent.png" 
+                      alt="WEHOSTHERE App" 
+                      className="w-9 h-9 sm:w-10 sm:h-10 object-contain drop-shadow" 
+                    />
                   </div>
                   <div>
                     <h3 className="font-bold text-purple-950 text-xs sm:text-base">{t('dash.pwa_title')}</h3>

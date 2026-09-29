@@ -1,5 +1,5 @@
 // Service Worker para WEHOSTHERE PWA
-const CACHE_NAME = 'wehosthere-v2';
+const CACHE_NAME = 'wehosthere-v3';
 const urlsToCache = [
   '/',
   '/dashboard',

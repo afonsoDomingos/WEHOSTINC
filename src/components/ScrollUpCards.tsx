@@ -123,7 +123,13 @@ export default function ScrollUpCards() {
     },
     {
       id: 'pwa',
-      icon: <Download className="h-5 w-5" />,
+      icon: (
+        <img 
+          src="/mascote-transparent.png" 
+          alt="WEHOSTHERE App" 
+          className="w-5 h-5 object-contain" 
+        />
+      ),
       title: 'Instale a WEHOSTHERE App',
       description: 'Acesso rápido, notificações e uso offline',
       actionText: 'Instalar Agora',
@@ -376,8 +382,8 @@ export default function ScrollUpCards() {
         modal.innerHTML = `
           <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-300">
             <div class="flex items-center justify-between mb-4">
-              <div class="flex items-center gap-2">
-                <span class="text-2xl">${icon}</span>
+              <div class="flex items-center gap-2.5">
+                <img src="/mascote-transparent.png" class="w-8 h-8 object-contain drop-shadow" alt="WEHOSTHERE" />
                 <h3 class="text-lg font-bold text-gray-900">Instalar WEHOSTHERE</h3>
               </div>
               <button id="close-modal" class="text-gray-400 hover:text-gray-600 transition">
