@@ -39,6 +39,19 @@ const sendWhatsAppQuote = (type: WebsiteType, domain?: string | null) => {
 
   const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(text)}`;
   
+  // Registo do Lead de Criação de Site em background
+  fetch('/api/site-quotes', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      projectName: type.name,
+      projectType: type.id,
+      basePrice: type.basePrice,
+      domain: domain || undefined,
+      channel: 'whatsapp_quote',
+    }),
+  }).catch(() => {});
+
   // Rastrear Contact no Facebook Pixel
   FacebookPixel.trackContact({
     content_name: `Orçamento: ${type.name}`
@@ -84,6 +97,19 @@ function SiteQuoteContent() {
       ? `&domain=${encodeURIComponent(domainParam)}&domainPrice=${domainPriceParam || 0}`
       : '';
     
+    // Registo do Lead de Checkout de Site em background
+    fetch('/api/site-quotes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        projectName: type.name,
+        projectType: type.id,
+        basePrice: type.basePrice,
+        domain: domainParam || undefined,
+        channel: 'checkout_started',
+      }),
+    }).catch(() => {});
+
     // Rastrear ViewContent no Facebook Pixel
     FacebookPixel.trackViewContent({
       content_name: type.name,

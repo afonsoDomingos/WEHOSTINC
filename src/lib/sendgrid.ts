@@ -797,5 +797,136 @@ export async function sendDomainLeadAlertEmail(toEmail: string, data: DomainLead
   });
 }
 
+export interface SiteQuoteAlertData {
+  projectName: string;
+  projectType: string;
+  basePrice: number;
+  domain?: string;
+  userName?: string;
+  userEmail?: string;
+  userPhone?: string;
+  channel: 'whatsapp_quote' | 'checkout_started' | 'checkout_completed';
+  createdAt: Date;
+}
+
+/**
+ * Notificação por e-mail para Administrador quando um cliente solicita cotação ou inicia compra de desenvolvimento de site (Lead de Alto Valor)
+ */
+export async function sendSiteQuoteAlertEmail(toEmail: string, data: SiteQuoteAlertData) {
+  const adminUrl = `${SITE_URL}/admin/site-quotes`;
+  const formattedDate = new Intl.DateTimeFormat('pt-MZ', {
+    dateStyle: 'full',
+    timeStyle: 'medium',
+    timeZone: 'Africa/Maputo',
+  }).format(data.createdAt);
+
+  const priceFormatted = data.basePrice >= 100000 ? 'Sob orçamento' : `${data.basePrice.toLocaleString('pt-MZ')} MT`;
+  const channelLabel =
+    data.channel === 'checkout_completed'
+      ? '✅ Pagamento Confirmado no Checkout'
+      : data.channel === 'checkout_started'
+      ? '🛒 Iniciou Checkout de Criação de Site'
+      : '💬 Solicitou Cotação pelo WhatsApp';
+
+  let whatsappUrl = '';
+  if (data.userPhone) {
+    const digits = data.userPhone.replace(/\D/g, '');
+    const cleanPhone = digits.startsWith('258') ? digits : digits.length === 9 ? `258${digits}` : digits;
+    const initialMsg = encodeURIComponent(
+      `Olá ${data.userName || ''}! Recebemos a sua solicitação de cotação para o projeto "${data.projectName}" na WEHOSTHERE. Podemos alinhar os detalhes e o cronograma do desenvolvimento?`
+    );
+    whatsappUrl = `https://wa.me/${cleanPhone}?text=${initialMsg}`;
+  }
+
+  const subject = `🚀 Novo Lead de Criação de Site: ${data.projectName} (${priceFormatted})`;
+
+  return sendEmail({
+    to: toEmail,
+    subject,
+    html: `
+      <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:620px;margin:0 auto;color:#111;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e2e8f0;box-shadow:0 4px 20px rgba(0,0,0,0.06);">
+        <div style="background:linear-gradient(135deg,#1e1b4b,#4338ca);padding:32px 28px;text-align:center;">
+          <img src="${SITE_URL}/logo.png" alt="WEHOSTHERE Logo" style="width:160px;height:auto;margin:0 auto 12px;display:block;" />
+          <div style="display:inline-block;background:rgba(255,255,255,0.18);backdrop-filter:blur(8px);padding:6px 16px;border-radius:20px;margin-top:6px;">
+            <span style="color:#ffffff;font-size:12px;font-weight:800;letter-spacing:0.8px;text-transform:uppercase;">🚀 NOVO LEAD DE CRIAÇÃO DE SITE</span>
+          </div>
+        </div>
+
+        <div style="padding:32px 28px;background:#ffffff;">
+          <h2 style="color:#0f172a;font-size:22px;font-weight:800;margin:0 0 8px;text-align:center;">
+            Interesse em Projeto de Alto Valor!
+          </h2>
+          <p style="color:#64748b;font-size:14px;text-align:center;margin:0 0 24px;">
+            Um potencial cliente acabou de solicitar cotação ou avançar para contratação de desenvolvimento de website.
+          </p>
+
+          <!-- Card do Projeto -->
+          <div style="background:#eef2ff;border:2px solid #c7d2fe;border-radius:12px;padding:20px;text-align:center;margin-bottom:24px;">
+            <p style="font-size:11px;font-weight:800;color:#4338ca;text-transform:uppercase;letter-spacing:1px;margin:0 0 6px;">
+              Tipo de Projeto
+            </p>
+            <p style="font-size:24px;font-weight:900;color:#1e1b4b;margin:0 0 6px;">
+              ${data.projectName}
+            </p>
+            <p style="font-size:18px;font-weight:800;color:#059669;margin:0 0 6px;">
+              Investimento Estimado: ${priceFormatted}
+            </p>
+            ${data.domain ? `<p style="font-size:13px;color:#4f46e5;margin:0;font-family:monospace;font-weight:bold;">🌐 Domínio Atrelado: ${data.domain}</p>` : ''}
+          </div>
+
+          <!-- Informações de Contacto do Lead -->
+          <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:20px;margin-bottom:24px;">
+            <h3 style="color:#334155;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;margin:0 0 14px;border-bottom:1px solid #e2e8f0;padding-bottom:8px;">
+              📋 Detalhes do Lead
+            </h3>
+            <table style="width:100%;border-collapse:collapse;font-size:14px;">
+              <tr>
+                <td style="padding:7px 0;color:#64748b;width:120px;">Cliente:</td>
+                <td style="padding:7px 0;font-weight:700;color:#0f172a;">${data.userName || '<em style="color:#94a3b8;font-weight:normal;">Não informado (visitante anónimo)</em>'}</td>
+              </tr>
+              ${data.userEmail ? `
+              <tr>
+                <td style="padding:7px 0;color:#64748b;">E-mail:</td>
+                <td style="padding:7px 0;font-weight:600;color:#2563eb;font-family:monospace;"><a href="mailto:${data.userEmail}" style="color:#2563eb;text-decoration:none;">${data.userEmail}</a></td>
+              </tr>` : ''}
+              ${data.userPhone ? `
+              <tr>
+                <td style="padding:7px 0;color:#64748b;">WhatsApp / Tel:</td>
+                <td style="padding:7px 0;font-weight:700;color:#059669;font-family:monospace;"><a href="tel:${data.userPhone}" style="color:#059669;text-decoration:none;">${data.userPhone}</a></td>
+              </tr>` : ''}
+              <tr>
+                <td style="padding:7px 0;color:#64748b;">Canal de Origem:</td>
+                <td style="padding:7px 0;font-weight:700;color:#4338ca;">${channelLabel}</td>
+              </tr>
+              <tr>
+                <td style="padding:7px 0;color:#64748b;">Data & Hora:</td>
+                <td style="padding:7px 0;color:#64748b;font-size:12px;">${formattedDate}</td>
+              </tr>
+            </table>
+          </div>
+
+          <!-- Ações Rápidas -->
+          <div style="margin:24px 0 16px;text-align:center;">
+            ${whatsappUrl ? `
+              <a href="${whatsappUrl}" target="_blank" style="background:#22c55e;color:#ffffff;font-weight:800;padding:14px 28px;border-radius:10px;text-decoration:none;font-size:15px;display:inline-block;margin:6px 4px;box-shadow:0 4px 14px rgba(34,197,94,0.35);">
+                💬 Falar com o Lead no WhatsApp →
+              </a>
+            ` : ''}
+            <a href="${adminUrl}" style="background:#0f172a;color:#ffffff;font-weight:700;padding:14px 28px;border-radius:10px;text-decoration:none;font-size:15px;display:inline-block;margin:6px 4px;">
+              Ver no Painel de Cotações →
+            </a>
+          </div>
+        </div>
+
+        <div style="background:#f8fafc;padding:20px 28px;text-align:center;border-top:1px solid #e2e8f0;font-size:12px;color:#94a3b8;">
+          <p style="margin:0 0 4px;">WEHOSTHERE &mdash; Gestão Inteligente de Projetos e Vendas</p>
+          <p style="margin:0;">Alerta gerado automaticamente ao cotar desenvolvimento de site.</p>
+        </div>
+      </div>
+    `,
+  });
+}
+
+
 
 
