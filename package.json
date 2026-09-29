@@ -21,6 +21,7 @@
     "@types/web-push": "^3.6.4",
     "autoprefixer": "^10.0.1",
     "bcryptjs": "^2.4.3",
+    "country-flag-icons": "^1.6.20",
     "imapflow": "^1.7.1",
     "lucide-react": "^0.400.0",
     "mailparser": "^3.9.15",

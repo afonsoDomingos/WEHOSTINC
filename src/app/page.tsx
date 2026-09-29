@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from "next/link";
 import Image from "next/image";
-import { Server, Mail, Shield, Zap, Globe, Users, Search, Sparkles, CheckCircle, Facebook, Phone, Linkedin, Star, ArrowRight, Play, Calendar, Eye, Instagram, ChevronLeft, ChevronRight } from "lucide-react";
+import { Server, Mail, Shield, ShieldCheck, Activity, Smartphone, Zap, Globe, Users, Search, Sparkles, CheckCircle, Facebook, Phone, Linkedin, Star, ArrowRight, Play, Calendar, Eye, Instagram, ChevronLeft, ChevronRight } from "lucide-react";
+import MZ from 'country-flag-icons/react/3x2/MZ';
 import { websiteTypes } from '@/lib/data';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 import { useLanguage } from '@/context/LanguageContext';
@@ -176,20 +177,24 @@ export default function Home() {
             </div>
 
             {/* Trust badges */}
-            <div className={`flex flex-wrap gap-2 sm:gap-3 mt-5 sm:mt-6 px-2 lg:px-0 transition-all duration-500 ${
+            <div className={`flex flex-wrap gap-2 sm:gap-2.5 mt-5 sm:mt-6 px-2 lg:px-0 transition-all duration-500 ${
               isSearchFocused ? 'justify-center' : 'justify-center lg:justify-start'
             }`}>
-              <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-slate-300 bg-white/5 border border-white/10 px-2.5 py-1 rounded-full backdrop-blur-sm">
-                <span className="text-emerald-400">✓</span> SSL Grátis
+              <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-medium text-slate-300 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-emerald-500/30 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full backdrop-blur-sm transition-all shadow-sm group">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0 group-hover:scale-110 transition-transform" />
+                <span>SSL Grátis</span>
               </span>
-              <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-slate-300 bg-white/5 border border-white/10 px-2.5 py-1 rounded-full backdrop-blur-sm">
-                <span className="text-emerald-400">✓</span> Uptime 99.9%
+              <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-medium text-slate-300 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-emerald-500/30 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full backdrop-blur-sm transition-all shadow-sm group">
+                <Activity className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0 group-hover:scale-110 transition-transform" />
+                <span>Uptime 99.9%</span>
               </span>
-              <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-slate-300 bg-white/5 border border-white/10 px-2.5 py-1 rounded-full backdrop-blur-sm">
-                📱 M-Pesa &amp; E-Mola
+              <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-medium text-slate-300 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-sky-500/30 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full backdrop-blur-sm transition-all shadow-sm group">
+                <Smartphone className="w-3.5 h-3.5 text-sky-400 flex-shrink-0 group-hover:scale-110 transition-transform" />
+                <span>M-Pesa &amp; E-Mola</span>
               </span>
-              <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-slate-300 bg-white/5 border border-white/10 px-2.5 py-1 rounded-full backdrop-blur-sm">
-                🇲🇿 Feito para Moçambique
+              <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-medium text-slate-300 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-amber-500/30 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full backdrop-blur-sm transition-all shadow-sm group">
+                <MZ title="Moçambique" className="w-4 h-2.5 sm:w-4.5 sm:h-3 rounded-[2px] shadow-sm inline-block object-cover flex-shrink-0 group-hover:scale-110 transition-transform" />
+                <span>Feito para Moçambique</span>
               </span>
             </div>
           </div>
