@@ -22,6 +22,19 @@ export async function POST(req: Request) {
     const paymentRef = reference || thirdPartyReference || `REF_${Date.now()}`;
     const orderId = thirdPartyReference || `ORD-${Date.now().toString().slice(-6)}`;
 
+    // 🔔 Push imediato: tentativa de compra eMola (dispara ANTES da Kivora para garantir alerta mesmo em caso de erro no gateway)
+    try {
+      const { sendPushToAdmins } = await import('@/lib/pushService');
+      await sendPushToAdmins({
+        title: '🛒 Tentativa eMola',
+        message: `${clientName || 'Um cliente'} (${msisdn}) iniciou pagamento de ${amount} MZN para "${serviceName || 'Serviço'}".`,
+        url: '/admin?tab=orders',
+        tag: `emola-attempt-${orderId}`
+      });
+    } catch (pushErr) {
+      console.warn('[EMOLA C2B] Falha não impeditiva ao disparar push:', pushErr);
+    }
+
     // Usar API Kivora como gateway para processar pagamento eMola
     const result = await kivora.createC2BPayment({
       phone,
@@ -83,19 +96,6 @@ export async function POST(req: Request) {
       } catch (dbErr) {
         console.error('[EMOLA C2B] Erro ao gravar pedido no MongoDB:', dbErr);
       }
-    }
-
-    // 🔔 Push imediato: tentativa de compra eMola (sempre dispara, mesmo sem result.id)
-    try {
-      const { sendPushToAdmins } = await import('@/lib/pushService');
-      await sendPushToAdmins({
-        title: '🛒 Tentativa eMola',
-        message: `${clientName || 'Um cliente'} (${msisdn}) iniciou pagamento de ${amount} MZN para "${serviceName || 'Serviço'}".`,
-        url: '/admin?tab=orders',
-        tag: `emola-attempt-${orderId}`
-      });
-    } catch (pushErr) {
-      console.warn('[EMOLA C2B] Falha não impeditiva ao disparar push:', pushErr);
     }
 
     return NextResponse.json(result);

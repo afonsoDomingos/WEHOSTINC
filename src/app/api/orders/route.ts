@@ -314,20 +314,18 @@ export async function POST(req: Request) {
           link: '/admin?tab=orders'
         });
 
-        // 🔔 Push imediato para admins no telemóvel
-        (async () => {
-          try {
-            const { sendPushToAdmins } = await import('@/lib/pushService');
-            await sendPushToAdmins({
-              title: `📦 Novo Pedido: ${orderData.serviceName || 'Serviço'}`,
-              message: `${orderData.clientName || orderData.clientEmail || 'Cliente'} fez um pedido de ${(orderData.valorPorFaturar || orderData.amount || 0).toLocaleString('pt-MZ')} MT.`,
-              url: '/admin?tab=orders',
-              tag: `new-order-${orderData.id}`
-            });
-          } catch (pushErr) {
-            console.warn('[Orders API] Falha não impeditiva ao disparar push:', pushErr);
-          }
-        })();
+        // 🔔 Push imediato para admins no telemóvel (awaited para garantir entrega no runtime serverless/Vercel)
+        try {
+          const { sendPushToAdmins } = await import('@/lib/pushService');
+          await sendPushToAdmins({
+            title: `📦 Novo Pedido: ${orderData.serviceName || 'Serviço'}`,
+            message: `${orderData.clientName || orderData.clientEmail || 'Cliente'} fez um pedido de ${(orderData.valorPorFaturar || orderData.amount || 0).toLocaleString('pt-MZ')} MT.`,
+            url: '/admin?tab=orders',
+            tag: `new-order-${orderData.id}`
+          });
+        } catch (pushErr) {
+          console.warn('[Orders API] Falha não impeditiva ao disparar push:', pushErr);
+        }
 
         // Enviar e-mail ao cliente
         dispatchMessage({
@@ -360,6 +358,19 @@ export async function POST(req: Request) {
         userName: orderData.clientName || orderData.userName,
         link: '/admin?tab=orders'
       });
+
+      // 🔔 Push imediato para admins no telemóvel (fallback)
+      try {
+        const { sendPushToAdmins } = await import('@/lib/pushService');
+        await sendPushToAdmins({
+          title: `📦 Novo Pedido: ${orderData.serviceName || 'Serviço'}`,
+          message: `${orderData.clientName || orderData.clientEmail || 'Cliente'} fez um pedido de ${(orderData.valorPorFaturar || orderData.amount || 0).toLocaleString('pt-MZ')} MT.`,
+          url: '/admin?tab=orders',
+          tag: `new-order-${orderData.id}`
+        });
+      } catch (pushErr) {
+        console.warn('[Orders API Fallback] Falha não impeditiva ao disparar push:', pushErr);
+      }
 
       dispatchMessage({
         recipientEmail: orderData.clientEmail || orderData.userEmail || '',

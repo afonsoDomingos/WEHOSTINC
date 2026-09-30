@@ -117,7 +117,7 @@ async function saveSearchLogToDB(
 /**
  * Dispara notificações (email + painel admin) em background sem bloquear.
  */
-function fireNotificationsAsync(
+async function fireNotificationsAsync(
   fullDomain: string,
   sld: string,
   extension: string,
@@ -128,9 +128,7 @@ function fireNotificationsAsync(
   userAgent: string,
   userEmail?: string
 ) {
-  // fire-and-forget — não bloqueia a resposta HTTP
-  (async () => {
-    try {
+  try {
       // Notificação interna no painel admin
       try {
         addAdminNotification({
@@ -187,10 +185,9 @@ function fireNotificationsAsync(
           })
         )
       );
-    } catch (err) {
-      console.warn('[DomainSearchLog] Falha nas notificações:', err);
+    } catch (notifErr) {
+      console.warn('[DomainSearchLog] Falha nas notificações de domínio:', notifErr);
     }
-  })();
 }
 
 export async function GET(req: NextRequest) {
@@ -264,8 +261,8 @@ export async function GET(req: NextRequest) {
   ]);
   searchCount = savedCount as number;
 
-  // 2. Notificações em background — não bloqueiam a resposta HTTP
-  fireNotificationsAsync(fullDomain, cleanSld, extension, isAvailable, price, searchCount, ip, userAgent, userEmail);
+  // 2. Notificações aguardadas para assegurar entrega no serverless/Vercel
+  await fireNotificationsAsync(fullDomain, cleanSld, extension, isAvailable, price, searchCount, ip, userAgent, userEmail);
 
 
   const smartSuggestions = generateSmartDomainSuggestions(cleanSld, extension);
