@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, CheckCircle2, XCircle, Globe, ArrowRight, Sparkles, Loader2, Rocket, Flame, WifiOff, Wifi, AlertTriangle, X, ShoppingCart } from 'lucide-react';
+import { Search, CheckCircle2, XCircle, Globe, ArrowRight, Sparkles, Loader2, Rocket, Flame, WifiOff, Wifi, AlertTriangle, X, ShoppingCart, ChevronDown } from 'lucide-react';
 import { DOMAIN_PRICES, checkDomainRealAsync, DomainCheckResult } from '@/lib/domains';
 import { hostingPlans } from '@/lib/data';
 import { soundEffects } from '@/lib/soundEffects';
@@ -22,6 +22,7 @@ export default function DomainSearch({ onFocusChange }: DomainSearchProps = {}) 
   const [selectedTld, setSelectedTld] = useState('.co.mz');
   const [isSearching, setIsSearching] = useState(false);
   const [result, setResult] = useState<DomainCheckResult | null>(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedHostingPlan, setSelectedHostingPlan] = useState<'basic' | 'pro' | 'enterprise'>('basic');
   const [hostingCycle, setHostingCycle] = useState<'annual' | 'monthly'>('monthly');
 
@@ -58,6 +59,7 @@ export default function DomainSearch({ onFocusChange }: DomainSearchProps = {}) 
     setResult(null);
     setIsSearching(false);
     setIsFocused(false);
+    setShowSuggestions(false);
     setNetworkError(null);
     if (document.activeElement instanceof HTMLElement && searchContainerRef.current?.contains(document.activeElement)) {
       document.activeElement.blur();
@@ -106,6 +108,7 @@ export default function DomainSearch({ onFocusChange }: DomainSearchProps = {}) 
     setIsSlowConnection(false);
     setNetworkError(null);
     setIsSearching(true);
+    setShowSuggestions(false);
     setResult(null);
 
     let fullQuery = query.trim();
@@ -557,64 +560,93 @@ export default function DomainSearch({ onFocusChange }: DomainSearchProps = {}) 
 
           {/* Sugestões Inteligentes de Nomes Alternativos (Gerador IA) */}
           {result.smartSuggestions && result.smartSuggestions.length > 0 && (
-            <div className="mt-5 sm:mt-7 pt-4 sm:pt-5 border-t border-purple-100 bg-gradient-to-br from-purple-50/60 via-indigo-50/40 to-blue-50/30 p-3.5 sm:p-5 rounded-2xl border border-purple-200/80 shadow-sm">
-              <div className="flex items-center justify-between mb-2 sm:mb-3">
-                <div className="flex items-center space-x-2">
-                  <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
-                  <h4 className="text-xs sm:text-sm font-extrabold text-purple-950">
-                    {t('domain.smart_suggestions')}
-                  </h4>
-                </div>
-                <span className="text-[10px] bg-purple-200 text-purple-900 font-extrabold px-2.5 py-0.5 rounded-full">
-                  {t('domain.all_available')}
-                </span>
-              </div>
-              <p className="text-[10px] sm:text-xs text-purple-800 mb-3">
-                {t('domain.suggestions_desc')} <strong>{result.sld}</strong>:
-              </p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-3">
-                {result.smartSuggestions.map((sug) => (
-                  <div
-                    key={sug.fullDomain}
-                    className="p-3 bg-white rounded-xl border border-purple-200/90 shadow-sm hover:shadow-md hover:border-purple-400 transition flex flex-col justify-between group"
-                  >
-                    <div>
-                      <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 border border-purple-200">
-                          {sug.badge}
-                        </span>
-                        <span className="text-xs font-black text-emerald-600">
-                          {sug.price.toLocaleString('pt-MZ')} MT
-                        </span>
-                      </div>
-                      <span className="font-extrabold text-gray-900 text-xs sm:text-sm block group-hover:text-purple-700 transition-colors">
-                        {sug.fullDomain}
-                      </span>
-                      <p className="text-[10px] text-gray-500 mt-1 line-clamp-1">{sug.reason}</p>
-                    </div>
-
-                    <div className="mt-3 pt-2 border-t border-gray-100 flex items-center gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => handleRegisterOnly(sug.fullDomain, sug.price)}
-                        className="flex-1 py-1.5 px-2 bg-purple-600 hover:bg-purple-700 text-white font-bold text-[10px] sm:text-xs rounded-lg transition shadow-xs flex items-center justify-center space-x-1 cursor-pointer active:scale-95"
-                      >
-                        <span>{t('domain.btn_register_this')}</span>
-                        <ArrowRight className="h-3 w-3" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleRegisterWithWebsite(sug.fullDomain, sug.price)}
-                        className="py-1.5 px-2 bg-purple-100 hover:bg-purple-200 text-purple-800 font-bold text-[10px] rounded-lg transition cursor-pointer"
-                        title="Registrar com Criação de Site"
-                      >
-                        + Site
-                      </button>
-                    </div>
+            <div className="mt-4 sm:mt-6 border border-purple-200/80 bg-gradient-to-br from-purple-50/70 via-indigo-50/40 to-blue-50/30 rounded-2xl shadow-sm overflow-hidden transition-all duration-300">
+              <button
+                type="button"
+                onClick={() => {
+                  soundEffects.playClickSound();
+                  setShowSuggestions(prev => !prev);
+                }}
+                className="w-full flex items-center justify-between p-3 sm:p-4 text-left hover:bg-purple-100/40 transition cursor-pointer select-none group"
+                aria-expanded={showSuggestions}
+              >
+                <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-purple-600/10 text-purple-700 flex items-center justify-center shrink-0 group-hover:bg-purple-600 group-hover:text-white transition-colors duration-200">
+                    <Sparkles className="h-4 w-4" />
                   </div>
-                ))}
-              </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center space-x-2 flex-wrap gap-1">
+                      <h4 className="text-xs sm:text-sm font-extrabold text-purple-950">
+                        {t('domain.smart_suggestions')}
+                      </h4>
+                      <span className="text-[10px] bg-purple-200/90 text-purple-900 font-extrabold px-2 py-0.5 rounded-full shrink-0">
+                        {result.smartSuggestions.length} opções • {t('domain.all_available')}
+                      </span>
+                    </div>
+                    {!showSuggestions && (
+                      <p className="text-[11px] text-purple-700/80 font-medium truncate mt-0.5">
+                        Clique para ver alternativas criativas para <strong>{result.sld}</strong>
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-1.5 shrink-0 ml-2 text-purple-700 font-bold text-xs bg-white/80 hover:bg-white px-2.5 py-1.5 rounded-xl border border-purple-200 shadow-xs transition">
+                  <span>{showSuggestions ? 'Ocultar' : 'Ver sugestões'}</span>
+                  <ChevronDown className={`h-4 w-4 transition-transform duration-300 ${showSuggestions ? 'rotate-180' : ''}`} />
+                </div>
+              </button>
+
+              {showSuggestions && (
+                <div className="px-3 sm:px-5 pb-3.5 sm:pb-5 pt-1 border-t border-purple-200/60">
+                  <p className="text-[10px] sm:text-xs text-purple-800 mb-3 pt-2">
+                    {t('domain.suggestions_desc')} <strong>{result.sld}</strong>:
+                  </p>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-3">
+                    {result.smartSuggestions.map((sug) => (
+                      <div
+                        key={sug.fullDomain}
+                        className="p-3 bg-white rounded-xl border border-purple-200/90 shadow-sm hover:shadow-md hover:border-purple-400 transition flex flex-col justify-between group"
+                      >
+                        <div>
+                          <div className="flex items-center justify-between mb-1.5">
+                            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 border border-purple-200">
+                              {sug.badge}
+                            </span>
+                            <span className="text-xs font-black text-emerald-600">
+                              {sug.price.toLocaleString('pt-MZ')} MT
+                            </span>
+                          </div>
+                          <span className="font-extrabold text-gray-900 text-xs sm:text-sm block group-hover:text-purple-700 transition-colors">
+                            {sug.fullDomain}
+                          </span>
+                          <p className="text-[10px] text-gray-500 mt-1 line-clamp-1">{sug.reason}</p>
+                        </div>
+
+                        <div className="mt-3 pt-2 border-t border-gray-100 flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => handleRegisterOnly(sug.fullDomain, sug.price)}
+                            className="flex-1 py-1.5 px-2 bg-purple-600 hover:bg-purple-700 text-white font-bold text-[10px] sm:text-xs rounded-lg transition shadow-xs flex items-center justify-center space-x-1 cursor-pointer active:scale-95"
+                          >
+                            <span>{t('domain.btn_register_this')}</span>
+                            <ArrowRight className="h-3 w-3" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleRegisterWithWebsite(sug.fullDomain, sug.price)}
+                            className="py-1.5 px-2 bg-purple-100 hover:bg-purple-200 text-purple-800 font-bold text-[10px] rounded-lg transition cursor-pointer"
+                            title="Registrar com Criação de Site"
+                          >
+                            + Site
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
