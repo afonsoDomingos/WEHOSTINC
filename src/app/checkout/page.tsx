@@ -116,6 +116,7 @@ function CheckoutContent() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
   const [checkoutStep, setCheckoutStep] = useState<1 | 2>(1);
+  const [summaryOpen, setSummaryOpen] = useState(false);
 
   const handleProceedToPayment = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -2007,89 +2008,119 @@ function CheckoutContent() {
               )
             )}
 
-            {/* 3. Resumo da Compra (Order Summary) */}
+            {/* 3. Resumo da Compra (Collapsible Order Summary) */}
             <div className="pt-2 sm:pt-3 border-t border-gray-200">
-              <h4 className="text-xs sm:text-sm font-semibold text-gray-800 mb-2">Resumo da compra</h4>
-              
-              <div className="space-y-1.5 text-xs sm:text-sm text-gray-700 bg-gray-50 p-3 sm:p-3.5 rounded-xl border border-gray-200">
-                {isCoursePayment ? (
-                  <>
-                    <div className="flex justify-between items-center">
-                      <span className="font-semibold text-gray-900">
-                        Curso: {courseNameParam || 'Curso WEHOSTHERE'}
-                      </span>
-                      <span className="font-bold text-gray-900">{courseAmountParam.toLocaleString('pt-MZ')} MT</span>
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      Acesso vitalício ao curso completo • Certificado de conclusão
-                    </div>
-                  </>
-                ) : isAffiliateVerification ? (
-                  <>
-                    <div className="flex justify-between items-center">
-                      <span className="font-semibold text-gray-900">
-                        Verificação de Telefone para Comissões
-                      </span>
-                      <span className="font-bold text-gray-900">{verificationAmount.toLocaleString('pt-MZ')} MT</span>
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      Teste de segurança para confirmar propriedade do número M-Pesa
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    {selectedPlan ? (
-                      <>
-                        <div className="flex justify-between items-center">
-                          <span className="font-semibold text-gray-900">
-                            {selectedPlan.id === 'website_creation'
-                              ? (siteTypeName ? siteTypeName : 'Criação de Site Profissional')
-                              : `Plano ${selectedPlan.name} (${durationMonths === 1 ? '1 Mês' : `${durationMonths} Meses`})`}
-                          </span>
-                          <span className="font-bold text-gray-900">{basePrice.toLocaleString('pt-MZ')} MT</span>
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {selectedPlan.id === 'website_creation'
-                            ? `Investimento único • Entrega estimada`
-                            : `${selectedPlan.features.sites === -1 ? 'Sites ilimitados' : `${selectedPlan.features.sites} site(s)`} • ${selectedPlan.features.storage}GB Armazenamento`}
-                        </div>
-                      </>
-                    ) : (
-                      <div className="text-xs text-gray-500 font-medium italic">
-                        Nenhum plano de hospedagem selecionado (Registro de Domínio Avulso).
-                      </div>
-                    )}
+              {/* Toggle header */}
+              <button
+                type="button"
+                onClick={() => setSummaryOpen(prev => !prev)}
+                className="w-full flex items-center justify-between text-xs sm:text-sm font-semibold text-gray-800 py-1 focus:outline-none group"
+              >
+                <span className="flex items-center gap-1.5">
+                  <svg className="h-3.5 w-3.5 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                  Resumo da compra
+                </span>
+                <span className="flex items-center gap-1.5 text-gray-500 group-hover:text-primary-600 transition-colors">
+                  <span className="text-[11px] font-normal">{summaryOpen ? 'Ocultar' : 'Ver resumo'}</span>
+                  <svg
+                    className={`h-4 w-4 transition-transform duration-200 ${summaryOpen ? 'rotate-180' : ''}`}
+                    fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </span>
+              </button>
 
-                    {domainParam && (
-                      <div className="flex justify-between items-center pt-2 mt-2 border-t border-gray-200">
-                        <div>
-                          <span className="font-semibold text-gray-900 block">Registo de Domínio</span>
-                          <span className="text-xs font-mono text-primary-700 font-bold">{domainParam}</span>
-                        </div>
-                        <span className="font-bold text-emerald-700">{domainCost.toLocaleString('pt-MZ')} MT/ano</span>
-                      </div>
-                    )}
-
-                    {selectedPlan && selectedPlan.id !== 'website_creation' && durationMonths > 1 && (
-                      <div className="bg-emerald-50 text-emerald-800 p-2.5 rounded-lg text-xs font-semibold border border-emerald-200 mt-2 flex items-center justify-between">
-                        <span>🎉 Desconto Especial para {durationMonths} Meses Aplicado!</span>
-                        <span className="font-bold text-emerald-700">
-                          {durationMonths === 12
-                            ? `Economia de ${(selectedPlan.price * 2).toLocaleString('pt-MZ')} MT`
-                            : (durationMonths === 6
-                                ? `Economia de ${Math.round(selectedPlan.price * 6 * 0.10).toLocaleString('pt-MZ')} MT`
-                                : `Economia de ${Math.round(selectedPlan.price * 3 * 0.05).toLocaleString('pt-MZ')} MT`)}
-                        </span>
-                      </div>
-                    )}
-                  </>
-                )}
-                
-                <div className="flex justify-between items-center border-t border-gray-200 pt-3 mt-3 font-bold text-base text-gray-900">
-                  <span>Total a Pagar</span>
-                  <span className="text-xl text-emerald-600 font-black">{(isCoursePayment ? courseAmountParam : (isAffiliateVerification ? verificationAmount : grandTotal)).toLocaleString('pt-MZ')} MT</span>
+              {/* Always-visible total */}
+              {!summaryOpen && (
+                <div className="flex justify-between items-center text-sm font-bold text-gray-900 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">
+                  <span className="text-xs text-gray-500 font-normal">Total a Pagar</span>
+                  <span className="text-base text-emerald-600 font-black">{(isCoursePayment ? courseAmountParam : (isAffiliateVerification ? verificationAmount : grandTotal)).toLocaleString('pt-MZ')} MT</span>
                 </div>
-              </div>
+              )}
+
+              {/* Collapsible detail */}
+              {summaryOpen && (
+                <div className="space-y-1.5 text-xs sm:text-sm text-gray-700 bg-gray-50 p-3 sm:p-3.5 rounded-xl border border-gray-200 mt-1.5 animate-[fadeIn_0.15s_ease]">
+                  {isCoursePayment ? (
+                    <>
+                      <div className="flex justify-between items-center">
+                        <span className="font-semibold text-gray-900">
+                          Curso: {courseNameParam || 'Curso WEHOSTHERE'}
+                        </span>
+                        <span className="font-bold text-gray-900">{courseAmountParam.toLocaleString('pt-MZ')} MT</span>
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        Acesso vitalício ao curso completo • Certificado de conclusão
+                      </div>
+                    </>
+                  ) : isAffiliateVerification ? (
+                    <>
+                      <div className="flex justify-between items-center">
+                        <span className="font-semibold text-gray-900">
+                          Verificação de Telefone para Comissões
+                        </span>
+                        <span className="font-bold text-gray-900">{verificationAmount.toLocaleString('pt-MZ')} MT</span>
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        Teste de segurança para confirmar propriedade do número M-Pesa
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      {selectedPlan ? (
+                        <>
+                          <div className="flex justify-between items-center">
+                            <span className="font-semibold text-gray-900">
+                              {selectedPlan.id === 'website_creation'
+                                ? (siteTypeName ? siteTypeName : 'Criação de Site Profissional')
+                                : `Plano ${selectedPlan.name} (${durationMonths === 1 ? '1 Mês' : `${durationMonths} Meses`})`}
+                            </span>
+                            <span className="font-bold text-gray-900">{basePrice.toLocaleString('pt-MZ')} MT</span>
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {selectedPlan.id === 'website_creation'
+                              ? `Investimento único • Entrega estimada`
+                              : `${selectedPlan.features.sites === -1 ? 'Sites ilimitados' : `${selectedPlan.features.sites} site(s)`} • ${selectedPlan.features.storage}GB Armazenamento`}
+                          </div>
+                        </>
+                      ) : (
+                        <div className="text-xs text-gray-500 font-medium italic">
+                          Nenhum plano de hospedagem selecionado (Registro de Domínio Avulso).
+                        </div>
+                      )}
+
+                      {domainParam && (
+                        <div className="flex justify-between items-center pt-2 mt-2 border-t border-gray-200">
+                          <div>
+                            <span className="font-semibold text-gray-900 block">Registo de Domínio</span>
+                            <span className="text-xs font-mono text-primary-700 font-bold">{domainParam}</span>
+                          </div>
+                          <span className="font-bold text-emerald-700">{domainCost.toLocaleString('pt-MZ')} MT/ano</span>
+                        </div>
+                      )}
+
+                      {selectedPlan && selectedPlan.id !== 'website_creation' && durationMonths > 1 && (
+                        <div className="bg-emerald-50 text-emerald-800 p-2.5 rounded-lg text-xs font-semibold border border-emerald-200 mt-2 flex items-center justify-between">
+                          <span>🎉 Desconto Especial para {durationMonths} Meses Aplicado!</span>
+                          <span className="font-bold text-emerald-700">
+                            {durationMonths === 12
+                              ? `Economia de ${(selectedPlan.price * 2).toLocaleString('pt-MZ')} MT`
+                              : (durationMonths === 6
+                                  ? `Economia de ${Math.round(selectedPlan.price * 6 * 0.10).toLocaleString('pt-MZ')} MT`
+                                  : `Economia de ${Math.round(selectedPlan.price * 3 * 0.05).toLocaleString('pt-MZ')} MT`)}
+                          </span>
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  <div className="flex justify-between items-center border-t border-gray-200 pt-3 mt-3 font-bold text-base text-gray-900">
+                    <span>Total a Pagar</span>
+                    <span className="text-xl text-emerald-600 font-black">{(isCoursePayment ? courseAmountParam : (isAffiliateVerification ? verificationAmount : grandTotal)).toLocaleString('pt-MZ')} MT</span>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Security Guarantee Notice */}
