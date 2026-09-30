@@ -84,12 +84,12 @@ export default function FeedbackWidget() {
           <button
             type="button"
             onClick={() => handleToggleOpen(true)}
-            className="flex items-center space-x-2 pl-3.5 pr-8 py-2.5 bg-gray-900/95 hover:bg-black text-white text-xs font-bold rounded-full shadow-2xl hover:shadow-primary-500/20 transition-all duration-200 backdrop-blur border border-white/15 hover:scale-105 cursor-pointer"
+            className="flex items-center space-x-1.5 pl-2.5 pr-6 py-1.5 bg-gray-900/95 hover:bg-black text-white text-[11px] font-bold rounded-full shadow-xl hover:shadow-primary-500/20 transition-all duration-200 backdrop-blur border border-white/15 hover:scale-105 cursor-pointer"
             aria-label="Dar Feedback"
             title="Deixe a sua opinião ou sugestão"
           >
-            <div className="w-5 h-5 rounded-full bg-primary-500/20 text-primary-400 flex items-center justify-center group-hover:bg-primary-500 group-hover:text-white transition">
-              <MessageSquareHeart className="h-3.5 w-3.5" />
+            <div className="w-4 h-4 rounded-full bg-primary-500/20 text-primary-400 flex items-center justify-center group-hover:bg-primary-500 group-hover:text-white transition">
+              <MessageSquareHeart className="h-2.5 w-2.5" />
             </div>
             <span className="hidden sm:inline text-gray-200 group-hover:text-white">Feedback</span>
           </button>
