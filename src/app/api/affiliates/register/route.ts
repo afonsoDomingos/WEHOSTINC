@@ -55,7 +55,21 @@ export async function POST(request: NextRequest) {
           mpesaPhone: phone
         };
         existingAffiliate.payoutMethod = 'mpesa';
+        existingAffiliate.status = 'active';
         await existingAffiliate.save();
+
+        // 🔔 Push imediato para os administradores no telemóvel
+        try {
+          const { sendPushToAdmins } = await import('@/lib/pushService');
+          await sendPushToAdmins({
+            title: '🤝 Afiliado Verificado',
+            message: `${user.name || user.email} concluiu a verificação de afiliado (M-Pesa: ${phone}).`,
+            url: '/admin/affiliates',
+            tag: `affiliate-verified-${user.id}`
+          });
+        } catch (pushErr) {
+          console.warn('[Affiliate Register] Falha ao disparar push:', pushErr);
+        }
         
         return NextResponse.json({ 
           success: true, 
@@ -98,6 +112,32 @@ export async function POST(request: NextRequest) {
     }
 
     const affiliate = await Affiliate.create(affiliateData);
+
+    // 🔔 Notificação interna no painel admin
+    try {
+      const { addAdminNotification } = await import('@/lib/notifications');
+      addAdminNotification({
+        title: '🤝 Novo Afiliado Registado',
+        message: `${user.name || user.email} ativou o programa de afiliados (Código: ${affiliateCode}).`,
+        type: 'user_signup',
+        userEmail: user.email,
+        userName: user.name,
+        link: '/admin/affiliates'
+      });
+    } catch {}
+
+    // 🔔 Push imediato para o telemóvel dos administradores
+    try {
+      const { sendPushToAdmins } = await import('@/lib/pushService');
+      await sendPushToAdmins({
+        title: verificationPayment ? '🤝 Novo Afiliado Verificado' : '🤝 Novo Afiliado Registado',
+        message: `${user.name || 'Novo parceiro'} (${user.email}) ativou a conta de Afiliado${phone ? ` • M-Pesa: ${phone}` : ''} (Código: ${affiliateCode}).`,
+        url: '/admin/affiliates',
+        tag: `affiliate-new-${affiliateCode}`
+      });
+    } catch (pushErr) {
+      console.warn('[Affiliate Register] Falha não impeditiva ao disparar push:', pushErr);
+    }
 
     // Send welcome email to affiliate
     await dispatchMessage({
