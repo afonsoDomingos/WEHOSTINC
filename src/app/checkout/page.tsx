@@ -1349,11 +1349,11 @@ function CheckoutContent() {
         </div>
       )}
 
-      {/* Top Brand Accent Line (Inspired by reference) */}
+      {/* Top Brand Accent Line */}
       <div className="h-1.5 bg-red-600 w-full" />
 
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 py-3.5">
+      <header className="bg-white border-b border-gray-200 py-2.5">
         <div className="max-w-4xl mx-auto px-4 flex justify-between items-center">
           <BrandLogo />
           <div className="hidden sm:flex items-center space-x-2 text-xs font-semibold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200">
@@ -1363,9 +1363,9 @@ function CheckoutContent() {
         </div>
       </header>
 
-      {/* Main Container */}
-      <main className="max-w-2xl mx-auto px-4 py-4 sm:py-6">
-        <div className="mb-3 sm:mb-4 flex items-center justify-between">
+      {/* Main Container — fills remaining height, no page scroll */}
+      <main className="max-w-2xl mx-auto px-4 pt-3 pb-4 flex flex-col" style={{height: 'calc(100dvh - 56px)', overflow: 'hidden'}}>
+        <div className="mb-2 flex items-center justify-between">
           {checkoutStep === 2 ? (
             <button
               type="button"
@@ -1388,7 +1388,7 @@ function CheckoutContent() {
         </div>
 
         {/* Checkout Card */}
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden flex flex-col flex-1 min-h-0">
           
           {/* Stepper Visual de 2 Etapas */}
           <div className="bg-gray-50/90 border-b border-gray-200 px-4 sm:px-6 py-2.5 sm:py-3">
@@ -1462,7 +1462,7 @@ function CheckoutContent() {
                 handleSubmit(e);
               }
             }}
-            className="p-4 sm:p-6 space-y-4"
+            className="p-3 sm:p-4 space-y-3 overflow-y-auto flex-1 min-h-0"
           >
             
             {error && (
@@ -1474,7 +1474,7 @@ function CheckoutContent() {
 
             {/* ETAPA 1: Identificação Rápida */}
             {checkoutStep === 1 && (
-              <div className="space-y-4 animate-in fade-in duration-300">
+              <div className="space-y-3 animate-in fade-in duration-300">
                 {/* Resumo Rápido do Item Selecionado */}
                 <div className="bg-gradient-to-r from-gray-50 via-primary-50/20 to-emerald-50/30 p-2.5 sm:p-3 rounded-xl border border-gray-200/80 flex items-center justify-between shadow-xs">
                   <div className="min-w-0 pr-3">
@@ -1500,7 +1500,7 @@ function CheckoutContent() {
                 </div>
 
                 {/* Campos Pessoais */}
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   <div>
                     <label htmlFor="name" className="block text-xs sm:text-sm font-semibold text-gray-800 mb-1 flex items-center space-x-1.5">
                       <User className="w-3.5 h-3.5 text-gray-500" />
@@ -1513,7 +1513,7 @@ function CheckoutContent() {
                       onChange={(e) => setName(e.target.value)}
                       placeholder="Ex: Manuel Silva"
                       required
-                      className="w-full px-3.5 py-2.5 sm:py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition text-gray-900 placeholder-gray-400 text-sm shadow-xs"
+                      className="w-full px-3 py-2 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition text-gray-900 placeholder-gray-400 text-sm shadow-xs"
                     />
                   </div>
 
@@ -1529,7 +1529,7 @@ function CheckoutContent() {
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="seu.email@exemplo.com"
                       required
-                      className="w-full px-3.5 py-2.5 sm:py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition text-gray-900 placeholder-gray-400 text-sm shadow-xs"
+                      className="w-full px-3 py-2 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition text-gray-900 placeholder-gray-400 text-sm shadow-xs"
                     />
                     <p className="text-[10px] sm:text-[11px] text-gray-400 mt-0.5">Enviaremos os dados de acesso e fatura para este e-mail.</p>
                   </div>
@@ -1560,7 +1560,7 @@ function CheckoutContent() {
                           onChange={(e) => setWhatsapp(e.target.value)}
                           placeholder="Número sem DDI (ex: 84 123 4567)"
                           required
-                          className="w-full sm:flex-1 px-3.5 py-2.5 sm:py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition text-gray-900 placeholder-gray-400 text-sm shadow-xs"
+                          className="w-full sm:flex-1 px-3 py-2 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition text-gray-900 placeholder-gray-400 text-sm shadow-xs"
                         />
                       </div>
                       <p className="text-[10px] sm:text-[11px] text-gray-400 mt-0.5">Utilizado para suporte prioritário e avisos de ativação/renovação.</p>
@@ -1580,25 +1580,25 @@ function CheckoutContent() {
                         onChange={(e) => setAffiliatePhone(e.target.value)}
                         placeholder="84 123 4567 ou 86 123 4567"
                         required
-                        className="w-full px-3.5 py-2.5 sm:py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition text-gray-900 placeholder-gray-400 text-sm shadow-xs"
+                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition text-gray-900 placeholder-gray-400 text-sm shadow-xs"
                       />
                     </div>
                   )}
                 </div>
 
                 {/* Vantagens / Garantias no Passo 1 */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-0.5">
-                  <div className="flex items-center space-x-1.5 text-[10px] sm:text-[11px] text-gray-600 bg-gray-50 p-2 rounded-lg border border-gray-100">
-                    <ShieldCheck className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
-                    <span>Dados 100% Criptografados</span>
+                <div className="grid grid-cols-3 gap-1.5 pt-0.5">
+                  <div className="flex items-center space-x-1 text-[10px] text-gray-600 bg-gray-50 px-2 py-1.5 rounded-lg border border-gray-100">
+                    <ShieldCheck className="h-3 w-3 text-emerald-600 shrink-0" />
+                    <span>Criptografado</span>
                   </div>
-                  <div className="flex items-center space-x-1.5 text-[10px] sm:text-[11px] text-gray-600 bg-gray-50 p-2 rounded-lg border border-gray-100">
-                    <Sparkles className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                  <div className="flex items-center space-x-1 text-[10px] text-gray-600 bg-gray-50 px-2 py-1.5 rounded-lg border border-gray-100">
+                    <Sparkles className="h-3 w-3 text-amber-500 shrink-0" />
                     <span>Ativação Imediata</span>
                   </div>
-                  <div className="flex items-center space-x-1.5 text-[10px] sm:text-[11px] text-gray-600 bg-gray-50 p-2 rounded-lg border border-gray-100">
-                    <MessageCircle className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
-                    <span>Suporte Local 24/7</span>
+                  <div className="flex items-center space-x-1 text-[10px] text-gray-600 bg-gray-50 px-2 py-1.5 rounded-lg border border-gray-100">
+                    <MessageCircle className="h-3 w-3 text-emerald-600 shrink-0" />
+                    <span>Suporte 24/7</span>
                   </div>
                 </div>
 
@@ -1606,7 +1606,7 @@ function CheckoutContent() {
                 <button
                   type="button"
                   onClick={handleProceedToPayment}
-                  className="w-full py-3 sm:py-3.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-extrabold text-sm sm:text-base rounded-xl shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer flex items-center justify-center space-x-2 hover:scale-[1.01]"
+                  className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-extrabold text-sm rounded-xl shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer flex items-center justify-center space-x-2 hover:scale-[1.01]"
                 >
                   <span>Continuar para Pagamento</span>
                   <ArrowRight className="h-4 w-4" />
@@ -1626,7 +1626,7 @@ function CheckoutContent() {
 
             {/* ETAPA 2: Pagamento e Finalização */}
             {checkoutStep === 2 && (
-              <div className="space-y-4 animate-in fade-in duration-300">
+              <div className="space-y-3 animate-in fade-in duration-300">
                 {/* Resumo dos Dados do Cliente com botão Editar */}
                 <div className="bg-emerald-50/70 border border-emerald-200/90 rounded-xl p-2.5 sm:p-3 flex items-center justify-between shadow-xs">
                   <div className="flex items-center space-x-2.5 text-xs sm:text-sm min-w-0 pr-2">
