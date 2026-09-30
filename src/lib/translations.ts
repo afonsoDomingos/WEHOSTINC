@@ -129,7 +129,7 @@ export const translations: Record<Language, Record<string, string>> = {
     // Domain Search Component
     'domain.available': 'Disponível!',
     'domain.unavailable': 'Indisponível',
-    'domain.available_desc': 'Excelente escolha! Este domínio está livre para registo imediato.',
+    'domain.available_desc': 'Disponível para registo imediato.',
     'domain.unavailable_desc': 'Este domínio já está registado. Veja as alternativas abaixo.',
     'domain.btn_buy_now': 'Comprar Agora',
     'domain.btn_register': 'Registar Agora',
@@ -387,7 +387,7 @@ export const translations: Record<Language, Record<string, string>> = {
     // Domain Search Component
     'domain.available': 'Available!',
     'domain.unavailable': 'Unavailable',
-    'domain.available_desc': 'Great choice! This domain is available for immediate registration.',
+    'domain.available_desc': 'Available for immediate registration.',
     'domain.unavailable_desc': 'This domain is already registered. Check out the alternatives below.',
     'domain.btn_buy_now': 'Buy Now',
     'domain.btn_register': 'Register Now',
