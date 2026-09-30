@@ -85,6 +85,19 @@ export async function POST(req: Request) {
       }
     }
 
+    // 🔔 Push imediato: tentativa de compra eMola (sempre dispara, mesmo sem result.id)
+    try {
+      const { sendPushToAdmins } = await import('@/lib/pushService');
+      await sendPushToAdmins({
+        title: '🛒 Tentativa eMola',
+        message: `${clientName || 'Um cliente'} (${msisdn}) iniciou pagamento de ${amount} MZN para "${serviceName || 'Serviço'}".`,
+        url: '/admin?tab=orders',
+        tag: `emola-attempt-${orderId}`
+      });
+    } catch (pushErr) {
+      console.warn('[EMOLA C2B] Falha não impeditiva ao disparar push:', pushErr);
+    }
+
     return NextResponse.json(result);
   } catch (error) {
     console.error('Erro na rota API eMola C2B (via Kivora):', error);

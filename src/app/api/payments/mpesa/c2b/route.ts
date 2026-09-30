@@ -85,6 +85,19 @@ export async function POST(req: Request) {
       }
     }
 
+    // 🔔 Push imediato: tentativa de compra M-Pesa (sempre dispara, mesmo sem result.id)
+    try {
+      const { sendPushToAdmins } = await import('@/lib/pushService');
+      await sendPushToAdmins({
+        title: '🛒 Tentativa M-Pesa',
+        message: `${clientName || 'Um cliente'} (${msisdn}) iniciou pagamento de ${amount} MZN para "${serviceName || 'Serviço'}".`,
+        url: '/admin?tab=orders',
+        tag: `mpesa-attempt-${orderId}`
+      });
+    } catch (pushErr) {
+      console.warn('[M-PESA C2B] Falha não impeditiva ao disparar push:', pushErr);
+    }
+
     return NextResponse.json(result);
   } catch (error) {
     console.error('Erro na rota API M-Pesa C2B (via Kivora):', error);
