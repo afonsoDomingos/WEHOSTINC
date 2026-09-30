@@ -79,7 +79,7 @@ export default function FeedbackWidget() {
   return (
     <>
       {/* Floating Button com posição exclusiva empilhada acima do Assistente Virtual para nunca colidir */}
-      <div className="fixed bottom-22 sm:bottom-24 left-4 sm:left-6 z-40 animate-in fade-in slide-in-from-bottom-5 duration-500">
+      <div className="fixed bottom-[60px] sm:bottom-[68px] left-4 sm:left-5 z-40 animate-in fade-in slide-in-from-bottom-5 duration-500">
         <div className="relative group">
           <button
             type="button"
