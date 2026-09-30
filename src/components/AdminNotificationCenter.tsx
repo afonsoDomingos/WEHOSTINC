@@ -13,6 +13,7 @@ import {
   markAllAdminNotificationsRead, 
   clearAdminNotifications 
 } from '@/lib/notifications';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
 
 interface AdminNotificationCenterProps {
   onNavigate?: (link: string) => void;
@@ -24,6 +25,9 @@ export default function AdminNotificationCenter({ onNavigate }: AdminNotificatio
   const [filter, setFilter] = useState<'all' | 'unread'>('unread');
   const [maintenanceActive, setMaintenanceActive] = useState(false);
   const [updatingMaintenance, setUpdatingMaintenance] = useState(false);
+  const [pushTesting, setPushTesting] = useState(false);
+  const [pushStatusMsg, setPushStatusMsg] = useState<string | null>(null);
+  const { permission, subscription, requestPermission } = usePushNotifications();
   const drawerRef = useRef<HTMLDivElement>(null);
 
   const fetchNotifs = async () => {
@@ -138,6 +142,35 @@ export default function AdminNotificationCenter({ onNavigate }: AdminNotificatio
     await fetchNotifs();
   };
 
+  const handleEnablePush = async () => {
+    setPushStatusMsg('A ativar...');
+    const granted = await requestPermission({ isAdmin: true });
+    if (granted) {
+      setPushStatusMsg('✅ Ativado!');
+    } else {
+      setPushStatusMsg('⚠️ Não autorizado');
+    }
+    setTimeout(() => setPushStatusMsg(null), 4000);
+  };
+
+  const handleTestPushFromDrawer = async () => {
+    setPushTesting(true);
+    setPushStatusMsg('A enviar...');
+    try {
+      const res = await fetch('/api/admin/push/test', { method: 'POST' });
+      if (res.ok) {
+        setPushStatusMsg('📲 Enviado!');
+      } else {
+        setPushStatusMsg('⚠️ Falha');
+      }
+    } catch {
+      setPushStatusMsg('⚠️ Erro');
+    } finally {
+      setPushTesting(false);
+      setTimeout(() => setPushStatusMsg(null), 4000);
+    }
+  };
+
   const handleItemClick = async (n: AdminNotification) => {
     await markAdminNotificationRead(n.id);
     await fetchNotifs();
@@ -209,6 +242,33 @@ export default function AdminNotificationCenter({ onNavigate }: AdminNotificatio
             >
               <X className="w-4 h-4" />
             </button>
+          </div>
+
+          {/* Barra de Status e Teste de Push no Telemóvel */}
+          <div className="px-4 py-2 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between text-[11px]">
+            <div className="flex items-center gap-1.5 text-slate-300">
+              <span className={`w-2 h-2 rounded-full ${permission === 'granted' || subscription ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
+              <span>{permission === 'granted' || subscription ? 'Push Móvel: Ativo' : 'Push Móvel: Desativado'}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              {pushStatusMsg && <span className="text-[10px] text-emerald-300 font-medium">{pushStatusMsg}</span>}
+              {permission === 'granted' || subscription ? (
+                <button
+                  onClick={handleTestPushFromDrawer}
+                  disabled={pushTesting}
+                  className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 font-semibold cursor-pointer text-[10px]"
+                >
+                  {pushTesting ? '...' : 'Testar 🔔'}
+                </button>
+              ) : (
+                <button
+                  onClick={handleEnablePush}
+                  className="px-2 py-0.5 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold cursor-pointer text-[10px]"
+                >
+                  Ativar 🔔
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Filtros e Ações */}

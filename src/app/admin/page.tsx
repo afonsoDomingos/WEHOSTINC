@@ -22,6 +22,7 @@ import ConfirmModal from '@/components/ConfirmModal';
 import Toast from '@/components/Toast';
 import { API_URL, apiEndpoint } from '@/lib/siteConfig';
 import AdminNotificationCenter from '@/components/AdminNotificationCenter';
+import AdminPushBanner from '@/components/AdminPushBanner';
 import { dispatchMessage, addAdminNotification } from '@/lib/notifications';
 import { soundEffects } from '@/lib/soundEffects';
 import AdminAiTopBar from '@/components/AdminAiTopBar';
@@ -1620,6 +1621,9 @@ export default function AdminPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
+        {/* Banner de Incentivo Push para Admin (Ativação e Teste no Telemóvel) */}
+        <AdminPushBanner />
+
         {/* ───── ANALYTICS — Quem está Online & Visitantes ───── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
 

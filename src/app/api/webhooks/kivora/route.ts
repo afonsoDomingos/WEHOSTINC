@@ -370,6 +370,23 @@ async function notifyAdminAboutPayment(
       subject,
       text: message
     });
+
+    // 3. Notificação PUSH direta para o telemóvel dos administradores
+    try {
+      const { sendPushToAdmins } = await import('@/lib/pushService');
+      await sendPushToAdmins({
+        title: status === 'completed'
+          ? `💰 Pagamento Recebido: ${amount || 0} MZN`
+          : `⚠️ Falha no Pagamento: ${amount || 0} MZN`,
+        message: status === 'completed'
+          ? `${clientName} pagou ${amount || 0} MZN para ${serviceName}!`
+          : `${clientName}: ${failureReason || 'Tentativa de pagamento não concluída'}`,
+        url: '/admin?tab=orders',
+        tag: `payment-${status}-${Date.now()}`
+      });
+    } catch (pushErr) {
+      console.warn('[KIVORA WEBHOOK] Falha não impeditiva ao disparar push para admins:', pushErr);
+    }
     
     console.log(`[KIVORA WEBHOOK] Admin notificado com sucesso sobre pagamento ${status}`);
   } catch (error) {

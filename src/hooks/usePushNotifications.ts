@@ -39,11 +39,16 @@ export function usePushNotifications() {
     }
   };
 
-  const requestPermission = async (): Promise<boolean> => {
+  const requestPermission = async (metadataOrEvent?: { userId?: string; userEmail?: string; userName?: string; isAdmin?: boolean } | any): Promise<boolean> => {
     if (typeof window === 'undefined' || !('Notification' in window)) {
       setState(prev => ({ ...prev, error: 'Este navegador não suporta notificações' }));
       return false;
     }
+
+    // Se for invocado diretamente como onClick={requestPermission}, metadataOrEvent é um SyntheticEvent
+    const metadata = (metadataOrEvent && typeof metadataOrEvent === 'object' && !('nativeEvent' in metadataOrEvent) && !('preventDefault' in metadataOrEvent))
+      ? metadataOrEvent
+      : undefined;
 
     setState(prev => ({ ...prev, loading: true, error: null }));
 
@@ -52,7 +57,7 @@ export function usePushNotifications() {
       setState(prev => ({ ...prev, permission, loading: false }));
 
       if (permission === 'granted') {
-        await subscribeToPush();
+        await subscribeToPush(metadata);
         return true;
       } else {
         setState(prev => ({ ...prev, error: 'Permissão de notificação negada' }));
@@ -68,7 +73,7 @@ export function usePushNotifications() {
     }
   };
 
-  const subscribeToPush = async () => {
+  const subscribeToPush = async (metadata?: { userId?: string; userEmail?: string; userName?: string; isAdmin?: boolean }) => {
     try {
       if (typeof window === 'undefined' || !('serviceWorker' in navigator) || !('PushManager' in window)) {
         throw new Error('Service Worker ou Push API não suportado');
@@ -78,29 +83,26 @@ export function usePushNotifications() {
       const registration = await navigator.serviceWorker.register('/sw.js');
       console.log('[Push Notifications] Service Worker registrado:', registration);
 
-      // Verificar subscription existente
-      const existingSubscription = await registration.pushManager.getSubscription();
-      if (existingSubscription) {
-        setState(prev => ({ ...prev, subscription: existingSubscription }));
-        return existingSubscription;
-      }
-
       // Converter VAPID key para Uint8Array
       const response = await fetch('/api/push/vapid-key');
       const { publicKey } = await response.json();
       const convertedVapidKey = urlBase64ToUint8Array(publicKey);
 
-      // Criar nova subscription
-      const subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: convertedVapidKey
-      });
+      // Verificar subscription existente
+      let subscription = await registration.pushManager.getSubscription();
+      if (!subscription) {
+        // Criar nova subscription
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: convertedVapidKey
+        });
+      }
 
-      // Enviar subscription para o servidor
-      await sendSubscriptionToServer(subscription);
+      // Enviar subscription para o servidor com metadados
+      await sendSubscriptionToServer(subscription, metadata);
 
       setState(prev => ({ ...prev, subscription }));
-      console.log('[Push Notifications] Subscription criada:', subscription);
+      console.log('[Push Notifications] Subscription ativa:', subscription);
 
       return subscription;
     } catch (error) {
@@ -113,16 +115,40 @@ export function usePushNotifications() {
     }
   };
 
-  const sendSubscriptionToServer = async (subscription: PushSubscription) => {
+  const sendSubscriptionToServer = async (subscription: PushSubscription, metadata?: { userId?: string; userEmail?: string; userName?: string; isAdmin?: boolean }) => {
     try {
-      const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
-      if (!userId) {
-        console.warn('[Push Notifications] User ID não encontrado');
-        return;
+      // Auto-detectar usuário do localStorage e session
+      let userId = metadata?.userId || (typeof window !== 'undefined' ? localStorage.getItem('userId') : null);
+      let userEmail = metadata?.userEmail || null;
+      let userName = metadata?.userName || null;
+      let isAdmin = metadata?.isAdmin;
+
+      if (typeof window !== 'undefined') {
+        try {
+          const authUser = localStorage.getItem('wehost_user');
+          if (authUser) {
+            const parsed = JSON.parse(authUser);
+            if (!userId) userId = parsed.id || parsed._id;
+            if (!userEmail) userEmail = parsed.email;
+            if (!userName) userName = parsed.name;
+            if (isAdmin === undefined) isAdmin = parsed.role === 'admin' || parsed.role === 'super_admin';
+          }
+        } catch (_) {}
+
+        if (isAdmin === undefined && window.location.pathname.startsWith('/admin')) {
+          isAdmin = true;
+        }
       }
 
+      const isMobileDevice = typeof window !== 'undefined' ? /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) : false;
+
       const subscriptionData = {
-        userId,
+        userId: userId || undefined,
+        userEmail: userEmail || undefined,
+        userName: userName || undefined,
+        isAdmin: Boolean(isAdmin),
+        role: isAdmin ? 'admin' : 'user',
+        deviceType: isMobileDevice ? 'mobile' : 'desktop',
         subscription: subscription.toJSON()
       };
 
@@ -132,7 +158,7 @@ export function usePushNotifications() {
         body: JSON.stringify(subscriptionData)
       });
 
-      console.log('[Push Notifications] Subscription enviada para o servidor');
+      console.log('[Push Notifications] Subscription enviada e sincronizada com sucesso');
     } catch (error) {
       console.error('[Push Notifications] Erro ao enviar subscription:', error);
       throw error;

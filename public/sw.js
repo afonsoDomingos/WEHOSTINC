@@ -117,54 +117,88 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// Push notification handler
+// Push notification handler com suporte a payloads JSON estruturados e som/vibração
 self.addEventListener('push', (event) => {
   console.log('[Service Worker] Push recebido:', event);
   
+  let title = 'WEHOSTHERE Notificação';
+  let message = 'Nova notificação da WEHOSTHERE';
+  let targetUrl = '/admin?tab=orders';
+  let icon = '/mascote-transparent.png';
+  let badge = '/mascote-transparent.png';
+  let tag = 'wehosthere-alert';
+
+  if (event.data) {
+    try {
+      const data = event.data.json();
+      if (data.title) title = data.title;
+      if (data.message) message = data.message;
+      else if (data.body) message = data.body;
+      if (data.icon) icon = data.icon;
+      if (data.badge) badge = data.badge;
+      if (data.tag) tag = data.tag;
+      if (data.data?.url) targetUrl = data.data.url;
+      else if (data.url) targetUrl = data.url;
+    } catch (_) {
+      message = event.data.text();
+    }
+  }
+
   const options = {
-    body: event.data ? event.data.text() : 'Nova notificação da WEHOSTHERE',
-    icon: '/logo.png',
-    badge: '/logo.png',
-    vibrate: [100, 50, 100],
+    body: message,
+    icon: icon,
+    badge: badge,
+    vibrate: [200, 100, 200, 100, 200],
+    tag: tag,
+    renotify: true,
     data: {
-      dateOfArrival: Date.now(),
-      primaryKey: 1
+      url: targetUrl,
+      dateOfArrival: Date.now()
     },
     actions: [
       {
-        action: 'explore',
-        title: 'Ver Detalhes',
-        icon: '/logo.png'
+        action: 'open',
+        title: 'Abrir Pedido',
+        icon: icon
       },
       {
         action: 'close',
-        title: 'Fechar',
-        icon: '/logo.png'
+        title: 'Dispensar'
       }
     ]
   };
 
   event.waitUntil(
-    self.registration.showNotification('WEHOSTHERE', options)
+    self.registration.showNotification(title, options)
   );
 });
 
-// Notification click handler
+// Notification click handler com foco de janela e navegação direta
 self.addEventListener('notificationclick', (event) => {
   console.log('[Service Worker] Notificação clicada:', event);
   
   event.notification.close();
 
-  if (event.action === 'explore') {
-    event.waitUntil(
-      clients.openWindow('/dashboard/notifications')
-    );
-  } else if (event.action === 'close') {
-    // Fechar notificação
-  } else {
-    // Ação padrão - abrir dashboard
-    event.waitUntil(
-      clients.openWindow('/dashboard')
-    );
+  if (event.action === 'close') {
+    return;
   }
+
+  const targetUrl = event.notification.data?.url || '/admin?tab=orders';
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+      // Se já houver aba aberta do site, foca e redireciona
+      for (const client of windowClients) {
+        if (client.url && 'focus' in client) {
+          client.navigate(targetUrl);
+          return client.focus();
+        }
+      }
+      // Se não houver aba aberta, abre uma nova
+      if (clients.openWindow) {
+        return clients.openWindow(targetUrl);
+      }
+    })
+  );
 });
+
