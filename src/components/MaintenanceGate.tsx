@@ -87,7 +87,7 @@ export default function MaintenanceGate({ children }: { children: React.ReactNod
             <p className="text-xs text-slate-400 mb-3 font-medium">Precisa de assistência urgente?</p>
             <div className="flex items-center justify-center gap-3">
               <a
-                href="https://wa.me/258847877847?text=Olá,%20preciso%20de%20ajuda%20durante%20a%20manutenção%20do%20site."
+                href="https://wa.me/258848335618?text=Olá,%20preciso%20de%20ajuda%20durante%20a%20manutenção%20do%20site."
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs transition shadow-md"

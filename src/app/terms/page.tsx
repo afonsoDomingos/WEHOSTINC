@@ -166,7 +166,7 @@ export default function TermsPage() {
               </p>
               <ul className="list-none space-y-1">
                 <li>Email: info@wehosthere.com</li>
-                <li>Telefone: +258 84 438 4702</li>
+                <li>Telefone: +258 84 833 5618</li>
                 <li>Website: www.wehosthere.com</li>
               </ul>
             </section>

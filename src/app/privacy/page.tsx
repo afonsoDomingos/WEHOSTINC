@@ -202,7 +202,7 @@ export default function PrivacyPage() {
               <ul className="list-none space-y-1">
                 <li>Email: privacy@wehosthere.com</li>
                 <li>Email geral: info@wehosthere.com</li>
-                <li>Telefone: +258 84 438 4702</li>
+                <li>Telefone: +258 84 833 5618</li>
                 <li>Website: www.wehosthere.com</li>
               </ul>
             </section>

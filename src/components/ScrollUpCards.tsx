@@ -59,7 +59,7 @@ const SOCIAL_LINKS = [
 
 const WHATSAPP_NUMBERS = [
   { number: '258848335618', display: '+258 84 833 5618' },
-  { number: '258844384702', display: '+258 84 438 4702' }
+  { number: '258848335618', display: '+258 84 833 5618' }
 ];
 
 export default function ScrollUpCards() {

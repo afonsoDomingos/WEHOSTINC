@@ -381,7 +381,7 @@ export const auth = {
     }
 
     if (userData.status === 'suspended') {
-      throw new Error('Sua conta encontra-se suspensa por questões de faturação ou incumprimento dos termos. Por favor, entre em contacto com o suporte WEHOSTHERE (+258 84 438 4702).');
+      throw new Error('Sua conta encontra-se suspensa por questões de faturação ou incumprimento dos termos. Por favor, entre em contacto com o suporte WEHOSTHERE (+258 84 833 5618).');
     }
 
     clearFailedAttempts(email);

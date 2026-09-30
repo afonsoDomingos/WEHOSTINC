@@ -16,6 +16,7 @@ import { getUserId, getAffiliateUserInfo, isAffiliateAuthenticated } from '@/lib
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import PageLoader from '@/components/PageLoader';
 import { soundEffects } from '@/lib/soundEffects';
+import AffiliatePushBanner from '@/components/AffiliatePushBanner';
 
 // Extender tipos do NextAuth para incluir campos customizados
 declare module 'next-auth' {
@@ -562,6 +563,9 @@ export default function AffiliatesPage() {
             </button>
           </div>
         </div>
+
+        {/* Push Notification Banner */}
+        <AffiliatePushBanner />
 
         {/* Navigation Tabs */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-2 mb-6">

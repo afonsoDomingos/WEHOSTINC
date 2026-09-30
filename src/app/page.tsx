@@ -914,13 +914,13 @@ export default function Home() {
                 </li>
                 <li className="transition flex items-center space-x-1.5 font-bold text-slate-200">
                   <a
-                    href="https://wa.me/258844384702?text=Olá%2C%20gostaria%20de%20saber%20mais%20sobre%20os%20serviços%20WEHOSTHERE"
+                    href="https://wa.me/258848335618?text=Olá%2C%20gostaria%20de%20saber%20mais%20sobre%20os%20serviços%20WEHOSTHERE"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center space-x-1.5 hover:text-emerald-400 transition group"
                   >
                     <Phone className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-emerald-400 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300" />
-                    <span>+258 84 438 4702</span>
+                    <span>+258 84 833 5618</span>
                   </a>
                 </li>
                 <li className="hover:text-primary-300 transition">

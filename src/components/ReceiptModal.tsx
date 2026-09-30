@@ -91,11 +91,11 @@ export default function ReceiptModal({ receipt, onClose }: ReceiptModalProps) {
                 <a href="mailto:info@wehosthere.com" className="hover:underline">info@wehosthere.com</a>
                 {' • '}
                 <a
-                  href="https://wa.me/258844384702"
+                  href="https://wa.me/258848335618"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-emerald-600 hover:underline"
-                >+258 84 438 4702</a>
+                >+258 84 833 5618</a>
               </p>
             </div>
 

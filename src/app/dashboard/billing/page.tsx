@@ -238,11 +238,11 @@ export default function BillingPage() {
                     <a href="mailto:info@wehosthere.com" className="hover:underline">info@wehosthere.com</a>
                     {' • '}
                     <a
-                      href="https://wa.me/258844384702"
+                      href="https://wa.me/258848335618"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-emerald-600 hover:underline"
-                    >+258 84 438 4702</a>
+                    >+258 84 833 5618</a>
                   </p>
                 </div>
                 <span className="bg-primary-50 text-primary-700 text-xs font-bold px-3 py-1 rounded-full border border-primary-200">
@@ -432,11 +432,11 @@ export default function BillingPage() {
                 <div className="p-2.5 bg-white rounded-lg border border-gray-200">
                   <strong className="text-gray-900 block font-sans font-bold text-sm">M-Pesa Manual</strong>
                   <a
-                    href="https://wa.me/258844384702?text=Olá%2C%20quero%20confirmar%20o%20meu%20pagamento%20via%20M-Pesa"
+                    href="https://wa.me/258848335618?text=Olá%2C%20quero%20confirmar%20o%20meu%20pagamento%20via%20M-Pesa"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-emerald-600 hover:text-emerald-700 font-bold transition"
-                  >+258 84 438 4702</a>
+                  >+258 84 833 5618</a>
                 </div>
                 <div className="p-2.5 bg-white rounded-lg border border-gray-200">
                   <strong className="text-gray-900 block font-sans font-bold text-sm">E-Mola Manual</strong>

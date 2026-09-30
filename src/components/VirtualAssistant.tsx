@@ -229,7 +229,7 @@ export default function VirtualAssistant() {
       message = `Olá, gostaria de suporte. ${models[Math.floor(Math.random() * models.length)]}.`;
     }
     
-    window.open(`https://wa.me/258844384702?text=${encodeURIComponent(message)}`, '_blank');
+    window.open(`https://wa.me/258848335618?text=${encodeURIComponent(message)}`, '_blank');
   };
 
   const handleActionClick = (category: string) => {

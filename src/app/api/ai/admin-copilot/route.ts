@@ -17,7 +17,7 @@ const WEHOSTHERE_PUBLIC_KNOWLEDGE = `
 Sobre a WEHOSTHERE:
 - Plataforma líder de Hospedagem de Sites, Email Profissional, Registro de Domínios e Infraestruturas Cloud em Moçambique.
 - Moeda padrão: Metical (MZN).
-- Suporte e Contato Oficial: info@wehosthere.com | Tel/WhatsApp: +258 84 438 4702.
+- Suporte e Contato Oficial: info@wehosthere.com | Tel/WhatsApp: +258 84 833 5618.
 - Planos de Hospedagem:
   * Plano Básico (550 MT/mês): 10GB SSD, 100GB Tráfego, 2GB RAM, 5 Contas de Email Corporativo, cPanel/DirectAdmin, Certificado SSL Gratuito.
   * Plano Profissional (1.200 MT/mês): 30GB SSD NVMe, Tráfego Ilimitado, 4GB RAM, Contas de Email Ilimitadas, Backup Automático, SSL Gratuito.
@@ -469,7 +469,7 @@ function generateClientLocalResponse(query: string, clientData: any): string {
     lower.includes('receita total') ||
     lower.includes('painel admin')
   ) {
-    return `Por motivos de segurança e privacidade corporativa, informações financeiras globais e dados administrativos da WEHOSTHERE são estritamente confidenciais.\n\nPosso ajudá-lo com:\n• Escolha do melhor plano de hospedagem para o seu site\n• Registo e pesquisa de domínios .co.mz\n• Configuração de email profissional no seu telemóvel ou Outlook\n• Criação de sites sob medida\n\nConsulte os nossos serviços em [/hospedagem](/hospedagem) ou fale connosco pelo WhatsApp (+258 84 438 4702).`;
+    return `Por motivos de segurança e privacidade corporativa, informações financeiras globais e dados administrativos da WEHOSTHERE são estritamente confidenciais.\n\nPosso ajudá-lo com:\n• Escolha do melhor plano de hospedagem para o seu site\n• Registo e pesquisa de domínios .co.mz\n• Configuração de email profissional no seu telemóvel ou Outlook\n• Criação de sites sob medida\n\nConsulte os nossos serviços em [/hospedagem](/hospedagem) ou fale connosco pelo WhatsApp (+258 84 833 5618).`;
   }
 
   // 1. Domínios (.co.mz, .com, registar domínio, preços de domínio) -> Prioritário!
@@ -591,7 +591,7 @@ function generateClientLocalResponse(query: string, clientData: any): string {
     return `Suporte Técnico WEHOSTHERE:\n\n` +
       `Estamos disponíveis 24/7 para auxiliá-lo com qualquer questão técnica ou comercial:\n` +
       `• Abrir ou acompanhar chamados no Painel: [/dashboard/tickets](/dashboard/tickets)\n` +
-      `• Atendimento Oficial via WhatsApp: +258 84 438 4702\n` +
+      `• Atendimento Oficial via WhatsApp: +258 84 833 5618\n` +
       `• Email de Suporte Oficial: info@wehosthere.com\n\n` +
       `Se já for cliente, inicie sessão em [/dashboard](/dashboard) para suporte prioritário com a nossa equipa de engenharia.`;
   }

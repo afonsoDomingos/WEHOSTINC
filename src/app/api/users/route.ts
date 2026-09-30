@@ -296,7 +296,7 @@ export async function POST(req: Request) {
           } catch (e) {
             console.error('Erro ao registrar log de segurança:', e);
           }
-          return NextResponse.json({ error: 'Sua conta encontra-se suspensa por questões de faturação ou incumprimento dos termos. Por favor, entre em contacto com o suporte WEHOSTHERE (+258 84 438 4702).' }, { status: 403 });
+          return NextResponse.json({ error: 'Sua conta encontra-se suspensa por questões de faturação ou incumprimento dos termos. Por favor, entre em contacto com o suporte WEHOSTHERE (+258 84 833 5618).' }, { status: 403 });
         }
 
         const { password: _pw, confirmationCode: _cc, confirmationCodeExpiresAt: _cce, ...safeUser } = userDoc as any;
@@ -327,7 +327,7 @@ export async function POST(req: Request) {
         }
 
         if (fallbackUser.status === 'suspended') {
-          return NextResponse.json({ error: 'Sua conta encontra-se suspensa por questões de faturação ou incumprimento dos termos. Por favor, entre em contacto com o suporte WEHOSTHERE (+258 84 438 4702).' }, { status: 403 });
+          return NextResponse.json({ error: 'Sua conta encontra-se suspensa por questões de faturação ou incumprimento dos termos. Por favor, entre em contacto com o suporte WEHOSTHERE (+258 84 833 5618).' }, { status: 403 });
         }
 
         const { password: _pw, ...safeFallbackUser } = fallbackUser;
@@ -846,6 +846,20 @@ export async function POST(req: Request) {
                     userData.name || 'Novo Cliente',
                     userData.email
                   ).catch((err: any) => console.error('[Affiliate Lead Email] Erro:', err));
+
+                  // 🔔 Push imediato no telemóvel do afiliado
+                  try {
+                    const { sendPushToUser } = await import('@/lib/pushService');
+                    const targetIdentifier = affiliateUser.email || affiliateDoc.userId;
+                    await sendPushToUser(targetIdentifier, {
+                      title: '🎯 Novo Registo com o seu Link!',
+                      message: `${userData.name || 'Um visitante'} criou conta na WEHOSTHERE através do seu link de afiliado!`,
+                      url: '/dashboard/affiliates',
+                      tag: `affiliate-lead-${userData.email}`
+                    });
+                  } catch (pushErr) {
+                    console.warn('[Affiliate Lead Push] Falha ao disparar push:', pushErr);
+                  }
                 }
               }
             } catch (affErr) {

@@ -36,7 +36,7 @@ const WhatsAppIcon = ({ className = "h-4 w-4" }: { className?: string }) => (
 
 const sendWhatsAppQuote = (type: WebsiteType, domain?: string | null, userName?: string | null, userEmail?: string | null) => {
   soundEffects.playSendEmailSound();
-  const whatsappNumber = '258844384702';
+  const whatsappNumber = '258848335618';
   const domainText = domain ? `\n🌐 *Domínio Desejado:* ${domain}` : '';
   const userText = userName ? `\n👤 *Cliente:* ${userName}` : '';
   

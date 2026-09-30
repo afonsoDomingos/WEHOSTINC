@@ -89,12 +89,14 @@ export async function POST(request: NextRequest) {
 
     console.log(`[Affiliate] Conversion tracked for affiliate ${affiliateCode}, order: ${orderId}, commission: ${commissionAmount}`);
 
-    // Enviar e-mail de notificação de comissão ao afiliado
+    // Enviar e-mail e push de notificação de comissão ao afiliado
     try {
       const UserModel = (await import('@/lib/models/User')).default;
       const affiliateUser = await UserModel.findOne({
         $or: [{ id: affiliate.userId }, { email: affiliate.userId }]
       });
+      
+      // 1. E-mail de comissão
       if (affiliateUser && affiliateUser.email) {
         const { sendAffiliateCommissionEmail } = await import('@/lib/affiliateEmails');
         sendAffiliateCommissionEmail(
@@ -106,8 +108,20 @@ export async function POST(request: NextRequest) {
           orderId
         ).catch((err: any) => console.error('[Affiliate Commission Email] Erro:', err));
       }
-    } catch (emailErr) {
-      console.error('[Affiliate Conversion] Erro ao enviar email de comissão:', emailErr);
+
+      // 2. 🔔 Push imediato no telemóvel do afiliado
+      const targetIdentifier = affiliateUser?.email || affiliate.userId;
+      if (targetIdentifier) {
+        const { sendPushToUser } = await import('@/lib/pushService');
+        await sendPushToUser(targetIdentifier, {
+          title: '💸 Nova Comissão Recebida!',
+          message: `Parabéns! Acabou de ganhar ${commissionAmount.toLocaleString('pt-MZ')} MZN de comissão por uma venda de ${amount.toLocaleString('pt-MZ')} MZN!`,
+          url: '/dashboard/affiliates',
+          tag: `affiliate-sale-${orderId}`
+        });
+      }
+    } catch (notifErr) {
+      console.error('[Affiliate Conversion] Erro ao notificar afiliado da comissão:', notifErr);
     }
 
     return NextResponse.json({ 

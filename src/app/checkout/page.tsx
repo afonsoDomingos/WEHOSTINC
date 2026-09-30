@@ -1269,7 +1269,7 @@ function CheckoutContent() {
                   </button>
 
                   <a
-                    href={`https://wa.me/258844384702?text=${encodeURIComponent(
+                    href={`https://wa.me/258848335618?text=${encodeURIComponent(
                       `Olá WeHost! Tive dificuldades com a notificação do PIN no M-Pesa/e-Mola (${ddi} ${phonePayment || whatsapp}) para ${
                         domainParam ? `o domínio ${domainParam}` : selectedPlan?.name || 'serviço'
                       } (Valor: ${(isCoursePayment ? courseAmountParam : (isAffiliateVerification ? verificationAmount : grandTotal)).toLocaleString('pt-MZ')} MT). Podem ajudar-me a finalizar?`
@@ -1562,11 +1562,11 @@ function CheckoutContent() {
                       <div>
                         <strong className="text-gray-900">M-Pesa Manual:</strong><br />
                         <a
-                          href="https://wa.me/258844384702?text=Olá%2C%20quero%20confirmar%20o%20meu%20pagamento%20via%20M-Pesa"
+                          href="https://wa.me/258848335618?text=Olá%2C%20quero%20confirmar%20o%20meu%20pagamento%20via%20M-Pesa"
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-emerald-600 hover:text-emerald-700 font-bold transition"
-                        >+258 84 438 4702 (WEHOSTHERE)</a>
+                        >+258 84 833 5618 (WEHOSTHERE)</a>
                       </div>
                       <div>
                         <strong className="text-gray-900">E-Mola Manual:</strong><br />
@@ -1862,7 +1862,7 @@ function CheckoutContent() {
             {/* Suporte WhatsApp no Checkout */}
             <div className="pt-2 text-center">
               <a
-                href={`https://wa.me/258844384702?text=${encodeURIComponent(
+                href={`https://wa.me/258848335618?text=${encodeURIComponent(
                   `Olá WeHost! Estou no checkout a finalizar o pedido para ${
                     domainParam ? `o domínio ${domainParam}` : selectedPlan?.name || 'serviço'
                   } (Valor: ${(isCoursePayment ? courseAmountParam : (isAffiliateVerification ? verificationAmount : grandTotal)).toLocaleString('pt-MZ')} MT) e gostaria de apoio.`
