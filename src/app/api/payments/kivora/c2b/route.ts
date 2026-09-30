@@ -20,14 +20,14 @@ export async function POST(req: Request) {
       phone
     };
 
-    // 🔔 Push imediato: tentativa de compra iniciada (dispara ANTES da Kivora para garantir alerta mesmo em caso de erro no gateway)
+    // 🔔 Push imediato: pagamento Kivora (dispara ANTES da Kivora para garantir alerta mesmo em caso de erro no gateway)
     try {
       const { sendPushToAdmins } = await import('@/lib/pushService');
       await sendPushToAdmins({
-        title: '🛒 Tentativa de Compra',
-        message: `${cust.name || clientName || 'Um cliente'} (${phone}) iniciou pagamento M-Pesa de ${amount} MZN para "${serviceName || description || 'Serviço'}".`,
+        title: '💳 Pagamento Kivora',
+        message: `${cust.name || clientName || 'Um cliente'} (${phone}) iniciou pagamento de ${amount} MZN para "${serviceName || description || 'Serviço'}".`,
         url: '/admin?tab=orders',
-        tag: `purchase-attempt-${paymentRef}`
+        tag: `kivora-payment-${paymentRef}`
       });
     } catch (pushErr) {
       console.warn('[KIVORA API] Falha não impeditiva ao disparar push:', pushErr);

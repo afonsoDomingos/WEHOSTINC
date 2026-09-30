@@ -22,14 +22,14 @@ export async function POST(req: Request) {
     const paymentRef = reference || thirdPartyReference || `REF_${Date.now()}`;
     const orderId = thirdPartyReference || `ORD-${Date.now().toString().slice(-6)}`;
 
-    // 🔔 Push imediato: tentativa de compra M-Pesa (dispara ANTES da Kivora para garantir alerta mesmo em caso de erro no gateway)
+    // 🔔 Push imediato: pagamento M-Pesa (dispara ANTES da Kivora para garantir alerta mesmo em caso de erro no gateway)
     try {
       const { sendPushToAdmins } = await import('@/lib/pushService');
       await sendPushToAdmins({
-        title: '🛒 Tentativa M-Pesa',
+        title: '📱 Pagamento M-Pesa',
         message: `${clientName || 'Um cliente'} (${msisdn}) iniciou pagamento de ${amount} MZN para "${serviceName || 'Serviço'}".`,
         url: '/admin?tab=orders',
-        tag: `mpesa-attempt-${orderId}`
+        tag: `mpesa-payment-${orderId}`
       });
     } catch (pushErr) {
       console.warn('[M-PESA C2B] Falha não impeditiva ao disparar push:', pushErr);

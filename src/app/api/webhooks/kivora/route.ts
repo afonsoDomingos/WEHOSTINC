@@ -380,7 +380,7 @@ async function notifyAdminAboutPayment(
           : `⚠️ Falha no Pagamento: ${amount || 0} MZN`,
         message: status === 'completed'
           ? `${clientName} pagou ${amount || 0} MZN para ${serviceName}!`
-          : `${clientName}: ${failureReason || 'Tentativa de pagamento não concluída'}`,
+          : `${clientName}: ${failureReason || 'Pagamento não concluído'}`,
         url: '/admin?tab=orders',
         tag: `payment-${status}-${Date.now()}`
       });
