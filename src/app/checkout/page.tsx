@@ -1992,17 +1992,17 @@ function CheckoutContent() {
               )
             ) : (
               !isCoursePayment && !isAffiliateVerification && (
-                <div className="p-4 bg-blue-50/80 border border-blue-200 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 my-2">
-                  <div>
-                    <span className="text-xs font-black text-blue-900 uppercase block tracking-wider">Comprando Apenas Registro de Domínio</span>
-                    <span className="text-xs text-blue-700 mt-0.5 block">Nenhum plano de hospedagem adicionado. Deseja incluir hospedagem?</span>
+                <div className="px-3 py-2 bg-blue-50/80 border border-blue-200 rounded-lg flex items-center justify-between gap-2 my-1.5">
+                  <div className="min-w-0">
+                    <span className="text-[10px] font-black text-blue-900 uppercase tracking-wide block">Apenas Registo de Domínio</span>
+                    <span className="text-[10px] text-blue-600 block leading-tight">Sem hospedagem. Adicionar plano?</span>
                   </div>
                   <button
                     type="button"
                     onClick={() => setSelectedPlanId('pro')}
-                    className="px-3.5 py-2 bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs rounded-lg transition whitespace-nowrap cursor-pointer shadow-sm"
+                    className="px-2.5 py-1 bg-primary-600 hover:bg-primary-700 text-white font-bold text-[10px] rounded-md transition whitespace-nowrap cursor-pointer shadow-sm flex-shrink-0"
                   >
-                    + Adicionar Plano Pro (2.500 MT/mês)
+                    + Plano Pro
                   </button>
                 </div>
               )
