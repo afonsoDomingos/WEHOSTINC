@@ -325,10 +325,10 @@ export default function DomainSearch({ onFocusChange }: DomainSearchProps = {}) 
 
       {/* Card de Resultado da Pesquisa */}
       {result && (
-        <div className="mt-4 sm:mt-6 bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 md:p-6 shadow-xl border border-gray-200 animate-in fade-in slide-in-from-bottom-2 duration-300">
+        <div className="mt-4 sm:mt-6 bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 md:p-6 shadow-xl border border-gray-200 text-left animate-in fade-in slide-in-from-bottom-2 duration-300">
           {/* Cabeçalho do Domínio Consultado */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-r from-gray-50 to-blue-50/40 border border-gray-200">
-            <div className="flex items-center space-x-2 sm:space-x-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-r from-gray-50 to-blue-50/40 border border-gray-200 text-left">
+            <div className="flex items-center space-x-2.5 sm:space-x-3 text-left min-w-0">
               {result.isAvailable ? (
                 <div className="p-2 sm:p-2.5 bg-emerald-500 text-white rounded-lg sm:rounded-xl flex-shrink-0 shadow-sm">
                   <CheckCircle2 className="h-5 w-5 sm:h-6 sm:w-6" />
@@ -339,26 +339,28 @@ export default function DomainSearch({ onFocusChange }: DomainSearchProps = {}) 
                 </div>
               )}
 
-              <div>
-                <div className="flex items-center space-x-1.5 sm:space-x-2 flex-wrap gap-1 sm:gap-1.5">
-                  <span className="text-lg sm:text-xl md:text-2xl font-black text-gray-900">{result.fullDomain}</span>
+              <div className="text-left min-w-0">
+                <div className="flex items-center space-x-1.5 sm:space-x-2 flex-wrap gap-1 sm:gap-1.5 text-left">
+                  <span className="text-lg sm:text-xl md:text-2xl font-black text-gray-900 tracking-tight break-all sm:break-normal">
+                    {result.fullDomain}
+                  </span>
                   {result.isAvailable ? (
-                    <span className="bg-emerald-600 text-white text-[10px] sm:text-xs font-bold px-2 sm:px-2.5 py-0.5 rounded-full shadow-sm">
+                    <span className="inline-flex items-center bg-emerald-600 text-white text-[10px] sm:text-xs font-bold px-2 sm:px-2.5 py-0.5 rounded-full shadow-xs whitespace-nowrap shrink-0">
                       {t('domain.available')}
                     </span>
                   ) : (
-                    <span className="bg-red-600 text-white text-[10px] sm:text-xs font-bold px-2 sm:px-2.5 py-0.5 rounded-full shadow-sm">
+                    <span className="inline-flex items-center bg-red-600 text-white text-[10px] sm:text-xs font-bold px-2 sm:px-2.5 py-0.5 rounded-full shadow-xs whitespace-nowrap shrink-0">
                       {t('domain.unavailable')}
                     </span>
                   )}
                   {result.searchCount && result.searchCount > 1 && (
-                    <span className="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[10px] sm:text-xs font-extrabold px-2 sm:px-3 py-0.5 rounded-full shadow-sm flex items-center space-x-0.5 sm:space-x-1 animate-pulse">
+                    <span className="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[10px] sm:text-xs font-extrabold px-2 sm:px-2.5 py-0.5 rounded-full shadow-xs flex items-center space-x-0.5 sm:space-x-1 animate-pulse whitespace-nowrap shrink-0">
                       <Flame className="h-3 w-3 sm:h-3.5 sm:w-3.5 fill-white" />
                       <span>{result.searchCount}x buscas</span>
                     </span>
                   )}
                 </div>
-                <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5 font-medium">
+                <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5 font-medium text-left block">
                   {result.isAvailable 
                     ? t('domain.available_desc')
                     : t('domain.unavailable_desc')}
