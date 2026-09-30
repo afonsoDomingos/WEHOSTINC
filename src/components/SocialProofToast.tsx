@@ -73,50 +73,50 @@ export default function SocialProofToast() {
 
   return (
     <div
-      className={`fixed top-16 sm:top-[68px] left-2.5 sm:left-5 z-40 transition-all duration-500 ease-out transform ${
+      className={`fixed top-20 sm:top-24 md:top-[90px] left-3 sm:left-6 z-40 transition-all duration-500 ease-out transform ${
         visible
           ? 'translate-y-0 opacity-100 scale-100 pointer-events-auto'
           : '-translate-y-3 opacity-0 scale-95 pointer-events-none'
       }`}
     >
-      <div className="bg-white/80 backdrop-blur-xl rounded-xl p-1.5 shadow-[0_4px_20px_-3px_rgba(0,0,0,0.1),0_0_0_1px_rgba(255,255,255,0.8)_inset] border border-white/90 text-gray-900 w-[170px] sm:w-[185px] relative group flex items-start gap-1.5 transition-all duration-300">
-        {/* Ícone Minúsculo com Ponto Pulsante */}
+      <div className="bg-white/95 backdrop-blur-xl rounded-xl p-2 sm:p-2.5 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.12),0_0_0_1px_rgba(0,0,0,0.06)] border border-gray-100 text-gray-900 w-[220px] sm:w-[245px] relative group flex items-start gap-2 transition-all duration-300">
+        {/* Ícone com Ponto Pulsante */}
         <div className="relative shrink-0 mt-0.5">
-          <div className="w-4 h-4 rounded-md bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600">
-            <ShoppingBag className="w-2 h-2 text-emerald-600" />
+          <div className="w-6 h-6 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600">
+            <ShoppingBag className="w-3 h-3 text-emerald-600" />
           </div>
-          <span className="absolute -top-0.5 -right-0.5 flex h-1 w-1">
+          <span className="absolute -top-0.5 -right-0.5 flex h-1.5 w-1.5">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-1 w-1 bg-emerald-500" />
+            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
           </span>
         </div>
 
-        {/* Conteúdo Ultracompacto e Discreto */}
-        <div className="flex-1 min-w-0 pr-2">
-          <div className="flex items-center justify-between gap-1 leading-none mb-0.5">
-            <span className="text-[9.5px] font-bold text-gray-900 truncate">
-              {current.userName} <span className="text-[8px] font-normal text-gray-500">({current.location})</span>
+        {/* Conteúdo com Boa Leitura */}
+        <div className="flex-1 min-w-0 pr-3">
+          <div className="flex items-center justify-between gap-1 leading-tight mb-0.5">
+            <span className="text-[11px] font-bold text-gray-900 truncate">
+              {current.userName} <span className="text-[9px] font-normal text-gray-500">({current.location})</span>
             </span>
-            <span className="text-[7.5px] text-gray-400 font-mono shrink-0">{current.timeAgo}</span>
+            <span className="text-[8.5px] text-gray-400 font-mono shrink-0">{current.timeAgo}</span>
           </div>
 
-          <p className="text-[8.5px] text-gray-700 font-medium leading-tight truncate">
+          <p className="text-[10px] text-gray-700 font-medium leading-tight line-clamp-2">
             {current.action}
           </p>
 
-          <div className="flex items-center gap-0.5 mt-0.5 text-[7.5px] font-bold text-emerald-600 leading-none">
-            <CheckCircle2 className="w-2 h-2 text-emerald-500 shrink-0" />
+          <div className="flex items-center gap-1 mt-1 text-[8.5px] font-bold text-emerald-600 leading-none">
+            <CheckCircle2 className="w-2.5 h-2.5 text-emerald-500 shrink-0" />
             <span>Compra Verificada</span>
           </div>
         </div>
 
-        {/* Botão Fechar Discreto */}
+        {/* Botão Fechar */}
         <button
           onClick={() => setDismissed(true)}
-          className="absolute top-1 right-1 text-gray-300 hover:text-gray-600 p-0.5 rounded transition cursor-pointer"
+          className="absolute top-1.5 right-1.5 text-gray-300 hover:text-gray-600 p-0.5 rounded transition cursor-pointer"
           title="Fechar"
         >
-          <X className="w-2.5 h-2.5" />
+          <X className="w-3 h-3" />
         </button>
       </div>
     </div>
