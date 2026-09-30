@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, CheckCircle2, XCircle, Globe, ArrowRight, Sparkles, Loader2, Rocket, Flame, WifiOff, Wifi, AlertTriangle, X } from 'lucide-react';
+import { Search, CheckCircle2, XCircle, Globe, ArrowRight, Sparkles, Loader2, Rocket, Flame, WifiOff, Wifi, AlertTriangle, X, ShoppingCart } from 'lucide-react';
 import { DOMAIN_PRICES, checkDomainRealAsync, DomainCheckResult } from '@/lib/domains';
 import { hostingPlans } from '@/lib/data';
 import { soundEffects } from '@/lib/soundEffects';
@@ -363,23 +363,36 @@ export default function DomainSearch({ onFocusChange }: DomainSearchProps = {}) 
               </div>
             </div>
 
-            <div className="flex items-center gap-2 sm:flex-col sm:items-end justify-between shrink-0">
+            <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-2.5 justify-between sm:justify-end shrink-0 w-full sm:w-auto pt-2.5 sm:pt-0 border-t sm:border-t-0 border-gray-200/60">
               {result.isAvailable && (
-                <div className="bg-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl border border-gray-200 shadow-sm flex flex-row sm:flex-col items-center sm:items-end justify-between">
-                  <span className="text-[10px] sm:text-[11px] font-bold text-gray-400 uppercase tracking-wider">{t('domain.pkg_domain_only')}</span>
-                  <span className="text-base sm:text-lg font-black text-primary-600">
-                    {result.price.toLocaleString('pt-MZ')} MT <span className="text-[10px] sm:text-xs text-gray-500 font-normal">{t('pricing.per_year')}</span>
-                  </span>
-                </div>
+                <>
+                  <div className="bg-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl border border-gray-200 shadow-xs flex flex-col items-start sm:items-end justify-center">
+                    <span className="text-[9px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t('domain.pkg_domain_only')}</span>
+                    <span className="text-sm sm:text-base md:text-lg font-black text-primary-600 leading-tight">
+                      {result.price.toLocaleString('pt-MZ')} MT <span className="text-[10px] text-gray-500 font-normal">{t('pricing.per_year')}</span>
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleRegisterOnly(result.fullDomain, result.price)}
+                    className="flex-1 sm:flex-initial inline-flex items-center justify-center space-x-1.5 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs sm:text-sm font-bold shadow-md hover:shadow-lg hover:shadow-emerald-600/20 transition-all duration-200 cursor-pointer hover:scale-[1.02] shrink-0"
+                    title="Comprar e registar este domínio agora"
+                  >
+                    <ShoppingCart className="h-4 w-4 shrink-0" />
+                    <span>{t('domain.btn_buy_now')}</span>
+                    <ArrowRight className="h-3.5 w-3.5 shrink-0" />
+                  </button>
+                </>
               )}
               <button
                 type="button"
                 onClick={handleClearSearch}
-                className="inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 text-xs font-semibold transition cursor-pointer border border-gray-200 shadow-xs"
+                className="inline-flex items-center justify-center space-x-1 px-2.5 py-2 rounded-lg sm:rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 text-xs font-semibold transition cursor-pointer border border-gray-200 shadow-xs shrink-0"
                 title="Limpar pesquisa e fechar resultados"
               >
                 <X className="h-3.5 w-3.5" />
-                <span>Limpar</span>
+                <span className="hidden sm:inline">Limpar</span>
               </button>
             </div>
           </div>
