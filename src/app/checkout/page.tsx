@@ -7,7 +7,7 @@ import {
   Server, ShieldCheck, Lock, Check, CreditCard, 
   Smartphone, Bitcoin, ArrowLeft, CheckCircle2, AlertCircle, RefreshCw,
   Landmark, Paperclip, FileText, Image as ImageIcon, Upload, Loader2, Lock as LockIcon,
-  Globe, MessageCircle, Copy
+  Globe, MessageCircle, Copy, ArrowRight, User, Mail, Edit3, Sparkles
 } from 'lucide-react';
 import { hostingPlans, HostingPlan, dataManager } from '@/lib/data';
 import { auth } from '@/lib/auth';
@@ -115,6 +115,54 @@ function CheckoutContent() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
+  const [checkoutStep, setCheckoutStep] = useState<1 | 2>(1);
+
+  const handleProceedToPayment = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setError('');
+
+    // Validação específica para verificação de afiliado
+    if (isAffiliateVerification) {
+      if (!name.trim()) {
+        setError(t.nameRequired || 'Por favor, insira o seu nome completo.');
+        return;
+      }
+      if (!email.trim() || !email.includes('@')) {
+        setError(t.emailRequired || 'Por favor, insira um e-mail válido.');
+        return;
+      }
+      if (!affiliatePhone.trim()) {
+        setError(t.affiliatePhoneRequired || 'Por favor, informe o seu número para comissões.');
+        return;
+      }
+      setPhonePayment(affiliatePhone);
+    } else {
+      if (!name.trim()) {
+        setError(t.nameRequired || 'Por favor, insira o seu nome completo.');
+        analytics.trackFormError('name', 'Name required');
+        return;
+      }
+      if (!email.trim() || !email.includes('@')) {
+        setError(t.emailRequired || 'Por favor, insira um e-mail válido.');
+        analytics.trackFormError('email', 'Invalid email');
+        return;
+      }
+      if (!isCoursePayment && !isAffiliateVerification && !whatsapp.trim()) {
+        setError(t.whatsappRequired || 'Por favor, insira o seu número de WhatsApp.');
+        analytics.trackFormError('whatsapp', 'WhatsApp required');
+        return;
+      }
+      // Pré-preencher o número de pagamento se ainda estiver vazio
+      if (!phonePayment && whatsapp.trim()) {
+        setPhonePayment(whatsapp.trim());
+      }
+    }
+
+    setCheckoutStep(2);
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 120, behavior: 'smooth' });
+    }
+  };
 
   const cycleParam = searchParams.get('billingCycle');
   const [durationMonths, setDurationMonths] = useState<number>(cycleParam === 'annual' ? 12 : 1);
@@ -1317,94 +1365,302 @@ function CheckoutContent() {
       {/* Main Container */}
       <main className="max-w-2xl mx-auto px-4 py-8">
         <div className="mb-6 flex items-center justify-between">
-          <Link href="/" className="inline-flex items-center text-sm font-medium text-gray-500 hover:text-gray-900 transition">
-            <ArrowLeft className="h-4 w-4 mr-1" />
-            Voltar
-          </Link>
-          <span className="text-xs text-gray-400 font-mono">Checkout v2.0</span>
+          {checkoutStep === 2 ? (
+            <button
+              type="button"
+              onClick={() => {
+                setCheckoutStep(1);
+                if (typeof window !== 'undefined') window.scrollTo({ top: 100, behavior: 'smooth' });
+              }}
+              className="inline-flex items-center text-sm font-semibold text-gray-500 hover:text-gray-900 transition cursor-pointer"
+            >
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              <span>Voltar aos Dados</span>
+            </button>
+          ) : (
+            <Link href="/" className="inline-flex items-center text-sm font-semibold text-gray-500 hover:text-gray-900 transition">
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              <span>Voltar ao Início</span>
+            </Link>
+          )}
+          <span className="text-xs text-gray-400 font-mono font-medium">Checkout Seguro • Passo {checkoutStep} de 2</span>
         </div>
 
         {/* Checkout Card */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
           
-          <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-6">
+          {/* Stepper Visual de 2 Etapas */}
+          <div className="bg-gray-50/90 border-b border-gray-200 px-4 sm:px-8 py-3.5 sm:py-4">
+            <div className="flex items-center justify-between max-w-sm mx-auto relative">
+              {/* Linha de conexão */}
+              <div className="absolute left-8 right-8 top-1/2 -translate-y-1/2 h-0.5 bg-gray-200 -z-0" />
+              <div
+                className={`absolute left-8 top-1/2 -translate-y-1/2 h-0.5 bg-emerald-500 transition-all duration-300 -z-0 ${
+                  checkoutStep === 2 ? 'right-8' : 'w-0'
+                }`}
+              />
+
+              {/* Passo 1 */}
+              <button
+                type="button"
+                onClick={() => setCheckoutStep(1)}
+                className="relative z-10 flex items-center space-x-2 bg-gray-50/90 px-2 cursor-pointer group"
+              >
+                <div
+                  className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all shadow-xs ${
+                    checkoutStep === 1
+                      ? 'bg-primary-600 text-white ring-4 ring-primary-100'
+                      : 'bg-emerald-600 text-white'
+                  }`}
+                >
+                  {checkoutStep === 2 ? <Check className="w-4 h-4 stroke-[3]" /> : '1'}
+                </div>
+                <div className="text-left">
+                  <span className="text-[10px] uppercase tracking-wider font-extrabold text-gray-400 block leading-tight">Passo 1</span>
+                  <span className={`text-xs font-bold ${checkoutStep === 1 ? 'text-primary-700' : 'text-gray-700'}`}>
+                    Seus Dados
+                  </span>
+                </div>
+              </button>
+
+              {/* Passo 2 */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (checkoutStep === 1) {
+                    handleProceedToPayment();
+                  }
+                }}
+                className="relative z-10 flex items-center space-x-2 bg-gray-50/90 px-2 cursor-pointer group"
+              >
+                <div
+                  className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all shadow-xs ${
+                    checkoutStep === 2
+                      ? 'bg-primary-600 text-white ring-4 ring-primary-100'
+                      : 'bg-white border-2 border-gray-300 text-gray-400'
+                  }`}
+                >
+                  2
+                </div>
+                <div className="text-left">
+                  <span className="text-[10px] uppercase tracking-wider font-extrabold text-gray-400 block leading-tight">Passo 2</span>
+                  <span className={`text-xs font-bold ${checkoutStep === 2 ? 'text-primary-700' : 'text-gray-400'}`}>
+                    Pagamento
+                  </span>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (checkoutStep === 1) {
+                handleProceedToPayment();
+              } else {
+                handleSubmit(e);
+              }
+            }}
+            className="p-6 md:p-8 space-y-6"
+          >
             
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center space-x-3 text-sm">
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center space-x-3 text-sm animate-in fade-in duration-200">
                 <AlertCircle className="h-5 w-5 flex-shrink-0 text-red-500" />
                 <span>{error}</span>
               </div>
             )}
 
-            {/* 1. Informações Pessoais */}
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="name" className="block text-sm font-semibold text-gray-800 mb-1.5">
-                  Nome <span className="text-red-500">*</span>
-                </label>
-                <input
-                  id="name"
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Seu nome completo"
-                  required
-                  className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition text-gray-900 placeholder-gray-400 shadow-sm"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="email" className="block text-sm font-semibold text-gray-800 mb-1.5">
-                  E-mail <span className="text-red-500">*</span>
-                </label>
-                <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="seu e-mail"
-                  required
-                  className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition text-gray-900 placeholder-gray-400 shadow-sm"
-                />
-              </div>
-
-              {/* Número de WhatsApp — apenas em checkouts normais, não para afiliados nem cursos */}
-              {!isAffiliateVerification && !isCoursePayment && (
-                <div>
-                  <label htmlFor="whatsapp" className="block text-sm font-semibold text-gray-800 mb-1.5">
-                    Número do WhatsApp <span className="text-red-500">*</span>
-                  </label>
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <select
-                      value={ddi}
-                      onChange={(e) => setDdi(e.target.value)}
-                      className="w-full sm:w-auto px-3 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none text-gray-900 font-semibold shadow-sm cursor-pointer"
-                    >
-                      <option value="+258">+258 (Moçambique)</option>
-                      <option value="+244">+244 (Angola)</option>
-                      <option value="+351">+351 (Portugal)</option>
-                      <option value="+55">+55 (Brasil)</option>
-                      <option value="+1">+1 (EUA)</option>
-                    </select>
-                    <input
-                      id="whatsapp"
-                      type="tel"
-                      value={whatsapp}
-                      onChange={(e) => setWhatsapp(e.target.value)}
-                      placeholder="Número sem DDI (ex: 84 123 4567)"
-                      required
-                      className="w-full sm:flex-1 px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition text-gray-900 placeholder-gray-400 shadow-sm"
-                    />
+            {/* ETAPA 1: Identificação Rápida */}
+            {checkoutStep === 1 && (
+              <div className="space-y-6 animate-in fade-in duration-300">
+                {/* Resumo Rápido do Item Selecionado */}
+                <div className="bg-gradient-to-r from-gray-50 via-primary-50/20 to-emerald-50/30 p-4 rounded-xl border border-gray-200/80 flex items-center justify-between shadow-xs">
+                  <div className="min-w-0 pr-3">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block">Item Selecionado</span>
+                    <span className="text-sm sm:text-base font-extrabold text-gray-900 block truncate">
+                      {isCoursePayment
+                        ? (courseNameParam || 'Curso WEHOSTHERE')
+                        : isAffiliateVerification
+                        ? 'Verificação de Afiliado'
+                        : domainParam
+                        ? `Domínio: ${domainParam}${selectedPlan ? ` + Plano ${selectedPlan.name}` : ''}`
+                        : selectedPlan
+                        ? `Plano ${selectedPlan.name}`
+                        : 'Serviço Web'}
+                    </span>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block">Total</span>
+                    <span className="text-base sm:text-lg font-black text-emerald-600">
+                      {(isCoursePayment ? courseAmountParam : (isAffiliateVerification ? verificationAmount : grandTotal)).toLocaleString('pt-MZ')} MT
+                    </span>
                   </div>
                 </div>
-              )}
-            </div>
 
-            {/* 2. Método de Pagamento */}
-            <div className="pt-4 border-t border-gray-200">
-              <label className="block text-sm font-semibold text-gray-800 mb-3">
-                Método de Pagamento
-              </label>
+                {/* Campos Pessoais */}
+                <div className="space-y-4">
+                  <div>
+                    <label htmlFor="name" className="block text-sm font-semibold text-gray-800 mb-1.5 flex items-center space-x-1.5">
+                      <User className="w-4 h-4 text-gray-500" />
+                      <span>Nome Completo <span className="text-red-500">*</span></span>
+                    </label>
+                    <input
+                      id="name"
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Ex: Manuel Silva"
+                      required
+                      className="w-full px-4 py-3.5 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition text-gray-900 placeholder-gray-400 shadow-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="email" className="block text-sm font-semibold text-gray-800 mb-1.5 flex items-center space-x-1.5">
+                      <Mail className="w-4 h-4 text-gray-500" />
+                      <span>E-mail <span className="text-red-500">*</span></span>
+                    </label>
+                    <input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="seu.email@exemplo.com"
+                      required
+                      className="w-full px-4 py-3.5 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition text-gray-900 placeholder-gray-400 shadow-xs"
+                    />
+                    <p className="text-[11px] text-gray-400 mt-1">Enviaremos os dados de acesso, confirmação e fatura para este e-mail.</p>
+                  </div>
+
+                  {/* Número de WhatsApp — apenas em checkouts normais */}
+                  {!isAffiliateVerification && !isCoursePayment && (
+                    <div>
+                      <label htmlFor="whatsapp" className="block text-sm font-semibold text-gray-800 mb-1.5 flex items-center space-x-1.5">
+                        <MessageCircle className="w-4 h-4 text-emerald-600" />
+                        <span>Número do WhatsApp <span className="text-red-500">*</span></span>
+                      </label>
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <select
+                          value={ddi}
+                          onChange={(e) => setDdi(e.target.value)}
+                          className="w-full sm:w-auto px-3 py-3.5 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none text-gray-900 font-semibold shadow-xs cursor-pointer"
+                        >
+                          <option value="+258">+258 (Moçambique)</option>
+                          <option value="+244">+244 (Angola)</option>
+                          <option value="+351">+351 (Portugal)</option>
+                          <option value="+55">+55 (Brasil)</option>
+                          <option value="+1">+1 (EUA)</option>
+                        </select>
+                        <input
+                          id="whatsapp"
+                          type="tel"
+                          value={whatsapp}
+                          onChange={(e) => setWhatsapp(e.target.value)}
+                          placeholder="Número sem DDI (ex: 84 123 4567)"
+                          required
+                          className="w-full sm:flex-1 px-4 py-3.5 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition text-gray-900 placeholder-gray-400 shadow-xs"
+                        />
+                      </div>
+                      <p className="text-[11px] text-gray-400 mt-1">Utilizado para suporte prioritário e avisos de ativação/renovação.</p>
+                    </div>
+                  )}
+
+                  {/* Se for verificação de afiliado, campo do telefone */}
+                  {isAffiliateVerification && (
+                    <div>
+                      <label htmlFor="affiliatePhone" className="block text-sm font-semibold text-gray-800 mb-1.5">
+                        Número de Telefone M-Pesa / eMola <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        id="affiliatePhone"
+                        type="tel"
+                        value={affiliatePhone}
+                        onChange={(e) => setAffiliatePhone(e.target.value)}
+                        placeholder="84 123 4567 ou 86 123 4567"
+                        required
+                        className="w-full px-4 py-3.5 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition text-gray-900 placeholder-gray-400 shadow-xs"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Vantagens / Garantias no Passo 1 */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2">
+                  <div className="flex items-center space-x-2 text-[11px] text-gray-600 bg-gray-50 p-2.5 rounded-lg border border-gray-100">
+                    <ShieldCheck className="h-4 w-4 text-emerald-600 shrink-0" />
+                    <span>Dados 100% Criptografados</span>
+                  </div>
+                  <div className="flex items-center space-x-2 text-[11px] text-gray-600 bg-gray-50 p-2.5 rounded-lg border border-gray-100">
+                    <Sparkles className="h-4 w-4 text-amber-500 shrink-0" />
+                    <span>Ativação Imediata</span>
+                  </div>
+                  <div className="flex items-center space-x-2 text-[11px] text-gray-600 bg-gray-50 p-2.5 rounded-lg border border-gray-100">
+                    <MessageCircle className="h-4 w-4 text-emerald-600 shrink-0" />
+                    <span>Suporte Local 24/7</span>
+                  </div>
+                </div>
+
+                {/* Botão de Avanço para a Etapa 2 */}
+                <button
+                  type="button"
+                  onClick={handleProceedToPayment}
+                  className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-extrabold text-base sm:text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer flex items-center justify-center space-x-2 hover:scale-[1.01]"
+                >
+                  <span>Continuar para Pagamento</span>
+                  <ArrowRight className="h-5 w-5" />
+                </button>
+
+                <div className="text-center">
+                  <Link
+                    href="/"
+                    className="inline-flex items-center text-xs font-semibold text-gray-500 hover:text-gray-800 transition"
+                  >
+                    <ArrowLeft className="w-3.5 h-3.5 mr-1" />
+                    <span>Voltar à página inicial</span>
+                  </Link>
+                </div>
+              </div>
+            )}
+
+            {/* ETAPA 2: Pagamento e Finalização */}
+            {checkoutStep === 2 && (
+              <div className="space-y-6 animate-in fade-in duration-300">
+                {/* Resumo dos Dados do Cliente com botão Editar */}
+                <div className="bg-emerald-50/70 border border-emerald-200/90 rounded-xl p-3.5 sm:p-4 flex items-center justify-between shadow-xs">
+                  <div className="flex items-center space-x-3 text-xs sm:text-sm min-w-0 pr-2">
+                    <div className="w-9 h-9 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold shrink-0">
+                      <User className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="font-extrabold text-gray-900 truncate">{name}</div>
+                      <div className="text-gray-600 text-xs flex items-center gap-1.5 flex-wrap truncate">
+                        <span className="truncate">{email}</span>
+                        {!isAffiliateVerification && !isCoursePayment && whatsapp && (
+                          <span className="shrink-0 font-medium">• {ddi} {whatsapp}</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCheckoutStep(1);
+                      if (typeof window !== 'undefined') window.scrollTo({ top: 120, behavior: 'smooth' });
+                    }}
+                    className="inline-flex items-center space-x-1 text-xs font-bold text-emerald-800 hover:text-emerald-950 bg-white hover:bg-emerald-100 border border-emerald-300 px-3 py-1.5 rounded-lg transition cursor-pointer shadow-xs shrink-0"
+                    title="Editar informações pessoais"
+                  >
+                    <Edit3 className="w-3.5 h-3.5" />
+                    <span>Editar</span>
+                  </button>
+                </div>
+
+                {/* 2. Método de Pagamento */}
+                <div className="pt-2">
+                  <label className="block text-sm font-semibold text-gray-800 mb-3">
+                    Método de Pagamento
+                  </label>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {/* M-Pesa Option */}
@@ -1842,22 +2098,43 @@ function CheckoutContent() {
               <span>Nós protegemos seus dados de pagamento com criptografia para garantir segurança em nível bancário.</span>
             </div>
 
-            {/* CTA Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              onClick={() => console.log('[Checkout] Botão de compra clicado')}
-              className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-xl transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
-            >
-              {loading ? (
-                <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  <span>Processando...</span>
-                </>
-              ) : (
-                <span>Comprar agora</span>
-              )}
-            </button>
+                {/* CTA Button */}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  onClick={() => console.log('[Checkout] Botão de compra clicado')}
+                  className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-extrabold text-base sm:text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 hover:scale-[1.01]"
+                >
+                  {loading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                      <span>Processando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Lock className="h-5 w-5" />
+                      <span>Finalizar Pagamento ({(isCoursePayment ? courseAmountParam : (isAffiliateVerification ? verificationAmount : grandTotal)).toLocaleString('pt-MZ')} MT)</span>
+                      <ArrowRight className="h-4 w-4" />
+                    </>
+                  )}
+                </button>
+
+                {/* Botão Secundário para Voltar ao Passo 1 */}
+                <div className="pt-1 text-center">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCheckoutStep(1);
+                      if (typeof window !== 'undefined') window.scrollTo({ top: 120, behavior: 'smooth' });
+                    }}
+                    className="inline-flex items-center text-xs font-semibold text-gray-500 hover:text-gray-900 transition cursor-pointer"
+                  >
+                    <ArrowLeft className="w-3.5 h-3.5 mr-1" />
+                    <span>Voltar para alterar dados do cliente</span>
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Suporte WhatsApp no Checkout */}
             <div className="pt-2 text-center">
