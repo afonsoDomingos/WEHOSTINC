@@ -26,7 +26,7 @@ export async function POST(req: Request) {
     try {
       const { sendPushToAdmins } = await import('@/lib/pushService');
       await sendPushToAdmins({
-        title: '📱 Pagamento M-Pesa',
+        title: '💰 Pagamento M-Pesa',
         message: `${clientName || 'Um cliente'} (${msisdn}) iniciou pagamento de ${amount} MZN para "${serviceName || 'Serviço'}".`,
         url: '/admin?tab=orders',
         tag: `mpesa-payment-${orderId}`

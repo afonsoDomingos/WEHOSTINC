@@ -24,7 +24,7 @@ export async function POST(req: Request) {
     try {
       const { sendPushToAdmins } = await import('@/lib/pushService');
       await sendPushToAdmins({
-        title: '💳 Pagamento Kivora',
+        title: '💰 Pagamento Kivora',
         message: `${cust.name || clientName || 'Um cliente'} (${phone}) iniciou pagamento de ${amount} MZN para "${serviceName || description || 'Serviço'}".`,
         url: '/admin?tab=orders',
         tag: `kivora-payment-${paymentRef}`
