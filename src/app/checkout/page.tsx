@@ -117,48 +117,39 @@ function CheckoutContent() {
   const [error, setError] = useState('');
   const [checkoutStep, setCheckoutStep] = useState<1 | 2>(1);
   const [summaryOpen, setSummaryOpen] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [shakeBtn, setShakeBtn] = useState(false);
 
   const handleProceedToPayment = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setError('');
+    const errors: Record<string, string> = {};
 
-    // Validação específica para verificação de afiliado
     if (isAffiliateVerification) {
-      if (!name.trim()) {
-        setError(t.nameRequired || 'Por favor, insira o seu nome completo.');
-        return;
-      }
-      if (!email.trim() || !email.includes('@')) {
-        setError(t.emailRequired || 'Por favor, insira um e-mail válido.');
-        return;
-      }
-      if (!affiliatePhone.trim()) {
-        setError(t.affiliatePhoneRequired || 'Por favor, informe o seu número para comissões.');
+      if (!name.trim()) errors.name = t.nameRequired || 'Nome completo é obrigatório.';
+      if (!email.trim() || !email.includes('@')) errors.email = t.emailRequired || 'E-mail válido é obrigatório.';
+      if (!affiliatePhone.trim()) errors.affiliatePhone = t.affiliatePhoneRequired || 'Número de telefone é obrigatório.';
+      if (Object.keys(errors).length > 0) {
+        setFieldErrors(errors);
+        setShakeBtn(true);
+        setTimeout(() => setShakeBtn(false), 600);
         return;
       }
       setPhonePayment(affiliatePhone);
     } else {
-      if (!name.trim()) {
-        setError(t.nameRequired || 'Por favor, insira o seu nome completo.');
-        analytics.trackFormError('name', 'Name required');
+      if (!name.trim()) { errors.name = t.nameRequired || 'Nome completo é obrigatório.'; analytics.trackFormError('name', 'Name required'); }
+      if (!email.trim() || !email.includes('@')) { errors.email = t.emailRequired || 'E-mail válido é obrigatório.'; analytics.trackFormError('email', 'Invalid email'); }
+      if (!isCoursePayment && !isAffiliateVerification && !whatsapp.trim()) { errors.whatsapp = t.whatsappRequired || 'Número de WhatsApp é obrigatório.'; analytics.trackFormError('whatsapp', 'WhatsApp required'); }
+      if (Object.keys(errors).length > 0) {
+        setFieldErrors(errors);
+        setShakeBtn(true);
+        setTimeout(() => setShakeBtn(false), 600);
         return;
       }
-      if (!email.trim() || !email.includes('@')) {
-        setError(t.emailRequired || 'Por favor, insira um e-mail válido.');
-        analytics.trackFormError('email', 'Invalid email');
-        return;
-      }
-      if (!isCoursePayment && !isAffiliateVerification && !whatsapp.trim()) {
-        setError(t.whatsappRequired || 'Por favor, insira o seu número de WhatsApp.');
-        analytics.trackFormError('whatsapp', 'WhatsApp required');
-        return;
-      }
-      // Pré-preencher o número de pagamento se ainda estiver vazio
-      if (!phonePayment && whatsapp.trim()) {
-        setPhonePayment(whatsapp.trim());
-      }
+      if (!phonePayment && whatsapp.trim()) setPhonePayment(whatsapp.trim());
     }
 
+    setFieldErrors({});
     setCheckoutStep(2);
     if (typeof window !== 'undefined') {
       window.scrollTo({ top: 120, behavior: 'smooth' });
@@ -1502,50 +1493,75 @@ function CheckoutContent() {
                 {/* Campos Pessoais */}
                 <div className="space-y-2.5">
                   <div>
-                    <label htmlFor="name" className="block text-xs sm:text-sm font-semibold text-gray-800 mb-1 flex items-center space-x-1.5">
-                      <User className="w-3.5 h-3.5 text-gray-500" />
+                    <label htmlFor="name" className={`block text-xs sm:text-sm font-semibold mb-1 flex items-center space-x-1.5 ${fieldErrors.name ? 'text-red-600' : 'text-gray-800'}`}>
+                      <User className={`w-3.5 h-3.5 ${fieldErrors.name ? 'text-red-400' : 'text-gray-500'}`} />
                       <span>Nome Completo <span className="text-red-500">*</span></span>
                     </label>
                     <input
                       id="name"
                       type="text"
                       value={name}
-                      onChange={(e) => setName(e.target.value)}
+                      onChange={(e) => { setName(e.target.value); if (fieldErrors.name) setFieldErrors(prev => ({ ...prev, name: '' })); }}
                       placeholder="Ex: Manuel Silva"
                       required
-                      className="w-full px-3 py-2 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition text-gray-900 placeholder-gray-400 text-sm shadow-xs"
+                      className={`w-full px-3 py-2 border rounded-xl outline-none transition text-gray-900 placeholder-gray-400 text-sm shadow-xs ${
+                        fieldErrors.name
+                          ? 'border-red-400 bg-red-50/60 ring-2 ring-red-200 focus:ring-red-400 focus:border-red-400'
+                          : 'border-gray-300 bg-white focus:ring-2 focus:ring-primary-500 focus:border-transparent'
+                      }`}
                     />
+                    {fieldErrors.name && (
+                      <p className="text-[11px] text-red-500 mt-1 flex items-center gap-1">
+                        <svg className="w-3 h-3 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
+                        {fieldErrors.name}
+                      </p>
+                    )}
                   </div>
 
                   <div>
-                    <label htmlFor="email" className="block text-xs sm:text-sm font-semibold text-gray-800 mb-1 flex items-center space-x-1.5">
-                      <Mail className="w-3.5 h-3.5 text-gray-500" />
+                    <label htmlFor="email" className={`block text-xs sm:text-sm font-semibold mb-1 flex items-center space-x-1.5 ${fieldErrors.email ? 'text-red-600' : 'text-gray-800'}`}>
+                      <Mail className={`w-3.5 h-3.5 ${fieldErrors.email ? 'text-red-400' : 'text-gray-500'}`} />
                       <span>E-mail <span className="text-red-500">*</span></span>
                     </label>
                     <input
                       id="email"
                       type="email"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={(e) => { setEmail(e.target.value); if (fieldErrors.email) setFieldErrors(prev => ({ ...prev, email: '' })); }}
                       placeholder="seu.email@exemplo.com"
                       required
-                      className="w-full px-3 py-2 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition text-gray-900 placeholder-gray-400 text-sm shadow-xs"
+                      className={`w-full px-3 py-2 border rounded-xl outline-none transition text-gray-900 placeholder-gray-400 text-sm shadow-xs ${
+                        fieldErrors.email
+                          ? 'border-red-400 bg-red-50/60 ring-2 ring-red-200 focus:ring-red-400 focus:border-red-400'
+                          : 'border-gray-300 bg-white focus:ring-2 focus:ring-primary-500 focus:border-transparent'
+                      }`}
                     />
-                    <p className="text-[10px] sm:text-[11px] text-gray-400 mt-0.5">Enviaremos os dados de acesso e fatura para este e-mail.</p>
+                    {fieldErrors.email ? (
+                      <p className="text-[11px] text-red-500 mt-1 flex items-center gap-1">
+                        <svg className="w-3 h-3 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
+                        {fieldErrors.email}
+                      </p>
+                    ) : (
+                      <p className="text-[10px] sm:text-[11px] text-gray-400 mt-0.5">Enviaremos os dados de acesso e fatura para este e-mail.</p>
+                    )}
                   </div>
 
                   {/* Número de WhatsApp — apenas em checkouts normais */}
                   {!isAffiliateVerification && !isCoursePayment && (
                     <div>
-                      <label htmlFor="whatsapp" className="block text-xs sm:text-sm font-semibold text-gray-800 mb-1 flex items-center space-x-1.5">
-                        <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
+                      <label htmlFor="whatsapp" className={`block text-xs sm:text-sm font-semibold mb-1 flex items-center space-x-1.5 ${fieldErrors.whatsapp ? 'text-red-600' : 'text-gray-800'}`}>
+                        <MessageCircle className={`w-3.5 h-3.5 ${fieldErrors.whatsapp ? 'text-red-400' : 'text-emerald-600'}`} />
                         <span>Número do WhatsApp <span className="text-red-500">*</span></span>
                       </label>
                       <div className="flex flex-col sm:flex-row gap-2">
                         <select
                           value={ddi}
                           onChange={(e) => setDdi(e.target.value)}
-                          className="w-full sm:w-auto px-3 py-2.5 sm:py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none text-gray-900 font-semibold text-sm shadow-xs cursor-pointer"
+                          className={`w-full sm:w-auto px-3 py-2 border rounded-xl outline-none text-gray-900 font-semibold text-sm shadow-xs cursor-pointer ${
+                            fieldErrors.whatsapp
+                              ? 'border-red-400 bg-red-50/60 ring-2 ring-red-200'
+                              : 'border-gray-300 bg-white focus:ring-2 focus:ring-primary-500'
+                          }`}
                         >
                           <option value="+258">+258 (Moçambique)</option>
                           <option value="+244">+244 (Angola)</option>
@@ -1557,31 +1573,52 @@ function CheckoutContent() {
                           id="whatsapp"
                           type="tel"
                           value={whatsapp}
-                          onChange={(e) => setWhatsapp(e.target.value)}
+                          onChange={(e) => { setWhatsapp(e.target.value); if (fieldErrors.whatsapp) setFieldErrors(prev => ({ ...prev, whatsapp: '' })); }}
                           placeholder="Número sem DDI (ex: 84 123 4567)"
                           required
-                          className="w-full sm:flex-1 px-3 py-2 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition text-gray-900 placeholder-gray-400 text-sm shadow-xs"
+                          className={`w-full sm:flex-1 px-3 py-2 border rounded-xl outline-none transition text-gray-900 placeholder-gray-400 text-sm shadow-xs ${
+                            fieldErrors.whatsapp
+                              ? 'border-red-400 bg-red-50/60 ring-2 ring-red-200 focus:ring-red-400 focus:border-red-400'
+                              : 'border-gray-300 bg-white focus:ring-2 focus:ring-primary-500 focus:border-transparent'
+                          }`}
                         />
                       </div>
-                      <p className="text-[10px] sm:text-[11px] text-gray-400 mt-0.5">Utilizado para suporte prioritário e avisos de ativação/renovação.</p>
+                      {fieldErrors.whatsapp ? (
+                        <p className="text-[11px] text-red-500 mt-1 flex items-center gap-1">
+                          <svg className="w-3 h-3 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
+                          {fieldErrors.whatsapp}
+                        </p>
+                      ) : (
+                        <p className="text-[10px] sm:text-[11px] text-gray-400 mt-0.5">Utilizado para suporte prioritário e avisos de ativação/renovação.</p>
+                      )}
                     </div>
                   )}
 
                   {/* Se for verificação de afiliado, campo do telefone */}
                   {isAffiliateVerification && (
                     <div>
-                      <label htmlFor="affiliatePhone" className="block text-xs sm:text-sm font-semibold text-gray-800 mb-1">
+                      <label htmlFor="affiliatePhone" className={`block text-xs sm:text-sm font-semibold mb-1 ${fieldErrors.affiliatePhone ? 'text-red-600' : 'text-gray-800'}`}>
                         Número de Telefone M-Pesa / eMola <span className="text-red-500">*</span>
                       </label>
                       <input
                         id="affiliatePhone"
                         type="tel"
                         value={affiliatePhone}
-                        onChange={(e) => setAffiliatePhone(e.target.value)}
+                        onChange={(e) => { setAffiliatePhone(e.target.value); if (fieldErrors.affiliatePhone) setFieldErrors(prev => ({ ...prev, affiliatePhone: '' })); }}
                         placeholder="84 123 4567 ou 86 123 4567"
                         required
-                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition text-gray-900 placeholder-gray-400 text-sm shadow-xs"
+                        className={`w-full px-3 py-2 border rounded-xl outline-none transition text-gray-900 placeholder-gray-400 text-sm shadow-xs ${
+                          fieldErrors.affiliatePhone
+                            ? 'border-red-400 bg-red-50/60 ring-2 ring-red-200 focus:ring-red-400 focus:border-red-400'
+                            : 'border-gray-300 bg-white focus:ring-2 focus:ring-primary-500 focus:border-transparent'
+                        }`}
                       />
+                      {fieldErrors.affiliatePhone && (
+                        <p className="text-[11px] text-red-500 mt-1 flex items-center gap-1">
+                          <svg className="w-3 h-3 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
+                          {fieldErrors.affiliatePhone}
+                        </p>
+                      )}
                     </div>
                   )}
                 </div>
@@ -1606,7 +1643,10 @@ function CheckoutContent() {
                 <button
                   type="button"
                   onClick={handleProceedToPayment}
-                  className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-extrabold text-sm rounded-xl shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer flex items-center justify-center space-x-2 hover:scale-[1.01]"
+                  className={`w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-extrabold text-sm rounded-xl shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer flex items-center justify-center space-x-2 hover:scale-[1.01] ${
+                    shakeBtn ? 'animate-[shake_0.5s_ease]' : ''
+                  }`}
+                  style={shakeBtn ? { animation: 'shake 0.5s ease' } : {}}
                 >
                   <span>Continuar para Pagamento</span>
                   <ArrowRight className="h-4 w-4" />
