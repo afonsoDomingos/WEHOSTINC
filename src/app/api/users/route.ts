@@ -797,6 +797,19 @@ export async function POST(req: Request) {
             link: '/admin?tab=users'
           });
 
+          // 🔔 Push imediato para o telemóvel dos administradores
+          try {
+            const { sendPushToAdmins } = await import('@/lib/pushService');
+            await sendPushToAdmins({
+              title: '👤 Nova Conta Criada',
+              message: `${userData.name || 'Novo utilizador'} (${userData.email}) acabou de criar conta na WEHOSTHERE.`,
+              url: '/admin?tab=users',
+              tag: `user-signup-${userData.email}`
+            });
+          } catch (pushErr) {
+            console.warn('[Users API] Falha não impeditiva ao disparar push de novo utilizador:', pushErr);
+          }
+
           // Enviar e-mail de boas-vindas ao cliente
           dispatchMessage({
             recipientEmail: userData.email,
@@ -926,6 +939,19 @@ export async function POST(req: Request) {
         userName: userData.name,
         link: '/admin?tab=users'
       });
+
+      // 🔔 Push imediato para o telemóvel dos administradores (fallback)
+      try {
+        const { sendPushToAdmins } = await import('@/lib/pushService');
+        await sendPushToAdmins({
+          title: '👤 Nova Conta Criada',
+          message: `${userData.name || 'Novo utilizador'} (${userData.email}) acabou de criar conta na WEHOSTHERE.`,
+          url: '/admin?tab=users',
+          tag: `user-signup-${userData.email}`
+        });
+      } catch (pushErr) {
+        console.warn('[Users API Fallback] Falha não impeditiva ao disparar push de novo utilizador:', pushErr);
+      }
 
       dispatchMessage({
         recipientEmail: userData.email,
