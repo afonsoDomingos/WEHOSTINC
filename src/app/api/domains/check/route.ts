@@ -145,6 +145,21 @@ function fireNotificationsAsync(
         console.warn('[DomainSearchLog] Falha na notificação admin:', notifErr);
       }
 
+      // 🔔 Push para telemóvel do admin (apenas se domínio disponível = intenção de compra)
+      if (isAvailable) {
+        try {
+          const { sendPushToAdmins } = await import('@/lib/pushService');
+          await sendPushToAdmins({
+            title: `🔍 Domínio Pesquisado: ${fullDomain}`,
+            message: `${userEmail ? userEmail : `Visitante (${ip})`} pesquisou "${fullDomain}" — DOMÍNIO DISPONÍVEL por ${price ? `${price.toLocaleString('pt-MZ')} MT/ano` : 'preço a definir'}.`,
+            url: '/admin/domain-search-logs',
+            tag: `domain-search-${fullDomain}`
+          });
+        } catch (pushErr) {
+          console.warn('[DomainSearchLog] Falha não impeditiva ao disparar push:', pushErr);
+        }
+      }
+
       // E-mail de alerta aos administradores
       const recipientEmails = new Set<string>();
       try {

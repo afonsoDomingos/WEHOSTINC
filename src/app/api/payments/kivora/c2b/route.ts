@@ -74,6 +74,19 @@ export async function POST(req: Request) {
       } catch (dbErr) {
         console.error('[KIVORA API] Erro ao gravar pedido no MongoDB:', dbErr);
       }
+
+      // 🔔 Push imediato: tentativa de compra iniciada
+      try {
+        const { sendPushToAdmins } = await import('@/lib/pushService');
+        await sendPushToAdmins({
+          title: '🛒 Tentativa de Compra',
+          message: `${cust.name || clientName || 'Um cliente'} iniciou pagamento M-Pesa de ${amount} MZN para "${serviceName || description || 'Serviço'}".`,
+          url: '/admin?tab=orders',
+          tag: `purchase-attempt-${result.id}`
+        });
+      } catch (pushErr) {
+        console.warn('[KIVORA API] Falha não impeditiva ao disparar push:', pushErr);
+      }
     }
 
     return NextResponse.json(result);

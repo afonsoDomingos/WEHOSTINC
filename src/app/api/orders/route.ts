@@ -314,6 +314,21 @@ export async function POST(req: Request) {
           link: '/admin?tab=orders'
         });
 
+        // 🔔 Push imediato para admins no telemóvel
+        (async () => {
+          try {
+            const { sendPushToAdmins } = await import('@/lib/pushService');
+            await sendPushToAdmins({
+              title: `📦 Novo Pedido: ${orderData.serviceName || 'Serviço'}`,
+              message: `${orderData.clientName || orderData.clientEmail || 'Cliente'} fez um pedido de ${(orderData.valorPorFaturar || orderData.amount || 0).toLocaleString('pt-MZ')} MT.`,
+              url: '/admin?tab=orders',
+              tag: `new-order-${orderData.id}`
+            });
+          } catch (pushErr) {
+            console.warn('[Orders API] Falha não impeditiva ao disparar push:', pushErr);
+          }
+        })();
+
         // Enviar e-mail ao cliente
         dispatchMessage({
           recipientEmail: orderData.clientEmail || orderData.userEmail || '',

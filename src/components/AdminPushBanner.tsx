@@ -153,10 +153,10 @@ export default function AdminPushBanner() {
           <button
             onClick={handleActivate}
             disabled={loading}
-            className="px-4 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs sm:text-sm shadow-lg shadow-blue-500/30 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+            className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-[11px] shadow-md shadow-blue-500/30 transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
           >
-            <Bell className="w-4 h-4" />
-            <span>{loading ? 'A autorizar...' : 'Ativar no Telemóvel Agora'}</span>
+            <Bell className="w-3.5 h-3.5" />
+            <span>{loading ? 'A autorizar...' : 'Ativar Alertas'}</span>
           </button>
 
           <button
