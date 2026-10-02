@@ -1558,6 +1558,14 @@ export default function AdminPage() {
               </Link>
 
               <Link
+                href="/admin/faturas"
+                className="flex items-center space-x-1.5 text-gray-600 hover:text-orange-600 font-medium transition text-[10px] sm:text-xs sm:text-sm shrink-0 whitespace-nowrap px-2 py-1.5 rounded-lg hover:bg-orange-50/70"
+              >
+                <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-orange-500" />
+                <span>Faturas</span>
+              </Link>
+
+              <Link
                 href="/admin/academy"
                 className="flex items-center space-x-1.5 text-gray-600 hover:text-indigo-600 font-medium transition text-[10px] sm:text-xs sm:text-sm shrink-0 whitespace-nowrap px-2 py-1.5 rounded-lg hover:bg-indigo-50/70"
               >
