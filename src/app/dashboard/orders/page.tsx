@@ -7,7 +7,7 @@ import { useSession } from 'next-auth/react';
 import { 
   ShoppingBag, Clock, CheckCircle, XCircle, AlertCircle, 
   LayoutDashboard, Globe, Mail, Database, Settings as SettingsIcon, 
-  LogOut, FileText, Download, ExternalLink
+  LogOut, FileText, Download, ExternalLink, CreditCard
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 import { dataManager, ServiceOrder } from '@/lib/data';
@@ -245,12 +245,25 @@ export default function OrdersPage() {
                       </div>
 
                       {order.status === 'pending' && (
-                        <div className="mt-1 sm:mt-1.5 sm:mt-2 md:mt-3 p-1 sm:p-1.5 sm:p-2 md:p-2.5 lg:p-3 bg-amber-50 border border-amber-200 rounded-lg text-[7px] sm:text-[8px] sm:text-[9px] md:text-[10px] lg:text-xs text-amber-800 flex items-center gap-0.5 sm:gap-1 sm:gap-1.5 md:gap-2">
-                          <Clock className="h-2 w-2 sm:h-2.5 sm:w-2.5 md:h-3 md:w-3.5 lg:h-4 lg:w-4 text-amber-600 flex-shrink-0 animate-pulse" />
-                          <span className="line-clamp-2 sm:line-clamp-1">
-                            <strong>Pagamento Pendente:</strong> O seu pedido está aguardando confirmação do pagamento.
-                          </span>
-                        </div>
+                        <>
+                          <div className="mt-1 sm:mt-1.5 sm:mt-2 md:mt-3 p-1 sm:p-1.5 sm:p-2 md:p-2.5 lg:p-3 bg-amber-50 border border-amber-200 rounded-lg text-[7px] sm:text-[8px] sm:text-[9px] md:text-[10px] lg:text-xs text-amber-800 flex items-center gap-0.5 sm:gap-1 sm:gap-1.5 md:gap-2">
+                            <Clock className="h-2 w-2 sm:h-2.5 sm:w-2.5 md:h-3 md:w-3.5 lg:h-4 lg:w-4 text-amber-600 flex-shrink-0 animate-pulse" />
+                            <span className="line-clamp-2 sm:line-clamp-1">
+                              <strong>Pagamento Pendente:</strong> O seu pedido está aguardando confirmação do pagamento.
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => {
+                              const params = new URLSearchParams();
+                              params.set('continuePayment', order.id);
+                              router.push(`/checkout?${params.toString()}`);
+                            }}
+                            className="mt-1 sm:mt-1.5 sm:mt-2 md:mt-3 w-full py-1 sm:py-1.5 sm:py-2 md:py-2.5 lg:py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold text-[8px] sm:text-[9px] sm:text-[10px] md:text-xs lg:text-sm rounded-lg sm:rounded-xl transition flex items-center justify-center space-x-0.5 sm:space-x-1 sm:space-x-1.5 md:gap-2 cursor-pointer shadow-sm"
+                          >
+                            <CreditCard className="h-2 w-2 sm:h-2.5 sm:w-2.5 md:h-3 md:w-3.5 lg:h-4 lg:w-4" />
+                            <span>Continuar Pagamento</span>
+                          </button>
+                        </>
                       )}
 
                       {order.status === 'in_progress' && (

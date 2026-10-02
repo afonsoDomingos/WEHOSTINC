@@ -171,6 +171,29 @@ Equipa {{nome_empresa}}`,
     createdAt: new Date().toISOString()
   },
   {
+    id: 'order-pending',
+    name: 'Encomenda recebida (pagamento pendente)',
+    category: 'Pedidos',
+    subject: '📦 Encomenda Recebida - {{nome_empresa}}',
+    body: `Olá {{nome_cliente}},
+
+Recebemos a sua encomenda {{orderRef}} com sucesso!
+
+Detalhes da Encomenda:
+• Referência: {{orderRef}}
+• Serviço: {{plan}}
+• Valor a Pagar: {{valor}} MT
+• Estado: Pagamento Pendente
+
+Para ativar o seu serviço, por favor conclua o pagamento. Pode fazê-lo através do seu painel de cliente ou clicando no botão "Continuar para Pagamento" na página de confirmação.
+
+Atenciosamente,
+Equipa {{nome_empresa}}`,
+    channel: 'email',
+    isSystem: true,
+    createdAt: new Date().toISOString()
+  },
+  {
     id: 'payment-confirmed',
     name: 'Pagamento confirmado',
     category: 'Pagamentos',

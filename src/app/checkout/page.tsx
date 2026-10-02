@@ -7,7 +7,7 @@ import {
   Server, ShieldCheck, Lock, Check, CreditCard, 
   Smartphone, Bitcoin, ArrowLeft, CheckCircle2, AlertCircle, RefreshCw,
   Landmark, Paperclip, FileText, Image as ImageIcon, Upload, Loader2, Lock as LockIcon,
-  Globe, MessageCircle, Copy, ArrowRight, User, Mail, Edit3, Sparkles
+  Globe, MessageCircle, Copy, ArrowRight, User, Mail, Edit3, Sparkles, Clock
 } from 'lucide-react';
 import { hostingPlans, HostingPlan, dataManager } from '@/lib/data';
 import { auth } from '@/lib/auth';
@@ -45,6 +45,9 @@ function CheckoutContent() {
   const isCoursePayment = serviceParam === 'course';
   const courseNameParam = searchParams.get('name');
   const courseAmountParam = Number(searchParams.get('amount')) || 500;
+
+  // Parâmetro para continuar pagamento de encomenda existente
+  const continuePaymentParam = searchParams.get('continuePayment');
 
   const domainCost = domainParam 
     ? (domainPriceParam ? Number(domainPriceParam) : getDomainPrice(sanitizeDomainName(domainParam).extension))
@@ -119,6 +122,7 @@ function CheckoutContent() {
   const [summaryOpen, setSummaryOpen] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [shakeBtn, setShakeBtn] = useState(false);
+  const [orderWithoutPayment, setOrderWithoutPayment] = useState(false);
 
   const handleProceedToPayment = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -223,6 +227,35 @@ function CheckoutContent() {
       });
     }
   }, [analytics, domainParam, grandTotal, isAffiliateVerification, isCoursePayment, selectedPlan, siteTypeName, durationMonths]);
+
+  // Carregar dados de encomenda existente se continuePayment estiver presente
+  useEffect(() => {
+    if (continuePaymentParam) {
+      const loadExistingOrder = async () => {
+        try {
+          const response = await fetch(apiEndpoint(`/api/orders?orderId=${continuePaymentParam}`));
+          const data = await response.json();
+          
+          if (data.success && data.order) {
+            const order = data.order;
+            setName(order.clientName || '');
+            setEmail(order.clientEmail || '');
+            setPhonePayment(order.clientPhone || '');
+            setWhatsapp(order.clientPhone || '');
+            
+            // Mostrar notificação de que estamos continuando o pagamento
+            setError(`Continuando pagamento da encomenda ${order.id}. Complete o processo de pagamento para ativar o serviço.`);
+            
+            setTimeout(() => setError(''), 5000);
+          }
+        } catch (err) {
+          console.error('[Checkout] Erro ao carregar encomenda existente:', err);
+        }
+      };
+      
+      loadExistingOrder();
+    }
+  }, [continuePaymentParam]);
 
   // Facebook Pixel tracking
   useEffect(() => {
@@ -604,9 +637,12 @@ function CheckoutContent() {
 
       const orderId = `ORD-${Date.now().toString().slice(-5)}`;
       // 🔒 SEGURANÇA: Se confirmado pelo webhook, usar 'completed', senão usar status apropriado
-      const orderStatus = paymentAlreadyConfirmed 
-        ? 'completed'
-        : (paymentMethod === 'bank_transfer' || paymentMethod === 'card' || (selectedPlan && selectedPlan.id === 'website_creation')) ? 'in_progress' : 'pending';
+      // Se orderWithoutPayment é true, usar 'pending' (encomenda sem pagamento)
+      const orderStatus = orderWithoutPayment
+        ? 'pending'
+        : (paymentAlreadyConfirmed 
+          ? 'completed'
+          : (paymentMethod === 'bank_transfer' || paymentMethod === 'card' || (selectedPlan && selectedPlan.id === 'website_creation')) ? 'in_progress' : 'pending');
       
       // Salvar orderId e reference para polling
       setCurrentOrderId(orderId);
@@ -664,6 +700,18 @@ function CheckoutContent() {
         reference: paymentReference // Usar a mesma referência gerada antes do pagamento
       });
 
+      // Cadastra o domínio na lista de sites do cliente associado ao e-mail com status 'pending'
+      if (domainParam) {
+        await dataManager.addSiteAsync({
+          name: domainParam,
+          domain: domainParam,
+          status: 'pending',
+          storage: selectedPlan ? selectedPlan.features.storage : 10,
+          bandwidth: 100,
+          userEmail: email.trim().toLowerCase()
+        });
+      }
+
       setCurrentOrderData({
         id: orderId,
         clientName: name,
@@ -678,90 +726,63 @@ function CheckoutContent() {
         createdAt: new Date().toISOString()
       });
 
-      // Cadastra o domínio na lista de sites do cliente associado ao e-mail com status 'pending'
-      if (domainParam) {
-        await dataManager.addSiteAsync({
-          name: domainParam,
-          domain: domainParam,
-          status: 'pending',
-          storage: selectedPlan ? selectedPlan.features.storage : 10,
-          bandwidth: 100,
-          userEmail: email.trim().toLowerCase()
-        });
-      }
-      try {
-        const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL || 'info@wehosthere.com';
-        const subject = `🛒 Novo Pedido: ${name} - ${serviceName}`;
-        const message = `Olá Administrador,\n\nNovo pedido recebido:\n\n• Cliente: ${name} (${email})\n• Telefone: ${ddi} ${phonePayment || whatsapp}\n• Serviço: ${serviceName}\n• Valor: ${grandTotal.toLocaleString('pt-MZ')} MZN\n• Método: ${paymentMethod}\n• Status: ${orderStatus}\n• Referência: ${paymentReference}\n• Data: ${new Date().toLocaleString('pt-MZ')}\n\nVerifique o pedido no painel admin.\nEquipe WEHOSTHERE`;
+      const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL || 'info@wehosthere.com';
+      const subject = `🛒 Novo Pedido: ${name} - ${serviceName}`;
+      const message = `Olá Administrador,\n\nNovo pedido recebido:\n\n• Cliente: ${name} (${email})\n• Telefone: ${ddi} ${phonePayment || whatsapp}\n• Serviço: ${serviceName}\n• Valor: ${grandTotal.toLocaleString('pt-MZ')} MZN\n• Método: ${paymentMethod}\n• Status: ${orderStatus}\n• Referência: ${paymentReference}\n• Data: ${new Date().toLocaleString('pt-MZ')}\n\nVerifique o pedido no painel admin.\nEquipe WEHOSTHERE`;
 
+      fetch(apiEndpoint('/api/send-email'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: adminEmail,
+          subject,
+          text: message
+        })
+      }).catch(err => console.error('[Checkout] Erro ao notificar admin:', err));
+
+      // Se o pedido for de curso, enviar e-mail de confirmação de curso ao aluno
+      if (serviceParam === 'course' || serviceName.toLowerCase().includes('curso')) {
         fetch(apiEndpoint('/api/send-email'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            to: adminEmail,
-            subject,
-            text: message
+            type: 'course_purchase',
+            to: email,
+            userName: name,
+            courseTitle: serviceName,
+            amount: grandTotal
           })
-        }).catch(err => console.error('[Checkout] Erro ao notificar admin:', err));
-
-        // Se o pedido for de curso, enviar e-mail de confirmação de curso ao aluno
-        if (serviceParam === 'course' || serviceName.toLowerCase().includes('curso')) {
-          fetch(apiEndpoint('/api/send-email'), {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              type: 'course_purchase',
-              to: email,
-              userName: name,
-              courseTitle: serviceName,
-              amount: grandTotal
-            })
-          }).catch(err => console.error('[Checkout] Erro ao enviar email de curso:', err));
-        }
-
-        // Se o pagamento foi concluído, enviar e-mail com fatura oficial para o cliente
-        if (orderStatus === 'completed') {
-          fetch(apiEndpoint('/api/send-email'), {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              type: 'invoice',
-              to: email,
-              userName: name,
-              invoiceRef: paymentReference,
-              amount: grandTotal,
-              plan: serviceName
-            })
-          }).catch(err => console.error('[Checkout] Erro ao enviar fatura ao cliente:', err));
-        }
-      } catch (err) {
-        console.error('[Checkout] Erro ao preparar notificação admin:', err);
+        }).catch(err => console.error('[Checkout] Erro ao enviar email de curso:', err));
       }
 
-      setCurrentOrderData({
-        id: orderId,
-        clientName: name,
-        clientEmail: email,
-        clientPhone: `${ddi} ${phonePayment || whatsapp}`,
-        serviceName,
-        amount: grandTotal,
-        valorFaturado: 0,
-        valorPorFaturar: grandTotal,
-        paymentMethod: paymentMethod,
-        status: orderStatus,
-        createdAt: new Date().toISOString()
-      });
-
-      // Cadastra o domínio na lista de sites do cliente associado ao e-mail com status 'pending'
-      if (domainParam) {
-        await dataManager.addSiteAsync({
-          name: domainParam,
-          domain: domainParam,
-          status: 'pending',
-          storage: selectedPlan ? selectedPlan.features.storage : 10,
-          bandwidth: 100,
-          userEmail: email.trim().toLowerCase()
-        });
+      // Se o pagamento foi concluído, enviar e-mail com fatura oficial para o cliente
+      if (orderStatus === 'completed') {
+        fetch(apiEndpoint('/api/send-email'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'invoice',
+            to: email,
+            userName: name,
+            invoiceRef: paymentReference,
+            amount: grandTotal,
+            plan: serviceName
+          })
+        }).catch(err => console.error('[Checkout] Erro ao enviar fatura ao cliente:', err));
+      } else if (orderWithoutPayment) {
+        // Se é encomenda sem pagamento, enviar email de encomenda pendente
+        fetch(apiEndpoint('/api/send-email'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'order-pending',
+            to: email,
+            userName: name,
+            orderRef: orderId,
+            amount: grandTotal,
+            plan: serviceName
+          })
+        }).catch(err => console.error('[Checkout] Erro ao enviar email de encomenda pendente:', err));
       }
 
       setPushModal(false);
@@ -778,7 +799,11 @@ function CheckoutContent() {
         transaction_id: orderId
       });
       
-      setSuccess(true);
+      // 🔒 Apenas definir success se não for encomenda sem pagamento
+      // O handleOrderWithoutPayment vai definir success separadamente
+      if (!orderWithoutPayment) {
+        setSuccess(true);
+      }
 
       // Se for verificação de afiliado, redirecionar para dashboard de afiliados após sucesso
       if (isAffiliateVerification) {
@@ -841,6 +866,75 @@ function CheckoutContent() {
       setLoading(false);
       soundEffects.playPaymentErrorSound();
       setError(err instanceof Error ? err.message : 'Erro ao processar o pagamento.');
+    }
+  };
+
+  const handleOrderWithoutPayment = async () => {
+    setError('');
+    setOrderWithoutPayment(true);
+
+    // Validação específica para verificação de afiliado
+    if (isAffiliateVerification) {
+      if (!affiliatePhone.trim()) {
+        setError(t.affiliatePhoneRequired);
+        setOrderWithoutPayment(false);
+        return;
+      }
+      
+      // Usar o número digitado pelo usuário
+      setPhonePayment(affiliatePhone);
+      console.log('[Checkout] Usando número digitado pelo afiliado:', affiliatePhone);
+    } else {
+      // Validações normais para checkout de serviços
+      if (!name.trim()) {
+        setError(t.nameRequired);
+        analytics.trackFormError('name', 'Name required');
+        setOrderWithoutPayment(false);
+        return;
+      }
+      if (!email.trim() || !email.includes('@')) {
+        setError(t.emailRequired);
+        analytics.trackFormError('email', 'Invalid email');
+        setOrderWithoutPayment(false);
+        return;
+      }
+      // WhatsApp não é obrigatório para pagamento de cursos nem para verificação de afiliado
+      if (!isCoursePayment && !isAffiliateVerification && !whatsapp.trim()) {
+        setError(t.whatsappRequired);
+        analytics.trackFormError('whatsapp', 'WhatsApp required');
+        setOrderWithoutPayment(false);
+        return;
+      }
+    }
+
+    // Validar limite de sites por plano
+    const currentUser = auth.getCurrentUser();
+    if (currentUser && selectedPlan && selectedPlan.id !== 'website_creation') {
+      const currentSites = dataManager.getSites(currentUser.email);
+      const planLimits: Record<string, number> = { basic: 1, pro: 5, enterprise: -1 };
+      const maxSites = planLimits[selectedPlan.id] || 1;
+      
+      if (maxSites !== -1 && currentSites.length >= maxSites) {
+        setError(`O seu plano ${selectedPlan.name} permite apenas ${maxSites} site${maxSites > 1 ? 's' : ''}. Você já tem ${currentSites.length} site${currentSites.length > 1 ? 's' : ''} ativo${currentSites.length > 1 ? 's' : ''}. Faça upgrade para adicionar mais sites.`);
+        setOrderWithoutPayment(false);
+        return;
+      }
+    }
+
+    setLoading(true);
+
+    try {
+      // Criar encomenda sem iniciar pagamento
+      await finalizeOrder(false);
+      
+      // Redirecionar para página de sucesso com indicador de pagamento pendente
+      setSuccess(true);
+      setLoading(false);
+    } catch (err) {
+      setLoading(false);
+      setOrderWithoutPayment(false);
+      soundEffects.playPaymentErrorSound();
+      setError(err instanceof Error ? err.message : 'Erro ao criar encomenda.');
     }
   };
 
@@ -1042,18 +1136,20 @@ function CheckoutContent() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="max-w-md w-full bg-white rounded-3xl shadow-2xl p-6 sm:p-8 text-center border border-gray-100 animate-in fade-in zoom-in duration-200">
-          <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <CheckCircle2 className="h-10 w-10" />
+          <div className={`w-16 h-16 ${orderWithoutPayment ? 'bg-amber-100 text-amber-600' : 'bg-emerald-100 text-emerald-600'} rounded-full flex items-center justify-center mx-auto mb-4`}>
+            {orderWithoutPayment ? <Clock className="h-10 w-10" /> : <CheckCircle2 className="h-10 w-10" />}
           </div>
           <h2 className="text-2xl font-extrabold text-gray-900 mb-1">
-            {isCoursePayment ? t.coursePaymentConfirmed : (isAffiliateVerification ? t.verificationConfirmed : t.paymentConfirmed)}
+            {orderWithoutPayment ? 'Encomenda Recebida!' : (isCoursePayment ? t.coursePaymentConfirmed : (isAffiliateVerification ? t.verificationConfirmed : t.paymentConfirmed))}
           </h2>
           <p className="text-gray-600 text-xs sm:text-sm mb-5">
-            {isCoursePayment 
-              ? t.coursePaymentSuccess
-              : isAffiliateVerification 
-              ? t.verificationSuccess
-              : t.paymentSuccess}
+            {orderWithoutPayment 
+              ? 'Obrigado por escolher a WEHOSTHERE. Registámos a sua encomenda. O pagamento ainda não foi efetuado.'
+              : (isCoursePayment 
+                ? t.coursePaymentSuccess
+                : isAffiliateVerification 
+                ? t.verificationSuccess
+                : t.paymentSuccess)}
           </p>
 
           <div className="bg-gray-50 rounded-2xl p-4 mb-5 text-left border border-gray-200 space-y-2 text-xs text-gray-700">
@@ -1065,15 +1161,49 @@ function CheckoutContent() {
               <span className="text-gray-500 font-medium">E-mail:</span>
               <span className="font-semibold text-gray-900 font-mono">{email}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500 font-medium">Método:</span>
-              <span className="font-bold text-gray-900 uppercase">{paymentMethod}</span>
-            </div>
+            {currentOrderData && (
+              <>
+                <div className="flex justify-between">
+                  <span className="text-gray-500 font-medium">Referência:</span>
+                  <span className="font-bold text-gray-900 font-mono">{currentOrderData.id}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500 font-medium">Estado:</span>
+                  <span className={`font-bold ${orderWithoutPayment ? 'text-amber-600' : 'text-emerald-600'}`}>
+                    {orderWithoutPayment ? 'Pagamento Pendente' : 'Pago'}
+                  </span>
+                </div>
+              </>
+            )}
             <div className="flex justify-between border-t border-gray-200 pt-2 font-extrabold text-sm">
-              <span>Total Pago:</span>
-              <span className="text-emerald-600 font-black text-base">{grandTotal.toLocaleString('pt-MZ')} MT</span>
+              <span>{orderWithoutPayment ? 'Valor a Pagar:' : 'Total Pago:'}</span>
+              <span className={`${orderWithoutPayment ? 'text-amber-600' : 'text-emerald-600'} font-black text-base`}>{grandTotal.toLocaleString('pt-MZ')} MT</span>
             </div>
           </div>
+
+          {/* Botão para Continuar Pagamento (se encomenda sem pagamento) */}
+          {orderWithoutPayment && currentOrderData && (
+            <button
+              type="button"
+              onClick={() => {
+                // Redirecionar para checkout com dados pré-preenchidos para continuar pagamento
+                const params = new URLSearchParams();
+                if (selectedPlan) params.set('plan', selectedPlan.id);
+                if (domainParam) params.set('domain', domainParam);
+                if (domainPriceParam) params.set('domainPrice', domainPriceParam);
+                if (siteTypeParam) params.set('siteType', siteTypeParam);
+                if (siteTypeName) params.set('siteTypeName', siteTypeName);
+                if (siteTypePrice) params.set('siteTypePrice', siteTypePrice);
+                if (cycleParam) params.set('billingCycle', cycleParam);
+                params.set('continuePayment', currentOrderData.id);
+                router.push(`/checkout?${params.toString()}`);
+              }}
+              className="w-full mb-4 py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-2xl transition flex items-center justify-center space-x-2 text-xs sm:text-sm shadow-md cursor-pointer"
+            >
+              <CreditCard className="h-4 w-4" />
+              <span>Continuar para Pagamento</span>
+            </button>
+          )}
 
           {/* Botão para Baixar/Ver Recibo Oficial em PDF */}
           {currentOrderData && (
@@ -2189,6 +2319,28 @@ function CheckoutContent() {
                     </>
                   )}
                 </button>
+
+                {/* Botão Encomendar e Pagar Depois */}
+                {!isAffiliateVerification && (
+                  <button
+                    type="button"
+                    disabled={loading}
+                    onClick={handleOrderWithoutPayment}
+                    className="w-full py-2.5 sm:py-3 bg-white border-2 border-amber-500 hover:bg-amber-50 text-amber-700 font-bold text-sm sm:text-base rounded-xl shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                  >
+                    {loading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-amber-500"></div>
+                        <span>Processando...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Clock className="h-4 w-4" />
+                        <span>Encomendar e Pagar Depois</span>
+                      </>
+                    )}
+                  </button>
+                )}
 
                 {/* Botão Secundário para Voltar ao Passo 1 */}
                 <div className="pt-0.5 text-center">

@@ -18,6 +18,22 @@ import Toast from '@/components/Toast';
 import { Clock, XCircle, FileText } from 'lucide-react';
 import { soundEffects } from '@/lib/soundEffects';
 import { getCached, setCached } from '@/lib/pageCache';
+import { InvoiceItem } from '@/lib/models/Invoice';
+
+interface Invoice {
+  id: string;
+  invoiceNumber: string;
+  customerName: string;
+  customerEmail: string;
+  issuedAt: string;
+  servicePeriodStart?: string;
+  servicePeriodEnd?: string;
+  status: 'draft' | 'pending' | 'paid' | 'overdue' | 'cancelled';
+  paymentMethod?: string;
+  items: InvoiceItem[];
+  total: number;
+  currency: string;
+}
 
 export default function BillingPage() {
   const router = useRouter();
@@ -27,6 +43,7 @@ export default function BillingPage() {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [selectedReceipt, setSelectedReceipt] = useState<ReceiptData | null>(null);
   const [userOrders, setUserOrders] = useState<ServiceOrder[]>(() => getCached<ServiceOrder[]>('billing:orders') || []);
+  const [invoices, setInvoices] = useState<Invoice[]>(() => getCached<Invoice[]>('billing:invoices') || []);
   const [siteCount, setSiteCount] = useState(0);
   const [emailCount, setEmailCount] = useState(0);
   const [toastMsg, setToastMsg] = useState<{ type: 'success' | 'error' | 'info'; title?: string; message: string } | null>(null);
@@ -99,10 +116,26 @@ export default function BillingPage() {
 
     dataManager.fetchOrdersAsync().then((fetched) => refreshOrders(fetched));
 
+    // Carregar faturas manuais
+    const loadInvoices = async () => {
+      try {
+        const res = await fetch('/api/invoices');
+        if (res.ok) {
+          const data = await res.json();
+          setInvoices(data.invoices || []);
+          setCached('billing:invoices', data.invoices || []);
+        }
+      } catch (e) {
+        console.error('Erro ao carregar faturas:', e);
+      }
+    };
+    loadInvoices();
+
     const interval = setInterval(() => {
       dataManager.fetchOrdersAsync().then((fetched) => refreshOrders(fetched));
       dataManager.fetchSitesAsync(currentUser.email).then(s => setSiteCount(s.length));
       dataManager.fetchEmailsAsync(currentUser.email).then(e => setEmailCount(e.length));
+      loadInvoices();
     }, 15000);
 
     return () => clearInterval(interval);
@@ -314,6 +347,103 @@ export default function BillingPage() {
                 </div>
               )}
             </div>
+
+            {/* Manual Invoices */}
+            {invoices.length > 0 && (
+              <div className="bg-white rounded-xl shadow-sm p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900">Faturas Manuais</h3>
+                    <p className="text-xs text-gray-400">Faturas emitidas manualmente pela administração</p>
+                  </div>
+                  <span className="bg-amber-50 text-amber-700 text-xs font-bold px-3 py-1 rounded-full border border-amber-200">
+                    {invoices.length} {invoices.length === 1 ? 'Fatura' : 'Faturas'}
+                  </span>
+                </div>
+
+                <div className="space-y-3">
+                  {invoices.map((invoice) => {
+                    const statusConfig = {
+                      draft: { label: 'Rascunho', bg: 'bg-gray-100 text-gray-800 border-gray-200', icon: FileText, iconColor: 'text-gray-600', iconBg: 'bg-gray-200' },
+                      pending: { label: 'Pendente', bg: 'bg-amber-50 text-amber-800 border-amber-200', icon: Clock, iconColor: 'text-amber-600', iconBg: 'bg-amber-100' },
+                      paid: { label: 'Pago', bg: 'bg-emerald-50 text-emerald-800 border-emerald-200', icon: CheckCircle, iconColor: 'text-emerald-600', iconBg: 'bg-emerald-100' },
+                      overdue: { label: 'Vencido', bg: 'bg-red-50 text-red-800 border-red-200', icon: XCircle, iconColor: 'text-red-600', iconBg: 'bg-red-100' },
+                      cancelled: { label: 'Cancelado', bg: 'bg-gray-100 text-gray-700 border-gray-200', icon: XCircle, iconColor: 'text-gray-500', iconBg: 'bg-gray-200' },
+                    }[invoice.status] || { label: invoice.status, bg: 'bg-gray-50 text-gray-800 border-gray-200', icon: Clock, iconColor: 'text-gray-600', iconBg: 'bg-gray-100' };
+
+                    const StatusIcon = statusConfig.icon;
+
+                    const handleDownloadInvoicePdf = async () => {
+                      try {
+                        const res = await fetch(`/api/invoices/${invoice.id}/pdf`);
+                        if (res.ok) {
+                          const blob = await res.blob();
+                          const url = window.URL.createObjectURL(blob);
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = `Fatura-${invoice.invoiceNumber}.pdf`;
+                          document.body.appendChild(a);
+                          a.click();
+                          window.URL.revokeObjectURL(url);
+                          document.body.removeChild(a);
+                          soundEffects.playSuccessSound();
+                        } else {
+                          setToastMsg({ type: 'error', message: 'Erro ao baixar PDF' });
+                        }
+                      } catch (e) {
+                        console.error('Erro ao baixar PDF:', e);
+                        setToastMsg({ type: 'error', message: 'Erro ao baixar PDF' });
+                      }
+                    };
+
+                    return (
+                      <div key={invoice.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-gray-200 rounded-xl hover:border-amber-200 transition gap-4">
+                        <div className="flex items-center space-x-3.5">
+                          <div className={`${statusConfig.iconBg} p-2.5 rounded-xl shrink-0`}>
+                            <StatusIcon className={`h-5 w-5 ${statusConfig.iconColor}`} />
+                          </div>
+                          <div>
+                            <div className="flex items-center space-x-2 flex-wrap gap-1">
+                              <span className="font-bold text-gray-900 text-sm sm:text-base">{invoice.invoiceNumber}</span>
+                              <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border ${statusConfig.bg}`}>
+                                {statusConfig.label}
+                              </span>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-0.5 flex items-center space-x-2 flex-wrap">
+                              <span>Emissão: <strong>{new Date(invoice.issuedAt).toLocaleDateString('pt-MZ')}</strong></span>
+                              {invoice.servicePeriodStart && invoice.servicePeriodEnd && (
+                                <>
+                                  <span>•</span>
+                                  <span>Período: {new Date(invoice.servicePeriodStart).toLocaleDateString('pt-MZ')} - {new Date(invoice.servicePeriodEnd).toLocaleDateString('pt-MZ')}</span>
+                                </>
+                              )}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between sm:justify-end space-x-4 border-t sm:border-t-0 pt-3 sm:pt-0 border-gray-100">
+                          <div className="text-left sm:text-right">
+                            <p className="font-black text-gray-900 text-base">{invoice.total.toLocaleString('pt-MZ')} {invoice.currency}</p>
+                            <p className="text-[11px] text-gray-400">
+                              {invoice.items.length} {invoice.items.length === 1 ? 'item' : 'itens'}
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleDownloadInvoicePdf}
+                            className="px-3.5 py-2 bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold text-xs rounded-xl transition flex items-center space-x-1.5 cursor-pointer border border-amber-200 shrink-0 shadow-2xs"
+                            title="Baixar Fatura (PDF)"
+                          >
+                            <Download className="h-4 w-4 text-amber-600" />
+                            <span>PDF</span>
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Upgrade Plans */}
             <div className="bg-white rounded-xl shadow-sm p-6">

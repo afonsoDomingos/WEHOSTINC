@@ -99,22 +99,55 @@ async function processAffiliateCommission(orderData: any, affiliateCode: string 
   }
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const { searchParams } = new URL(req.url);
+    const orderId = searchParams.get('orderId');
+    
     if (await tryMongo()) {
+      // Se orderId for fornecido, buscar pedido específico
+      if (orderId) {
+        const order = await OrderModel.findOne({ id: orderId }).lean();
+        if (order) {
+          const amt = Number(order.amount ?? order.valorFaturado ?? order.valorPorFaturar ?? 0);
+          const mappedOrder = {
+            ...order,
+            amount: amt,
+            valorFaturado: order.valorFaturado !== undefined ? Number(order.valorFaturado) : (order.status === 'completed' ? amt : 0),
+            valorPorFaturar: order.valorPorFaturar !== undefined ? Number(order.valorPorFaturar) : (order.status === 'completed' ? 0 : amt),
+          };
+          return NextResponse.json({ success: true, order: mappedOrder });
+        }
+        return NextResponse.json({ success: false, error: 'Pedido não encontrado' }, { status: 404 });
+      }
+      
+      // Caso contrário, buscar todos os pedidos
       const orders = await OrderModel.find({}).sort({ createdAt: -1 }).lean();
       const mappedOrders = orders.map((o: any) => {
         const amt = Number(o.amount ?? o.valorFaturado ?? o.valorPorFaturar ?? 0);
         return {
           ...o,
           amount: amt,
-          valorFaturado: o.valorFaturado !== undefined ? Number(o.valorFaturado) : (o.status === 'completed' || o.status === 'approved' || o.status === 'active' ? amt : 0),
-          valorPorFaturar: o.valorPorFaturar !== undefined ? Number(o.valorPorFaturar) : (o.status === 'completed' || o.status === 'approved' || o.status === 'active' ? 0 : amt),
+          valorFaturado: o.valorFaturado !== undefined ? Number(o.valorFaturado) : (o.status === 'completed' ? amt : 0),
+          valorPorFaturar: o.valorPorFaturar !== undefined ? Number(o.valorPorFaturar) : (o.status === 'completed' ? 0 : amt),
         };
       });
       return NextResponse.json({ orders: mappedOrders });
     }
   } catch (e) { console.error('MongoDB indisponível (orders):', e); }
+  
+  // Fallback para localStorage
+  const { searchParams } = new URL(req.url);
+  const orderId = searchParams.get('orderId');
+  
+  if (orderId) {
+    const order = FALLBACK_ORDERS.find(o => o.id === orderId);
+    if (order) {
+      return NextResponse.json({ success: true, order });
+    }
+    return NextResponse.json({ success: false, error: 'Pedido não encontrado' }, { status: 404 });
+  }
+  
   return NextResponse.json({ orders: FALLBACK_ORDERS });
 }
 

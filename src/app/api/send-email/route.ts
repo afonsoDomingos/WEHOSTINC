@@ -28,6 +28,13 @@ export async function POST(req: Request) {
 
     if (type === 'invoice') {
       result = await sendInvoiceEmail(to, userName || 'Cliente', invoiceRef || 'FAT-001', `${(amount || 0).toLocaleString('pt-MZ')} MT`, plan || 'Serviços WEHOSTHERE');
+    } else if (type === 'order-pending') {
+      result = await sendEmail({
+        to,
+        fromEmail: 'info@wehosthere.com',
+        subject: `📦 Encomenda Recebida - ${body.orderRef || 'WEHOSTHERE'}`,
+        text: `Olá ${userName || 'Cliente'},\n\nRecebemos a sua encomenda ${body.orderRef || 'N/A'} com sucesso!\n\nDetalhes da Encomenda:\n• Referência: ${body.orderRef || 'N/A'}\n• Serviço: ${plan || 'Serviços WEHOSTHERE'}\n• Valor a Pagar: ${(amount || 0).toLocaleString('pt-MZ')} MT\n• Estado: Pagamento Pendente\n\nPara ativar o seu serviço, por favor conclua o pagamento. Pode fazê-lo através do seu painel de cliente.\n\nAtenciosamente,\nEquipa WEHOSTHERE`,
+      });
     } else if (type === 'course_enrollment') {
       result = await sendCourseEnrollmentEmail(to, userName || 'Aluno', courseTitle || 'Curso');
     } else if (type === 'course_purchase') {

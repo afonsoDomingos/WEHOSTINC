@@ -64,11 +64,24 @@ export async function POST(req: Request) {
         let pdfBase64 = '';
         try {
           pdfBase64 = await generateInvoicePdf({
+            invoiceNumber: thirdPartyRef,
             invoiceRef: thirdPartyRef,
-            userName: userName || 'Cliente',
-            planName: 'Serviços WEHOSTHERE',
-            amount: Number(amount).toLocaleString('pt-MZ'),
-            date: new Date().toLocaleDateString('pt-MZ')
+            customerName: userName || 'Cliente',
+            customerEmail: userEmail,
+            issuedAt: new Date().toISOString(),
+            status: 'paid',
+            items: [{
+              service: 'Serviços WEHOSTHERE',
+              description: 'Pagamento via M-Pesa',
+              quantity: 1,
+              unitPrice: Number(amount),
+              discount: 0,
+              subtotal: Number(amount)
+            }],
+            subtotal: Number(amount),
+            discount: 0,
+            total: Number(amount),
+            currency: 'MZN'
           });
         } catch (err) {
           console.error('Erro ao gerar PDF da fatura:', err);
