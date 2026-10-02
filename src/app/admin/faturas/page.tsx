@@ -357,7 +357,7 @@ export default function FaturasPage() {
               placeholder="Buscar por cliente, email ou número..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-gray-900 placeholder-gray-400"
             />
           </div>
           <select
@@ -478,12 +478,12 @@ export default function FaturasPage() {
                 <select
                   value={formData.customerId}
                   onChange={(e) => handleCustomerChange(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-gray-900"
                   required
                 >
-                  <option value="">Selecione um cliente</option>
+                  <option value="" className="text-gray-400">Selecione um cliente</option>
                   {customers.map((customer) => (
-                    <option key={customer.id} value={customer.id}>
+                    <option key={customer.id} value={customer.id} className="text-gray-900">
                       {customer.name} ({customer.email}) {customer.type === 'manual' ? '[Manual]' : ''}
                     </option>
                   ))}
@@ -498,7 +498,7 @@ export default function FaturasPage() {
                     type="date"
                     value={formData.issuedAt}
                     onChange={(e) => setFormData({ ...formData, issuedAt: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-gray-900 placeholder-gray-400"
                     required
                   />
                 </div>
@@ -508,7 +508,7 @@ export default function FaturasPage() {
                     type="date"
                     value={formData.dueDate}
                     onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-gray-900 placeholder-gray-400"
                   />
                 </div>
                 <div>
@@ -517,7 +517,7 @@ export default function FaturasPage() {
                     type="date"
                     value={formData.servicePeriodStart}
                     onChange={(e) => setFormData({ ...formData, servicePeriodStart: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-gray-900 placeholder-gray-400"
                   />
                 </div>
                 <div>
@@ -526,7 +526,7 @@ export default function FaturasPage() {
                     type="date"
                     value={formData.servicePeriodEnd}
                     onChange={(e) => setFormData({ ...formData, servicePeriodEnd: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-gray-900 placeholder-gray-400"
                   />
                 </div>
               </div>
@@ -538,7 +538,7 @@ export default function FaturasPage() {
                   <select
                     value={formData.status}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-gray-900"
                   >
                     <option value="draft">Rascunho</option>
                     <option value="pending">Pendente</option>
@@ -552,9 +552,9 @@ export default function FaturasPage() {
                   <select
                     value={formData.paymentMethod}
                     onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-gray-900"
                   >
-                    <option value="">Selecione</option>
+                    <option value="" className="text-gray-400">Selecione</option>
                     <option value="mpesa">M-Pesa</option>
                     <option value="emola">eMola</option>
                     <option value="card">Cartão</option>
@@ -599,21 +599,21 @@ export default function FaturasPage() {
                       placeholder="Serviço"
                       value={newItem.service}
                       onChange={(e) => setNewItem({ ...newItem, service: e.target.value })}
-                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400"
                     />
                     <input
                       type="text"
                       placeholder="Descrição"
                       value={newItem.description}
                       onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
-                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400"
                     />
                     <input
                       type="number"
                       placeholder="Qtd"
                       value={newItem.quantity}
                       onChange={(e) => setNewItem({ ...newItem, quantity: parseInt(e.target.value) || 1 })}
-                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400"
                       min="1"
                     />
                     <input
@@ -621,7 +621,7 @@ export default function FaturasPage() {
                       placeholder="Preço"
                       value={newItem.unitPrice}
                       onChange={(e) => setNewItem({ ...newItem, unitPrice: parseFloat(e.target.value) || 0 })}
-                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400"
                       min="0"
                     />
                     <button
@@ -641,7 +641,7 @@ export default function FaturasPage() {
                   type="number"
                   value={formData.discount}
                   onChange={(e) => setFormData({ ...formData, discount: parseFloat(e.target.value) || 0 })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-gray-900 placeholder-gray-400"
                   min="0"
                 />
               </div>
@@ -652,7 +652,7 @@ export default function FaturasPage() {
                 <textarea
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-gray-900 placeholder-gray-400"
                   rows={3}
                 />
               </div>
