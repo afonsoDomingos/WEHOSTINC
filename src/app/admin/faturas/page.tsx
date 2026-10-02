@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { 
   Plus, Edit, Trash2, Download, FileText, Calendar, DollarSign, 
-  Search, User, Save, X, CheckCircle, Clock, AlertCircle
+  Search, User, Save, X, CheckCircle, Clock, AlertCircle, ArrowLeft
 } from 'lucide-react';
 import UserModel from '@/lib/models/User';
 import ManualClientModel from '@/lib/models/ManualClient';
@@ -328,9 +328,18 @@ export default function FaturasPage() {
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Gestão de Faturas</h1>
-            <p className="text-sm text-gray-500">Criar e gerenciar faturas manuais</p>
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={() => router.push('/admin')}
+              className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition"
+              title="Voltar para Admin"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Gestão de Faturas</h1>
+              <p className="text-sm text-gray-500">Criar e gerenciar faturas manuais</p>
+            </div>
           </div>
           <button
             onClick={() => {
