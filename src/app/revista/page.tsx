@@ -30,9 +30,9 @@ const CATEGORIES = [
 ];
 
 const CAT_COLORS: Record<string, string> = {
-  codigo: '#0ea5e9',
-  startups: '#8b5cf6',
-  ia: '#06b6d4',
+  codigo: '#7B2CBF',
+  startups: '#5A189A',
+  ia: '#9D4EDD',
   design: '#ec4899',
   carreira: '#f59e0b',
   tutoriais: '#10b981',
@@ -48,7 +48,7 @@ function buildTitle(title: string, highlight?: string) {
     <>
       {parts[0]}
       <mark style={{
-        background: '#0ea5e9',
+        background: '#7B2CBF',
         color: '#fff',
         borderRadius: '3px',
         padding: '0 4px',
@@ -125,17 +125,17 @@ export default function RevistaPage() {
           letter-spacing: -0.04em;
         }
         .revista-nav-brand-text span {
-          color: #0ea5e9;
+          color: #7B2CBF;
         }
         .revista-nav-links { display: flex; gap: 1.5rem; align-items: center; }
         .revista-nav-links a {
           color: #475569; text-decoration: none; font-size: 0.85rem; font-weight: 500;
           transition: color 0.2s;
         }
-        .revista-nav-links a:hover { color: #0ea5e9; }
+        .revista-nav-links a:hover { color: #7B2CBF; }
         .revista-nav-links a.active {
-          color: #0ea5e9;
-          border-bottom: 2px solid #0ea5e9;
+          color: #7B2CBF;
+          border-bottom: 2px solid #7B2CBF;
           padding-bottom: 2px;
         }
 
@@ -148,7 +148,7 @@ export default function RevistaPage() {
         .hero-img-wrap {
           border-radius: 14px; overflow: hidden;
           aspect-ratio: 4/3;
-          background: linear-gradient(135deg, #0f172a, #1e3a5f);
+          background: linear-gradient(135deg, #10002B, #3C096C);
           position: relative;
         }
         .hero-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
@@ -170,7 +170,7 @@ export default function RevistaPage() {
         .hero-meta { display: flex; align-items: center; gap: 0.75rem; }
         .hero-avatar {
           width: 30px; height: 30px; border-radius: 50%;
-          background: #0ea5e9; display: flex; align-items: center;
+          background: #7B2CBF; display: flex; align-items: center;
           justify-content: center; color: #fff; font-weight: 700; font-size: 0.75rem;
           overflow: hidden; flex-shrink: 0;
         }
@@ -178,12 +178,12 @@ export default function RevistaPage() {
         .hero-author { font-size: 0.82rem; color: #475569; font-weight: 500; }
         .hero-cta {
           display: inline-flex; align-items: center; gap: 0.4rem;
-          color: #0ea5e9; font-size: 0.88rem; font-weight: 600;
-          text-decoration: none; border-bottom: 2px solid #0ea5e9;
+          color: #7B2CBF; font-size: 0.88rem; font-weight: 600;
+          text-decoration: none; border-bottom: 2px solid #7B2CBF;
           padding-bottom: 1px; width: fit-content;
           transition: gap 0.2s, color 0.2s;
         }
-        .hero-cta:hover { gap: 0.7rem; color: #0284c7; }
+        .hero-cta:hover { gap: 0.7rem; color: #5A189A; }
 
         /* ── Categories Bar ────────────────── */
         .cat-bar {
@@ -199,8 +199,8 @@ export default function RevistaPage() {
           background: #fff; color: #475569;
           box-shadow: 0 1px 3px rgba(0,0,0,0.06);
         }
-        .cat-btn.active { background: #0ea5e9; color: #fff; border-color: #0ea5e9; }
-        .cat-btn:not(.active):hover { border-color: #0ea5e9; color: #0ea5e9; }
+        .cat-btn.active { background: #7B2CBF; color: #fff; border-color: #7B2CBF; }
+        .cat-btn:not(.active):hover { border-color: #7B2CBF; color: #7B2CBF; }
 
         /* ── Stories Section ───────────────── */
         .stories-section {
@@ -218,7 +218,7 @@ export default function RevistaPage() {
           background: none; border-bottom: 2px solid transparent;
           margin-bottom: -1px; transition: all 0.2s;
         }
-        .tab-btn.active { color: #0ea5e9; border-bottom-color: #0ea5e9; }
+        .tab-btn.active { color: #7B2CBF; border-bottom-color: #7B2CBF; }
         .tab-btn:hover:not(.active) { color: #475569; }
 
         /* Search */
@@ -232,7 +232,7 @@ export default function RevistaPage() {
           background: #fff; color: #0f172a; outline: none;
           transition: border-color 0.2s;
         }
-        .search-wrap input:focus { border-color: #0ea5e9; }
+        .search-wrap input:focus { border-color: #7B2CBF; }
         .search-wrap .search-icon {
           position: absolute; left: 0.7rem; top: 50%; transform: translateY(-50%);
           color: #94a3b8;
@@ -248,7 +248,7 @@ export default function RevistaPage() {
         .story-card:last-child { border-bottom: none; }
         .story-card-img {
           border-radius: 10px; overflow: hidden;
-          aspect-ratio: 4/3; background: linear-gradient(135deg, #0f172a, #1e3a5f);
+          aspect-ratio: 4/3; background: linear-gradient(135deg, #10002B, #3C096C);
           flex-shrink: 0;
         }
         .story-card-img img { width: 100%; height: 100%; object-fit: cover; }
@@ -287,10 +287,10 @@ export default function RevistaPage() {
           border-bottom: 1px solid #f1f5f9; text-decoration: none;
         }
         .sidebar-mini-card:last-child { border-bottom: none; padding-bottom: 0; }
-        .sidebar-mini-card:hover .sidebar-mini-title { color: #0ea5e9; }
+        .sidebar-mini-card:hover .sidebar-mini-title { color: #7B2CBF; }
         .sidebar-mini-img {
           width: 56px; height: 56px; border-radius: 8px; flex-shrink: 0;
-          overflow: hidden; background: linear-gradient(135deg, #0f172a, #0ea5e9);
+          overflow: hidden; background: linear-gradient(135deg, #10002B, #5A189A);
         }
         .sidebar-mini-img img { width: 100%; height: 100%; object-fit: cover; }
         .sidebar-mini-body { display: flex; flex-direction: column; gap: 0.2rem; }
@@ -301,7 +301,7 @@ export default function RevistaPage() {
 
         /* Newsletter box */
         .nl-box {
-          background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
+          background: linear-gradient(135deg, #10002B 0%, #240046 50%, #3C096C 100%);
           border-radius: 14px; padding: 1.5rem; color: #fff;
         }
         .nl-box h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; }
@@ -314,12 +314,12 @@ export default function RevistaPage() {
         }
         .nl-btn {
           width: 100%; padding: 0.6rem;
-          background: #0ea5e9; color: #fff; border: none;
+          background: #7B2CBF; color: #fff; border: none;
           border-radius: 8px; font-family: 'Poppins', sans-serif;
           font-size: 0.82rem; font-weight: 600; cursor: pointer;
           transition: background 0.2s;
         }
-        .nl-btn:hover { background: #0284c7; }
+        .nl-btn:hover { background: #5A189A; }
 
         /* Empty / Loading */
         .empty-state {
@@ -329,7 +329,7 @@ export default function RevistaPage() {
         .spinner {
           width: 32px; height: 32px;
           border: 3px solid #e2e8f0;
-          border-top-color: #0ea5e9;
+          border-top-color: #7B2CBF;
           border-radius: 50%;
           animation: spin 0.7s linear infinite;
           margin: 2rem auto;
@@ -354,7 +354,7 @@ export default function RevistaPage() {
         <nav className="revista-nav">
           <div className="revista-nav-inner">
             <Link href="/revista" className="revista-nav-brand">
-              <Code2 size={20} color="#0ea5e9" />
+              <Code2 size={20} color="#7B2CBF" />
               <span className="revista-nav-brand-text">
                 codando <span>histórias</span>
               </span>
@@ -499,7 +499,7 @@ export default function RevistaPage() {
                       {s.coverImage && <img src={s.coverImage} alt={s.title} />}
                     </div>
                     <div className="sidebar-mini-body">
-                      <span className="sidebar-mini-cat" style={{ color: CAT_COLORS[s.category] || '#0ea5e9' }}>
+                      <span className="sidebar-mini-cat" style={{ color: CAT_COLORS[s.category] || '#7B2CBF' }}>
                         {s.category}
                       </span>
                       <p className="sidebar-mini-title">{s.title}</p>
@@ -523,7 +523,7 @@ export default function RevistaPage() {
                 {stories.filter(s => s.featured).slice(0, 3).map(s => (
                   <Link key={s.id} href={`/revista/${s.slug}`} className="sidebar-mini-card">
                     <div className="sidebar-mini-body">
-                      <span className="sidebar-mini-cat" style={{ color: CAT_COLORS[s.category] || '#0ea5e9' }}>
+                      <span className="sidebar-mini-cat" style={{ color: CAT_COLORS[s.category] || '#7B2CBF' }}>
                         {s.category}
                       </span>
                       <p className="sidebar-mini-title">{s.title}</p>

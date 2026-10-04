@@ -35,9 +35,9 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 const CAT_COLORS: Record<string, string> = {
-  codigo:    '#0ea5e9',
-  startups:  '#8b5cf6',
-  ia:        '#06b6d4',
+  codigo:    '#7B2CBF',
+  startups:  '#5A189A',
+  ia:        '#9D4EDD',
   design:    '#ec4899',
   carreira:  '#f59e0b',
   tutoriais: '#10b981',
@@ -132,13 +132,13 @@ export default function AdminRevistaPage() {
           color: #64748b; text-decoration: none; font-size: 0.82rem;
           transition: color 0.2s;
         }
-        .ar-back:hover { color: #0ea5e9; }
+        .ar-back:hover { color: #7B2CBF; }
         .ar-brand { display: flex; align-items: center; gap: 0.5rem; }
         .ar-brand-text { font-size: 1.1rem; font-weight: 800; color: #0f172a; letter-spacing: -0.03em; }
-        .ar-brand-text span { color: #0ea5e9; }
+        .ar-brand-text span { color: #7B2CBF; }
         .ar-new-btn {
           display: flex; align-items: center; gap: 0.4rem;
-          background: linear-gradient(135deg, #0ea5e9, #0284c7);
+          background: linear-gradient(135deg, #7B2CBF, #5A189A);
           color: #fff; text-decoration: none;
           padding: 0.55rem 1.1rem; border-radius: 9px;
           font-size: 0.83rem; font-weight: 600;
@@ -172,7 +172,7 @@ export default function AdminRevistaPage() {
           transition: all 0.2s;
         }
         .ar-filter-btn.active { background: #0f172a; border-color: #0f172a; color: #fff; }
-        .ar-filter-btn:not(.active):hover { border-color: #0ea5e9; color: #0ea5e9; }
+        .ar-filter-btn:not(.active):hover { border-color: #7B2CBF; color: #7B2CBF; }
         .ar-search {
           margin-left: auto; position: relative;
         }
@@ -183,7 +183,7 @@ export default function AdminRevistaPage() {
           background: #fff; color: #0f172a; outline: none;
           transition: border-color 0.2s; width: 220px;
         }
-        .ar-search input:focus { border-color: #0ea5e9; }
+        .ar-search input:focus { border-color: #7B2CBF; }
         .ar-search-icon {
           position: absolute; left: 0.6rem; top: 50%; transform: translateY(-50%);
           color: #94a3b8;
@@ -219,7 +219,7 @@ export default function AdminRevistaPage() {
         .ar-cat-badge {
           font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em;
           text-transform: uppercase; padding: 0.2rem 0.6rem;
-          border-radius: 9999px; background: #f0f9ff; color: #0ea5e9;
+          border-radius: 9999px; background: #f0f9ff; color: #7B2CBF;
           border: 1px solid #bae6fd;
           display: inline-block;
         }
@@ -243,7 +243,7 @@ export default function AdminRevistaPage() {
           font-family: 'Poppins', sans-serif; color: #334155;
           transition: background 0.15s;
         }
-        .ar-status-option:hover { background: #f0f9ff; color: #0ea5e9; }
+        .ar-status-option:hover { background: #f0f9ff; color: #7B2CBF; }
 
         .ar-actions { display: flex; align-items: center; gap: 0.4rem; }
         .ar-action-btn {
@@ -252,14 +252,14 @@ export default function AdminRevistaPage() {
           border: 1px solid #e2e8f0; background: #fff; cursor: pointer;
           color: #475569; transition: all 0.2s; text-decoration: none;
         }
-        .ar-action-btn:hover { background: #f0f9ff; color: #0ea5e9; border-color: #bae6fd; }
+        .ar-action-btn:hover { background: #f0f9ff; color: #7B2CBF; border-color: #bae6fd; }
         .ar-action-btn.danger:hover { background: #fff5f5; color: #ef4444; border-color: #fecaca; }
         .ar-action-btn.feature-active { background: #fef3c7; color: #d97706; border-color: #fde68a; }
 
         .ar-empty { text-align: center; padding: 4rem 1rem; color: #94a3b8; }
         .ar-spinner {
           width: 32px; height: 32px;
-          border: 3px solid #e2e8f0; border-top-color: #0ea5e9;
+          border: 3px solid #e2e8f0; border-top-color: #7B2CBF;
           border-radius: 50%; animation: spin 0.7s linear infinite;
           margin: 3rem auto;
         }
@@ -280,7 +280,7 @@ export default function AdminRevistaPage() {
               <ArrowLeft size={15} /> Admin
             </Link>
             <div className="ar-brand">
-              <Code2 size={18} color="#0ea5e9" />
+              <Code2 size={18} color="#7B2CBF" />
               <span className="ar-brand-text">
                 codando <span>histórias</span>
               </span>
@@ -312,7 +312,7 @@ export default function AdminRevistaPage() {
             <div className="ar-stat-label">Rascunhos</div>
           </div>
           <div className="ar-stat">
-            <div className="ar-stat-val" style={{ color: '#0ea5e9' }}>{stats.views.toLocaleString()}</div>
+            <div className="ar-stat-val" style={{ color: '#7B2CBF' }}>{stats.views.toLocaleString()}</div>
             <div className="ar-stat-label">Total de Leituras</div>
           </div>
         </div>
@@ -381,7 +381,7 @@ export default function AdminRevistaPage() {
                     <td>
                       <span
                         className="ar-cat-badge"
-                        style={{ color: CAT_COLORS[story.category] || '#0ea5e9', background: `${CAT_COLORS[story.category] || '#0ea5e9'}15`, borderColor: `${CAT_COLORS[story.category] || '#0ea5e9'}40` }}
+                        style={{ color: CAT_COLORS[story.category] || '#7B2CBF', background: `${CAT_COLORS[story.category] || '#7B2CBF'}15`, borderColor: `${CAT_COLORS[story.category] || '#7B2CBF'}40` }}
                       >
                         {story.category}
                       </span>

@@ -158,9 +158,9 @@ export default function EditarHistoriaPage() {
 
   if (notFound) return (
     <div style={{ textAlign: 'center', padding: '6rem 2rem', fontFamily: 'Poppins, sans-serif' }}>
-      <Code2 size={48} color="#0ea5e9" style={{ margin: '0 auto 1rem' }} />
+      <Code2 size={48} color="#7B2CBF" style={{ margin: '0 auto 1rem' }} />
       <h1 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.5rem' }}>História não encontrada</h1>
-      <Link href="/admin/revista" style={{ color: '#0ea5e9', fontWeight: 600 }}>← Voltar à Revista</Link>
+      <Link href="/admin/revista" style={{ color: '#7B2CBF', fontWeight: 600 }}>← Voltar à Revista</Link>
     </div>
   );
 
@@ -176,7 +176,7 @@ export default function EditarHistoriaPage() {
         }
         .edit-header-left { display: flex; align-items: center; gap: 1rem; }
         .edit-back { display: flex; align-items: center; gap: 0.35rem; color: #64748b; text-decoration: none; font-size: 0.82rem; transition: color 0.2s; }
-        .edit-back:hover { color: #0ea5e9; }
+        .edit-back:hover { color: #7B2CBF; }
         .edit-header-title { font-size: 1rem; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 0.4rem; }
 
         .edit-actions { display: flex; gap: 0.6rem; align-items: center; }
@@ -187,13 +187,13 @@ export default function EditarHistoriaPage() {
           font-family: 'Poppins', sans-serif; cursor: pointer; border: none;
           transition: all 0.2s; text-decoration: none;
         }
-        .edit-btn.primary { background: linear-gradient(135deg, #0ea5e9, #0284c7); color: #fff; box-shadow: 0 2px 8px rgba(14,165,233,0.3); }
+        .edit-btn.primary { background: linear-gradient(135deg, #7B2CBF, #5A189A); color: #fff; box-shadow: 0 2px 8px rgba(14,165,233,0.3); }
         .edit-btn.primary:hover { box-shadow: 0 4px 14px rgba(14,165,233,0.4); transform: translateY(-1px); }
         .edit-btn.secondary { background: #f1f5f9; color: #475569; }
         .edit-btn.secondary:hover { background: #e2e8f0; }
         .edit-btn.publish { background: #10b981; color: #fff; }
         .edit-btn.publish:hover { background: #059669; }
-        .edit-btn.preview { background: #fff; color: #0ea5e9; border: 1.5px solid #0ea5e9; }
+        .edit-btn.preview { background: #fff; color: #7B2CBF; border: 1.5px solid #7B2CBF; }
         .edit-btn.preview:hover { background: #f0f9ff; }
         .edit-btn.danger { background: #fff; color: #ef4444; border: 1.5px solid #fecaca; }
         .edit-btn.danger:hover { background: #fef2f2; border-color: #ef4444; }
@@ -222,7 +222,7 @@ export default function EditarHistoriaPage() {
           color: #0f172a; background: #fff; outline: none;
           transition: border-color 0.2s; box-sizing: border-box;
         }
-        .edit-input:focus, .edit-select:focus, .edit-textarea:focus { border-color: #0ea5e9; }
+        .edit-input:focus, .edit-select:focus, .edit-textarea:focus { border-color: #7B2CBF; }
         .edit-textarea { resize: vertical; min-height: 320px; line-height: 1.65; }
         .edit-textarea.short { min-height: 80px; }
         .edit-hint { font-size: 0.72rem; color: #94a3b8; margin-top: 0.25rem; }
@@ -234,7 +234,7 @@ export default function EditarHistoriaPage() {
           padding: 1.5rem; text-align: center; cursor: pointer;
           transition: all 0.2s; position: relative; background: #f8fafc;
         }
-        .img-upload-area:hover { border-color: #0ea5e9; background: #f0f9ff; }
+        .img-upload-area:hover { border-color: #7B2CBF; background: #f0f9ff; }
         .img-upload-area input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
         .img-preview { position: relative; border-radius: 10px; overflow: hidden; aspect-ratio: 16/9; }
         .img-preview img { width: 100%; height: 100%; object-fit: cover; }
@@ -277,13 +277,13 @@ export default function EditarHistoriaPage() {
         .toggle-switch input { opacity: 0; width: 0; height: 0; }
         .toggle-slider { position: absolute; inset: 0; border-radius: 9999px; background: #e2e8f0; transition: background 0.2s; }
         .toggle-slider::before { content: ''; position: absolute; width: 14px; height: 14px; border-radius: 50%; background: #fff; left: 3px; top: 3px; transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
-        .toggle-switch input:checked + .toggle-slider { background: #0ea5e9; }
+        .toggle-switch input:checked + .toggle-slider { background: #7B2CBF; }
         .toggle-switch input:checked + .toggle-slider::before { transform: translateX(18px); }
 
         /* Spinner */
         .edit-spinner {
           width: 36px; height: 36px;
-          border: 3px solid #e2e8f0; border-top-color: #0ea5e9;
+          border: 3px solid #e2e8f0; border-top-color: #7B2CBF;
           border-radius: 50%; animation: spin 0.7s linear infinite;
           margin: 0 auto;
         }
@@ -316,7 +316,7 @@ export default function EditarHistoriaPage() {
               <ArrowLeft size={15} /> Revista
             </Link>
             <div className="edit-header-title">
-              <Code2 size={16} color="#0ea5e9" />
+              <Code2 size={16} color="#7B2CBF" />
               Editar História
             </div>
           </div>

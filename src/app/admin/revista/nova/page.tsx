@@ -103,7 +103,7 @@ export default function NovaHistoriaPage() {
         }
         .nova-header-left { display: flex; align-items: center; gap: 1rem; }
         .nova-back { display: flex; align-items: center; gap: 0.35rem; color: #64748b; text-decoration: none; font-size: 0.82rem; transition: color 0.2s; }
-        .nova-back:hover { color: #0ea5e9; }
+        .nova-back:hover { color: #7B2CBF; }
         .nova-title-bar { font-size: 1rem; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 0.4rem; }
 
         /* Steps */
@@ -119,10 +119,10 @@ export default function NovaHistoriaPage() {
           background: #e2e8f0; color: #94a3b8;
           transition: all 0.2s;
         }
-        .nova-step-num.active { background: #0ea5e9; color: #fff; }
+        .nova-step-num.active { background: #7B2CBF; color: #fff; }
         .nova-step-num.done { background: #10b981; color: #fff; }
         .nova-step-label { font-size: 0.78rem; font-weight: 600; color: #94a3b8; }
-        .nova-step-label.active { color: #0ea5e9; }
+        .nova-step-label.active { color: #7B2CBF; }
         .nova-step-label.done { color: #10b981; }
         .nova-step-sep { flex: 1; height: 2px; background: #e2e8f0; margin: 0 0.75rem; min-width: 40px; }
         .nova-step-sep.done { background: #10b981; }
@@ -153,7 +153,7 @@ export default function NovaHistoriaPage() {
           transition: border-color 0.2s;
           box-sizing: border-box;
         }
-        .nova-input:focus, .nova-select:focus, .nova-textarea:focus { border-color: #0ea5e9; }
+        .nova-input:focus, .nova-select:focus, .nova-textarea:focus { border-color: #7B2CBF; }
         .nova-textarea { resize: vertical; min-height: 260px; line-height: 1.65; }
         .nova-textarea.short { min-height: 90px; }
         .nova-hint { font-size: 0.72rem; color: #94a3b8; margin-top: 0.3rem; }
@@ -167,7 +167,7 @@ export default function NovaHistoriaPage() {
           transition: all 0.2s; position: relative;
           background: #f8fafc;
         }
-        .img-upload-area:hover { border-color: #0ea5e9; background: #f0f9ff; }
+        .img-upload-area:hover { border-color: #7B2CBF; background: #f0f9ff; }
         .img-upload-area input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
         .img-preview { position: relative; border-radius: 12px; overflow: hidden; aspect-ratio: 16/9; }
         .img-preview img { width: 100%; height: 100%; object-fit: cover; }
@@ -202,7 +202,7 @@ export default function NovaHistoriaPage() {
           background: #fff; left: 3px; top: 3px;
           transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
         }
-        .toggle-switch input:checked + .toggle-slider { background: #0ea5e9; }
+        .toggle-switch input:checked + .toggle-slider { background: #7B2CBF; }
         .toggle-switch input:checked + .toggle-slider::before { transform: translateX(18px); }
 
         /* Actions */
@@ -216,13 +216,13 @@ export default function NovaHistoriaPage() {
           text-decoration: none;
         }
         .nova-btn.primary {
-          background: linear-gradient(135deg, #0ea5e9, #0284c7);
+          background: linear-gradient(135deg, #7B2CBF, #5A189A);
           color: #fff; box-shadow: 0 2px 8px rgba(14,165,233,0.3);
         }
         .nova-btn.primary:hover { box-shadow: 0 4px 14px rgba(14,165,233,0.4); transform: translateY(-1px); }
         .nova-btn.secondary { background: #f1f5f9; color: #475569; }
         .nova-btn.secondary:hover { background: #e2e8f0; }
-        .nova-btn.ghost { background: #fff; color: #0ea5e9; border: 1.5px solid #0ea5e9; }
+        .nova-btn.ghost { background: #fff; color: #7B2CBF; border: 1.5px solid #7B2CBF; }
         .nova-btn.ghost:hover { background: #f0f9ff; }
         .nova-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none !important; }
 
@@ -251,7 +251,7 @@ export default function NovaHistoriaPage() {
               <ArrowLeft size={15} /> Revista
             </Link>
             <div className="nova-title-bar">
-              <Code2 size={16} color="#0ea5e9" />
+              <Code2 size={16} color="#7B2CBF" />
               Nova História
             </div>
           </div>

@@ -26,9 +26,9 @@ interface Story {
 }
 
 const CAT_COLORS: Record<string, string> = {
-  codigo: '#0ea5e9',
-  startups: '#8b5cf6',
-  ia: '#06b6d4',
+  codigo: '#7B2CBF',
+  startups: '#5A189A',
+  ia: '#9D4EDD',
   design: '#ec4899',
   carreira: '#f59e0b',
   tutoriais: '#10b981',
@@ -42,7 +42,7 @@ function buildTitle(title: string, highlight?: string) {
     <>
       {parts[0]}
       <mark style={{
-        background: '#0ea5e9', color: '#fff',
+        background: '#7B2CBF', color: '#fff',
         borderRadius: '4px', padding: '0 6px', fontStyle: 'normal',
       }}>{highlight}</mark>
       {parts.slice(1).join(highlight)}
@@ -169,14 +169,14 @@ export default function RevistaStoryPage() {
 
   if (notFound || !story) return (
     <div style={{ textAlign: 'center', padding: '6rem 2rem', fontFamily: 'Poppins, sans-serif' }}>
-      <Code2 size={48} color="#0ea5e9" style={{ margin: '0 auto 1rem' }} />
+      <Code2 size={48} color="#7B2CBF" style={{ margin: '0 auto 1rem' }} />
       <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.5rem' }}>
         História não encontrada
       </h1>
       <p style={{ color: '#64748b', marginBottom: '1.5rem' }}>Esta história não existe ou foi removida.</p>
       <Link href="/revista" style={{
         display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-        background: '#0ea5e9', color: '#fff', padding: '0.6rem 1.4rem',
+        background: '#7B2CBF', color: '#fff', padding: '0.6rem 1.4rem',
         borderRadius: '8px', textDecoration: 'none', fontSize: '0.88rem', fontWeight: 600,
       }}>
         <ArrowLeft size={15} /> Voltar à Revista
@@ -204,7 +204,7 @@ export default function RevistaStoryPage() {
         .story-nav-brand-text {
           font-size: 1.1rem; font-weight: 800; color: #0f172a; letter-spacing: -0.04em;
         }
-        .story-nav-brand-text span { color: #0ea5e9; }
+        .story-nav-brand-text span { color: #7B2CBF; }
 
         /* ── Breadcrumb ── */
         .breadcrumb {
@@ -214,7 +214,7 @@ export default function RevistaStoryPage() {
           font-size: 0.78rem; color: #94a3b8;
         }
         .breadcrumb a { color: #94a3b8; text-decoration: none; transition: color 0.2s; }
-        .breadcrumb a:hover { color: #0ea5e9; }
+        .breadcrumb a:hover { color: #7B2CBF; }
         .breadcrumb-sep { font-size: 0.7rem; }
 
         /* ── Article ── */
@@ -239,7 +239,7 @@ export default function RevistaStoryPage() {
         .story-author-row { display: flex; align-items: center; gap: 0.5rem; }
         .story-avatar {
           width: 28px; height: 28px; border-radius: 50%;
-          background: #0ea5e9; color: #fff;
+          background: #7B2CBF; color: #fff;
           display: flex; align-items: center; justify-content: center;
           font-weight: 700; font-size: 0.72rem; overflow: hidden; flex-shrink: 0;
         }
@@ -258,13 +258,13 @@ export default function RevistaStoryPage() {
           border: 1px solid #e2e8f0; cursor: pointer;
           transition: all 0.2s; text-decoration: none;
         }
-        .story-social-btn:hover { background: #0ea5e9; color: #fff; border-color: #0ea5e9; }
+        .story-social-btn:hover { background: #7B2CBF; color: #fff; border-color: #7B2CBF; }
 
         /* Cover image */
         .story-cover {
           width: 100%; aspect-ratio: 16/9; border-radius: 14px;
           overflow: hidden; margin-bottom: 2.5rem;
-          background: linear-gradient(135deg, #0f172a, #1e3a5f);
+          background: linear-gradient(135deg, #10002B, #3C096C);
         }
         .story-cover img { width: 100%; height: 100%; object-fit: cover; }
         .story-cover-placeholder {
@@ -280,7 +280,7 @@ export default function RevistaStoryPage() {
         }
         .story-author-card-avatar {
           width: 44px; height: 44px; border-radius: 50%;
-          background: linear-gradient(135deg, #0ea5e9, #0284c7);
+          background: linear-gradient(135deg, #7B2CBF, #5A189A);
           color: #fff; display: flex; align-items: center;
           justify-content: center; font-weight: 800; font-size: 1rem;
           flex-shrink: 0; overflow: hidden;
@@ -308,8 +308,8 @@ export default function RevistaStoryPage() {
           font-size: 1rem; line-height: 1.75; color: #334155; margin-bottom: 0.3rem;
         }
         .pull-quote {
-          border-left: 4px solid #0ea5e9;
-          background: #f0f9ff;
+          border-left: 4px solid #7B2CBF;
+          background: #FAF5FF;
           padding: 1rem 1.5rem;
           margin: 2rem 0;
           border-radius: 0 8px 8px 0;
@@ -322,8 +322,8 @@ export default function RevistaStoryPage() {
         .story-tags { display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 2.5rem 0 1.5rem; }
         .story-tag {
           font-size: 0.72rem; font-weight: 600; padding: 0.25rem 0.75rem;
-          border-radius: 9999px; background: #e0f2fe; color: #0284c7;
-          border: 1px solid #bae6fd;
+          border-radius: 9999px; background: #F3E8FF; color: #5A189A;
+          border: 1px solid #E0AAFF;
         }
 
         /* Share bottom */
@@ -335,7 +335,7 @@ export default function RevistaStoryPage() {
 
         /* Newsletter */
         .story-nl {
-          background: linear-gradient(135deg, #0f172a, #1e3a5f);
+          background: linear-gradient(135deg, #0f172a, #3C096C);
           border-radius: 14px; padding: 2rem; color: #fff;
           margin-top: 3rem; text-align: center;
         }
@@ -347,12 +347,12 @@ export default function RevistaStoryPage() {
           font-family: 'Poppins', sans-serif; font-size: 0.83rem; outline: none;
         }
         .story-nl-row button {
-          padding: 0.6rem 1.2rem; background: #0ea5e9; color: #fff;
+          padding: 0.6rem 1.2rem; background: #7B2CBF; color: #fff;
           border: none; border-radius: 8px; font-family: 'Poppins', sans-serif;
           font-weight: 600; font-size: 0.83rem; cursor: pointer; white-space: nowrap;
           transition: background 0.2s;
         }
-        .story-nl-row button:hover { background: #38bdf8; }
+        .story-nl-row button:hover { background: #9D4EDD; }
 
         /* Related */
         .related-section {
@@ -368,7 +368,7 @@ export default function RevistaStoryPage() {
         .related-card:last-child { border-bottom: none; }
         .related-img {
           border-radius: 8px; overflow: hidden; aspect-ratio: 4/3;
-          background: linear-gradient(135deg, #0f172a, #0ea5e9);
+          background: linear-gradient(135deg, #10002B, #5A189A);
         }
         .related-img img { width: 100%; height: 100%; object-fit: cover; }
         .related-cat { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
@@ -377,7 +377,7 @@ export default function RevistaStoryPage() {
 
         .revista-spinner {
           width: 36px; height: 36px;
-          border: 3px solid #e2e8f0; border-top-color: #0ea5e9;
+          border: 3px solid #E0AAFF; border-top-color: #7B2CBF;
           border-radius: 50%; animation: spin 0.7s linear infinite;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -393,7 +393,7 @@ export default function RevistaStoryPage() {
         <nav className="story-nav">
           <div className="story-nav-inner">
             <Link href="/revista" className="story-nav-brand">
-              <Code2 size={20} color="#0ea5e9" />
+              <Code2 size={20} color="#7B2CBF" />
               <span className="story-nav-brand-text">
                 codando <span>histórias</span>
               </span>
@@ -421,7 +421,7 @@ export default function RevistaStoryPage() {
         <article className="story-article">
           <span
             className="story-cat"
-            style={{ color: CAT_COLORS[story.category] || '#0ea5e9' }}
+            style={{ color: CAT_COLORS[story.category] || '#7B2CBF' }}
           >
             {story.category}
           </span>
@@ -568,7 +568,7 @@ export default function RevistaStoryPage() {
                   {s.coverImage && <img src={s.coverImage} alt={s.title} />}
                 </div>
                 <div>
-                  <span className="related-cat" style={{ color: CAT_COLORS[s.category] || '#0ea5e9' }}>
+                  <span className="related-cat" style={{ color: CAT_COLORS[s.category] || '#7B2CBF' }}>
                     {s.category}
                   </span>
                   <p className="related-t">{buildTitle(s.title, s.highlightText)}</p>

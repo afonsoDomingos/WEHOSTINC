@@ -34,7 +34,7 @@ function RevistaFooter() {
     <footer className="revista-footer">
       <style>{`
         .revista-footer {
-          background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 50%, #38bdf8 100%);
+          background: linear-gradient(135deg, #10002B 0%, #3C096C 60%, #5A189A 100%);
           padding: 3.5rem 0 2rem;
           margin-top: 5rem;
           font-family: 'Poppins', sans-serif;
