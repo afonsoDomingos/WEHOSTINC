@@ -36,7 +36,7 @@ function RevistaFooter() {
         .revista-footer {
           background: #9D4EDD;
           padding: 3.5rem 0 2rem;
-          margin-top: 5rem;
+          margin-top: 0;
           font-family: 'Poppins', sans-serif;
         }
         .revista-footer .footer-inner {
@@ -164,9 +164,11 @@ function RevistaFooter() {
 
 export default function RevistaLayout({ children }: { children: React.ReactNode }) {
   return (
-    <>
-      {children}
+    <div style={{ background: '#f8fafc', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <main style={{ flex: 1, background: '#f8fafc' }}>
+        {children}
+      </main>
       <RevistaFooter />
-    </>
+    </div>
   );
 }

@@ -205,7 +205,7 @@ export default function RevistaPage() {
         /* ── Stories Section ───────────────── */
         .stories-section {
           max-width: 1100px; margin: 0 auto;
-          padding: 0.5rem 2rem 3rem;
+          padding: 0.5rem 2rem 4.5rem;
           display: grid; grid-template-columns: 1fr 340px; gap: 3rem;
         }
         .section-title { font-size: 1.3rem; font-weight: 800; color: #0f172a; margin-bottom: 1.25rem; }
@@ -301,11 +301,11 @@ export default function RevistaPage() {
 
         /* Newsletter box */
         .nl-box {
-          background: linear-gradient(135deg, #10002B 0%, #240046 50%, #3C096C 100%);
+          background: linear-gradient(135deg, #5A189A 0%, #7B2CBF 100%);
           border-radius: 14px; padding: 1.5rem; color: #fff;
         }
         .nl-box h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; }
-        .nl-box p { font-size: 0.8rem; color: rgba(255,255,255,0.7); margin-bottom: 1rem; line-height: 1.5; }
+        .nl-box p { font-size: 0.8rem; color: rgba(255,255,255,0.85); margin-bottom: 1rem; line-height: 1.5; }
         .nl-input {
           width: 100%; padding: 0.55rem 0.85rem;
           border-radius: 8px; border: none; outline: none;
@@ -314,12 +314,12 @@ export default function RevistaPage() {
         }
         .nl-btn {
           width: 100%; padding: 0.6rem;
-          background: #7B2CBF; color: #fff; border: none;
+          background: #9D4EDD; color: #fff; border: none;
           border-radius: 8px; font-family: 'Poppins', sans-serif;
           font-size: 0.82rem; font-weight: 600; cursor: pointer;
           transition: background 0.2s;
         }
-        .nl-btn:hover { background: #5A189A; }
+        .nl-btn:hover { background: #C77DFF; }
 
         /* Empty / Loading */
         .empty-state {

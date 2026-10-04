@@ -335,28 +335,28 @@ export default function RevistaStoryPage() {
 
         /* Newsletter */
         .story-nl {
-          background: linear-gradient(135deg, #0f172a, #3C096C);
+          background: linear-gradient(135deg, #5A189A 0%, #7B2CBF 100%);
           border-radius: 14px; padding: 2rem; color: #fff;
           margin-top: 3rem; text-align: center;
         }
         .story-nl h3 { font-size: 1.15rem; font-weight: 800; margin-bottom: 0.4rem; }
-        .story-nl p { font-size: 0.85rem; color: rgba(255,255,255,0.7); margin-bottom: 1.25rem; }
+        .story-nl p { font-size: 0.85rem; color: rgba(255,255,255,0.85); margin-bottom: 1.25rem; }
         .story-nl-row { display: flex; gap: 0.5rem; max-width: 420px; margin: 0 auto; }
         .story-nl-row input {
           flex: 1; padding: 0.6rem 1rem; border-radius: 8px; border: none;
           font-family: 'Poppins', sans-serif; font-size: 0.83rem; outline: none;
         }
         .story-nl-row button {
-          padding: 0.6rem 1.2rem; background: #7B2CBF; color: #fff;
+          padding: 0.6rem 1.2rem; background: #9D4EDD; color: #fff;
           border: none; border-radius: 8px; font-family: 'Poppins', sans-serif;
           font-weight: 600; font-size: 0.83rem; cursor: pointer; white-space: nowrap;
           transition: background 0.2s;
         }
-        .story-nl-row button:hover { background: #9D4EDD; }
+        .story-nl-row button:hover { background: #C77DFF; }
 
         /* Related */
         .related-section {
-          max-width: 760px; margin: 0 auto; padding: 0 2rem 2rem;
+          max-width: 760px; margin: 0 auto; padding: 0 2rem 4rem;
         }
         .related-title { font-size: 0.78rem; font-weight: 700; color: #64748b; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 1.25rem; }
         .related-card {
