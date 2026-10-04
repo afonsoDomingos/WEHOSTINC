@@ -117,7 +117,7 @@ export default function Navbar() {
             </Link>
             <Link 
               href="/#criacao-sites" 
-              className="text-xs font-semibold text-primary-600 hover:text-primary-700 bg-primary-50 px-2 py-1 rounded-md border border-primary-200/60 transition whitespace-nowrap shrink-0"
+              className="text-xs lg:text-sm font-semibold text-primary-600 hover:text-primary-700 transition whitespace-nowrap shrink-0"
             >
               {t('nav.sites_compact')}
             </Link>
@@ -168,10 +168,11 @@ export default function Navbar() {
                   )}
                   <Link
                     href={auth.isAdminUser(user) ? '/admin' : '/dashboard'}
-                    className="px-2.5 py-1.5 bg-primary-600 hover:bg-primary-700 text-white font-semibold text-xs rounded-lg shadow-sm hover:shadow transition flex items-center space-x-1.5 whitespace-nowrap shrink-0"
+                    className="px-2 py-1 bg-primary-600 hover:bg-primary-700 text-white font-semibold text-[11px] rounded-md shadow-sm hover:shadow transition flex items-center space-x-1 whitespace-nowrap shrink-0"
+                    title={auth.isAdminUser(user) ? t('nav.admin') : t('nav.dashboard')}
                   >
-                    <LayoutDashboard className="h-3.5 w-3.5 shrink-0" />
-                    <span>{auth.isAdminUser(user) ? t('nav.admin') : t('nav.dashboard')}</span>
+                    <LayoutDashboard className="h-3 w-3 shrink-0" />
+                    <span>{auth.isAdminUser(user) ? t('nav.admin_short') : t('nav.dashboard_short')}</span>
                   </Link>
                 </div>
                 <button
