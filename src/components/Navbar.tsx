@@ -108,93 +108,92 @@ export default function Navbar() {
           <BrandLogo onClick={closeMobileMenu} />
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center space-x-6 lg:space-x-8">
+          <nav className="hidden md:flex items-center space-x-3 lg:space-x-4 xl:space-x-6">
             <Link 
               href="/#planos" 
-              className="text-xs sm:text-sm font-medium text-gray-700 hover:text-primary-600 transition"
+              className="text-xs lg:text-sm font-medium text-gray-700 hover:text-primary-600 transition whitespace-nowrap shrink-0"
             >
               {t('nav.plans')}
             </Link>
             <Link 
               href="/#criacao-sites" 
-              className="text-xs sm:text-sm font-semibold text-primary-600 hover:text-primary-700 bg-primary-50 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-primary-200/60 transition"
+              className="text-xs font-semibold text-primary-600 hover:text-primary-700 bg-primary-50 px-2 py-1 rounded-md border border-primary-200/60 transition whitespace-nowrap shrink-0"
             >
-              {t('nav.sites')}
+              {t('nav.sites_compact')}
             </Link>
             <Link 
               href="/systems" 
-              className="text-xs sm:text-sm font-medium text-gray-700 hover:text-primary-600 transition"
+              className="text-xs lg:text-sm font-medium text-gray-700 hover:text-primary-600 transition whitespace-nowrap shrink-0"
             >
               {t('nav.systems')}
             </Link>
             <Link 
               href="/revista" 
-              className="text-xs sm:text-sm font-medium text-gray-700 hover:text-primary-600 transition"
+              className="text-xs lg:text-sm font-medium text-gray-700 hover:text-primary-600 transition whitespace-nowrap shrink-0"
             >
               Revista
             </Link>
             <Link 
               href="/#recursos" 
-              className="text-xs sm:text-sm font-medium text-gray-700 hover:text-primary-600 transition"
+              className="text-xs lg:text-sm font-medium text-gray-700 hover:text-primary-600 transition whitespace-nowrap shrink-0"
             >
               {t('nav.resources')}
             </Link>
             <Link 
               href="/#contacto" 
-              className="text-xs sm:text-sm font-medium text-gray-700 hover:text-primary-600 transition"
+              className="text-xs lg:text-sm font-medium text-gray-700 hover:text-primary-600 transition whitespace-nowrap shrink-0"
             >
               {t('nav.contact')}
             </Link>
           </nav>
 
           {/* Desktop CTA Action Buttons */}
-          <div className="hidden md:flex items-center space-x-2 lg:space-x-3">
+          <div className="hidden md:flex items-center space-x-1.5 lg:space-x-2 shrink-0">
             <LanguageSelector />
 
             {user ? (
               <>
-                <div className="flex items-center space-x-2 lg:space-x-3">
+                <div className="flex items-center space-x-1.5 lg:space-x-2">
                   {user.avatar && (
-                    <div className="relative group cursor-pointer">
+                    <div className="relative group cursor-pointer shrink-0">
                       <img
                         src={user.avatar}
                         alt="Avatar"
-                        className="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border-2 border-primary-200 hover:border-primary-400 transition"
+                        className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover border-2 border-primary-200 hover:border-primary-400 transition"
                       />
                       <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                        <UserIcon className="h-4 w-4 text-white" />
+                        <UserIcon className="h-3.5 w-3.5 text-white" />
                       </div>
                     </div>
                   )}
                   <Link
                     href={auth.isAdminUser(user) ? '/admin' : '/dashboard'}
-                    className="px-3 sm:px-4 py-2 sm:py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-sm hover:shadow transition flex items-center space-x-1.5 sm:space-x-2"
+                    className="px-2.5 py-1.5 bg-primary-600 hover:bg-primary-700 text-white font-semibold text-xs rounded-lg shadow-sm hover:shadow transition flex items-center space-x-1.5 whitespace-nowrap shrink-0"
                   >
-                    <LayoutDashboard className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                    <span className="hidden sm:inline">{auth.isAdminUser(user) ? t('nav.admin') : t('nav.dashboard')}</span>
-                    <span className="sm:hidden">Painel</span>
+                    <LayoutDashboard className="h-3.5 w-3.5 shrink-0" />
+                    <span>{auth.isAdminUser(user) ? t('nav.admin') : t('nav.dashboard')}</span>
                   </Link>
                 </div>
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="p-2 sm:p-2.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition cursor-pointer border border-gray-200"
+                  className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer border border-gray-200 shrink-0"
                   title="Sair da Conta"
                 >
-                  <LogOut className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  <LogOut className="h-3.5 w-3.5" />
                 </button>
               </>
             ) : (
               <>
                 <Link 
                   href="/login" 
-                  className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-gray-700 hover:text-primary-600 transition"
+                  className="px-2.5 py-1.5 text-xs font-semibold text-gray-700 hover:text-primary-600 transition whitespace-nowrap shrink-0"
                 >
                   {t('nav.login')}
                 </Link>
                 <Link 
                   href="/register" 
-                  className="px-4 sm:px-5 py-2 sm:py-2.5 bg-primary-600 text-white text-xs sm:text-sm font-semibold rounded-xl hover:bg-primary-700 shadow-sm hover:shadow transition"
+                  className="px-3 py-1.5 bg-primary-600 text-white text-xs font-semibold rounded-lg hover:bg-primary-700 shadow-sm hover:shadow transition whitespace-nowrap shrink-0"
                 >
                   {t('nav.register')}
                 </Link>

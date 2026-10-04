@@ -5,6 +5,7 @@ export const translations: Record<Language, Record<string, string>> = {
     // Navbar & Menu
     'nav.plans': 'Planos',
     'nav.sites': 'Criação de Sites (a partir de 12.000 MT)',
+    'nav.sites_compact': 'Criação de Sites',
     'nav.systems': 'Sistemas Prontos',
     'nav.resources': 'Recursos',
     'nav.contact': 'Contacto',
@@ -263,6 +264,7 @@ export const translations: Record<Language, Record<string, string>> = {
     // Navbar & Menu
     'nav.plans': 'Plans',
     'nav.sites': 'Website Creation (from 12,000 MT)',
+    'nav.sites_compact': 'Website Creation',
     'nav.systems': 'Ready Systems',
     'nav.resources': 'Features',
     'nav.contact': 'Contact',
