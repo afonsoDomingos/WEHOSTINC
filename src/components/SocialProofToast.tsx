@@ -36,8 +36,8 @@ export default function SocialProofToast() {
   }, []);
 
   useEffect(() => {
-    // Não mostrar nas páginas de login/registro/dashboard/webmail/admin
-    const isAppPage = pathname === '/login' || pathname === '/register' || pathname?.startsWith('/dashboard') || pathname?.startsWith('/webmail') || pathname?.startsWith('/admin');
+    // Não mostrar nas páginas de login/registro/dashboard/webmail/admin/revista
+    const isAppPage = pathname === '/login' || pathname === '/register' || pathname?.startsWith('/dashboard') || pathname?.startsWith('/webmail') || pathname?.startsWith('/admin') || pathname?.startsWith('/revista');
     if (isAppPage) return;
     
     // Não mostrar se newsletter popup está visível
@@ -65,8 +65,8 @@ export default function SocialProofToast() {
     };
   }, [proofs, dismissed, pathname, newsletterVisible]);
 
-  // Não renderizar se estiver em páginas de login/registro/dashboard/webmail/admin ou newsletter estiver visível
-  const isAppPage = pathname === '/login' || pathname === '/register' || pathname?.startsWith('/dashboard') || pathname?.startsWith('/webmail') || pathname?.startsWith('/admin');
+  // Não renderizar se estiver em páginas de login/registro/dashboard/webmail/admin/revista ou newsletter estiver visível
+  const isAppPage = pathname === '/login' || pathname === '/register' || pathname?.startsWith('/dashboard') || pathname?.startsWith('/webmail') || pathname?.startsWith('/admin') || pathname?.startsWith('/revista');
   if (isAppPage || newsletterVisible || proofs.length === 0 || dismissed) return null;
 
   const current = proofs[currentIndex] || proofs[0];
