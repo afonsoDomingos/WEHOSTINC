@@ -438,9 +438,28 @@ export default function RevistaStoryPage() {
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
+        /* Back link (always visible) */
+        .story-nav-back-link {
+          display: flex; align-items: center; gap: 0.3rem;
+          font-size: 0.82rem; color: #475569; text-decoration: none;
+          font-weight: 500; white-space: nowrap;
+          transition: color 0.2s;
+        }
+        .story-nav-back-link:hover { color: #7B2CBF; }
+
         @media (max-width: 640px) {
-          .story-title { font-size: 1.5rem; }
+          .story-nav-inner { padding: 0 1rem; height: 56px; }
+          .story-nav-brand-text { font-size: 0.88rem; }
+          .story-nav-back-text { display: none; }
+          .story-title { font-size: 1.45rem; }
+          .breadcrumb { padding: 0.75rem 1rem 0; font-size: 0.72rem; }
+          .story-article { padding: 0 1rem 3rem; }
+          .related-section { padding: 0 1rem 3rem; }
           .story-nl-row { flex-direction: column; }
+          .pull-quote { padding: 0.75rem 1rem; font-size: 1rem; }
+        }
+        @media (max-width: 400px) {
+          .story-nav-brand-text { display: none; }
         }
       `}</style>
 
@@ -454,12 +473,8 @@ export default function RevistaStoryPage() {
                 codando <span>histórias</span>
               </span>
             </Link>
-            <Link href="/revista" style={{
-              display: 'flex', alignItems: 'center', gap: '0.3rem',
-              fontSize: '0.82rem', color: '#475569', textDecoration: 'none',
-              fontWeight: 500,
-            }}>
-              <ArrowLeft size={15} /> Todas as histórias
+            <Link href="/revista" className="story-nav-back-link">
+              <ArrowLeft size={15} /> <span className="story-nav-back-text">Todas as histórias</span>
             </Link>
           </div>
         </nav>

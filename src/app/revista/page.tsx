@@ -2,7 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Search, Clock, Eye, ChevronRight, BookOpen, Code2, Cpu, Palette, Briefcase, Newspaper, Star } from 'lucide-react';
+import {
+  Search, Clock, Eye, ChevronRight, BookOpen, Code2,
+  Cpu, Palette, Briefcase, Newspaper, Star, Menu, X, Home, ExternalLink
+} from 'lucide-react';
 
 interface Story {
   id: string;
@@ -65,6 +68,7 @@ export default function RevistaPage() {
   const [tab, setTab] = useState<'recentes' | 'mais-lidas' | 'destaque'>('recentes');
   const [category, setCategory] = useState('all');
   const [search, setSearch] = useState('');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     fetchStories();
@@ -128,15 +132,99 @@ export default function RevistaPage() {
           color: #7B2CBF;
         }
         .revista-nav-links { display: flex; gap: 1.5rem; align-items: center; }
-        .revista-nav-links a {
+        .revista-nav-links a, .revista-nav-link-btn {
           color: #475569; text-decoration: none; font-size: 0.85rem; font-weight: 500;
-          transition: color 0.2s;
+          transition: color 0.2s; background: none; border: none; cursor: pointer;
+          font-family: 'Poppins', sans-serif; padding: 0;
         }
-        .revista-nav-links a:hover { color: #7B2CBF; }
-        .revista-nav-links a.active {
+        .revista-nav-links a:hover, .revista-nav-link-btn:hover { color: #7B2CBF; }
+        .revista-nav-links a.active, .revista-nav-link-btn.active {
           color: #7B2CBF;
           border-bottom: 2px solid #7B2CBF;
           padding-bottom: 2px;
+        }
+        .revista-nav-external {
+          display: inline-flex; align-items: center; gap: 0.35rem;
+          font-size: 0.8rem !important; color: #7B2CBF !important;
+          background: #FAF5FF; padding: 0.35rem 0.75rem !important;
+          border-radius: 9999px; border: 1px solid #E0AAFF;
+          font-weight: 600 !important; transition: all 0.2s;
+        }
+        .revista-nav-external:hover {
+          background: #7B2CBF !important; color: #fff !important; border-color: #7B2CBF !important;
+        }
+
+        .revista-mobile-toggle {
+          display: none;
+          align-items: center; justify-content: center;
+          width: 40px; height: 40px;
+          border-radius: 8px; border: 1px solid #e2e8f0;
+          background: #f8fafc; cursor: pointer;
+          transition: all 0.2s;
+        }
+        .revista-mobile-toggle:hover {
+          background: #f1f5f9; border-color: #cbd5e1;
+        }
+
+        /* Mobile Dropdown Menu */
+        .revista-mobile-menu {
+          background: #fff;
+          border-top: 1px solid #f1f5f9;
+          border-bottom: 2px solid #E0AAFF;
+          box-shadow: 0 16px 32px -8px rgba(0,0,0,0.12);
+          animation: navSlideDown 0.22s ease-out;
+        }
+        @keyframes navSlideDown {
+          from { opacity: 0; transform: translateY(-8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .revista-mobile-menu-inner {
+          padding: 1.25rem 1.25rem 1.5rem;
+          max-width: 1100px; margin: 0 auto;
+        }
+        .revista-mobile-title {
+          font-size: 0.72rem; font-weight: 700; color: #94a3b8;
+          text-transform: uppercase; letter-spacing: 0.08em;
+          margin-bottom: 0.75rem;
+        }
+        .revista-mobile-cats {
+          display: grid; grid-template-columns: repeat(2, 1fr);
+          gap: 0.5rem; margin-bottom: 1.25rem;
+        }
+        .revista-mobile-cat-btn {
+          display: flex; align-items: center; gap: 0.5rem;
+          padding: 0.65rem 0.85rem; border-radius: 8px;
+          border: 1px solid #e2e8f0; background: #f8fafc;
+          font-family: 'Poppins', sans-serif; font-size: 0.82rem;
+          font-weight: 600; color: #334155; text-align: left;
+          cursor: pointer; transition: all 0.18s;
+        }
+        .revista-mobile-cat-btn.active {
+          background: #7B2CBF; color: #fff; border-color: #7B2CBF;
+        }
+        .revista-mobile-cat-btn:not(.active):hover {
+          background: #FAF5FF; color: #7B2CBF; border-color: #E0AAFF;
+        }
+        .revista-mobile-divider {
+          height: 1px; background: #e2e8f0; margin-bottom: 1rem;
+        }
+        .revista-mobile-links {
+          display: flex; flex-direction: column; gap: 0.5rem;
+        }
+        .revista-mobile-link {
+          display: flex; align-items: center; gap: 0.6rem;
+          padding: 0.65rem 0.85rem; border-radius: 8px;
+          text-decoration: none; font-size: 0.85rem; font-weight: 600;
+          color: #334155; transition: all 0.18s;
+        }
+        .revista-mobile-link:hover {
+          background: #f1f5f9; color: #7B2CBF;
+        }
+        .revista-mobile-link.highlight {
+          background: #FAF5FF; color: #7B2CBF; border: 1px solid #E0AAFF;
+        }
+        .revista-mobile-link.highlight:hover {
+          background: #7B2CBF; color: #fff; border-color: #7B2CBF;
         }
 
         /* ── Hero ──────────────────────────── */
@@ -342,10 +430,34 @@ export default function RevistaPage() {
           .stories-section { grid-template-columns: 1fr; }
           .sidebar { display: none; }
         }
+        @media (max-width: 768px) {
+          .revista-nav-inner { padding: 0 1.25rem; }
+          .revista-nav-links { display: none; }
+          .revista-mobile-toggle { display: flex; }
+          .cat-bar {
+            padding: 0.5rem 1.25rem 1rem;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+          }
+          .cat-bar::-webkit-scrollbar { display: none; }
+          .cat-btn {
+            flex-shrink: 0; white-space: nowrap;
+            font-size: 0.78rem; padding: 0.35rem 0.85rem;
+          }
+        }
         @media (max-width: 600px) {
-          .revista-hero { padding: 2rem 1rem 1rem; }
+          .revista-hero { padding: 2rem 1.25rem 1rem; }
           .hero-title { font-size: 1.5rem; }
-          .stories-section { padding: 0.5rem 1rem 2rem; }
+          .stories-section { padding: 0.5rem 1.25rem 2.5rem; }
+        }
+        @media (max-width: 360px) {
+          .revista-nav-brand-text { font-size: 0.9rem; }
+          .cat-btn { font-size: 0.72rem; padding: 0.3rem 0.7rem; }
+          .revista-mobile-cats { grid-template-columns: 1fr; }
+          .hero-title { font-size: 1.3rem; }
+          .story-card { grid-template-columns: 80px 1fr; }
         }
       `}</style>
 
@@ -353,19 +465,105 @@ export default function RevistaPage() {
         {/* ── Navbar ── */}
         <nav className="revista-nav">
           <div className="revista-nav-inner">
-            <Link href="/revista" className="revista-nav-brand">
+            <Link href="/revista" className="revista-nav-brand" onClick={() => setMobileMenuOpen(false)}>
               <Code2 size={20} color="#7B2CBF" />
               <span className="revista-nav-brand-text">
                 codando <span>histórias</span>
               </span>
             </Link>
+
+            {/* Desktop links */}
             <div className="revista-nav-links">
-              <Link href="/revista" className="active">Início</Link>
-              <Link href="/revista?cat=codigo">Código</Link>
-              <Link href="/revista?cat=startups">Startups</Link>
-              <Link href="/">WEHOSTHERE</Link>
+              <button
+                className={`revista-nav-link-btn ${category === 'all' ? 'active' : ''}`}
+                onClick={() => setCategory('all')}
+              >
+                Início
+              </button>
+              <button
+                className={`revista-nav-link-btn ${category === 'codigo' ? 'active' : ''}`}
+                onClick={() => setCategory('codigo')}
+              >
+                Código
+              </button>
+              <button
+                className={`revista-nav-link-btn ${category === 'startups' ? 'active' : ''}`}
+                onClick={() => setCategory('startups')}
+              >
+                Startups
+              </button>
+              <button
+                className={`revista-nav-link-btn ${category === 'ia' ? 'active' : ''}`}
+                onClick={() => setCategory('ia')}
+              >
+                IA
+              </button>
+              <Link href="/" target="_blank" rel="noopener noreferrer" className="revista-nav-external">
+                WEHOSTHERE <ExternalLink size={12} />
+              </Link>
             </div>
+
+            {/* Mobile hamburger button */}
+            <button
+              className="revista-mobile-toggle"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label={mobileMenuOpen ? 'Fechar menu' : 'Abrir menu'}
+            >
+              {mobileMenuOpen ? <X size={22} color="#0f172a" /> : <Menu size={22} color="#0f172a" />}
+            </button>
           </div>
+
+          {/* Mobile menu dropdown */}
+          {mobileMenuOpen && (
+            <div className="revista-mobile-menu">
+              <div className="revista-mobile-menu-inner">
+                <p className="revista-mobile-title">Categorias</p>
+                <div className="revista-mobile-cats">
+                  {CATEGORIES.map(c => {
+                    const Icon = c.icon;
+                    const isActive = category === c.key;
+                    return (
+                      <button
+                        key={c.key}
+                        className={`revista-mobile-cat-btn ${isActive ? 'active' : ''}`}
+                        onClick={() => {
+                          setCategory(c.key);
+                          setMobileMenuOpen(false);
+                        }}
+                      >
+                        <Icon size={16} />
+                        <span>{c.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="revista-mobile-divider" />
+
+                <div className="revista-mobile-links">
+                  <button
+                    className="revista-mobile-link"
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', font: 'inherit' }}
+                    onClick={() => {
+                      setCategory('all');
+                      setMobileMenuOpen(false);
+                    }}
+                  >
+                    <Home size={16} color="#7B2CBF" />
+                    <span>Página Inicial da Revista</span>
+                  </button>
+                  <Link
+                    href="/"
+                    className="revista-mobile-link highlight"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <ExternalLink size={16} />
+                    <span>Ir para WEHOSTHERE Hosting</span>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
         </nav>
 
         {/* ── Hero ── */}
