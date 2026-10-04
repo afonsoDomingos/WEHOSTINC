@@ -28,6 +28,7 @@ export default function EditarHistoriaPage() {
 
   const [formData, setFormData] = useState({
     title: '',
+    slug: '',
     highlightText: '',
     excerpt: '',
     content: '',
@@ -36,6 +37,8 @@ export default function EditarHistoriaPage() {
     tags: '',
     status: 'draft' as 'draft' | 'published' | 'archived',
     featured: false,
+    views: 0,
+    publishedAt: '',
     author: {
       name: 'WEHOSTHERE',
       email: 'info@wehosthere.com',
@@ -64,6 +67,7 @@ export default function EditarHistoriaPage() {
         const s = data.story;
         setFormData({
           title: s.title || '',
+          slug: s.slug || '',
           highlightText: s.highlightText || '',
           excerpt: s.excerpt || '',
           content: s.content || '',
@@ -72,6 +76,8 @@ export default function EditarHistoriaPage() {
           tags: (s.tags || []).join(', '),
           status: s.status || 'draft',
           featured: s.featured || false,
+          views: s.views || 0,
+          publishedAt: s.publishedAt ? new Date(s.publishedAt).toISOString().slice(0, 16) : '',
           author: {
             name: s.author?.name || 'WEHOSTHERE',
             email: s.author?.email || '',
@@ -138,6 +144,9 @@ export default function EditarHistoriaPage() {
     try {
       const payload = {
         ...formData,
+        slug: formData.slug.trim(),
+        publishedAt: formData.publishedAt ? new Date(formData.publishedAt).toISOString() : (formData.status === 'published' ? new Date().toISOString() : undefined),
+        views: Number(formData.views) || 0,
         tags: formData.tags.split(',').map((t: string) => t.trim()).filter(Boolean),
         status: status || formData.status,
         author: formData.author,
@@ -401,6 +410,24 @@ export default function EditarHistoriaPage() {
               </div>
 
               <div className="edit-field">
+                <label className="edit-label">Link Permanente (Slug / URL da História)</label>
+                <div style={{ display: 'flex', alignItems: 'center', background: '#fff', border: '1px solid #cbd5e1', borderRadius: '8px', overflow: 'hidden' }}>
+                  <span style={{ padding: '0.55rem 0.75rem', background: '#f8fafc', color: '#64748b', fontSize: '0.8rem', borderRight: '1px solid #e2e8f0', whiteSpace: 'nowrap' }}>
+                    /revista/
+                  </span>
+                  <input
+                    className="edit-input"
+                    style={{ border: 'none', borderRadius: 0, paddingLeft: '0.5rem' }}
+                    type="text"
+                    placeholder="como-construi-meu-saas"
+                    value={formData.slug}
+                    onChange={e => set('slug', e.target.value.toLowerCase().replace(/[^a-z0-9-_]/g, '-'))}
+                  />
+                </div>
+                <p className="edit-hint">O URL onde esta publicação fica acessível. Podes alterar a qualquer momento.</p>
+              </div>
+
+              <div className="edit-field">
                 <label className="edit-label">Texto em Destaque (highlight azul no título)</label>
                 <input
                   className="edit-input" type="text"
@@ -562,6 +589,29 @@ export default function EditarHistoriaPage() {
                   <input type="checkbox" checked={formData.featured} onChange={e => set('featured', e.target.checked)} />
                   <span className="toggle-slider" />
                 </label>
+              </div>
+
+              <div className="edit-field" style={{ marginTop: '1.25rem' }}>
+                <label className="edit-label">📅 Data de Publicação</label>
+                <input
+                  className="edit-input"
+                  type="datetime-local"
+                  value={formData.publishedAt}
+                  onChange={e => set('publishedAt', e.target.value)}
+                />
+                <p className="edit-hint">Data visível no cabeçalho do artigo na revista.</p>
+              </div>
+
+              <div className="edit-field" style={{ marginTop: '1rem' }}>
+                <label className="edit-label">👁️ Visualizações (Contador Real)</label>
+                <input
+                  className="edit-input"
+                  type="number"
+                  min="0"
+                  value={formData.views}
+                  onChange={e => set('views', Math.max(0, parseInt(e.target.value, 10) || 0))}
+                />
+                <p className="edit-hint">Incrementado automaticamente com leituras reais.</p>
               </div>
             </div>
 

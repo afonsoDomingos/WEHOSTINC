@@ -374,6 +374,14 @@ export default function AdminRevistaPage() {
                         )}
                         {story.title}
                         <div className="ar-excerpt">{story.excerpt}</div>
+                        <div style={{ fontSize: '0.72rem', color: '#7B2CBF', marginTop: '3px', display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                          <span style={{ fontWeight: 600 }}>/revista/{story.slug}</span>
+                          {story.publishedAt && (
+                            <span style={{ color: '#94a3b8' }}>
+                              • {new Date(story.publishedAt).toLocaleDateString('pt-MZ', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </td>
 

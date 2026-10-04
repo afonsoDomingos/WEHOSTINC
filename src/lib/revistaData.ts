@@ -100,7 +100,7 @@ No dia 18, partilhei o produto num grupo de WhatsApp de empreendedores e criador
     tags: ['nextjs', 'saas', 'empreendedorismo', 'mozambique', 'dev'],
     status: 'published',
     featured: true,
-    views: 412,
+    views: 0,
     readingTime: 5,
     publishedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
     createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
@@ -153,7 +153,7 @@ Se estás a construir um MVP ou serviço directo: começa com REST. Se sentires 
     tags: ['api', 'rest', 'graphql', 'backend', 'arquitectura'],
     status: 'published',
     featured: false,
-    views: 285,
+    views: 0,
     readingTime: 4,
     publishedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
     createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
@@ -197,7 +197,7 @@ Após dezenas de candidaturas e testes técnicos, recebi uma proposta internacio
     tags: ['carreira', 'remoto', 'emprego', 'mozambique'],
     status: 'published',
     featured: false,
-    views: 520,
+    views: 0,
     readingTime: 5,
     publishedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
     createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
@@ -233,7 +233,7 @@ Durante muito tempo achei que o design visual era um dom exclusivo de designers 
     tags: ['design', 'ui', 'ux', 'frontend'],
     status: 'published',
     featured: false,
-    views: 198,
+    views: 0,
     readingTime: 4,
     publishedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
     createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
@@ -342,7 +342,7 @@ export async function getStoryBySlug(slug: string) {
     try {
       await connectDB();
       const s = await RevistaStory.findOneAndUpdate(
-        { slug, status: 'published' },
+        { slug },
         { $inc: { views: 1 } },
         { new: true }
       ).lean();
@@ -419,7 +419,7 @@ export async function getStoryById(id: string) {
 }
 
 export async function createStory(data: Partial<StoryItem>) {
-  let slug = data.slug;
+  let slug = data.slug ? data.slug.toLowerCase().trim().replace(/[^a-z0-9-_]/g, '-').replace(/-+/g, '-') : '';
   if (!slug && data.title) {
     slug = data.title
       .toLowerCase()
@@ -428,9 +428,11 @@ export async function createStory(data: Partial<StoryItem>) {
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)/g, '');
   }
+  if (!slug) slug = `historia-${Date.now()}`;
 
   const words = (data.content || '').split(/\s+/).length;
   const readingTime = Math.ceil(words / 200);
+  const publishedDate = data.publishedAt ? new Date(data.publishedAt) : (data.status === 'published' ? new Date() : undefined);
 
   if (process.env.MONGODB_URI) {
     try {
@@ -441,8 +443,9 @@ export async function createStory(data: Partial<StoryItem>) {
       const created = await RevistaStory.create({
         ...data,
         slug,
+        views: data.views !== undefined ? Number(data.views) : 0,
         readingTime,
-        publishedAt: data.status === 'published' ? new Date() : undefined,
+        publishedAt: publishedDate,
       });
 
       return {
@@ -487,13 +490,25 @@ export async function createStory(data: Partial<StoryItem>) {
 }
 
 export async function updateStory(id: string, data: Partial<StoryItem>) {
+  if (data.slug) {
+    data.slug = data.slug.toLowerCase().trim().replace(/[^a-z0-9-_]/g, '-').replace(/-+/g, '-');
+  }
+
   if (process.env.MONGODB_URI) {
     try {
       await connectDB();
       const existing = await RevistaStory.findById(id);
       if (existing) {
-        if (data.status === 'published' && existing.status !== 'published') {
+        if (data.slug && data.slug !== existing.slug) {
+          const conflict = await RevistaStory.findOne({ slug: data.slug, _id: { $ne: id } });
+          if (conflict) {
+            return { success: false, error: 'Este link/slug já está a ser utilizado por outra história.' };
+          }
+        }
+        if (!data.publishedAt && data.status === 'published' && existing.status !== 'published') {
           (data as any).publishedAt = new Date();
+        } else if (data.publishedAt) {
+          (data as any).publishedAt = new Date(data.publishedAt);
         }
         if (data.content) {
           const words = data.content.split(/\s+/).length;
@@ -504,15 +519,24 @@ export async function updateStory(id: string, data: Partial<StoryItem>) {
           return { success: true, story: updated };
         }
       }
-    } catch (err) {
+    } catch (err: any) {
       console.warn('[RevistaData] Erro ao atualizar no MongoDB:', err);
+      return { success: false, error: err.message };
     }
   }
 
   const idx = fallbackStories.findIndex(s => s.id === id);
   if (idx !== -1) {
-    if (data.status === 'published' && fallbackStories[idx].status !== 'published') {
+    if (data.slug && data.slug !== fallbackStories[idx].slug) {
+      const conflict = fallbackStories.find(s => s.slug === data.slug && s.id !== id);
+      if (conflict) {
+        return { success: false, error: 'Este link/slug já está a ser utilizado por outra história.' };
+      }
+    }
+    if (!data.publishedAt && data.status === 'published' && fallbackStories[idx].status !== 'published') {
       data.publishedAt = new Date().toISOString();
+    } else if (data.publishedAt) {
+      data.publishedAt = new Date(data.publishedAt).toISOString();
     }
     if (data.content) {
       const words = data.content.split(/\s+/).length;

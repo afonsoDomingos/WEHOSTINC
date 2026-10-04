@@ -24,6 +24,7 @@ export default function NovaHistoriaPage() {
 
   const [formData, setFormData] = useState({
     title: '',
+    slug: '',
     highlightText: '',
     excerpt: '',
     content: `## Introdução\n\nEscreve aqui a introdução da história.\n\n> "Coloca aqui uma citação impactante"\n\n## O Tema Principal\n\nDescreve o tema central da história.\n\n* Ponto importante 1\n* Ponto importante 2\n* Ponto importante 3\n\n## Conclusão\n\nFecha a história de forma memorável.`,
@@ -32,6 +33,7 @@ export default function NovaHistoriaPage() {
     tags: '',
     status: 'draft',
     featured: false,
+    publishedAt: '',
     author: {
       name: 'WEHOSTHERE',
       email: 'info@wehosthere.com',
@@ -88,6 +90,8 @@ export default function NovaHistoriaPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
+          slug: formData.slug.trim(),
+          publishedAt: formData.publishedAt ? new Date(formData.publishedAt).toISOString() : (status === 'published' ? new Date().toISOString() : undefined),
           tags: formData.tags.split(',').map(t => t.trim()).filter(Boolean),
           status,
         }),
@@ -329,6 +333,24 @@ export default function NovaHistoriaPage() {
                 </div>
 
                 <div className="nova-field">
+                  <label className="nova-label">Link Permanente Personalizado (Slug / Opcional)</label>
+                  <div style={{ display: 'flex', alignItems: 'center', background: '#fff', border: '1px solid #cbd5e1', borderRadius: '8px', overflow: 'hidden' }}>
+                    <span style={{ padding: '0.55rem 0.75rem', background: '#f8fafc', color: '#64748b', fontSize: '0.8rem', borderRight: '1px solid #e2e8f0', whiteSpace: 'nowrap' }}>
+                      /revista/
+                    </span>
+                    <input
+                      className="nova-input"
+                      style={{ border: 'none', borderRadius: 0, paddingLeft: '0.5rem' }}
+                      type="text"
+                      placeholder="deixa em branco para gerar automático"
+                      value={formData.slug}
+                      onChange={e => set('slug', e.target.value.toLowerCase().replace(/[^a-z0-9-_]/g, '-'))}
+                    />
+                  </div>
+                  <p className="nova-hint">Se deixares em branco, o link será criado automaticamente a partir do título.</p>
+                </div>
+
+                <div className="nova-field">
                   <label className="nova-label">Texto em Destaque (highlight azul no título)</label>
                   <input
                     className="nova-input"
@@ -537,6 +559,17 @@ export default function NovaHistoriaPage() {
                     />
                     <span className="toggle-slider" />
                   </label>
+                </div>
+
+                <div className="nova-field" style={{ marginTop: '1.25rem' }}>
+                  <label className="nova-label">📅 Data de Publicação (Opcional)</label>
+                  <input
+                    className="nova-input"
+                    type="datetime-local"
+                    value={formData.publishedAt}
+                    onChange={e => set('publishedAt', e.target.value)}
+                  />
+                  <p className="nova-hint">Se deixares em branco, assumirá a data/hora actual ao publicar.</p>
                 </div>
               </div>
 
