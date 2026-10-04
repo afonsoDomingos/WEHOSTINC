@@ -5,7 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   ArrowLeft, Clock, Eye, Calendar, Share2,
-  Instagram, Linkedin, Twitter, Code2, ChevronRight
+  Instagram, Linkedin, Twitter, Code2, ChevronRight,
+  Globe, Github
 } from 'lucide-react';
 
 interface Story {
@@ -15,7 +16,18 @@ interface Story {
   excerpt: string;
   content: string;
   coverImage?: string;
-  author: { name: string; avatar?: string; bio?: string };
+  author: {
+    name: string;
+    avatar?: string;
+    bio?: string;
+    website?: string;
+    socials?: {
+      twitter?: string;
+      linkedin?: string;
+      github?: string;
+      instagram?: string;
+    };
+  };
   category: string;
   tags: string[];
   readingTime?: number;
@@ -23,6 +35,26 @@ interface Story {
   featured: boolean;
   highlightText?: string;
   publishedAt?: string;
+}
+
+function formatSocialUrl(network: 'github' | 'linkedin' | 'twitter' | 'instagram' | 'website', val: string): string {
+  if (!val) return '';
+  const clean = val.trim();
+  if (clean.startsWith('http://') || clean.startsWith('https://')) return clean;
+  switch (network) {
+    case 'github':
+      return `https://github.com/${clean.replace(/^@/, '')}`;
+    case 'linkedin':
+      return clean.includes('linkedin.com') ? `https://${clean}` : `https://linkedin.com/in/${clean.replace(/^@/, '')}`;
+    case 'twitter':
+      return `https://x.com/${clean.replace(/^@/, '')}`;
+    case 'instagram':
+      return `https://instagram.com/${clean.replace(/^@/, '')}`;
+    case 'website':
+      return `https://${clean}`;
+    default:
+      return clean;
+  }
 }
 
 const CAT_COLORS: Record<string, string> = {
@@ -288,6 +320,30 @@ export default function RevistaStoryPage() {
         .story-author-card-avatar img { width: 100%; height: 100%; object-fit: cover; }
         .story-author-card-name { font-weight: 700; font-size: 0.88rem; color: #0f172a; }
         .story-author-card-bio { font-size: 0.78rem; color: #64748b; margin-top: 0.15rem; }
+        .story-author-links {
+          display: flex; align-items: center; gap: 0.5rem;
+          margin-top: 0.45rem; flex-wrap: wrap;
+        }
+        .story-author-link {
+          display: inline-flex; align-items: center; gap: 0.3rem;
+          font-size: 0.73rem; font-weight: 600; color: #7B2CBF;
+          text-decoration: none; background: #FAF5FF;
+          border: 1px solid #E0AAFF; padding: 0.2rem 0.55rem;
+          border-radius: 9999px; transition: all 0.2s;
+        }
+        .story-author-link:hover {
+          background: #7B2CBF; color: #fff; border-color: #7B2CBF;
+        }
+        .story-author-link-icon {
+          display: inline-flex; align-items: center; justify-content: center;
+          width: 26px; height: 26px; border-radius: 50%;
+          background: #FAF5FF; color: #7B2CBF;
+          border: 1px solid #E0AAFF; transition: all 0.2s;
+        }
+        .story-author-link-icon:hover {
+          background: #7B2CBF; color: #fff; border-color: #7B2CBF;
+          transform: translateY(-1px);
+        }
 
         /* Content */
         .content-p {
@@ -510,10 +566,74 @@ export default function RevistaStoryPage() {
                 : story.author?.name?.[0]?.toUpperCase()
               }
             </div>
-            <div>
+            <div style={{ flex: 1 }}>
               <div className="story-author-card-name">{story.author?.name}</div>
               {story.author?.bio && (
                 <div className="story-author-card-bio">{story.author.bio}</div>
+              )}
+              {(story.author?.website || story.author?.socials?.github || story.author?.socials?.linkedin || story.author?.socials?.twitter || story.author?.socials?.instagram) && (
+                <div className="story-author-links">
+                  {story.author.website && (
+                    <a
+                      href={formatSocialUrl('website', story.author.website)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="story-author-link"
+                      title="Visitar Website"
+                    >
+                      <Globe size={12} />
+                      <span>Website</span>
+                    </a>
+                  )}
+                  {story.author.socials?.github && (
+                    <a
+                      href={formatSocialUrl('github', story.author.socials.github)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="story-author-link-icon"
+                      title="GitHub"
+                      aria-label="GitHub do autor"
+                    >
+                      <Github size={13} />
+                    </a>
+                  )}
+                  {story.author.socials?.linkedin && (
+                    <a
+                      href={formatSocialUrl('linkedin', story.author.socials.linkedin)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="story-author-link-icon"
+                      title="LinkedIn"
+                      aria-label="LinkedIn do autor"
+                    >
+                      <Linkedin size={13} />
+                    </a>
+                  )}
+                  {story.author.socials?.twitter && (
+                    <a
+                      href={formatSocialUrl('twitter', story.author.socials.twitter)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="story-author-link-icon"
+                      title="Twitter / X"
+                      aria-label="Twitter / X do autor"
+                    >
+                      <Twitter size={13} />
+                    </a>
+                  )}
+                  {story.author.socials?.instagram && (
+                    <a
+                      href={formatSocialUrl('instagram', story.author.socials.instagram)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="story-author-link-icon"
+                      title="Instagram"
+                      aria-label="Instagram do autor"
+                    >
+                      <Instagram size={13} />
+                    </a>
+                  )}
+                </div>
               )}
             </div>
           </div>

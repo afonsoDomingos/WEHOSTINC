@@ -36,7 +36,19 @@ export default function EditarHistoriaPage() {
     tags: '',
     status: 'draft' as 'draft' | 'published' | 'archived',
     featured: false,
-    author: { name: 'WEHOSTHERE', email: 'info@wehosthere.com', bio: '', avatar: '' },
+    author: {
+      name: 'WEHOSTHERE',
+      email: 'info@wehosthere.com',
+      bio: '',
+      avatar: '',
+      website: '',
+      socials: {
+        twitter: '',
+        linkedin: '',
+        github: '',
+        instagram: '',
+      },
+    },
     seo: { metaTitle: '', metaDescription: '', keywords: '' },
   });
 
@@ -65,6 +77,13 @@ export default function EditarHistoriaPage() {
             email: s.author?.email || '',
             bio: s.author?.bio || '',
             avatar: s.author?.avatar || '',
+            website: s.author?.website || '',
+            socials: {
+              twitter: s.author?.socials?.twitter || '',
+              linkedin: s.author?.socials?.linkedin || '',
+              github: s.author?.socials?.github || '',
+              instagram: s.author?.socials?.instagram || '',
+            },
           },
           seo: {
             metaTitle: s.seo?.metaTitle || '',
@@ -85,6 +104,14 @@ export default function EditarHistoriaPage() {
   const set = (key: string, value: any) => setFormData(prev => ({ ...prev, [key]: value }));
   const setAuthor = (key: string, value: string) =>
     setFormData(prev => ({ ...prev, author: { ...prev.author, [key]: value } }));
+  const setAuthorSocial = (key: string, value: string) =>
+    setFormData(prev => ({
+      ...prev,
+      author: {
+        ...prev.author,
+        socials: { ...prev.author.socials, [key]: value },
+      },
+    }));
   const setSeo = (key: string, value: string) =>
     setFormData(prev => ({ ...prev, seo: { ...prev.seo, [key]: value } }));
 
@@ -452,6 +479,35 @@ export default function EditarHistoriaPage() {
                 <div className="edit-field">
                   <label className="edit-label">Bio curta</label>
                   <input className="edit-input" placeholder="Engenheiro em Maputo..." value={formData.author.bio} onChange={e => setAuthor('bio', e.target.value)} />
+                </div>
+              </div>
+
+              <div className="edit-field">
+                <label className="edit-label">Website / Portfólio (URL)</label>
+                <input className="edit-input" type="url" placeholder="https://o-meu-site.com" value={formData.author.website} onChange={e => setAuthor('website', e.target.value)} />
+              </div>
+
+              <p className="edit-label" style={{ marginTop: '1rem', marginBottom: '0.4rem', fontWeight: 700, color: '#334155' }}>
+                Redes Sociais do Autor
+              </p>
+              <div className="edit-row">
+                <div className="edit-field">
+                  <label className="edit-label">LinkedIn</label>
+                  <input className="edit-input" placeholder="https://linkedin.com/in/... ou username" value={formData.author.socials.linkedin} onChange={e => setAuthorSocial('linkedin', e.target.value)} />
+                </div>
+                <div className="edit-field">
+                  <label className="edit-label">GitHub</label>
+                  <input className="edit-input" placeholder="https://github.com/... ou username" value={formData.author.socials.github} onChange={e => setAuthorSocial('github', e.target.value)} />
+                </div>
+              </div>
+              <div className="edit-row">
+                <div className="edit-field">
+                  <label className="edit-label">Twitter / X</label>
+                  <input className="edit-input" placeholder="https://x.com/... ou @username" value={formData.author.socials.twitter} onChange={e => setAuthorSocial('twitter', e.target.value)} />
+                </div>
+                <div className="edit-field">
+                  <label className="edit-label">Instagram</label>
+                  <input className="edit-input" placeholder="https://instagram.com/... ou @username" value={formData.author.socials.instagram} onChange={e => setAuthorSocial('instagram', e.target.value)} />
                 </div>
               </div>
             </div>

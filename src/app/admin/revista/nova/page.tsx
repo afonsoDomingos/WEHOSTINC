@@ -32,13 +32,31 @@ export default function NovaHistoriaPage() {
     tags: '',
     status: 'draft',
     featured: false,
-    author: { name: 'WEHOSTHERE', email: 'info@wehosthere.com', bio: '' },
+    author: {
+      name: 'WEHOSTHERE',
+      email: 'info@wehosthere.com',
+      avatar: '',
+      bio: '',
+      website: '',
+      socials: {
+        twitter: '',
+        linkedin: '',
+        github: '',
+        instagram: '',
+      },
+    },
     seo: { metaTitle: '', metaDescription: '', keywords: '' },
   });
 
   const set = (key: string, value: any) => setFormData(prev => ({ ...prev, [key]: value }));
   const setAuthor = (key: string, value: string) => setFormData(prev => ({
     ...prev, author: { ...prev.author, [key]: value },
+  }));
+  const setAuthorSocial = (key: string, value: string) => setFormData(prev => ({
+    ...prev, author: {
+      ...prev.author,
+      socials: { ...prev.author.socials, [key]: value },
+    },
   }));
   const setSeo = (key: string, value: string) => setFormData(prev => ({
     ...prev, seo: { ...prev.seo, [key]: value },
@@ -438,11 +456,39 @@ export default function NovaHistoriaPage() {
                 </div>
                 <div className="nova-field">
                   <label className="nova-label">Avatar (URL)</label>
-                  <input className="nova-input" type="url" placeholder="https://..." value={formData.author.bio} onChange={e => setAuthor('avatar', e.target.value)} />
+                  <input className="nova-input" type="url" placeholder="https://..." value={formData.author.avatar} onChange={e => setAuthor('avatar', e.target.value)} />
                 </div>
                 <div className="nova-field">
                   <label className="nova-label">Bio curta</label>
                   <input className="nova-input" placeholder="Ex: Engenheiro de software em Maputo" value={formData.author.bio} onChange={e => setAuthor('bio', e.target.value)} />
+                </div>
+                <div className="nova-field">
+                  <label className="nova-label">Website / Portfólio (URL)</label>
+                  <input className="nova-input" type="url" placeholder="https://o-meu-site.com" value={formData.author.website} onChange={e => setAuthor('website', e.target.value)} />
+                </div>
+
+                <p className="nova-label" style={{ marginTop: '1.25rem', marginBottom: '0.5rem', fontWeight: 700, color: '#334155' }}>
+                  Redes Sociais do Autor
+                </p>
+                <div className="nova-row">
+                  <div className="nova-field">
+                    <label className="nova-label">LinkedIn</label>
+                    <input className="nova-input" placeholder="https://linkedin.com/in/... ou username" value={formData.author.socials.linkedin} onChange={e => setAuthorSocial('linkedin', e.target.value)} />
+                  </div>
+                  <div className="nova-field">
+                    <label className="nova-label">GitHub</label>
+                    <input className="nova-input" placeholder="https://github.com/... ou username" value={formData.author.socials.github} onChange={e => setAuthorSocial('github', e.target.value)} />
+                  </div>
+                </div>
+                <div className="nova-row">
+                  <div className="nova-field">
+                    <label className="nova-label">Twitter / X</label>
+                    <input className="nova-input" placeholder="https://x.com/... ou @username" value={formData.author.socials.twitter} onChange={e => setAuthorSocial('twitter', e.target.value)} />
+                  </div>
+                  <div className="nova-field">
+                    <label className="nova-label">Instagram</label>
+                    <input className="nova-input" placeholder="https://instagram.com/... ou @username" value={formData.author.socials.instagram} onChange={e => setAuthorSocial('instagram', e.target.value)} />
+                  </div>
                 </div>
               </div>
 

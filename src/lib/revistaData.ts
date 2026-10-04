@@ -13,6 +13,13 @@ export interface StoryItem {
     email?: string;
     bio?: string;
     avatar?: string;
+    website?: string;
+    socials?: {
+      twitter?: string;
+      linkedin?: string;
+      github?: string;
+      instagram?: string;
+    };
   };
   category: string;
   tags: string[];
@@ -82,6 +89,12 @@ No dia 18, partilhei o produto num grupo de WhatsApp de empreendedores e criador
       email: 'afonso@wehosthere.com',
       bio: 'Fundador da WEHOSTHERE. Apaixonado por tecnologia, ecossistemas digitais e empreendedorismo em Moçambique.',
       avatar: '',
+      website: 'https://wehosthere.com',
+      socials: {
+        linkedin: 'https://linkedin.com/company/wehosthere',
+        twitter: 'https://twitter.com/wehosthere',
+        instagram: 'https://instagram.com/wehosthere',
+      },
     },
     category: 'startups',
     tags: ['nextjs', 'saas', 'empreendedorismo', 'mozambique', 'dev'],
@@ -173,6 +186,12 @@ Após dezenas de candidaturas e testes técnicos, recebi uma proposta internacio
       email: 'info@wehosthere.com',
       bio: 'Lead Developer moçambicano a trabalhar remotamente para startups globais.',
       avatar: '',
+      website: 'https://carlosnhantumbo.dev',
+      socials: {
+        github: 'https://github.com/carlosnhantumbo',
+        linkedin: 'https://linkedin.com/in/carlosnhantumbo',
+        twitter: 'https://twitter.com/carlosnhantumbo',
+      },
     },
     category: 'carreira',
     tags: ['carreira', 'remoto', 'emprego', 'mozambique'],

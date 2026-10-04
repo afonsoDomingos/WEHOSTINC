@@ -11,6 +11,13 @@ export interface IRevistaStory extends Document {
     email?: string;
     avatar?: string;
     bio?: string;
+    website?: string;
+    socials?: {
+      twitter?: string;
+      linkedin?: string;
+      github?: string;
+      instagram?: string;
+    };
   };
   category: string;
   tags: string[];
@@ -41,6 +48,13 @@ const RevistaStorySchema = new Schema<IRevistaStory>(
       email: { type: String },
       avatar: { type: String },
       bio: { type: String },
+      website: { type: String },
+      socials: {
+        twitter: { type: String },
+        linkedin: { type: String },
+        github: { type: String },
+        instagram: { type: String },
+      },
     },
     category: {
       type: String,
