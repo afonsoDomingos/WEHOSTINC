@@ -1573,6 +1573,14 @@ export default function AdminPage() {
                 <span>Cursos</span>
               </Link>
 
+              <Link
+                href="/admin/revista"
+                className="flex items-center space-x-1.5 text-gray-600 hover:text-sky-600 font-medium transition text-[10px] sm:text-xs sm:text-sm shrink-0 whitespace-nowrap px-2 py-1.5 rounded-lg hover:bg-sky-50/70"
+              >
+                <BookOpen className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-sky-500" />
+                <span>Revista</span>
+              </Link>
+
               {perms.canAccessSystemSettings && (
                 <Link
                   href="/admin/settings"

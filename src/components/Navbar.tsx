@@ -128,6 +128,12 @@ export default function Navbar() {
               {t('nav.systems')}
             </Link>
             <Link 
+              href="/revista" 
+              className="text-xs sm:text-sm font-medium text-gray-700 hover:text-primary-600 transition"
+            >
+              Revista
+            </Link>
+            <Link 
               href="/#recursos" 
               className="text-xs sm:text-sm font-medium text-gray-700 hover:text-primary-600 transition"
             >
@@ -239,6 +245,13 @@ export default function Navbar() {
               className="px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-medium text-gray-800 hover:bg-primary-50 hover:text-primary-600 transition"
             >
               {t('nav.systems')}
+            </Link>
+            <Link
+              href="/revista"
+              onClick={closeMobileMenu}
+              className="px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-medium text-gray-800 hover:bg-primary-50 hover:text-primary-600 transition"
+            >
+              Revista
             </Link>
             <Link
               href="#recursos"
