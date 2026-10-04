@@ -34,7 +34,7 @@ function RevistaFooter() {
     <footer className="revista-footer">
       <style>{`
         .revista-footer {
-          background: linear-gradient(135deg, #10002B 0%, #3C096C 60%, #5A189A 100%);
+          background: #9D4EDD;
           padding: 3.5rem 0 2rem;
           margin-top: 5rem;
           font-family: 'Poppins', sans-serif;
@@ -58,12 +58,12 @@ function RevistaFooter() {
         }
         .revista-footer .footer-brand-name span {
           display: inline-block;
-          background: rgba(255,255,255,0.18);
+          background: rgba(255,255,255,0.22);
           border-radius: 4px;
           padding: 0 5px;
         }
         .revista-footer .footer-slogan {
-          color: rgba(255,255,255,0.85);
+          color: rgba(255,255,255,0.95);
           font-size: 0.9rem;
           margin-bottom: 2.5rem;
           font-style: italic;
@@ -73,7 +73,7 @@ function RevistaFooter() {
           grid-template-columns: 1fr auto;
           align-items: center;
           gap: 2rem;
-          border-top: 1px solid rgba(255,255,255,0.2);
+          border-top: 1px solid rgba(255,255,255,0.25);
           padding-top: 2rem;
         }
         .revista-footer .footer-links {
@@ -82,16 +82,16 @@ function RevistaFooter() {
           flex-wrap: wrap;
         }
         .revista-footer .footer-links a {
-          color: rgba(255,255,255,0.8);
+          color: rgba(255,255,255,0.92);
           text-decoration: none;
-          font-size: 0.82rem;
+          font-size: 0.84rem;
           font-weight: 500;
           border-bottom: 1px solid transparent;
           transition: all 0.2s;
         }
         .revista-footer .footer-links a:hover {
           color: #fff;
-          border-bottom-color: rgba(255,255,255,0.5);
+          border-bottom-color: rgba(255,255,255,0.7);
         }
         .revista-footer .footer-socials {
           display: flex;
@@ -105,17 +105,17 @@ function RevistaFooter() {
           width: 36px;
           height: 36px;
           border-radius: 50%;
-          background: rgba(255,255,255,0.15);
+          background: rgba(255,255,255,0.2);
           color: #fff;
           transition: background 0.2s, transform 0.2s;
-          border: 1px solid rgba(255,255,255,0.25);
+          border: 1px solid rgba(255,255,255,0.3);
         }
         .revista-footer .footer-socials a:hover {
-          background: rgba(255,255,255,0.28);
+          background: rgba(255,255,255,0.35);
           transform: translateY(-2px);
         }
         .revista-footer .footer-copy {
-          color: rgba(255,255,255,0.6);
+          color: rgba(255,255,255,0.75);
           font-size: 0.78rem;
           margin-top: 1.5rem;
           text-align: center;
