@@ -308,7 +308,7 @@ export default function AdminAiTopBar({ isGlobalRoot = false }: AdminAiTopBarPro
         ref={panelRef}
         className={`${
           isGlobalRoot
-            ? 'absolute top-full right-0 mt-3 w-[92vw] sm:w-[480px]'
+            ? 'absolute bottom-full right-0 mb-3 w-[92vw] sm:w-[480px]'
             : 'absolute top-full inset-x-0 mt-3 w-full'
         } bg-white/45 backdrop-blur-2xl border border-white/70 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.15),0_0_0_1px_rgba(255,255,255,0.6)_inset] ring-1 ring-black/5 rounded-3xl p-5 text-gray-900 overflow-hidden transition-all duration-300 animate-in fade-in slide-in-from-top-3 max-h-[520px] flex flex-col z-50`}
       >
@@ -483,18 +483,18 @@ export default function AdminAiTopBar({ isGlobalRoot = false }: AdminAiTopBarPro
     );
   };
 
-  // 🔹 MODO GLOBAL ROOT (Para páginas públicas e dashboard — posicionado abaixo da navbar)
+  // 🔹 MODO GLOBAL ROOT (Para páginas públicas e dashboard)
   if (isGlobalRoot) {
-    if (isOnAdminRoute) {
+    if (isOnAdminRoute || pathname.startsWith('/revista')) {
       return null;
     }
 
-    // Se estiver oculto pelo utilizador: exibir mini aba discreta na lateral para reabrir
+    // Se estiver oculto pelo utilizador: exibir mini aba discreta na lateral inferior para reabrir
     if (!showOnPublicPages) {
       return (
         <div 
           onClick={togglePublicVisibility}
-          className="fixed top-20 sm:top-24 right-0 z-40 bg-gradient-to-l from-[#075985] to-[#0284c7] text-white py-1.5 px-2 rounded-l-2xl shadow-xl cursor-pointer hover:px-3 transition-all duration-300 flex items-center space-x-1.5 opacity-80 hover:opacity-100 group border-y border-l border-white/30"
+          className="fixed bottom-20 right-0 z-40 bg-gradient-to-l from-[#075985] to-[#0284c7] text-white py-1.5 px-2 rounded-l-2xl shadow-xl cursor-pointer hover:px-3 transition-all duration-300 flex items-center space-x-1.5 opacity-80 hover:opacity-100 group border-y border-l border-white/30"
           title="Exibir WEHOSTHERE AI Copilot"
         >
           <div className="w-5 h-5 rounded-full bg-white p-0.5 flex items-center justify-center overflow-hidden">
@@ -507,8 +507,8 @@ export default function AdminAiTopBar({ isGlobalRoot = false }: AdminAiTopBarPro
     }
 
     return (
-      <div className="fixed top-20 sm:top-24 right-4 sm:right-6 z-40 flex flex-col items-end">
-        {/* Botão Launcher Flutuante Abaixo da Navbar com Aurora Glow */}
+      <div className="fixed bottom-6 right-4 sm:right-6 z-40 flex flex-col items-end">
+        {/* Botão Launcher Flutuante com Aurora Glow */}
         <div className="relative group">
           <div 
             className={`absolute -inset-1 rounded-full blur-md transition-all duration-500 ${

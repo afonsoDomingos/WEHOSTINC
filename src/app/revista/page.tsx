@@ -1286,7 +1286,7 @@ export default function RevistaPage() {
           <div className="revista-top-bar">
             <div className="revista-top-bar-inner">
               <span className="revista-top-bar-badge">ED. 01</span>
-              <span className="revista-top-bar-text">Descarrega a nova edição da revista Codando Histórias</span>
+              <span className="revista-top-bar-text">Descarrega a nova edição da revista</span>
               <a
                 href="/api/revista/download"
                 className="revista-top-bar-link"

@@ -1148,7 +1148,7 @@ export default function RevistaStoryPage() {
           <div className="story-top-bar">
             <div className="story-top-bar-inner">
               <span className="story-top-bar-badge">ED. 01</span>
-              <span>Descarrega a nova edição da revista Codando Histórias</span>
+              <span className="story-top-bar-text">Descarrega a nova edição da revista</span>
               <a
                 href="/api/revista/download"
                 className="story-top-bar-link"
