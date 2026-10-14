@@ -514,7 +514,11 @@ export async function updateStory(id: string, data: Partial<StoryItem>) {
           const words = data.content.split(/\s+/).length;
           data.readingTime = Math.ceil(words / 200);
         }
-        const updated = await RevistaStory.findByIdAndUpdate(id, data, { new: true });
+        const updateData = { ...data };
+        if (updateData.views === undefined) {
+          delete updateData.views;
+        }
+        const updated = await RevistaStory.findByIdAndUpdate(id, updateData, { new: true });
         if (updated) {
           return { success: true, story: updated };
         }
@@ -542,9 +546,13 @@ export async function updateStory(id: string, data: Partial<StoryItem>) {
       const words = data.content.split(/\s+/).length;
       data.readingTime = Math.ceil(words / 200);
     }
+    const updateData = { ...data };
+    if (updateData.views === undefined) {
+      delete updateData.views;
+    }
     fallbackStories[idx] = {
       ...fallbackStories[idx],
-      ...data,
+      ...updateData,
       updatedAt: new Date().toISOString(),
     };
     return { success: true, story: fallbackStories[idx] };

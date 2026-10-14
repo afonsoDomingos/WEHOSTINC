@@ -5,7 +5,7 @@ import Link from 'next/link';
 import {
   Search, Clock, Eye, ChevronRight, BookOpen, Code2,
   Cpu, Palette, Briefcase, Newspaper, Star, Menu, X, Home, ExternalLink, Maximize2,
-  Bell, BellOff, BellRing, Check
+  Bell, BellOff, BellRing, Check, Download, FileText
 } from 'lucide-react';
 
 interface Story {
@@ -711,42 +711,325 @@ export default function RevistaPage() {
           color: #94a3b8;
         }
 
-        /* Story Card */
-        .story-card {
-          display: grid; grid-template-columns: 120px 1fr; gap: 1rem;
-          padding: 1.1rem 0; border-bottom: 1px solid #f1f5f9;
-          text-decoration: none; transition: transform 0.18s;
+        /* ── Top Announcement Bar (estilo Kabum com cores WEHOSTHERE) ── */
+        .revista-top-bar {
+          background: linear-gradient(90deg, #3C096C 0%, #5A189A 50%, #7B2CBF 100%);
+          color: #ffffff;
+          padding: 0.5rem 1.25rem;
+          font-size: 0.82rem;
+          font-weight: 500;
+          position: relative;
+          z-index: 55;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.12);
         }
-        .story-card:hover { transform: translateX(3px); }
-        .story-card:last-child { border-bottom: none; }
-        .story-card-img {
-          border-radius: 10px; overflow: hidden;
-          aspect-ratio: 4/3; background: #ffffff;
-          border: 1px solid #e2e8f0;
-          flex-shrink: 0;
+        .revista-top-bar-inner {
+          max-width: 1100px; margin: 0 auto;
           display: flex; align-items: center; justify-content: center;
+          gap: 0.75rem; flex-wrap: wrap; text-align: center;
         }
-        .story-card-img img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
-        .story-card-img-placeholder {
-          width: 100%; height: 100%;
-          display: flex; align-items: center; justify-content: center;
-          background: linear-gradient(135deg, #10002B, #3C096C);
-          font-size: 2rem; color: rgba(255,255,255,0.12);
-        }
-        .story-card-body { display: flex; flex-direction: column; gap: 0.3rem; }
-        .story-card-cat {
-          font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em;
+        .revista-top-bar-badge {
+          background: rgba(255, 255, 255, 0.22);
+          color: #ffffff;
+          font-size: 0.7rem; font-weight: 800;
+          letter-spacing: 0.06em;
+          padding: 0.15rem 0.65rem;
+          border-radius: 9999px;
+          border: 1px solid rgba(255, 255, 255, 0.35);
           text-transform: uppercase;
         }
+        .revista-top-bar-text {
+          color: #ffffff;
+          font-weight: 500;
+        }
+        .revista-top-bar-link {
+          color: #ffffff;
+          text-decoration: none;
+          display: inline-flex; align-items: center; gap: 0.35rem;
+          font-weight: 700;
+          background: rgba(255, 255, 255, 0.15);
+          padding: 0.18rem 0.75rem;
+          border-radius: 9999px;
+          border: 1px solid rgba(255, 255, 255, 0.25);
+          transition: all 0.2s;
+        }
+        .revista-top-bar-link:hover {
+          background: #ffffff;
+          color: #5A189A;
+          transform: translateX(2px);
+        }
+
+        /* ── Story Card (Maior, Destacado e Visível) ── */
+        .story-card {
+          display: grid;
+          grid-template-columns: 250px 1fr;
+          gap: 1.6rem;
+          align-items: stretch;
+          padding: 1.35rem;
+          background: #ffffff;
+          border-radius: 18px;
+          border: 1px solid #e2e8f0;
+          margin-bottom: 1.4rem;
+          text-decoration: none;
+          transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+          position: relative;
+          overflow: hidden;
+        }
+        .story-card:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 16px 36px -8px rgba(123, 44, 191, 0.16), 0 2px 6px rgba(0, 0, 0, 0.04);
+          border-color: #c084fc;
+        }
+        .story-card-img {
+          border-radius: 14px;
+          overflow: hidden;
+          width: 100%;
+          height: 185px;
+          background: linear-gradient(135deg, #10002B 0%, #3C096C 100%);
+          flex-shrink: 0;
+          position: relative;
+        }
+        .story-card-img img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          object-position: center;
+          transition: transform 0.4s ease;
+        }
+        .story-card:hover .story-card-img img {
+          transform: scale(1.06);
+        }
+        .story-card-img-placeholder {
+          width: 100%;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: linear-gradient(135deg, #10002B, #3C096C);
+          font-size: 2.2rem;
+          color: rgba(255, 255, 255, 0.15);
+        }
+        .story-card-body {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          gap: 0.45rem;
+          min-width: 0;
+        }
+        .story-card-cat {
+          display: inline-block;
+          font-size: 0.68rem;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          padding: 0.25rem 0.65rem;
+          border-radius: 9999px;
+          width: fit-content;
+        }
         .story-card-title {
-          font-size: 0.9rem; font-weight: 700; color: #0f172a;
-          line-height: 1.3; margin: 0;
+          font-size: 1.25rem;
+          font-weight: 800;
+          color: #0f172a;
+          line-height: 1.35;
+          margin: 0.15rem 0 0.35rem;
+          transition: color 0.2s;
+        }
+        .story-card:hover .story-card-title {
+          color: #5A189A;
+        }
+        .story-card-excerpt {
+          font-size: 0.88rem;
+          color: #64748b;
+          line-height: 1.55;
+          margin: 0 0 0.5rem;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
         }
         .story-card-meta {
-          display: flex; align-items: center; gap: 0.75rem;
-          font-size: 0.72rem; color: #94a3b8; margin-top: auto;
+          display: flex;
+          align-items: center;
+          gap: 0.85rem;
+          font-size: 0.76rem;
+          color: #64748b;
+          margin-top: auto;
+          padding-top: 0.6rem;
+          border-top: 1px solid #f1f5f9;
+          flex-wrap: wrap;
+        }
+        .story-card-author-info {
+          display: flex;
+          align-items: center;
+          gap: 0.45rem;
+          font-weight: 600;
+          color: #334155;
+        }
+        .story-card-author-avatar {
+          width: 22px;
+          height: 22px;
+          border-radius: 50%;
+          overflow: hidden;
+          background: #7B2CBF;
+          color: #fff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 0.65rem;
+          font-weight: 700;
+          flex-shrink: 0;
+        }
+        .story-card-author-avatar img {
+          width: 100%; height: 100%; object-fit: cover;
         }
         .story-card-meta span { display: flex; align-items: center; gap: 0.25rem; }
+        .story-card-read-more {
+          margin-left: auto;
+          color: #7B2CBF;
+          font-weight: 700;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.25rem;
+          transition: transform 0.2s;
+        }
+        .story-card:hover .story-card-read-more {
+          transform: translateX(4px);
+          color: #5A189A;
+        }
+
+        /* ── Sidebar PDF Download Card (Kabum Style com cores WEHOSTHERE) ── */
+        .sidebar-pdf-card {
+          background: linear-gradient(135deg, #240046 0%, #5A189A 60%, #7B2CBF 100%);
+          border-radius: 16px;
+          padding: 1.4rem;
+          color: #ffffff;
+          position: relative;
+          overflow: hidden;
+          box-shadow: 0 10px 25px -5px rgba(90, 24, 154, 0.35);
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          display: flex;
+          flex-direction: column;
+          gap: 1.1rem;
+        }
+        .sidebar-pdf-card::after {
+          content: '';
+          position: absolute;
+          top: -30px; right: -30px;
+          width: 90px; height: 90px;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.08);
+          pointer-events: none;
+        }
+        .sidebar-pdf-content {
+          display: grid;
+          grid-template-columns: 85px 1fr;
+          gap: 1rem;
+          align-items: center;
+        }
+        .sidebar-pdf-mockup {
+          width: 85px;
+          height: 115px;
+          border-radius: 5px 9px 9px 5px;
+          background: linear-gradient(145deg, #10002B 0%, #3C096C 50%, #7B2CBF 100%);
+          box-shadow: -4px 6px 14px rgba(0, 0, 0, 0.45), inset 3px 0 5px rgba(255, 255, 255, 0.2);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          padding: 0.55rem;
+          position: relative;
+          overflow: hidden;
+          transform: perspective(600px) rotateY(-6deg);
+          transition: transform 0.3s ease;
+        }
+        .sidebar-pdf-card:hover .sidebar-pdf-mockup {
+          transform: perspective(600px) rotateY(0deg) scale(1.04);
+        }
+        .sidebar-pdf-mockup-brand {
+          font-size: 0.52rem;
+          font-weight: 800;
+          color: #E0AAFF;
+          letter-spacing: 0.05em;
+          text-transform: uppercase;
+          line-height: 1.1;
+        }
+        .sidebar-pdf-mockup-badge {
+          align-self: flex-start;
+          font-size: 0.48rem;
+          font-weight: 800;
+          background: #ffffff;
+          color: #3C096C;
+          padding: 1px 4px;
+          border-radius: 3px;
+        }
+        .sidebar-pdf-mockup-avatar {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          margin: 0 auto;
+          border: 1.5px solid #E0AAFF;
+          overflow: hidden;
+          background: #10002B;
+        }
+        .sidebar-pdf-mockup-avatar img {
+          width: 100%; height: 100%; object-fit: cover;
+        }
+        .sidebar-pdf-mockup-footer {
+          font-size: 0.45rem;
+          color: rgba(255, 255, 255, 0.7);
+          text-align: center;
+          font-weight: 600;
+        }
+        .sidebar-pdf-info {
+          display: flex;
+          flex-direction: column;
+          gap: 0.35rem;
+        }
+        .sidebar-pdf-tag {
+          font-size: 0.65rem;
+          font-weight: 700;
+          color: #E0AAFF;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+        }
+        .sidebar-pdf-title {
+          font-size: 0.95rem;
+          font-weight: 700;
+          line-height: 1.3;
+          color: #ffffff;
+          margin: 0;
+        }
+        .sidebar-pdf-desc {
+          font-size: 0.73rem;
+          color: rgba(255, 255, 255, 0.8);
+          line-height: 1.4;
+        }
+        .sidebar-pdf-btn {
+          width: 100%;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+          padding: 0.72rem 1rem;
+          background: #ffffff;
+          color: #5A189A;
+          border: none;
+          border-radius: 10px;
+          font-family: 'Poppins', sans-serif;
+          font-size: 0.85rem;
+          font-weight: 800;
+          letter-spacing: 0.05em;
+          text-decoration: none;
+          cursor: pointer;
+          transition: all 0.22s ease;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        .sidebar-pdf-btn:hover {
+          background: #FAF5FF;
+          color: #3C096C;
+          transform: translateY(-2px);
+          box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
+        }
 
         /* Sidebar */
         .sidebar { display: flex; flex-direction: column; gap: 1.5rem; }
@@ -947,16 +1230,43 @@ export default function RevistaPage() {
           .hero-title { font-size: 1.5rem; }
           .stories-section { padding: 0.5rem 1.25rem 2.5rem; }
         }
+        @media (max-width: 768px) {
+          .story-card {
+            grid-template-columns: 1fr;
+            gap: 1.25rem;
+            padding: 1.25rem;
+          }
+          .story-card-img {
+            height: 200px;
+          }
+        }
         @media (max-width: 360px) {
           .revista-nav-brand-text { font-size: 0.9rem; }
           .cat-btn { font-size: 0.72rem; padding: 0.3rem 0.7rem; }
           .revista-mobile-cats { grid-template-columns: 1fr; }
           .hero-title { font-size: 1.3rem; }
-          .story-card { grid-template-columns: 80px 1fr; }
+          .story-card { grid-template-columns: 1fr; padding: 1rem; }
         }
       `}</style>
 
       <div className="revista-page">
+        {/* ── Top Announcement Bar (Kabum style com cores WEHOSTHERE) ── */}
+        <div className="revista-top-bar">
+          <div className="revista-top-bar-inner">
+            <span className="revista-top-bar-badge">ED. 01</span>
+            <span className="revista-top-bar-text">Descarrega a nova edição da revista Codando Histórias</span>
+            <a
+              href="/api/revista/download"
+              className="revista-top-bar-link"
+              download="Codando-Historias-Edicao-01.pdf"
+              title="Descarregar PDF da revista em alta resolução"
+            >
+              <Download size={13} />
+              <span>Descarregar PDF →</span>
+            </a>
+          </div>
+        </div>
+
         {/* ── Navbar ── */}
         <nav className="revista-nav">
           <div className="revista-nav-inner">
@@ -1239,39 +1549,95 @@ export default function RevistaPage() {
                 <p>Nenhuma história encontrada.</p>
               </div>
             ) : (
-              tabFiltered.map(story => (
-                <Link key={story.id} href={`/revista/${story.slug}`} className="story-card">
-                  <div className="story-card-img">
-                    {story.coverImage
-                      ? <img src={story.coverImage} alt={story.title} />
-                      : <div className="story-card-img-placeholder"><Code2 /></div>
-                    }
-                  </div>
-                  <div className="story-card-body">
-                    <span
-                      className="story-card-cat"
-                      style={{ color: CAT_COLORS[story.category] || '#64748b' }}
-                    >
-                      {story.category}
-                    </span>
-                    <p className="story-card-title">
-                      {buildTitle(story.title, story.highlightText)}
-                    </p>
-                    <div className="story-card-meta">
-                      <span>{story.author?.name}</span>
-                      {story.readingTime && (
-                        <span><Clock size={11} /> {story.readingTime} min</span>
+              tabFiltered.map(story => {
+                const displayImage = story.coverImage || story.author?.avatar;
+                return (
+                  <Link key={story.id} href={`/revista/${story.slug}`} className="story-card">
+                    <div className="story-card-img">
+                      {displayImage ? (
+                        <img src={displayImage} alt={story.title} />
+                      ) : (
+                        <div className="story-card-img-placeholder"><Code2 /></div>
                       )}
-                      <span><Eye size={11} /> {story.views}</span>
                     </div>
-                  </div>
-                </Link>
-              ))
+                    <div className="story-card-body">
+                      <span
+                        className="story-card-cat"
+                        style={{
+                          color: CAT_COLORS[story.category] || '#7B2CBF',
+                          background: `${CAT_COLORS[story.category] || '#7B2CBF'}15`,
+                          border: `1px solid ${CAT_COLORS[story.category] || '#7B2CBF'}30`
+                        }}
+                      >
+                        {story.category}
+                      </span>
+                      <h3 className="story-card-title">
+                        {buildTitle(story.title, story.highlightText)}
+                      </h3>
+                      {story.excerpt && (
+                        <p className="story-card-excerpt">{story.excerpt}</p>
+                      )}
+                      <div className="story-card-meta">
+                        <div className="story-card-author-info">
+                          <div className="story-card-author-avatar">
+                            {story.author?.avatar ? (
+                              <img src={story.author.avatar} alt={story.author.name} />
+                            ) : (
+                              story.author?.name?.[0]?.toUpperCase() || 'W'
+                            )}
+                          </div>
+                          <span>{story.author?.name || 'WEHOSTHERE'}</span>
+                        </div>
+                        {story.readingTime && (
+                          <span><Clock size={12} /> {story.readingTime} min</span>
+                        )}
+                        <span><Eye size={12} /> {story.views} leituras</span>
+                        <span className="story-card-read-more">
+                          Ler história <ChevronRight size={14} />
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })
             )}
           </div>
 
           {/* Sidebar */}
           <aside className="sidebar">
+            {/* ── Card Download PDF (Kabum Style com cores WEHOSTHERE) ── */}
+            <div className="sidebar-pdf-card">
+              <div className="sidebar-pdf-content">
+                <div className="sidebar-pdf-mockup">
+                  <div className="sidebar-pdf-mockup-badge">ED. 01</div>
+                  <div className="sidebar-pdf-mockup-avatar">
+                    <img
+                      src={stories[0]?.author?.avatar || stories[0]?.coverImage || '/mascote-transparent.png'}
+                      alt="Capa Revista"
+                    />
+                  </div>
+                  <div>
+                    <div className="sidebar-pdf-mockup-brand">codando</div>
+                    <div className="sidebar-pdf-mockup-footer">HISTÓRIAS</div>
+                  </div>
+                </div>
+                <div className="sidebar-pdf-info">
+                  <span className="sidebar-pdf-tag">Edição Digital</span>
+                  <h4 className="sidebar-pdf-title">Última edição da revista — Edição 01</h4>
+                  <span className="sidebar-pdf-desc">Descarregue gratuitamente o PDF completo para ler offline.</span>
+                </div>
+              </div>
+              <a
+                href="/api/revista/download"
+                download="Codando-Historias-Edicao-01.pdf"
+                className="sidebar-pdf-btn"
+                title="Descarregar edição em PDF"
+              >
+                <Download size={15} />
+                DOWNLOAD PDF
+              </a>
+            </div>
+
             {/* Mais lidas */}
             <div className="sidebar-box">
               <p className="sidebar-box-title">Mais Lidas</p>

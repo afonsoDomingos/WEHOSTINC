@@ -157,11 +157,12 @@ export default function EditarHistoriaPage() {
     }
     setLoading(true);
     try {
+      // Remover views do payload para não sobrescrever visualizações acumuladas em tempo real
+      const { views: _views, ...dataToSave } = formData;
       const payload = {
-        ...formData,
+        ...dataToSave,
         slug: formData.slug.trim(),
         publishedAt: formData.publishedAt ? new Date(formData.publishedAt).toISOString() : (formData.status === 'published' ? new Date().toISOString() : undefined),
-        views: Number(formData.views) || 0,
         tags: formData.tags.split(',').map((t: string) => t.trim()).filter(Boolean),
         status: status || formData.status,
         author: formData.author,

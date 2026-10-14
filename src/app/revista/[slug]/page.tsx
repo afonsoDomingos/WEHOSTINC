@@ -6,7 +6,7 @@ import Link from 'next/link';
 import {
   ArrowLeft, Clock, Eye, Calendar, Share2,
   Instagram, Linkedin, Twitter, Code2, ChevronRight,
-  Globe, Github, Maximize2, X, Copy, Check, MessageCircle, Send, Facebook, Mail
+  Globe, Github, Maximize2, X, Copy, Check, MessageCircle, Send, Facebook, Mail, Download
 } from 'lucide-react';
 
 interface Story {
@@ -451,6 +451,49 @@ export default function RevistaStoryPage() {
     <>
       <style>{`
         .story-page { font-family: 'Poppins', sans-serif; background: #f8fafc; min-height: 100vh; }
+
+        /* ── Top Announcement Bar (estilo Kabum com cores WEHOSTHERE) ── */
+        .story-top-bar {
+          background: linear-gradient(90deg, #3C096C 0%, #5A189A 50%, #7B2CBF 100%);
+          color: #ffffff;
+          padding: 0.45rem 1rem;
+          font-size: 0.8rem;
+          font-weight: 500;
+          position: relative;
+          z-index: 55;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        }
+        .story-top-bar-inner {
+          max-width: 1100px; margin: 0 auto;
+          display: flex; align-items: center; justify-content: center;
+          gap: 0.75rem; flex-wrap: wrap; text-align: center;
+        }
+        .story-top-bar-badge {
+          background: rgba(255, 255, 255, 0.22);
+          color: #ffffff;
+          font-size: 0.68rem; font-weight: 800;
+          letter-spacing: 0.06em;
+          padding: 0.12rem 0.6rem;
+          border-radius: 9999px;
+          border: 1px solid rgba(255, 255, 255, 0.35);
+          text-transform: uppercase;
+        }
+        .story-top-bar-link {
+          color: #ffffff;
+          text-decoration: none;
+          display: inline-flex; align-items: center; gap: 0.35rem;
+          font-weight: 700;
+          background: rgba(255, 255, 255, 0.15);
+          padding: 0.15rem 0.7rem;
+          border-radius: 9999px;
+          border: 1px solid rgba(255, 255, 255, 0.25);
+          transition: all 0.2s;
+        }
+        .story-top-bar-link:hover {
+          background: #ffffff;
+          color: #5A189A;
+          transform: translateX(2px);
+        }
 
         /* ── Navbar ── */
         .story-nav {
@@ -1089,6 +1132,23 @@ export default function RevistaStoryPage() {
       `}</style>
 
       <div className="story-page">
+        {/* ── Top Announcement Bar (Kabum style com cores WEHOSTHERE) ── */}
+        <div className="story-top-bar">
+          <div className="story-top-bar-inner">
+            <span className="story-top-bar-badge">ED. 01</span>
+            <span>Descarrega a nova edição da revista Codando Histórias</span>
+            <a
+              href="/api/revista/download"
+              className="story-top-bar-link"
+              download="Codando-Historias-Edicao-01.pdf"
+              title="Descarregar PDF da revista em alta resolução"
+            >
+              <Download size={13} />
+              <span>Descarregar PDF →</span>
+            </a>
+          </div>
+        </div>
+
         {/* ── Navbar ── */}
         <nav className="story-nav">
           <div className="story-nav-inner">
