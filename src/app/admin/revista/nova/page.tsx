@@ -191,8 +191,8 @@ export default function NovaHistoriaPage() {
         }
         .img-upload-area:hover { border-color: #7B2CBF; background: #f0f9ff; }
         .img-upload-area input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-        .img-preview { position: relative; border-radius: 12px; overflow: hidden; aspect-ratio: 16/9; }
-        .img-preview img { width: 100%; height: 100%; object-fit: cover; }
+        .img-preview { position: relative; border-radius: 12px; overflow: hidden; aspect-ratio: 16/9; background: #ffffff; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; }
+        .img-preview img { width: 100%; height: 100%; object-fit: contain; padding: 12px; }
         .img-remove {
           position: absolute; top: 8px; right: 8px;
           background: rgba(0,0,0,0.6); color: #fff; border: none;

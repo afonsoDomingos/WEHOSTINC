@@ -25,6 +25,20 @@ export const metadata: Metadata = {
     siteName: 'WEHOSTHERE — Codando Histórias',
     title: 'Codando Histórias | Revista Digital WEHOSTHERE',
     description: 'Histórias reais de código, startups, design e carreira tech em Moçambique.',
+    images: [
+      {
+        url: 'https://www.wehosthere.com/servidores-banner.png',
+        width: 1200,
+        height: 630,
+        alt: 'Codando Histórias — WEHOSTHERE',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Codando Histórias | Revista Digital WEHOSTHERE',
+    description: 'Histórias reais de código, startups, design e carreira tech em Moçambique.',
+    images: ['https://www.wehosthere.com/servidores-banner.png'],
   },
   alternates: { canonical: 'https://www.wehosthere.com/revista' },
 };

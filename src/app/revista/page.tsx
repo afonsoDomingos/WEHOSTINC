@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import {
   Search, Clock, Eye, ChevronRight, BookOpen, Code2,
-  Cpu, Palette, Briefcase, Newspaper, Star, Menu, X, Home, ExternalLink
+  Cpu, Palette, Briefcase, Newspaper, Star, Menu, X, Home, ExternalLink, Maximize2
 } from 'lucide-react';
 
 interface Story {
@@ -62,6 +62,86 @@ function buildTitle(title: string, highlight?: string) {
   );
 }
 
+function TypedTitle({
+  title,
+  highlight,
+  speed = 30,
+}: {
+  title: string;
+  highlight?: string;
+  speed?: number;
+}) {
+  const [typedLength, setTypedLength] = useState(0);
+  const [isComplete, setIsComplete] = useState(false);
+
+  useEffect(() => {
+    setTypedLength(0);
+    setIsComplete(false);
+
+    let current = 0;
+    const total = title.length;
+    const interval = setInterval(() => {
+      current++;
+      setTypedLength(current);
+      if (current >= total) {
+        setIsComplete(true);
+        clearInterval(interval);
+      }
+    }, speed);
+
+    return () => clearInterval(interval);
+  }, [title, speed]);
+
+  if (!highlight || !title.includes(highlight)) {
+    const currentText = title.slice(0, typedLength);
+    return (
+      <span>
+        {currentText}
+        <span
+          className={`hero-typing-cursor${isComplete ? ' complete' : ''}`}
+          aria-hidden="true"
+        />
+      </span>
+    );
+  }
+
+  const highlightStart = title.indexOf(highlight);
+  const highlightEnd = highlightStart + highlight.length;
+
+  const beforeText = title.slice(0, Math.min(typedLength, highlightStart));
+  const showHighlight = typedLength > highlightStart;
+  const highlightTyped = showHighlight
+    ? title.slice(highlightStart, Math.min(typedLength, highlightEnd))
+    : '';
+  const showAfter = typedLength > highlightEnd;
+  const afterTyped = showAfter ? title.slice(highlightEnd, typedLength) : '';
+
+  return (
+    <span>
+      {beforeText}
+      {showHighlight && (
+        <mark
+          style={{
+            background: '#7B2CBF',
+            color: '#fff',
+            borderRadius: '4px',
+            padding: '0 5px',
+            fontStyle: 'normal',
+            display: 'inline',
+          }}
+        >
+          {highlightTyped}
+        </mark>
+      )}
+      {afterTyped}
+      <span
+        className={`hero-typing-cursor${isComplete ? ' complete' : ''}`}
+        aria-hidden="true"
+      />
+    </span>
+  );
+}
+
 export default function RevistaPage() {
   const [stories, setStories] = useState<Story[]>([]);
   const [loading, setLoading] = useState(true);
@@ -69,6 +149,23 @@ export default function RevistaPage() {
   const [category, setCategory] = useState('all');
   const [search, setSearch] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [heroIndex, setHeroIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+
+  // Fechar lightbox ao pressionar ESC e travar scroll do corpo
+  useEffect(() => {
+    if (!lightboxOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setLightboxOpen(false);
+    };
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [lightboxOpen]);
 
   useEffect(() => {
     fetchStories();
@@ -87,7 +184,26 @@ export default function RevistaPage() {
     }
   };
 
-  const featured = stories.find(s => s.featured) || stories[0];
+  // Top stories for hero rotation (featured first, then recent up to 5)
+  const heroStories = useMemo(() => {
+    if (!stories.length) return [];
+    const feat = stories.filter(s => s.featured);
+    const others = stories.filter(s => !s.featured);
+    return [...feat, ...others].slice(0, 5);
+  }, [stories]);
+
+  // Rotate hero story every 10 seconds (pauses on hover)
+  useEffect(() => {
+    if (heroStories.length <= 1 || isPaused) return;
+
+    const timer = setInterval(() => {
+      setHeroIndex(prev => (prev + 1) % heroStories.length);
+    }, 10000);
+
+    return () => clearInterval(timer);
+  }, [heroStories.length, isPaused]);
+
+  const featured = heroStories[heroIndex] || stories[0];
 
   const filtered = stories
     .filter(s => {
@@ -96,7 +212,7 @@ export default function RevistaPage() {
       const matchCat = category === 'all' || s.category === category;
       return matchSearch && matchCat;
     })
-    .filter(s => s.id !== featured?.id);
+    .filter(s => s.id !== heroStories[0]?.id);
 
   const tabFiltered =
     tab === 'mais-lidas' ? [...filtered].sort((a, b) => b.views - a.views) :
@@ -232,18 +348,177 @@ export default function RevistaPage() {
           max-width: 1100px; margin: 0 auto;
           padding: 3.5rem 2rem 2rem;
           display: grid; grid-template-columns: 1fr 1fr; gap: 3.5rem; align-items: center;
+          position: relative;
+        }
+        .hero-fade {
+          animation: heroFadeIn 0.35s ease-out;
+        }
+        @keyframes heroFadeIn {
+          from { opacity: 0.3; transform: translateY(5px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .hero-indicators {
+          display: flex; gap: 0.45rem; align-items: center;
+        }
+        .hero-dot {
+          height: 6px; width: 22px; border-radius: 9999px;
+          background: #e2e8f0; border: none; cursor: pointer;
+          transition: all 0.25s ease; padding: 0;
+        }
+        .hero-dot.active {
+          width: 38px; background: #7B2CBF;
+        }
+        .hero-dot:hover:not(.active) {
+          background: #cbd5e1;
         }
         .hero-img-wrap {
           border-radius: 14px; overflow: hidden;
           aspect-ratio: 4/3;
-          background: linear-gradient(135deg, #10002B, #3C096C);
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
           position: relative;
+          display: flex; align-items: center; justify-content: center;
         }
-        .hero-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
+        .hero-img-wrap.clickable {
+          cursor: zoom-in;
+        }
+        .hero-img-badge {
+          position: absolute;
+          bottom: 10px;
+          right: 10px;
+          background: rgba(15, 23, 42, 0.75);
+          color: #ffffff;
+          backdrop-filter: blur(8px);
+          font-size: 0.72rem;
+          font-weight: 600;
+          padding: 0.35rem 0.65rem;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          gap: 0.35rem;
+          opacity: 0;
+          transform: translateY(4px);
+          transition: all 0.2s ease;
+          pointer-events: none;
+        }
+        .hero-img-wrap:hover .hero-img-badge {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        .hero-img-wrap img {
+          width: 100%; height: 100%;
+          object-fit: contain;
+          padding: 1rem;
+          transition: transform 0.25s ease;
+        }
+        .hero-img-wrap.clickable:hover img {
+          transform: scale(1.02);
+        }
         .hero-img-placeholder {
           width: 100%; height: 100%;
           display: flex; align-items: center; justify-content: center;
+          background: linear-gradient(135deg, #10002B, #3C096C);
           font-size: 4rem; color: rgba(255,255,255,0.15);
+        }
+
+        /* ── Lightbox / Fullscreen Modal ── */
+        .lightbox-overlay {
+          position: fixed;
+          inset: 0;
+          z-index: 99999;
+          background: rgba(10, 10, 15, 0.92);
+          backdrop-filter: blur(12px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 1.5rem;
+          animation: lightboxFadeIn 0.22s ease-out;
+          cursor: zoom-out;
+        }
+        @keyframes lightboxFadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        .lightbox-close {
+          position: fixed;
+          top: 1.25rem;
+          right: 1.25rem;
+          z-index: 100000;
+          background: rgba(255, 255, 255, 0.14);
+          color: #fff;
+          border: 1px solid rgba(255, 255, 255, 0.25);
+          border-radius: 9999px;
+          height: 40px;
+          padding: 0 0.85rem;
+          display: flex;
+          align-items: center;
+          gap: 0.4rem;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+        .lightbox-close:hover {
+          background: #7B2CBF;
+          border-color: #7B2CBF;
+          transform: scale(1.05);
+        }
+        .lightbox-esc-hint {
+          font-size: 0.7rem;
+          font-weight: 700;
+          background: rgba(255, 255, 255, 0.2);
+          padding: 0.15rem 0.4rem;
+          border-radius: 4px;
+          letter-spacing: 0.05em;
+        }
+        .lightbox-content {
+          max-width: 92vw;
+          max-height: 90vh;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          animation: lightboxZoomIn 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+          cursor: default;
+        }
+        @keyframes lightboxZoomIn {
+          from { opacity: 0; transform: scale(0.92); }
+          to { opacity: 1; transform: scale(1); }
+        }
+        .lightbox-img {
+          max-width: 90vw;
+          max-height: 82vh;
+          object-fit: contain;
+          border-radius: 12px;
+          box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.85);
+          background: #ffffff;
+          padding: 1.25rem;
+        }
+        .lightbox-caption {
+          margin-top: 1rem;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 1.5rem;
+          color: rgba(255, 255, 255, 0.85);
+          font-size: 0.85rem;
+          font-weight: 500;
+          max-width: 90vw;
+          text-align: center;
+        }
+        .lightbox-close-text {
+          background: none;
+          border: none;
+          color: #E0AAFF;
+          font-size: 0.78rem;
+          font-weight: 600;
+          cursor: pointer;
+          padding: 0.2rem 0.5rem;
+          border-radius: 4px;
+          transition: all 0.2s;
+          font-family: inherit;
+        }
+        .lightbox-close-text:hover {
+          background: rgba(255, 255, 255, 0.1);
+          color: #fff;
         }
         .hero-content { display: flex; flex-direction: column; gap: 1rem; }
         .hero-cat {
@@ -253,6 +528,24 @@ export default function RevistaPage() {
         .hero-title {
           font-size: 2rem; font-weight: 800; color: #0f172a;
           line-height: 1.2; letter-spacing: -0.03em;
+          min-height: 2.4em;
+        }
+        .hero-typing-cursor {
+          display: inline-block;
+          width: 3px;
+          height: 0.95em;
+          background: #7B2CBF;
+          margin-left: 4px;
+          vertical-align: -0.08em;
+          border-radius: 1px;
+          animation: heroCursorBlink 0.8s infinite;
+        }
+        .hero-typing-cursor.complete {
+          animation: heroCursorBlink 0.8s 4 ease-in-out forwards;
+        }
+        @keyframes heroCursorBlink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0; }
         }
         .hero-excerpt { color: #475569; font-size: 0.93rem; line-height: 1.65; }
         .hero-meta { display: flex; align-items: center; gap: 0.75rem; }
@@ -336,13 +629,16 @@ export default function RevistaPage() {
         .story-card:last-child { border-bottom: none; }
         .story-card-img {
           border-radius: 10px; overflow: hidden;
-          aspect-ratio: 4/3; background: linear-gradient(135deg, #10002B, #3C096C);
+          aspect-ratio: 4/3; background: #ffffff;
+          border: 1px solid #e2e8f0;
           flex-shrink: 0;
+          display: flex; align-items: center; justify-content: center;
         }
-        .story-card-img img { width: 100%; height: 100%; object-fit: cover; }
+        .story-card-img img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
         .story-card-img-placeholder {
           width: 100%; height: 100%;
           display: flex; align-items: center; justify-content: center;
+          background: linear-gradient(135deg, #10002B, #3C096C);
           font-size: 2rem; color: rgba(255,255,255,0.12);
         }
         .story-card-body { display: flex; flex-direction: column; gap: 0.3rem; }
@@ -568,17 +864,35 @@ export default function RevistaPage() {
 
         {/* ── Hero ── */}
         {featured && (
-          <section className="revista-hero">
-            <div className="hero-img-wrap">
-              {featured.coverImage
-                ? <img src={featured.coverImage} alt={featured.title} />
-                : <div className="hero-img-placeholder"><Code2 size={64} color="rgba(255,255,255,0.12)" /></div>
-              }
+          <section
+            className="revista-hero hero-fade"
+            key={featured.id}
+            onMouseEnter={() => setIsPaused(true)}
+            onMouseLeave={() => setIsPaused(false)}
+          >
+            <div
+              className={`hero-img-wrap${featured.coverImage ? ' clickable' : ''}`}
+              onClick={() => featured.coverImage && setLightboxOpen(true)}
+              role={featured.coverImage ? 'button' : undefined}
+              tabIndex={featured.coverImage ? 0 : undefined}
+              title={featured.coverImage ? 'Clique para ver em tela cheia' : undefined}
+            >
+              {featured.coverImage ? (
+                <>
+                  <img src={featured.coverImage} alt={featured.title} />
+                  <div className="hero-img-badge">
+                    <Maximize2 size={13} />
+                    <span>Ver em tela cheia</span>
+                  </div>
+                </>
+              ) : (
+                <div className="hero-img-placeholder"><Code2 size={64} color="rgba(255,255,255,0.12)" /></div>
+              )}
             </div>
             <div className="hero-content">
               <span className="hero-cat">{featured.category?.toUpperCase()}</span>
               <h1 className="hero-title">
-                {buildTitle(featured.title, featured.highlightText)}
+                <TypedTitle title={featured.title} highlight={featured.highlightText} speed={28} />
               </h1>
               <p className="hero-excerpt">{featured.excerpt}</p>
               <div className="hero-meta">
@@ -590,9 +904,23 @@ export default function RevistaPage() {
                 </div>
                 <span className="hero-author">{featured.author?.name}</span>
               </div>
-              <Link href={`/revista/${featured.slug}`} className="hero-cta">
-                Ler a história <ChevronRight size={16} />
-              </Link>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+                <Link href={`/revista/${featured.slug}`} className="hero-cta">
+                  Ler a história <ChevronRight size={16} />
+                </Link>
+                {heroStories.length > 1 && (
+                  <div className="hero-indicators" title="Passe o cursor para pausar a rotação">
+                    {heroStories.map((s, idx) => (
+                      <button
+                        key={s.id}
+                        className={`hero-dot${idx === heroIndex ? ' active' : ''}`}
+                        onClick={() => setHeroIndex(idx)}
+                        aria-label={`Ver história: ${s.title}`}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </section>
         )}
@@ -732,6 +1060,47 @@ export default function RevistaPage() {
             )}
           </aside>
         </div>
+
+        {/* ── Lightbox / Tela cheia ── */}
+        {lightboxOpen && featured?.coverImage && (
+          <div
+            className="lightbox-overlay"
+            onClick={() => setLightboxOpen(false)}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Imagem em tela cheia"
+          >
+            <button
+              className="lightbox-close"
+              onClick={(e) => {
+                e.stopPropagation();
+                setLightboxOpen(false);
+              }}
+              aria-label="Fechar tela cheia (Esc)"
+              title="Fechar (Esc)"
+            >
+              <X size={20} />
+              <span className="lightbox-esc-hint">ESC</span>
+            </button>
+
+            <div className="lightbox-content" onClick={(e) => e.stopPropagation()}>
+              <img
+                src={featured.coverImage}
+                alt={featured.title}
+                className="lightbox-img"
+              />
+              <div className="lightbox-caption">
+                <span>{featured.title}</span>
+                <button
+                  className="lightbox-close-text"
+                  onClick={() => setLightboxOpen(false)}
+                >
+                  Fechar ✕
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );

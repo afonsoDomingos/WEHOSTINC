@@ -6,7 +6,7 @@ import Link from 'next/link';
 import {
   ArrowLeft, Clock, Eye, Calendar, Share2,
   Instagram, Linkedin, Twitter, Code2, ChevronRight,
-  Globe, Github
+  Globe, Github, Maximize2, X, Copy, Check, MessageCircle, Send, Facebook, Mail
 } from 'lucide-react';
 
 interface Story {
@@ -79,6 +79,86 @@ function buildTitle(title: string, highlight?: string) {
       }}>{highlight}</mark>
       {parts.slice(1).join(highlight)}
     </>
+  );
+}
+
+function TypedTitle({
+  title,
+  highlight,
+  speed = 28,
+}: {
+  title: string;
+  highlight?: string;
+  speed?: number;
+}) {
+  const [typedLength, setTypedLength] = useState(0);
+  const [isComplete, setIsComplete] = useState(false);
+
+  useEffect(() => {
+    setTypedLength(0);
+    setIsComplete(false);
+
+    let current = 0;
+    const total = title.length;
+    const interval = setInterval(() => {
+      current++;
+      setTypedLength(current);
+      if (current >= total) {
+        setIsComplete(true);
+        clearInterval(interval);
+      }
+    }, speed);
+
+    return () => clearInterval(interval);
+  }, [title, speed]);
+
+  if (!highlight || !title.includes(highlight)) {
+    const currentText = title.slice(0, typedLength);
+    return (
+      <span>
+        {currentText}
+        <span
+          className={`story-typing-cursor${isComplete ? ' complete' : ''}`}
+          aria-hidden="true"
+        />
+      </span>
+    );
+  }
+
+  const highlightStart = title.indexOf(highlight);
+  const highlightEnd = highlightStart + highlight.length;
+
+  const beforeText = title.slice(0, Math.min(typedLength, highlightStart));
+  const showHighlight = typedLength > highlightStart;
+  const highlightTyped = showHighlight
+    ? title.slice(highlightStart, Math.min(typedLength, highlightEnd))
+    : '';
+  const showAfter = typedLength > highlightEnd;
+  const afterTyped = showAfter ? title.slice(highlightEnd, typedLength) : '';
+
+  return (
+    <span>
+      {beforeText}
+      {showHighlight && (
+        <mark
+          style={{
+            background: '#7B2CBF',
+            color: '#fff',
+            borderRadius: '4px',
+            padding: '0 6px',
+            fontStyle: 'normal',
+            display: 'inline',
+          }}
+        >
+          {highlightTyped}
+        </mark>
+      )}
+      {afterTyped}
+      <span
+        className={`story-typing-cursor${isComplete ? ' complete' : ''}`}
+        aria-hidden="true"
+      />
+    </span>
   );
 }
 
@@ -158,6 +238,26 @@ export default function RevistaStoryPage() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [email, setEmail] = useState('');
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  // Fechar modais ao pressionar ESC e travar scroll do corpo
+  useEffect(() => {
+    if (!lightboxOpen && !shareModalOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setLightboxOpen(false);
+        setShareModalOpen(false);
+      }
+    };
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [lightboxOpen, shareModalOpen]);
 
   useEffect(() => {
     if (slug) fetchStory();
@@ -191,7 +291,138 @@ export default function RevistaStoryPage() {
     } catch { /* silent */ }
   };
 
-  const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
+  const currentShareUrl = typeof window !== 'undefined' && window.location.href
+    ? window.location.href
+    : `https://www.wehosthere.com/revista/${story?.slug || slug}`;
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(currentShareUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    } catch {
+      const input = document.createElement('input');
+      input.value = currentShareUrl;
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand('copy');
+      document.body.removeChild(input);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    }
+  };
+
+  const handleShareAll = async () => {
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({
+          title: story?.title || 'Codando Histórias',
+          text: story?.excerpt || story?.title,
+          url: currentShareUrl,
+        });
+        return;
+      } catch (err: any) {
+        if (err.name !== 'AbortError') {
+          setShareModalOpen(true);
+        }
+        return;
+      }
+    }
+    setShareModalOpen(true);
+  };
+
+  const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent((story?.title || '') + '\n\n' + currentShareUrl)}`;
+  const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentShareUrl)}`;
+  const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(currentShareUrl)}`;
+  const twitterUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(currentShareUrl)}&text=${encodeURIComponent(story?.title || '')}`;
+  const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(currentShareUrl)}&text=${encodeURIComponent(story?.title || '')}`;
+  const emailUrl = `mailto:?subject=${encodeURIComponent(story?.title || '')}&body=${encodeURIComponent((story?.excerpt || '') + '\n\n' + currentShareUrl)}`;
+
+  const renderShareBar = (label?: string) => (
+    <div className="story-share-container">
+      {label && <p className="story-share-label">{label}</p>}
+      <div className="story-share-bar">
+        {/* Botão de Partilha Geral (Abre todas as redes / share nativo) */}
+        <button
+          type="button"
+          onClick={handleShareAll}
+          className="share-pill-btn share-pill-primary"
+          title="Partilhar em todas as redes"
+        >
+          <Share2 size={15} />
+          <span>Partilhar</span>
+        </button>
+
+        {/* WhatsApp Direto */}
+        <a
+          href={whatsappUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="share-pill-btn share-pill-whatsapp"
+          title="Partilhar no WhatsApp"
+        >
+          <MessageCircle size={15} />
+          <span>WhatsApp</span>
+        </a>
+
+        {/* Botão Dedicado Copiar Link */}
+        <button
+          type="button"
+          onClick={handleCopyLink}
+          className={`share-pill-btn share-pill-copy${copied ? ' copied' : ''}`}
+          title="Copiar link da história"
+        >
+          {copied ? <Check size={14} /> : <Copy size={14} />}
+          <span>{copied ? 'Link copiado!' : 'Copiar link'}</span>
+        </button>
+
+        {/* Redes Rápidas */}
+        <a
+          href={linkedinUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="share-icon-btn li"
+          title="Partilhar no LinkedIn"
+          aria-label="Partilhar no LinkedIn"
+        >
+          <Linkedin size={15} />
+        </a>
+
+        <a
+          href={facebookUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="share-icon-btn fb"
+          title="Partilhar no Facebook"
+          aria-label="Partilhar no Facebook"
+        >
+          <Facebook size={15} />
+        </a>
+
+        <a
+          href={twitterUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="share-icon-btn tw"
+          title="Partilhar no X (Twitter)"
+          aria-label="Partilhar no X"
+        >
+          <Twitter size={15} />
+        </a>
+
+        <a
+          href={telegramUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="share-icon-btn tg"
+          title="Partilhar no Telegram"
+          aria-label="Partilhar no Telegram"
+        >
+          <Send size={14} />
+        </a>
+      </div>
+    </div>
+  );
 
   if (loading) return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
@@ -263,6 +494,23 @@ export default function RevistaStoryPage() {
           line-height: 1.2; letter-spacing: -0.03em;
           margin-bottom: 1.25rem;
         }
+        .story-typing-cursor {
+          display: inline-block;
+          width: 3px;
+          height: 0.95em;
+          background: #7B2CBF;
+          margin-left: 4px;
+          vertical-align: -0.08em;
+          border-radius: 1px;
+          animation: storyCursorBlink 0.8s infinite;
+        }
+        .story-typing-cursor.complete {
+          animation: storyCursorBlink 0.8s 4 ease-in-out forwards;
+        }
+        @keyframes storyCursorBlink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0; }
+        }
         .story-meta {
           display: flex; align-items: center; gap: 1rem;
           font-size: 0.8rem; color: #64748b; margin-bottom: 1.5rem;
@@ -279,29 +527,378 @@ export default function RevistaStoryPage() {
         .story-meta-sep { color: #cbd5e1; }
         .story-meta-item { display: flex; align-items: center; gap: 0.3rem; }
 
-        /* Socials */
-        .story-socials {
-          display: flex; gap: 0.5rem; align-items: center; margin-bottom: 2rem;
+        /* ── Social Share Bar ── */
+        .story-share-container {
+          margin-bottom: 2rem;
         }
-        .story-social-btn {
-          display: flex; align-items: center; justify-content: center;
-          width: 32px; height: 32px; border-radius: 50%;
-          background: #f1f5f9; color: #475569;
-          border: 1px solid #e2e8f0; cursor: pointer;
-          transition: all 0.2s; text-decoration: none;
+        .story-share-bar {
+          display: flex;
+          align-items: center;
+          gap: 0.55rem;
+          flex-wrap: wrap;
         }
-        .story-social-btn:hover { background: #7B2CBF; color: #fff; border-color: #7B2CBF; }
+        .share-pill-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.45rem;
+          padding: 0.48rem 0.95rem;
+          border-radius: 9999px;
+          font-size: 0.8rem;
+          font-weight: 600;
+          font-family: inherit;
+          text-decoration: none;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          border: 1px solid #e2e8f0;
+          background: #ffffff;
+          color: #334155;
+          user-select: none;
+        }
+        .share-pill-btn:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.08);
+        }
+        .share-pill-primary {
+          background: linear-gradient(135deg, #7B2CBF, #5A189A);
+          color: #ffffff;
+          border: none;
+          box-shadow: 0 4px 14px -3px rgba(123, 44, 191, 0.4);
+        }
+        .share-pill-primary:hover {
+          background: linear-gradient(135deg, #9D4EDD, #7B2CBF);
+          color: #ffffff;
+        }
+        .share-pill-whatsapp {
+          color: #15803d;
+          background: #f0fdf4;
+          border-color: #bbf7d0;
+        }
+        .share-pill-whatsapp:hover {
+          background: #22c55e;
+          color: #ffffff;
+          border-color: #22c55e;
+        }
+        .share-pill-copy {
+          background: #f8fafc;
+        }
+        .share-pill-copy.copied {
+          background: #ecfdf5;
+          border-color: #a7f3d0;
+          color: #059669;
+          font-weight: 700;
+        }
+        .share-icon-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 35px;
+          height: 35px;
+          border-radius: 50%;
+          background: #ffffff;
+          color: #475569;
+          border: 1px solid #e2e8f0;
+          text-decoration: none;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+        .share-icon-btn:hover {
+          transform: translateY(-2px);
+          color: #fff;
+        }
+        .share-icon-btn.fb:hover { background: #1877F2; border-color: #1877F2; }
+        .share-icon-btn.li:hover { background: #0A66C2; border-color: #0A66C2; }
+        .share-icon-btn.tw:hover { background: #000000; border-color: #000000; }
+        .share-icon-btn.tg:hover { background: #229ED9; border-color: #229ED9; }
+
+        /* ── Share Modal ── */
+        .share-modal-overlay {
+          position: fixed;
+          inset: 0;
+          z-index: 99998;
+          background: rgba(15, 23, 42, 0.65);
+          backdrop-filter: blur(8px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 1.5rem;
+          animation: shareModalFade 0.2s ease-out;
+        }
+        @keyframes shareModalFade {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        .share-modal-card {
+          background: #ffffff;
+          border-radius: 20px;
+          max-width: 460px;
+          width: 100%;
+          padding: 1.75rem;
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+          border: 1px solid #e2e8f0;
+          animation: shareModalZoom 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes shareModalZoom {
+          from { opacity: 0; transform: scale(0.95); }
+          to { opacity: 1; transform: scale(1); }
+        }
+        .share-modal-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 1.25rem;
+        }
+        .share-modal-title {
+          font-size: 1.15rem;
+          font-weight: 800;
+          color: #0f172a;
+          margin: 0;
+        }
+        .share-modal-close {
+          background: #f1f5f9;
+          border: none;
+          color: #64748b;
+          border-radius: 50%;
+          width: 32px;
+          height: 32px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+        .share-modal-close:hover {
+          background: #e2e8f0;
+          color: #0f172a;
+        }
+        .share-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 0.75rem;
+          margin-bottom: 1.5rem;
+        }
+        .share-grid-item {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 0.45rem;
+          padding: 0.85rem 0.5rem;
+          border-radius: 12px;
+          border: 1px solid #f1f5f9;
+          background: #f8fafc;
+          text-decoration: none;
+          color: #334155;
+          font-size: 0.76rem;
+          font-weight: 600;
+          transition: all 0.2s ease;
+        }
+        .share-grid-item:hover {
+          background: #FAF5FF;
+          border-color: #E0AAFF;
+          transform: translateY(-2px);
+          color: #7B2CBF;
+        }
+        .share-grid-icon {
+          width: 42px;
+          height: 42px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #ffffff;
+        }
+        .share-link-input-row {
+          display: flex;
+          gap: 0.5rem;
+          background: #f8fafc;
+          padding: 0.35rem 0.35rem 0.35rem 0.85rem;
+          border-radius: 10px;
+          border: 1px solid #e2e8f0;
+          align-items: center;
+        }
+        .share-link-input {
+          flex: 1;
+          background: transparent;
+          border: none;
+          outline: none;
+          font-size: 0.8rem;
+          color: #475569;
+          font-family: inherit;
+        }
+        .share-link-copy-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.35rem;
+          background: #7B2CBF;
+          color: #ffffff;
+          border: none;
+          border-radius: 8px;
+          padding: 0.45rem 0.85rem;
+          font-size: 0.78rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: background 0.2s;
+        }
+        .share-link-copy-btn:hover {
+          background: #5A189A;
+        }
+        .share-link-copy-btn.copied {
+          background: #10b981;
+        }
 
         /* Cover image */
         .story-cover {
           width: 100%; aspect-ratio: 16/9; border-radius: 14px;
           overflow: hidden; margin-bottom: 2.5rem;
-          background: linear-gradient(135deg, #10002B, #3C096C);
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          display: flex; align-items: center; justify-content: center;
+          box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04);
+          position: relative;
         }
-        .story-cover img { width: 100%; height: 100%; object-fit: cover; }
+        .story-cover.clickable {
+          cursor: zoom-in;
+        }
+        .story-cover-badge {
+          position: absolute;
+          bottom: 12px;
+          right: 12px;
+          background: rgba(15, 23, 42, 0.75);
+          color: #ffffff;
+          backdrop-filter: blur(8px);
+          font-size: 0.72rem;
+          font-weight: 600;
+          padding: 0.35rem 0.65rem;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          gap: 0.35rem;
+          opacity: 0;
+          transform: translateY(4px);
+          transition: all 0.2s ease;
+          pointer-events: none;
+        }
+        .story-cover:hover .story-cover-badge {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        .story-cover img {
+          width: 100%; height: 100%;
+          object-fit: contain;
+          padding: 1.5rem;
+          display: block;
+          transition: transform 0.25s ease;
+        }
+        .story-cover.clickable:hover img {
+          transform: scale(1.02);
+        }
+        @media (max-width: 640px) {
+          .story-cover img { padding: 0.75rem; }
+          .story-cover-badge { opacity: 0.9; transform: none; font-size: 0.68rem; padding: 0.25rem 0.5rem; }
+        }
         .story-cover-placeholder {
           width: 100%; height: 100%;
           display: flex; align-items: center; justify-content: center;
+          background: linear-gradient(135deg, #10002B, #3C096C);
+        }
+
+        /* ── Lightbox / Fullscreen Modal ── */
+        .lightbox-overlay {
+          position: fixed;
+          inset: 0;
+          z-index: 99999;
+          background: rgba(10, 10, 15, 0.92);
+          backdrop-filter: blur(12px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 1.5rem;
+          animation: lightboxFadeIn 0.22s ease-out;
+          cursor: zoom-out;
+        }
+        @keyframes lightboxFadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        .lightbox-close {
+          position: fixed;
+          top: 1.25rem;
+          right: 1.25rem;
+          z-index: 100000;
+          background: rgba(255, 255, 255, 0.14);
+          color: #fff;
+          border: 1px solid rgba(255, 255, 255, 0.25);
+          border-radius: 9999px;
+          height: 40px;
+          padding: 0 0.85rem;
+          display: flex;
+          align-items: center;
+          gap: 0.4rem;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+        .lightbox-close:hover {
+          background: #7B2CBF;
+          border-color: #7B2CBF;
+          transform: scale(1.05);
+        }
+        .lightbox-esc-hint {
+          font-size: 0.7rem;
+          font-weight: 700;
+          background: rgba(255, 255, 255, 0.2);
+          padding: 0.15rem 0.4rem;
+          border-radius: 4px;
+          letter-spacing: 0.05em;
+        }
+        .lightbox-content {
+          max-width: 92vw;
+          max-height: 90vh;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          animation: lightboxZoomIn 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+          cursor: default;
+        }
+        @keyframes lightboxZoomIn {
+          from { opacity: 0; transform: scale(0.92); }
+          to { opacity: 1; transform: scale(1); }
+        }
+        .lightbox-img {
+          max-width: 90vw;
+          max-height: 82vh;
+          object-fit: contain;
+          border-radius: 12px;
+          box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.85);
+          background: #ffffff;
+          padding: 1.25rem;
+        }
+        .lightbox-caption {
+          margin-top: 1rem;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 1.5rem;
+          color: rgba(255, 255, 255, 0.85);
+          font-size: 0.85rem;
+          font-weight: 500;
+          max-width: 90vw;
+          text-align: center;
+        }
+        .lightbox-close-text {
+          background: none;
+          border: none;
+          color: #E0AAFF;
+          font-size: 0.78rem;
+          font-weight: 600;
+          cursor: pointer;
+          padding: 0.2rem 0.5rem;
+          border-radius: 4px;
+          transition: all 0.2s;
+          font-family: inherit;
+        }
+        .lightbox-close-text:hover {
+          background: rgba(255, 255, 255, 0.1);
+          color: #fff;
         }
 
         /* Author card */
@@ -498,7 +1095,7 @@ export default function RevistaStoryPage() {
           </span>
 
           <h1 className="story-title">
-            {buildTitle(story.title, story.highlightText)}
+            <TypedTitle title={story.title} highlight={story.highlightText} speed={25} />
           </h1>
 
           {/* Meta */}
@@ -528,49 +1125,36 @@ export default function RevistaStoryPage() {
             </span>
           </div>
 
-          {/* Socials */}
-          <div className="story-socials">
-            <a
-              href={`https://www.instagram.com/`}
-              target="_blank" rel="noopener noreferrer"
-              className="story-social-btn" aria-label="Partilhar no Instagram"
-            >
-              <Instagram size={14} />
-            </a>
-            <a
-              href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`}
-              target="_blank" rel="noopener noreferrer"
-              className="story-social-btn" aria-label="Partilhar no LinkedIn"
-            >
-              <Linkedin size={14} />
-            </a>
-            <a
-              href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(story.title)}`}
-              target="_blank" rel="noopener noreferrer"
-              className="story-social-btn" aria-label="Partilhar no Twitter"
-            >
-              <Twitter size={14} />
-            </a>
-            <button
-              className="story-social-btn"
-              onClick={() => navigator.clipboard?.writeText(shareUrl)}
-              title="Copiar link"
-              style={{ border: '1px solid #e2e8f0', background: '#f1f5f9', cursor: 'pointer' }}
-            >
-              <Share2 size={14} />
-            </button>
-          </div>
+          {/* Socials / Partilha */}
+          {renderShareBar()}
 
           {/* Cover */}
-          <div className="story-cover">
-            {story.coverImage
-              ? <img src={story.coverImage} alt={story.title} />
-              : (
-                <div className="story-cover-placeholder">
-                  <Code2 size={72} color="rgba(255,255,255,0.1)" />
+          <div
+            className={`story-cover${story.coverImage ? ' clickable' : ''}`}
+            onClick={() => story.coverImage && setLightboxOpen(true)}
+            role={story.coverImage ? 'button' : undefined}
+            tabIndex={story.coverImage ? 0 : undefined}
+            onKeyDown={(e) => {
+              if (story.coverImage && (e.key === 'Enter' || e.key === ' ')) {
+                e.preventDefault();
+                setLightboxOpen(true);
+              }
+            }}
+            title={story.coverImage ? 'Clique para ver em tela cheia' : undefined}
+          >
+            {story.coverImage ? (
+              <>
+                <img src={story.coverImage} alt={story.title} />
+                <div className="story-cover-badge">
+                  <Maximize2 size={13} />
+                  <span>Ver em tela cheia</span>
                 </div>
-              )
-            }
+              </>
+            ) : (
+              <div className="story-cover-placeholder">
+                <Code2 size={72} color="rgba(255,255,255,0.1)" />
+              </div>
+            )}
           </div>
 
           {/* Author card */}
@@ -669,12 +1253,7 @@ export default function RevistaStoryPage() {
 
           {/* Share bottom */}
           <div className="story-share-bottom">
-            <p className="story-share-label">PARTILHAR ESTA HISTÓRIA</p>
-            <div className="story-socials">
-              <a href={`https://www.instagram.com/`} target="_blank" rel="noopener noreferrer" className="story-social-btn"><Instagram size={14} /></a>
-              <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`} target="_blank" rel="noopener noreferrer" className="story-social-btn"><Linkedin size={14} /></a>
-              <a href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(story.title)}`} target="_blank" rel="noopener noreferrer" className="story-social-btn"><Twitter size={14} /></a>
-            </div>
+            {renderShareBar('PARTILHAR ESTA HISTÓRIA')}
           </div>
 
           {/* Newsletter */}
@@ -714,6 +1293,176 @@ export default function RevistaStoryPage() {
                 </div>
               </Link>
             ))}
+          </div>
+        )}
+        {/* ── Lightbox / Tela cheia ── */}
+        {lightboxOpen && story.coverImage && (
+          <div
+            className="lightbox-overlay"
+            onClick={() => setLightboxOpen(false)}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Imagem em tela cheia"
+          >
+            <button
+              className="lightbox-close"
+              onClick={(e) => {
+                e.stopPropagation();
+                setLightboxOpen(false);
+              }}
+              aria-label="Fechar tela cheia (Esc)"
+              title="Fechar (Esc)"
+            >
+              <X size={20} />
+              <span className="lightbox-esc-hint">ESC</span>
+            </button>
+
+            <div className="lightbox-content" onClick={(e) => e.stopPropagation()}>
+              <img
+                src={story.coverImage}
+                alt={story.title}
+                className="lightbox-img"
+              />
+              <div className="lightbox-caption">
+                <span>{story.title}</span>
+                <button
+                  className="lightbox-close-text"
+                  onClick={() => setLightboxOpen(false)}
+                >
+                  Fechar ✕
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        {/* ── Modal de Partilha (Todas as Redes) ── */}
+        {shareModalOpen && (
+          <div
+            className="share-modal-overlay"
+            onClick={() => setShareModalOpen(false)}
+            role="dialog"
+            aria-modal="true"
+          >
+            <div className="share-modal-card" onClick={e => e.stopPropagation()}>
+              <div className="share-modal-header">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Share2 size={18} color="#7B2CBF" />
+                  <h3 className="share-modal-title">Partilhar História</h3>
+                </div>
+                <button
+                  className="share-modal-close"
+                  onClick={() => setShareModalOpen(false)}
+                  aria-label="Fechar"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              <p style={{ fontSize: '0.82rem', color: '#64748b', marginBottom: '1.25rem' }}>
+                Escolha a rede social para partilhar esta história:
+              </p>
+
+              <div className="share-grid">
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="share-grid-item"
+                  onClick={() => setShareModalOpen(false)}
+                >
+                  <div className="share-grid-icon" style={{ background: '#25D366' }}>
+                    <MessageCircle size={20} />
+                  </div>
+                  <span>WhatsApp</span>
+                </a>
+
+                <a
+                  href={facebookUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="share-grid-item"
+                  onClick={() => setShareModalOpen(false)}
+                >
+                  <div className="share-grid-icon" style={{ background: '#1877F2' }}>
+                    <Facebook size={20} />
+                  </div>
+                  <span>Facebook</span>
+                </a>
+
+                <a
+                  href={linkedinUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="share-grid-item"
+                  onClick={() => setShareModalOpen(false)}
+                >
+                  <div className="share-grid-icon" style={{ background: '#0A66C2' }}>
+                    <Linkedin size={20} />
+                  </div>
+                  <span>LinkedIn</span>
+                </a>
+
+                <a
+                  href={twitterUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="share-grid-item"
+                  onClick={() => setShareModalOpen(false)}
+                >
+                  <div className="share-grid-icon" style={{ background: '#000000' }}>
+                    <Twitter size={20} />
+                  </div>
+                  <span>X (Twitter)</span>
+                </a>
+
+                <a
+                  href={telegramUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="share-grid-item"
+                  onClick={() => setShareModalOpen(false)}
+                >
+                  <div className="share-grid-icon" style={{ background: '#229ED9' }}>
+                    <Send size={19} />
+                  </div>
+                  <span>Telegram</span>
+                </a>
+
+                <a
+                  href={emailUrl}
+                  className="share-grid-item"
+                  onClick={() => setShareModalOpen(false)}
+                >
+                  <div className="share-grid-icon" style={{ background: '#64748b' }}>
+                    <Mail size={19} />
+                  </div>
+                  <span>Email</span>
+                </a>
+              </div>
+
+              <div style={{ marginTop: '0.5rem' }}>
+                <p style={{ fontSize: '0.75rem', fontWeight: 600, color: '#94a3b8', marginBottom: '0.45rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Ou copie o link direto
+                </p>
+                <div className="share-link-input-row">
+                  <input
+                    type="text"
+                    readOnly
+                    value={currentShareUrl}
+                    className="share-link-input"
+                    onClick={e => (e.target as HTMLInputElement).select()}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleCopyLink}
+                    className={`share-link-copy-btn${copied ? ' copied' : ''}`}
+                  >
+                    {copied ? <Check size={14} /> : <Copy size={14} />}
+                    <span>{copied ? 'Copiado!' : 'Copiar'}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>

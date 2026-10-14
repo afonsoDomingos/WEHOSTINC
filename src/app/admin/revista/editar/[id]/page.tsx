@@ -272,8 +272,8 @@ export default function EditarHistoriaPage() {
         }
         .img-upload-area:hover { border-color: #7B2CBF; background: #f0f9ff; }
         .img-upload-area input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
-        .img-preview { position: relative; border-radius: 10px; overflow: hidden; aspect-ratio: 16/9; }
-        .img-preview img { width: 100%; height: 100%; object-fit: cover; }
+        .img-preview { position: relative; border-radius: 10px; overflow: hidden; aspect-ratio: 16/9; background: #ffffff; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; }
+        .img-preview img { width: 100%; height: 100%; object-fit: contain; padding: 12px; }
         .img-remove {
           position: absolute; top: 6px; right: 6px;
           background: rgba(0,0,0,0.55); color: #fff;
