@@ -1209,16 +1209,22 @@ export default function RevistaPage() {
 
         /* Responsive */
         @media (max-width: 900px) {
-          .revista-hero { grid-template-columns: 1fr; }
-          .stories-section { grid-template-columns: 1fr; }
-          .sidebar { display: none; }
+          .revista-hero { grid-template-columns: 1fr; gap: 2rem; }
+          .stories-section { grid-template-columns: 1fr; gap: 2rem; }
+          .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-top: 1rem;
+            width: 100%;
+          }
         }
         @media (max-width: 768px) {
-          .revista-nav-inner { padding: 0 1.25rem; }
+          .revista-nav-inner { padding: 0 1rem; }
           .revista-nav-links { display: none; }
           .revista-mobile-toggle { display: flex; }
           .cat-bar {
-            padding: 0.5rem 1.25rem 1rem;
+            padding: 0.5rem 1rem 1rem;
             flex-wrap: nowrap;
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
@@ -1229,13 +1235,6 @@ export default function RevistaPage() {
             flex-shrink: 0; white-space: nowrap;
             font-size: 0.78rem; padding: 0.35rem 0.85rem;
           }
-        }
-        @media (max-width: 600px) {
-          .revista-hero { padding: 2rem 1.25rem 1rem; }
-          .hero-title { font-size: 1.5rem; }
-          .stories-section { padding: 0.5rem 1.25rem 2.5rem; }
-        }
-        @media (max-width: 768px) {
           .story-card {
             grid-template-columns: 1fr;
             gap: 1.25rem;
@@ -1244,13 +1243,39 @@ export default function RevistaPage() {
           .story-card-img {
             height: 200px;
           }
+          .story-card-title {
+            font-size: 1.15rem;
+          }
+        }
+        @media (max-width: 600px) {
+          .revista-top-bar { padding: 0.4rem 0.75rem; }
+          .revista-top-bar-inner { gap: 0.45rem; justify-content: center; }
+          .revista-top-bar-text { font-size: 0.74rem; }
+          .revista-top-bar-link { font-size: 0.72rem; padding: 0.15rem 0.6rem; }
+          .revista-hero { padding: 2rem 1rem 1rem; }
+          .hero-title { font-size: 1.45rem; }
+          .stories-section { padding: 0.5rem 1rem 2.5rem; }
+        }
+        @media (max-width: 480px) {
+          .revista-top-bar-inner { font-size: 0.72rem; }
+          .revista-nav-inner { padding: 0 0.75rem; height: 56px; }
+          .revista-nav-left { gap: 0.45rem; }
+          .revista-nav-home { padding: 0.25rem 0.5rem; }
+          .revista-nav-home-logo { font-size: 0.68rem; }
+          .revista-nav-brand-text { font-size: 0.88rem; }
+          .sidebar-pdf-content { grid-template-columns: 75px 1fr; gap: 0.75rem; }
+          .sidebar-pdf-mockup { width: 75px; height: 105px; }
+          .sidebar-pdf-title { font-size: 0.88rem; }
         }
         @media (max-width: 360px) {
-          .revista-nav-brand-text { font-size: 0.9rem; }
+          .revista-top-bar-text { display: none; }
+          .revista-top-bar-badge { font-size: 0.65rem; }
+          .revista-nav-brand-text { font-size: 0.82rem; }
           .cat-btn { font-size: 0.72rem; padding: 0.3rem 0.7rem; }
           .revista-mobile-cats { grid-template-columns: 1fr; }
-          .hero-title { font-size: 1.3rem; }
-          .story-card { grid-template-columns: 1fr; padding: 1rem; }
+          .hero-title { font-size: 1.25rem; }
+          .story-card { padding: 1rem; }
+          .story-card-title { font-size: 1.05rem; }
         }
       `}</style>
 

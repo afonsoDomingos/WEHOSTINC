@@ -1120,7 +1120,10 @@ export default function RevistaStoryPage() {
         .story-nav-back-link:hover { color: #7B2CBF; }
 
         @media (max-width: 640px) {
-          .story-nav-inner { padding: 0 1rem; height: 56px; }
+          .story-top-bar { padding: 0.4rem 0.75rem; font-size: 0.74rem; }
+          .story-top-bar-inner { gap: 0.45rem; justify-content: center; }
+          .story-top-bar-link { font-size: 0.72rem; padding: 0.15rem 0.6rem; }
+          .story-nav-inner { padding: 0 0.85rem; height: 56px; }
           .story-nav-brand-text { font-size: 0.82rem; }
           .story-nav-home-logo { font-size: 0.65rem; }
           .story-nav-back-text { display: none; }
@@ -1132,7 +1135,9 @@ export default function RevistaStoryPage() {
           .pull-quote { padding: 0.75rem 1rem; font-size: 1rem; }
         }
         @media (max-width: 400px) {
+          .story-top-bar-text { display: none; }
           .story-nav-brand-text { display: none; }
+          .story-title { font-size: 1.3rem; }
         }
       `}</style>
 
