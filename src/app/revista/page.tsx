@@ -1651,7 +1651,7 @@ export default function RevistaPage() {
                   </div>
                   <div>
                     <div className="sidebar-pdf-mockup-brand">codando</div>
-                    <div className="sidebar-pdf-mockup-footer">HISTÓRIAS</div>
+                    <div className="sidebar-pdf-mockup-footer">HISTÓRIAS &lt;/&gt;</div>
                   </div>
                 </div>
                 <div className="sidebar-pdf-info">

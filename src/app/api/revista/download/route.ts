@@ -86,7 +86,7 @@ export async function GET() {
         thickness: 0.5,
         color: rgb(0.88, 0.91, 0.94),
       });
-      page.drawText(sanitizeText('codando histórias • Revista Digital WEHOSTHERE • www.wehosthere.com/revista'), {
+      page.drawText(sanitizeText('codando histórias </> • Revista Digital WEHOSTHERE • www.wehosthere.com/revista'), {
         x: 40,
         y: 30,
         size: 8,
@@ -111,7 +111,7 @@ export async function GET() {
         height: 50,
         color: purpleMain,
       });
-      page.drawText(sanitizeText('codando histórias'), {
+      page.drawText(sanitizeText('codando histórias </>'), {
         x: 40,
         y: PAGE_HEIGHT - 32,
         size: 13,
@@ -174,13 +174,25 @@ export async function GET() {
       color: purpleLight,
     });
 
-    // Título da Revista
-    coverPage.drawText('codando historias', {
+    // Título da Revista: "codando histórias </>"
+    const titleBase = 'codando histórias ';
+    const titleTag = '</>';
+    const titleBaseWidth = fontBold.widthOfTextAtSize(titleBase, 38);
+
+    coverPage.drawText(titleBase, {
       x: 40,
       y: PAGE_HEIGHT - 190,
       size: 38,
       font: fontBold,
       color: white,
+    });
+
+    coverPage.drawText(titleTag, {
+      x: 40 + titleBaseWidth,
+      y: PAGE_HEIGHT - 190,
+      size: 38,
+      font: fontBold,
+      color: purpleLight,
     });
 
     coverPage.drawText('A REVISTA TECH DE MOCAMBIQUE', {
