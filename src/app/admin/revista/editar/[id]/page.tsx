@@ -374,7 +374,7 @@ export default function EditarHistoriaPage() {
           </div>
           <div className="edit-actions">
             <Link
-              href={`/revista/${formData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
+              href={`/revista/${formData.slug || formData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
               target="_blank"
               className="edit-btn preview"
             >

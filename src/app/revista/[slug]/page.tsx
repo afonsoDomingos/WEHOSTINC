@@ -495,10 +495,15 @@ export default function RevistaStoryPage() {
           transform: translateX(2px);
         }
 
-        /* ── Navbar ── */
+        /* ── Sticky Header (Barra Roxa + Navbar) ── */
+        .story-sticky-header {
+          position: sticky;
+          top: 0;
+          z-index: 100;
+          width: 100%;
+        }
         .story-nav {
           background: #fff; border-bottom: 1px solid #e2e8f0;
-          position: sticky; top: 0; z-index: 50;
         }
         .story-nav-inner {
           max-width: 1100px; margin: 0 auto; padding: 0 2rem;
@@ -1132,25 +1137,27 @@ export default function RevistaStoryPage() {
       `}</style>
 
       <div className="story-page">
-        {/* ── Top Announcement Bar (Kabum style com cores WEHOSTHERE) ── */}
-        <div className="story-top-bar">
-          <div className="story-top-bar-inner">
-            <span className="story-top-bar-badge">ED. 01</span>
-            <span>Descarrega a nova edição da revista Codando Histórias</span>
-            <a
-              href="/api/revista/download"
-              className="story-top-bar-link"
-              download="Codando-Historias-Edicao-01.pdf"
-              title="Descarregar PDF da revista em alta resolução"
-            >
-              <Download size={13} />
-              <span>Descarregar PDF →</span>
-            </a>
+        {/* ── Sticky Header: Barra Roxa que acompanha o scroll + Navbar ── */}
+        <header className="story-sticky-header">
+          {/* ── Top Announcement Bar (Kabum style com cores WEHOSTHERE) ── */}
+          <div className="story-top-bar">
+            <div className="story-top-bar-inner">
+              <span className="story-top-bar-badge">ED. 01</span>
+              <span>Descarrega a nova edição da revista Codando Histórias</span>
+              <a
+                href="/api/revista/download"
+                className="story-top-bar-link"
+                download="Codando-Historias-Edicao-01.pdf"
+                title="Descarregar PDF da revista em alta resolução"
+              >
+                <Download size={13} />
+                <span>Descarregar PDF →</span>
+              </a>
+            </div>
           </div>
-        </div>
 
-        {/* ── Navbar ── */}
-        <nav className="story-nav">
+          {/* ── Navbar ── */}
+          <nav className="story-nav">
           <div className="story-nav-inner">
             {/* Left: WEHOSTHERE home logo + revista brand */}
             <div className="story-nav-left">
@@ -1175,6 +1182,7 @@ export default function RevistaStoryPage() {
             </Link>
           </div>
         </nav>
+        </header>
 
         {/* ── Breadcrumb ── */}
         <div className="breadcrumb">

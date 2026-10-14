@@ -289,11 +289,16 @@ export default function RevistaPage() {
       <style>{`
         .revista-page { font-family: 'Poppins', sans-serif; background: #f8fafc; min-height: 100vh; }
 
-        /* ── Navbar ─────────────────────────── */
+        /* ── Sticky Header (Barra Roxa + Navbar) ─────────────── */
+        .revista-sticky-header {
+          position: sticky;
+          top: 0;
+          z-index: 100;
+          width: 100%;
+        }
         .revista-nav {
           background: #fff;
           border-bottom: 1px solid #e2e8f0;
-          position: sticky; top: 0; z-index: 50;
         }
         .revista-nav-inner {
           max-width: 1100px; margin: 0 auto;
@@ -1250,25 +1255,27 @@ export default function RevistaPage() {
       `}</style>
 
       <div className="revista-page">
-        {/* ── Top Announcement Bar (Kabum style com cores WEHOSTHERE) ── */}
-        <div className="revista-top-bar">
-          <div className="revista-top-bar-inner">
-            <span className="revista-top-bar-badge">ED. 01</span>
-            <span className="revista-top-bar-text">Descarrega a nova edição da revista Codando Histórias</span>
-            <a
-              href="/api/revista/download"
-              className="revista-top-bar-link"
-              download="Codando-Historias-Edicao-01.pdf"
-              title="Descarregar PDF da revista em alta resolução"
-            >
-              <Download size={13} />
-              <span>Descarregar PDF →</span>
-            </a>
+        {/* ── Sticky Header: Barra Roxa que acompanha o scroll + Navbar ── */}
+        <header className="revista-sticky-header">
+          {/* ── Top Announcement Bar (Kabum style com cores WEHOSTHERE) ── */}
+          <div className="revista-top-bar">
+            <div className="revista-top-bar-inner">
+              <span className="revista-top-bar-badge">ED. 01</span>
+              <span className="revista-top-bar-text">Descarrega a nova edição da revista Codando Histórias</span>
+              <a
+                href="/api/revista/download"
+                className="revista-top-bar-link"
+                download="Codando-Historias-Edicao-01.pdf"
+                title="Descarregar PDF da revista em alta resolução"
+              >
+                <Download size={13} />
+                <span>Descarregar PDF →</span>
+              </a>
+            </div>
           </div>
-        </div>
 
-        {/* ── Navbar ── */}
-        <nav className="revista-nav">
+          {/* ── Navbar ── */}
+          <nav className="revista-nav">
           <div className="revista-nav-inner">
             {/* Left: WEHOSTHERE home logo + revista brand */}
             <div className="revista-nav-left">
@@ -1381,6 +1388,7 @@ export default function RevistaPage() {
             </div>
           )}
         </nav>
+        </header>
 
         {/* ── Hero ── */}
         {featured && (
