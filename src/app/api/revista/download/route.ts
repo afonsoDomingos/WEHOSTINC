@@ -78,6 +78,29 @@ export async function GET() {
     const PAGE_HEIGHT = 841.89;
     let pageNumber = 1;
 
+    // Data da edição automática (Mês e Ano em maiúsculas)
+    const now = new Date();
+    const ptMonthsUpper = [
+      'JANEIRO', 'FEVEREIRO', 'MARCO', 'ABRIL', 'MAIO', 'JUNHO',
+      'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'
+    ];
+    const latestDate = stories[0]?.publishedAt ? new Date(stories[0].publishedAt) : now;
+    const editionMonthYear = `${ptMonthsUpper[latestDate.getMonth()]} ${latestDate.getFullYear()}`;
+
+    // Helper para formatar a data de publicação de cada história (ex: 14 Out 2026)
+    const formatStoryDate = (dateVal?: any): string => {
+      if (!dateVal) return '';
+      try {
+        const d = new Date(dateVal);
+        if (isNaN(d.getTime())) return '';
+        const day = String(d.getDate()).padStart(2, '0');
+        const ptMonthsShort = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+        return `${day} ${ptMonthsShort[d.getMonth()]} ${d.getFullYear()}`;
+      } catch {
+        return '';
+      }
+    };
+
     // Helper para rodapé padrão
     const addFooter = (page: any, pNum: number) => {
       page.drawLine({
@@ -86,10 +109,10 @@ export async function GET() {
         thickness: 0.5,
         color: rgb(0.88, 0.91, 0.94),
       });
-      page.drawText(sanitizeText('codando histórias </> • Revista Digital WEHOSTHERE • www.wehosthere.com/revista'), {
+      page.drawText(sanitizeText(`codando histórias </> • Revista Digital WEHOSTHERE • ${editionMonthYear} • www.wehosthere.com/revista`), {
         x: 40,
         y: 30,
-        size: 8,
+        size: 7.5,
         font: fontRegular,
         color: textMuted,
       });
@@ -166,10 +189,10 @@ export async function GET() {
       color: purpleMain,
     });
 
-    coverPage.drawText('REVISTA DIGITAL OFICIAL • WEHOSTHERE', {
+    coverPage.drawText(`REVISTA DIGITAL OFICIAL • WEHOSTHERE • ${editionMonthYear}`, {
       x: 132,
       y: PAGE_HEIGHT - 56,
-      size: 10,
+      size: 9.5,
       font: fontBold,
       color: purpleLight,
     });
@@ -293,10 +316,10 @@ export async function GET() {
       color: rgb(0.08, 0.0, 0.16),
     });
 
-    coverPage.drawText('WEHOSTHERE • www.wehosthere.com/revista • Maputo, Mocambique', {
-      x: 105,
+    coverPage.drawText(`WEHOSTHERE • www.wehosthere.com/revista • Maputo, Mocambique • ${editionMonthYear}`, {
+      x: 75,
       y: 23,
-      size: 9.5,
+      size: 9,
       font: fontBold,
       color: rgb(0.7, 0.7, 0.8),
     });
@@ -318,7 +341,7 @@ export async function GET() {
       color: purpleMain,
     });
 
-    indexPage.drawText(sanitizeText(`Total de ${stories.length} materias publicadas nesta edicao`), {
+    indexPage.drawText(sanitizeText(`Total de ${stories.length} materias publicadas nesta edicao • ${editionMonthYear}`), {
       x: 40,
       y: PAGE_HEIGHT - 102,
       size: 9.5,
@@ -374,12 +397,14 @@ export async function GET() {
         color: textDark,
       });
 
-      // Autor e link
+      // Autor, data e link
       const authorName = st.author?.name || 'WEHOSTHERE';
-      indexPage.drawText(sanitizeText(`Por: ${authorName}  •  wehosthere.com/revista/${st.slug}`), {
+      const stDate = formatStoryDate(st.publishedAt || st.createdAt);
+      const stDatePart = stDate ? `  •  ${stDate}` : '';
+      indexPage.drawText(sanitizeText(`Por: ${authorName}${stDatePart}  •  wehosthere.com/revista/${st.slug}`), {
         x: 52,
         y: currentY - 47,
-        size: 8,
+        size: 7.5,
         font: fontRegular,
         color: textMuted,
       });
@@ -433,17 +458,29 @@ export async function GET() {
 
       sY -= 4;
 
-      // Autor & Metadados
-      const authorText = `Autor: ${story.author?.name || 'WEHOSTHERE'}   •   Leitura: ${story.readingTime || 4} min   •   wehosthere.com/revista/${story.slug}`;
+      // Autor & Metadados com data automática de publicação
+      const storyDateStr = formatStoryDate(story.publishedAt || story.createdAt);
+      const datePart = storyDateStr ? `   •   Publicado: ${storyDateStr}` : '';
+      const authorText = `Autor: ${story.author?.name || 'WEHOSTHERE'}${datePart}   •   Leitura: ${story.readingTime || 4} min`;
       storyPage.drawText(sanitizeText(authorText), {
         x: 40,
         y: sY,
-        size: 9,
+        size: 8.5,
         font: fontBold,
         color: purpleBright,
       });
 
-      sY -= 15;
+      sY -= 12;
+
+      storyPage.drawText(sanitizeText(`Artigo completo online: www.wehosthere.com/revista/${story.slug}`), {
+        x: 40,
+        y: sY,
+        size: 7.5,
+        font: fontRegular,
+        color: textMuted,
+      });
+
+      sY -= 12;
 
       // Linha divisória
       storyPage.drawLine({
