@@ -460,12 +460,39 @@ export default function RevistaStoryPage() {
         .story-nav-inner {
           max-width: 1100px; margin: 0 auto; padding: 0 2rem;
           height: 64px; display: flex; align-items: center; justify-content: space-between;
+          gap: 1rem;
+        }
+        .story-nav-left {
+          display: flex; align-items: center; gap: 0.75rem;
+        }
+        .story-nav-home {
+          display: inline-flex; align-items: center; gap: 0.35rem;
+          text-decoration: none;
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          border-radius: 8px;
+          padding: 0.3rem 0.65rem;
+          transition: all 0.2s;
+          flex-shrink: 0;
+        }
+        .story-nav-home:hover {
+          background: #FAF5FF;
+          border-color: #E0AAFF;
+        }
+        .story-nav-home-logo {
+          font-size: 0.72rem; font-weight: 800; color: #0f172a;
+          letter-spacing: -0.02em; line-height: 1;
+          white-space: nowrap;
+        }
+        .story-nav-home-logo span { color: #7B2CBF; }
+        .story-nav-divider {
+          width: 1px; height: 22px; background: #e2e8f0; flex-shrink: 0;
         }
         .story-nav-brand {
           display: flex; align-items: center; gap: 0.5rem; text-decoration: none;
         }
         .story-nav-brand-text {
-          font-size: 1.1rem; font-weight: 800; color: #0f172a; letter-spacing: -0.04em;
+          font-size: 1.05rem; font-weight: 800; color: #0f172a; letter-spacing: -0.04em;
         }
         .story-nav-brand-text span { color: #7B2CBF; }
 
@@ -1046,7 +1073,8 @@ export default function RevistaStoryPage() {
 
         @media (max-width: 640px) {
           .story-nav-inner { padding: 0 1rem; height: 56px; }
-          .story-nav-brand-text { font-size: 0.88rem; }
+          .story-nav-brand-text { font-size: 0.82rem; }
+          .story-nav-home-logo { font-size: 0.65rem; }
           .story-nav-back-text { display: none; }
           .story-title { font-size: 1.45rem; }
           .breadcrumb { padding: 0.75rem 1rem 0; font-size: 0.72rem; }
@@ -1064,12 +1092,24 @@ export default function RevistaStoryPage() {
         {/* ── Navbar ── */}
         <nav className="story-nav">
           <div className="story-nav-inner">
-            <Link href="/revista" className="story-nav-brand">
-              <Code2 size={20} color="#7B2CBF" />
-              <span className="story-nav-brand-text">
-                codando <span>histórias</span>
-              </span>
-            </Link>
+            {/* Left: WEHOSTHERE home logo + revista brand */}
+            <div className="story-nav-left">
+              <Link href="/" className="story-nav-home" title="Ir para a página inicial WEHOSTHERE">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7B2CBF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                  <polyline points="9 22 9 12 15 12 15 22" />
+                </svg>
+                <span className="story-nav-home-logo">WEHOST<span>HERE</span></span>
+              </Link>
+              <span className="story-nav-divider" aria-hidden="true" />
+              <Link href="/revista" className="story-nav-brand">
+                <Code2 size={18} color="#7B2CBF" />
+                <span className="story-nav-brand-text">
+                  codando <span>histórias</span>
+                </span>
+              </Link>
+            </div>
+            {/* Right: back link */}
             <Link href="/revista" className="story-nav-back-link">
               <ArrowLeft size={15} /> <span className="story-nav-back-text">Todas as histórias</span>
             </Link>

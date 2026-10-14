@@ -3,6 +3,8 @@ import { getStoryById, updateStory, deleteStory } from '@/lib/revistaData';
 
 export const dynamic = 'force-dynamic';
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.wehosthere.com';
+
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
   try {
     const story = await getStoryById(params.id);
@@ -16,11 +18,54 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
   try {
     const body = await req.json();
+
+    // Buscar a história antes da atualização para detetar mudança de status
+    let previousStatus: string | undefined;
+    try {
+      const existing = await getStoryById(params.id);
+      previousStatus = (existing as any)?.status;
+    } catch (_) {}
+
     const result = await updateStory(params.id, body);
     if (!result.success) {
       return NextResponse.json({ error: result.error || 'História não encontrada' }, { status: 404 });
     }
-    return NextResponse.json({ success: true, story: result.story });
+
+    const updatedStory = result.story as any;
+
+    // ── Enviar push broadcast quando uma história é publicada pela primeira vez ──
+    const isNowPublished = updatedStory?.status === 'published' || body.status === 'published';
+    const wasNotPublished = previousStatus !== 'published';
+
+    if (isNowPublished && wasNotPublished) {
+      try {
+        const storyTitle = updatedStory?.title || body.title || 'Nova história publicada';
+        const storySlug  = updatedStory?.slug  || body.slug  || '';
+        const storyExcerpt = updatedStory?.excerpt || body.excerpt || 'Uma nova história de tech foi publicada na revista Codando Histórias.';
+        const authorName = updatedStory?.author?.name || body.author?.name || 'Codando Histórias';
+        const storyUrl = `${SITE_URL}/revista/${storySlug}`;
+
+        // Fire-and-forget — não bloqueia a resposta
+        fetch(`${SITE_URL}/api/push/broadcast`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: `📖 Nova história: ${storyTitle}`,
+            message: `${authorName} publicou uma nova história — ${storyExcerpt.slice(0, 100)}${storyExcerpt.length > 100 ? '…' : ''}`,
+            url: storyUrl,
+            icon: '/mascote-transparent.png',
+            tag: `revista-story-${params.id}`,
+          }),
+        }).catch((e) => console.error('[Revista] Erro ao enviar push broadcast:', e));
+
+        console.log(`[Revista] Push broadcast agendado para história publicada: "${storyTitle}"`);
+      } catch (pushErr) {
+        // Não falha a operação principal por causa do push
+        console.error('[Revista] Erro ao preparar push broadcast:', pushErr);
+      }
+    }
+
+    return NextResponse.json({ success: true, story: updatedStory });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }

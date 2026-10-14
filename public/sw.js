@@ -144,6 +144,9 @@ self.addEventListener('push', (event) => {
     }
   }
 
+  // Determinar label da ação com base no URL de destino
+  const actionLabel = targetUrl.includes('/revista') ? 'Ler história' : 'Abrir';
+
   const options = {
     body: message,
     icon: icon,
@@ -158,7 +161,7 @@ self.addEventListener('push', (event) => {
     actions: [
       {
         action: 'open',
-        title: 'Abrir Pedido',
+        title: actionLabel,
         icon: icon
       },
       {

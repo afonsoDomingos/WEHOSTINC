@@ -17,10 +17,15 @@ export async function generateMetadata({ params }: { params: { slug: string } })
     const story: any = await RevistaStory.findOne({ slug: params.slug, status: 'published' }).lean();
 
     if (story) {
-      const imageUrl = story.coverImage?.startsWith('http')
-        ? story.coverImage
-        : story.coverImage?.startsWith('/')
-        ? `${SITE_URL}${story.coverImage}`
+      // A foto que deve aparecer na partilha (WhatsApp/redes) é a foto do autor; se não definida, usa a capa da história
+      const authorImg = story.author?.avatar?.trim();
+      const coverImg = story.coverImage?.trim();
+      const selectedImg = authorImg || coverImg;
+
+      const imageUrl = selectedImg?.startsWith('http')
+        ? selectedImg
+        : selectedImg?.startsWith('/')
+        ? `${SITE_URL}${selectedImg}`
         : DEFAULT_IMAGE;
 
       const title = story.seo?.metaTitle || `${story.title} | Codando Histórias`;

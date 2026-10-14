@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Save, Eye, X, Code2, Image as ImageIcon, Trash2 } from 'lucide-react';
+import { ArrowLeft, Save, Eye, X, Code2, Image as ImageIcon, Trash2, Upload } from 'lucide-react';
 
 const CATEGORIES = [
   { value: 'codigo',    label: 'Código' },
@@ -23,6 +23,7 @@ export default function EditarHistoriaPage() {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [saved, setSaved] = useState(false);
   const [notFound, setNotFound] = useState(false);
 
@@ -133,6 +134,20 @@ export default function EditarHistoriaPage() {
       if (data.url) set('coverImage', data.url);
     } catch { alert('Erro ao fazer upload da imagem.'); }
     finally { setUploadingImage(false); e.target.value = ''; }
+  };
+
+  const handleAuthorAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingAvatar(true);
+    const fd = new FormData();
+    fd.append('file', file);
+    try {
+      const res = await fetch('/api/upload', { method: 'POST', body: fd });
+      const data = await res.json();
+      if (data.url) setAuthor('avatar', data.url);
+    } catch { alert('Erro ao fazer upload do avatar do autor.'); }
+    finally { setUploadingAvatar(false); e.target.value = ''; }
   };
 
   const handleSave = async (status?: string) => {
@@ -498,15 +513,42 @@ export default function EditarHistoriaPage() {
                   <input className="edit-input" type="email" value={formData.author.email} onChange={e => setAuthor('email', e.target.value)} />
                 </div>
               </div>
-              <div className="edit-row">
-                <div className="edit-field">
-                  <label className="edit-label">Avatar (URL)</label>
-                  <input className="edit-input" type="url" placeholder="https://..." value={formData.author.avatar} onChange={e => setAuthor('avatar', e.target.value)} />
+              <div className="edit-field" style={{ marginBottom: '1rem' }}>
+                <label className="edit-label">Foto / Avatar do Autor (Aparece na Partilha do WhatsApp e Redes)</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.35rem', flexWrap: 'wrap' }}>
+                  {formData.author.avatar ? (
+                    <div style={{ position: 'relative', width: 48, height: 48, borderRadius: '50%', overflow: 'hidden', border: '2px solid #7B2CBF', flexShrink: 0, boxShadow: '0 2px 8px rgba(123,44,191,0.25)' }}>
+                      <img src={formData.author.avatar} alt="Avatar do autor" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <button
+                        type="button"
+                        onClick={() => setAuthor('avatar', '')}
+                        style={{ position: 'absolute', top: 0, right: 0, background: 'rgba(0,0,0,0.65)', color: '#fff', border: 'none', borderRadius: '50%', width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                        title="Remover foto"
+                      >
+                        <X size={10} />
+                      </button>
+                    </div>
+                  ) : (
+                    <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 0.9rem', background: '#f8fafc', border: '1.5px dashed #cbd5e1', borderRadius: '8px', cursor: 'pointer', fontSize: '0.8rem', color: '#475569', fontWeight: 600 }}>
+                      <Upload size={14} color="#7B2CBF" />
+                      <span>{uploadingAvatar ? 'A carregar foto...' : 'Carregar foto do autor'}</span>
+                      <input type="file" accept="image/*" onChange={handleAuthorAvatarUpload} disabled={uploadingAvatar} style={{ display: 'none' }} />
+                    </label>
+                  )}
+                  <input
+                    className="edit-input"
+                    type="url"
+                    placeholder="Ou cole o link direto da foto (URL)..."
+                    value={formData.author.avatar}
+                    onChange={e => setAuthor('avatar', e.target.value)}
+                    style={{ flex: 1, minWidth: 200 }}
+                  />
                 </div>
-                <div className="edit-field">
-                  <label className="edit-label">Bio curta</label>
-                  <input className="edit-input" placeholder="Engenheiro em Maputo..." value={formData.author.bio} onChange={e => setAuthor('bio', e.target.value)} />
-                </div>
+              </div>
+
+              <div className="edit-field">
+                <label className="edit-label">Bio curta</label>
+                <input className="edit-input" placeholder="Engenheiro em Maputo..." value={formData.author.bio} onChange={e => setAuthor('bio', e.target.value)} />
               </div>
 
               <div className="edit-field">

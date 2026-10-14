@@ -4,7 +4,8 @@ import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import {
   Search, Clock, Eye, ChevronRight, BookOpen, Code2,
-  Cpu, Palette, Briefcase, Newspaper, Star, Menu, X, Home, ExternalLink, Maximize2
+  Cpu, Palette, Briefcase, Newspaper, Star, Menu, X, Home, ExternalLink, Maximize2,
+  Bell, BellOff, BellRing, Check
 } from 'lucide-react';
 
 interface Story {
@@ -153,6 +154,70 @@ export default function RevistaPage() {
   const [isPaused, setIsPaused] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
+  // ── Push Notifications ──
+  const [pushPermission, setPushPermission] = useState<NotificationPermission>('default');
+  const [pushLoading, setPushLoading] = useState(false);
+  const [pushDone, setPushDone] = useState(false);
+  const [pushDismissed, setPushDismissed] = useState(false);
+  const [pushSupported, setPushSupported] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window) {
+      setPushSupported(true);
+      setPushPermission(Notification.permission);
+      if (Notification.permission === 'granted') setPushDone(true);
+    }
+    // Verificar se o utilizador já dispensou o banner
+    try {
+      if (localStorage.getItem('revista_push_dismissed') === '1') setPushDismissed(true);
+      if (localStorage.getItem('revista_push_done') === '1') setPushDone(true);
+    } catch (_) {}
+  }, []);
+
+  const handlePushSubscribe = async () => {
+    if (!pushSupported || pushLoading) return;
+    setPushLoading(true);
+    try {
+      const permission = await Notification.requestPermission();
+      setPushPermission(permission);
+      if (permission !== 'granted') { setPushLoading(false); return; }
+
+      const reg = await navigator.serviceWorker.register('/sw.js');
+      const vapidRes = await fetch('/api/push/vapid-key');
+      const { publicKey } = await vapidRes.json();
+
+      // Convert VAPID key
+      const padding = '='.repeat((4 - publicKey.length % 4) % 4);
+      const base64 = (publicKey + padding).replace(/-/g, '+').replace(/_/g, '/');
+      const rawData = window.atob(base64);
+      const key = new Uint8Array(rawData.length);
+      for (let i = 0; i < rawData.length; i++) key[i] = rawData.charCodeAt(i);
+
+      let sub = await reg.pushManager.getSubscription();
+      if (!sub) {
+        sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key });
+      }
+
+      await fetch('/api/push/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subscription: sub.toJSON(), role: 'user', isAdmin: false }),
+      });
+
+      setPushDone(true);
+      try { localStorage.setItem('revista_push_done', '1'); } catch (_) {}
+    } catch (err) {
+      console.error('[Revista Push]', err);
+    } finally {
+      setPushLoading(false);
+    }
+  };
+
+  const handlePushDismiss = () => {
+    setPushDismissed(true);
+    try { localStorage.setItem('revista_push_dismissed', '1'); } catch (_) {}
+  };
+
   // Fechar lightbox ao pressionar ESC e travar scroll do corpo
   useEffect(() => {
     if (!lightboxOpen) return;
@@ -235,6 +300,33 @@ export default function RevistaPage() {
           padding: 0 2rem;
           display: flex; align-items: center; justify-content: space-between;
           height: 64px;
+          gap: 1rem;
+        }
+        .revista-nav-left {
+          display: flex; align-items: center; gap: 0.75rem;
+        }
+        .revista-nav-home {
+          display: inline-flex; align-items: center; gap: 0.35rem;
+          text-decoration: none;
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          border-radius: 8px;
+          padding: 0.3rem 0.65rem;
+          transition: all 0.2s;
+          flex-shrink: 0;
+        }
+        .revista-nav-home:hover {
+          background: #FAF5FF;
+          border-color: #E0AAFF;
+        }
+        .revista-nav-home-logo {
+          font-size: 0.72rem; font-weight: 800; color: #0f172a;
+          letter-spacing: -0.02em; line-height: 1;
+          white-space: nowrap;
+        }
+        .revista-nav-home-logo span { color: #7B2CBF; }
+        .revista-nav-divider {
+          width: 1px; height: 22px; background: #e2e8f0; flex-shrink: 0;
         }
         .revista-nav-brand {
           display: flex; align-items: center; gap: 0.5rem;
@@ -720,6 +812,113 @@ export default function RevistaPage() {
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
+        /* ── Push Notification Banner ── */
+        .push-banner {
+          max-width: 1100px; margin: 0 auto 0;
+          padding: 0 2rem 1.25rem;
+          animation: pushBannerSlide 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes pushBannerSlide {
+          from { opacity: 0; transform: translateY(-10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .push-banner-inner {
+          background: linear-gradient(135deg, #10002B 0%, #3C096C 50%, #7B2CBF 100%);
+          border-radius: 14px;
+          padding: 1rem 1.25rem;
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          box-shadow: 0 4px 24px -4px rgba(123, 44, 191, 0.35);
+          position: relative;
+          overflow: hidden;
+        }
+        .push-banner-inner::before {
+          content: '';
+          position: absolute;
+          top: -30px; right: -30px;
+          width: 120px; height: 120px;
+          border-radius: 50%;
+          background: rgba(255,255,255,0.05);
+          pointer-events: none;
+        }
+        .push-banner-icon {
+          width: 44px; height: 44px;
+          border-radius: 12px;
+          background: rgba(255,255,255,0.12);
+          display: flex; align-items: center; justify-content: center;
+          flex-shrink: 0;
+          border: 1px solid rgba(255,255,255,0.15);
+        }
+        .push-banner-text { flex: 1; min-width: 0; }
+        .push-banner-title {
+          font-size: 0.9rem; font-weight: 700; color: #ffffff;
+          margin-bottom: 0.15rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .push-banner-sub {
+          font-size: 0.75rem; color: rgba(255,255,255,0.7); line-height: 1.4;
+        }
+        .push-banner-actions { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
+        .push-subscribe-btn {
+          display: inline-flex; align-items: center; gap: 0.4rem;
+          background: #ffffff; color: #5A189A;
+          border: none; border-radius: 9999px;
+          padding: 0.5rem 1.1rem;
+          font-size: 0.8rem; font-weight: 700;
+          cursor: pointer; transition: all 0.2s;
+          font-family: 'Poppins', sans-serif;
+          white-space: nowrap;
+        }
+        .push-subscribe-btn:hover:not(:disabled) {
+          background: #E0AAFF; color: #3C096C;
+          transform: scale(1.03);
+        }
+        .push-subscribe-btn:disabled { opacity: 0.7; cursor: wait; }
+        .push-subscribe-btn.done {
+          background: #10b981; color: #fff;
+        }
+        .push-dismiss-btn {
+          background: none; border: none;
+          color: rgba(255,255,255,0.5); cursor: pointer;
+          padding: 0.25rem; border-radius: 6px;
+          transition: color 0.2s;
+          display: flex; align-items: center; justify-content: center;
+        }
+        .push-dismiss-btn:hover { color: #fff; }
+
+        /* Sidebar push box */
+        .push-sidebar-box {
+          background: linear-gradient(135deg, #10002B, #3C096C);
+          border-radius: 14px; padding: 1.25rem;
+          color: #fff; position: relative; overflow: hidden;
+        }
+        .push-sidebar-box::before {
+          content: '';
+          position: absolute;
+          bottom: -20px; right: -20px;
+          width: 80px; height: 80px;
+          border-radius: 50%;
+          background: rgba(255,255,255,0.06);
+        }
+        .push-sidebar-box h3 { font-size: 0.92rem; font-weight: 700; margin-bottom: 0.4rem; }
+        .push-sidebar-box p { font-size: 0.76rem; color: rgba(255,255,255,0.75); margin-bottom: 1rem; line-height: 1.5; }
+        .push-sidebar-btn {
+          width: 100%; display: flex; align-items: center; justify-content: center;
+          gap: 0.45rem; padding: 0.6rem;
+          background: rgba(255,255,255,0.15);
+          border: 1px solid rgba(255,255,255,0.2);
+          border-radius: 10px; color: #fff;
+          font-family: 'Poppins', sans-serif;
+          font-size: 0.8rem; font-weight: 600;
+          cursor: pointer; transition: all 0.2s;
+        }
+        .push-sidebar-btn:hover:not(:disabled) {
+          background: rgba(255,255,255,0.25);
+          transform: translateY(-1px);
+        }
+        .push-sidebar-btn:disabled { opacity: 0.7; cursor: wait; }
+        .push-sidebar-btn.done { background: #10b981; border-color: #10b981; }
+
         /* Responsive */
         @media (max-width: 900px) {
           .revista-hero { grid-template-columns: 1fr; }
@@ -761,12 +960,23 @@ export default function RevistaPage() {
         {/* ── Navbar ── */}
         <nav className="revista-nav">
           <div className="revista-nav-inner">
-            <Link href="/revista" className="revista-nav-brand" onClick={() => setMobileMenuOpen(false)}>
-              <Code2 size={20} color="#7B2CBF" />
-              <span className="revista-nav-brand-text">
-                codando <span>histórias</span>
-              </span>
-            </Link>
+            {/* Left: WEHOSTHERE home logo + revista brand */}
+            <div className="revista-nav-left">
+              <Link href="/" className="revista-nav-home" title="Ir para a página inicial WEHOSTHERE">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7B2CBF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                  <polyline points="9 22 9 12 15 12 15 22" />
+                </svg>
+                <span className="revista-nav-home-logo">WEHOST<span>HERE</span></span>
+              </Link>
+              <span className="revista-nav-divider" aria-hidden="true" />
+              <Link href="/revista" className="revista-nav-brand" onClick={() => setMobileMenuOpen(false)}>
+                <Code2 size={20} color="#7B2CBF" />
+                <span className="revista-nav-brand-text">
+                  codando <span>histórias</span>
+                </span>
+              </Link>
+            </div>
 
             {/* Desktop links */}
             <div className="revista-nav-links">
@@ -925,6 +1135,55 @@ export default function RevistaPage() {
           </section>
         )}
 
+        {/* ── Push Notification Banner ── */}
+        {pushSupported && !pushDismissed && !pushDone && pushPermission !== 'denied' && (
+          <div className="push-banner">
+            <div className="push-banner-inner">
+              <div className="push-banner-icon">
+                <BellRing size={22} color="#E0AAFF" />
+              </div>
+              <div className="push-banner-text">
+                <div className="push-banner-title">🔔 Fique por dentro das novidades</div>
+                <div className="push-banner-sub">Receba uma notificação sempre que publicarmos uma nova história de tech.</div>
+              </div>
+              <div className="push-banner-actions">
+                <button
+                  className="push-subscribe-btn"
+                  onClick={handlePushSubscribe}
+                  disabled={pushLoading}
+                >
+                  {pushLoading ? (
+                    <><div style={{ width: 14, height: 14, border: '2px solid #7B2CBF', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} /> A subscrever...</>
+                  ) : (
+                    <><Bell size={14} /> Subscrever</>                  
+                  )}
+                </button>
+                <button className="push-dismiss-btn" onClick={handlePushDismiss} title="Dispensar">
+                  <X size={16} />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Push Done confirmation (shown briefly) */}
+        {pushSupported && pushDone && !pushDismissed && (
+          <div className="push-banner">
+            <div className="push-banner-inner" style={{ background: 'linear-gradient(135deg, #064e3b, #10b981)' }}>
+              <div className="push-banner-icon" style={{ background: 'rgba(255,255,255,0.15)' }}>
+                <Check size={22} color="#fff" />
+              </div>
+              <div className="push-banner-text">
+                <div className="push-banner-title">Subscrito com sucesso! 🎉</div>
+                <div className="push-banner-sub">Vais receber uma notificação quando publicarmos a próxima história.</div>
+              </div>
+              <button className="push-dismiss-btn" onClick={handlePushDismiss} title="Dispensar">
+                <X size={16} />
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* ── Category Bar ── */}
         <div className="cat-bar">
           {CATEGORIES.map(c => {
@@ -1033,6 +1292,35 @@ export default function RevistaPage() {
                   </Link>
                 ))}
             </div>
+
+            {/* Push Notifications */}
+            {pushSupported && (
+              <div className="push-sidebar-box">
+                <h3>🔔 Notificações Push</h3>
+                <p>Receba alertas instantâneos quando publicarmos novas histórias de tech em Moçambique.</p>
+                {pushDone ? (
+                  <button className="push-sidebar-btn done" disabled>
+                    <Check size={15} /> Subscrito!
+                  </button>
+                ) : pushPermission === 'denied' ? (
+                  <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.5)', textAlign: 'center', margin: 0 }}>
+                    Notificações bloqueadas no browser. Altere nas definições do browser.
+                  </p>
+                ) : (
+                  <button
+                    className="push-sidebar-btn"
+                    onClick={handlePushSubscribe}
+                    disabled={pushLoading}
+                  >
+                    {pushLoading ? (
+                      <><div style={{ width: 13, height: 13, border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} /> A subscrever...</>
+                    ) : (
+                      <><Bell size={14} /> Ativar notificações</>
+                    )}
+                  </button>
+                )}
+              </div>
+            )}
 
             {/* Newsletter */}
             <div className="nl-box">
