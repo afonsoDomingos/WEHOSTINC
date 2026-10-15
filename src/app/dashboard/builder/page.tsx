@@ -688,9 +688,9 @@ export default function AiSiteBuilderStudio() {
         <div className="p-3">
           <button
             onClick={initNewProject}
-            className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 font-bold text-xs flex items-center justify-center gap-2 shadow-md shadow-blue-600/20 transition active:scale-98 cursor-pointer"
+            className="w-full py-2.5 px-3 rounded-xl bg-white hover:bg-gray-100 text-black font-extrabold text-xs flex items-center justify-center gap-2 shadow-sm transition active:scale-98 cursor-pointer"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 text-black" />
             Nova Conversa / Site
           </button>
         </div>
@@ -943,11 +943,11 @@ export default function AiSiteBuilderStudio() {
               disabled={!prompt.trim() || isGenerating}
               className={`absolute right-3 bottom-4 p-2 rounded-xl transition ${
                 prompt.trim() && !isGenerating
-                  ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-500/25 cursor-pointer'
+                  ? 'bg-white hover:bg-gray-100 text-black shadow-md cursor-pointer active:scale-95'
                   : 'bg-white/5 text-gray-600 cursor-not-allowed'
               }`}
             >
-              <Send className="w-4 h-4" />
+              <Send className="w-4 h-4 text-black" />
             </button>
           </form>
 
@@ -1012,10 +1012,10 @@ export default function AiSiteBuilderStudio() {
             {!isChatOpen && (
               <button
                 onClick={() => setIsChatOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600/10 border border-blue-500/20 text-blue-400 hover:bg-blue-600/20 text-xs font-bold transition cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-gray-100 text-black text-xs font-bold transition cursor-pointer shadow-sm active:scale-95"
                 title="Abrir Chat com IA"
               >
-                <MessageSquare className="w-3.5 h-3.5" />
+                <MessageSquare className="w-3.5 h-3.5 text-black" />
                 <span className="hidden sm:inline">Mostrar Chat</span>
               </button>
             )}
@@ -1026,7 +1026,7 @@ export default function AiSiteBuilderStudio() {
                 onClick={() => setActiveTab('preview')}
                 className={`p-1.5 px-2.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
                   activeTab === 'preview'
-                    ? 'bg-blue-600 text-white shadow-xs'
+                    ? 'bg-white text-black font-extrabold shadow-sm'
                     : 'text-gray-400 hover:text-white'
                 }`}
                 title="Visualizar Preview Interativo"
@@ -1038,7 +1038,7 @@ export default function AiSiteBuilderStudio() {
                 onClick={() => setActiveTab('code')}
                 className={`p-1.5 px-2.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
                   activeTab === 'code'
-                    ? 'bg-blue-600 text-white shadow-xs'
+                    ? 'bg-white text-black font-extrabold shadow-sm'
                     : 'text-gray-400 hover:text-white'
                 }`}
                 title="Visualizar Código HTML Fonte"
@@ -1108,7 +1108,7 @@ export default function AiSiteBuilderStudio() {
                     }}
                     className={`w-full text-left px-2.5 py-2 rounded-xl text-xs transition flex items-center justify-between cursor-pointer ${
                       selectedVersionIndex === 'latest'
-                        ? 'bg-blue-600 text-white font-bold'
+                        ? 'bg-white text-black font-extrabold shadow-sm'
                         : 'text-gray-300 hover:bg-white/5'
                     }`}
                   >
@@ -1116,7 +1116,7 @@ export default function AiSiteBuilderStudio() {
                       <span className="block font-semibold">Latest (Mais Recente)</span>
                       <span className="text-[10px] opacity-70">Versão atual de trabalho</span>
                     </div>
-                    {selectedVersionIndex === 'latest' && <Check className="w-3.5 h-3.5" />}
+                    {selectedVersionIndex === 'latest' && <Check className="w-3.5 h-3.5 text-black" />}
                   </button>
 
                   {/* Lista de Versões Históricas */}
@@ -1132,7 +1132,7 @@ export default function AiSiteBuilderStudio() {
                         }}
                         className={`w-full text-left px-2.5 py-2 rounded-xl text-xs transition flex items-center justify-between cursor-pointer ${
                           isSelected
-                            ? 'bg-blue-600 text-white font-bold'
+                            ? 'bg-white text-black font-extrabold shadow-sm'
                             : 'text-gray-300 hover:bg-white/5'
                         }`}
                       >
@@ -1144,7 +1144,7 @@ export default function AiSiteBuilderStudio() {
                             <Clock className="w-2.5 h-2.5" /> {v.timestamp}
                           </span>
                         </div>
-                        {isSelected && <Check className="w-3.5 h-3.5 shrink-0" />}
+                        {isSelected && <Check className="w-3.5 h-3.5 shrink-0 text-black" />}
                       </button>
                     );
                   })}
@@ -1210,13 +1210,13 @@ export default function AiSiteBuilderStudio() {
               <ExternalLink className="w-4 h-4 text-blue-400" />
             </button>
 
-            {/* BOTÃO PUBLICAR (Destaque Principal) */}
+            {/* BOTÃO PUBLICAR (Destaque Principal na cor Branca) */}
             <button
               onClick={() => setIsPublishModalOpen(true)}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-extrabold text-xs shadow-lg shadow-emerald-600/25 transition active:scale-95 cursor-pointer shrink-0"
+              className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-white hover:bg-gray-100 text-black font-extrabold text-xs shadow-md transition active:scale-95 cursor-pointer shrink-0"
               title="Publicar website online com subdomínio e SSL"
             >
-              <Globe className="w-3.5 h-3.5" />
+              <Globe className="w-3.5 h-3.5 text-black" />
               <span>Publicar</span>
             </button>
           </div>
@@ -1234,9 +1234,9 @@ export default function AiSiteBuilderStudio() {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => handleRestoreVersion(selectedVersionIndex as number)}
-                className="px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition cursor-pointer"
+                className="px-3 py-1 rounded-lg bg-white hover:bg-gray-100 text-black font-extrabold text-xs flex items-center gap-1.5 shadow-sm transition cursor-pointer"
               >
-                <Undo2 className="w-3.5 h-3.5" />
+                <Undo2 className="w-3.5 h-3.5 text-black" />
                 <span>Restaurar Esta Versão</span>
               </button>
               <button
@@ -1516,9 +1516,9 @@ export default function AiSiteBuilderStudio() {
                   await handlePublish();
                 }}
                 disabled={isPublishing}
-                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-extrabold text-xs shadow-lg shadow-emerald-600/25 transition active:scale-95 flex items-center gap-2 cursor-pointer"
+                className="px-6 py-2.5 rounded-xl bg-white hover:bg-gray-100 text-black font-extrabold text-xs shadow-md transition active:scale-95 flex items-center gap-2 cursor-pointer disabled:opacity-50"
               >
-                {isPublishing ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Globe className="w-4 h-4" />}
+                {isPublishing ? <RefreshCw className="w-4 h-4 animate-spin text-black" /> : <Globe className="w-4 h-4 text-black" />}
                 <span>{isPublished ? 'Atualizar Publicação' : 'Publicar Agora'}</span>
               </button>
             </div>
