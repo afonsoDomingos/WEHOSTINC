@@ -1104,119 +1104,164 @@ export default function RevistaStoryPage() {
         .story-adjacent-nav {
           max-width: 760px;
           margin: 0 auto;
-          padding: 2rem 1.5rem 0.5rem;
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 1rem;
+          padding: 2.5rem 1.5rem 1rem;
         }
-        .story-adjacent-nav.only-next {
-          grid-template-columns: 1fr;
-          justify-items: end;
-        }
-        .story-adjacent-nav.only-prev {
-          grid-template-columns: 1fr;
-          justify-items: start;
-        }
-        .adj-card {
-          display: flex;
-          flex-direction: column;
-          gap: 0.5rem;
-          background: #fff;
-          border: 1px solid #e2e8f0;
-          border-radius: 16px;
-          padding: 1.1rem 1.25rem;
-          text-decoration: none;
-          width: 100%;
-          transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-          box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-          position: relative;
-          overflow: hidden;
-        }
-        .adj-card::before {
-          content: '';
-          position: absolute;
-          inset: 0;
-          border-radius: inherit;
-          background: linear-gradient(135deg, rgba(123,44,191,0.06) 0%, transparent 60%);
-          opacity: 0;
-          transition: opacity 0.2s;
-        }
-        .adj-card:hover {
-          border-color: rgba(123, 44, 191, 0.35);
-          box-shadow: 0 8px 24px rgba(123, 44, 191, 0.14);
-          transform: translateY(-2px);
-        }
-        .adj-card:hover::before { opacity: 1; }
-        .adj-card.adj-next { align-items: flex-end; text-align: right; }
-        .adj-card.adj-prev { align-items: flex-start; text-align: left; }
-        .adj-direction {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.3rem;
-          font-size: 0.68rem;
+        .story-adjacent-nav-label {
+          font-size: 0.72rem;
           font-weight: 700;
           letter-spacing: 0.1em;
           text-transform: uppercase;
           color: #94a3b8;
+          margin-bottom: 1rem;
+          display: block;
         }
-        .adj-title {
-          font-size: 0.9rem;
+        .story-adjacent-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1rem;
+        }
+        .story-adjacent-grid.single {
+          grid-template-columns: 1fr;
+        }
+        .adj-story-card {
+          display: flex;
+          align-items: center;
+          gap: 1.1rem;
+          background: #fff;
+          border: 1px solid #e8edf4;
+          border-radius: 18px;
+          padding: 1rem 1.2rem;
+          text-decoration: none;
+          transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+          box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+          position: relative;
+          overflow: hidden;
+        }
+        .adj-story-card:hover {
+          border-color: rgba(123,44,191,0.3);
+          box-shadow: 0 8px 28px rgba(123,44,191,0.13);
+          transform: translateY(-2px);
+        }
+        .adj-story-avatar {
+          flex-shrink: 0;
+          width: 72px;
+          height: 72px;
+          border-radius: 50%;
+          overflow: hidden;
+          background: linear-gradient(135deg, #5A189A 0%, #9D4EDD 100%);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 1.5rem;
+          font-weight: 800;
+          color: #fff;
+          border: 3px solid #f8fafc;
+          box-shadow: 0 0 0 2px rgba(123,44,191,0.18);
+        }
+        .adj-story-avatar img {
+          width: 100%; height: 100%; object-fit: cover;
+        }
+        .adj-story-body {
+          flex: 1;
+          min-width: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 0.3rem;
+        }
+        .adj-story-direction {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.25rem;
+          font-size: 0.67rem;
           font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: #94a3b8;
+          margin-bottom: 0.1rem;
+        }
+        .adj-story-badge {
+          display: inline-flex;
+          align-items: center;
+          font-size: 0.64rem;
+          font-weight: 700;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          padding: 0.15rem 0.55rem;
+          border-radius: 9999px;
+          border: 1.5px solid currentColor;
+          margin-bottom: 0.2rem;
+          width: fit-content;
+        }
+        .adj-story-title {
+          font-size: 0.9rem;
+          font-weight: 800;
           color: #0f172a;
           line-height: 1.35;
-          max-width: 260px;
           display: -webkit-box;
           -webkit-line-clamp: 2;
           -webkit-box-orient: vertical;
           overflow: hidden;
+          letter-spacing: -0.01em;
         }
-        .adj-meta {
-          font-size: 0.72rem;
-          color: #94a3b8;
+        .adj-story-excerpt {
+          font-size: 0.76rem;
+          color: #64748b;
+          line-height: 1.45;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+          margin-top: 0.1rem;
+        }
+        .adj-story-footer {
           display: flex;
           align-items: center;
-          gap: 0.35rem;
+          justify-content: space-between;
+          gap: 0.5rem;
+          margin-top: 0.45rem;
+          flex-wrap: wrap;
         }
-        .adj-card.adj-next .adj-meta { justify-content: flex-end; }
-        .adj-card.adj-prev .adj-meta { justify-content: flex-start; }
-        .adj-cover {
-          width: 100%;
-          height: 80px;
-          border-radius: 10px;
-          object-fit: cover;
-          opacity: 0.85;
-          margin-bottom: 0.15rem;
+        .adj-story-meta {
+          display: flex;
+          align-items: center;
+          gap: 0.4rem;
+          font-size: 0.7rem;
+          color: #94a3b8;
         }
-        .adj-nav-arrow {
+        .adj-story-meta-avatar {
+          width: 20px; height: 20px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #5A189A, #9D4EDD);
+          display: flex; align-items: center; justify-content: center;
+          font-size: 0.55rem; font-weight: 800; color: #fff;
+          overflow: hidden;
+          flex-shrink: 0;
+        }
+        .adj-story-meta-avatar img { width:100%; height:100%; object-fit:cover; }
+        .adj-story-btn {
           display: inline-flex;
           align-items: center;
-          justify-content: center;
-          width: 28px; height: 28px;
-          border-radius: 50%;
-          background: rgba(123,44,191,0.1);
-          color: #7B2CBF;
-          flex-shrink: 0;
-          transition: background 0.2s, transform 0.2s;
-        }
-        .adj-card:hover .adj-nav-arrow {
+          gap: 0.3rem;
           background: #7B2CBF;
           color: #fff;
+          font-size: 0.72rem;
+          font-weight: 700;
+          padding: 0.35rem 0.85rem;
+          border-radius: 9999px;
+          white-space: nowrap;
+          transition: background 0.2s, transform 0.15s;
+          flex-shrink: 0;
         }
-        .adj-card.adj-next:hover .adj-nav-arrow { transform: translateX(3px); }
-        .adj-card.adj-prev:hover .adj-nav-arrow { transform: translateX(-3px); }
-        @media (max-width: 600px) {
-          .story-adjacent-nav {
+        .adj-story-card:hover .adj-story-btn {
+          background: #5A189A;
+        }
+        @media (max-width: 640px) {
+          .story-adjacent-grid {
             grid-template-columns: 1fr;
-            padding: 1.5rem 1rem 0.5rem;
           }
-          .story-adjacent-nav.only-next,
-          .story-adjacent-nav.only-prev {
-            grid-template-columns: 1fr;
-            justify-items: stretch;
-          }
-          .adj-card.adj-next { align-items: flex-start; text-align: left; }
-          .adj-card.adj-next .adj-meta { justify-content: flex-start; }
-          .adj-title { max-width: 100%; }
+          .story-adjacent-nav { padding: 1.75rem 1rem 0.5rem; }
+          .adj-story-avatar { width: 58px; height: 58px; }
+          .adj-story-excerpt { display: none; }
         }
 
         /* ── Dynamic Processing Loader ── */
@@ -1831,49 +1876,85 @@ export default function RevistaStoryPage() {
 
         {/* ── Prev / Next Story Navigation ── */}
         {(prevStory || nextStory) && (
-          <nav
-            className={`story-adjacent-nav${
-              !prevStory ? ' only-next' : !nextStory ? ' only-prev' : ''
-            }`}
-            aria-label="Navegar entre histórias"
-          >
-            {/* ← Anterior (mais antiga na lista) */}
-            {prevStory && (
-              <Link href={`/revista/${prevStory.slug}`} className="adj-card adj-prev">
-                {prevStory.coverImage && (
-                  <img src={prevStory.coverImage} alt={prevStory.title} className="adj-cover" />
-                )}
-                <span className="adj-direction">
-                  <ArrowLeft size={12} />
-                  História anterior
-                </span>
-                <span className="adj-title">{prevStory.title}</span>
-                <div className="adj-meta">
-                  <span className="adj-nav-arrow"><ArrowLeft size={13} /></span>
-                  <span>{prevStory.author?.name}</span>
-                  {prevStory.readingTime && <><span>·</span><span><Clock size={11} /> {prevStory.readingTime} min</span></>}
-                </div>
-              </Link>
-            )}
+          <nav className="story-adjacent-nav" aria-label="Navegar entre histórias">
+            <span className="story-adjacent-nav-label">Continuar a ler</span>
+            <div className={`story-adjacent-grid${prevStory && nextStory ? '' : ' single'}`}>
 
-            {/* → Próxima (mais recente na lista) */}
-            {nextStory && (
-              <Link href={`/revista/${nextStory.slug}`} className="adj-card adj-next">
-                {nextStory.coverImage && (
-                  <img src={nextStory.coverImage} alt={nextStory.title} className="adj-cover" />
-                )}
-                <span className="adj-direction">
-                  Próxima história
-                  <ChevronRight size={12} />
-                </span>
-                <span className="adj-title">{nextStory.title}</span>
-                <div className="adj-meta">
-                  <span>{nextStory.author?.name}</span>
-                  {nextStory.readingTime && <><span>·</span><span><Clock size={11} /> {nextStory.readingTime} min</span></>}
-                  <span className="adj-nav-arrow"><ChevronRight size={13} /></span>
-                </div>
-              </Link>
-            )}
+              {/* ← Anterior */}
+              {prevStory && (
+                <Link href={`/revista/${prevStory.slug}`} className="adj-story-card">
+                  <div className="adj-story-avatar">
+                    {prevStory.author?.avatar
+                      ? <img src={prevStory.author.avatar} alt={prevStory.author.name} />
+                      : prevStory.author?.name?.[0]?.toUpperCase() || 'W'
+                    }
+                  </div>
+                  <div className="adj-story-body">
+                    <span className="adj-story-direction"><ArrowLeft size={11} /> História anterior</span>
+                    <span
+                      className="adj-story-badge"
+                      style={{ color: CAT_COLORS[prevStory.category] || '#7B2CBF' }}
+                    >
+                      {prevStory.category}
+                    </span>
+                    <span className="adj-story-title">{buildTitle(prevStory.title, prevStory.highlightText)}</span>
+                    {prevStory.excerpt && <p className="adj-story-excerpt">{prevStory.excerpt}</p>}
+                    <div className="adj-story-footer">
+                      <div className="adj-story-meta">
+                        <div className="adj-story-meta-avatar">
+                          {prevStory.author?.avatar
+                            ? <img src={prevStory.author.avatar} alt={prevStory.author.name} />
+                            : prevStory.author?.name?.[0]?.toUpperCase() || 'W'
+                          }
+                        </div>
+                        <span>{prevStory.author?.name}</span>
+                        {prevStory.readingTime && <><Clock size={11} /><span>{prevStory.readingTime} min</span></>}
+                        {prevStory.views != null && <><Eye size={11} /><span>{prevStory.views} leituras</span></>}
+                      </div>
+                      <span className="adj-story-btn"><ArrowLeft size={12} /> Ler história</span>
+                    </div>
+                  </div>
+                </Link>
+              )}
+
+              {/* → Próxima */}
+              {nextStory && (
+                <Link href={`/revista/${nextStory.slug}`} className="adj-story-card">
+                  <div className="adj-story-avatar">
+                    {nextStory.author?.avatar
+                      ? <img src={nextStory.author.avatar} alt={nextStory.author.name} />
+                      : nextStory.author?.name?.[0]?.toUpperCase() || 'W'
+                    }
+                  </div>
+                  <div className="adj-story-body">
+                    <span className="adj-story-direction">Próxima história <ChevronRight size={11} /></span>
+                    <span
+                      className="adj-story-badge"
+                      style={{ color: CAT_COLORS[nextStory.category] || '#7B2CBF' }}
+                    >
+                      {nextStory.category}
+                    </span>
+                    <span className="adj-story-title">{buildTitle(nextStory.title, nextStory.highlightText)}</span>
+                    {nextStory.excerpt && <p className="adj-story-excerpt">{nextStory.excerpt}</p>}
+                    <div className="adj-story-footer">
+                      <div className="adj-story-meta">
+                        <div className="adj-story-meta-avatar">
+                          {nextStory.author?.avatar
+                            ? <img src={nextStory.author.avatar} alt={nextStory.author.name} />
+                            : nextStory.author?.name?.[0]?.toUpperCase() || 'W'
+                          }
+                        </div>
+                        <span>{nextStory.author?.name}</span>
+                        {nextStory.readingTime && <><Clock size={11} /><span>{nextStory.readingTime} min</span></>}
+                        {nextStory.views != null && <><Eye size={11} /><span>{nextStory.views} leituras</span></>}
+                      </div>
+                      <span className="adj-story-btn">Ler história <ChevronRight size={12} /></span>
+                    </div>
+                  </div>
+                </Link>
+              )}
+
+            </div>
           </nav>
         )}
 
