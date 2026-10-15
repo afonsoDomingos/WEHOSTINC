@@ -35,6 +35,10 @@
     {
       "path": "/api/cron/weekly-kpi-report",
       "schedule": "0 8 * * 1"
+    },
+    {
+      "path": "/api/cron/birthday-greetings",
+      "schedule": "0 6 * * *"
     }
   ]
 }
