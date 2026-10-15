@@ -47,14 +47,16 @@ Sobre a WEHOSTHERE:
   * Publicação online oficial que inspira e conecta a comunidade de tecnologia em Moçambique e no mundo.
   * Tópicos: Carreira em Tecnologia, Startups & Empreendedorismo, Programação & Código, Inteligência Artificial (IA) e Liderança em Tech.
   * Histórias reais de profissionais do mercado moçambicano (como a edição especial com a Rofina Jorge Cuna).
-  * Inclui leitura interativa com tempo estimado, download gratuito de edições em PDF e newsletter de novos lançamentos.
-  * Link oficial da Revista: [/revista](/revista)
+  * Download gratuito em PDF: A edição completa pode ser descarregada diretamente pelo link [/api/revista/download](/api/revista/download) para ler offline no telemóvel, tablet, PC ou imprimir.
+  * Leitura online da Revista: [/revista](/revista)
+  * Link direto para baixar o PDF: [/api/revista/download](/api/revista/download)
 - Links Úteis para Navegação:
   * Planos de Hospedagem: [/hospedagem](/hospedagem)
   * Pesquisa e Registo de Domínios: [/dominios](/dominios)
   * Pedir Orçamento de Criação de Site: [/site-quote](/site-quote)
   * Email Corporativo: [/email-profissional](/email-profissional)
   * Revista Codando Histórias: [/revista](/revista)
+  * Descarregar PDF da Revista: [/api/revista/download](/api/revista/download)
   * Servidores VPS: [/vps](/vps)
   * Entrar / Painel do Cliente: [/dashboard](/dashboard)
   * Abrir Chamado de Suporte: [/dashboard/tickets](/dashboard/tickets)
@@ -226,8 +228,9 @@ DIRETRIZES E RESTRIÇÕES DE SEGURANÇA CRÍTICAS:
    "Por motivos de privacidade e segurança, dados administrativos e financeiros globais são confidenciais. Posso ajudá-lo com os nossos planos, serviços, configurações de domínio ou suporte técnico."
 3. NUNCA USE ASTERISCOS (**) OU (*) PARA FORMATAÇÃO. Responda com texto limpo, marcadores simples (•) e quebras de linha elegantes.
 4. NUNCA USE EMOJIS AMADORES (como 🤖, 👥, 🛒, 💰, etc.).
-5. Seja sempre prestativo, cordial, profissional e oriente o cliente com links clicáveis como [/hospedagem](/hospedagem), [/dominios](/dominios), [/site-quote](/site-quote), [/dashboard/tickets](/dashboard/tickets) ou [/dashboard](/dashboard).
+5. Seja sempre prestativo, cordial, profissional e oriente o cliente com links clicáveis como [/hospedagem](/hospedagem), [/dominios](/dominios), [/site-quote](/site-quote), [/revista](/revista), [/dashboard/tickets](/dashboard/tickets) ou [/dashboard](/dashboard).
 6. Ajude clientes a escolher o plano ideal, entender o registo de domínios .co.mz, configurar contas de email Migadu e formas de pagamento em Moçambique (M-Pesa, E-Mola, Cartão).
+7. Se o utilizador perguntar como descarregar ou baixar a revista Codando Histórias em PDF, explique com clareza o processo de download e forneça obrigatoriamente o link clicável [Descarregar PDF da Revista](/api/revista/download) para descarregar o arquivo imediatamente, além de poder ler online em [/revista](/revista).
 `;
     }
 
@@ -621,7 +624,25 @@ function generateClientLocalResponse(query: string, clientData: any): string {
     return `Os Seus Serviços na WEHOSTHERE:\n\nÚltimos Pedidos:\n${ordersText}\n\nAceda ao painel completo em: [/dashboard](/dashboard) ou abra um ticket de suporte em [/dashboard/tickets](/dashboard/tickets)`;
   }
 
-  // 8. Revista Codando Histórias (histórias, artigos, revista, etc.)
+  // 8. Descarregar Edição da Revista em PDF (Prioridade máxima quando o utilizador pede PDF / descarregar / baixar)
+  if (
+    lower.includes('pdf') || 
+    lower.includes('descarregar') || 
+    lower.includes('baixar') || 
+    (lower.includes('download') && (lower.includes('revista') || lower.includes('edição') || lower.includes('edicao') || lower.includes('história') || lower.includes('historia')))
+  ) {
+    return `Descarregar Revista Codando Histórias (Edição 01 em PDF):\n\n` +
+      `A nova edição da revista "Codando Histórias" está disponível para download 100% gratuito em formato PDF de alta resolução!\n\n` +
+      `Como funciona:\n` +
+      `• Formato: Arquivo PDF completo otimizado para ler offline no telemóvel, computador, tablet ou para impressão\n` +
+      `• Conteúdo da Edição: Histórias inspiradoras de programadores e líderes tech em Moçambique, inovação em startups, boas práticas de código e inteligência artificial\n` +
+      `• Acesso imediato: Sem custo e sem necessidade de registo obrigatório\n\n` +
+      `Clique no botão abaixo para descarregar o PDF da revista agora:\n` +
+      `[Descarregar PDF da Revista](/api/revista/download)\n\n` +
+      `Também pode ler todas as histórias interativamente no navegador em: [/revista](/revista)`;
+  }
+
+  // 9. Revista Codando Histórias (histórias, artigos, revista geral)
   if (
     lower.includes('revista') || 
     lower.includes('história') || 
@@ -637,8 +658,9 @@ function generateClientLocalResponse(query: string, clientData: any): string {
       `• Histórias de Carreira: Trajetórias inspiradoras de devs, programadoras e engenheiros de software\n` +
       `• Startups & Inovação: Empreendedores e soluções digitais criadas no nosso ecossistema\n` +
       `• Código & IA: Boas práticas de programação, arquitetura cloud e novas ferramentas\n` +
-      `• Descarregar a Edição em PDF: Download gratuito para ler onde e quando quiser\n\n` +
-      `Leia agora todas as publicações em: [/revista](/revista)`;
+      `• Edição em PDF: Download gratuito para ler onde e quando quiser\n\n` +
+      `Leia online na web em: [/revista](/revista)\n` +
+      `Ou descarregue a edição em PDF: [Descarregar PDF da Revista](/api/revista/download)`;
   }
 
   // 9. Planos de Hospedagem (Quando a pergunta é sobre hospedagem ou planos em geral)

@@ -298,6 +298,26 @@ export default function AdminAiTopBar({ isGlobalRoot = false }: AdminAiTopBarPro
       const match = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
       if (match) {
         const [, linkText, href] = match;
+        const isDownload = href.includes('download') || href.endsWith('.pdf');
+
+        if (isDownload) {
+          return (
+            <a
+              key={index}
+              href={href}
+              download="Codando-Historias-Edicao-01.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 bg-gradient-to-r from-purple-600 via-indigo-600 to-primary-600 hover:from-purple-700 hover:to-primary-700 text-white font-bold text-xs px-3.5 py-1.5 rounded-xl shadow-xs hover:shadow-md mx-1 my-1 transition-all cursor-pointer transform active:scale-95 no-underline"
+              title="Descarregar arquivo PDF agora"
+            >
+              <span>📥</span>
+              <span>{linkText}</span>
+              <span>→</span>
+            </a>
+          );
+        }
+
         return (
           <button
             key={index}
