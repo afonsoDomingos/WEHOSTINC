@@ -44,8 +44,9 @@ interface SavedProject {
 
 export default function AiSiteBuilderStudio() {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState<boolean>(true);
 
   // Estados do Projecto
   const [projectId, setProjectId] = useState<string>('');
@@ -90,17 +91,19 @@ export default function AiSiteBuilderStudio() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Carregar utilizador e projetos
+  // Carregar utilizador e projetos (aguarda NextAuth terminar carregamento para não redirecionar indevidamente)
   useEffect(() => {
+    if (status === 'loading') return;
+
     let user: User | null = null;
-    if (session?.user) {
+    if (status === 'authenticated' && session?.user) {
       user = {
         id: (session.user as any)?.id || session.user.email || '',
         name: session.user.name || 'Utilizador',
         email: session.user.email || '',
         plan: (session.user as any)?.plan || 'free',
-        status: 'active',
-        role: 'user',
+        status: (session.user as any)?.status || 'active',
+        role: (session.user as any)?.role || 'user',
         createdAt: new Date().toISOString()
       };
     } else {
@@ -111,9 +114,11 @@ export default function AiSiteBuilderStudio() {
       router.push('/login');
       return;
     }
+
     setCurrentUser(user);
+    setAuthLoading(false);
     loadUserProjects(user.email);
-  }, [session]);
+  }, [session, status]);
 
   // Carregar lista de projetos do utilizador
   const loadUserProjects = async (email: string) => {
@@ -514,6 +519,22 @@ export default function AiSiteBuilderStudio() {
       console.warn('Erro ao eliminar projeto:', err);
     }
   };
+
+  if (authLoading) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-[#09090b] text-white">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 flex items-center justify-center font-black text-white shadow-lg shadow-blue-500/25 animate-pulse text-sm">
+            W
+          </div>
+          <div className="flex items-center gap-2 text-xs text-gray-400 font-medium">
+            <RefreshCw className="w-3.5 h-3.5 animate-spin text-blue-400" />
+            <span>A carregar Studio AI...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-[#09090b] text-[#fafafa] font-sans overflow-hidden antialiased selection:bg-blue-600 selection:text-white">

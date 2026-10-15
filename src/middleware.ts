@@ -62,7 +62,12 @@ export function middleware(request: NextRequest) {
     !SYSTEM_SUBDOMAINS.includes(subdomain) &&
     !pathname.startsWith('/site/') &&
     !pathname.startsWith('/_next') &&
-    !pathname.startsWith('/api/')
+    !pathname.startsWith('/api/') &&
+    !pathname.startsWith('/dashboard') &&
+    !pathname.startsWith('/admin') &&
+    !pathname.startsWith('/login') &&
+    !pathname.startsWith('/register') &&
+    !pathname.startsWith('/checkout')
   ) {
     const rewriteUrl = request.nextUrl.clone();
     rewriteUrl.pathname = `/site/${subdomain}${pathname === '/' ? '' : pathname}`;
