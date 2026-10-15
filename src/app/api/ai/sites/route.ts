@@ -58,8 +58,10 @@ export async function POST(request: NextRequest) {
       userName,
       title = 'Meu Site',
       slug: customSlug,
+      subdomain,
       htmlContent,
       promptHistory = [],
+      versions = [],
       status = 'draft',
       customDomain
     } = body;
@@ -73,12 +75,16 @@ export async function POST(request: NextRequest) {
     const cleanEmail = userEmail.toLowerCase().trim();
     const siteId = id || `site_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
     const finalSlug = customSlug || generateSlug(title);
+    const finalSubdomain = subdomain || finalSlug;
 
     const updateData: any = {
       title,
       htmlContent,
       promptHistory,
+      versions,
       status,
+      slug: finalSlug,
+      subdomain: finalSubdomain,
       userEmail: cleanEmail,
       userName,
       customDomain: customDomain ? customDomain.trim().toLowerCase() : undefined,
@@ -96,7 +102,6 @@ export async function POST(request: NextRequest) {
         $set: updateData,
         $setOnInsert: {
           id: siteId,
-          slug: finalSlug,
           createdAt: new Date().toISOString(),
           views: 0
         }

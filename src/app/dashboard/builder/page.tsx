@@ -7,8 +7,11 @@ import { useSession } from 'next-auth/react';
 import { 
   Sparkles, Send, Globe, Code, Eye, Laptop, Tablet, Smartphone, 
   RotateCw, ExternalLink, Share2, Plus, Trash2, ArrowLeft, Check, 
-  Copy, CheckCircle2, ChevronRight, MessageSquare, Layers, Wand2,
-  Clock, AlertCircle, RefreshCw, X
+  Copy, CheckCircle2, ChevronRight, ChevronLeft, ChevronDown, 
+  MessageSquare, Layers, Wand2, Clock, AlertCircle, RefreshCw, X,
+  PanelLeftClose, PanelLeftOpen, Maximize2, Minimize2,
+  UtensilsCrossed, Scissors, Palmtree, Briefcase, Palette, Tag,
+  History, Undo2
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 
@@ -21,6 +24,13 @@ interface ChatMessage {
   executionSeconds?: number;
 }
 
+interface ProjectVersion {
+  versionNumber: number;
+  html: string;
+  prompt: string;
+  timestamp: string;
+}
+
 interface SavedProject {
   id: string;
   title: string;
@@ -29,6 +39,7 @@ interface SavedProject {
   updatedAt: string;
   htmlContent: string;
   promptHistory: ChatMessage[];
+  versions?: { versionNumber: number; htmlContent: string; prompt?: string; createdAt: string }[];
 }
 
 export default function AiSiteBuilderStudio() {
@@ -45,20 +56,39 @@ export default function AiSiteBuilderStudio() {
   const [savedProjects, setSavedProjects] = useState<SavedProject[]>([]);
   const [isLoadingProjects, setIsLoadingProjects] = useState<boolean>(true);
 
+  // Estados de Histórico de Versões (Latest Version, v1, v2, etc.)
+  const [versions, setVersions] = useState<ProjectVersion[]>([]);
+  const [selectedVersionIndex, setSelectedVersionIndex] = useState<number | 'latest'>('latest');
+  const [isVersionDropdownOpen, setIsVersionDropdownOpen] = useState<boolean>(false);
+
   // Estados da Conversa / Prompt
   const [prompt, setPrompt] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const versionMenuRef = useRef<HTMLDivElement>(null);
 
-  // Estados do Ecrã de Preview
+  // Estados de Interface e Layout
   const [activeTab, setActiveTab] = useState<'preview' | 'code'>('preview');
   const [viewportMode, setViewportMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
+  const [isChatOpen, setIsChatOpen] = useState<boolean>(true);
   const [copiedCode, setCopiedCode] = useState<boolean>(false);
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
+  const [copiedSubdomain, setCopiedSubdomain] = useState<boolean>(false);
   const [isPublishModalOpen, setIsPublishModalOpen] = useState<boolean>(false);
   const [isPublishing, setIsPublishing] = useState<boolean>(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
+
+  // Fechar dropdown de versão ao clicar fora
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (versionMenuRef.current && !versionMenuRef.current.contains(event.target as Node)) {
+        setIsVersionDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Carregar utilizador e projetos
   useEffect(() => {
@@ -118,11 +148,13 @@ export default function AiSiteBuilderStudio() {
     setProjectTitle(defaultTitle);
     setProjectSlug(defaultSlug);
     setIsPublished(false);
+    setVersions([]);
+    setSelectedVersionIndex('latest');
     setMessages([
       {
         id: 'msg_welcome',
         role: 'assistant',
-        content: 'Olá! Sou o seu Construtor de Sites IA da WEHOSTHERE. Digite o que deseja criar (ex: uma página de boas-vindas, um restaurante, uma barbearia ou loja) e eu crio para si em tempo real!',
+        content: 'Olá! Sou o Construtor de Sites IA da WEHOSTHERE. Digite o que deseja criar (ex: uma página moderna de boas-vindas, um restaurante, uma barbearia ou portfólio) e eu crio para si em tempo real!',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }
     ]);
@@ -138,6 +170,30 @@ export default function AiSiteBuilderStudio() {
     setProjectSlug(proj.slug);
     setIsPublished(proj.status === 'published');
     setCurrentHtml(proj.htmlContent);
+
+    // Reconstruir lista de versões salvas
+    if (proj.versions && proj.versions.length > 0) {
+      const parsedVersions: ProjectVersion[] = proj.versions.map((v) => ({
+        versionNumber: v.versionNumber,
+        html: v.htmlContent,
+        prompt: v.prompt || 'Atualização de código',
+        timestamp: new Date(v.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }));
+      setVersions(parsedVersions);
+    } else if (proj.htmlContent) {
+      setVersions([
+        {
+          versionNumber: 1,
+          html: proj.htmlContent,
+          prompt: 'Versão Inicial',
+          timestamp: new Date(proj.updatedAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }
+      ]);
+    } else {
+      setVersions([]);
+    }
+
+    setSelectedVersionIndex('latest');
     setMessages(proj.promptHistory && proj.promptHistory.length > 0 ? proj.promptHistory : [
       {
         id: `msg_${Date.now()}`,
@@ -196,15 +252,34 @@ export default function AiSiteBuilderStudio() {
         const updatedMessages = [...messages, userMsg, aiMsg];
         setMessages(updatedMessages);
 
-        // Guardar silenciosamente no MongoDB
+        // Adicionar à lista de versões
+        const nextVersionNumber = versions.length + 1;
+        const newVersionObj: ProjectVersion = {
+          versionNumber: nextVersionNumber,
+          html: data.html,
+          prompt: textToSend,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+        const updatedVersions = [...versions, newVersionObj];
+        setVersions(updatedVersions);
+        setSelectedVersionIndex('latest');
+
+        // Guardar no MongoDB
         saveProjectToDb({
           id: projectId,
           userEmail,
           userName: currentUser?.name || 'Cliente',
           title: titleOverride || projectTitle,
           slug: projectSlug,
+          subdomain: projectSlug,
           htmlContent: data.html,
           promptHistory: updatedMessages,
+          versions: updatedVersions.map(v => ({
+            versionNumber: v.versionNumber,
+            htmlContent: v.html,
+            prompt: v.prompt,
+            createdAt: new Date().toISOString()
+          })),
           status: isPublished ? 'published' : 'draft'
         });
       }
@@ -234,8 +309,6 @@ export default function AiSiteBuilderStudio() {
         body: JSON.stringify(payload)
       });
       if (res.ok) {
-        const data = await res.json();
-        // Atualizar lista local
         setSavedProjects(prev => {
           const index = prev.findIndex(p => p.id === payload.id);
           if (index >= 0) {
@@ -265,8 +338,15 @@ export default function AiSiteBuilderStudio() {
           userName: currentUser.name,
           title: projectTitle,
           slug: projectSlug,
-          htmlContent: currentHtml,
+          subdomain: projectSlug,
+          htmlContent: displayedHtml,
           promptHistory: messages,
+          versions: versions.map(v => ({
+            versionNumber: v.versionNumber,
+            htmlContent: v.html,
+            prompt: v.prompt,
+            createdAt: new Date().toISOString()
+          })),
           status: 'published'
         })
       });
@@ -281,19 +361,125 @@ export default function AiSiteBuilderStudio() {
     }
   };
 
+  // Obter o HTML ativo para exibição (Latest ou versão específica)
+  const displayedHtml = selectedVersionIndex === 'latest'
+    ? currentHtml
+    : versions[selectedVersionIndex]?.html || currentHtml;
+
+  // Restaurar uma versão antiga como atual
+  const handleRestoreVersion = (index: number) => {
+    const targetVersion = versions[index];
+    if (!targetVersion) return;
+    setCurrentHtml(targetVersion.html);
+    setSelectedVersionIndex('latest');
+
+    // Registar no chat
+    setMessages(prev => [
+      ...prev,
+      {
+        id: `msg_restore_${Date.now()}`,
+        role: 'assistant',
+        content: `A Versão ${targetVersion.versionNumber} ("${targetVersion.prompt}") foi restaurada como versão atual de trabalho.`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }
+    ]);
+
+    // Criar nova entrada de versão
+    const nextVer: ProjectVersion = {
+      versionNumber: versions.length + 1,
+      html: targetVersion.html,
+      prompt: `Restaurada a Versão ${targetVersion.versionNumber}`,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+    const updated = [...versions, nextVer];
+    setVersions(updated);
+
+    if (currentUser?.email) {
+      saveProjectToDb({
+        id: projectId,
+        userEmail: currentUser.email,
+        userName: currentUser.name,
+        title: projectTitle,
+        slug: projectSlug,
+        subdomain: projectSlug,
+        htmlContent: targetVersion.html,
+        promptHistory: messages,
+        versions: updated.map(v => ({
+          versionNumber: v.versionNumber,
+          htmlContent: v.html,
+          prompt: v.prompt,
+          createdAt: new Date().toISOString()
+        })),
+        status: isPublished ? 'published' : 'draft'
+      });
+    }
+  };
+
+  // Navegar entre versões com setas < e >
+  const handleStepVersion = (direction: 'prev' | 'next') => {
+    if (versions.length <= 1) return;
+    const currentIndex = selectedVersionIndex === 'latest' ? versions.length - 1 : selectedVersionIndex;
+    
+    if (direction === 'prev') {
+      const prevIndex = Math.max(0, currentIndex - 1);
+      setSelectedVersionIndex(prevIndex);
+    } else {
+      if (currentIndex >= versions.length - 1) {
+        setSelectedVersionIndex('latest');
+      } else {
+        const nextIndex = currentIndex + 1;
+        if (nextIndex === versions.length - 1) {
+          setSelectedVersionIndex('latest');
+        } else {
+          setSelectedVersionIndex(nextIndex);
+        }
+      }
+    }
+  };
+
+  // Abrir em Nova Aba (Funciona sempre: tanto publicado como preview em tempo real via Blob URL)
+  const handleOpenInNewTab = () => {
+    if (isPublished) {
+      // Abre o subdomínio ou URL público
+      window.open(subdomainUrl, '_blank', 'noopener,noreferrer');
+    } else {
+      // Abre um preview em tempo real no browser via Blob HTML
+      try {
+        const blob = new Blob([displayedHtml], { type: 'text/html;charset=utf-8' });
+        const blobUrl = URL.createObjectURL(blob);
+        window.open(blobUrl, '_blank');
+      } catch (e) {
+        // Fallback para rota local
+        window.open(`/site/${projectSlug}`, '_blank');
+      }
+    }
+  };
+
   const handleCopyCode = () => {
-    if (!currentHtml) return;
-    navigator.clipboard.writeText(currentHtml);
+    if (!displayedHtml) return;
+    navigator.clipboard.writeText(displayedHtml);
     setCopiedCode(true);
     setTimeout(() => setCopiedCode(false), 2000);
   };
 
-  const publicUrl = typeof window !== 'undefined'
+  // URLs de Subdomínio e Direto
+  const subdomainHost = typeof window !== 'undefined' && window.location.host.includes('localhost')
+    ? `${projectSlug}.localhost:3000`
+    : `${projectSlug}.wehosthere.com`;
+
+  const subdomainUrl = `https://${subdomainHost}`;
+  const directPathUrl = typeof window !== 'undefined'
     ? `${window.location.origin}/site/${projectSlug}`
     : `https://www.wehosthere.com/site/${projectSlug}`;
 
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(publicUrl);
+  const handleCopySubdomain = () => {
+    navigator.clipboard.writeText(subdomainUrl);
+    setCopiedSubdomain(true);
+    setTimeout(() => setCopiedSubdomain(false), 2000);
+  };
+
+  const handleCopyDirectLink = () => {
+    navigator.clipboard.writeText(directPathUrl);
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2000);
   };
@@ -302,27 +488,38 @@ export default function AiSiteBuilderStudio() {
     <div className="flex h-screen bg-[#09090b] text-[#fafafa] font-sans overflow-hidden antialiased selection:bg-blue-600 selection:text-white">
 
       {/* ── COLUNA 1: SIDEBAR DE PROJETOS E CONVERSAS (Estilo v0) ─────────────── */}
-      <aside className={`h-full border-r border-[#27272a] bg-[#0c0c0e] flex flex-col transition-all duration-300 z-30 ${isSidebarOpen ? 'w-64 sm:w-72' : 'w-0 -translate-x-full overflow-hidden'}`}>
+      <aside className={`h-full border-r border-[#27272a] bg-[#0c0c0e] flex flex-col transition-all duration-300 z-30 shrink-0 ${
+        isSidebarOpen ? 'w-64 sm:w-72' : 'w-0 -translate-x-full overflow-hidden border-r-0'
+      }`}>
         {/* Header da Sidebar */}
-        <div className="p-4 border-b border-[#27272a] flex items-center justify-between">
+        <div className="p-3.5 border-b border-[#27272a] flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 flex items-center justify-center font-black text-sm text-white shadow-lg shadow-blue-500/20">
               W
             </div>
             <div>
-              <span className="font-extrabold text-sm tracking-tight block">WEHOSTHERE</span>
+              <span className="font-extrabold text-xs sm:text-sm tracking-tight block">WEHOSTHERE</span>
               <span className="text-[10px] text-blue-400 font-semibold tracking-wide uppercase flex items-center gap-1">
                 <Sparkles className="w-2.5 h-2.5" /> Studio AI
               </span>
             </div>
           </div>
-          <Link
-            href="/dashboard"
-            className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition"
-            title="Voltar ao Painel"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </Link>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setIsSidebarOpen(false)}
+              className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition cursor-pointer"
+              title="Encolher Barra Lateral"
+            >
+              <PanelLeftClose className="w-4 h-4" />
+            </button>
+            <Link
+              href="/dashboard"
+              className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition"
+              title="Voltar ao Painel"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </Link>
+          </div>
         </div>
 
         {/* Botão Novo Site / Nova Conversa */}
@@ -359,11 +556,15 @@ export default function AiSiteBuilderStudio() {
               >
                 <div className="truncate flex-1 pr-2">
                   <span className="block truncate">{p.title || 'Sem título'}</span>
-                  <span className="text-[10px] text-gray-400 flex items-center gap-1 mt-0.5">
+                  <span className="text-[10px] text-gray-400 flex items-center gap-1.5 mt-0.5">
                     {p.status === 'published' ? (
-                      <span className="text-emerald-400 flex items-center gap-0.5">● No Ar</span>
+                      <span className="text-emerald-400 flex items-center gap-1">
+                        <CheckCircle2 className="w-2.5 h-2.5" /> No Ar
+                      </span>
                     ) : (
-                      <span>Rascunho</span>
+                      <span className="text-gray-400 flex items-center gap-1">
+                        <Clock className="w-2.5 h-2.5" /> Rascunho
+                      </span>
                     )}
                   </span>
                 </div>
@@ -372,28 +573,32 @@ export default function AiSiteBuilderStudio() {
             ))
           )}
 
-          {/* Sugestões Rápidas */}
+          {/* Sugestões Rápidas com Ícones Profissionais (Sem Emojis) */}
           <div className="pt-6">
             <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider px-2 mb-2">Modelos Prontos</p>
             <div className="space-y-1">
               {[
-                { title: 'Restaurante & Lounge', p: 'Cria uma landing page para um restaurante requintado em Maputo com cardápio, reserva e WhatsApp' },
-                { title: 'Barbearia VIP', p: 'Cria um site moderno para uma barbearia com serviços de corte, barba e agendamento' },
-                { title: 'Hotel & Turismo', p: 'Cria um site elegante para um Resort e Hotel em Pemba com fotos e contacto' },
-                { title: 'Portfólio Criativo', p: 'Cria um portfólio profissional para desenvolvedor web e designer freelancer' },
-                { title: 'Página Olá Mundo', p: 'cria uma pagina bem simples de ola mundo' },
-              ].map((s, i) => (
-                <button
-                  key={i}
-                  onClick={() => {
-                    setProjectTitle(s.title);
-                    handleGenerate(s.p, s.title, true);
-                  }}
-                  className="w-full text-left px-3 py-2 rounded-lg text-xs text-gray-400 hover:text-blue-400 hover:bg-blue-500/10 transition truncate cursor-pointer"
-                >
-                  ✨ {s.title}
-                </button>
-              ))}
+                { title: 'Restaurante & Lounge', icon: UtensilsCrossed, p: 'Cria uma landing page para um restaurante requintado em Maputo com cardápio, reserva e WhatsApp' },
+                { title: 'Barbearia VIP', icon: Scissors, p: 'Cria um site moderno para uma barbearia com serviços de corte, barba e agendamento' },
+                { title: 'Hotel & Resort Pemba', icon: Palmtree, p: 'Cria um site elegante para um Resort e Hotel em Pemba com fotos e contacto' },
+                { title: 'Portfólio Criativo', icon: Briefcase, p: 'Cria um portfólio profissional para desenvolvedor web e designer freelancer' },
+                { title: 'Página Olá Mundo', icon: Sparkles, p: 'cria uma pagina bem simples de ola mundo' },
+              ].map((s, i) => {
+                const IconComponent = s.icon;
+                return (
+                  <button
+                    key={i}
+                    onClick={() => {
+                      setProjectTitle(s.title);
+                      handleGenerate(s.p, s.title, true);
+                    }}
+                    className="w-full text-left px-3 py-2 rounded-lg text-xs text-gray-400 hover:text-blue-400 hover:bg-blue-500/10 transition truncate flex items-center gap-2 cursor-pointer"
+                  >
+                    <IconComponent className="w-3.5 h-3.5 shrink-0 text-blue-400/80" />
+                    <span className="truncate">{s.title}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -410,36 +615,51 @@ export default function AiSiteBuilderStudio() {
         </div>
       </aside>
 
-      {/* ── COLUNA 2: CHAT INTERATIVO & ITERAÇÕES (Centro estilo v0) ─────────── */}
-      <section className="flex-1 lg:w-[420px] lg:max-w-[440px] xl:w-[480px] xl:max-w-[500px] flex flex-col h-full border-r border-[#27272a] bg-[#09090b] relative z-20">
+      {/* ── COLUNA 2: CHAT INTERATIVO & ITERAÇÕES (Colapsável / Reduzível) ────── */}
+      <section className={`flex flex-col h-full border-r border-[#27272a] bg-[#09090b] relative z-20 transition-all duration-300 ${
+        isChatOpen 
+          ? 'w-full md:w-[380px] lg:w-[420px] xl:w-[460px] shrink-0' 
+          : 'w-0 overflow-hidden border-r-0'
+      }`}>
         
         {/* Header do Chat */}
-        <div className="h-14 px-4 border-b border-[#27272a] flex items-center justify-between bg-[#0e0e11]">
-          <div className="flex items-center gap-2">
+        <div className="h-14 px-3 sm:px-4 border-b border-[#27272a] flex items-center justify-between bg-[#0e0e11]">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            {/* Botão de abrir/fechar sidebar */}
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition cursor-pointer"
-              title="Alternar Barra Lateral"
+              className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition cursor-pointer shrink-0"
+              title={isSidebarOpen ? 'Recolher Barra Lateral' : 'Expandir Barra Lateral'}
             >
-              <Layers className="w-4 h-4" />
+              {isSidebarOpen ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeftOpen className="w-4 h-4" />}
             </button>
             <input
               type="text"
               value={projectTitle}
               onChange={e => setProjectTitle(e.target.value)}
-              className="bg-transparent font-bold text-xs sm:text-sm text-gray-200 focus:outline-none focus:bg-white/5 px-2 py-1 rounded-md border border-transparent hover:border-white/10 transition"
+              className="bg-transparent font-bold text-xs sm:text-sm text-gray-200 focus:outline-none focus:bg-white/5 px-2 py-1 rounded-md border border-transparent hover:border-white/10 transition truncate flex-1 min-w-0"
               placeholder="Nome do Site..."
             />
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+          <div className="flex items-center gap-1.5 shrink-0">
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 ${
               isPublished 
                 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
                 : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
             }`}>
-              {isPublished ? '● Publicado' : 'Rascunho'}
+              {isPublished ? <CheckCircle2 className="w-2.5 h-2.5" /> : <Clock className="w-2.5 h-2.5" />}
+              <span>{isPublished ? 'Publicado' : 'Rascunho'}</span>
             </span>
+
+            {/* Botão para encolher/colapsar o Chat */}
+            <button
+              onClick={() => setIsChatOpen(false)}
+              className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition cursor-pointer"
+              title="Colapsar Barra de Chat (Ver Preview Total)"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
           </div>
         </div>
 
@@ -457,7 +677,6 @@ export default function AiSiteBuilderStudio() {
                 ) : (
                   /* Card do Assistente no Estilo v0 */
                   <div className="w-full space-y-2">
-                    {/* Badge de Execução (ex: Worked for 8s, +25 / -12) */}
                     {m.executionSeconds && (
                       <div className="flex items-center gap-2 text-[11px] text-gray-400 font-mono py-1">
                         <span className="flex items-center gap-1 text-gray-300">
@@ -472,7 +691,6 @@ export default function AiSiteBuilderStudio() {
                       </div>
                     )}
 
-                    {/* Resposta de Texto */}
                     <div className="bg-[#18181b] border border-[#27272a] rounded-2xl rounded-tl-sm p-4 text-xs sm:text-sm text-gray-200 leading-relaxed shadow-sm">
                       {m.content}
                     </div>
@@ -534,114 +752,244 @@ export default function AiSiteBuilderStudio() {
             </button>
           </form>
 
-          {/* Chips Rápidos de Iteração */}
+          {/* Chips Rápidos de Iteração com Ícones Profissionais */}
           <div className="flex items-center gap-1.5 mt-2 overflow-x-auto pb-1 text-[11px] no-scrollbar">
             <button
               onClick={() => handleGenerate('Muda o fundo para um tom azul escuro e adiciona mais gradientes')}
-              className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 border border-white/5 whitespace-nowrap transition cursor-pointer"
+              className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 border border-white/5 whitespace-nowrap transition cursor-pointer flex items-center gap-1.5"
             >
-              🎨 Mudar Cores
+              <Palette className="w-3 h-3 text-blue-400" />
+              <span>Mudar Cores</span>
             </button>
             <button
               onClick={() => handleGenerate('Adiciona um botão de WhatsApp flutuante bem visível')}
-              className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 border border-white/5 whitespace-nowrap transition cursor-pointer"
+              className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 border border-white/5 whitespace-nowrap transition cursor-pointer flex items-center gap-1.5"
             >
-              💬 Botão WhatsApp
+              <MessageSquare className="w-3 h-3 text-emerald-400" />
+              <span>Botão WhatsApp</span>
             </button>
             <button
               onClick={() => handleGenerate('Adiciona uma tabela de preços comparativa com 3 planos')}
-              className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 border border-white/5 whitespace-nowrap transition cursor-pointer"
+              className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 border border-white/5 whitespace-nowrap transition cursor-pointer flex items-center gap-1.5"
             >
-              🏷️ Tabela de Preços
+              <Tag className="w-3 h-3 text-purple-400" />
+              <span>Tabela de Preços</span>
             </button>
           </div>
         </div>
       </section>
 
-      {/* ── COLUNA 3: CANVAS DE PREVIEW AO VIVO + CÓDIGO + PUBLICAR ─────────── */}
-      <main className="hidden md:flex flex-1 flex-col h-full bg-[#121217] relative z-10 overflow-hidden">
+      {/* ── COLUNA 3: CANVAS DE PREVIEW AO VIVO + CÓDIGO + PUBLICAR (Estilo v0) ── */}
+      <main className="flex flex-1 flex-col h-full bg-[#121217] relative z-10 overflow-hidden">
         
         {/* Barra Superior do Canvas */}
-        <header className="h-14 px-4 border-b border-[#27272a] bg-[#0e0e11] flex items-center justify-between">
+        <header className="h-14 px-3 sm:px-4 border-b border-[#27272a] bg-[#0e0e11] flex items-center justify-between gap-2">
           
-          {/* Alternador Preview / Código */}
-          <div className="flex items-center gap-1 bg-[#18181b] p-1 rounded-xl border border-[#27272a]">
-            <button
-              onClick={() => setActiveTab('preview')}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
-                activeTab === 'preview'
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              <Eye className="w-3.5 h-3.5" /> Preview
-            </button>
-            <button
-              onClick={() => setActiveTab('code')}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
-                activeTab === 'code'
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              <Code className="w-3.5 h-3.5" /> Código HTML
-            </button>
-          </div>
-
-          {/* Modos Responsivos (Desktop, Tablet, Mobile) */}
-          <div className="hidden lg:flex items-center gap-1 bg-[#18181b] p-1 rounded-xl border border-[#27272a]">
-            <button
-              onClick={() => setViewportMode('desktop')}
-              className={`p-1.5 rounded-lg transition cursor-pointer ${viewportMode === 'desktop' ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white'}`}
-              title="Desktop (100%)"
-            >
-              <Laptop className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setViewportMode('tablet')}
-              className={`p-1.5 rounded-lg transition cursor-pointer ${viewportMode === 'tablet' ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white'}`}
-              title="Tablet (768px)"
-            >
-              <Tablet className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setViewportMode('mobile')}
-              className={`p-1.5 rounded-lg transition cursor-pointer ${viewportMode === 'mobile' ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white'}`}
-              title="Mobile (375px)"
-            >
-              <Smartphone className="w-4 h-4" />
-            </button>
-          </div>
-
-          {/* Ações: Copiar Código, Abrir em Nova Aba e Publicar */}
+          {/* Lado Esquerdo: Botões de Expandir Sidebar/Chat + Seletor Preview/Código */}
           <div className="flex items-center gap-2">
-            {activeTab === 'code' ? (
+            {!isSidebarOpen && (
+              <button
+                onClick={() => setIsSidebarOpen(true)}
+                className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition cursor-pointer shrink-0"
+                title="Expandir Barra Lateral"
+              >
+                <PanelLeftOpen className="w-4 h-4" />
+              </button>
+            )}
+
+            {!isChatOpen && (
+              <button
+                onClick={() => setIsChatOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600/10 border border-blue-500/20 text-blue-400 hover:bg-blue-600/20 text-xs font-bold transition cursor-pointer"
+                title="Abrir Chat com IA"
+              >
+                <MessageSquare className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Mostrar Chat</span>
+              </button>
+            )}
+
+            {/* Alternador Preview / Código */}
+            <div className="flex items-center gap-1 bg-[#18181b] p-1 rounded-xl border border-[#27272a]">
+              <button
+                onClick={() => setActiveTab('preview')}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+                  activeTab === 'preview'
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                <Eye className="w-3.5 h-3.5" /> Preview
+              </button>
+              <button
+                onClick={() => setActiveTab('code')}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+                  activeTab === 'code'
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                <Code className="w-3.5 h-3.5" /> Código HTML
+              </button>
+            </div>
+          </div>
+
+          {/* Centro: Dropdown "Latest ▾" e Stepper de Versões < > (Exacto ao v0) */}
+          <div className="flex items-center gap-1.5 bg-[#18181b] p-1 rounded-xl border border-[#27272a] relative" ref={versionMenuRef}>
+            
+            {/* Botão Dropdown Versão */}
+            <button
+              onClick={() => setIsVersionDropdownOpen(!isVersionDropdownOpen)}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold text-gray-200 hover:bg-white/5 transition cursor-pointer"
+              title="Histórico de Versões do Projeto"
+            >
+              <History className="w-3.5 h-3.5 text-blue-400" />
+              <span>
+                {selectedVersionIndex === 'latest' 
+                  ? 'Latest' 
+                  : `v${versions[selectedVersionIndex]?.versionNumber || selectedVersionIndex + 1}`}
+              </span>
+              <ChevronDown className="w-3 h-3 text-gray-400" />
+            </button>
+
+            {/* Stepper de Navegação de Versões < > */}
+            <div className="flex items-center border-l border-[#27272a] pl-1 gap-0.5 text-gray-400">
+              <button
+                onClick={() => handleStepVersion('prev')}
+                disabled={versions.length <= 1 || selectedVersionIndex === 0}
+                className="p-1 rounded hover:text-white hover:bg-white/5 disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer disabled:cursor-not-allowed transition"
+                title="Versão Anterior"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" />
+              </button>
+              <span className="text-[10px] font-mono px-1 select-none text-gray-300">
+                {selectedVersionIndex === 'latest' 
+                  ? `${versions.length} / ${versions.length}` 
+                  : `${(selectedVersionIndex as number) + 1} / ${versions.length}`}
+              </span>
+              <button
+                onClick={() => handleStepVersion('next')}
+                disabled={versions.length <= 1 || selectedVersionIndex === 'latest'}
+                className="p-1 rounded hover:text-white hover:bg-white/5 disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer disabled:cursor-not-allowed transition"
+                title="Versão Seguinte"
+              >
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            {/* Menu Popover das Versões */}
+            {isVersionDropdownOpen && (
+              <div className="absolute top-full left-0 mt-2 w-72 bg-[#18181b] border border-[#27272a] rounded-2xl shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                <div className="px-2 py-1.5 border-b border-[#27272a] flex items-center justify-between text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                  <span>Versões do Projeto</span>
+                  <span className="text-[10px] text-blue-400">{versions.length} versões</span>
+                </div>
+                <div className="max-h-60 overflow-y-auto py-1 space-y-1">
+                  {/* Opção Latest */}
+                  <button
+                    onClick={() => {
+                      setSelectedVersionIndex('latest');
+                      setIsVersionDropdownOpen(false);
+                    }}
+                    className={`w-full text-left px-2.5 py-2 rounded-xl text-xs transition flex items-center justify-between cursor-pointer ${
+                      selectedVersionIndex === 'latest'
+                        ? 'bg-blue-600 text-white font-bold'
+                        : 'text-gray-300 hover:bg-white/5'
+                    }`}
+                  >
+                    <div>
+                      <span className="block font-semibold">Latest (Mais Recente)</span>
+                      <span className="text-[10px] opacity-70">Versão atual de trabalho</span>
+                    </div>
+                    {selectedVersionIndex === 'latest' && <Check className="w-3.5 h-3.5" />}
+                  </button>
+
+                  {/* Lista de Versões Históricas */}
+                  {[...versions].reverse().map((v, i) => {
+                    const originalIndex = versions.length - 1 - i;
+                    const isSelected = selectedVersionIndex === originalIndex;
+                    return (
+                      <button
+                        key={v.versionNumber}
+                        onClick={() => {
+                          setSelectedVersionIndex(originalIndex);
+                          setIsVersionDropdownOpen(false);
+                        }}
+                        className={`w-full text-left px-2.5 py-2 rounded-xl text-xs transition flex items-center justify-between cursor-pointer ${
+                          isSelected
+                            ? 'bg-blue-600 text-white font-bold'
+                            : 'text-gray-300 hover:bg-white/5'
+                        }`}
+                      >
+                        <div className="truncate pr-2">
+                          <span className="block truncate font-semibold">
+                            v{v.versionNumber} &middot; {v.prompt}
+                          </span>
+                          <span className="text-[10px] opacity-70 flex items-center gap-1">
+                            <Clock className="w-2.5 h-2.5" /> {v.timestamp}
+                          </span>
+                        </div>
+                        {isSelected && <Check className="w-3.5 h-3.5 shrink-0" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Lado Direito: Modos Responsivos, Abrir em Nova Aba & Publicar */}
+          <div className="flex items-center gap-2">
+            
+            {/* Modos Responsivos (Desktop, Tablet, Mobile) */}
+            <div className="hidden lg:flex items-center gap-1 bg-[#18181b] p-1 rounded-xl border border-[#27272a]">
+              <button
+                onClick={() => setViewportMode('desktop')}
+                className={`p-1.5 rounded-lg transition cursor-pointer ${viewportMode === 'desktop' ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white'}`}
+                title="Desktop (100%)"
+              >
+                <Laptop className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setViewportMode('tablet')}
+                className={`p-1.5 rounded-lg transition cursor-pointer ${viewportMode === 'tablet' ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white'}`}
+                title="Tablet (768px)"
+              >
+                <Tablet className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setViewportMode('mobile')}
+                className={`p-1.5 rounded-lg transition cursor-pointer ${viewportMode === 'mobile' ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white'}`}
+                title="Mobile (375px)"
+              >
+                <Smartphone className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Copiar Código (Quando na aba código) */}
+            {activeTab === 'code' && (
               <button
                 onClick={handleCopyCode}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-semibold text-white border border-white/10 transition cursor-pointer"
               >
                 {copiedCode ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                {copiedCode ? 'Copiado!' : 'Copiar Código'}
+                <span className="hidden sm:inline">{copiedCode ? 'Copiado!' : 'Copiar Código'}</span>
               </button>
-            ) : null}
-
-            {isPublished && (
-              <a
-                href={publicUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-semibold text-gray-300 border border-white/10 transition"
-                title="Abrir no navegador"
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Ver Online</span>
-              </a>
             )}
+
+            {/* BOTÃO OPEN IN NEW TAB (Funciona sempre com live preview ou subdomain) */}
+            <button
+              onClick={handleOpenInNewTab}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-semibold text-gray-300 border border-white/10 transition cursor-pointer"
+              title="Abrir em Nova Aba no Navegador"
+            >
+              <ExternalLink className="w-3.5 h-3.5 text-blue-400" />
+              <span className="hidden sm:inline">Nova Aba</span>
+            </button>
 
             {/* BOTÃO PUBLICAR (Destaque Principal) */}
             <button
               onClick={() => setIsPublishModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-extrabold text-xs shadow-lg shadow-emerald-600/25 transition active:scale-95 cursor-pointer"
+              className="flex items-center gap-2 px-4 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-extrabold text-xs shadow-lg shadow-emerald-600/25 transition active:scale-95 cursor-pointer shrink-0"
             >
               <Globe className="w-3.5 h-3.5" />
               <span>Publicar</span>
@@ -649,8 +997,35 @@ export default function AiSiteBuilderStudio() {
           </div>
         </header>
 
+        {/* Banner de Aviso de Versão Antiga (Caso esteja visualizando histórico) */}
+        {selectedVersionIndex !== 'latest' && (
+          <div className="bg-blue-600/10 border-b border-blue-500/20 px-4 py-2 flex items-center justify-between text-xs text-blue-300">
+            <div className="flex items-center gap-2">
+              <History className="w-4 h-4 text-blue-400" />
+              <span>
+                A visualizar <strong>Versão {versions[selectedVersionIndex]?.versionNumber}</strong> ({versions[selectedVersionIndex]?.prompt})
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => handleRestoreVersion(selectedVersionIndex as number)}
+                className="px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition cursor-pointer"
+              >
+                <Undo2 className="w-3.5 h-3.5" />
+                <span>Restaurar Esta Versão</span>
+              </button>
+              <button
+                onClick={() => setSelectedVersionIndex('latest')}
+                className="px-2 py-1 text-gray-400 hover:text-white transition cursor-pointer text-xs"
+              >
+                Voltar à Mais Recente
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Conteúdo Principal do Canvas */}
-        <div className="flex-1 w-full h-[calc(100%-3.5rem)] overflow-hidden flex items-center justify-center p-3 sm:p-6 bg-[#09090b]">
+        <div className="flex-1 w-full h-[calc(100%-3.5rem)] overflow-hidden flex items-center justify-center p-2 sm:p-4 bg-[#09090b]">
           {activeTab === 'preview' ? (
             /* Ecrã de Iframe Interativo */
             <div
@@ -662,29 +1037,45 @@ export default function AiSiteBuilderStudio() {
                     : 'w-full'
               }`}
             >
-              {/* Barra de Navegação Falsa do Browser */}
+              {/* Barra de Navegação Falsa do Browser com Subdomínio */}
               <div className="h-8 bg-[#18181b] border-b border-[#27272a] px-3 flex items-center justify-between text-[11px] text-gray-400 select-none">
                 <div className="flex items-center gap-1.5">
                   <span className="w-2.5 h-2.5 rounded-full bg-red-500/80 inline-block" />
                   <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80 inline-block" />
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80 inline-block" />
                 </div>
-                <div className="bg-[#09090b] px-4 py-0.5 rounded-md text-[10px] text-gray-300 border border-white/5 truncate max-w-[240px]">
-                  https://www.wehosthere.com/site/{projectSlug}
+                
+                {/* URL com Subdomínio Oficial */}
+                <div 
+                  onClick={handleOpenInNewTab}
+                  className="bg-[#09090b] px-3 py-0.5 rounded-md text-[10px] text-gray-300 border border-white/5 truncate max-w-[280px] sm:max-w-[420px] cursor-pointer hover:text-blue-400 hover:border-blue-500/30 transition flex items-center gap-1.5"
+                  title="Clique para abrir no navegador"
+                >
+                  <Globe className="w-2.5 h-2.5 text-blue-400 shrink-0" />
+                  <span className="truncate">{subdomainHost}</span>
+                  <ExternalLink className="w-2.5 h-2.5 text-gray-500 shrink-0" />
                 </div>
-                <div className="w-10 text-right">
-                  <RotateCw className="w-3 h-3 text-gray-500 inline-block cursor-pointer hover:text-white" onClick={() => {
-                    const temp = currentHtml;
-                    setCurrentHtml('');
-                    setTimeout(() => setCurrentHtml(temp), 50);
-                  }} />
+
+                <div className="w-10 text-right flex items-center justify-end gap-1.5">
+                  <button
+                    type="button"
+                    title="Recarregar Preview"
+                    onClick={() => {
+                      const temp = displayedHtml;
+                      setCurrentHtml('');
+                      setTimeout(() => setCurrentHtml(temp), 50);
+                    }}
+                    className="p-1 rounded text-gray-400 hover:text-white transition cursor-pointer"
+                  >
+                    <RotateCw className="w-3 h-3" />
+                  </button>
                 </div>
               </div>
 
               {/* Iframe que renderiza o HTML */}
               <iframe
                 title="Preview"
-                srcDoc={currentHtml}
+                srcDoc={displayedHtml}
                 className="w-full flex-1 border-0 bg-white"
                 sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
               />
@@ -693,14 +1084,14 @@ export default function AiSiteBuilderStudio() {
             /* Visualizador de Código HTML */
             <div className="w-full h-full bg-[#0e0e11] border border-[#27272a] rounded-2xl p-4 overflow-auto font-mono text-xs text-gray-300">
               <pre>
-                <code>{currentHtml}</code>
+                <code>{displayedHtml}</code>
               </pre>
             </div>
           )}
         </div>
       </main>
 
-      {/* ── MODAL DE PUBLICAÇÃO ──────────────────────────────────────────────── */}
+      {/* ── MODAL DE PUBLICAÇÃO COM SUPORTE COMPLETO A SUBDOMÍNIOS ───────────── */}
       {isPublishModalOpen && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
           <div className="bg-[#121217] border border-[#27272a] rounded-3xl max-w-lg w-full p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
@@ -717,7 +1108,7 @@ export default function AiSiteBuilderStudio() {
               </div>
               <div>
                 <h3 className="text-lg font-black text-white">Publicar Seu Website</h3>
-                <p className="text-xs text-gray-400">Torne o seu site público para o mundo na nuvem WEHOSTHERE</p>
+                <p className="text-xs text-gray-400">Publique em subdomínio instantâneo na nuvem WEHOSTHERE</p>
               </div>
             </div>
 
@@ -732,10 +1123,11 @@ export default function AiSiteBuilderStudio() {
                 />
               </div>
 
+              {/* Subdomínio Personalizado (slug.wehosthere.com) */}
               <div>
-                <label className="block text-xs font-bold text-gray-300 mb-1.5">Link Público / Slug</label>
+                <label className="block text-xs font-bold text-gray-300 mb-1.5">Subdomínio Gratuito WEHOSTHERE</label>
                 <div className="flex items-center bg-[#18181b] border border-[#27272a] rounded-xl overflow-hidden px-3 text-xs">
-                  <span className="text-gray-500 select-none">wehosthere.com/site/</span>
+                  <span className="text-blue-400 font-bold select-none pr-1">https://</span>
                   <input
                     type="text"
                     value={projectSlug}
@@ -743,32 +1135,68 @@ export default function AiSiteBuilderStudio() {
                     className="flex-1 bg-transparent py-2.5 text-white font-bold focus:outline-none"
                     placeholder="meu-negocio"
                   />
+                  <span className="text-gray-400 font-mono select-none">.wehosthere.com</span>
                 </div>
               </div>
 
-              {/* Informação sobre Domínio Próprio */}
+              {/* Box de Subdomínio Ativo */}
+              <div className="p-3.5 rounded-2xl bg-[#18181b] border border-[#27272a] space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] text-gray-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
+                    <Globe className="w-3.5 h-3.5 text-blue-400" /> Endereço de Subdomínio
+                  </span>
+                  <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full font-bold">
+                    SSL Grátis & Ativo
+                  </span>
+                </div>
+                <div className="flex items-center justify-between gap-2 bg-[#0c0c0e] p-2.5 rounded-xl border border-white/5">
+                  <span className="text-xs font-mono text-blue-300 truncate">
+                    {subdomainUrl}
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={handleCopySubdomain}
+                      className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition cursor-pointer"
+                      title="Copiar Subdomínio"
+                    >
+                      {copiedSubdomain ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                    </button>
+                    <button
+                      onClick={handleOpenInNewTab}
+                      className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition cursor-pointer"
+                      title="Abrir em Nova Aba"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5 text-blue-400" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Informação sobre Domínio Próprio (.co.mz, .com) */}
               <div className="p-3.5 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-xs text-blue-300 flex items-start gap-2.5">
                 <Sparkles className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
                 <div>
-                  <span className="font-bold block text-white">Quer conectar ao seu domínio próprio (.co.mz)?</span>
-                  Pode ligar este site diretamente ao seu domínio personalizado na área de <Link href="/dashboard/domains" className="underline font-bold text-blue-400">Domínios</Link>.
+                  <span className="font-bold block text-white">Deseja apontar seu domínio próprio (.co.mz ou .com)?</span>
+                  Pode conectar este projeto diretamente ao seu domínio personalizado através do gestor de DNS em <Link href="/dashboard/domains" className="underline font-bold text-blue-400">Domínios</Link>.
                 </div>
               </div>
 
               {isPublished && (
                 <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-between">
                   <div className="truncate pr-2">
-                    <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider block">Site Activo Online:</span>
-                    <a href={publicUrl} target="_blank" rel="noreferrer" className="text-xs font-bold text-white underline truncate block">
-                      {publicUrl}
+                    <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider block flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3" /> Site Publicado com Sucesso!
+                    </span>
+                    <a href={subdomainUrl} target="_blank" rel="noreferrer" className="text-xs font-bold text-white underline truncate block mt-0.5">
+                      {subdomainUrl}
                     </a>
                   </div>
                   <button
-                    onClick={handleCopyLink}
+                    onClick={handleCopySubdomain}
                     className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition cursor-pointer"
                     title="Copiar Link"
                   >
-                    {copiedLink ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                    {copiedSubdomain ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
                   </button>
                 </div>
               )}

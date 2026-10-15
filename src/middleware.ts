@@ -19,9 +19,15 @@ function getCorsHeaders(origin: string | null): Record<string, string> {
   };
 }
 
+const SYSTEM_SUBDOMAINS = ['www', 'api', 'admin', 'mail', 'app', 'cpanel', 'webmail', 'staging', 'dev'];
+
 export function middleware(request: NextRequest) {
-  // Tratar solicitações de API
-  if (request.nextUrl.pathname.startsWith('/api/')) {
+  const host = request.headers.get('host') || '';
+  const hostname = host.split(':')[0].toLowerCase();
+  const { pathname } = request.nextUrl;
+
+  // 1. Tratar solicitações de API e CORS
+  if (pathname.startsWith('/api/')) {
     const origin = request.headers.get('origin');
     const corsHeaders = getCorsHeaders(origin);
 
@@ -43,10 +49,35 @@ export function middleware(request: NextRequest) {
     return response;
   }
 
+  // 2. Roteamento de Subdomínio para Sites Gerados por IA (*.wehosthere.com ou *.localhost)
+  let subdomain = '';
+  if (hostname.endsWith('.wehosthere.com')) {
+    subdomain = hostname.replace('.wehosthere.com', '');
+  } else if (hostname.endsWith('.localhost')) {
+    subdomain = hostname.replace('.localhost', '');
+  }
+
+  if (
+    subdomain &&
+    !SYSTEM_SUBDOMAINS.includes(subdomain) &&
+    !pathname.startsWith('/site/') &&
+    !pathname.startsWith('/_next') &&
+    !pathname.startsWith('/api/')
+  ) {
+    const rewriteUrl = request.nextUrl.clone();
+    rewriteUrl.pathname = `/site/${subdomain}${pathname === '/' ? '' : pathname}`;
+    return NextResponse.rewrite(rewriteUrl);
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: '/api/:path*',
+  matcher: [
+    /*
+     * Match all request paths except static files, favicon, etc.
+     */
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
 };
 

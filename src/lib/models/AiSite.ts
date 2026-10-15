@@ -9,14 +9,24 @@ export interface IPromptMessage {
   executionSeconds?: number;
 }
 
+export interface IAiSiteVersion {
+  versionNumber: number;
+  htmlContent: string;
+  prompt?: string;
+  createdAt: string;
+  diffSummary?: string;
+}
+
 export interface IAiSite extends Document {
   id: string;
   userEmail: string;
   userName?: string;
   title: string;
   slug: string;
+  subdomain?: string;
   htmlContent: string;
   promptHistory: IPromptMessage[];
+  versions?: IAiSiteVersion[];
   status: 'draft' | 'published';
   customDomain?: string;
   views?: number;
@@ -34,14 +44,24 @@ const PromptMessageSchema = new Schema<IPromptMessage>({
   executionSeconds: { type: Number },
 }, { _id: false });
 
+const VersionSchema = new Schema<IAiSiteVersion>({
+  versionNumber: { type: Number, required: true },
+  htmlContent: { type: String, required: true },
+  prompt: { type: String },
+  createdAt: { type: String, default: () => new Date().toISOString() },
+  diffSummary: { type: String },
+}, { _id: false });
+
 const AiSiteSchema = new Schema<IAiSite>({
   id: { type: String, required: true, unique: true },
   userEmail: { type: String, required: true, lowercase: true, trim: true, index: true },
   userName: { type: String },
   title: { type: String, required: true, default: 'Meu Site Incrível' },
   slug: { type: String, required: true, unique: true, lowercase: true, trim: true, index: true },
+  subdomain: { type: String, lowercase: true, trim: true },
   htmlContent: { type: String, required: true },
   promptHistory: { type: [PromptMessageSchema], default: [] },
+  versions: { type: [VersionSchema], default: [] },
   status: { type: String, enum: ['draft', 'published'], default: 'draft', index: true },
   customDomain: { type: String, lowercase: true, trim: true },
   views: { type: Number, default: 0 },
