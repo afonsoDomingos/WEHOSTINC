@@ -745,6 +745,9 @@ export async function POST(req: Request) {
       userData.confirmationCodeExpiresAt = userBody.confirmationCodeExpiresAt;
       console.log('[Users API] Expiração do código adicionada:', userBody.confirmationCodeExpiresAt);
     }
+    if (userBody.birthdate !== undefined) {
+      userData.birthdate = userBody.birthdate;
+    }
 
     console.log('[Users API] Dados do usuário antes de salvar:', { 
       email: userData.email, 

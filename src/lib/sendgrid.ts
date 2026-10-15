@@ -1152,3 +1152,97 @@ export async function sendStoryBroadcastEmail(opts: StoryBroadcastOptions): Prom
   });
 }
 
+// ——————————————————————————————————————
+// Felicitações de Aniversário (Birthday Greetings)
+// ——————————————————————————————————————
+
+export interface BirthdayEmailOptions {
+  toEmail: string;
+  userName: string;
+  customMessage?: string;
+  specialGiftText?: string;
+}
+
+/**
+ * Envia o e-mail de felicitações de aniversário personalizado
+ * com a imagem comemorativa oficial da WEHOSTHERE.
+ */
+export async function sendBirthdayEmail(opts: BirthdayEmailOptions): Promise<{ success: boolean; error?: string }> {
+  const firstName = (opts.userName || 'Cliente').trim().split(' ')[0] || 'Cliente';
+  const fullName = (opts.userName || 'Cliente').trim();
+  const dashboardUrl = `${SITE_URL}/dashboard`;
+  // Imagem oficial de felicitações localizada em public/wehosthere-aniversario.png
+  const birthdayImageUrl = `${SITE_URL}/wehosthere-aniversario.png`;
+
+  return sendEmail({
+    to: opts.toEmail,
+    subject: `🎂 Parabéns pelo seu Aniversário, ${firstName}! 🎉 | WEHOSTHERE`,
+    html: `
+      <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:620px;margin:0 auto;color:#1e293b;background:#ffffff;border-radius:18px;overflow:hidden;border:1px solid #e2e8f0;box-shadow:0 8px 30px rgba(0,0,0,0.08);">
+
+        <!-- Header Festivo com Gradiente Dourado / Roxo / Azul -->
+        <div style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 50%,#d97706 100%);padding:36px 28px 28px;text-align:center;">
+          <img src="${SITE_URL}/logo.png" alt="WEHOSTHERE" style="width:145px;height:auto;margin:0 auto 16px;display:block;" />
+          <div style="display:inline-block;background:rgba(255,255,255,0.18);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.3);padding:6px 18px;border-radius:30px;">
+            <span style="color:#ffffff;font-size:12px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;">🎂 DIA ESPECIAL · FELIZ ANIVERSÁRIO! 🎈</span>
+          </div>
+        </div>
+
+        <!-- Corpo Principal -->
+        <div style="padding:32px 28px;background:#ffffff;">
+
+          <h1 style="color:#0f172a;font-size:24px;font-weight:900;margin:0 0 12px;text-align:center;line-height:1.3;">
+            Parabéns, ${fullName}! 🥂🎉
+          </h1>
+
+          <p style="color:#475569;font-size:15px;line-height:1.7;margin:0 0 20px;text-align:center;">
+            Hoje é o seu dia! Em nome de toda a equipa e da família <strong>WEHOSTHERE</strong>, queremos desejar-lhe um <strong>Feliz Aniversário</strong> repleto de saúde, alegria, grandes realizações e muito sucesso em todos os seus projetos digitais e pessoais.
+          </p>
+
+          <!-- Imagem Oficial de Felicitações (Wehosthere Felicitacoes de Aniversário.png) -->
+          <div style="text-align:center;margin:24px 0 28px;border-radius:16px;overflow:hidden;box-shadow:0 6px 20px rgba(0,0,0,0.1);border:1px solid #e2e8f0;">
+            <img 
+              src="${birthdayImageUrl}" 
+              alt="Wehosthere Felicitações de Aniversário" 
+              style="width:100%;max-width:564px;height:auto;display:block;margin:0 auto;" 
+            />
+          </div>
+
+          <!-- Mensagem Personalizada / Destaque -->
+          <div style="background:linear-gradient(135deg,#fdf4ff 0%,#f5f3ff 100%);border:1px solid #e9d5ff;border-radius:14px;padding:20px 22px;margin-bottom:28px;">
+            <p style="margin:0 0 8px;font-weight:800;color:#6b21a8;font-size:14px;text-transform:uppercase;letter-spacing:0.5px;">
+              🎁 Uma mensagem especial para si:
+            </p>
+            <p style="margin:0;color:#475569;font-size:14px;line-height:1.7;">
+              ${opts.customMessage || 'É uma honra e um privilégio tê-lo(a) connosco na nossa plataforma. Que este novo ano de vida traga horizontes ainda maiores, prosperidade e novos marcos conquistados! Conte sempre connosco para apoiar a sua jornada.'}
+            </p>
+          </div>
+
+          <!-- Botão de Ação -->
+          <div style="text-align:center;margin:32px 0 16px;">
+            <a 
+              href="${dashboardUrl}" 
+              style="background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#ffffff;font-weight:800;font-size:15px;padding:15px 38px;border-radius:12px;text-decoration:none;display:inline-block;box-shadow:0 6px 18px rgba(124,58,237,0.35);"
+            >
+              Aceder ao meu Painel WEHOSTHERE →
+            </a>
+          </div>
+
+        </div>
+
+        <!-- Rodapé Corporativo -->
+        <div style="background:#f8fafc;padding:22px 28px;border-top:1px solid #e2e8f0;text-align:center;">
+          <p style="color:#0f172a;font-weight:700;font-size:13px;margin:0 0 4px;">
+            Equipa WEHOSTHERE &mdash; Moçambique
+          </p>
+          <p style="color:#94a3b8;font-size:12px;margin:0 0 12px;">
+            A apoiar a sua presença digital e os seus projetos todos os dias do ano.
+          </p>
+          <p style="color:#cbd5e1;font-size:11px;margin:0;">
+            info@wehosthere.com &bull; +258 84 833 5618 &bull; www.wehosthere.com
+          </p>
+        </div>
+
+      </div>`,
+  });
+}

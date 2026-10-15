@@ -13,6 +13,8 @@ export interface IUser extends Document {
   confirmationCode?: string;
   confirmationCodeExpiresAt?: string;
   referredBy?: string; // Código do afiliado indicador
+  birthdate?: string; // Data de nascimento 'YYYY-MM-DD'
+  lastBirthdayGreetingYear?: number; // Ano do último envio de felicitações
   createdAt: string;
 }
 
@@ -29,6 +31,8 @@ const UserSchema = new Schema<IUser>({
   confirmationCode: { type: String },
   confirmationCodeExpiresAt: { type: String },
   referredBy: { type: String, index: true },
+  birthdate: { type: String, default: null },
+  lastBirthdayGreetingYear: { type: Number, default: null },
   createdAt: { type: String, default: () => new Date().toISOString() },
 }, { timestamps: false, versionKey: false });
 

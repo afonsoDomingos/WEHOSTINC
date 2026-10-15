@@ -20,6 +20,7 @@ export default function SettingsPage() {
   const { user, loading } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [birthdate, setBirthdate] = useState('');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -40,6 +41,7 @@ export default function SettingsPage() {
     if (user && !loading) {
       setName(user.name);
       setEmail(user.email);
+      setBirthdate(user.birthdate || '');
     }
   }, [user, loading]);
 
@@ -50,6 +52,7 @@ export default function SettingsPage() {
       const userData = JSON.parse(localStorage.getItem(`user_${user.id}`) || '{}');
       userData.name = name;
       userData.email = email;
+      userData.birthdate = birthdate || null;
       localStorage.setItem(`user_${user.id}`, JSON.stringify(userData));
 
       // Update session
@@ -58,8 +61,24 @@ export default function SettingsPage() {
         const parsed = JSON.parse(session);
         parsed.user.name = name;
         parsed.user.email = email;
+        parsed.user.birthdate = birthdate || null;
         localStorage.setItem('wehosthere_auth', JSON.stringify(parsed));
       }
+
+      // Sincronizar com o servidor MongoDB
+      fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'update_profile',
+          user: {
+            id: user.id,
+            email: email,
+            name: name,
+            birthdate: birthdate || null,
+          }
+        })
+      }).catch(err => console.warn('[Settings] Erro ao sincronizar birthdate no servidor:', err));
 
       showMessage('Perfil atualizado com sucesso!', 'success');
     }
@@ -329,6 +348,21 @@ export default function SettingsPage() {
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
                     required
                   />
+                </div>
+                <div>
+                  <label htmlFor="birthdate" className="block text-sm font-medium text-gray-700 mb-2 flex items-center justify-between">
+                    <span>Data de Nascimento 🎂</span>
+                    <span className="text-xs text-primary-600 font-normal">Para felicitações e ofertas</span>
+                  </label>
+                  <input
+                    id="birthdate"
+                    type="date"
+                    value={birthdate}
+                    onChange={(e) => setBirthdate(e.target.value)}
+                    max={new Date().toISOString().split('T')[0]}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">A WEHOSTHERE envia felicitações e benefícios exclusivos no seu aniversário!</p>
                 </div>
                 <button
                   type="submit"

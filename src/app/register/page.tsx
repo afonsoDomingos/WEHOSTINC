@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import {
   Server, Lock, Mail, User, Eye, EyeOff,
-  ArrowRight, ArrowLeft, CheckCircle2, Building2, Phone
+  ArrowRight, ArrowLeft, CheckCircle2, Building2, Phone, Calendar
 } from 'lucide-react';
 import { auth } from '@/lib/auth';
 import BrandLogo from '@/components/BrandLogo';
@@ -30,6 +30,7 @@ export default function RegisterPage() {
   const [company, setCompany] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
+  const [birthdate, setBirthdate] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -87,6 +88,10 @@ export default function RegisterPage() {
       soundEffects.playErrorSound();
       return setError('Insira um email válido.');
     }
+    if (!birthdate) {
+      soundEffects.playErrorSound();
+      return setError('Por favor, informe a sua data de nascimento.');
+    }
 
     try {
       setLoading(true);
@@ -131,8 +136,8 @@ export default function RegisterPage() {
     }
     setLoading(true);
     try {
-      console.log('[Register Page] Iniciando registro:', { name, email, inviteToken });
-      await auth.registerAsync(name, email, password, 'none', 'pending', 29, undefined, inviteToken || undefined);
+      console.log('[Register Page] Iniciando registro:', { name, email, inviteToken, birthdate });
+      await auth.registerAsync(name, email, password, 'none', 'pending', 29, undefined, inviteToken || undefined, birthdate || undefined);
       if (typeof window !== 'undefined') {
         localStorage.setItem('wehosthere_registered_email', email);
       }
@@ -314,6 +319,23 @@ export default function RegisterPage() {
                     placeholder="seu@email.com"
                   />
                 </div>
+              </div>
+              <div>
+                <label className="block text-[10px] sm:text-xs font-semibold text-slate-300 mb-1 sm:mb-1.5 uppercase tracking-wider flex items-center justify-between">
+                  <span>Data de Nascimento * 🎂</span>
+                  <span className="text-primary-400 font-normal lowercase text-[10px]">presente no seu dia</span>
+                </label>
+                <div className="relative">
+                  <Calendar className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-slate-400" />
+                  <input
+                    type="date"
+                    value={birthdate}
+                    onChange={e => setBirthdate(e.target.value)}
+                    max={new Date().toISOString().split('T')[0]}
+                    className="w-full pl-8 sm:pl-9 pr-3 sm:pr-4 py-2 sm:py-2.5 bg-slate-800 border border-slate-600 rounded-lg sm:rounded-xl text-white placeholder-slate-500 focus:ring-2 focus:ring-primary-500/60 focus:border-primary-500/60 outline-none text-xs sm:text-sm transition autofill-dark"
+                  />
+                </div>
+                <p className="text-[10px] text-slate-400 mt-1">Para receber felicitações e benefícios exclusivos no seu aniversário.</p>
               </div>
               <div>
                 <label className="block text-[10px] sm:text-xs font-semibold text-slate-300 mb-1 sm:mb-1.5 uppercase tracking-wider">Empresa <span className="text-slate-500 normal-case">(opcional)</span></label>

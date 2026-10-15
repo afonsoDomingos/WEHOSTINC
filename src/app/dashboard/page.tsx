@@ -71,6 +71,9 @@ export default function DashboardPage() {
   const [ramTotal, setRamTotal] = useState(2);
   const [showPushBanner, setShowPushBanner] = useState(false);
   const [showPWAInstallBanner, setShowPWAInstallBanner] = useState(false);
+  const [showBirthdayBanner, setShowBirthdayBanner] = useState(false);
+  const [birthdayInput, setBirthdayInput] = useState('');
+  const [savingBirthday, setSavingBirthday] = useState(false);
   
   const {
     permission,
@@ -172,6 +175,14 @@ export default function DashboardPage() {
     setRamUsed(initialRam);
     setLoading(false);
 
+    // Verificar se o utilizador já preencheu a data de aniversário
+    if (!currentUser.birthdate && typeof window !== 'undefined') {
+      const dismissed = sessionStorage.getItem('birthday_prompt_dismissed');
+      if (!dismissed) {
+        setShowBirthdayBanner(true);
+      }
+    }
+
     // Sincronizar assincronamente os contadores via API MongoDB
     Promise.all([
       dataManager.fetchSitesAsync(userEmail),
@@ -245,6 +256,44 @@ export default function DashboardPage() {
     if (success) {
       setShowPWAInstallBanner(false);
       localStorage.removeItem('pwaInstallDismissed');
+    }
+  };
+
+  const handleSaveBirthday = async () => {
+    if (!user || !birthdayInput) return;
+    setSavingBirthday(true);
+    try {
+      const updatedUser = { ...user, birthdate: birthdayInput };
+      setUser(updatedUser);
+      const userData = JSON.parse(localStorage.getItem(`user_${user.id}`) || '{}');
+      userData.birthdate = birthdayInput;
+      localStorage.setItem(`user_${user.id}`, JSON.stringify(userData));
+
+      const sessionData = localStorage.getItem('wehosthere_auth');
+      if (sessionData) {
+        const parsed = JSON.parse(sessionData);
+        if (parsed.user) parsed.user.birthdate = birthdayInput;
+        localStorage.setItem('wehosthere_auth', JSON.stringify(parsed));
+      }
+
+      await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'update_profile',
+          user: {
+            id: user.id,
+            email: user.email,
+            birthdate: birthdayInput
+          }
+        })
+      });
+
+      setShowBirthdayBanner(false);
+    } catch (err) {
+      console.warn('Erro ao guardar data de aniversário:', err);
+    } finally {
+      setSavingBirthday(false);
     }
   };
 
