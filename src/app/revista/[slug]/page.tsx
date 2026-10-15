@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -86,17 +86,27 @@ function TypedTitle({
   title,
   highlight,
   speed = 28,
+  onComplete,
 }: {
   title: string;
   highlight?: string;
   speed?: number;
+  onComplete?: () => void;
 }) {
   const [typedLength, setTypedLength] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
 
   useEffect(() => {
     setTypedLength(0);
     setIsComplete(false);
+
+    if (!title) {
+      setIsComplete(true);
+      onCompleteRef.current?.();
+      return;
+    }
 
     let current = 0;
     const total = title.length;
@@ -106,6 +116,7 @@ function TypedTitle({
       if (current >= total) {
         setIsComplete(true);
         clearInterval(interval);
+        onCompleteRef.current?.();
       }
     }, speed);
 
@@ -159,6 +170,65 @@ function TypedTitle({
         aria-hidden="true"
       />
     </span>
+  );
+}
+
+function TypedExcerpt({
+  text,
+  start = true,
+  speed = 14,
+  pauseBefore = 180,
+}: {
+  text: string;
+  start?: boolean;
+  speed?: number;
+  pauseBefore?: number;
+}) {
+  const [typedLength, setTypedLength] = useState(0);
+  const [isComplete, setIsComplete] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
+
+  useEffect(() => {
+    setTypedLength(0);
+    setIsComplete(false);
+    setHasStarted(false);
+
+    if (!start || !text) return;
+
+    const timeout = setTimeout(() => {
+      setHasStarted(true);
+    }, pauseBefore);
+
+    return () => clearTimeout(timeout);
+  }, [start, text, pauseBefore]);
+
+  useEffect(() => {
+    if (!hasStarted || !text) return;
+
+    let current = 0;
+    const total = text.length;
+    const interval = setInterval(() => {
+      current++;
+      setTypedLength(current);
+      if (current >= total) {
+        setIsComplete(true);
+        clearInterval(interval);
+      }
+    }, speed);
+
+    return () => clearInterval(interval);
+  }, [hasStarted, text, speed]);
+
+  if (!text) return null;
+
+  return (
+    <p className="story-excerpt-typed">
+      <span>{text.slice(0, typedLength)}</span>
+      <span
+        className={`story-typing-cursor story-excerpt-cursor${isComplete ? ' complete' : ''}`}
+        aria-hidden="true"
+      />
+    </p>
   );
 }
 
@@ -234,6 +304,7 @@ export default function RevistaStoryPage() {
   const slug = params?.slug as string;
 
   const [story, setStory] = useState<Story | null>(null);
+  const [titleDone, setTitleDone] = useState(false);
   const [related, setRelated] = useState<Story[]>([]);
   const [prevStory, setPrevStory] = useState<Story | null>(null);
   const [nextStory, setNextStory] = useState<Story | null>(null);
@@ -262,12 +333,16 @@ export default function RevistaStoryPage() {
   }, [lightboxOpen, shareModalOpen]);
 
   useEffect(() => {
-    if (slug) fetchStory();
+    if (slug) {
+      setTitleDone(false);
+      fetchStory();
+    }
   }, [slug]);
 
   const fetchStory = async () => {
     try {
       setLoading(true);
+      setTitleDone(false);
       const res = await fetch(`/api/revista/${slug}`);
       const data = await res.json();
       if (data.success) {
@@ -566,6 +641,17 @@ export default function RevistaStoryPage() {
           line-height: 1.2; letter-spacing: -0.03em;
           margin-bottom: 1.25rem;
         }
+        .story-title.has-excerpt {
+          margin-bottom: 0.85rem;
+        }
+        .story-excerpt-typed {
+          font-size: 1.12rem;
+          color: #475569;
+          line-height: 1.68;
+          margin: 0 0 1.4rem;
+          font-weight: 400;
+          letter-spacing: -0.01em;
+        }
         .story-typing-cursor {
           display: inline-block;
           width: 3px;
@@ -576,8 +662,15 @@ export default function RevistaStoryPage() {
           border-radius: 1px;
           animation: storyCursorBlink 0.8s infinite;
         }
+        .story-excerpt-cursor {
+          width: 2.5px;
+          height: 0.92em;
+          background: #7B2CBF;
+          margin-left: 3px;
+          vertical-align: -0.06em;
+        }
         .story-typing-cursor.complete {
-          animation: storyCursorBlink 0.8s 4 ease-in-out forwards;
+          animation: storyCursorBlink 0.8s 3 ease-in-out forwards;
         }
         @keyframes storyCursorBlink {
           0%, 100% { opacity: 1; }
@@ -1544,6 +1637,7 @@ export default function RevistaStoryPage() {
           .story-nav-home-logo { font-size: 0.65rem; }
           .story-nav-back-text { display: none; }
           .story-title { font-size: 1.45rem; }
+          .story-excerpt-typed { font-size: 0.98rem; line-height: 1.6; margin-bottom: 1.15rem; }
           .breadcrumb { padding: 0.75rem 1rem 0; font-size: 0.72rem; }
           .story-article { padding: 0 1rem 3rem; }
           .related-section { padding: 0 1rem 3rem; }
@@ -1554,6 +1648,7 @@ export default function RevistaStoryPage() {
           .story-top-bar-text { display: none; }
           .story-nav-brand-text { display: none; }
           .story-title { font-size: 1.3rem; }
+          .story-excerpt-typed { font-size: 0.92rem; }
         }
       `}</style>
 
@@ -1650,6 +1745,7 @@ export default function RevistaStoryPage() {
                   <div className="story-skel-cat" />
                   <div className="story-skel-title-1" />
                   <div className="story-skel-title-2" />
+                  <div className="story-skel-line" style={{ width: '92%', height: '14px', opacity: 0.75 }} />
                   <div className="story-skel-meta-row">
                     <div className="story-skel-avatar" />
                     <div className="story-skel-line" style={{ width: '110px' }} />
@@ -1696,9 +1792,23 @@ export default function RevistaStoryPage() {
             {story.category}
           </span>
 
-          <h1 className="story-title">
-            <TypedTitle title={story.title} highlight={story.highlightText} speed={25} />
+          <h1 className={`story-title${story.excerpt ? ' has-excerpt' : ''}`}>
+            <TypedTitle
+              title={story.title}
+              highlight={story.highlightText}
+              speed={25}
+              onComplete={() => setTitleDone(true)}
+            />
           </h1>
+
+          {story.excerpt && (
+            <TypedExcerpt
+              text={story.excerpt}
+              start={titleDone}
+              speed={14}
+              pauseBefore={180}
+            />
+          )}
 
           {/* Meta */}
           <div className="story-meta">

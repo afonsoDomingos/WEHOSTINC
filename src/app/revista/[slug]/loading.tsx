@@ -505,6 +505,7 @@ export default function RevistaStoryLoading() {
               <div className="story-skel-cat" />
               <div className="story-skel-title-1" />
               <div className="story-skel-title-2" />
+              <div className="story-skel-line" style={{ width: '92%', height: '14px', opacity: 0.75 }} />
               <div className="story-skel-meta-row">
                 <div className="story-skel-avatar" />
                 <div className="story-skel-line" style={{ width: '110px' }} />
