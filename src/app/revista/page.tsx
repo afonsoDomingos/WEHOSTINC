@@ -655,13 +655,40 @@ export default function RevistaPage() {
         .hero-avatar img { width: 100%; height: 100%; object-fit: cover; }
         .hero-author { font-size: 0.82rem; color: #475569; font-weight: 500; }
         .hero-cta {
-          display: inline-flex; align-items: center; gap: 0.4rem;
-          color: #7B2CBF; font-size: 0.88rem; font-weight: 600;
-          text-decoration: none; border-bottom: 2px solid #7B2CBF;
-          padding-bottom: 1px; width: fit-content;
-          transition: gap 0.2s, color 0.2s;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.55rem;
+          background: linear-gradient(135deg, #7B2CBF 0%, #5A189A 100%);
+          color: #ffffff !important;
+          font-size: 0.95rem;
+          font-weight: 700;
+          letter-spacing: 0.01em;
+          text-decoration: none;
+          padding: 0.75rem 1.6rem;
+          border-radius: 9999px;
+          border: 1px solid rgba(255, 255, 255, 0.25);
+          box-shadow: 0 6px 20px rgba(123, 44, 191, 0.38);
+          cursor: pointer;
+          transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+          width: fit-content;
         }
-        .hero-cta:hover { gap: 0.7rem; color: #5A189A; }
+        .hero-cta:hover {
+          background: linear-gradient(135deg, #9d4edd 0%, #7B2CBF 100%);
+          transform: translateY(-2px);
+          box-shadow: 0 10px 26px rgba(123, 44, 191, 0.5);
+          color: #ffffff !important;
+          gap: 0.8rem;
+        }
+        .hero-cta:active {
+          transform: translateY(0);
+          box-shadow: 0 3px 10px rgba(123, 44, 191, 0.3);
+        }
+        .hero-cta svg {
+          transition: transform 0.2s ease;
+        }
+        .hero-cta:hover svg {
+          transform: translateX(4px);
+        }
 
         /* ── Categories Bar ────────────────── */
         .cat-bar {
@@ -890,16 +917,23 @@ export default function RevistaPage() {
         .story-card-meta span { display: flex; align-items: center; gap: 0.25rem; }
         .story-card-read-more {
           margin-left: auto;
-          color: #7B2CBF;
+          color: #ffffff;
+          background: #7B2CBF;
+          padding: 0.32rem 0.85rem;
+          border-radius: 9999px;
+          font-size: 0.76rem;
           font-weight: 700;
           display: inline-flex;
           align-items: center;
-          gap: 0.25rem;
-          transition: transform 0.2s;
+          gap: 0.3rem;
+          transition: all 0.2s ease;
+          box-shadow: 0 2px 8px rgba(123, 44, 191, 0.22);
         }
         .story-card:hover .story-card-read-more {
-          transform: translateX(4px);
-          color: #5A189A;
+          background: #5A189A;
+          transform: translateX(3px);
+          box-shadow: 0 4px 12px rgba(123, 44, 191, 0.35);
+          color: #ffffff;
         }
 
         /* ── Sidebar PDF Download Card (Kabum Style com cores WEHOSTHERE) ── */
@@ -1315,7 +1349,7 @@ export default function RevistaPage() {
               <Link href="/revista" className="revista-nav-brand" onClick={() => setMobileMenuOpen(false)}>
                 <Code2 size={20} color="#7B2CBF" />
                 <span className="revista-nav-brand-text">
-                  codando <span>histórias</span>
+                  codando <span>histórias</span> <span style={{ color: '#7B2CBF', fontFamily: 'monospace', fontWeight: 800 }}>&lt;/&gt;</span>
                 </span>
               </Link>
             </div>
@@ -1457,9 +1491,10 @@ export default function RevistaPage() {
                 </div>
                 <span className="hero-author">{featured.author?.name}</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
-                <Link href={`/revista/${featured.slug}`} className="hero-cta">
-                  Ler a história <ChevronRight size={16} />
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap', marginTop: '0.6rem' }}>
+                <Link href={`/revista/${featured.slug}`} className="hero-cta" id="hero-read-story-btn">
+                  <span>Ler a história</span>
+                  <ChevronRight size={18} strokeWidth={2.5} />
                 </Link>
                 {heroStories.length > 1 && (
                   <div className="hero-indicators" title="Passe o cursor para pausar a rotação">
