@@ -235,6 +235,8 @@ export default function RevistaStoryPage() {
 
   const [story, setStory] = useState<Story | null>(null);
   const [related, setRelated] = useState<Story[]>([]);
+  const [prevStory, setPrevStory] = useState<Story | null>(null);
+  const [nextStory, setNextStory] = useState<Story | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [email, setEmail] = useState('');
@@ -271,6 +273,7 @@ export default function RevistaStoryPage() {
       if (data.success) {
         setStory(data.story);
         fetchRelated(data.story.category, data.story.id);
+        fetchAdjacentStories(data.story.id);
       } else {
         setNotFound(true);
       }
@@ -287,6 +290,21 @@ export default function RevistaStoryPage() {
       const data = await res.json();
       if (data.success) {
         setRelated(data.stories.filter((s: Story) => s.id !== currentId).slice(0, 3));
+      }
+    } catch { /* silent */ }
+  };
+
+  const fetchAdjacentStories = async (currentId: string) => {
+    try {
+      const res = await fetch(`/api/admin/revista/historias?status=published&limit=100`);
+      const data = await res.json();
+      if (data.success && data.stories.length) {
+        const all: Story[] = data.stories;
+        const idx = all.findIndex((s: Story) => s.id === currentId);
+        if (idx !== -1) {
+          setPrevStory(idx + 1 < all.length ? all[idx + 1] : null);
+          setNextStory(idx - 1 >= 0 ? all[idx - 1] : null);
+        }
       }
     } catch { /* silent */ }
   };
@@ -1082,6 +1100,125 @@ export default function RevistaStoryPage() {
         .related-t { font-size: 0.88rem; font-weight: 700; color: #0f172a; line-height: 1.3; margin-top: 0.2rem; }
         .related-meta { font-size: 0.7rem; color: #94a3b8; margin-top: 0.3rem; display: flex; align-items: center; gap: 0.5rem; }
 
+        /* ── Prev / Next Story Navigation ── */
+        .story-adjacent-nav {
+          max-width: 760px;
+          margin: 0 auto;
+          padding: 2rem 1.5rem 0.5rem;
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1rem;
+        }
+        .story-adjacent-nav.only-next {
+          grid-template-columns: 1fr;
+          justify-items: end;
+        }
+        .story-adjacent-nav.only-prev {
+          grid-template-columns: 1fr;
+          justify-items: start;
+        }
+        .adj-card {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+          background: #fff;
+          border: 1px solid #e2e8f0;
+          border-radius: 16px;
+          padding: 1.1rem 1.25rem;
+          text-decoration: none;
+          width: 100%;
+          transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+          box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+          position: relative;
+          overflow: hidden;
+        }
+        .adj-card::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          border-radius: inherit;
+          background: linear-gradient(135deg, rgba(123,44,191,0.06) 0%, transparent 60%);
+          opacity: 0;
+          transition: opacity 0.2s;
+        }
+        .adj-card:hover {
+          border-color: rgba(123, 44, 191, 0.35);
+          box-shadow: 0 8px 24px rgba(123, 44, 191, 0.14);
+          transform: translateY(-2px);
+        }
+        .adj-card:hover::before { opacity: 1; }
+        .adj-card.adj-next { align-items: flex-end; text-align: right; }
+        .adj-card.adj-prev { align-items: flex-start; text-align: left; }
+        .adj-direction {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.3rem;
+          font-size: 0.68rem;
+          font-weight: 700;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          color: #94a3b8;
+        }
+        .adj-title {
+          font-size: 0.9rem;
+          font-weight: 700;
+          color: #0f172a;
+          line-height: 1.35;
+          max-width: 260px;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+        .adj-meta {
+          font-size: 0.72rem;
+          color: #94a3b8;
+          display: flex;
+          align-items: center;
+          gap: 0.35rem;
+        }
+        .adj-card.adj-next .adj-meta { justify-content: flex-end; }
+        .adj-card.adj-prev .adj-meta { justify-content: flex-start; }
+        .adj-cover {
+          width: 100%;
+          height: 80px;
+          border-radius: 10px;
+          object-fit: cover;
+          opacity: 0.85;
+          margin-bottom: 0.15rem;
+        }
+        .adj-nav-arrow {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 28px; height: 28px;
+          border-radius: 50%;
+          background: rgba(123,44,191,0.1);
+          color: #7B2CBF;
+          flex-shrink: 0;
+          transition: background 0.2s, transform 0.2s;
+        }
+        .adj-card:hover .adj-nav-arrow {
+          background: #7B2CBF;
+          color: #fff;
+        }
+        .adj-card.adj-next:hover .adj-nav-arrow { transform: translateX(3px); }
+        .adj-card.adj-prev:hover .adj-nav-arrow { transform: translateX(-3px); }
+        @media (max-width: 600px) {
+          .story-adjacent-nav {
+            grid-template-columns: 1fr;
+            padding: 1.5rem 1rem 0.5rem;
+          }
+          .story-adjacent-nav.only-next,
+          .story-adjacent-nav.only-prev {
+            grid-template-columns: 1fr;
+            justify-items: stretch;
+          }
+          .adj-card.adj-next { align-items: flex-start; text-align: left; }
+          .adj-card.adj-next .adj-meta { justify-content: flex-start; }
+          .adj-title { max-width: 100%; }
+        }
+
         /* ── Dynamic Processing Loader ── */
         .story-loader-wrapper {
           max-width: 820px;
@@ -1691,6 +1828,54 @@ export default function RevistaStoryPage() {
             </div>
           </div>
         </article>
+
+        {/* ── Prev / Next Story Navigation ── */}
+        {(prevStory || nextStory) && (
+          <nav
+            className={`story-adjacent-nav${
+              !prevStory ? ' only-next' : !nextStory ? ' only-prev' : ''
+            }`}
+            aria-label="Navegar entre histórias"
+          >
+            {/* ← Anterior (mais antiga na lista) */}
+            {prevStory && (
+              <Link href={`/revista/${prevStory.slug}`} className="adj-card adj-prev">
+                {prevStory.coverImage && (
+                  <img src={prevStory.coverImage} alt={prevStory.title} className="adj-cover" />
+                )}
+                <span className="adj-direction">
+                  <ArrowLeft size={12} />
+                  História anterior
+                </span>
+                <span className="adj-title">{prevStory.title}</span>
+                <div className="adj-meta">
+                  <span className="adj-nav-arrow"><ArrowLeft size={13} /></span>
+                  <span>{prevStory.author?.name}</span>
+                  {prevStory.readingTime && <><span>·</span><span><Clock size={11} /> {prevStory.readingTime} min</span></>}
+                </div>
+              </Link>
+            )}
+
+            {/* → Próxima (mais recente na lista) */}
+            {nextStory && (
+              <Link href={`/revista/${nextStory.slug}`} className="adj-card adj-next">
+                {nextStory.coverImage && (
+                  <img src={nextStory.coverImage} alt={nextStory.title} className="adj-cover" />
+                )}
+                <span className="adj-direction">
+                  Próxima história
+                  <ChevronRight size={12} />
+                </span>
+                <span className="adj-title">{nextStory.title}</span>
+                <div className="adj-meta">
+                  <span>{nextStory.author?.name}</span>
+                  {nextStory.readingTime && <><span>·</span><span><Clock size={11} /> {nextStory.readingTime} min</span></>}
+                  <span className="adj-nav-arrow"><ChevronRight size={13} /></span>
+                </div>
+              </Link>
+            )}
+          </nav>
+        )}
 
         {/* ── Related ── */}
         {related.length > 0 && (
