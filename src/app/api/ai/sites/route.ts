@@ -1,0 +1,138 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { connectDB } from '@/lib/mongodb';
+import AiSiteModel from '@/lib/models/AiSite';
+
+export const dynamic = 'force-dynamic';
+
+function generateSlug(text: string): string {
+  const base = text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)+/g, '');
+  const randomSuffix = Math.random().toString(36).substring(2, 6);
+  return `${base || 'site'}-${randomSuffix}`;
+}
+
+// GET - Listar todos os sites gerados pelo utilizador
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const userEmail = searchParams.get('userEmail');
+    const slug = searchParams.get('slug');
+
+    await connectDB();
+
+    // Se estiver a procurar por slug (para visualização pública)
+    if (slug) {
+      const site = await AiSiteModel.findOne({ slug: slug.toLowerCase() }).lean();
+      if (!site) {
+        return NextResponse.json({ error: 'Site não encontrado' }, { status: 404 });
+      }
+      return NextResponse.json({ success: true, site });
+    }
+
+    if (!userEmail) {
+      return NextResponse.json({ error: 'userEmail é obrigatório' }, { status: 400 });
+    }
+
+    const sites = await AiSiteModel.find({ userEmail: userEmail.toLowerCase() })
+      .sort({ updatedAt: -1 })
+      .lean();
+
+    return NextResponse.json({ success: true, sites });
+  } catch (error: any) {
+    console.error('[AI Sites GET Error]:', error);
+    return NextResponse.json({ error: 'Erro ao carregar sites', details: error?.message }, { status: 500 });
+  }
+}
+
+// POST - Criar, Atualizar ou Publicar um site
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const {
+      id,
+      userEmail,
+      userName,
+      title = 'Meu Site',
+      slug: customSlug,
+      htmlContent,
+      promptHistory = [],
+      status = 'draft',
+      customDomain
+    } = body;
+
+    if (!userEmail || !htmlContent) {
+      return NextResponse.json({ error: 'userEmail e htmlContent são obrigatórios' }, { status: 400 });
+    }
+
+    await connectDB();
+
+    const cleanEmail = userEmail.toLowerCase().trim();
+    const siteId = id || `site_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+    const finalSlug = customSlug || generateSlug(title);
+
+    const updateData: any = {
+      title,
+      htmlContent,
+      promptHistory,
+      status,
+      userEmail: cleanEmail,
+      userName,
+      customDomain: customDomain ? customDomain.trim().toLowerCase() : undefined,
+      updatedAt: new Date().toISOString(),
+    };
+
+    if (status === 'published') {
+      updateData.publishedAt = new Date().toISOString();
+    }
+
+    // Se o registo já existe, atualiza. Se não, cria.
+    const site = await AiSiteModel.findOneAndUpdate(
+      { id: siteId },
+      {
+        $set: updateData,
+        $setOnInsert: {
+          id: siteId,
+          slug: finalSlug,
+          createdAt: new Date().toISOString(),
+          views: 0
+        }
+      },
+      { upsert: true, new: true, lean: true }
+    );
+
+    return NextResponse.json({
+      success: true,
+      site,
+      message: status === 'published' ? 'Site publicado com sucesso!' : 'Site guardado com sucesso!'
+    });
+  } catch (error: any) {
+    console.error('[AI Sites POST Error]:', error);
+    return NextResponse.json({ error: 'Erro ao guardar site', details: error?.message }, { status: 500 });
+  }
+}
+
+// DELETE - Apagar um site
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+    const userEmail = searchParams.get('userEmail');
+
+    if (!id || !userEmail) {
+      return NextResponse.json({ error: 'id e userEmail são obrigatórios' }, { status: 400 });
+    }
+
+    await connectDB();
+
+    await AiSiteModel.deleteOne({ id, userEmail: userEmail.toLowerCase() });
+
+    return NextResponse.json({ success: true, message: 'Site eliminado com sucesso' });
+  } catch (error: any) {
+    console.error('[AI Sites DELETE Error]:', error);
+    return NextResponse.json({ error: 'Erro ao eliminar site', details: error?.message }, { status: 500 });
+  }
+}
