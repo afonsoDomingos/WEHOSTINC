@@ -819,6 +819,91 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ── Revista "Codando Histórias" CTA Section ── */}
+      <section className="relative py-16 sm:py-24 px-4 sm:px-6 overflow-hidden bg-slate-950">
+        {/* Animated gradient blobs */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute -top-32 -left-32 w-[420px] h-[420px] rounded-full bg-indigo-600/20 blur-[100px] animate-pulse" />
+          <div className="absolute -bottom-32 -right-32 w-[380px] h-[380px] rounded-full bg-violet-600/20 blur-[100px] animate-pulse" style={{ animationDelay: '1.5s' }} />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] rounded-full bg-blue-700/10 blur-[120px]" />
+          {/* Decorative grid */}
+          <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'linear-gradient(#6366f1 1px,transparent 1px),linear-gradient(90deg,#6366f1 1px,transparent 1px)', backgroundSize: '48px 48px' }} />
+        </div>
+
+        <div className="relative z-10 max-w-5xl mx-auto text-center">
+
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 bg-indigo-500/15 border border-indigo-400/30 rounded-full px-4 py-1.5 mb-6">
+            <span className="text-lg">📖</span>
+            <span className="text-indigo-300 text-xs sm:text-sm font-semibold tracking-widest uppercase">Revista Digital · Codando Histórias</span>
+          </div>
+
+          {/* Heading */}
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white leading-tight mb-5">
+            Histórias que inspiram<br className="hidden sm:block" />
+            <span className="bg-gradient-to-r from-indigo-400 via-violet-400 to-blue-400 bg-clip-text text-transparent"> o futuro digital </span>
+            de Moçambique
+          </h2>
+
+          {/* Subtitle */}
+          <p className="text-slate-400 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto mb-10">
+            Artigos, entrevistas e histórias sobre empreendedorismo digital, tecnologia e inovação em Moçambique — escritos por quem está a construir este futuro.
+          </p>
+
+          {/* Feature pills */}
+          <div className="flex flex-wrap items-center justify-center gap-3 mb-10">
+            {[
+              { icon: '🚀', label: 'Empreendedorismo' },
+              { icon: '💡', label: 'Tecnologia & IA' },
+              { icon: '📱', label: 'Negócios Digitais' },
+              { icon: '🌍', label: 'Inovação Local' },
+              { icon: '🎓', label: 'Casos de Sucesso' },
+            ].map((pill) => (
+              <span
+                key={pill.label}
+                className="inline-flex items-center gap-1.5 bg-white/5 border border-white/10 text-slate-300 text-xs sm:text-sm font-medium px-3.5 py-1.5 rounded-full hover:bg-white/10 hover:border-indigo-400/40 transition-all duration-200"
+              >
+                <span>{pill.icon}</span>
+                {pill.label}
+              </span>
+            ))}
+          </div>
+
+          {/* CTAs */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link
+              href="/revista"
+              className="group inline-flex items-center gap-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-base sm:text-lg px-8 py-4 rounded-2xl shadow-2xl shadow-indigo-900/50 hover:shadow-indigo-700/60 transition-all duration-300 hover:-translate-y-0.5"
+            >
+              <span className="text-xl">📖</span>
+              Ler a Revista
+              <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform duration-200" />
+            </Link>
+            <Link
+              href="/revista#latest"
+              className="inline-flex items-center gap-2 border border-slate-600 hover:border-indigo-400/60 text-slate-300 hover:text-white font-semibold text-sm sm:text-base px-6 py-4 rounded-2xl transition-all duration-300 hover:bg-white/5"
+            >
+              Última Edição →
+            </Link>
+          </div>
+
+          {/* Decorative bottom stat bar */}
+          <div className="mt-14 grid grid-cols-3 gap-4 sm:gap-8 max-w-lg mx-auto border-t border-slate-800 pt-10">
+            {[
+              { value: '100%', label: 'Gratuito' },
+              { value: 'PDF', label: 'Download Disponível' },
+              { value: '🇲🇿', label: 'Feito em Moçambique' },
+            ].map((stat) => (
+              <div key={stat.label} className="text-center">
+                <div className="text-xl sm:text-2xl font-extrabold text-white mb-1">{stat.value}</div>
+                <div className="text-xs text-slate-500">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+
+        </div>
+      </section>
+
       {/* Partners Section */}
       <PartnersSection />
 
