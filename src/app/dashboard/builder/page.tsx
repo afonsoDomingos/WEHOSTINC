@@ -11,7 +11,7 @@ import {
   MessageSquare, Layers, Wand2, Clock, AlertCircle, RefreshCw, X,
   PanelLeftClose, PanelLeftOpen, Maximize2, Minimize2,
   UtensilsCrossed, Scissors, Palmtree, Briefcase, Palette, Tag,
-  History, Undo2
+  History, Undo2, Download
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 
@@ -484,6 +484,37 @@ export default function AiSiteBuilderStudio() {
     setTimeout(() => setCopiedLink(false), 2000);
   };
 
+  const handleDownloadHtml = () => {
+    if (!displayedHtml) return;
+    const blob = new Blob([displayedHtml], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${projectSlug || 'meu-site'}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDeleteProject = async (id: string) => {
+    if (!currentUser?.email) return;
+    if (!confirm('Deseja realmente eliminar este site?')) return;
+    try {
+      const res = await fetch(`/api/ai/sites?id=${encodeURIComponent(id)}&userEmail=${encodeURIComponent(currentUser.email)}`, {
+        method: 'DELETE'
+      });
+      if (res.ok) {
+        setSavedProjects(prev => prev.filter(p => p.id !== id));
+        if (projectId === id) {
+          initNewProject();
+        }
+      }
+    } catch (err) {
+      console.warn('Erro ao eliminar projeto:', err);
+    }
+  };
+
   return (
     <div className="flex h-screen bg-[#09090b] text-[#fafafa] font-sans overflow-hidden antialiased selection:bg-blue-600 selection:text-white">
 
@@ -568,7 +599,20 @@ export default function AiSiteBuilderStudio() {
                     )}
                   </span>
                 </div>
-                <ChevronRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400" />
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteProject(p.id);
+                    }}
+                    className="p-1 rounded text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition opacity-0 group-hover:opacity-100 cursor-pointer"
+                    title="Eliminar projeto"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                  <ChevronRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400" />
+                </div>
               </button>
             ))
           )}
@@ -975,6 +1019,16 @@ export default function AiSiteBuilderStudio() {
                 <span className="hidden sm:inline">{copiedCode ? 'Copiado!' : 'Copiar Código'}</span>
               </button>
             )}
+
+            {/* BOTÃO EXPORTAR / BAIXAR HTML */}
+            <button
+              onClick={handleDownloadHtml}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-semibold text-gray-300 border border-white/10 transition cursor-pointer"
+              title="Descarregar ficheiro HTML completo para o seu computador"
+            >
+              <Download className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="hidden sm:inline">Exportar</span>
+            </button>
 
             {/* BOTÃO OPEN IN NEW TAB (Funciona sempre com live preview ou subdomain) */}
             <button

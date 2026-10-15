@@ -16,8 +16,15 @@ export async function GET(request: NextRequest, { params }: Props) {
     }
 
     await connectDB();
+    const cleanIdentifier = slug.toLowerCase();
     const site = await AiSiteModel.findOneAndUpdate(
-      { slug: slug.toLowerCase() },
+      {
+        $or: [
+          { slug: cleanIdentifier },
+          { subdomain: cleanIdentifier },
+          { customDomain: cleanIdentifier }
+        ]
+      },
       { $inc: { views: 1 } },
       { new: true }
     ).lean();

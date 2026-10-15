@@ -300,7 +300,52 @@ Título sugerido: "${title || 'Site Profissional'}"`;
       }
     }
 
-    // Se o Gemini não respondeu ou não tinha chave, usar o motor de templates da WEHOSTHERE
+    // Se o Gemini não gerou e houver chave do OpenAI configurada, usar GPT-4o-mini
+    if (!generatedHtml && openaiKey) {
+      try {
+        const oaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${openaiKey}`
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            messages: [
+              {
+                role: 'system',
+                content: 'Você é o Construtor de Sites IA da WEHOSTHERE. Retorne APENAS o código HTML5 completo (com Tailwind CSS via CDN e fontes Google), sem explicações adicionais.'
+              },
+              {
+                role: 'user',
+                content: currentHtml
+                  ? `Atualize o seguinte HTML com base no pedido: "${prompt}". HTML Atual:\n${currentHtml.slice(0, 30000)}`
+                  : `Crie um site moderno e completo para: "${prompt}". Título: "${title || 'Site Profissional'}"`
+              }
+            ],
+            temperature: 0.7,
+            max_tokens: 4096
+          })
+        });
+
+        if (oaiRes.ok) {
+          const oaiData = await oaiRes.json();
+          const rawOaiText = oaiData?.choices?.[0]?.message?.content || '';
+          const match = rawOaiText.match(/```html([\s\S]*?)```/i) || rawOaiText.match(/```([\s\S]*?)```/i);
+          const cleanOai = match ? match[1].trim() : rawOaiText.trim();
+          if (cleanOai.includes('<!DOCTYPE') || cleanOai.includes('<html')) {
+            generatedHtml = cleanOai;
+            explanation = currentHtml
+              ? `O site foi atualizado com base no seu pedido: "${prompt}".`
+              : `O site para "${prompt}" foi gerado e validado no preview.`;
+          }
+        }
+      } catch (oaiErr) {
+        console.warn('[Site Builder] Erro na API OpenAI:', oaiErr);
+      }
+    }
+
+    // Se a IA externa não respondeu ou não tinha chave, usar o motor de templates da WEHOSTHERE
     if (!generatedHtml) {
       generatedHtml = getFallbackHtml(prompt, title);
       explanation = currentHtml
