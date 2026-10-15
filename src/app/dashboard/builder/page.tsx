@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
@@ -559,8 +560,15 @@ export default function AiSiteBuilderStudio() {
     return (
       <div className="flex h-screen w-screen items-center justify-center bg-[#09090b] text-white">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 flex items-center justify-center font-black text-white shadow-lg shadow-blue-500/25 animate-pulse text-sm">
-            W
+          <div className="relative w-12 h-12 flex items-center justify-center animate-pulse drop-shadow-[0_0_25px_rgba(37,99,235,0.45)]">
+            <Image
+              src="/mascote-transparent.png"
+              alt="Mascote WEHOSTHERE"
+              width={48}
+              height={48}
+              className="object-contain"
+              priority
+            />
           </div>
           <div className="flex items-center gap-2 text-xs text-gray-400 font-medium">
             <RefreshCw className="w-3.5 h-3.5 animate-spin text-blue-400" />
@@ -581,8 +589,15 @@ export default function AiSiteBuilderStudio() {
         {/* Header da Sidebar */}
         <div className="p-3.5 border-b border-[#27272a] flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 flex items-center justify-center font-black text-sm text-white shadow-lg shadow-blue-500/20">
-              W
+            <div className="relative w-8 h-8 flex items-center justify-center drop-shadow-[0_2px_12px_rgba(37,99,235,0.35)] shrink-0">
+              <Image
+                src="/mascote-transparent.png"
+                alt="Mascote WEHOSTHERE"
+                width={32}
+                height={32}
+                className="object-contain"
+                priority
+              />
             </div>
             <div>
               <span className="font-extrabold text-xs sm:text-sm tracking-tight block">WEHOSTHERE</span>
@@ -740,6 +755,17 @@ export default function AiSiteBuilderStudio() {
             >
               {isSidebarOpen ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeftOpen className="w-4 h-4" />}
             </button>
+            {!isSidebarOpen && (
+              <div className="relative w-7 h-7 flex items-center justify-center shrink-0 drop-shadow-[0_2px_8px_rgba(37,99,235,0.3)]">
+                <Image
+                  src="/mascote-transparent.png"
+                  alt="WEHOSTHERE"
+                  width={28}
+                  height={28}
+                  className="object-contain"
+                />
+              </div>
+            )}
             <input
               type="text"
               value={projectTitle}
@@ -1162,8 +1188,15 @@ export default function AiSiteBuilderStudio() {
           {!displayedHtml ? (
             /* Estado Inicial em Branco (Estilo v0) */
             <div className="flex flex-col items-center justify-center text-center p-6 max-w-lg mx-auto animate-in fade-in zoom-in-95 duration-200">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600/20 via-indigo-600/20 to-purple-600/20 border border-blue-500/20 flex items-center justify-center text-blue-400 mb-5 shadow-2xl shadow-blue-500/10">
-                <Sparkles className="w-8 h-8" />
+              <div className="relative w-20 h-20 mb-5 flex items-center justify-center drop-shadow-[0_12px_28px_rgba(37,99,235,0.35)] animate-pulse">
+                <Image
+                  src="/mascote-transparent.png"
+                  alt="Mascote WEHOSTHERE"
+                  width={80}
+                  height={80}
+                  className="object-contain"
+                  priority
+                />
               </div>
               <h3 className="text-xl sm:text-2xl font-black text-white mb-2 tracking-tight">O que deseja criar hoje?</h3>
               <p className="text-xs sm:text-sm text-gray-400 mb-8 leading-relaxed max-w-md">

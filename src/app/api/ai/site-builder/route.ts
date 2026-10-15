@@ -35,7 +35,7 @@ function getFallbackHtml(prompt: string, title?: string): string {
   <!-- Header -->
   <header class="w-full max-w-6xl mx-auto px-6 py-6 flex items-center justify-between relative z-10">
     <div class="flex items-center gap-2.5">
-      <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-black text-white text-base shadow-lg shadow-blue-500/25">W</div>
+      <img src="https://wehosthere.com/mascote-transparent.png" alt="WEHOSTHERE" class="w-9 h-9 object-contain drop-shadow" />
       <span class="font-extrabold text-sm tracking-tight text-white">WEHOSTHERE <span class="text-blue-400 font-semibold text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20">AI CLOUD</span></span>
     </div>
     <a href="https://wa.me/258840000000" target="_blank" class="text-xs font-bold px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white transition">
