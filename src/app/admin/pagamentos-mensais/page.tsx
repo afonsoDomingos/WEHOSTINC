@@ -72,8 +72,8 @@ export default function MonthlyPaymentsPage() {
 
   // Estados da UI
   const [activeTab, setActiveTab] = useState<'overview' | 'payments' | 'clients'>('overview');
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+  const [selectedYear, setSelectedYear] = useState<number | 'all'>(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState<number | 'all'>(new Date().getMonth() + 1);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'paid' | 'partial' | 'pending' | 'overdue' | 'none'>('all');
   const [paymentMethodFilter, setPaymentMethodFilter] = useState<'all' | 'M-Pesa' | 'Transferência' | 'Cartão' | 'Dinheiro'>('all');
@@ -236,8 +236,8 @@ export default function MonthlyPaymentsPage() {
   };
 
   const filteredPayments = payments.filter(payment => {
-    const matchesYear = payment.year === selectedYear;
-    const matchesMonth = payment.month === selectedMonth;
+    const matchesYear = selectedYear === 'all' || payment.year === selectedYear;
+    const matchesMonth = selectedMonth === 'all' || payment.month === selectedMonth;
     const matchesStatus = statusFilter === 'all' || payment.status === statusFilter;
     const matchesSearch =
       payment.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -261,8 +261,8 @@ export default function MonthlyPaymentsPage() {
   const unpaidClients = allClients.map(client => {
     const clientPayments = payments.filter(
       p => p.clientId === client.id &&
-      p.year === selectedYear &&
-      p.month === selectedMonth
+      (selectedYear === 'all' || p.year === selectedYear) &&
+      (selectedMonth === 'all' || p.month === selectedMonth)
     );
 
     if (clientPayments.length === 0) {
@@ -321,11 +321,14 @@ export default function MonthlyPaymentsPage() {
   });
 
   const totalCollected = payments
-    .filter(p => p.year === selectedYear && p.month === selectedMonth && (p.status === 'paid' || p.status === 'partial'))
+    .filter(p => (selectedYear === 'all' || p.year === selectedYear) &&
+                 (selectedMonth === 'all' || p.month === selectedMonth) &&
+                 (p.status === 'paid' || p.status === 'partial'))
     .reduce((sum, p) => sum + p.paidAmount, 0);
 
   const totalPending = payments
-    .filter(p => p.year === selectedYear && p.month === selectedMonth)
+    .filter(p => (selectedYear === 'all' || p.year === selectedYear) &&
+                 (selectedMonth === 'all' || p.month === selectedMonth))
     .reduce((sum, p) => {
       if (p.status === 'pending') {
         // Pagamento pendente: soma o valor total
@@ -339,6 +342,33 @@ export default function MonthlyPaymentsPage() {
       }
       return sum;
     }, 0);
+
+  const periodLabel = selectedMonth === 'all'
+    ? (selectedYear === 'all' ? 'Todo o Histórico (Todos os Meses & Anos)' : `Todos os Meses de ${selectedYear}`)
+    : `${months[selectedMonth - 1]} ${selectedYear === 'all' ? '(Todos os Anos)' : selectedYear}`;
+
+  const monthlyBreakdown = months.map((monthName, idx) => {
+    const monthNum = idx + 1;
+    const monthPayments = payments.filter(p =>
+      (selectedYear === 'all' || p.year === selectedYear) &&
+      p.month === monthNum
+    );
+    const collected = monthPayments
+      .filter(p => p.status === 'paid' || p.status === 'partial')
+      .reduce((sum, p) => sum + p.paidAmount, 0);
+    const pending = monthPayments.reduce((sum, p) => {
+      if (p.status === 'pending' || p.status === 'overdue') return sum + p.amount;
+      if (p.status === 'partial') return sum + p.remainingAmount;
+      return sum;
+    }, 0);
+    return {
+      month: monthName,
+      monthNum,
+      collected,
+      pending,
+      count: monthPayments.length
+    };
+  });
 
   const handleAddPayment = () => {
     setEditingPayment(null);
@@ -538,13 +568,17 @@ export default function MonthlyPaymentsPage() {
     }
     // If user selected pending or overdue, respect that choice
 
+    const paymentDateObj = formData.paymentDate ? new Date(formData.paymentDate) : new Date();
+    const targetYear = selectedYear === 'all' ? paymentDateObj.getFullYear() : selectedYear;
+    const targetMonth = selectedMonth === 'all' ? (paymentDateObj.getMonth() + 1) : selectedMonth;
+
     const paymentData: MonthlyPayment = {
       id: editingPayment?.id || `pay_${Date.now()}`,
       clientId: client.id,
       clientName: client.name,
       clientEmail: client.email,
-      year: selectedYear,
-      month: selectedMonth,
+      year: targetYear,
+      month: targetMonth,
       amount: totalAmount,
       paidAmount: paidAmount,
       remainingAmount: remainingAmount,
@@ -712,9 +746,10 @@ export default function MonthlyPaymentsPage() {
                   <label className="block text-xs font-bold text-gray-700 mb-1.5">Ano</label>
                   <select
                     value={selectedYear}
-                    onChange={e => setSelectedYear(parseInt(e.target.value))}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm"
+                    onChange={e => setSelectedYear(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-medium"
                   >
+                    <option value="all">🌐 Todos os Anos (Histórico Geral)</option>
                     {years.map(year => (
                       <option key={year} value={year}>{year}</option>
                     ))}
@@ -724,9 +759,10 @@ export default function MonthlyPaymentsPage() {
                   <label className="block text-xs font-bold text-gray-700 mb-1.5">Mês</label>
                   <select
                     value={selectedMonth}
-                    onChange={e => setSelectedMonth(parseInt(e.target.value))}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm"
+                    onChange={e => setSelectedMonth(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-medium"
                   >
+                    <option value="all">📅 Todos os Meses (Visão Geral)</option>
                     {months.map((month, index) => (
                       <option key={index} value={index + 1}>{month}</option>
                     ))}
@@ -847,7 +883,7 @@ export default function MonthlyPaymentsPage() {
                   <span className="text-3xl font-black">{totalCollected.toLocaleString('pt-MZ')} MT</span>
                 </div>
                 <p className="text-emerald-100 text-sm">Total Arrecadado</p>
-                <p className="text-xs text-emerald-200 mt-1">{months[selectedMonth - 1]} {selectedYear}</p>
+                <p className="text-xs text-emerald-200 mt-1">{periodLabel}</p>
               </div>
 
               <div className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-3xl p-6 text-white shadow-lg">
@@ -858,7 +894,7 @@ export default function MonthlyPaymentsPage() {
                   <span className="text-3xl font-black">{totalPending.toLocaleString('pt-MZ')} MT</span>
                 </div>
                 <p className="text-amber-100 text-sm">Total Pendente</p>
-                <p className="text-xs text-amber-200 mt-1">{unpaidClients.length} clientes não pagaram</p>
+                <p className="text-xs text-amber-200 mt-1">{unpaidClients.length} {unpaidClients.length === 1 ? 'cliente não pagou' : 'clientes não pagaram'}</p>
               </div>
 
               <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-3xl p-6 text-white shadow-lg">
@@ -873,13 +909,67 @@ export default function MonthlyPaymentsPage() {
               </div>
             </div>
 
+            {/* Demonstrativo Mensal quando Todos os Meses estiver selecionado */}
+            {selectedMonth === 'all' && (
+              <div className="bg-white border border-gray-200/80 rounded-3xl p-6 shadow-xs">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                      <Calendar className="w-5 h-5 text-blue-600" />
+                      Faturamento Mês a Mês ({selectedYear === 'all' ? 'Todo o Histórico' : selectedYear})
+                    </h3>
+                    <p className="text-xs text-gray-500 mt-0.5">Clique em qualquer mês para focar detalhadamente.</p>
+                  </div>
+                  <span className="text-xs font-semibold px-3 py-1 bg-blue-50 text-blue-700 rounded-full border border-blue-200">
+                    12 Meses
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                  {monthlyBreakdown.map((m) => (
+                    <button
+                      key={m.monthNum}
+                      onClick={() => setSelectedMonth(m.monthNum)}
+                      className="text-left p-3.5 rounded-2xl border border-gray-200 hover:border-blue-400 hover:shadow-md transition-all bg-gradient-to-b from-gray-50/50 to-white group cursor-pointer"
+                    >
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-xs font-bold text-gray-700 group-hover:text-blue-600 transition-colors">
+                          {m.month}
+                        </span>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600 font-medium">
+                          {m.count} pag.
+                        </span>
+                      </div>
+                      <div className="space-y-0.5">
+                        <div>
+                          <span className="text-[10px] text-gray-400 block">Arrecadado:</span>
+                          <span className="text-xs font-extrabold text-emerald-600">
+                            {m.collected.toLocaleString('pt-MZ')} MT
+                          </span>
+                        </div>
+                        {m.pending > 0 && (
+                          <div>
+                            <span className="text-[10px] text-gray-400 block">Pendente:</span>
+                            <span className="text-[11px] font-bold text-amber-600">
+                              {m.pending.toLocaleString('pt-MZ')} MT
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Unpaid Clients Alert */}
             {unpaidClients.length > 0 && (
               <div className="bg-red-50 border border-red-200 rounded-3xl p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
                     <AlertCircle className="w-6 h-6 text-red-600" />
-                    <h3 className="text-lg font-bold text-red-900">Clientes Não Pagaram em {months[selectedMonth - 1]} {selectedYear}</h3>
+                    <h3 className="text-lg font-bold text-red-900">
+                      Clientes Não Pagaram em {periodLabel}
+                    </h3>
                   </div>
                   <button
                     onClick={handleAddClient}
@@ -1000,9 +1090,10 @@ export default function MonthlyPaymentsPage() {
                   <label className="block text-xs font-bold text-gray-700 mb-1.5">Ano</label>
                   <select
                     value={selectedYear}
-                    onChange={e => setSelectedYear(parseInt(e.target.value))}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm"
+                    onChange={e => setSelectedYear(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-medium"
                   >
+                    <option value="all">🌐 Todos os Anos (Histórico Geral)</option>
                     {years.map(year => (
                       <option key={year} value={year}>{year}</option>
                     ))}
@@ -1012,9 +1103,10 @@ export default function MonthlyPaymentsPage() {
                   <label className="block text-xs font-bold text-gray-700 mb-1.5">Mês</label>
                   <select
                     value={selectedMonth}
-                    onChange={e => setSelectedMonth(parseInt(e.target.value))}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm"
+                    onChange={e => setSelectedMonth(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-medium"
                   >
+                    <option value="all">📅 Todos os Meses (Visão Geral)</option>
                     {months.map((month, index) => (
                       <option key={index} value={index + 1}>{month}</option>
                     ))}
