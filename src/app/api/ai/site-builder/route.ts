@@ -7,8 +7,7 @@ export const runtime = 'nodejs';
 function getFallbackHtml(prompt: string, title?: string): string {
   const p = prompt.toLowerCase();
 
-  const isSimple = p.includes('ola') || p.includes('olá') || p.includes('simples') ||
-    p.includes('sistema') || p.includes('inicio') || p.includes('início');
+  const isSimple = p.includes('simples') || p.includes('sistema') || p.includes('inicio') || p.includes('início');
 
   if (isSimple) {
     return `<!DOCTYPE html>
@@ -155,11 +154,74 @@ DIRETRIZES CRITICAS:
 6. Se houver HTML atual, REFINE e ATUALIZE aplicando as alteracoes pedidas.
 7. Para paginas simples/inicio, mantenha limpo e elegante com o titulo: "Prontos para Criar o seu Sistema?"`;
 
+// ─── Detecção de Intenção Conversacional (Chat vs Geração de Código) ──────────
+function detectConversationalIntent(prompt: string, hasCurrentHtml: boolean): { isChat: boolean; reply: string } {
+  const p = prompt.trim().toLowerCase();
+
+  // Palavras-chave que indicam claramente um comando ou pedido de construção/edição de site
+  const actionKeywords = [
+    'cria', 'criar', 'construir', 'construa', 'faz', 'fazer', 'muda', 'mudar', 
+    'altera', 'alterar', 'adiciona', 'adicionar', 'remove', 'remover', 'elimina',
+    'troca', 'trocar', 'coloca', 'colocar', 'desenvolve', 'desenvolver',
+    'site', 'website', 'landing', 'pagina', 'página', 'loja', 'ecommerce', 
+    'restaurante', 'barbearia', 'hotel', 'resort', 'preço', 'preco', 'precos',
+    'botao', 'botão', 'whatsapp', 'formulario', 'formulário', 'tabela', 'cor', 'cores',
+    'tema', 'fundo', 'header', 'footer', 'menu', 'navbar', 'hero', 'banner', 'design'
+  ];
+
+  const hasAction = actionKeywords.some(kw => p.includes(kw));
+  if (hasAction) {
+    return { isChat: false, reply: '' };
+  }
+
+  // Saudações típicas (sem pedido de ação)
+  const greetings = [
+    'ola', 'olá', 'oi', 'oii', 'oiii', 'hey', 'hello', 'hi', 'bom dia', 'boa tarde', 
+    'boa noite', 'tudo bem', 'tudo bom', 'tudo bem?', 'opa', 'e aí', 'e ai', 
+    'fala aí', 'salve'
+  ];
+  if (greetings.includes(p) || greetings.some(g => p === g || p === `${g}!` || p === `${g}.` || p === `${g}?`)) {
+    return {
+      isChat: true,
+      reply: hasCurrentHtml
+        ? 'Olá! Como posso ajudar a aprimorar o seu website? Pode pedir para mudar cores, adicionar novas secções, incluir botão de WhatsApp, catálogo de serviços ou preços.'
+        : 'Olá! Sou o Construtor com Inteligência Artificial da WEHOSTHERE. Que tipo de website ou sistema deseja criar hoje? (Por exemplo: um restaurante, barbearia, portfólio, loja online ou página de captura).'
+    };
+  }
+
+  // Dúvidas de como usar ou quem é
+  if (
+    p.includes('como funciona') || p.includes('o que fazes') || p.includes('o que podes fazer') || 
+    p.includes('quem és tu') || p.includes('quem e voce') || p.includes('como usar') ||
+    p === 'ajuda' || p === 'help' || p.includes('podes me ajudar')
+  ) {
+    return {
+      isChat: true,
+      reply: 'Eu crio e altero websites completos e responsivos em tempo real! Pode simplesmente descrever o que precisa no chat, por exemplo:\n\n• "Cria uma landing page para uma clínica médica com agendamento"\n• "Adiciona um botão de WhatsApp flutuante"\n• "Muda a paleta de cores para tema escuro e dourado"\n\nAssim que fizer o pedido, vou gerar o código ao vivo no terminal e atualizar o preview!'
+    };
+  }
+
+  // Elogios ou confirmações curtas
+  const courtesies = ['obrigado', 'obrigada', 'valeu', 'top', 'muito bom', 'gostei', 'show', 'legal', 'perfeito', 'ok', 'entendi'];
+  if (courtesies.includes(p) || courtesies.some(c => p === c || p === `${c}!` || p === `${c}.`)) {
+    return {
+      isChat: true,
+      reply: 'De nada! O projeto continua pronto no preview. Se quiser fazer mais alterações é só pedir, ou pode clicar no botão branco "Publicar" para colocá-lo online no seu subdomínio com SSL!'
+    };
+  }
+
+  return { isChat: false, reply: '' };
+}
+
 // ─── Helper para enviar SSE ───────────────────────────────────────────────────
 function makeSSE(controller: ReadableStreamDefaultController, encoder: TextEncoder) {
   return {
     chunk(text: string) {
       controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'chunk', content: text })}\n\n`));
+    },
+    chat(message: string, modelUsed = 'Assistente WEHOSTHERE') {
+      controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'chat', message, modelUsed })}\n\n`));
+      controller.close();
     },
     done(explanation: string, diffSummary: string, executionSeconds: number, modelUsed?: string) {
       controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'done', explanation, diffSummary, executionSeconds, modelUsed })}\n\n`));
@@ -222,6 +284,13 @@ export async function POST(request: NextRequest) {
     async start(controller) {
       const encoder = new TextEncoder();
       const sse = makeSSE(controller, encoder);
+
+      // ── 0. Verificar se é conversa pura (Olá, Como funciona, Dúvidas) ─────────
+      const conversational = detectConversationalIntent(prompt, Boolean(currentHtml));
+      if (conversational.isChat) {
+        sse.chat(conversational.reply, 'Assistente WEHOSTHERE');
+        return;
+      }
 
       // ── 1. Gemini com streaming SSE real ───────────────────────────────────
       if (geminiKey) {

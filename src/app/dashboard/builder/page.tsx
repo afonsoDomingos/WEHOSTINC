@@ -267,11 +267,12 @@ export default function AiSiteBuilderStudio() {
     setMessages(prev => [...prev, userMsg]);
     setPrompt('');
     setIsGenerating(true);
-    setIsStreaming(true);
-    setStreamingCode('');       // limpar código anterior
-    setActiveTab('code');        // mudar para aba de código durante streaming
+    setStreamingCode('');       // limpar código de streaming anterior
 
     let accumulatedHtml = '';
+    let isChatResponse = false;
+    let chatReply = '';
+    let hasSwitchedToCode = false;
 
     try {
       const res = await fetch('/api/ai/site-builder', {
@@ -312,7 +313,18 @@ export default function AiSiteBuilderStudio() {
           try {
             const event = JSON.parse(jsonStr);
 
-            if (event.type === 'chunk') {
+            if (event.type === 'chat') {
+              // É uma resposta de conversa direta (não mexe no código do site)
+              isChatResponse = true;
+              chatReply = event.message || '';
+              modelUsed = event.modelUsed || 'Assistente';
+            } else if (event.type === 'chunk') {
+              // Só ativa visualizador de código se realmente estiver a receber HTML
+              if (!hasSwitchedToCode) {
+                hasSwitchedToCode = true;
+                setIsStreaming(true);
+                setActiveTab('code');
+              }
               accumulatedHtml += event.content;
               setStreamingCode(prev => prev + event.content);
               // Auto-scroll do terminal de código
@@ -333,7 +345,46 @@ export default function AiSiteBuilderStudio() {
         }
       }
 
-      // Stream concluído — publicar o HTML final
+      // Caso 1: Foi apenas uma conversa/saudação (mantém o site intacto!)
+      if (isChatResponse && chatReply) {
+        setIsStreaming(false);
+        setStreamingCode('');
+        setActiveTab('preview');
+
+        const aiMsg: ChatMessage = {
+          id: `msg_ai_${Date.now()}`,
+          role: 'assistant',
+          content: chatReply,
+          modelUsed,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+
+        const updatedMessages = [...messages, userMsg, aiMsg];
+        setMessages(updatedMessages);
+
+        if (currentHtml) {
+          saveProjectToDb({
+            id: projectId,
+            userEmail,
+            userName: currentUser?.name || 'Cliente',
+            title: projectTitle,
+            slug: projectSlug,
+            subdomain: projectSlug,
+            htmlContent: currentHtml,
+            promptHistory: updatedMessages,
+            versions: versions.map(v => ({
+              versionNumber: v.versionNumber,
+              htmlContent: v.html,
+              prompt: v.prompt,
+              createdAt: new Date().toISOString()
+            })),
+            status: isPublished ? 'published' : 'draft'
+          });
+        }
+        return;
+      }
+
+      // Caso 2: Gerou ou atualizou o código HTML do site
       if (accumulatedHtml) {
         setCurrentHtml(accumulatedHtml);
         setStreamingCode('');
