@@ -337,6 +337,7 @@ export default function RevistaStoryPage() {
       setTitleDone(false);
       fetchStory();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug]);
 
   const fetchStory = async () => {

@@ -25,6 +25,8 @@ export async function POST(req: Request) {
       coverImageUrl,
       category,
       readTime,
+      targetEmail,
+      targetName,
     } = body as {
       storyId: string;
       storyTitle: string;
@@ -34,6 +36,8 @@ export async function POST(req: Request) {
       coverImageUrl?: string;
       category?: string;
       readTime?: string;
+      targetEmail?: string;
+      targetName?: string;
     };
 
     if (!storyId || !storyTitle || !storySlug || !storyExcerpt || !authorName) {
@@ -45,36 +49,46 @@ export async function POST(req: Request) {
 
     await connectDB();
 
-    // ── 1. Recolher destinatários ──────────────────────────────────────────
-
-    // Platform users: active only, email confirmed
-    const platformUsers = await UserModel.find(
-      { status: 'active' },
-      { email: 1, name: 1 }
-    ).lean();
-
-    // Newsletter subscribers: active only
-    const newsletterSubs = await Newsletter.find(
-      { status: 'active' },
-      { email: 1, name: 1 }
-    ).lean();
-
-    // ── 2. Deduplicar por email (merge name from user if available) ─────────
+    // ── 1. Recolher destinatários (Individual ou Em Massa) ─────────────────
     const recipientMap = new Map<string, { email: string; name: string; source: 'user' | 'newsletter' | 'both' }>();
 
-    for (const u of platformUsers as Array<{ email: string; name?: string }>) {
-      if (!u.email) continue;
-      const key = u.email.toLowerCase();
-      recipientMap.set(key, { email: key, name: u.name || '', source: 'user' });
-    }
+    if (targetEmail && typeof targetEmail === 'string' && targetEmail.trim()) {
+      // Modo individual (envio pontual ou teste para um endereço específico)
+      const cleanEmail = targetEmail.trim().toLowerCase();
+      recipientMap.set(cleanEmail, {
+        email: cleanEmail,
+        name: (targetName && typeof targetName === 'string') ? targetName.trim() : '',
+        source: 'user',
+      });
+    } else {
+      // Modo em massa: Platform users ativos + Newsletter subscribers ativos
+      const platformUsers = await UserModel.find(
+        { status: 'active' },
+        { email: 1, name: 1 }
+      ).lean();
 
-    for (const s of newsletterSubs as Array<{ email: string; name?: string }>) {
-      if (!s.email) continue;
-      const key = s.email.toLowerCase();
-      if (recipientMap.has(key)) {
-        recipientMap.get(key)!.source = 'both';
-      } else {
-        recipientMap.set(key, { email: key, name: (s.name as string) || '', source: 'newsletter' });
+      const newsletterSubs = await Newsletter.find(
+        { status: 'active' },
+        { email: 1, name: 1 }
+      ).lean();
+
+      // Deduplicar por email (merge name do user se existir)
+      const usersList = (platformUsers as unknown) as Array<{ email?: string; name?: string }>;
+      for (const u of usersList) {
+        if (!u?.email) continue;
+        const key = u.email.toLowerCase();
+        recipientMap.set(key, { email: key, name: u.name || '', source: 'user' });
+      }
+
+      const subsList = (newsletterSubs as unknown) as Array<{ email?: string; name?: string }>;
+      for (const s of subsList) {
+        if (!s?.email) continue;
+        const key = s.email.toLowerCase();
+        if (recipientMap.has(key)) {
+          recipientMap.get(key)!.source = 'both';
+        } else {
+          recipientMap.set(key, { email: key, name: s.name || '', source: 'newsletter' });
+        }
       }
     }
 
