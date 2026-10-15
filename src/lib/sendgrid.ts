@@ -1043,7 +1043,112 @@ export async function sendAnalyticsMilestoneEmail(data: AnalyticsMilestoneEmailD
   });
 }
 
+// ——————————————————————————————————————
+// Revista "Codando Histórias" — Story Broadcast
+// ——————————————————————————————————————
 
+export interface StoryBroadcastOptions {
+  toEmail: string;
+  recipientName?: string;
+  storyTitle: string;
+  storySlug: string;
+  storyExcerpt: string;
+  authorName: string;
+  coverImageUrl?: string;
+  /** Category label e.g. "Empreendedorismo" */
+  category?: string;
+  /** Reading time e.g. "5 min" */
+  readTime?: string;
+  /** Unsubscribe link (required for newsletter subscribers) */
+  unsubscribeUrl?: string;
+}
 
+/**
+ * Envia o e-mail de nova história publicada na Revista "Codando Histórias"
+ * para utilizadores da plataforma e subscritores da newsletter.
+ */
+export async function sendStoryBroadcastEmail(opts: StoryBroadcastOptions): Promise<{ success: boolean; error?: string }> {
+  const storyUrl = `${SITE_URL}/revista/${opts.storySlug}`;
+  const recipientLabel = opts.recipientName?.trim() || 'Leitor(a)';
+  const categoryTag = opts.category ? opts.category.toUpperCase() : 'CODANDO HISTÓRIAS';
+  const readTimeLabel = opts.readTime ? `${opts.readTime} de leitura` : '';
 
+  const coverBlock = opts.coverImageUrl
+    ? `<img src="${opts.coverImageUrl}" alt="${opts.storyTitle}" style="width:100%;height:220px;object-fit:cover;display:block;border-radius:12px 12px 0 0;" />`
+    : `<div style="width:100%;height:180px;background:linear-gradient(135deg,#0f172a,#1e3a8a,#312e81);border-radius:12px 12px 0 0;display:flex;align-items:center;justify-content:center;">
+        <span style="font-size:48px;">📖</span>
+       </div>`;
+
+  const unsubscribeBlock = opts.unsubscribeUrl
+    ? `<p style="color:#94a3b8;font-size:11px;margin:12px 0 0;text-align:center;">
+        Recebe este email porque subscreveu à newsletter ou criou uma conta na WEHOSTHERE.&nbsp;
+        <a href="${opts.unsubscribeUrl}" style="color:#64748b;text-decoration:underline;">Cancelar subscrição</a>
+       </p>`
+    : '';
+
+  return sendEmail({
+    to: opts.toEmail,
+    subject: `📖 Nova história: ${opts.storyTitle} | Codando Histórias`,
+    html: `
+      <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;background:#ffffff;">
+
+        <!-- Header -->
+        <div style="background:linear-gradient(135deg,#0f172a 0%,#1e3a8a 60%,#312e81 100%);padding:28px 32px 20px;border-radius:16px 16px 0 0;text-align:center;">
+          <img src="${SITE_URL}/logo.png" alt="WEHOSTHERE" style="width:140px;height:auto;margin:0 auto 14px;display:block;" />
+          <div style="display:inline-block;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);padding:5px 14px;border-radius:20px;">
+            <span style="color:#a5b4fc;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;">Codando Histórias · Nova Publicação</span>
+          </div>
+        </div>
+
+        <!-- Cover / story card -->
+        <div style="background:#f8fafc;border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0;padding:24px 28px;">
+
+          <!-- Category + read time pill -->
+          <div style="margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap;">
+            <span style="background:#eff6ff;color:#1d4ed8;font-size:11px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;padding:4px 12px;border-radius:20px;">${categoryTag}</span>
+            ${readTimeLabel ? `<span style="background:#f1f5f9;color:#64748b;font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;">⏱ ${readTimeLabel}</span>` : ''}
+          </div>
+
+          <!-- Cover image (if available) -->
+          <div style="border-radius:12px;overflow:hidden;margin-bottom:20px;">${coverBlock}</div>
+
+          <!-- Greeting -->
+          <p style="color:#475569;font-size:14px;margin:0 0 8px;">Olá, <strong>${recipientLabel}</strong>!</p>
+          <p style="color:#475569;font-size:14px;line-height:1.6;margin:0 0 20px;">
+            Uma nova história foi publicada na <strong>Revista Codando Histórias</strong> — leituras sobre tech, empreendedorismo e inovação em Moçambique.
+          </p>
+
+          <!-- Story card -->
+          <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:14px;overflow:hidden;margin-bottom:24px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+            <div style="padding:24px 22px;">
+              <h2 style="color:#0f172a;font-size:20px;font-weight:800;margin:0 0 10px;line-height:1.3;">${opts.storyTitle}</h2>
+              <p style="color:#64748b;font-size:13px;margin:0 0 6px;">✍️ Por <strong style="color:#334155;">${opts.authorName}</strong></p>
+              <p style="color:#475569;font-size:14px;line-height:1.7;margin:14px 0 20px;">${opts.storyExcerpt.length > 220 ? opts.storyExcerpt.slice(0, 220) + '…' : opts.storyExcerpt}</p>
+              <div style="text-align:center;">
+                <a href="${storyUrl}" style="background:linear-gradient(135deg,#1d4ed8,#4f46e5);color:#ffffff;font-weight:700;font-size:14px;padding:14px 32px;border-radius:10px;text-decoration:none;display:inline-block;box-shadow:0 4px 12px rgba(29,78,216,0.3);">
+                  Ler história completa →
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- CTA secondary -->
+          <div style="text-align:center;margin-bottom:8px;">
+            <a href="${SITE_URL}/revista" style="color:#4f46e5;font-size:13px;font-weight:600;text-decoration:none;">
+              📚 Ver todas as histórias na revista
+            </a>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="background:#f1f5f9;padding:18px 28px;border-radius:0 0 16px 16px;border:1px solid #e2e8f0;border-top:none;text-align:center;">
+          <p style="color:#64748b;font-size:12px;margin:0 0 4px;">
+            WEHOSTHERE · Plataforma de Hospedagem Profissional em Moçambique
+          </p>
+          ${unsubscribeBlock}
+        </div>
+
+      </div>`,
+  });
+}
 

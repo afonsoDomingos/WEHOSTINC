@@ -45,7 +45,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
         const authorName = updatedStory?.author?.name || body.author?.name || 'Codando Histórias';
         const storyUrl = `${SITE_URL}/revista/${storySlug}`;
 
-        // Fire-and-forget — não bloqueia a resposta
+        // Fire-and-forget — não bloqueia a resposta (Push)
         fetch(`${SITE_URL}/api/push/broadcast`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -58,7 +58,28 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
           }),
         }).catch((e) => console.error('[Revista] Erro ao enviar push broadcast:', e));
 
-        console.log(`[Revista] Push broadcast agendado para história publicada: "${storyTitle}"`);
+        // Fire-and-forget — Email broadcast para utilizadores + subscritores newsletter
+        fetch(`${SITE_URL}/api/revista/broadcast-story`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            storyId: params.id,
+            storyTitle,
+            storySlug,
+            storyExcerpt,
+            authorName,
+            coverImageUrl: updatedStory?.coverImage || body.coverImage || undefined,
+            category: updatedStory?.category || body.category || undefined,
+            readTime: updatedStory?.readTime || body.readTime || undefined,
+          }),
+        })
+          .then(async (res) => {
+            const data = await res.json().catch(() => ({}));
+            console.log(`[Revista] Email broadcast concluído — enviados: ${data.sent ?? '?'}, falhados: ${data.failed ?? '?'}`);
+          })
+          .catch((e) => console.error('[Revista] Erro ao iniciar email broadcast:', e));
+
+        console.log(`[Revista] Push + Email broadcast agendados para história publicada: "${storyTitle}"`);
       } catch (pushErr) {
         // Não falha a operação principal por causa do push
         console.error('[Revista] Erro ao preparar push broadcast:', pushErr);
