@@ -763,7 +763,7 @@ export default function RevistaPage() {
         .revista-top-bar {
           background: linear-gradient(90deg, #3C096C 0%, #5A189A 50%, #7B2CBF 100%);
           color: #ffffff;
-          padding: 0.5rem 1.25rem;
+          padding: 0.45rem 1rem;
           font-size: 0.82rem;
           font-weight: 500;
           position: relative;
@@ -773,7 +773,8 @@ export default function RevistaPage() {
         .revista-top-bar-inner {
           max-width: 1100px; margin: 0 auto;
           display: flex; align-items: center; justify-content: center;
-          gap: 0.75rem; flex-wrap: wrap; text-align: center;
+          gap: 0.65rem; flex-wrap: nowrap; text-align: center;
+          white-space: nowrap;
         }
         .revista-top-bar-badge {
           background: rgba(255, 255, 255, 0.22);
@@ -784,26 +785,35 @@ export default function RevistaPage() {
           border-radius: 9999px;
           border: 1px solid rgba(255, 255, 255, 0.35);
           text-transform: uppercase;
+          flex-shrink: 0;
         }
         .revista-top-bar-text {
           color: #ffffff;
           font-weight: 500;
+          font-size: 0.8rem;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
         .revista-top-bar-link {
           color: #ffffff;
           text-decoration: none;
-          display: inline-flex; align-items: center; gap: 0.35rem;
+          display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem;
           font-weight: 700;
-          background: rgba(255, 255, 255, 0.15);
+          background: rgba(255, 255, 255, 0.18);
           padding: 0.18rem 0.75rem;
           border-radius: 9999px;
-          border: 1px solid rgba(255, 255, 255, 0.25);
+          border: 1px solid rgba(255, 255, 255, 0.3);
           transition: all 0.2s;
+          flex-shrink: 0;
         }
         .revista-top-bar-link:hover {
           background: #ffffff;
           color: #5A189A;
-          transform: translateX(2px);
+          transform: scale(1.05);
+        }
+        .revista-top-bar-link-text {
+          display: inline;
         }
 
         /* ── Story Card (Maior, Destacado e Visível) ── */
@@ -1337,10 +1347,22 @@ export default function RevistaPage() {
           }
         }
         @media (max-width: 600px) {
-          .revista-top-bar { padding: 0.4rem 0.75rem; }
-          .revista-top-bar-inner { gap: 0.45rem; justify-content: center; }
-          .revista-top-bar-text { font-size: 0.74rem; }
-          .revista-top-bar-link { font-size: 0.72rem; padding: 0.15rem 0.6rem; }
+          .revista-top-bar { padding: 0.35rem 0.75rem; }
+          .revista-top-bar-inner { gap: 0.5rem; flex-wrap: nowrap; justify-content: center; }
+          .revista-top-bar-text { font-size: 0.75rem; }
+          .revista-top-bar-link {
+            padding: 0.3rem;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.22);
+          }
+          .revista-top-bar-link:hover {
+            background: #ffffff;
+            color: #5A189A;
+            transform: scale(1.1);
+          }
+          .revista-top-bar-link-text { display: none; }
           .revista-hero { padding: 2rem 1rem 1rem; }
           .hero-title { font-size: 1.45rem; }
           .stories-section { padding: 0.5rem 1rem 2.5rem; }
@@ -1427,9 +1449,10 @@ export default function RevistaPage() {
                 className="revista-top-bar-link"
                 download="Codando-Historias-Edicao-01.pdf"
                 title="Descarregar PDF da revista em alta resolução"
+                aria-label="Descarregar PDF"
               >
                 <Download size={13} />
-                <span>Descarregar PDF →</span>
+                <span className="revista-top-bar-link-text">Descarregar PDF →</span>
               </a>
             </div>
           </div>

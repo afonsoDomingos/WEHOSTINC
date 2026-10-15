@@ -529,7 +529,7 @@ export default function RevistaStoryPage() {
           background: linear-gradient(90deg, #3C096C 0%, #5A189A 50%, #7B2CBF 100%);
           color: #ffffff;
           padding: 0.45rem 1rem;
-          font-size: 0.8rem;
+          font-size: 0.82rem;
           font-weight: 500;
           position: relative;
           z-index: 55;
@@ -538,33 +538,47 @@ export default function RevistaStoryPage() {
         .story-top-bar-inner {
           max-width: 1100px; margin: 0 auto;
           display: flex; align-items: center; justify-content: center;
-          gap: 0.75rem; flex-wrap: wrap; text-align: center;
+          gap: 0.65rem; flex-wrap: nowrap; text-align: center;
+          white-space: nowrap;
         }
         .story-top-bar-badge {
           background: rgba(255, 255, 255, 0.22);
           color: #ffffff;
-          font-size: 0.68rem; font-weight: 800;
+          font-size: 0.7rem; font-weight: 800;
           letter-spacing: 0.06em;
-          padding: 0.12rem 0.6rem;
+          padding: 0.15rem 0.65rem;
           border-radius: 9999px;
           border: 1px solid rgba(255, 255, 255, 0.35);
           text-transform: uppercase;
+          flex-shrink: 0;
+        }
+        .story-top-bar-text {
+          color: #ffffff;
+          font-weight: 500;
+          font-size: 0.8rem;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
         .story-top-bar-link {
           color: #ffffff;
           text-decoration: none;
-          display: inline-flex; align-items: center; gap: 0.35rem;
+          display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem;
           font-weight: 700;
-          background: rgba(255, 255, 255, 0.15);
-          padding: 0.15rem 0.7rem;
+          background: rgba(255, 255, 255, 0.18);
+          padding: 0.18rem 0.75rem;
           border-radius: 9999px;
-          border: 1px solid rgba(255, 255, 255, 0.25);
+          border: 1px solid rgba(255, 255, 255, 0.3);
           transition: all 0.2s;
+          flex-shrink: 0;
         }
         .story-top-bar-link:hover {
           background: #ffffff;
           color: #5A189A;
-          transform: translateX(2px);
+          transform: scale(1.05);
+        }
+        .story-top-bar-link-text {
+          display: inline;
         }
 
         /* ── Sticky Header (Barra Roxa + Navbar) ── */
@@ -1638,9 +1652,22 @@ export default function RevistaStoryPage() {
         .story-nav-back-link:hover { color: #7B2CBF; }
 
         @media (max-width: 640px) {
-          .story-top-bar { padding: 0.4rem 0.75rem; font-size: 0.74rem; }
-          .story-top-bar-inner { gap: 0.45rem; justify-content: center; }
-          .story-top-bar-link { font-size: 0.72rem; padding: 0.15rem 0.6rem; }
+          .story-top-bar { padding: 0.35rem 0.75rem; }
+          .story-top-bar-inner { gap: 0.5rem; flex-wrap: nowrap; justify-content: center; }
+          .story-top-bar-text { font-size: 0.75rem; }
+          .story-top-bar-link {
+            padding: 0.3rem;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.22);
+          }
+          .story-top-bar-link:hover {
+            background: #ffffff;
+            color: #5A189A;
+            transform: scale(1.1);
+          }
+          .story-top-bar-link-text { display: none; }
           .story-nav-inner { padding: 0 0.85rem; height: 56px; }
           .story-nav-brand-text { font-size: 0.82rem; }
           .story-nav-home-logo { font-size: 0.65rem; }
@@ -1655,10 +1682,8 @@ export default function RevistaStoryPage() {
         }
         @media (max-width: 480px) {
           .story-nav-home-logo { display: none; }
-          .story-top-bar-inner { gap: 0.35rem; font-size: 0.72rem; }
         }
         @media (max-width: 400px) {
-          .story-top-bar-text { display: none; }
           .story-nav-brand-text { display: none; }
           .story-title { font-size: 1.3rem; }
           .story-excerpt-typed { font-size: 0.92rem; }
@@ -1678,9 +1703,10 @@ export default function RevistaStoryPage() {
                 className="story-top-bar-link"
                 download="Codando-Historias-Edicao-01.pdf"
                 title="Descarregar PDF da revista em alta resolução"
+                aria-label="Descarregar PDF"
               >
                 <Download size={13} />
-                <span>Descarregar PDF →</span>
+                <span className="story-top-bar-link-text">Descarregar PDF →</span>
               </a>
             </div>
           </div>
