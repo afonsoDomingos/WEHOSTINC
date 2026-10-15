@@ -102,7 +102,7 @@ export default function Navbar() {
         />
       )}
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
-        <div className="flex justify-between items-center py-2.5 sm:py-3 md:py-4">
+        <div className="flex justify-between items-center py-1.5 sm:py-2 md:py-2.5">
           
           {/* Logo */}
           <BrandLogo onClick={closeMobileMenu} />
