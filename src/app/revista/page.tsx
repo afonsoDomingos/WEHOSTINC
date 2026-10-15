@@ -287,7 +287,7 @@ export default function RevistaPage() {
   return (
     <>
       <style>{`
-        .revista-page { font-family: 'Poppins', sans-serif; background: #f8fafc; min-height: 100vh; }
+        .revista-page { font-family: 'Poppins', sans-serif; background: #f8fafc; min-height: 100vh; width: 100%; overflow-x: hidden; }
 
         /* ── Sticky Header (Barra Roxa + Navbar) ─────────────── */
         .revista-sticky-header {
@@ -712,19 +712,35 @@ export default function RevistaPage() {
           max-width: 1100px; margin: 0 auto;
           padding: 0.5rem 2rem 4.5rem;
           display: grid; grid-template-columns: 1fr 340px; gap: 3rem;
+          width: 100%;
+          box-sizing: border-box;
+          min-width: 0;
         }
         .section-title { font-size: 1.3rem; font-weight: 800; color: #0f172a; margin-bottom: 1.25rem; }
 
         /* Tabs */
-        .tabs { display: flex; gap: 0; margin-bottom: 1.5rem; border-bottom: 1px solid #e2e8f0; }
+        .tabs {
+          display: flex;
+          gap: 0;
+          margin-bottom: 1.5rem;
+          border-bottom: 1px solid #e2e8f0;
+          align-items: center;
+        }
         .tab-btn {
           font-size: 0.83rem; font-weight: 600; color: #94a3b8;
           padding: 0.5rem 1rem; cursor: pointer; border: none;
           background: none; border-bottom: 2px solid transparent;
           margin-bottom: -1px; transition: all 0.2s;
+          white-space: nowrap;
         }
         .tab-btn.active { color: #7B2CBF; border-bottom-color: #7B2CBF; }
         .tab-btn:hover:not(.active) { color: #475569; }
+        .tabs-search-container {
+          margin-left: auto;
+        }
+        .tabs-search-input {
+          width: 180px;
+        }
 
         /* Search */
         .search-wrap {
@@ -806,6 +822,9 @@ export default function RevistaPage() {
           box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
           position: relative;
           overflow: hidden;
+          width: 100%;
+          box-sizing: border-box;
+          min-width: 0;
         }
         .story-card:hover {
           transform: translateY(-3px);
@@ -847,6 +866,7 @@ export default function RevistaPage() {
           justify-content: center;
           gap: 0.45rem;
           min-width: 0;
+          overflow: hidden;
         }
         .story-card-cat {
           display: inline-block;
@@ -865,6 +885,8 @@ export default function RevistaPage() {
           line-height: 1.35;
           margin: 0.15rem 0 0.35rem;
           transition: color 0.2s;
+          word-break: break-word;
+          overflow-wrap: break-word;
         }
         .story-card:hover .story-card-title {
           color: #5A189A;
@@ -878,6 +900,8 @@ export default function RevistaPage() {
           -webkit-line-clamp: 2;
           -webkit-box-orient: vertical;
           overflow: hidden;
+          word-break: break-word;
+          overflow-wrap: break-word;
         }
         .story-card-meta {
           display: flex;
@@ -889,6 +913,14 @@ export default function RevistaPage() {
           padding-top: 0.6rem;
           border-top: 1px solid #f1f5f9;
           flex-wrap: wrap;
+          justify-content: space-between;
+        }
+        .story-card-meta-left {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          flex-wrap: wrap;
+          min-width: 0;
         }
         .story-card-author-info {
           display: flex;
@@ -896,6 +928,7 @@ export default function RevistaPage() {
           gap: 0.45rem;
           font-weight: 600;
           color: #334155;
+          white-space: nowrap;
         }
         .story-card-author-avatar {
           width: 22px;
@@ -914,7 +947,12 @@ export default function RevistaPage() {
         .story-card-author-avatar img {
           width: 100%; height: 100%; object-fit: cover;
         }
-        .story-card-meta span { display: flex; align-items: center; gap: 0.25rem; }
+        .story-card-meta-tag {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.25rem;
+          white-space: nowrap;
+        }
         .story-card-read-more {
           margin-left: auto;
           color: #ffffff;
@@ -928,6 +966,8 @@ export default function RevistaPage() {
           gap: 0.3rem;
           transition: all 0.2s ease;
           box-shadow: 0 2px 8px rgba(123, 44, 191, 0.22);
+          white-space: nowrap;
+          flex-shrink: 0;
         }
         .story-card:hover .story-card-read-more {
           background: #5A189A;
@@ -949,6 +989,8 @@ export default function RevistaPage() {
           display: flex;
           flex-direction: column;
           gap: 1.1rem;
+          box-sizing: border-box;
+          max-width: 100%;
         }
         .sidebar-pdf-card::after {
           content: '';
@@ -964,6 +1006,19 @@ export default function RevistaPage() {
           grid-template-columns: 85px 1fr;
           gap: 1rem;
           align-items: center;
+          min-width: 0;
+        }
+        .sidebar-pdf-info {
+          min-width: 0;
+          overflow: hidden;
+        }
+        .sidebar-pdf-title {
+          word-break: break-word;
+          overflow-wrap: break-word;
+        }
+        .sidebar-pdf-desc {
+          word-break: break-word;
+          overflow-wrap: break-word;
         }
         .sidebar-pdf-mockup {
           width: 85px;
@@ -1289,17 +1344,63 @@ export default function RevistaPage() {
           .revista-hero { padding: 2rem 1rem 1rem; }
           .hero-title { font-size: 1.45rem; }
           .stories-section { padding: 0.5rem 1rem 2.5rem; }
+          .tabs {
+            flex-wrap: wrap;
+            gap: 0.35rem;
+            border-bottom: none;
+            margin-bottom: 1.2rem;
+          }
+          .tab-btn {
+            padding: 0.4rem 0.75rem;
+            font-size: 0.78rem;
+          }
+          .tabs-search-container {
+            width: 100% !important;
+            margin-left: 0 !important;
+            margin-top: 0.5rem;
+          }
+          .tabs-search-input {
+            width: 100% !important;
+          }
+        }
+        @media (max-width: 520px) {
+          .story-card-meta {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0.65rem;
+          }
+          .story-card-meta-left {
+            justify-content: flex-start;
+            gap: 0.55rem;
+            font-size: 0.72rem;
+          }
+          .story-card-read-more {
+            width: 100%;
+            justify-content: center;
+            margin-left: 0;
+            padding: 0.45rem 1rem;
+            font-size: 0.78rem;
+          }
         }
         @media (max-width: 480px) {
           .revista-top-bar-inner { font-size: 0.72rem; }
           .revista-nav-inner { padding: 0 0.75rem; height: 56px; }
           .revista-nav-left { gap: 0.45rem; }
-          .revista-nav-home { padding: 0.25rem 0.5rem; }
-          .revista-nav-home-logo { font-size: 0.68rem; }
+          .revista-nav-home { padding: 0.25rem 0.45rem; }
+          .revista-nav-home-logo { display: none; }
           .revista-nav-brand-text { font-size: 0.88rem; }
-          .sidebar-pdf-content { grid-template-columns: 75px 1fr; gap: 0.75rem; }
-          .sidebar-pdf-mockup { width: 75px; height: 105px; }
-          .sidebar-pdf-title { font-size: 0.88rem; }
+          .sidebar-pdf-card { padding: 1.1rem; }
+          .sidebar-pdf-content { grid-template-columns: 68px 1fr; gap: 0.75rem; }
+          .sidebar-pdf-mockup { width: 68px; height: 96px; padding: 0.45rem; }
+          .sidebar-pdf-mockup-avatar { width: 28px; height: 28px; }
+          .sidebar-pdf-mockup-badge { font-size: 0.52rem; }
+          .sidebar-pdf-mockup-brand { font-size: 0.6rem; }
+          .sidebar-pdf-mockup-footer { font-size: 0.52rem; }
+          .sidebar-pdf-title { font-size: 0.85rem; line-height: 1.3; word-break: break-word; overflow-wrap: break-word; }
+          .sidebar-pdf-desc { font-size: 0.74rem; line-height: 1.35; word-break: break-word; overflow-wrap: break-word; }
+          .story-card { padding: 1rem; }
+          .story-card-title { font-size: 1.08rem; }
+          .story-card-img { height: 180px; }
         }
         @media (max-width: 360px) {
           .revista-top-bar-text { display: none; }
@@ -1308,8 +1409,8 @@ export default function RevistaPage() {
           .cat-btn { font-size: 0.72rem; padding: 0.3rem 0.7rem; }
           .revista-mobile-cats { grid-template-columns: 1fr; }
           .hero-title { font-size: 1.25rem; }
-          .story-card { padding: 1rem; }
-          .story-card-title { font-size: 1.05rem; }
+          .story-card { padding: 0.85rem; }
+          .story-card-title { font-size: 1rem; }
         }
       `}</style>
 
@@ -1595,7 +1696,7 @@ export default function RevistaPage() {
                   {t === 'recentes' ? 'Recentes' : t === 'mais-lidas' ? 'Mais lidas' : 'Em destaque'}
                 </button>
               ))}
-              <div style={{ marginLeft: 'auto' }}>
+              <div className="tabs-search-container">
                 <div className="search-wrap" style={{ marginBottom: 0 }}>
                   <Search size={14} className="search-icon" />
                   <input
@@ -1603,7 +1704,7 @@ export default function RevistaPage() {
                     placeholder="Pesquisar..."
                     value={search}
                     onChange={e => setSearch(e.target.value)}
-                    style={{ width: '180px' }}
+                    className="tabs-search-input"
                   />
                 </div>
               </div>
@@ -1646,20 +1747,22 @@ export default function RevistaPage() {
                         <p className="story-card-excerpt">{story.excerpt}</p>
                       )}
                       <div className="story-card-meta">
-                        <div className="story-card-author-info">
-                          <div className="story-card-author-avatar">
-                            {story.author?.avatar ? (
-                              <img src={story.author.avatar} alt={story.author.name} />
-                            ) : (
-                              story.author?.name?.[0]?.toUpperCase() || 'W'
-                            )}
+                        <div className="story-card-meta-left">
+                          <div className="story-card-author-info">
+                            <div className="story-card-author-avatar">
+                              {story.author?.avatar ? (
+                                <img src={story.author.avatar} alt={story.author.name} />
+                              ) : (
+                                story.author?.name?.[0]?.toUpperCase() || 'W'
+                              )}
+                            </div>
+                            <span>{story.author?.name || 'WEHOSTHERE'}</span>
                           </div>
-                          <span>{story.author?.name || 'WEHOSTHERE'}</span>
+                          {story.readingTime && (
+                            <span className="story-card-meta-tag"><Clock size={12} /> {story.readingTime} min</span>
+                          )}
+                          <span className="story-card-meta-tag"><Eye size={12} /> {story.views} leituras</span>
                         </div>
-                        {story.readingTime && (
-                          <span><Clock size={12} /> {story.readingTime} min</span>
-                        )}
-                        <span><Eye size={12} /> {story.views} leituras</span>
                         <span className="story-card-read-more">
                           Ler história <ChevronRight size={14} />
                         </span>

@@ -522,7 +522,7 @@ export default function RevistaStoryPage() {
   return (
     <>
       <style>{`
-        .story-page { font-family: 'Poppins', sans-serif; background: #f8fafc; min-height: 100vh; }
+        .story-page { font-family: 'Poppins', sans-serif; background: #f8fafc; min-height: 100vh; width: 100%; overflow-x: hidden; }
 
         /* ── Top Announcement Bar (estilo Kabum com cores WEHOSTHERE) ── */
         .story-top-bar {
@@ -1355,6 +1355,15 @@ export default function RevistaStoryPage() {
           .story-adjacent-nav { padding: 1.75rem 1rem 0.5rem; }
           .adj-story-avatar { width: 58px; height: 58px; }
           .adj-story-excerpt { display: none; }
+          .adj-story-footer {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0.55rem;
+          }
+          .adj-story-btn {
+            width: 100%;
+            justify-content: center;
+          }
         }
 
         /* ── Dynamic Processing Loader ── */
@@ -1643,6 +1652,10 @@ export default function RevistaStoryPage() {
           .related-section { padding: 0 1rem 3rem; }
           .story-nl-row { flex-direction: column; }
           .pull-quote { padding: 0.75rem 1rem; font-size: 1rem; }
+        }
+        @media (max-width: 480px) {
+          .story-nav-home-logo { display: none; }
+          .story-top-bar-inner { gap: 0.35rem; font-size: 0.72rem; }
         }
         @media (max-width: 400px) {
           .story-top-bar-text { display: none; }
