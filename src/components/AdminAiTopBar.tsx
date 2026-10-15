@@ -8,7 +8,7 @@ import {
   Mic, MicOff, Send, Sparkles, X, ArrowRight, 
   Copy, Check, RefreshCw, BarChart3, Users, ShoppingBag, 
   CreditCard, LifeBuoy, Handshake, Globe, Mail,
-  Server, EyeOff
+  Server, EyeOff, BookOpen
 } from 'lucide-react';
 
 interface ChatMessage {
@@ -250,10 +250,10 @@ export default function AdminAiTopBar({ isGlobalRoot = false }: AdminAiTopBarPro
     { label: 'Utilizadores Recentes', icon: Users, prompt: 'Quem são os últimos utilizadores registados no sistema?' },
     { label: 'Pedidos & Vendas', icon: ShoppingBag, prompt: 'Mostre a lista dos últimos pedidos e vendas realizadas' },
     { label: 'Faturas Pendentes', icon: CreditCard, prompt: 'Quais faturas ou clientes têm pagamentos pendentes?' },
+    { label: 'Revista & Histórias', icon: BookOpen, prompt: 'Como gerir e publicar histórias na revista Codando Histórias?' },
     { label: 'Tickets de Suporte', icon: LifeBuoy, prompt: 'Temos algum chamado de suporte ou ticket em aberto?' },
     { label: 'Comissões de Afiliados', icon: Handshake, prompt: 'Qual o valor total de comissões pendentes de afiliados?' },
     { label: 'Configuração DNS', icon: Globe, prompt: 'Como configurar os registos DNS do email Migadu?' },
-    { label: 'Comunicação em Massa', icon: Mail, prompt: 'Como enviar um email em massa para todos os clientes?' },
   ];
 
   const clientQuickPrompts = [
@@ -261,13 +261,30 @@ export default function AdminAiTopBar({ isGlobalRoot = false }: AdminAiTopBarPro
     { label: 'Registo de Domínio .co.mz', icon: Globe, prompt: 'Como registar e qual o preço de um domínio .co.mz?' },
     { label: 'Email Profissional', icon: Mail, prompt: 'Como funciona e como configurar o email corporativo Migadu?' },
     { label: 'Criação de Sites', icon: Sparkles, prompt: 'Como pedir um orçamento para criação de site ou loja online?' },
+    { label: 'Histórias da Revista', icon: BookOpen, prompt: 'Quais são as histórias publicadas na revista Codando Histórias?' },
     { label: 'Formas de Pagamento', icon: CreditCard, prompt: 'Quais são os métodos de pagamento aceites em Moçambique?' },
     { label: 'Suporte Técnico', icon: LifeBuoy, prompt: 'Como abrir um ticket de suporte técnico?' },
+    { label: 'Comissões de Afiliados', icon: Handshake, prompt: 'Como funciona o programa de afiliados e comissões da WEHOSTHERE?' },
+  ];
+
+  // Sugestões contextuais exclusivas para quando o visitante está na secção da Revista
+  const revistaQuickPrompts = [
+    { label: 'Histórias em Destaque', icon: BookOpen, prompt: 'Quais são as principais histórias publicadas na revista Codando Histórias?' },
+    { label: 'Descarregar Edição em PDF', icon: BookOpen, prompt: 'Como descarregar a nova edição da revista Codando Histórias em PDF?' },
+    { label: 'Planos de Hospedagem', icon: Server, prompt: 'Quais são os planos de hospedagem disponíveis e os preços?' },
+    { label: 'Registo de Domínio .co.mz', icon: Globe, prompt: 'Como registar e qual o preço de um domínio .co.mz?' },
+    { label: 'Criação de Sites', icon: Sparkles, prompt: 'Como pedir um orçamento para criação de site ou loja online?' },
+    { label: 'Suporte Técnico', icon: LifeBuoy, prompt: 'Como entrar em contacto com o suporte da WEHOSTHERE?' },
   ];
 
   // 🔒 REGRA ESTRITA: Perguntas de administração APENAS aparecem se for administrador E estiver dentro da rota /admin
   const showAdminPrompts = isOnAdminRoute && isAdminUser;
-  const activeQuickPrompts = showAdminPrompts ? adminQuickPrompts : clientQuickPrompts;
+  const isRevistaRoute = pathname.startsWith('/revista');
+  const activeQuickPrompts = showAdminPrompts 
+    ? adminQuickPrompts 
+    : isRevistaRoute 
+      ? revistaQuickPrompts 
+      : clientQuickPrompts;
 
   const formatContent = (rawText: string) => {
     const cleanText = (rawText || '')

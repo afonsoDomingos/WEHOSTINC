@@ -43,11 +43,18 @@ Sobre a WEHOSTHERE:
   * E-Mola (Movitel).
   * Cartões de Débito / Crédito Visa e Mastercard (ScalePay).
   * Transferência Bancária (BCI, Standard Bank, Millennium BIM).
+- Revista Codando Histórias (Editorial da WEHOSTHERE):
+  * Publicação online oficial que inspira e conecta a comunidade de tecnologia em Moçambique e no mundo.
+  * Tópicos: Carreira em Tecnologia, Startups & Empreendedorismo, Programação & Código, Inteligência Artificial (IA) e Liderança em Tech.
+  * Histórias reais de profissionais do mercado moçambicano (como a edição especial com a Rofina Jorge Cuna).
+  * Inclui leitura interativa com tempo estimado, download gratuito de edições em PDF e newsletter de novos lançamentos.
+  * Link oficial da Revista: [/revista](/revista)
 - Links Úteis para Navegação:
   * Planos de Hospedagem: [/hospedagem](/hospedagem)
   * Pesquisa e Registo de Domínios: [/dominios](/dominios)
   * Pedir Orçamento de Criação de Site: [/site-quote](/site-quote)
   * Email Corporativo: [/email-profissional](/email-profissional)
+  * Revista Codando Histórias: [/revista](/revista)
   * Servidores VPS: [/vps](/vps)
   * Entrar / Painel do Cliente: [/dashboard](/dashboard)
   * Abrir Chamado de Suporte: [/dashboard/tickets](/dashboard/tickets)
@@ -443,6 +450,15 @@ function generateAdminLocalResponse(query: string, data: any): string {
       `Gerir ou consultar serviços em: [/hospedagem](/hospedagem)`;
   }
 
+  // 13. Revista Codando Histórias & Publicações
+  if (lower.includes('revista') || lower.includes('história') || lower.includes('historia') || lower.includes('codando')) {
+    return `Revista Codando Histórias — Gestão Editorial:\n\n` +
+      `A revista é o espaço editorial da WEHOSTHERE dedicado a cobrir carreira tech, desenvolvimento de software e ecossistema de startups em Moçambique.\n\n` +
+      `• Aceder à revista pública: [/revista](/revista)\n` +
+      `• Gerir, criar e editar histórias: [/admin/revista](/admin/revista)\n` +
+      `• Automação integrada: A publicação de uma história aciona automaticamente notificações Push e envio de Email Broadcast para utilizadores e assinantes da newsletter.`;
+  }
+
   // 13. Visão Geral Executiva (Status Geral / Métricas)
   return `WEHOSTHERE AI Copilot — Painel Executivo:\n\n` +
     `• Utilizadores: ${data.users?.total || 0} (${data.users?.active || 0} ativos)\n` +
@@ -605,7 +621,27 @@ function generateClientLocalResponse(query: string, clientData: any): string {
     return `Os Seus Serviços na WEHOSTHERE:\n\nÚltimos Pedidos:\n${ordersText}\n\nAceda ao painel completo em: [/dashboard](/dashboard) ou abra um ticket de suporte em [/dashboard/tickets](/dashboard/tickets)`;
   }
 
-  // 8. Planos de Hospedagem (Quando a pergunta é sobre hospedagem ou planos em geral)
+  // 8. Revista Codando Histórias (histórias, artigos, revista, etc.)
+  if (
+    lower.includes('revista') || 
+    lower.includes('história') || 
+    lower.includes('historia') || 
+    lower.includes('codando') || 
+    lower.includes('artigo') || 
+    lower.includes('edição') || 
+    lower.includes('edicao')
+  ) {
+    return `Revista Codando Histórias — WEHOSTHERE:\n\n` +
+      `A revista "Codando Histórias" é o espaço editorial oficial da WEHOSTHERE dedicado a destacar histórias reais de quem constrói e lidera a tecnologia em Moçambique.\n\n` +
+      `Destaques e Conteúdos:\n` +
+      `• Histórias de Carreira: Trajetórias inspiradoras de devs, programadoras e engenheiros de software\n` +
+      `• Startups & Inovação: Empreendedores e soluções digitais criadas no nosso ecossistema\n` +
+      `• Código & IA: Boas práticas de programação, arquitetura cloud e novas ferramentas\n` +
+      `• Descarregar a Edição em PDF: Download gratuito para ler onde e quando quiser\n\n` +
+      `Leia agora todas as publicações em: [/revista](/revista)`;
+  }
+
+  // 9. Planos de Hospedagem (Quando a pergunta é sobre hospedagem ou planos em geral)
   if (
     lower.includes('hospedagem') || 
     lower.includes('alojamento') || 
@@ -631,6 +667,7 @@ function generateClientLocalResponse(query: string, clientData: any): string {
     `• Registar um domínio .co.mz ou .com: [/dominios](/dominios)\n` +
     `• Consultar planos de hospedagem e preços: [/hospedagem](/hospedagem)\n` +
     `• Pedir orçamento para criar um site: [/site-quote](/site-quote)\n` +
+    `• Ler a Revista Codando Histórias: [/revista](/revista)\n` +
     `• Configuração de email profissional: [/email-profissional](/email-profissional)\n` +
     `• Abrir um chamado de suporte: [/dashboard/tickets](/dashboard/tickets)\n\n` +
     `Digite a sua dúvida ou selecione uma das opções acima!`;
