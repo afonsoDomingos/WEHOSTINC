@@ -70,6 +70,11 @@ export default function AiSiteBuilderStudio() {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const versionMenuRef = useRef<HTMLDivElement>(null);
 
+  // Estados de Streaming
+  const [streamingCode, setStreamingCode] = useState<string>(''); // código a aparecer em tempo real
+  const [isStreaming, setIsStreaming] = useState<boolean>(false);  // streaming activo
+  const streamingRef = useRef<HTMLPreElement>(null);               // scroll automático do terminal
+
   // Estados de Interface e Layout
   const [activeTab, setActiveTab] = useState<'preview' | 'code'>('preview');
   const [viewportMode, setViewportMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
@@ -245,15 +250,14 @@ export default function AiSiteBuilderStudio() {
     ]);
   };
 
-  // Gerar ou atualizar site com IA
+  // ─── Gerar ou atualizar site com IA (SSE Streaming) ─────────────────────────
   const handleGenerate = async (promptText?: string, titleOverride?: string, isInitial: boolean = false) => {
     const textToSend = promptText || prompt;
     if (!textToSend.trim() || isGenerating) return;
 
     const userEmail = currentUser?.email || 'admin@wehosthere.com';
-    const newMsgId = `msg_user_${Date.now()}`;
     const userMsg: ChatMessage = {
-      id: newMsgId,
+      id: `msg_user_${Date.now()}`,
       role: 'user',
       content: textToSend,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -262,6 +266,11 @@ export default function AiSiteBuilderStudio() {
     setMessages(prev => [...prev, userMsg]);
     setPrompt('');
     setIsGenerating(true);
+    setIsStreaming(true);
+    setStreamingCode('');       // limpar código anterior
+    setActiveTab('code');        // mudar para aba de código durante streaming
+
+    let accumulatedHtml = '';
 
     try {
       const res = await fetch('/api/ai/site-builder', {
@@ -275,29 +284,76 @@ export default function AiSiteBuilderStudio() {
         })
       });
 
-      if (!res.ok) throw new Error('Falha ao processar IA');
+      if (!res.ok || !res.body) throw new Error('Falha ao processar IA');
 
-      const data = await res.json();
-      if (data.success && data.html) {
-        setCurrentHtml(data.html);
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let explanation = '';
+      let diffSummary = '';
+      let executionSeconds = 1;
+
+      // Ler o stream SSE chunk por chunk
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() ?? '';
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          const jsonStr = line.slice(6).trim();
+          if (!jsonStr) continue;
+
+          try {
+            const event = JSON.parse(jsonStr);
+
+            if (event.type === 'chunk') {
+              accumulatedHtml += event.content;
+              setStreamingCode(prev => prev + event.content);
+              // Auto-scroll do terminal de código
+              if (streamingRef.current) {
+                streamingRef.current.scrollTop = streamingRef.current.scrollHeight;
+              }
+            } else if (event.type === 'done') {
+              explanation = event.explanation || 'Página gerada e validada no preview.';
+              diffSummary = event.diffSummary || '+150 linhas';
+              executionSeconds = event.executionSeconds || 1;
+            } else if (event.type === 'error') {
+              throw new Error(event.message);
+            }
+          } catch (parseErr) {
+            // ignorar linhas SSE mal formatadas
+          }
+        }
+      }
+
+      // Stream concluído — publicar o HTML final
+      if (accumulatedHtml) {
+        setCurrentHtml(accumulatedHtml);
+        setStreamingCode('');
+        setIsStreaming(false);
+        setActiveTab('preview'); // voltar para preview com o resultado final
 
         const aiMsg: ChatMessage = {
           id: `msg_ai_${Date.now()}`,
           role: 'assistant',
-          content: data.explanation || 'A página foi gerada e validada no preview.',
-          diffSummary: data.diffSummary || '+45 / -12',
-          executionSeconds: data.executionSeconds || 4,
+          content: explanation,
+          diffSummary,
+          executionSeconds,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };
 
         const updatedMessages = [...messages, userMsg, aiMsg];
         setMessages(updatedMessages);
 
-        // Adicionar à lista de versões
+        // Guardar versão
         const nextVersionNumber = versions.length + 1;
         const newVersionObj: ProjectVersion = {
           versionNumber: nextVersionNumber,
-          html: data.html,
+          html: accumulatedHtml,
           prompt: textToSend,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };
@@ -313,7 +369,7 @@ export default function AiSiteBuilderStudio() {
           title: titleOverride || projectTitle,
           slug: projectSlug,
           subdomain: projectSlug,
-          htmlContent: data.html,
+          htmlContent: accumulatedHtml,
           promptHistory: updatedMessages,
           versions: updatedVersions.map(v => ({
             versionNumber: v.versionNumber,
@@ -325,7 +381,10 @@ export default function AiSiteBuilderStudio() {
         });
       }
     } catch (err) {
-      console.error('Erro na geração com IA:', err);
+      console.error('Erro no streaming de IA:', err);
+      setStreamingCode('');
+      setIsStreaming(false);
+      setActiveTab('preview');
       setMessages(prev => [
         ...prev,
         {
@@ -337,6 +396,7 @@ export default function AiSiteBuilderStudio() {
       ]);
     } finally {
       setIsGenerating(false);
+      setIsStreaming(false);
       chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   };
@@ -834,16 +894,22 @@ export default function AiSiteBuilderStudio() {
             );
           })}
 
-          {/* Indicador de Carregamento da IA */}
+          {/* Indicador de Streaming da IA */}
           {isGenerating && (
             <div className="space-y-2">
-              <div className="flex items-center gap-2 text-xs text-blue-400 font-mono py-1 animate-pulse">
+              <div className="flex items-center gap-2 text-xs text-blue-400 font-mono py-1">
                 <Sparkles className="w-3.5 h-3.5 animate-spin" />
-                <span>O agente de IA está a criar o código e a testar o preview...</span>
+                <span className="animate-pulse">A escrever código em tempo real...</span>
+                {isStreaming && (
+                  <span className="ml-auto text-[10px] text-emerald-400 font-bold flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping inline-block" />
+                    AO VIVO
+                  </span>
+                )}
               </div>
-              <div className="p-4 bg-[#18181b] border border-[#27272a] rounded-2xl space-y-2">
-                <div className="h-4 bg-white/10 rounded-md w-3/4 animate-pulse" />
-                <div className="h-4 bg-white/5 rounded-md w-1/2 animate-pulse" />
+              <div className="p-3 bg-[#0e0e11] border border-[#27272a] rounded-2xl">
+                <div className="h-3 bg-white/10 rounded w-3/4 animate-pulse mb-2" />
+                <div className="h-3 bg-white/5 rounded w-1/2 animate-pulse" />
               </div>
             </div>
           )}
@@ -1287,10 +1353,39 @@ export default function AiSiteBuilderStudio() {
                 sandbox="allow-scripts allow-forms allow-popups"
               />
             </div>
+          ) : isStreaming ? (
+            /* Terminal de Código em Tempo Real (Streaming) */
+            <div className="w-full h-full bg-[#060608] border border-[#27272a] rounded-2xl overflow-hidden flex flex-col font-mono">
+              {/* Barra do terminal */}
+              <div className="h-8 bg-[#111114] border-b border-[#27272a] flex items-center gap-2 px-3 shrink-0">
+                <span className="w-2.5 h-2.5 rounded-full bg-red-500/70" />
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-500/70" />
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/70" />
+                <span className="text-[10px] text-gray-500 ml-2 font-mono">index.html — em geração</span>
+                <span className="ml-auto flex items-center gap-1 text-[10px] text-emerald-400 font-bold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping inline-block" />
+                  STREAMING
+                </span>
+              </div>
+              {/* Código aparecendo */}
+              <pre
+                ref={streamingRef}
+                className="flex-1 overflow-auto p-4 text-[11px] text-emerald-300 leading-relaxed whitespace-pre-wrap break-all"
+              >
+                {streamingCode}
+                <span className="inline-block w-1.5 h-3.5 bg-emerald-400 ml-0.5 animate-pulse align-middle" />
+              </pre>
+            </div>
           ) : (
             /* Visualizador de Código HTML */
-            <div className="w-full h-full bg-[#0e0e11] border border-[#27272a] rounded-2xl p-4 overflow-auto font-mono text-xs text-gray-300">
-              <pre>
+            <div className="w-full h-full bg-[#0e0e11] border border-[#27272a] rounded-2xl overflow-hidden flex flex-col font-mono">
+              <div className="h-8 bg-[#111114] border-b border-[#27272a] flex items-center gap-2 px-3 shrink-0">
+                <span className="w-2.5 h-2.5 rounded-full bg-red-500/70" />
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-500/70" />
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/70" />
+                <span className="text-[10px] text-gray-500 ml-2">index.html</span>
+              </div>
+              <pre className="flex-1 overflow-auto p-4 text-xs text-gray-300 whitespace-pre-wrap break-all">
                 <code>{displayedHtml}</code>
               </pre>
             </div>
