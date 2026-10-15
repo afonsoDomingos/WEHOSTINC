@@ -80,6 +80,43 @@ export default function AiSiteBuilderStudio() {
   const [isPublishModalOpen, setIsPublishModalOpen] = useState<boolean>(false);
   const [isPublishing, setIsPublishing] = useState<boolean>(false);
 
+  // Estado para redimensionamento manual do Chat (Arrastar borda)
+  const [chatWidth, setChatWidth] = useState<number>(420);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+
+  // Efeito de arrasto para redimensionar largura do chat
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging) return;
+      const sidebarOffset = isSidebarOpen ? (window.innerWidth < 640 ? 256 : 288) : 0;
+      const newWidth = e.clientX - sidebarOffset;
+      if (newWidth >= 260 && newWidth <= Math.min(820, window.innerWidth - 380)) {
+        setChatWidth(newWidth);
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+    } else {
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+  }, [isDragging, isSidebarOpen]);
+
   // Fechar dropdown de versão ao clicar fora
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -678,12 +715,19 @@ export default function AiSiteBuilderStudio() {
         </div>
       </aside>
 
-      {/* ── COLUNA 2: CHAT INTERATIVO & ITERAÇÕES (Colapsável / Reduzível) ────── */}
-      <section className={`flex flex-col h-full border-r border-[#27272a] bg-[#09090b] relative z-20 transition-all duration-300 ${
-        isChatOpen 
-          ? 'w-full md:w-[380px] lg:w-[420px] xl:w-[460px] shrink-0' 
-          : 'w-0 overflow-hidden border-r-0'
-      }`}>
+      {/* ── COLUNA 2: CHAT INTERATIVO & ITERAÇÕES (Colapsável / Redimensionável) ────── */}
+      <section 
+        style={{ 
+          width: isChatOpen ? `${chatWidth}px` : 0,
+          minWidth: isChatOpen ? '280px' : 0,
+          maxWidth: isChatOpen ? '800px' : 0,
+        }}
+        className={`flex flex-col h-full bg-[#09090b] relative z-20 shrink-0 ${
+          isChatOpen 
+            ? 'border-r border-[#27272a]' 
+            : 'w-0 overflow-hidden border-r-0'
+        }`}
+      >
         
         {/* Header do Chat */}
         <div className="h-14 px-3 sm:px-4 border-b border-[#27272a] flex items-center justify-between bg-[#0e0e11]">
@@ -834,13 +878,26 @@ export default function AiSiteBuilderStudio() {
             <button
               onClick={() => handleGenerate('Adiciona uma tabela de preços comparativa com 3 planos')}
               className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 border border-white/5 whitespace-nowrap transition cursor-pointer flex items-center gap-1.5"
+              title="Adicionar tabela comparativa de preços com 3 planos"
             >
               <Tag className="w-3 h-3 text-purple-400" />
-              <span>Tabela de Preços</span>
+              <span>Preços</span>
             </button>
           </div>
         </div>
       </section>
+
+      {/* ── DIVISOR MANUAL REDIMENSIONÁVEL (Arrastar para Aumentar / Diminuir) ── */}
+      {isChatOpen && (
+        <div
+          onMouseDown={() => setIsDragging(true)}
+          onDoubleClick={() => setChatWidth(prev => prev === 420 ? 580 : 420)}
+          className="w-1.5 hover:w-2 bg-[#18181b] hover:bg-blue-500 active:bg-blue-600 transition-all cursor-col-resize z-30 select-none hidden md:flex items-center justify-center shrink-0 border-r border-[#27272a] group"
+          title="Arraste para ajustar a largura do chat (Duplo clique para alternar tamanho)"
+        >
+          <div className="w-0.5 h-6 bg-gray-600 group-hover:bg-white rounded-full transition-colors" />
+        </div>
+      )}
 
       {/* ── COLUNA 3: CANVAS DE PREVIEW AO VIVO + CÓDIGO + PUBLICAR (Estilo v0) ── */}
       <main className="flex flex-1 flex-col h-full bg-[#121217] relative z-10 overflow-hidden">
@@ -871,27 +928,31 @@ export default function AiSiteBuilderStudio() {
               </button>
             )}
 
-            {/* Alternador Preview / Código */}
+            {/* Alternador Preview / Código (Compacto com Tooltip) */}
             <div className="flex items-center gap-1 bg-[#18181b] p-1 rounded-xl border border-[#27272a]">
               <button
                 onClick={() => setActiveTab('preview')}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+                className={`p-1.5 px-2.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
                   activeTab === 'preview'
                     ? 'bg-blue-600 text-white shadow-xs'
                     : 'text-gray-400 hover:text-white'
                 }`}
+                title="Visualizar Preview Interativo"
               >
-                <Eye className="w-3.5 h-3.5" /> Preview
+                <Eye className="w-3.5 h-3.5" />
+                <span className="hidden xl:inline">Preview</span>
               </button>
               <button
                 onClick={() => setActiveTab('code')}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+                className={`p-1.5 px-2.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
                   activeTab === 'code'
                     ? 'bg-blue-600 text-white shadow-xs'
                     : 'text-gray-400 hover:text-white'
                 }`}
+                title="Visualizar Código HTML Fonte"
               >
-                <Code className="w-3.5 h-3.5" /> Código HTML
+                <Code className="w-3.5 h-3.5" />
+                <span className="hidden xl:inline">Código</span>
               </button>
             </div>
           </div>
@@ -1032,37 +1093,36 @@ export default function AiSiteBuilderStudio() {
             {activeTab === 'code' && (
               <button
                 onClick={handleCopyCode}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-semibold text-white border border-white/10 transition cursor-pointer"
+                className="p-2 rounded-xl bg-white/10 hover:bg-white/15 text-white border border-white/10 transition cursor-pointer"
+                title={copiedCode ? 'Código HTML Copiado!' : 'Copiar Código HTML'}
               >
-                {copiedCode ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                <span className="hidden sm:inline">{copiedCode ? 'Copiado!' : 'Copiar Código'}</span>
+                {copiedCode ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
               </button>
             )}
 
-            {/* BOTÃO EXPORTAR / BAIXAR HTML */}
+            {/* BOTÃO EXPORTAR / BAIXAR HTML (Apenas Ícone com Tooltip) */}
             <button
               onClick={handleDownloadHtml}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-semibold text-gray-300 border border-white/10 transition cursor-pointer"
-              title="Descarregar ficheiro HTML completo para o seu computador"
+              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 transition cursor-pointer"
+              title="Descarregar ficheiro HTML completo para o computador"
             >
-              <Download className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="hidden sm:inline">Exportar</span>
+              <Download className="w-4 h-4 text-emerald-400" />
             </button>
 
-            {/* BOTÃO OPEN IN NEW TAB (Funciona sempre com live preview ou subdomain) */}
+            {/* BOTÃO OPEN IN NEW TAB (Apenas Ícone com Tooltip) */}
             <button
               onClick={handleOpenInNewTab}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-semibold text-gray-300 border border-white/10 transition cursor-pointer"
+              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 transition cursor-pointer"
               title="Abrir em Nova Aba no Navegador"
             >
-              <ExternalLink className="w-3.5 h-3.5 text-blue-400" />
-              <span className="hidden sm:inline">Nova Aba</span>
+              <ExternalLink className="w-4 h-4 text-blue-400" />
             </button>
 
             {/* BOTÃO PUBLICAR (Destaque Principal) */}
             <button
               onClick={() => setIsPublishModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-extrabold text-xs shadow-lg shadow-emerald-600/25 transition active:scale-95 cursor-pointer shrink-0"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-extrabold text-xs shadow-lg shadow-emerald-600/25 transition active:scale-95 cursor-pointer shrink-0"
+              title="Publicar website online com subdomínio e SSL"
             >
               <Globe className="w-3.5 h-3.5" />
               <span>Publicar</span>
