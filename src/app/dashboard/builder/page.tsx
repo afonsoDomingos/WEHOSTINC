@@ -23,6 +23,7 @@ interface ChatMessage {
   timestamp: string;
   diffSummary?: string;
   executionSeconds?: number;
+  modelUsed?: string;
 }
 
 interface ProjectVersion {
@@ -292,6 +293,7 @@ export default function AiSiteBuilderStudio() {
       let explanation = '';
       let diffSummary = '';
       let executionSeconds = 1;
+      let modelUsed = '';
 
       // Ler o stream SSE chunk por chunk
       while (true) {
@@ -321,6 +323,7 @@ export default function AiSiteBuilderStudio() {
               explanation = event.explanation || 'Página gerada e validada no preview.';
               diffSummary = event.diffSummary || '+150 linhas';
               executionSeconds = event.executionSeconds || 1;
+              modelUsed = event.modelUsed || '';
             } else if (event.type === 'error') {
               throw new Error(event.message);
             }
@@ -343,6 +346,7 @@ export default function AiSiteBuilderStudio() {
           content: explanation,
           diffSummary,
           executionSeconds,
+          modelUsed,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };
 
@@ -871,12 +875,21 @@ export default function AiSiteBuilderStudio() {
                   /* Card do Assistente no Estilo v0 */
                   <div className="w-full space-y-2">
                     {m.executionSeconds && (
-                      <div className="flex items-center gap-2 text-[11px] text-gray-400 font-mono py-1">
+                      <div className="flex flex-wrap items-center gap-2 text-[11px] text-gray-400 font-mono py-1">
                         <span className="flex items-center gap-1 text-gray-300">
-                          <Clock className="w-3 h-3 text-blue-400" /> Trabalhou por {m.executionSeconds}s
+                          <Clock className="w-3 h-3 text-gray-400" /> {m.executionSeconds}s
                         </span>
+                        {m.modelUsed && (
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            m.modelUsed.includes('Gemini') || m.modelUsed.includes('GPT')
+                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                              : 'bg-white/10 text-gray-300 border border-white/10'
+                          }`}>
+                            {m.modelUsed}
+                          </span>
+                        )}
                         {m.diffSummary && (
-                          <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-bold text-[10px]">
+                          <span className="px-1.5 py-0.5 rounded bg-white/5 text-gray-300 font-bold text-[10px]">
                             {m.diffSummary}
                           </span>
                         )}

@@ -161,8 +161,8 @@ function makeSSE(controller: ReadableStreamDefaultController, encoder: TextEncod
     chunk(text: string) {
       controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'chunk', content: text })}\n\n`));
     },
-    done(explanation: string, diffSummary: string, executionSeconds: number) {
-      controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'done', explanation, diffSummary, executionSeconds })}\n\n`));
+    done(explanation: string, diffSummary: string, executionSeconds: number, modelUsed?: string) {
+      controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'done', explanation, diffSummary, executionSeconds, modelUsed })}\n\n`));
       controller.close();
     },
     error(message: string) {
@@ -283,7 +283,7 @@ export async function POST(request: NextRequest) {
             }
 
             if (started) {
-              sse.done(okExplanation, currentHtml ? '+28 / -9' : '+180 linhas', elapsed());
+              sse.done(okExplanation, currentHtml ? '+28 / -9' : '+180 linhas', elapsed(), 'Gemini 1.5 Flash');
               return;
             }
           }
@@ -310,7 +310,7 @@ export async function POST(request: NextRequest) {
             const html = extractHtml(rawText);
             if (html) {
               await simulateStream(html, sse);
-              sse.done(okExplanation, currentHtml ? '+28 / -9' : '+180 linhas', elapsed());
+              sse.done(okExplanation, currentHtml ? '+28 / -9' : '+180 linhas', elapsed(), 'Gemini 1.5 Flash');
               return;
             }
           }
@@ -381,7 +381,7 @@ export async function POST(request: NextRequest) {
             }
 
             if (started) {
-              sse.done(okExplanation, currentHtml ? '+28 / -9' : '+180 linhas', elapsed());
+              sse.done(okExplanation, currentHtml ? '+28 / -9' : '+180 linhas', elapsed(), 'GPT-4o Mini');
               return;
             }
           }
@@ -398,7 +398,8 @@ export async function POST(request: NextRequest) {
           ? `Ajustamos o seu site com base no pedido: "${prompt}".`
           : `Pagina base criada para "${prompt}". Pode refiná-la agora!`,
         currentHtml ? '+18 / -5' : '+95 linhas',
-        elapsed()
+        elapsed(),
+        'Modelo Base Local (Offline)'
       );
     }
   });
