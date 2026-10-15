@@ -10,6 +10,85 @@ interface TemplateOption {
 // Modelos inteligentes pré-construídos para fallback imediato e máxima fiabilidade
 function getFallbackHtml(prompt: string, title?: string): string {
   const p = prompt.toLowerCase();
+
+  // Template minimalista, limpo e direto para "Olá Mundo" / Inicial
+  if (p.includes('ola') || p.includes('olá') || p.includes('simples') || p.includes('sistema') || p.includes('inicio') || p.includes('início')) {
+    return `<!DOCTYPE html>
+<html lang="pt" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prontos para Criar o seu Sistema? — WEHOSTHERE</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { background-color: #090a0f; color: #f8fafc; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    a { color: inherit; text-decoration: none; }
+  </style>
+</head>
+<body class="bg-[#090a0f] text-slate-100 min-h-screen flex flex-col justify-between selection:bg-blue-500 selection:text-white relative overflow-hidden">
+  <!-- Glowing Background Orbs -->
+  <div class="absolute -top-32 left-1/2 -translate-x-1/2 w-[650px] h-[650px] bg-gradient-to-tr from-blue-600/25 via-indigo-600/15 to-purple-600/15 blur-[140px] pointer-events-none rounded-full"></div>
+  <div class="absolute -bottom-32 right-10 w-[450px] h-[450px] bg-emerald-600/10 blur-[130px] pointer-events-none rounded-full"></div>
+
+  <!-- Header -->
+  <header class="w-full max-w-6xl mx-auto px-6 py-6 flex items-center justify-between relative z-10">
+    <div class="flex items-center gap-2.5">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-black text-white text-base shadow-lg shadow-blue-500/25">W</div>
+      <span class="font-extrabold text-sm tracking-tight text-white">WEHOSTHERE <span class="text-blue-400 font-semibold text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20">AI CLOUD</span></span>
+    </div>
+    <a href="https://wa.me/258840000000" target="_blank" class="text-xs font-bold px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white transition">
+      Falar Connosco
+    </a>
+  </header>
+
+  <!-- Hero Content (Limpo, Elegante, Sem Excesso de Texto) -->
+  <main class="w-full max-w-4xl mx-auto px-6 text-center my-auto py-12 relative z-10">
+    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-xs font-bold uppercase tracking-wider text-blue-400 mb-6">
+      <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+      Nuvem & Sistemas em Moçambique
+    </div>
+
+    <h1 class="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight mb-6 leading-tight bg-gradient-to-b from-white via-white/95 to-white/60 bg-clip-text text-transparent">
+      Prontos para Criar o seu Sistema?
+    </h1>
+
+    <p class="text-base sm:text-lg text-slate-400 max-w-xl mx-auto mb-10 leading-relaxed font-light">
+      Dê vida à sua visão com a melhor tecnologia em nuvem, alto desempenho e suporte especializado. Simples, moderno e pronto para crescer.
+    </p>
+
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-3.5">
+      <a href="https://wa.me/258840000000?text=Ol%C3%A1%2C%20estou%20pronto%20para%20criar%20o%20meu%20sistema%20na%20WEHOSTHERE" target="_blank"
+        class="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 font-bold text-sm text-white shadow-xl shadow-blue-600/25 transition-all hover:scale-105 active:scale-95">
+        Começar Meu Sistema →
+      </a>
+      <a href="https://wa.me/258840000000" target="_blank"
+        class="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 font-bold text-sm text-slate-300 transition-all hover:scale-105">
+        Falar no WhatsApp
+      </a>
+    </div>
+
+    <!-- Destaques Rápidos e Minimalistas -->
+    <div class="flex flex-wrap items-center justify-center gap-2.5 mt-12 text-xs text-slate-400">
+      <span class="px-3 py-1.5 rounded-lg bg-white/5 border border-white/5 flex items-center gap-1.5">⚡ Alta Velocidade NVMe</span>
+      <span class="px-3 py-1.5 rounded-lg bg-white/5 border border-white/5 flex items-center gap-1.5">🔒 SSL Grátis & Segurança</span>
+      <span class="px-3 py-1.5 rounded-lg bg-white/5 border border-white/5 flex items-center gap-1.5">🇲🇿 Servidores & Suporte Local</span>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="w-full max-w-6xl mx-auto px-6 py-6 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 relative z-10 gap-3">
+    <p>© 2026 WEHOSTHERE Cloud. Todos os direitos reservados.</p>
+    <p class="flex items-center gap-2">
+      <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+      Pronto para Produção
+    </p>
+  </footer>
+</body>
+</html>`;
+  }
+
   const cleanTitle = title || (
     p.includes('restaurante') ? 'Restaurante & Lounge' :
     p.includes('barbearia') ? 'Barbearia VIP' :
@@ -190,7 +269,8 @@ DIRETRIZES CRÍTICAS:
    - Seções de Serviços, Benefícios, Sobre a Empresa, Depoimentos e Tabela de Preços (se aplicável).
    - Seção de Contacto com links diretos de WhatsApp (formato https://wa.me/258...) e localização em Moçambique se o contexto pedir.
    - Footer elegante mencionando a empresa e rodapé.
-6. Se o usuário fornecer "Código HTML Atual" (currentHtml), você DEVE REFINAR e ATUALIZAR esse código aplicando as alterações pedidas pelo usuário, mantendo o restante do conteúdo e layout estáveis.`;
+6. Se o usuário fornecer "Código HTML Atual" (currentHtml), você DEVE REFINAR e ATUALIZAR esse código aplicando as alterações pedidas pelo usuário, mantendo o restante do conteúdo e layout estáveis.
+7. Se o pedido for para uma página simples, de início ou "Olá Mundo", NUNCA crie excesso de texto ou seções inchadas. Mantenha-a limpa, moderna e elegante, destacando com grande estilo o título: "Prontos para Criar o seu Sistema?".`;
 
         const userPrompt = currentHtml
           ? `O usuário quer alterar o site existente.
