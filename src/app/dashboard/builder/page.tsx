@@ -11,7 +11,7 @@ import {
   MessageSquare, Layers, Wand2, Clock, AlertCircle, RefreshCw, X,
   PanelLeftClose, PanelLeftOpen, Maximize2, Minimize2,
   UtensilsCrossed, Scissors, Palmtree, Briefcase, Palette, Tag,
-  History, Undo2, Download
+  History, Undo2, Download, ShoppingBag
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 
@@ -144,28 +144,26 @@ export default function AiSiteBuilderStudio() {
     }
   };
 
-  // Inicializar novo projeto em branco com prompt inicial "Olá, mundo"
+  // Inicializar novo projeto em branco
   const initNewProject = () => {
     const newId = `site_${Date.now()}`;
-    const defaultTitle = 'Página Olá Mundo';
+    const defaultTitle = 'Novo Projeto';
     const defaultSlug = `site-${Math.random().toString(36).substring(2, 6)}`;
     setProjectId(newId);
     setProjectTitle(defaultTitle);
     setProjectSlug(defaultSlug);
     setIsPublished(false);
+    setCurrentHtml('');
     setVersions([]);
     setSelectedVersionIndex('latest');
     setMessages([
       {
         id: 'msg_welcome',
         role: 'assistant',
-        content: 'Olá! Sou o Construtor de Sites IA da WEHOSTHERE. Digite o que deseja criar (ex: uma página moderna de boas-vindas, um restaurante, uma barbearia ou portfólio) e eu crio para si em tempo real!',
+        content: 'Olá! Sou o Construtor de Sites IA da WEHOSTHERE. O que gostaria de criar hoje? Digite o que tem em mente no campo de texto abaixo ou selecione um modelo pronto para começar!',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }
     ]);
-
-    // Executar primeiro Olá Mundo padrão
-    handleGenerate('cria uma pagina bem simples de ola mundo', defaultTitle, true);
   };
 
   // Selecionar projeto existente
@@ -647,7 +645,7 @@ export default function AiSiteBuilderStudio() {
                 { title: 'Barbearia VIP', icon: Scissors, p: 'Cria um site moderno para uma barbearia com serviços de corte, barba e agendamento' },
                 { title: 'Hotel & Resort Pemba', icon: Palmtree, p: 'Cria um site elegante para um Resort e Hotel em Pemba com fotos e contacto' },
                 { title: 'Portfólio Criativo', icon: Briefcase, p: 'Cria um portfólio profissional para desenvolvedor web e designer freelancer' },
-                { title: 'Página Olá Mundo', icon: Sparkles, p: 'cria uma pagina bem simples de ola mundo' },
+                { title: 'Loja & E-commerce', icon: ShoppingBag, p: 'Cria uma loja online elegante para moda com catálogo de produtos, preços em Meticais e botão de compra WhatsApp' },
               ].map((s, i) => {
                 const IconComponent = s.icon;
                 return (
@@ -1101,10 +1099,51 @@ export default function AiSiteBuilderStudio() {
 
         {/* Conteúdo Principal do Canvas */}
         <div className="flex-1 w-full h-[calc(100%-3.5rem)] overflow-hidden flex items-center justify-center p-2 sm:p-4 bg-[#09090b]">
-          {activeTab === 'preview' ? (
+          {!displayedHtml ? (
+            /* Estado Inicial em Branco (Estilo v0) */
+            <div className="flex flex-col items-center justify-center text-center p-6 max-w-lg mx-auto animate-in fade-in zoom-in-95 duration-200">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600/20 via-indigo-600/20 to-purple-600/20 border border-blue-500/20 flex items-center justify-center text-blue-400 mb-5 shadow-2xl shadow-blue-500/10">
+                <Sparkles className="w-8 h-8" />
+              </div>
+              <h3 className="text-xl sm:text-2xl font-black text-white mb-2 tracking-tight">O que deseja criar hoje?</h3>
+              <p className="text-xs sm:text-sm text-gray-400 mb-8 leading-relaxed max-w-md">
+                Descreva a sua ideia no chat ao lado ou escolha um dos modelos abaixo para ver o seu site ser construído e validado em tempo real.
+              </p>
+
+              <div className="w-full space-y-2 text-left">
+                <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider px-1">Modelos Recomendados:</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {[
+                    { title: 'Restaurante & Lounge', icon: UtensilsCrossed, p: 'Cria uma landing page para um restaurante requintado em Maputo com cardápio, reserva e WhatsApp' },
+                    { title: 'Barbearia VIP', icon: Scissors, p: 'Cria um site moderno para uma barbearia com serviços de corte, barba e agendamento' },
+                    { title: 'Hotel & Resort Pemba', icon: Palmtree, p: 'Cria um site elegante para um Resort e Hotel em Pemba com fotos e contacto' },
+                    { title: 'Loja & E-commerce', icon: ShoppingBag, p: 'Cria uma loja online elegante para moda com catálogo de produtos, preços em Meticais e botão de compra WhatsApp' },
+                  ].map((m, idx) => {
+                    const Icon = m.icon;
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() => {
+                          setProjectTitle(m.title);
+                          handleGenerate(m.p, m.title, true);
+                        }}
+                        className="p-3.5 rounded-2xl bg-[#18181b] border border-[#27272a] hover:border-blue-500/40 hover:bg-white/5 transition text-left cursor-pointer group shadow-sm"
+                      >
+                        <div className="flex items-center gap-2 mb-1 text-blue-400">
+                          <Icon className="w-4 h-4" />
+                          <span className="text-xs font-bold text-gray-200 group-hover:text-blue-400 transition">{m.title}</span>
+                        </div>
+                        <p className="text-[10px] text-gray-400 line-clamp-1">{m.p}</p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          ) : activeTab === 'preview' ? (
             /* Ecrã de Iframe Interativo */
             <div
-              className={`h-full bg-white rounded-2xl shadow-2xl transition-all duration-300 overflow-hidden border border-white/10 flex flex-col ${
+              className={`h-full bg-[#0e0e11] rounded-2xl shadow-2xl transition-all duration-300 overflow-hidden border border-white/10 flex flex-col ${
                 viewportMode === 'mobile'
                   ? 'w-[375px] max-w-full'
                   : viewportMode === 'tablet'
@@ -1151,8 +1190,8 @@ export default function AiSiteBuilderStudio() {
               <iframe
                 title="Preview"
                 srcDoc={displayedHtml}
-                className="w-full flex-1 border-0 bg-white"
-                sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                className="w-full flex-1 border-0 bg-transparent"
+                sandbox="allow-scripts allow-forms allow-popups"
               />
             </div>
           ) : (
