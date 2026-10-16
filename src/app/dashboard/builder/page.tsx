@@ -24,6 +24,11 @@ interface ChatMessage {
   diffSummary?: string;
   executionSeconds?: number;
   modelUsed?: string;
+  proposal?: {
+    prompt: string;
+    titleOverride?: string;
+    status: 'pending' | 'accepted' | 'declined';
+  };
 }
 
 interface ProjectVersion {
@@ -251,12 +256,81 @@ export default function AiSiteBuilderStudio() {
     ]);
   };
 
-  // ─── Gerar ou atualizar site com IA (SSE Streaming) ─────────────────────────
-  const handleGenerate = async (promptText?: string, titleOverride?: string, isInitial: boolean = false) => {
+  // ─── Helpers para Proposta de Construção e Intenção ────────────────────────
+  const isConversationalPrompt = (text: string) => {
+    const p = text.trim().toLowerCase();
+    const actionKeywords = [
+      'cria', 'criar', 'construir', 'construa', 'faz', 'fazer', 'muda', 'mudar', 
+      'altera', 'alterar', 'adiciona', 'adicionar', 'remove', 'remover', 'elimina',
+      'troca', 'trocar', 'coloca', 'colocar', 'desenvolve', 'desenvolver',
+      'site', 'website', 'landing', 'pagina', 'página', 'loja', 'ecommerce', 
+      'restaurante', 'barbearia', 'hotel', 'resort', 'preço', 'preco', 'precos',
+      'botao', 'botão', 'whatsapp', 'formulario', 'formulário', 'tabela', 'cor', 'cores',
+      'tema', 'fundo', 'header', 'footer', 'menu', 'navbar', 'hero', 'banner', 'design'
+    ];
+    if (actionKeywords.some(kw => p.includes(kw))) return false;
+
+    const greetings = [
+      'ola', 'olá', 'oi', 'oii', 'oiii', 'hey', 'hello', 'hi', 'bom dia', 'boa tarde', 
+      'boa noite', 'tudo bem', 'tudo bom', 'tudo bem?', 'opa', 'e aí', 'e ai', 
+      'fala aí', 'salve'
+    ];
+    if (greetings.includes(p) || greetings.some(g => p === g || p === `${g}!` || p === `${g}.` || p === `${g}?`)) return true;
+
+    if (
+      p.includes('como funciona') || p.includes('o que fazes') || p.includes('o que podes fazer') || 
+      p.includes('quem és tu') || p.includes('quem e voce') || p.includes('como usar') ||
+      p === 'ajuda' || p === 'help' || p.includes('podes me ajudar')
+    ) return true;
+
+    const courtesies = ['obrigado', 'obrigada', 'valeu', 'top', 'muito bom', 'gostei', 'show', 'legal', 'perfeito', 'ok', 'entendi'];
+    if (courtesies.includes(p) || courtesies.some(c => p === c || p === `${c}!` || p === `${c}.`)) return true;
+
+    return false;
+  };
+
+  const generateProposalPlan = (promptText: string, hasHtml: boolean): string => {
+    const p = promptText.toLowerCase();
+    if (hasHtml) {
+      return `Entendido! Preparei o seguinte plano de modificação para o seu site:\n\n• Aplicar as alterações solicitadas: "${promptText}"\n• Preservar o design, estrutura e identidade já existentes\n• Testar o novo código e renderizar diretamente no preview interativo.\n\nDeseja aceitar e gerar o código agora?`;
+    }
+
+    if (p.includes('restaurante') || p.includes('lounge') || p.includes('comida') || p.includes('cardapio') || p.includes('cardápio')) {
+      return `Excelente! Preparei o plano de construção para o seu Restaurante & Lounge:\n\n• Navbar moderna com logotipo e atalhos rápidos\n• Seção Hero elegante com convite a reservas e fotos do ambiente\n• Cardápio digital estruturado com pratos especiais\n• Botão integrado de reservas diretas no WhatsApp\n• Rodapé completo com horários de funcionamento e localização.\n\nDeseja aceitar e iniciar a geração do código?`;
+    }
+
+    if (p.includes('barbearia') || p.includes('corte') || p.includes('barba')) {
+      return `Ótimo! Preparei o plano de desenvolvimento para a sua Barbearia VIP:\n\n• Visual impactante com tema dark mode premium\n• Grade de serviços com corte, barba e pacotes VIP\n• Tabela de preços clara em Meticais (MZN)\n• Botão flutuante de agendamento rápido via WhatsApp.\n\nDeseja aceitar e iniciar a geração do código?`;
+    }
+
+    if (p.includes('hotel') || p.includes('resort') || p.includes('turismo') || p.includes('hospedagem')) {
+      return `Perfeito! Preparei o plano para o seu Hotel & Resort:\n\n• Layout acolhedor com foco em fotos das acomodações\n• Seção de serviços exclusivos (piscina, restaurante, transfer)\n• Formulário e botão de reserva rápida no WhatsApp\n• 100% responsivo para smartphones e computadores.\n\nDeseja aceitar e iniciar a geração do código?`;
+    }
+
+    if (p.includes('loja') || p.includes('ecommerce') || p.includes('produto') || p.includes('venda')) {
+      return `Excelente! Preparei o plano para a sua Loja Online:\n\n• Vitrine moderna com catálogo de produtos e preços\n• Destaques de promoções e produtos mais vendidos\n• Botões individuais de compra direta via WhatsApp\n• Informações de envio, garantia e pagamentos.\n\nDeseja aceitar e iniciar a geração do código?`;
+    }
+
+    return `Entendido! Preparei o seguinte plano de desenvolvimento:\n\n• Construir a estrutura completa para: "${promptText}"\n• Estilização moderna com Tailwind CSS e Google Fonts\n• Seções completas: Navbar, Hero, Serviços, CTA e Rodapé\n• Botão de contacto direto no WhatsApp e design responsivo.\n\nDeseja aceitar e iniciar a geração do código?`;
+  };
+
+  const cancelProposal = (msgId: string) => {
+    setMessages(prev => prev.map(m => {
+      if (m.id === msgId && m.proposal) {
+        return {
+          ...m,
+          proposal: { ...m.proposal, status: 'declined' }
+        };
+      }
+      return m;
+    }));
+  };
+
+  // ─── Ponto de Entrada: Enviar Prompt (Gera Proposta Prévia ou Responde Chat) ──
+  const handleGenerate = async (promptText?: string, titleOverride?: string, autoAccept: boolean = false) => {
     const textToSend = promptText || prompt;
     if (!textToSend.trim() || isGenerating) return;
 
-    const userEmail = currentUser?.email || 'admin@wehosthere.com';
     const userMsg: ChatMessage = {
       id: `msg_user_${Date.now()}`,
       role: 'user',
@@ -264,10 +338,65 @@ export default function AiSiteBuilderStudio() {
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
-    setMessages(prev => [...prev, userMsg]);
     setPrompt('');
+
+    // Se for apenas saudação ou conversa casual -> responde direto sem proposta
+    if (isConversationalPrompt(textToSend)) {
+      setMessages(prev => [...prev, userMsg]);
+      await executeGeneration(textToSend, titleOverride, undefined, true);
+      return;
+    }
+
+    // Se autoAccept for true -> executa direto
+    if (autoAccept) {
+      setMessages(prev => [...prev, userMsg]);
+      await executeGeneration(textToSend, titleOverride);
+      return;
+    }
+
+    // Se for comando de código -> Cria primeiro o card de proposta para confirmação
+    const plan = generateProposalPlan(textToSend, Boolean(currentHtml));
+    const proposalMsg: ChatMessage = {
+      id: `msg_proposal_${Date.now()}`,
+      role: 'assistant',
+      content: plan,
+      proposal: {
+        prompt: textToSend,
+        titleOverride,
+        status: 'pending'
+      },
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+
+    setMessages(prev => [...prev, userMsg, proposalMsg]);
+    setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
+  };
+
+  // ─── Execução do Streaming SSE (Acionado ao Clicar em "Aceitar e Gerar Código") ─
+  const executeGeneration = async (
+    textToSend: string, 
+    titleOverride?: string, 
+    proposalMsgId?: string,
+    isDirectChat: boolean = false
+  ) => {
+    if (isGenerating) return;
+
+    // Atualiza status da proposta para aceite
+    if (proposalMsgId) {
+      setMessages(prev => prev.map(m => {
+        if (m.id === proposalMsgId && m.proposal) {
+          return {
+            ...m,
+            proposal: { ...m.proposal, status: 'accepted' }
+          };
+        }
+        return m;
+      }));
+    }
+
+    const userEmail = currentUser?.email || 'admin@wehosthere.com';
     setIsGenerating(true);
-    setStreamingCode('');       // limpar código de streaming anterior
+    setStreamingCode('');
 
     let accumulatedHtml = '';
     let isChatResponse = false;
@@ -280,7 +409,7 @@ export default function AiSiteBuilderStudio() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           prompt: textToSend,
-          currentHtml: isInitial ? '' : currentHtml,
+          currentHtml,
           title: titleOverride || projectTitle,
           userEmail
         })
@@ -314,12 +443,10 @@ export default function AiSiteBuilderStudio() {
             const event = JSON.parse(jsonStr);
 
             if (event.type === 'chat') {
-              // É uma resposta de conversa direta (não mexe no código do site)
               isChatResponse = true;
               chatReply = event.message || '';
               modelUsed = event.modelUsed || 'Assistente';
             } else if (event.type === 'chunk') {
-              // Só ativa visualizador de código se realmente estiver a receber HTML
               if (!hasSwitchedToCode) {
                 hasSwitchedToCode = true;
                 setIsStreaming(true);
@@ -327,7 +454,6 @@ export default function AiSiteBuilderStudio() {
               }
               accumulatedHtml += event.content;
               setStreamingCode(prev => prev + event.content);
-              // Auto-scroll do terminal de código
               if (streamingRef.current) {
                 streamingRef.current.scrollTop = streamingRef.current.scrollHeight;
               }
@@ -339,13 +465,13 @@ export default function AiSiteBuilderStudio() {
             } else if (event.type === 'error') {
               throw new Error(event.message);
             }
-          } catch (parseErr) {
-            // ignorar linhas SSE mal formatadas
+          } catch {
+            // ignorar linhas SSE intermediárias
           }
         }
       }
 
-      // Caso 1: Foi apenas uma conversa/saudação (mantém o site intacto!)
+      // Caso 1: Foi apenas conversa
       if (isChatResponse && chatReply) {
         setIsStreaming(false);
         setStreamingCode('');
@@ -359,37 +485,16 @@ export default function AiSiteBuilderStudio() {
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };
 
-        const updatedMessages = [...messages, userMsg, aiMsg];
-        setMessages(updatedMessages);
-
-        if (currentHtml) {
-          saveProjectToDb({
-            id: projectId,
-            userEmail,
-            userName: currentUser?.name || 'Cliente',
-            title: projectTitle,
-            slug: projectSlug,
-            subdomain: projectSlug,
-            htmlContent: currentHtml,
-            promptHistory: updatedMessages,
-            versions: versions.map(v => ({
-              versionNumber: v.versionNumber,
-              htmlContent: v.html,
-              prompt: v.prompt,
-              createdAt: new Date().toISOString()
-            })),
-            status: isPublished ? 'published' : 'draft'
-          });
-        }
+        setMessages(prev => [...prev, aiMsg]);
         return;
       }
 
-      // Caso 2: Gerou ou atualizou o código HTML do site
+      // Caso 2: Gerou o código do site
       if (accumulatedHtml) {
         setCurrentHtml(accumulatedHtml);
         setStreamingCode('');
         setIsStreaming(false);
-        setActiveTab('preview'); // voltar para preview com o resultado final
+        setActiveTab('preview');
 
         const aiMsg: ChatMessage = {
           id: `msg_ai_${Date.now()}`,
@@ -401,10 +506,9 @@ export default function AiSiteBuilderStudio() {
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };
 
-        const updatedMessages = [...messages, userMsg, aiMsg];
-        setMessages(updatedMessages);
+        setMessages(prev => [...prev, aiMsg]);
 
-        // Guardar versão
+        // Guardar versão no histórico
         const nextVersionNumber = versions.length + 1;
         const newVersionObj: ProjectVersion = {
           versionNumber: nextVersionNumber,
@@ -416,7 +520,7 @@ export default function AiSiteBuilderStudio() {
         setVersions(updatedVersions);
         setSelectedVersionIndex('latest');
 
-        // Guardar no MongoDB
+        // Guardar no banco de dados
         saveProjectToDb({
           id: projectId,
           userEmail,
@@ -425,7 +529,7 @@ export default function AiSiteBuilderStudio() {
           slug: projectSlug,
           subdomain: projectSlug,
           htmlContent: accumulatedHtml,
-          promptHistory: updatedMessages,
+          promptHistory: [...messages, aiMsg],
           versions: updatedVersions.map(v => ({
             versionNumber: v.versionNumber,
             htmlContent: v.html,
@@ -820,7 +924,7 @@ export default function AiSiteBuilderStudio() {
                     key={i}
                     onClick={() => {
                       setProjectTitle(s.title);
-                      handleGenerate(s.p, s.title, true);
+                      handleGenerate(s.p, s.title, false);
                     }}
                     className="w-full text-left px-3 py-2 rounded-lg text-xs text-gray-400 hover:text-blue-400 hover:bg-blue-500/10 transition truncate flex items-center gap-2 cursor-pointer"
                   >
@@ -949,7 +1053,46 @@ export default function AiSiteBuilderStudio() {
                     )}
 
                     <div className="bg-[#18181b] border border-[#27272a] rounded-2xl rounded-tl-sm p-4 text-xs sm:text-sm text-gray-200 leading-relaxed shadow-sm">
-                      {m.content}
+                      <div className="whitespace-pre-line">{m.content}</div>
+
+                      {/* Card de Proposta e Confirmação de Código */}
+                      {m.proposal && (
+                        <div className="mt-3 pt-3 border-t border-[#27272a]">
+                          {m.proposal.status === 'pending' && (
+                            <div className="flex flex-wrap items-center gap-2">
+                              <button
+                                type="button"
+                                disabled={isGenerating}
+                                onClick={() => executeGeneration(m.proposal!.prompt, m.proposal!.titleOverride, m.id)}
+                                className="px-4 py-2 rounded-xl bg-white hover:bg-gray-100 text-black font-extrabold text-xs shadow-md transition active:scale-95 flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                              >
+                                <Sparkles className="w-3.5 h-3.5 text-black" />
+                                <span>Aceitar e Gerar Código</span>
+                              </button>
+                              <button
+                                type="button"
+                                disabled={isGenerating}
+                                onClick={() => cancelProposal(m.id)}
+                                className="px-3 py-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 text-xs font-medium transition cursor-pointer"
+                              >
+                                Cancelar
+                              </button>
+                            </div>
+                          )}
+                          {m.proposal.status === 'accepted' && (
+                            <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-400">
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              <span>Plano Aceite e Código Gerado</span>
+                            </div>
+                          )}
+                          {m.proposal.status === 'declined' && (
+                            <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                              <X className="w-3.5 h-3.5" />
+                              <span>Geração cancelada</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -1348,7 +1491,7 @@ export default function AiSiteBuilderStudio() {
                         key={idx}
                         onClick={() => {
                           setProjectTitle(m.title);
-                          handleGenerate(m.p, m.title, true);
+                          handleGenerate(m.p, m.title, false);
                         }}
                         className="p-3.5 rounded-2xl bg-[#18181b] border border-[#27272a] hover:border-blue-500/40 hover:bg-white/5 transition text-left cursor-pointer group shadow-sm"
                       >
