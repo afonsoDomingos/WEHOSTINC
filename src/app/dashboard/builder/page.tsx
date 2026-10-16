@@ -16,6 +16,181 @@ import {
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 
+// ============================================================
+// 🎨 SYNTAX HIGHLIGHTER — VS Code Dark+ Theme (zero deps)
+// ============================================================
+function highlightHtml(code: string): string {
+  // Escape html entities first to avoid XSS via code content
+  const escape = (s: string) =>
+    s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+  let result = '';
+  let i = 0;
+  const len = code.length;
+
+  while (i < len) {
+    // HTML Comments <!-- ... -->
+    if (code.startsWith('<!--', i)) {
+      const end = code.indexOf('-->', i + 4);
+      const raw = end === -1 ? code.slice(i) : code.slice(i, end + 3);
+      result += `<span style="color:#6a9955;font-style:italic">${escape(raw)}</span>`;
+      i += raw.length;
+      continue;
+    }
+
+    // DOCTYPE
+    if (code.startsWith('<!DOCTYPE', i) || code.startsWith('<!doctype', i)) {
+      const end = code.indexOf('>', i);
+      const raw = end === -1 ? code.slice(i) : code.slice(i, end + 1);
+      result += `<span style="color:#569cd6">${escape(raw)}</span>`;
+      i += raw.length;
+      continue;
+    }
+
+    // HTML Tag  <tagname ...> or </tagname>
+    if (code[i] === '<' && i + 1 < len && (code[i + 1] === '/' || /[a-zA-Z!]/.test(code[i + 1]))) {
+      // Find end of tag
+      let j = i + 1;
+      // scan until we hit > but respect attribute strings
+      let inStr = false;
+      let strChar = '';
+      while (j < len) {
+        if (inStr) {
+          if (code[j] === strChar) inStr = false;
+          j++;
+          continue;
+        }
+        if (code[j] === '"' || code[j] === "'") {
+          inStr = true;
+          strChar = code[j];
+          j++;
+          continue;
+        }
+        if (code[j] === '>') { j++; break; }
+        j++;
+      }
+      const tagStr = code.slice(i, j);
+
+      // Now colorize the tag content
+      // Pattern: (<)(/?)([a-zA-Z0-9-]+)(attrs...)(/?)(>)
+      let tagResult = '';
+      let k = 0;
+      const tlen = tagStr.length;
+
+      // opening < or </
+      if (tagStr[k] === '<') {
+        tagResult += `<span style="color:#808080">&lt;</span>`;
+        k++;
+      }
+      if (tagStr[k] === '/') {
+        tagResult += `<span style="color:#808080">/</span>`;
+        k++;
+      }
+
+      // tag name
+      let tagName = '';
+      while (k < tlen && /[a-zA-Z0-9\-]/.test(tagStr[k])) {
+        tagName += tagStr[k];
+        k++;
+      }
+      if (tagName) tagResult += `<span style="color:#569cd6">${escape(tagName)}</span>`;
+
+      // attributes
+      while (k < tlen) {
+        // closing > or />
+        if (tagStr[k] === '>' ) { tagResult += `<span style="color:#808080">&gt;</span>`; k++; break; }
+        if (tagStr[k] === '/' && tagStr[k+1] === '>') {
+          tagResult += `<span style="color:#808080">/&gt;</span>`; k += 2; break;
+        }
+        // whitespace
+        if (/\s/.test(tagStr[k])) { tagResult += tagStr[k]; k++; continue; }
+        // attribute name
+        if (/[a-zA-Z_:\-]/.test(tagStr[k])) {
+          let attrName = '';
+          while (k < tlen && /[a-zA-Z0-9_:\-\.@]/.test(tagStr[k])) {
+            attrName += tagStr[k]; k++;
+          }
+          tagResult += `<span style="color:#9cdcfe">${escape(attrName)}</span>`;
+          // = and value
+          if (k < tlen && tagStr[k] === '=') {
+            tagResult += `<span style="color:#d4d4d4">=</span>`;
+            k++;
+            if (k < tlen && (tagStr[k] === '"' || tagStr[k] === "'")) {
+              const q = tagStr[k];
+              let val = q;
+              k++;
+              while (k < tlen && tagStr[k] !== q) { val += tagStr[k]; k++; }
+              val += q; k++;
+              tagResult += `<span style="color:#ce9178">${escape(val)}</span>`;
+            }
+          }
+          continue;
+        }
+        tagResult += escape(tagStr[k]); k++;
+      }
+
+      result += tagResult;
+      i += tagStr.length;
+      continue;
+    }
+
+    // Plain text / anything else — check for style/script blocks first
+    // For style blocks colorize as CSS
+    if (code.startsWith('<style', i)) {
+      const closeStyle = code.toLowerCase().indexOf('</style', i + 6);
+      if (closeStyle !== -1) {
+        const styleOpen = code.indexOf('>', i) + 1;
+        const cssContent = code.slice(styleOpen, closeStyle);
+        const styledCss = cssContent
+          .replace(/(&lt;|&gt;)/g, (m) => m)
+          .replace(/(\/\*[\s\S]*?\*\/)/g, (m) => `<span style="color:#6a9955;font-style:italic">${m}</span>`)
+          .replace(/([a-zA-Z\-]+)(?=\s*:)/g, (m) => `<span style="color:#9cdcfe">${m}</span>`)
+          .replace(/(#[0-9a-fA-F]{3,8}|rgba?\([^)]+\)|[0-9]+(?:px|em|rem|%|vh|vw|s|ms))/g,
+            (m) => `<span style="color:#b5cea8">${m}</span>`);
+        // Rebuild with tag
+        result += highlightHtml(code.slice(i, styleOpen)) + styledCss + highlightHtml(code.slice(closeStyle, closeStyle + 8));
+        i = closeStyle + 8;
+        continue;
+      }
+    }
+
+    // Regular character
+    result += escape(code[i]);
+    i++;
+  }
+
+  return result;
+}
+
+// Adds line numbers and renders highlighted code
+function CodeBlock({ code, isStreaming = false }: { code: string; isStreaming?: boolean }) {
+  const highlighted = highlightHtml(code);
+  const lines = highlighted.split('\n');
+
+  return (
+    <div className="flex flex-1 overflow-auto font-mono text-[11.5px] leading-[1.65]">
+      {/* Line numbers */}
+      {!isStreaming && (
+        <div
+          className="select-none text-right pr-3 pl-3 pt-4 shrink-0 border-r border-white/5"
+          style={{ color: '#495050', minWidth: '3rem', userSelect: 'none' }}
+          aria-hidden="true"
+        >
+          {lines.map((_, idx) => (
+            <div key={idx}>{idx + 1}</div>
+          ))}
+        </div>
+      )}
+      {/* Code content */}
+      <pre
+        className="flex-1 overflow-auto p-4 whitespace-pre-wrap break-all"
+        style={{ background: 'transparent', margin: 0, color: '#d4d4d4' }}
+        dangerouslySetInnerHTML={{ __html: highlighted }}
+      />
+    </div>
+  );
+}
+
 interface ChatMessage {
   id: string;
   role: 'user' | 'assistant';
@@ -79,7 +254,7 @@ export default function AiSiteBuilderStudio() {
   // Estados de Streaming
   const [streamingCode, setStreamingCode] = useState<string>(''); // código a aparecer em tempo real
   const [isStreaming, setIsStreaming] = useState<boolean>(false);  // streaming activo
-  const streamingRef = useRef<HTMLPreElement>(null);               // scroll automático do terminal
+  const streamingRef = useRef<HTMLDivElement>(null);               // scroll automático do terminal
 
   // Estados de Interface e Layout
   const [activeTab, setActiveTab] = useState<'preview' | 'code'>('preview');
@@ -1574,14 +1749,17 @@ export default function AiSiteBuilderStudio() {
                   STREAMING
                 </span>
               </div>
-              {/* Código aparecendo */}
-              <pre
+              {/* Código aparecendo com syntax highlighting */}
+              <div
                 ref={streamingRef}
-                className="flex-1 overflow-auto p-4 text-[11px] text-emerald-300 leading-relaxed whitespace-pre-wrap break-all"
+                className="flex-1 overflow-auto relative"
               >
-                {streamingCode}
-                <span className="inline-block w-1.5 h-3.5 bg-emerald-400 ml-0.5 animate-pulse align-middle" />
-              </pre>
+                <CodeBlock code={streamingCode} isStreaming={true} />
+                <span
+                  className="absolute bottom-4 left-4 inline-block w-[7px] h-[14px] bg-[#569cd6] animate-pulse align-middle"
+                  style={{ marginLeft: `${(streamingCode.split('\n').at(-1)?.length ?? 0) * 6.9}px` }}
+                />
+              </div>
             </div>
           ) : (
             /* Visualizador de Código HTML */
@@ -1592,9 +1770,8 @@ export default function AiSiteBuilderStudio() {
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/70" />
                 <span className="text-[10px] text-gray-500 ml-2">index.html</span>
               </div>
-              <pre className="flex-1 overflow-auto p-4 text-xs text-gray-300 whitespace-pre-wrap break-all">
-                <code>{displayedHtml}</code>
-              </pre>
+              {/* Código com Syntax Highlighting estilo VS Code Dark+ */}
+              <CodeBlock code={displayedHtml} isStreaming={false} />
             </div>
           )}
         </div>
