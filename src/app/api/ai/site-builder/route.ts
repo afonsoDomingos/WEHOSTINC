@@ -3,156 +3,643 @@ import { NextRequest } from 'next/server';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-// ─── Fallback HTML ────────────────────────────────────────────────────────────
+// ─── Fallback HTML (Modelos Pré-Prontos Preto & Branco com Menu e Rodapé Elegantes) ─
 function getFallbackHtml(prompt: string, title?: string): string {
   const p = prompt.toLowerCase();
 
   const isSimple = p.includes('simples') || p.includes('sistema') || p.includes('inicio') || p.includes('início');
 
-  if (isSimple) {
-    return `<!DOCTYPE html>
-<html lang="pt" class="scroll-smooth">
+  // Shared Head & Styles (Preto e Branco / Tipografia Moderna)
+  const renderHead = (pageTitle: string) => `
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Prontos para Criar o seu Sistema? - WEHOSTHERE</title>
+  <title>${pageTitle}</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-  <style>* { box-sizing: border-box; margin: 0; padding: 0; } html,body { background:#090a0f; color:#f8fafc; font-family:'Plus Jakarta Sans',sans-serif; }</style>
-</head>
-<body class="bg-[#090a0f] text-slate-100 min-h-screen flex flex-col justify-between relative overflow-hidden">
-  <div class="absolute -top-32 left-1/2 -translate-x-1/2 w-[650px] h-[650px] bg-gradient-to-tr from-blue-600/25 via-indigo-600/15 to-purple-600/15 blur-[140px] pointer-events-none rounded-full"></div>
-  <header class="w-full max-w-6xl mx-auto px-6 py-6 flex items-center justify-between relative z-10">
-    <div class="flex items-center gap-2.5">
-      <img src="https://wehosthere.com/mascote-transparent.png" alt="WEHOSTHERE" class="w-9 h-9 object-contain" />
-      <span class="font-extrabold text-sm text-white">WEHOSTHERE <span class="text-blue-400 text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20">AI CLOUD</span></span>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { background: #000000; color: #ffffff; font-family: 'Plus Jakarta Sans', sans-serif; }
+    ::selection { background: #ffffff; color: #000000; }
+  </style>
+</head>`;
+
+  // Menu / Navbar Simples e Bonito
+  const renderNavbar = (brand: string, navItems: { label: string; href: string }[], ctaText: string = 'WhatsApp') => `
+  <nav class="sticky top-0 z-50 backdrop-blur-xl bg-black/85 border-b border-white/10">
+    <div class="max-w-6xl mx-auto px-6 h-16 sm:h-20 flex items-center justify-between">
+      <a href="#" class="flex items-center gap-2.5 group">
+        <div class="w-8 h-8 rounded-lg bg-white text-black flex items-center justify-center font-black text-sm tracking-wider group-hover:scale-105 transition">
+          ${brand.charAt(0).toUpperCase()}
+        </div>
+        <span class="text-sm sm:text-base font-extrabold tracking-tight text-white">${brand}</span>
+      </a>
+      <div class="hidden md:flex items-center gap-7 text-xs font-semibold text-zinc-400">
+        ${navItems.map(item => `<a href="${item.href}" class="hover:text-white transition">${item.label}</a>`).join('')}
+      </div>
+      <a href="https://wa.me/258840000000" target="_blank" class="px-4 py-2 rounded-full bg-white text-black hover:bg-zinc-200 font-extrabold text-xs transition cursor-pointer shadow-sm active:scale-95">
+        ${ctaText}
+      </a>
     </div>
-    <a href="https://wa.me/258840000000" target="_blank" class="text-xs font-bold px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 transition">Falar Connosco</a>
-  </header>
-  <main class="w-full max-w-4xl mx-auto px-6 text-center my-auto py-12 relative z-10">
-    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-xs font-bold uppercase tracking-wider text-blue-400 mb-6">
-      <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-      Nuvem &amp; Sistemas em Mocambique
+  </nav>`;
+
+  // Rodapé Simples e Bonito
+  const renderFooter = (brand: string, navItems: { label: string; href: string }[]) => `
+  <footer class="border-t border-white/10 mt-20 sm:mt-28 py-12 px-6 bg-black">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
+      <div class="flex items-center gap-2.5">
+        <div class="w-7 h-7 rounded-lg bg-white text-black flex items-center justify-center font-black text-xs">
+          ${brand.charAt(0).toUpperCase()}
+        </div>
+        <span class="font-bold text-sm text-white">${brand}</span>
+        <span class="text-xs text-zinc-500 hidden sm:inline">&mdash; Excelência e sofisticação</span>
+      </div>
+      <div class="flex items-center gap-6 text-xs text-zinc-400">
+        ${navItems.map(item => `<a href="${item.href}" class="hover:text-white transition">${item.label}</a>`).join('')}
+        <a href="https://wa.me/258840000000" target="_blank" class="hover:text-white transition font-bold">WhatsApp</a>
+      </div>
+      <div class="text-xs text-zinc-500">
+        &copy; 2026 ${brand}. Todos os direitos reservados.
+      </div>
     </div>
-    <h1 class="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight mb-6 leading-tight bg-gradient-to-b from-white via-white/95 to-white/60 bg-clip-text text-transparent">
+  </footer>`;
+
+  // 1. MODELO: PÁGINA INICIAL / SISTEMA CLOUD (Preto e Branco)
+  if (isSimple) {
+    const brand = 'WEHOSTHERE';
+    const navItems = [
+      { label: 'Início', href: '#inicio' },
+      { label: 'Vantagens', href: '#vantagens' },
+      { label: 'Recursos', href: '#recursos' },
+      { label: 'Contacto', href: '#contacto' }
+    ];
+    return `<!DOCTYPE html>
+<html lang="pt" class="scroll-smooth">
+${renderHead('Prontos para Criar o seu Sistema? - WEHOSTHERE')}
+<body class="bg-black text-white min-h-screen flex flex-col justify-between antialiased selection:bg-white selection:text-black">
+  ${renderNavbar(brand, navItems, 'Falar Connosco')}
+
+  <main id="inicio" class="w-full max-w-5xl mx-auto px-6 py-20 sm:py-28 text-center my-auto">
+    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-[11px] font-mono uppercase tracking-widest text-zinc-300 mb-8">
+      <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+      Nuvem &bull; Moçambique &bull; Alta Performance
+    </div>
+    
+    <h1 class="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight mb-6 leading-tight text-white">
       Prontos para Criar o seu Sistema?
     </h1>
-    <p class="text-base sm:text-lg text-slate-400 max-w-xl mx-auto mb-10 leading-relaxed font-light">
-      De vida a sua visao com a melhor tecnologia em nuvem, alto desempenho e suporte especializado.
+    
+    <p class="text-sm sm:text-base text-zinc-400 max-w-xl mx-auto mb-10 leading-relaxed font-normal">
+      Dê vida à sua visão com a melhor tecnologia em nuvem, alto desempenho, certificados SSL automáticos e suporte especializado em Moçambique.
     </p>
-    <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-      <a href="https://wa.me/258840000000?text=Quero%20criar%20o%20meu%20sistema%20online" target="_blank" class="inline-flex items-center gap-2.5 px-8 py-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-sm shadow-2xl shadow-blue-600/30 transition-all hover:scale-105">Comecar Agora</a>
-      <a href="https://wa.me/258840000000" target="_blank" class="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white font-bold text-sm transition-all">Falar com Consultor</a>
+    
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-3.5 mb-16">
+      <a href="https://wa.me/258840000000?text=Quero%20criar%20o%20meu%20sistema%20online" target="_blank" class="w-full sm:w-auto px-8 py-3.5 rounded-full bg-white text-black hover:bg-zinc-200 font-extrabold text-xs transition cursor-pointer shadow-lg active:scale-95">
+        Começar Agora
+      </a>
+      <a href="https://wa.me/258840000000" target="_blank" class="w-full sm:w-auto px-8 py-3.5 rounded-full border border-white/20 text-white hover:bg-white/10 font-bold text-xs transition cursor-pointer">
+        Falar com Consultor
+      </a>
     </div>
-    <div class="flex flex-wrap items-center justify-center gap-3 mt-10">
-      <span class="text-xs text-gray-400 px-3 py-1.5 rounded-full border border-white/10 bg-white/5">SSL Gratis</span>
-      <span class="text-xs text-gray-400 px-3 py-1.5 rounded-full border border-white/10 bg-white/5">99.9% Uptime</span>
-      <span class="text-xs text-gray-400 px-3 py-1.5 rounded-full border border-white/10 bg-white/5">Suporte em Portugues</span>
-      <span class="text-xs text-gray-400 px-3 py-1.5 rounded-full border border-white/10 bg-white/5">Pagamentos em MZN</span>
+
+    {/* Cards de Destaque Minimalistas Preto e Branco */}
+    <div id="vantagens" class="grid grid-cols-1 md:grid-cols-3 gap-4 text-left pt-8 border-t border-white/10">
+      <div class="p-6 rounded-2xl bg-zinc-950 border border-white/10 hover:border-white/25 transition">
+        <span class="text-xs font-mono text-zinc-400">01 / VELOCIDADE</span>
+        <h3 class="text-base font-bold text-white mt-2 mb-1">99.9% Uptime Garantido</h3>
+        <p class="text-xs text-zinc-400 leading-relaxed">Infraestrutura em nuvem otimizada para carregamento instantâneo em qualquer rede.</p>
+      </div>
+      <div class="p-6 rounded-2xl bg-zinc-950 border border-white/10 hover:border-white/25 transition">
+        <span class="text-xs font-mono text-zinc-400">02 / SEGURANÇA</span>
+        <h3 class="text-base font-bold text-white mt-2 mb-1">SSL &amp; Proteção Gratuita</h3>
+        <p class="text-xs text-zinc-400 leading-relaxed">Certificado de segurança automático para blindar os dados do seu projeto.</p>
+      </div>
+      <div class="p-6 rounded-2xl bg-zinc-950 border border-white/10 hover:border-white/25 transition">
+        <span class="text-xs font-mono text-zinc-400">03 / LOCAL</span>
+        <h3 class="text-base font-bold text-white mt-2 mb-1">Pagamentos em MZN</h3>
+        <p class="text-xs text-zinc-400 leading-relaxed">Pague com facilidade através de M-Pesa, E-Mola ou transferência bancária local.</p>
+      </div>
     </div>
   </main>
-  <footer class="text-center text-xs text-slate-600 py-8 relative z-10">2026 WEHOSTHERE. Todos os direitos reservados.</footer>
+
+  ${renderFooter(brand, navItems)}
 </body>
 </html>`;
   }
 
-  const cleanTitle = title || (
-    p.includes('restaurante') ? 'Restaurante e Lounge' :
-    p.includes('barbearia') ? 'Barbearia VIP' :
-    p.includes('hotel') || p.includes('resort') ? 'Hotel e Resort' :
-    p.includes('loja') || p.includes('ecommerce') ? 'Boutique e Loja Online' :
-    p.includes('portfolio') ? 'Portfolio Profissional' :
-    'Pagina Profissional'
-  );
+  // 2. MODELO: RESTAURANTE & LOUNGE (Preto e Branco)
+  if (p.includes('restaurante') || p.includes('lounge') || p.includes('comida') || p.includes('cardapio')) {
+    const brand = title || 'Restaurante & Lounge';
+    const navItems = [
+      { label: 'Início', href: '#inicio' },
+      { label: 'Cardápio', href: '#cardapio' },
+      { label: 'Ambiente', href: '#ambiente' },
+      { label: 'Reservas', href: '#reservas' }
+    ];
+    return `<!DOCTYPE html>
+<html lang="pt" class="scroll-smooth">
+${renderHead(`${brand} - Alta Gastronomia`)}
+<body class="bg-black text-white min-h-screen antialiased selection:bg-white selection:text-black">
+  ${renderNavbar(brand, navItems, 'Reservar Mesa')}
 
-  const firstLetter = cleanTitle.charAt(0).toUpperCase();
+  <section id="inicio" class="pt-20 sm:pt-28 pb-16 px-6 max-w-5xl mx-auto text-center">
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] font-mono uppercase tracking-widest text-zinc-400 mb-6">
+      ALTA GASTRONOMIA &bull; EXPERIÊNCIA SENSORIAL
+    </div>
+    <h1 class="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight mb-6 text-white leading-tight">
+      Sabores Memoráveis em Ambiente Exclusivo.
+    </h1>
+    <p class="text-sm sm:text-base text-zinc-400 max-w-xl mx-auto mb-10 leading-relaxed">
+      Culinária contemporânea requintada com ingredientes nobres, carta de vinhos selecionados e coquetelaria autoral em Maputo.
+    </p>
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-3.5">
+      <a href="#cardapio" class="w-full sm:w-auto px-8 py-3.5 rounded-full bg-white text-black hover:bg-zinc-200 font-extrabold text-xs transition cursor-pointer shadow-lg active:scale-95">
+        Ver Cardápio
+      </a>
+      <a href="https://wa.me/258840000000?text=Gostaria%20de%20reservar%20uma%20mesa" target="_blank" class="w-full sm:w-auto px-8 py-3.5 rounded-full border border-white/20 text-white hover:bg-white/10 font-bold text-xs transition cursor-pointer">
+        Reservar no WhatsApp
+      </a>
+    </div>
+  </section>
+
+  {/* Cardápio de Degustação */}
+  <section id="cardapio" class="py-16 px-6 max-w-5xl mx-auto border-t border-white/10">
+    <div class="text-center mb-12">
+      <span class="text-xs font-mono text-zinc-500 uppercase tracking-widest">Nossas Criações</span>
+      <h2 class="text-2xl sm:text-3xl font-extrabold text-white mt-1">Destaques do Cardápio</h2>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div class="p-6 rounded-2xl bg-zinc-950 border border-white/10 flex justify-between items-start">
+        <div>
+          <h3 class="font-bold text-white text-sm">Bife Wagyu ao Molho Trufado</h3>
+          <p class="text-xs text-zinc-400 mt-1">Grelhado na perfeição com legumes salteados e puré rústico.</p>
+        </div>
+        <span class="font-mono text-xs font-bold text-white bg-white/10 px-2.5 py-1 rounded-full shrink-0 ml-4">1.850 MT</span>
+      </div>
+      <div class="p-6 rounded-2xl bg-zinc-950 border border-white/10 flex justify-between items-start">
+        <div>
+          <h3 class="font-bold text-white text-sm">Polvo Grelhado à Moda do Chef</h3>
+          <p class="text-xs text-zinc-400 mt-1">Acompanhado de batata doce assada, azeite virgem e ervas aromáticas.</p>
+        </div>
+        <span class="font-mono text-xs font-bold text-white bg-white/10 px-2.5 py-1 rounded-full shrink-0 ml-4">1.450 MT</span>
+      </div>
+      <div class="p-6 rounded-2xl bg-zinc-950 border border-white/10 flex justify-between items-start">
+        <div>
+          <h3 class="font-bold text-white text-sm">Risoto de Cogumelos Selvagens</h3>
+          <p class="text-xs text-zinc-400 mt-1">Arroz arbóreo cremoso com trufas negras e queijo parmesão envelhecido.</p>
+        </div>
+        <span class="font-mono text-xs font-bold text-white bg-white/10 px-2.5 py-1 rounded-full shrink-0 ml-4">950 MT</span>
+      </div>
+      <div class="p-6 rounded-2xl bg-zinc-950 border border-white/10 flex justify-between items-start">
+        <div>
+          <h3 class="font-bold text-white text-sm">Salmão Fresco Glaceado</h3>
+          <p class="text-xs text-zinc-400 mt-1">Com crosta de gergelim, aspargos crocantes e redução balsâmica.</p>
+        </div>
+        <span class="font-mono text-xs font-bold text-white bg-white/10 px-2.5 py-1 rounded-full shrink-0 ml-4">1.350 MT</span>
+      </div>
+    </div>
+  </section>
+
+  {/* Ambiente & Reserva */}
+  <section id="reservas" class="py-16 px-6 max-w-5xl mx-auto">
+    <div class="p-10 sm:p-14 rounded-3xl bg-zinc-950 border border-white/10 text-center">
+      <span class="text-xs font-mono text-zinc-400 uppercase tracking-widest">Experiência VIP</span>
+      <h2 class="text-2xl sm:text-4xl font-extrabold text-white mt-2 mb-4">Reserve a Sua Noite Conosco</h2>
+      <p class="text-xs sm:text-sm text-zinc-400 max-w-md mx-auto mb-8">Mesas exclusivas para jantares românticos, encontros de negócios e celebrações especiais.</p>
+      <a href="https://wa.me/258840000000?text=Quero%20reservar%20mesa" target="_blank" class="inline-block px-8 py-3.5 rounded-full bg-white text-black hover:bg-zinc-200 font-extrabold text-xs transition cursor-pointer shadow-lg active:scale-95">
+        Fazer Reserva no WhatsApp
+      </a>
+    </div>
+  </section>
+
+  ${renderFooter(brand, navItems)}
+</body>
+</html>`;
+  }
+
+  // 3. MODELO: BARBEARIA VIP (Preto e Branco)
+  if (p.includes('barbearia') || p.includes('corte') || p.includes('barba')) {
+    const brand = title || 'Barbearia VIP';
+    const navItems = [
+      { label: 'Início', href: '#inicio' },
+      { label: 'Serviços', href: '#servicos' },
+      { label: 'Horários', href: '#horarios' },
+      { label: 'Agendamento', href: '#agendar' }
+    ];
+    return `<!DOCTYPE html>
+<html lang="pt" class="scroll-smooth">
+${renderHead(`${brand} - Cortes e Barba de Precisão`)}
+<body class="bg-black text-white min-h-screen antialiased selection:bg-white selection:text-black">
+  ${renderNavbar(brand, navItems, 'Agendar')}
+
+  <section id="inicio" class="pt-20 sm:pt-28 pb-16 px-6 max-w-5xl mx-auto text-center">
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] font-mono uppercase tracking-widest text-zinc-400 mb-6">
+      ESTILO &bull; TOALHA QUENTE &bull; PRECISÃO
+    </div>
+    <h1 class="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight mb-6 text-white leading-tight">
+      O Cuidado Masculino no Seu Nível Mais Alto.
+    </h1>
+    <p class="text-sm sm:text-base text-zinc-400 max-w-xl mx-auto mb-10 leading-relaxed">
+      Degradê de precisão, barba terapia tradicional, toalha quente e atendimento com bebida de boas-vindas em ambiente moderno e climatizado.
+    </p>
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-3.5">
+      <a href="https://wa.me/258840000000?text=Quero%20agendar%20um%20corte" target="_blank" class="w-full sm:w-auto px-8 py-3.5 rounded-full bg-white text-black hover:bg-zinc-200 font-extrabold text-xs transition cursor-pointer shadow-lg active:scale-95">
+        Agendar no WhatsApp
+      </a>
+      <a href="#servicos" class="w-full sm:w-auto px-8 py-3.5 rounded-full border border-white/20 text-white hover:bg-white/10 font-bold text-xs transition cursor-pointer">
+        Ver Tabela de Serviços
+      </a>
+    </div>
+  </section>
+
+  {/* Serviços e Preços */}
+  <section id="servicos" class="py-16 px-6 max-w-5xl mx-auto border-t border-white/10">
+    <div class="text-center mb-12">
+      <span class="text-xs font-mono text-zinc-500 uppercase tracking-widest">Nossos Serviços</span>
+      <h2 class="text-2xl sm:text-3xl font-extrabold text-white mt-1">Tabela de Preços</h2>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div class="p-6 rounded-2xl bg-zinc-950 border border-white/10 flex justify-between items-start">
+        <div>
+          <h3 class="font-bold text-white text-sm">Corte Cabelo Master</h3>
+          <p class="text-xs text-zinc-400 mt-1">Degradê impecável, tesoura ou máquina, lavagem e finalização premium.</p>
+        </div>
+        <span class="font-mono text-xs font-bold text-white bg-white/10 px-2.5 py-1 rounded-full shrink-0 ml-4">600 MT</span>
+      </div>
+      <div class="p-6 rounded-2xl bg-zinc-950 border border-white/10 flex justify-between items-start">
+        <div>
+          <h3 class="font-bold text-white text-sm">Barba Terapia Tradicional</h3>
+          <p class="text-xs text-zinc-400 mt-1">Toalha quente, óleos essenciais, massagem facial e navalha afiada.</p>
+        </div>
+        <span class="font-mono text-xs font-bold text-white bg-white/10 px-2.5 py-1 rounded-full shrink-0 ml-4">450 MT</span>
+      </div>
+      <div class="p-6 rounded-2xl bg-zinc-950 border border-white/10 flex justify-between items-start">
+        <div>
+          <h3 class="font-bold text-white text-sm">Combo VIP Executivo</h3>
+          <p class="text-xs text-zinc-400 mt-1">Corte completo + Barba terapia + hidratação capilar profunda.</p>
+        </div>
+        <span class="font-mono text-xs font-bold text-white bg-white/10 px-2.5 py-1 rounded-full shrink-0 ml-4">950 MT</span>
+      </div>
+      <div class="p-6 rounded-2xl bg-zinc-950 border border-white/10 flex justify-between items-start">
+        <div>
+          <h3 class="font-bold text-white text-sm">Tratamento Capilar & Sobrancelha</h3>
+          <p class="text-xs text-zinc-400 mt-1">Alinhamento estético de sobrancelha e esfoliação do couro cabeludo.</p>
+        </div>
+        <span class="font-mono text-xs font-bold text-white bg-white/10 px-2.5 py-1 rounded-full shrink-0 ml-4">350 MT</span>
+      </div>
+    </div>
+  </section>
+
+  {/* CTA e Horários */}
+  <section id="agendar" class="py-16 px-6 max-w-5xl mx-auto">
+    <div class="p-10 sm:p-14 rounded-3xl bg-zinc-950 border border-white/10 text-center">
+      <span class="text-xs font-mono text-zinc-400 uppercase tracking-widest">Segunda a Sábado &bull; 08:00 às 20:00</span>
+      <h2 class="text-2xl sm:text-4xl font-extrabold text-white mt-2 mb-4">Garanta o Seu Horário na Cadeira</h2>
+      <p class="text-xs sm:text-sm text-zinc-400 max-w-md mx-auto mb-8">Evite esperas. Agende diretamente com o seu barbeiro de preferência.</p>
+      <a href="https://wa.me/258840000000?text=Quero%20agendar%20horario%20na%20barbearia" target="_blank" class="inline-block px-8 py-3.5 rounded-full bg-white text-black hover:bg-zinc-200 font-extrabold text-xs transition cursor-pointer shadow-lg active:scale-95">
+        Agendar pelo WhatsApp
+      </a>
+    </div>
+  </section>
+
+  ${renderFooter(brand, navItems)}
+</body>
+</html>`;
+  }
+
+  // 4. MODELO: HOTEL & RESORT (Preto e Branco)
+  if (p.includes('hotel') || p.includes('resort') || p.includes('turismo') || p.includes('hospedagem')) {
+    const brand = title || 'Hotel & Resort';
+    const navItems = [
+      { label: 'Início', href: '#inicio' },
+      { label: 'Acomodações', href: '#suites' },
+      { label: 'Comodidades', href: '#comodidades' },
+      { label: 'Contacto', href: '#reservas' }
+    ];
+    return `<!DOCTYPE html>
+<html lang="pt" class="scroll-smooth">
+${renderHead(`${brand} - Acomodações de Luxo`)}
+<body class="bg-black text-white min-h-screen antialiased selection:bg-white selection:text-black">
+  ${renderNavbar(brand, navItems, 'Reservar')}
+
+  <section id="inicio" class="pt-20 sm:pt-28 pb-16 px-6 max-w-5xl mx-auto text-center">
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] font-mono uppercase tracking-widest text-zinc-400 mb-6">
+      HOSPEDAGEM EXCLUSIVA &bull; VISTA MAR
+    </div>
+    <h1 class="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight mb-6 text-white leading-tight">
+      Refúgio de Paz e Conforto Incomparável.
+    </h1>
+    <p class="text-sm sm:text-base text-zinc-400 max-w-xl mx-auto mb-10 leading-relaxed">
+      Suítes contemporâneas à beira-mar, gastronomia requintada, piscina de borda infinita e hospitalidade de alto padrão em Moçambique.
+    </p>
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-3.5">
+      <a href="#suites" class="w-full sm:w-auto px-8 py-3.5 rounded-full bg-white text-black hover:bg-zinc-200 font-extrabold text-xs transition cursor-pointer shadow-lg active:scale-95">
+        Ver Acomodações
+      </a>
+      <a href="https://wa.me/258840000000?text=Quero%20consultar%20disponibilidade%20no%20hotel" target="_blank" class="w-full sm:w-auto px-8 py-3.5 rounded-full border border-white/20 text-white hover:bg-white/10 font-bold text-xs transition cursor-pointer">
+        Consultar Datas no WhatsApp
+      </a>
+    </div>
+  </section>
+
+  {/* Suítes */}
+  <section id="suites" class="py-16 px-6 max-w-5xl mx-auto border-t border-white/10">
+    <div class="text-center mb-12">
+      <span class="text-xs font-mono text-zinc-500 uppercase tracking-widest">Acomodações</span>
+      <h2 class="text-2xl sm:text-3xl font-extrabold text-white mt-1">Suítes &amp; Quartos</h2>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <div class="p-6 rounded-2xl bg-zinc-950 border border-white/10 flex flex-col justify-between">
+        <div>
+          <span class="text-[10px] font-mono text-zinc-400 uppercase">Vista Mar Panorâmica</span>
+          <h3 class="font-bold text-white text-lg mt-1 mb-2">Suíte Presidencial</h3>
+          <p class="text-xs text-zinc-400 leading-relaxed">Cama king size, banheira de imersão, varanda ampla e serviço de quarto 24h.</p>
+        </div>
+        <div class="mt-6 pt-4 border-t border-white/10 flex items-center justify-between">
+          <span class="font-mono text-xs font-bold text-white">14.500 MT / noite</span>
+          <a href="https://wa.me/258840000000?text=Reservar%20Suite%20Presidencial" target="_blank" class="text-xs font-bold text-white underline">Reservar</a>
+        </div>
+      </div>
+      <div class="p-6 rounded-2xl bg-zinc-950 border border-white/10 flex flex-col justify-between">
+        <div>
+          <span class="text-[10px] font-mono text-zinc-400 uppercase">Privacidade Total</span>
+          <h3 class="font-bold text-white text-lg mt-1 mb-2">Villa Familiar Privada</h3>
+          <p class="text-xs text-zinc-400 leading-relaxed">2 quartos, piscina privativa, sala de estar e acesso direto à praia.</p>
+        </div>
+        <div class="mt-6 pt-4 border-t border-white/10 flex items-center justify-between">
+          <span class="font-mono text-xs font-bold text-white">22.000 MT / noite</span>
+          <a href="https://wa.me/258840000000?text=Reservar%20Villa%20Familiar" target="_blank" class="text-xs font-bold text-white underline">Reservar</a>
+        </div>
+      </div>
+      <div class="p-6 rounded-2xl bg-zinc-950 border border-white/10 flex flex-col justify-between">
+        <div>
+          <span class="text-[10px] font-mono text-zinc-400 uppercase">Conforto Essencial</span>
+          <h3 class="font-bold text-white text-lg mt-1 mb-2">Quarto Deluxe King</h3>
+          <p class="text-xs text-zinc-400 leading-relaxed">Ambiente aconchegante, ar condicionado silencioso, minibar e Wi-Fi de alta velocidade.</p>
+        </div>
+        <div class="mt-6 pt-4 border-t border-white/10 flex items-center justify-between">
+          <span class="font-mono text-xs font-bold text-white">8.500 MT / noite</span>
+          <a href="https://wa.me/258840000000?text=Reservar%20Deluxe%20King" target="_blank" class="text-xs font-bold text-white underline">Reservar</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  ${renderFooter(brand, navItems)}
+</body>
+</html>`;
+  }
+
+  // 5. MODELO: LOJA ONLINE / BOUTIQUE (Preto e Branco)
+  if (p.includes('loja') || p.includes('ecommerce') || p.includes('produto') || p.includes('venda')) {
+    const brand = title || 'Boutique Online';
+    const navItems = [
+      { label: 'Início', href: '#inicio' },
+      { label: 'Coleção', href: '#produtos' },
+      { label: 'Sobre', href: '#sobre' },
+      { label: 'Apoio', href: '#contacto' }
+    ];
+    return `<!DOCTYPE html>
+<html lang="pt" class="scroll-smooth">
+${renderHead(`${brand} - Coleção Exclusiva`)}
+<body class="bg-black text-white min-h-screen antialiased selection:bg-white selection:text-black">
+  ${renderNavbar(brand, navItems, 'Fazer Pedido')}
+
+  <section id="inicio" class="pt-20 sm:pt-28 pb-16 px-6 max-w-5xl mx-auto text-center">
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] font-mono uppercase tracking-widest text-zinc-400 mb-6">
+      COLEÇÃO ESSENCIAL &bull; 2026
+    </div>
+    <h1 class="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight mb-6 text-white leading-tight">
+      Minimalismo, Qualidade e Peças Únicas.
+    </h1>
+    <p class="text-sm sm:text-base text-zinc-400 max-w-xl mx-auto mb-10 leading-relaxed">
+      Vestuário contemporâneo e acessórios de alto padrão pensados para elegância, conforto diário e durabilidade com entrega rápida em Moçambique.
+    </p>
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-3.5">
+      <a href="#produtos" class="w-full sm:w-auto px-8 py-3.5 rounded-full bg-white text-black hover:bg-zinc-200 font-extrabold text-xs transition cursor-pointer shadow-lg active:scale-95">
+        Explorar Coleção
+      </a>
+      <a href="https://wa.me/258840000000?text=Quero%20ver%20o%20catalogo" target="_blank" class="w-full sm:w-auto px-8 py-3.5 rounded-full border border-white/20 text-white hover:bg-white/10 font-bold text-xs transition cursor-pointer">
+        Catálogo no WhatsApp
+      </a>
+    </div>
+  </section>
+
+  {/* Vitrine de Produtos */}
+  <section id="produtos" class="py-16 px-6 max-w-5xl mx-auto border-t border-white/10">
+    <div class="text-center mb-12">
+      <span class="text-xs font-mono text-zinc-500 uppercase tracking-widest">Catálogo Selecionado</span>
+      <h2 class="text-2xl sm:text-3xl font-extrabold text-white mt-1">Destaques da Temporada</h2>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="p-5 rounded-2xl bg-zinc-950 border border-white/10 flex flex-col justify-between">
+        <div class="h-32 rounded-xl bg-zinc-900 border border-white/5 flex items-center justify-center font-mono text-xs text-zinc-500 mb-4">ITEM 01</div>
+        <div>
+          <h3 class="font-bold text-white text-sm">Casaco Minimalist Wool</h3>
+          <p class="text-[11px] text-zinc-400 mt-0.5">Lã pura, corte reto contemporâneo.</p>
+        </div>
+        <div class="mt-4 pt-3 border-t border-white/10 flex items-center justify-between">
+          <span class="font-mono text-xs font-bold text-white">4.800 MT</span>
+          <a href="https://wa.me/258840000000?text=Comprar%20Casaco%20Wool" target="_blank" class="text-xs font-bold text-white bg-white/10 hover:bg-white/20 px-2 py-1 rounded-md">Comprar</a>
+        </div>
+      </div>
+      <div class="p-5 rounded-2xl bg-zinc-950 border border-white/10 flex flex-col justify-between">
+        <div class="h-32 rounded-xl bg-zinc-900 border border-white/5 flex items-center justify-center font-mono text-xs text-zinc-500 mb-4">ITEM 02</div>
+        <div>
+          <h3 class="font-bold text-white text-sm">Camisa Oxford Pure White</h3>
+          <p class="text-[11px] text-zinc-400 mt-0.5">Algodão egípcio respirável e elegante.</p>
+        </div>
+        <div class="mt-4 pt-3 border-t border-white/10 flex items-center justify-between">
+          <span class="font-mono text-xs font-bold text-white">2.200 MT</span>
+          <a href="https://wa.me/258840000000?text=Comprar%20Camisa%20Oxford" target="_blank" class="text-xs font-bold text-white bg-white/10 hover:bg-white/20 px-2 py-1 rounded-md">Comprar</a>
+        </div>
+      </div>
+      <div class="p-5 rounded-2xl bg-zinc-950 border border-white/10 flex flex-col justify-between">
+        <div class="h-32 rounded-xl bg-zinc-900 border border-white/5 flex items-center justify-center font-mono text-xs text-zinc-500 mb-4">ITEM 03</div>
+        <div>
+          <h3 class="font-bold text-white text-sm">Ténis Monocromático Leather</h3>
+          <p class="text-[11px] text-zinc-400 mt-0.5">Couro genuíno com solado ergonómico.</p>
+        </div>
+        <div class="mt-4 pt-3 border-t border-white/10 flex items-center justify-between">
+          <span class="font-mono text-xs font-bold text-white">3.600 MT</span>
+          <a href="https://wa.me/258840000000?text=Comprar%20Tenis%20Leather" target="_blank" class="text-xs font-bold text-white bg-white/10 hover:bg-white/20 px-2 py-1 rounded-md">Comprar</a>
+        </div>
+      </div>
+      <div class="p-5 rounded-2xl bg-zinc-950 border border-white/10 flex flex-col justify-between">
+        <div class="h-32 rounded-xl bg-zinc-900 border border-white/5 flex items-center justify-center font-mono text-xs text-zinc-500 mb-4">ITEM 04</div>
+        <div>
+          <h3 class="font-bold text-white text-sm">Carteira Compact Slim</h3>
+          <p class="text-[11px] text-zinc-400 mt-0.5">Proteção RFID e perfil ultra-fino.</p>
+        </div>
+        <div class="mt-4 pt-3 border-t border-white/10 flex items-center justify-between">
+          <span class="font-mono text-xs font-bold text-white">1.450 MT</span>
+          <a href="https://wa.me/258840000000?text=Comprar%20Carteira%20Slim" target="_blank" class="text-xs font-bold text-white bg-white/10 hover:bg-white/20 px-2 py-1 rounded-md">Comprar</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  ${renderFooter(brand, navItems)}
+</body>
+</html>`;
+  }
+
+  // 6. MODELO: PORTFÓLIO CRIATIVO (Preto e Branco)
+  if (p.includes('portfolio') || p.includes('portfólio') || p.includes('designer') || p.includes('developer')) {
+    const brand = title || 'Portfólio Profissional';
+    const navItems = [
+      { label: 'Início', href: '#inicio' },
+      { label: 'Projetos', href: '#projetos' },
+      { label: 'Habilidades', href: '#habilidades' },
+      { label: 'Contacto', href: '#contacto' }
+    ];
+    return `<!DOCTYPE html>
+<html lang="pt" class="scroll-smooth">
+${renderHead(`${brand} - Projetos & Desenvolvimento`)}
+<body class="bg-black text-white min-h-screen antialiased selection:bg-white selection:text-black">
+  ${renderNavbar(brand, navItems, 'Conversar')}
+
+  <section id="inicio" class="pt-20 sm:pt-28 pb-16 px-6 max-w-5xl mx-auto text-center">
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] font-mono uppercase tracking-widest text-zinc-400 mb-6">
+      DESIGN &bull; DESENVOLVIMENTO FULL-STACK
+    </div>
+    <h1 class="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight mb-6 text-white leading-tight">
+      Criando Produtos Digitais de Alto Impacto.
+    </h1>
+    <p class="text-sm sm:text-base text-zinc-400 max-w-xl mx-auto mb-10 leading-relaxed">
+      Especialista em interfaces limpas, arquiteturas modernas e alta performance para marcas e negócios que procuram excelência.
+    </p>
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-3.5">
+      <a href="#projetos" class="w-full sm:w-auto px-8 py-3.5 rounded-full bg-white text-black hover:bg-zinc-200 font-extrabold text-xs transition cursor-pointer shadow-lg active:scale-95">
+        Ver Projetos Recentes
+      </a>
+      <a href="https://wa.me/258840000000?text=Ola%20quero%20falar%20sobre%20um%20projeto" target="_blank" class="w-full sm:w-auto px-8 py-3.5 rounded-full border border-white/20 text-white hover:bg-white/10 font-bold text-xs transition cursor-pointer">
+        Falar no WhatsApp
+      </a>
+    </div>
+  </section>
+
+  {/* Projetos */}
+  <section id="projetos" class="py-16 px-6 max-w-5xl mx-auto border-t border-white/10">
+    <div class="text-center mb-12">
+      <span class="text-xs font-mono text-zinc-500 uppercase tracking-widest">Trabalhos Realizados</span>
+      <h2 class="text-2xl sm:text-3xl font-extrabold text-white mt-1">Casos de Sucesso</h2>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <div class="p-6 rounded-2xl bg-zinc-950 border border-white/10 flex flex-col justify-between">
+        <div>
+          <span class="text-[10px] font-mono text-zinc-400">FINTECH / SAAS</span>
+          <h3 class="font-bold text-white text-base mt-1 mb-2">Plataforma Cloud Pay</h3>
+          <p class="text-xs text-zinc-400 leading-relaxed">Interface financeira ultra-rápida construída com Next.js, TypeScript e integrações bancárias.</p>
+        </div>
+        <div class="mt-6 pt-3 border-t border-white/10">
+          <span class="text-[10px] font-mono text-zinc-500">React &bull; Next.js &bull; Tailwind</span>
+        </div>
+      </div>
+      <div class="p-6 rounded-2xl bg-zinc-950 border border-white/10 flex flex-col justify-between">
+        <div>
+          <span class="text-[10px] font-mono text-zinc-400">E-COMMERCE</span>
+          <h3 class="font-bold text-white text-base mt-1 mb-2">Boutique Minimalista</h3>
+          <p class="text-xs text-zinc-400 leading-relaxed">Loja online de moda monocromática com aumento de 42% na taxa de conversão móvel.</p>
+        </div>
+        <div class="mt-6 pt-3 border-t border-white/10">
+          <span class="text-[10px] font-mono text-zinc-500">UI/UX &bull; Pagamentos &bull; Performance</span>
+        </div>
+      </div>
+      <div class="p-6 rounded-2xl bg-zinc-950 border border-white/10 flex flex-col justify-between">
+        <div>
+          <span class="text-[10px] font-mono text-zinc-400">DESIGN SYSTEM</span>
+          <h3 class="font-bold text-white text-base mt-1 mb-2">Sistema Corporativo</h3>
+          <p class="text-xs text-zinc-400 leading-relaxed">Biblioteca de mais de 60 componentes reutilizáveis acessíveis com foco em consistência visual.</p>
+        </div>
+        <div class="mt-6 pt-3 border-t border-white/10">
+          <span class="text-[10px] font-mono text-zinc-500">Tailwind &bull; Radix &bull; Acessibilidade</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  ${renderFooter(brand, navItems)}
+</body>
+</html>`;
+  }
+
+  // 7. MODELO PADRÃO GENÉRICO (Preto e Branco com Menu e Rodapé)
+  const cleanTitle = title || 'Página Profissional';
+  const navItems = [
+    { label: 'Início', href: '#inicio' },
+    { label: 'Serviços', href: '#servicos' },
+    { label: 'Sobre', href: '#sobre' },
+    { label: 'Contacto', href: '#contacto' }
+  ];
 
   return `<!DOCTYPE html>
 <html lang="pt" class="scroll-smooth">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${cleanTitle} - Site Oficial</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-  <style>* { box-sizing: border-box; margin: 0; padding: 0; } html,body { background:#020617; color:#f8fafc; font-family:'Plus Jakarta Sans',sans-serif; }</style>
-</head>
-<body class="bg-slate-950 text-slate-100 min-h-screen">
-  <div class="fixed top-0 left-1/2 -translate-x-1/2 w-[700px] h-[300px] bg-gradient-to-b from-blue-600/20 via-indigo-600/10 to-transparent blur-3xl pointer-events-none -z-10"></div>
-  <nav class="sticky top-0 z-50 backdrop-blur-xl bg-slate-950/70 border-b border-slate-800/80">
-    <div class="max-w-6xl mx-auto px-6 h-20 flex items-center justify-between">
-      <a href="#" class="flex items-center gap-3 group">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center font-black text-white text-lg shadow-lg shadow-blue-500/25 group-hover:scale-105 transition">${firstLetter}</div>
-        <span class="text-xl font-bold tracking-tight text-white">${cleanTitle}</span>
+${renderHead(`${cleanTitle} - Site Oficial`)}
+<body class="bg-black text-white min-h-screen antialiased selection:bg-white selection:text-black">
+  ${renderNavbar(cleanTitle, navItems, 'WhatsApp')}
+
+  <section id="inicio" class="pt-20 sm:pt-28 pb-16 px-6 max-w-5xl mx-auto text-center">
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] font-mono uppercase tracking-widest text-zinc-400 mb-6">
+      QUALIDADE &bull; EXCLUSIVIDADE &bull; MOÇAMBIQUE
+    </div>
+    <h1 class="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight mb-6 text-white leading-tight">
+      ${cleanTitle}
+    </h1>
+    <p class="text-sm sm:text-base text-zinc-400 max-w-xl mx-auto mb-10 leading-relaxed">
+      Experiência premium, qualidade garantida e o melhor atendimento para superar as suas expectativas.
+    </p>
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-3.5">
+      <a href="https://wa.me/258840000000" target="_blank" class="w-full sm:w-auto px-8 py-3.5 rounded-full bg-white text-black hover:bg-zinc-200 font-extrabold text-xs transition cursor-pointer shadow-lg active:scale-95">
+        Falar no WhatsApp
       </a>
-      <div class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
-        <a href="#sobre" class="hover:text-white transition">Sobre</a>
-        <a href="#servicos" class="hover:text-white transition">Servicos</a>
-        <a href="#contacto" class="hover:text-white transition">Contacto</a>
-      </div>
-      <a href="https://wa.me/258840000000" target="_blank" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-lg transition-all hover:scale-105">WhatsApp</a>
-    </div>
-  </nav>
-  <section class="pt-24 pb-16 px-6 max-w-6xl mx-auto text-center">
-    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-xs font-bold text-blue-400 mb-8 uppercase tracking-widest">
-      <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse inline-block"></span>
-      Servico Profissional em Mocambique
-    </div>
-    <h1 class="text-5xl sm:text-7xl font-black tracking-tight mb-6 bg-gradient-to-b from-white via-white/90 to-white/50 bg-clip-text text-transparent leading-tight">${cleanTitle}</h1>
-    <p class="text-slate-400 max-w-2xl mx-auto text-lg mb-10 leading-relaxed">Experiencia premium, qualidade garantida e o melhor atendimento.</p>
-    <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-      <a href="https://wa.me/258840000000" target="_blank" class="px-8 py-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-base shadow-2xl transition hover:scale-105">Reservar Agora</a>
-      <a href="#servicos" class="px-8 py-4 rounded-2xl bg-white/5 border border-white/10 text-slate-300 hover:text-white font-bold text-base transition hover:bg-white/10">Ver Servicos</a>
+      <a href="#servicos" class="w-full sm:w-auto px-8 py-3.5 rounded-full border border-white/20 text-white hover:bg-white/10 font-bold text-xs transition cursor-pointer">
+        Ver Detalhes
+      </a>
     </div>
   </section>
-  <section id="servicos" class="py-16 px-6 max-w-6xl mx-auto">
-    <div class="text-center mb-16">
-      <h2 class="text-xs font-bold text-blue-400 uppercase tracking-widest mb-2">O Que Fazemos</h2>
-      <h3 class="text-3xl sm:text-4xl font-extrabold text-white">Nossos Servicos em Destaque</h3>
+
+  <section id="servicos" class="py-16 px-6 max-w-5xl mx-auto border-t border-white/10">
+    <div class="text-center mb-12">
+      <span class="text-xs font-mono text-zinc-500 uppercase tracking-widest">O Que Fazemos</span>
+      <h2 class="text-2xl sm:text-3xl font-extrabold text-white mt-1">Nossos Diferenciais</h2>
     </div>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <div class="p-8 rounded-3xl bg-slate-900 border border-slate-800 hover:border-blue-500/50 transition duration-300">
-        <div class="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-400 flex items-center justify-center font-bold text-xl mb-6">01</div>
-        <h4 class="text-xl font-bold text-white mb-3">Atendimento Premium</h4>
-        <p class="text-slate-400 text-sm leading-relaxed">Equipe dedicada a proporcionar a melhor experiencia do inicio ao fim.</p>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <div class="p-6 rounded-2xl bg-zinc-950 border border-white/10">
+        <span class="font-mono text-xs text-zinc-400">01</span>
+        <h3 class="text-base font-bold text-white mt-2 mb-1">Atendimento de Excelência</h3>
+        <p class="text-xs text-zinc-400 leading-relaxed">Equipa focada em prestar a melhor experiência do início ao fim.</p>
       </div>
-      <div class="p-8 rounded-3xl bg-slate-900 border border-slate-800 hover:border-emerald-500/50 transition duration-300">
-        <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold text-xl mb-6">02</div>
-        <h4 class="text-xl font-bold text-white mb-3">Agilidade e Pontualidade</h4>
-        <p class="text-slate-400 text-sm leading-relaxed">Garantimos rapidez na execucao e prazos respeitados com total transparencia.</p>
+      <div class="p-6 rounded-2xl bg-zinc-950 border border-white/10">
+        <span class="font-mono text-xs text-zinc-400">02</span>
+        <h3 class="text-base font-bold text-white mt-2 mb-1">Rapidez e Rigor</h3>
+        <p class="text-xs text-zinc-400 leading-relaxed">Cumprimento estrito de prazos e total transparência em cada etapa.</p>
       </div>
-      <div class="p-8 rounded-3xl bg-slate-900 border border-slate-800 hover:border-purple-500/50 transition duration-300">
-        <div class="w-12 h-12 rounded-2xl bg-purple-500/10 text-purple-400 flex items-center justify-center font-bold text-xl mb-6">03</div>
-        <h4 class="text-xl font-bold text-white mb-3">Solucoes Sob Medida</h4>
-        <p class="text-slate-400 text-sm leading-relaxed">Adaptamos as nossas solucoes a escala e ambicao do seu negocio.</p>
+      <div class="p-6 rounded-2xl bg-zinc-950 border border-white/10">
+        <span class="font-mono text-xs text-zinc-400">03</span>
+        <h3 class="text-base font-bold text-white mt-2 mb-1">Soluções Sob Medida</h3>
+        <p class="text-xs text-zinc-400 leading-relaxed">Adaptadas precisamente ao tamanho e ambição do seu negócio.</p>
       </div>
     </div>
   </section>
-  <section id="contacto" class="py-16 px-6 max-w-6xl mx-auto">
-    <div class="rounded-3xl p-10 md:p-14 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-center text-white shadow-2xl">
-      <h3 class="text-3xl sm:text-5xl font-black mb-6 tracking-tight">Pronto para dar o proximo passo?</h3>
-      <p class="text-blue-100 max-w-xl mx-auto mb-8 text-base">Fale diretamente connosco pelo WhatsApp.</p>
-      <a href="https://wa.me/258840000000" target="_blank" class="inline-flex items-center gap-3 px-8 py-4 rounded-xl bg-white text-slate-900 hover:bg-slate-100 font-extrabold text-sm shadow-xl transition-all hover:scale-105">Conversar no WhatsApp Agora</a>
-    </div>
-  </section>
-  <footer class="border-t border-slate-900 py-10 px-6 text-center text-xs text-slate-500">
-    <p>2026 ${cleanTitle}. Todos os direitos reservados. Hospedado com alta velocidade na WEHOSTHERE.</p>
-  </footer>
+
+  ${renderFooter(cleanTitle, navItems)}
 </body>
 </html>`;
 }
 
-// ─── System Instruction ───────────────────────────────────────────────────────
+// ─── System Instruction (Diretrizes Estritas Preto & Branco com Menu e Rodapé) ─
 const SYSTEM_INSTRUCTION = `Voce e o Construtor de Sites IA da WEHOSTHERE (uma plataforma cloud em Mocambique).
 Sua missao e gerar ou aprimorar uma pagina web HTML5 COMPLETA, AUTONOMA, MODERNA, RESPONSIVA e IMPRESSIONANTE para o cliente.
-DIRETRIZES CRITICAS:
+DIRETRIZES CRITICAS DE DESIGN E ESTRUTURA:
 1. Retorne APENAS o codigo HTML completo (comecando em <!DOCTYPE html> e terminando em </html>). NAO inclua explicacoes ou texto antes ou depois.
 2. Use Tailwind CSS via CDN: <script src="https://cdn.tailwindcss.com"></script>
-3. Use Google Fonts (Plus Jakarta Sans, Inter ou Outfit).
-4. Cores elegantes e profissionais (dark mode moderno, gradientes suaves).
-5. Estrutura: Navbar, Hero, Servicos, Depoimentos, CTA, Footer. Links WhatsApp formato https://wa.me/258...
-6. Se houver HTML atual, REFINE e ATUALIZE aplicando as alteracoes pedidas.
-7. Para paginas simples/inicio, mantenha limpo e elegante com o titulo: "Prontos para Criar o seu Sistema?"`;
+3. Use Google Fonts (Plus Jakarta Sans ou Inter).
+4. ESTETICA OBRIGATORIA: TEMA PRETO E BRANCO (Black & White / Minimalist Luxury). Fundo preto (#000000 ou #050505), texto em branco (#ffffff) e cinza (#a1a1aa), com bordas suaves (border-white/10). Botões de acao principais em BRANCO PURO com texto preto (bg-white text-black font-extrabold hover:bg-zinc-200).
+5. MENU / NAVBAR: Simples e bonito, fixo ou sticky no topo (sticky top-0 backdrop-blur-xl bg-black/85 border-b border-white/10), com logo em caixa monocromatica, links essenciais e botao WhatsApp em branco.
+6. RODAPE / FOOTER: Simples e bonito no fundo com divisor (border-t border-white/10), nome da marca, links rapidos e copyright "2026. Todos os direitos reservados."
+7. ESTRUTURA: Navbar, Hero impactante, Secao de Servicos/Cardapio/Produtos com precos claros em Meticais (MZN), CTA no WhatsApp e Rodape.
+8. Se houver HTML atual, REFINE e ATUALIZE mantendo essa estetica preta e branca minimalista de alto luxo.`;
 
 // ─── Detecção de Intenção Conversacional (Chat vs Geração de Código) ──────────
 function detectConversationalIntent(prompt: string, hasCurrentHtml: boolean): { isChat: boolean; reply: string } {

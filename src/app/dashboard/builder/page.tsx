@@ -292,26 +292,26 @@ export default function AiSiteBuilderStudio() {
   const generateProposalPlan = (promptText: string, hasHtml: boolean): string => {
     const p = promptText.toLowerCase();
     if (hasHtml) {
-      return `Entendido! Preparei o seguinte plano de modificação para o seu site:\n\n• Aplicar as alterações solicitadas: "${promptText}"\n• Preservar o design, estrutura e identidade já existentes\n• Testar o novo código e renderizar diretamente no preview interativo.\n\nDeseja aceitar e gerar o código agora?`;
+      return `Entendido! Preparei o seguinte plano de modificação para o seu site:\n\n• Aplicar as alterações solicitadas: "${promptText}"\n• Preservar o tema minimalista preto e branco de alto contraste\n• Manter o menu simples e o rodapé limpos e organizados\n• Testar o novo código e renderizar diretamente no preview interativo.\n\nDeseja aceitar e gerar o código agora?`;
     }
 
     if (p.includes('restaurante') || p.includes('lounge') || p.includes('comida') || p.includes('cardapio') || p.includes('cardápio')) {
-      return `Excelente! Preparei o plano de construção para o seu Restaurante & Lounge:\n\n• Navbar moderna com logotipo e atalhos rápidos\n• Seção Hero elegante com convite a reservas e fotos do ambiente\n• Cardápio digital estruturado com pratos especiais\n• Botão integrado de reservas diretas no WhatsApp\n• Rodapé completo com horários de funcionamento e localização.\n\nDeseja aceitar e iniciar a geração do código?`;
+      return `Excelente! Preparei o plano de construção para o seu Restaurante & Lounge:\n\n• Tema sofisticado Preto & Branco com tipografia Plus Jakarta Sans\n• Menu simples e bonito com links rápidos e botão de WhatsApp\n• Seção Hero elegante com convite a reservas e culinária contemporânea\n• Cardápio digital de degustação com preços claros em Meticais (MZN)\n• Rodapé minimalista com horários, contactos e direitos reservados.\n\nDeseja aceitar e iniciar a geração do código?`;
     }
 
     if (p.includes('barbearia') || p.includes('corte') || p.includes('barba')) {
-      return `Ótimo! Preparei o plano de desenvolvimento para a sua Barbearia VIP:\n\n• Visual impactante com tema dark mode premium\n• Grade de serviços com corte, barba e pacotes VIP\n• Tabela de preços clara em Meticais (MZN)\n• Botão flutuante de agendamento rápido via WhatsApp.\n\nDeseja aceitar e iniciar a geração do código?`;
+      return `Ótimo! Preparei o plano de desenvolvimento para a sua Barbearia VIP:\n\n• Tema Preto & Branco com visual masculino moderno de alta classe\n• Menu clean e elegante com atalhos para serviços e agendamento\n• Tabela de cortes, barba terapia e combos com preços em Meticais (MZN)\n• Botão flutuante de agendamento rápido via WhatsApp\n• Rodapé simples e bonito com horários de funcionamento.\n\nDeseja aceitar e iniciar a geração do código?`;
     }
 
     if (p.includes('hotel') || p.includes('resort') || p.includes('turismo') || p.includes('hospedagem')) {
-      return `Perfeito! Preparei o plano para o seu Hotel & Resort:\n\n• Layout acolhedor com foco em fotos das acomodações\n• Seção de serviços exclusivos (piscina, restaurante, transfer)\n• Formulário e botão de reserva rápida no WhatsApp\n• 100% responsivo para smartphones e computadores.\n\nDeseja aceitar e iniciar a geração do código?`;
+      return `Perfeito! Preparei o plano para o seu Hotel & Resort:\n\n• Estética refinada Preto & Branco com destaque para suítes exclusivas\n• Menu simples e bonito com navegação fluida e botão de reserva\n• Seção de acomodações com tarifas por noite em Meticais (MZN)\n• Comodidades premium (piscina infinita, SPA, gastronomia)\n• Rodapé minimalista com informações e termos.\n\nDeseja aceitar e iniciar a geração do código?`;
     }
 
     if (p.includes('loja') || p.includes('ecommerce') || p.includes('produto') || p.includes('venda')) {
-      return `Excelente! Preparei o plano para a sua Loja Online:\n\n• Vitrine moderna com catálogo de produtos e preços\n• Destaques de promoções e produtos mais vendidos\n• Botões individuais de compra direta via WhatsApp\n• Informações de envio, garantia e pagamentos.\n\nDeseja aceitar e iniciar a geração do código?`;
+      return `Excelente! Preparei o plano para a sua Loja Online:\n\n• Layout monocromático Preto & Branco com vitrine minimalista de produtos\n• Menu simples e bonito com categorias e botão de pedido\n• Catálogo com preços em Meticais e botões diretos de compra no WhatsApp\n• Rodapé clean com vantagens de envio, suporte e pagamentos locais.\n\nDeseja aceitar e iniciar a geração do código?`;
     }
 
-    return `Entendido! Preparei o seguinte plano de desenvolvimento:\n\n• Construir a estrutura completa para: "${promptText}"\n• Estilização moderna com Tailwind CSS e Google Fonts\n• Seções completas: Navbar, Hero, Serviços, CTA e Rodapé\n• Botão de contacto direto no WhatsApp e design responsivo.\n\nDeseja aceitar e iniciar a geração do código?`;
+    return `Entendido! Preparei o seguinte plano de desenvolvimento:\n\n• Tema minimalista Preto & Branco de alto contraste\n• Menu simples e bonito com logotipo e navegação essencial\n• Seções completas: Hero impactante, serviços com preços, CTA e Rodapé clean\n• 100% responsivo para telemóveis e computadores.\n\nDeseja aceitar e iniciar a geração do código?`;
   };
 
   const cancelProposal = (msgId: string) => {
