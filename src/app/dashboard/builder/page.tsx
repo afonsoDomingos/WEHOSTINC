@@ -248,6 +248,45 @@ function applyLogoToHtml(
   return updated;
 }
 
+// ─── HELPER: Formatar Markdown suave para mensagens da IA ──────────────────
+function formatMessageContent(content: string) {
+  if (!content) return null;
+  const lines = content.split('\n');
+
+  return lines.map((line, idx) => {
+    const trimmed = line.trim();
+    const isBullet = trimmed.startsWith('•') || trimmed.startsWith('- ') || trimmed.startsWith('* ');
+    const rawContent = isBullet ? trimmed.replace(/^[•\-\*]\s*/, '') : line;
+
+    // Parser simples de negrito **texto** e código `codigo`
+    const parts = rawContent.split(/(\*\*.*?\*\*|`.*?`)/g);
+    const elements = parts.map((part, pIdx) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={pIdx} className="text-white font-extrabold">{part.slice(2, -2)}</strong>;
+      }
+      if (part.startsWith('`') && part.endsWith('`')) {
+        return <code key={pIdx} className="px-1.5 py-0.5 rounded bg-white/10 font-mono text-[11px] text-blue-300">{part.slice(1, -1)}</code>;
+      }
+      return part;
+    });
+
+    if (isBullet) {
+      return (
+        <div key={idx} className="flex items-start gap-2 my-1 pl-1">
+          <span className="w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0 mt-1.5" />
+          <span className="flex-1">{elements}</span>
+        </div>
+      );
+    }
+
+    return (
+      <div key={idx} className={trimmed === '' ? 'h-2' : ''}>
+        {elements}
+      </div>
+    );
+  });
+}
+
 interface ChatMessage {
   id: string;
   role: 'user' | 'assistant';
@@ -256,6 +295,7 @@ interface ChatMessage {
   diffSummary?: string;
   executionSeconds?: number;
   modelUsed?: string;
+  isStreamingText?: boolean;
   proposal?: {
     prompt: string;
     titleOverride?: string;
@@ -304,9 +344,23 @@ export default function AiSiteBuilderStudio() {
   // Estados da Conversa / Prompt
   const [prompt, setPrompt] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
+  const [elapsedThinkingSeconds, setElapsedThinkingSeconds] = useState<number>(0);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const versionMenuRef = useRef<HTMLDivElement>(null);
+
+  // Cronómetro de Raciocínio em Tempo Real (Estilo ChatGPT / Claude)
+  useEffect(() => {
+    if (!isGenerating) {
+      setElapsedThinkingSeconds(0);
+      return;
+    }
+    const start = Date.now();
+    const interval = setInterval(() => {
+      setElapsedThinkingSeconds(Number(((Date.now() - start) / 1000).toFixed(1)));
+    }, 100);
+    return () => clearInterval(interval);
+  }, [isGenerating]);
 
   // Estados de Streaming
   const [streamingCode, setStreamingCode] = useState<string>(''); // código a aparecer em tempo real
@@ -618,6 +672,42 @@ export default function AiSiteBuilderStudio() {
     }));
   };
 
+  // ─── Efeito Typewriter e Entrada Fluida (Estilo ChatGPT / Claude) ─────────
+  const streamTypewriterMessage = async (
+    targetMessage: ChatMessage,
+    fullText: string,
+    onComplete?: (finalMessages: ChatMessage[]) => void
+  ) => {
+    const msgId = targetMessage.id;
+    // Adicionar a mensagem inicialmente com conteúdo vazio e cursor ativo
+    setMessages(prev => [...prev, { ...targetMessage, content: '', isStreamingText: true }]);
+
+    const len = fullText.length;
+    let currentIdx = 0;
+    // Velocidade dinâmica: textos maiores escrevem mais rápido para fluidez sem tédio
+    const chunkSize = len > 350 ? 5 : 3;
+
+    await new Promise<void>((resolve) => {
+      const interval = setInterval(() => {
+        currentIdx += chunkSize;
+        if (currentIdx >= len) {
+          clearInterval(interval);
+          setMessages(prev => {
+            const next = prev.map(m => m.id === msgId ? { ...m, content: fullText, isStreamingText: false } : m);
+            if (onComplete) onComplete(next);
+            return next;
+          });
+          chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+          resolve();
+        } else {
+          const partial = fullText.slice(0, currentIdx);
+          setMessages(prev => prev.map(m => m.id === msgId ? { ...m, content: partial, isStreamingText: true } : m));
+          chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 15);
+    });
+  };
+
   // ─── Ponto de Entrada: Enviar Prompt (Gera Proposta Prévia ou Responde Chat) ──
   const handleGenerate = async (promptText?: string, titleOverride?: string, autoAccept: boolean = false) => {
     const textToSend = promptText || prompt;
@@ -646,12 +736,13 @@ export default function AiSiteBuilderStudio() {
       return;
     }
 
-    // Se for comando de código no Modo Desenvolvimento -> Cria primeiro o card de proposta para confirmação
+    // Se for comando de código no Modo Desenvolvimento -> Cria o card de proposta com entrada fluida
     const plan = generateProposalPlan(textToSend, Boolean(currentHtml));
     const proposalMsg: ChatMessage = {
       id: `msg_proposal_${Date.now()}`,
       role: 'assistant',
-      content: plan,
+      content: '',
+      isStreamingText: true,
       proposal: {
         prompt: textToSend,
         titleOverride,
@@ -660,8 +751,12 @@ export default function AiSiteBuilderStudio() {
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
-    setMessages(prev => [...prev, userMsg, proposalMsg]);
-    setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
+    setMessages(prev => [...prev, userMsg]);
+    setIsGenerating(true);
+    setTimeout(async () => {
+      setIsGenerating(false);
+      await streamTypewriterMessage(proposalMsg, plan);
+    }, 350);
   };
 
   // ─── Execução do Streaming SSE (Acionado ao Clicar em "Aceitar e Gerar Código" ou Chat) ─
@@ -764,63 +859,64 @@ export default function AiSiteBuilderStudio() {
         }
       }
 
-      // Caso 1: Foi apenas conversa
+      // Caso 1: Foi apenas conversa -> Efeito Typewriter fluido
       if (isChatResponse && chatReply) {
         setIsStreaming(false);
         setStreamingCode('');
+        setIsGenerating(false);
         setActiveTab('preview');
 
         const aiMsg: ChatMessage = {
           id: `msg_ai_${Date.now()}`,
           role: 'assistant',
-          content: chatReply,
+          content: '',
+          isStreamingText: true,
           modelUsed,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };
 
-        const updatedMessages = [...messages, aiMsg];
-        setMessages(updatedMessages);
-
-        if (currentUser?.email) {
-          saveProjectToDb({
-            id: projectId,
-            userEmail,
-            userName: currentUser?.name || 'Cliente',
-            title: titleOverride || projectTitle,
-            slug: projectSlug,
-            subdomain: projectSlug,
-            htmlContent: currentHtml,
-            promptHistory: updatedMessages,
-            versions: versions.map(v => ({
-              versionNumber: v.versionNumber,
-              htmlContent: v.html,
-              prompt: v.prompt,
-              createdAt: new Date().toISOString()
-            })),
-            status: isPublished ? 'published' : 'draft'
-          });
-        }
+        await streamTypewriterMessage(aiMsg, chatReply, (finalMessages) => {
+          if (currentUser?.email) {
+            saveProjectToDb({
+              id: projectId,
+              userEmail,
+              userName: currentUser?.name || 'Cliente',
+              title: titleOverride || projectTitle,
+              slug: projectSlug,
+              subdomain: projectSlug,
+              htmlContent: currentHtml,
+              promptHistory: finalMessages,
+              versions: versions.map(v => ({
+                versionNumber: v.versionNumber,
+                htmlContent: v.html,
+                prompt: v.prompt,
+                createdAt: new Date().toISOString()
+              })),
+              status: isPublished ? 'published' : 'draft'
+            });
+          }
+        });
         return;
       }
 
-      // Caso 2: Gerou o código do site
+      // Caso 2: Gerou o código do site -> Efeito Typewriter na explicação
       if (accumulatedHtml) {
         setCurrentHtml(accumulatedHtml);
         setStreamingCode('');
         setIsStreaming(false);
         setActiveTab('preview');
+        setIsGenerating(false);
 
         const aiMsg: ChatMessage = {
           id: `msg_ai_${Date.now()}`,
           role: 'assistant',
-          content: explanation,
+          content: '',
+          isStreamingText: true,
           diffSummary,
           executionSeconds,
           modelUsed,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };
-
-        setMessages(prev => [...prev, aiMsg]);
 
         // Guardar versão no histórico
         const nextVersionNumber = versions.length + 1;
@@ -834,23 +930,24 @@ export default function AiSiteBuilderStudio() {
         setVersions(updatedVersions);
         setSelectedVersionIndex('latest');
 
-        // Guardar no banco de dados
-        saveProjectToDb({
-          id: projectId,
-          userEmail,
-          userName: currentUser?.name || 'Cliente',
-          title: titleOverride || projectTitle,
-          slug: projectSlug,
-          subdomain: projectSlug,
-          htmlContent: accumulatedHtml,
-          promptHistory: [...messages, aiMsg],
-          versions: updatedVersions.map(v => ({
-            versionNumber: v.versionNumber,
-            htmlContent: v.html,
-            prompt: v.prompt,
-            createdAt: new Date().toISOString()
-          })),
-          status: isPublished ? 'published' : 'draft'
+        await streamTypewriterMessage(aiMsg, explanation, (finalMessages) => {
+          saveProjectToDb({
+            id: projectId,
+            userEmail,
+            userName: currentUser?.name || 'Cliente',
+            title: titleOverride || projectTitle,
+            slug: projectSlug,
+            subdomain: projectSlug,
+            htmlContent: accumulatedHtml,
+            promptHistory: finalMessages,
+            versions: updatedVersions.map(v => ({
+              versionNumber: v.versionNumber,
+              htmlContent: v.html,
+              prompt: v.prompt,
+              createdAt: new Date().toISOString()
+            })),
+            status: isPublished ? 'published' : 'draft'
+          });
         });
       }
     } catch (err) {
@@ -1617,8 +1714,8 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 ) : (
                   /* Card do Assistente no Estilo v0 */
                   <div className="w-full space-y-2">
-                    {m.executionSeconds && (
-                      <div className="flex flex-wrap items-center gap-2 text-[11px] text-gray-400 font-mono py-1">
+                    {m.executionSeconds && !m.isStreamingText && (
+                      <div className="flex flex-wrap items-center gap-2 text-[11px] text-gray-400 font-mono py-1 animate-in fade-in duration-300">
                         <span className="flex items-center gap-1 text-gray-300">
                           <Clock className="w-3 h-3 text-gray-400" /> {m.executionSeconds}s
                         </span>
@@ -1640,12 +1737,17 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                       </div>
                     )}
 
-                    <div className="bg-[#18181b] border border-[#27272a] rounded-2xl rounded-tl-sm p-4 text-xs sm:text-sm text-gray-200 leading-relaxed shadow-sm">
-                      <div className="whitespace-pre-line">{m.content}</div>
+                    <div className="bg-[#18181b] border border-[#27272a] rounded-2xl rounded-tl-sm p-4 text-xs sm:text-sm text-gray-200 leading-relaxed shadow-sm animate-in fade-in slide-in-from-bottom-1 duration-200">
+                      <div className="whitespace-pre-line leading-relaxed">
+                        {formatMessageContent(m.content)}
+                        {m.isStreamingText && (
+                          <span className="inline-block w-1.5 h-3.5 bg-blue-400 animate-pulse ml-1 align-middle rounded-sm shadow-[0_0_8px_rgba(96,165,250,0.8)]" />
+                        )}
+                      </div>
 
                       {/* Card de Proposta e Confirmação de Código */}
-                      {m.proposal && (
-                        <div className="mt-3 pt-3 border-t border-[#27272a]">
+                      {m.proposal && !m.isStreamingText && (
+                        <div className="mt-3 pt-3 border-t border-[#27272a] animate-in fade-in duration-200">
                           {m.proposal.status === 'pending' && (
                             <div className="flex flex-wrap items-center gap-2">
                               <button
@@ -1689,22 +1791,42 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
             );
           })}
 
-          {/* Indicador de Streaming da IA */}
+          {/* Indicador de Raciocínio / Streaming da IA (Estilo Claude / ChatGPT / v0) */}
           {isGenerating && (
-            <div className="space-y-2">
+            <div className="space-y-2 animate-in fade-in slide-in-from-bottom-2 duration-200">
               <div className="flex items-center gap-2 text-xs text-blue-400 font-mono py-1">
-                <Sparkles className="w-3.5 h-3.5 animate-spin" />
-                <span className="animate-pulse">A escrever código em tempo real...</span>
+                <Sparkles className="w-3.5 h-3.5 animate-spin text-blue-400 shrink-0" />
+                <span className="font-semibold text-gray-300 truncate">
+                  {isStreaming 
+                    ? 'A gerar código em tempo real...' 
+                    : elapsedThinkingSeconds < 1.4
+                    ? 'A interpretar o seu pedido e o contexto...'
+                    : elapsedThinkingSeconds < 3.2
+                    ? 'A estruturar a resposta e detalhes de design...'
+                    : 'A sintetizar a melhor solução...'}
+                </span>
+                <span className="ml-auto text-[10px] font-mono text-gray-400 bg-white/5 border border-white/5 px-2 py-0.5 rounded-full shrink-0">
+                  {elapsedThinkingSeconds.toFixed(1)}s
+                </span>
                 {isStreaming && (
-                  <span className="ml-auto text-[10px] text-emerald-400 font-bold flex items-center gap-1">
+                  <span className="text-[10px] text-emerald-400 font-bold flex items-center gap-1 shrink-0">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping inline-block" />
                     AO VIVO
                   </span>
                 )}
               </div>
-              <div className="p-3 bg-[#0e0e11] border border-[#27272a] rounded-2xl">
-                <div className="h-3 bg-white/10 rounded w-3/4 animate-pulse mb-2" />
-                <div className="h-3 bg-white/5 rounded w-1/2 animate-pulse" />
+              <div className="p-3.5 bg-[#0e0e11] border border-[#27272a] rounded-2xl relative overflow-hidden shadow-inner">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                    </span>
+                    <span className="text-xs text-gray-300 font-bold">Assistente WEHOSTHERE Studio</span>
+                  </div>
+                  <span className="text-[10px] text-gray-500 font-mono">Processando</span>
+                </div>
+                <div className="h-1.5 bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 rounded-full w-full animate-pulse" />
               </div>
             </div>
           )}
