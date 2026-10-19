@@ -79,8 +79,56 @@ function RevistaFooter() {
         .revista-footer .footer-slogan {
           color: rgba(255,255,255,0.95);
           font-size: 0.9rem;
-          margin-bottom: 2.5rem;
+          margin-bottom: 1.75rem;
           font-style: italic;
+        }
+        .revista-footer .footer-cta-card {
+          background: rgba(255, 255, 255, 0.16);
+          border: 1.5px solid rgba(255, 255, 255, 0.35);
+          backdrop-filter: blur(8px);
+          border-radius: 16px;
+          padding: 1.4rem 1.75rem;
+          margin-bottom: 2rem;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 1.25rem;
+          flex-wrap: wrap;
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+        .revista-footer .footer-cta-title {
+          margin: 0;
+          font-size: 1.12rem;
+          font-weight: 800;
+          color: #fff;
+          letter-spacing: -0.02em;
+        }
+        .revista-footer .footer-cta-desc {
+          margin: 0.3rem 0 0;
+          font-size: 0.83rem;
+          color: rgba(255, 255, 255, 0.92);
+          line-height: 1.5;
+        }
+        .revista-footer .footer-cta-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5rem;
+          background: #ffffff;
+          color: #7B2CBF;
+          font-weight: 800;
+          font-size: 0.86rem;
+          padding: 0.75rem 1.5rem;
+          border-radius: 12px;
+          text-decoration: none;
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+          transition: all 0.2s;
+          white-space: nowrap;
+        }
+        .revista-footer .footer-cta-btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+          background: #FAF5FF;
+          color: #5A189A;
         }
         .revista-footer .footer-grid {
           display: grid;
@@ -138,6 +186,14 @@ function RevistaFooter() {
           .revista-footer .footer-grid {
             grid-template-columns: 1fr;
           }
+          .revista-footer .footer-cta-card {
+            flex-direction: column;
+            align-items: flex-start;
+          }
+          .revista-footer .footer-cta-btn {
+            width: 100%;
+            justify-content: center;
+          }
         }
       `}</style>
       <div className="footer-inner">
@@ -149,9 +205,27 @@ function RevistaFooter() {
         </div>
         <p className="footer-slogan">Que história vamos codar agora?</p>
 
+        {/* ── Banner de Submissão Rápida no Rodapé ── */}
+        <div className="footer-cta-card">
+          <div>
+            <h4 className="footer-cta-title">
+              Tens uma história tech para partilhar? 🎙️
+            </h4>
+            <p className="footer-cta-desc">
+              Partilha a tua jornada de código, produtos digitais ou lições de carreira com a comunidade.
+            </p>
+          </div>
+          <Link href="/revista/submeter" className="footer-cta-btn">
+            ✍️ Submeter a Minha História →
+          </Link>
+        </div>
+
         <div className="footer-grid">
           <div className="footer-links">
             <Link href="/revista">Início</Link>
+            <Link href="/revista/submeter" style={{ fontWeight: 700, color: '#fff', borderBottom: '1.5px solid #fff' }}>
+              ✍️ Enviar História
+            </Link>
             <Link href="/">WEHOSTHERE</Link>
             <Link href="/privacy">Privacidade</Link>
             <Link href="/terms">Termos</Link>
