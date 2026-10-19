@@ -19,6 +19,19 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   try {
     const body = await req.json();
 
+    if (body.title && body.title.trim().length > 100) {
+      return NextResponse.json({ error: 'O título não pode exceder 100 caracteres.' }, { status: 400 });
+    }
+    if (body.excerpt && body.excerpt.trim().length > 500) {
+      return NextResponse.json({ error: 'O resumo não pode exceder 500 caracteres.' }, { status: 400 });
+    }
+    if (body.content && body.content.trim().length > 5000) {
+      return NextResponse.json({ error: 'O conteúdo não pode exceder 5.000 caracteres.' }, { status: 400 });
+    }
+    if (body.author?.bio && body.author.bio.trim().length > 500) {
+      return NextResponse.json({ error: 'A bio do autor não pode exceder 500 caracteres.' }, { status: 400 });
+    }
+
     // Buscar a história antes da atualização para detetar mudança de status
     let previousStatus: string | undefined;
     try {

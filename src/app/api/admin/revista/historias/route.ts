@@ -48,6 +48,19 @@ export async function POST(req: Request) {
       );
     }
 
+    if (title.trim().length > 100) {
+      return NextResponse.json({ error: 'O título não pode exceder 100 caracteres.' }, { status: 400 });
+    }
+    if (excerpt.trim().length > 500) {
+      return NextResponse.json({ error: 'O resumo não pode exceder 500 caracteres.' }, { status: 400 });
+    }
+    if (content.trim().length > 5000) {
+      return NextResponse.json({ error: 'O conteúdo não pode exceder 5.000 caracteres.' }, { status: 400 });
+    }
+    if (body.author?.bio && body.author.bio.trim().length > 500) {
+      return NextResponse.json({ error: 'A bio do autor não pode exceder 500 caracteres.' }, { status: 400 });
+    }
+
     const story = await createStory(body);
 
     return NextResponse.json({

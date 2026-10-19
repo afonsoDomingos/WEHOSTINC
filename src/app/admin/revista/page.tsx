@@ -328,6 +328,28 @@ export default function AdminRevistaPage() {
           .ar-table-wrap { padding: 0 1rem; }
           .ar-table { display: block; overflow-x: auto; }
         }
+
+        .ar-modal-input {
+          width: 100%;
+          padding: 0.65rem 0.85rem;
+          border-radius: 9px;
+          border: 1.5px solid #cbd5e1;
+          font-size: 0.85rem;
+          font-family: 'Poppins', sans-serif;
+          outline: none;
+          color: #0f172a !important;
+          background-color: #ffffff !important;
+          box-sizing: border-box;
+          transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .ar-modal-input:focus {
+          border-color: #7B2CBF !important;
+          box-shadow: 0 0 0 3px rgba(123, 44, 191, 0.15) !important;
+        }
+        .ar-modal-input::placeholder {
+          color: #94a3b8 !important;
+          opacity: 1 !important;
+        }
       `}</style>
 
       <div className="admin-revista" onClick={() => setStatusDropdown(null)}>
@@ -688,15 +710,13 @@ export default function AdminRevistaPage() {
                     Nome do Convidado *
                   </label>
                   <input
+                    className="ar-modal-input"
                     type="text"
                     required
                     placeholder="Ex: Valter Manhiça"
                     value={inviteData.inviteeName}
                     onChange={e => setInviteData(prev => ({ ...prev, inviteeName: e.target.value }))}
-                    style={{
-                      width: '100%', padding: '0.6rem 0.85rem', borderRadius: 9,
-                      border: '1.5px solid #cbd5e1', fontSize: '0.85rem', outline: 'none',
-                    }}
+                    style={{ color: '#0f172a', backgroundColor: '#ffffff' }}
                   />
                 </div>
                 <div>
@@ -704,15 +724,13 @@ export default function AdminRevistaPage() {
                     E-mail do Convidado *
                   </label>
                   <input
+                    className="ar-modal-input"
                     type="email"
                     required
                     placeholder="valter@empresa.com"
                     value={inviteData.toEmail}
                     onChange={e => setInviteData(prev => ({ ...prev, toEmail: e.target.value }))}
-                    style={{
-                      width: '100%', padding: '0.6rem 0.85rem', borderRadius: 9,
-                      border: '1.5px solid #cbd5e1', fontSize: '0.85rem', outline: 'none',
-                    }}
+                    style={{ color: '#0f172a', backgroundColor: '#ffffff' }}
                   />
                 </div>
               </div>
@@ -723,12 +741,10 @@ export default function AdminRevistaPage() {
                     Categoria Sugerida
                   </label>
                   <select
+                    className="ar-modal-input"
                     value={inviteData.category}
                     onChange={e => setInviteData(prev => ({ ...prev, category: e.target.value }))}
-                    style={{
-                      width: '100%', padding: '0.6rem 0.85rem', borderRadius: 9,
-                      border: '1.5px solid #cbd5e1', fontSize: '0.85rem', outline: 'none', background: '#fff',
-                    }}
+                    style={{ color: '#0f172a', backgroundColor: '#ffffff' }}
                   >
                     <option value="codigo">Código & Arquitectura</option>
                     <option value="startups">Startups & Produtos</option>
@@ -744,14 +760,12 @@ export default function AdminRevistaPage() {
                     Tema / Pauta Sugerida (Opcional)
                   </label>
                   <input
+                    className="ar-modal-input"
                     type="text"
                     placeholder="Ex: Como escalei o meu SaaS"
                     value={inviteData.proposedTopic}
                     onChange={e => setInviteData(prev => ({ ...prev, proposedTopic: e.target.value }))}
-                    style={{
-                      width: '100%', padding: '0.6rem 0.85rem', borderRadius: 9,
-                      border: '1.5px solid #cbd5e1', fontSize: '0.85rem', outline: 'none',
-                    }}
+                    style={{ color: '#0f172a', backgroundColor: '#ffffff' }}
                   />
                 </div>
               </div>
@@ -761,14 +775,12 @@ export default function AdminRevistaPage() {
                   Nota Personalizada do Editor (Opcional)
                 </label>
                 <textarea
+                  className="ar-modal-input"
                   rows={3}
                   placeholder="Ex: Adorámos a tua apresentação recente sobre microsserviços e seria uma honra ter a tua perspectiva na revista..."
                   value={inviteData.customNote}
                   onChange={e => setInviteData(prev => ({ ...prev, customNote: e.target.value }))}
-                  style={{
-                    width: '100%', padding: '0.6rem 0.85rem', borderRadius: 9,
-                    border: '1.5px solid #cbd5e1', fontSize: '0.85rem', outline: 'none', resize: 'vertical',
-                  }}
+                  style={{ color: '#0f172a', backgroundColor: '#ffffff', resize: 'vertical' }}
                 />
               </div>
 

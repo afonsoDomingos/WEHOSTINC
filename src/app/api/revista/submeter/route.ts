@@ -31,16 +31,28 @@ export async function POST(req: Request) {
       author = {},
     } = body;
 
-    // Validações essenciais
+    // Validações essenciais e limites de caracteres
     if (!title || !title.trim()) {
       return NextResponse.json({ error: 'O título da história é obrigatório.' }, { status: 400 });
+    }
+    if (title.trim().length > 100) {
+      return NextResponse.json({ error: 'O título da história não pode exceder 100 caracteres.' }, { status: 400 });
     }
     if (!excerpt || !excerpt.trim()) {
       return NextResponse.json({ error: 'Um resumo curto da história é obrigatório.' }, { status: 400 });
     }
+    if (excerpt.trim().length > 500) {
+      return NextResponse.json({ error: 'O resumo da história não pode exceder 500 caracteres.' }, { status: 400 });
+    }
     if (!content || content.trim().length < 150) {
       return NextResponse.json(
         { error: 'O conteúdo da história deve ter pelo menos 150 caracteres para garantir qualidade editorial.' },
+        { status: 400 }
+      );
+    }
+    if (content.trim().length > 5000) {
+      return NextResponse.json(
+        { error: 'A descrição completa da história não pode exceder 5.000 caracteres.' },
         { status: 400 }
       );
     }
@@ -49,6 +61,9 @@ export async function POST(req: Request) {
     }
     if (!author?.email || !author.email.trim() || !author.email.includes('@')) {
       return NextResponse.json({ error: 'Um e-mail válido do autor é obrigatório para notificações.' }, { status: 400 });
+    }
+    if (author?.bio && author.bio.trim().length > 500) {
+      return NextResponse.json({ error: 'A bio curta do autor não pode exceder 500 caracteres.' }, { status: 400 });
     }
 
     // Gerar slug único

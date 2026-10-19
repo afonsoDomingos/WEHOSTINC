@@ -164,6 +164,22 @@ export default function EditarHistoriaPage() {
       alert('Título, resumo e conteúdo são obrigatórios.');
       return;
     }
+    if (formData.title.length > 100) {
+      alert('O título não pode exceder 100 caracteres.');
+      return;
+    }
+    if (formData.excerpt.length > 500) {
+      alert('O resumo não pode exceder 500 caracteres.');
+      return;
+    }
+    if (formData.content.length > 5000) {
+      alert('O conteúdo não pode exceder 5.000 caracteres.');
+      return;
+    }
+    if (formData.author.bio && formData.author.bio.length > 500) {
+      alert('A bio curta do autor não pode exceder 500 caracteres.');
+      return;
+    }
     setLoading(true);
     try {
       // Remover views do payload para não sobrescrever visualizações acumuladas em tempo real
@@ -477,8 +493,13 @@ export default function EditarHistoriaPage() {
               <p className="edit-card-title">📝 Conteúdo</p>
 
               <div className="edit-field">
-                <label className="edit-label">Título *</label>
-                <input className="edit-input" type="text" value={formData.title} onChange={e => set('title', e.target.value)} />
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                  <label className="edit-label" style={{ margin: 0 }}>Título *</label>
+                  <span style={{ fontSize: '0.72rem', color: formData.title.length > 90 ? (formData.title.length >= 100 ? '#ef4444' : '#d97706') : '#94a3b8', fontWeight: 600 }}>
+                    {formData.title.length} / 100
+                  </span>
+                </div>
+                <input className="edit-input" type="text" maxLength={100} value={formData.title} onChange={e => set('title', e.target.value)} />
               </div>
 
               <div className="edit-field">
@@ -511,8 +532,13 @@ export default function EditarHistoriaPage() {
               </div>
 
               <div className="edit-field">
-                <label className="edit-label">Resumo *</label>
-                <textarea className="edit-textarea short" value={formData.excerpt} onChange={e => set('excerpt', e.target.value)} />
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                  <label className="edit-label" style={{ margin: 0 }}>Resumo *</label>
+                  <span style={{ fontSize: '0.72rem', color: formData.excerpt.length > 450 ? (formData.excerpt.length >= 500 ? '#ef4444' : '#d97706') : '#94a3b8', fontWeight: 600 }}>
+                    {formData.excerpt.length} / 500
+                  </span>
+                </div>
+                <textarea className="edit-textarea short" maxLength={500} value={formData.excerpt} onChange={e => set('excerpt', e.target.value)} />
               </div>
 
               <div className="edit-row">
@@ -529,9 +555,14 @@ export default function EditarHistoriaPage() {
               </div>
 
               <div className="edit-field">
-                <label className="edit-label">Conteúdo *</label>
-                <p className="edit-hint" style={{ marginBottom: '0.4rem' }}>## Título, {'>'} Pull quote, * Lista</p>
-                <textarea className="edit-textarea" value={formData.content} onChange={e => set('content', e.target.value)} />
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                  <label className="edit-label" style={{ margin: 0 }}>Conteúdo *</label>
+                  <span style={{ fontSize: '0.72rem', color: formData.content.length > 4800 ? (formData.content.length >= 5000 ? '#ef4444' : '#d97706') : '#94a3b8', fontWeight: 600 }}>
+                    {formData.content.length.toLocaleString('pt-MZ')} / 5.000 caracteres
+                  </span>
+                </div>
+                <p className="edit-hint" style={{ marginBottom: '0.4rem' }}>## Título, {'>'} Pull quote, * Lista (máx. 5.000 caracteres)</p>
+                <textarea className="edit-textarea" maxLength={5000} value={formData.content} onChange={e => set('content', e.target.value)} />
               </div>
             </div>
 
@@ -604,8 +635,13 @@ export default function EditarHistoriaPage() {
               </div>
 
               <div className="edit-field">
-                <label className="edit-label">Bio curta</label>
-                <input className="edit-input" placeholder="Engenheiro em Maputo..." value={formData.author.bio} onChange={e => setAuthor('bio', e.target.value)} />
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                  <label className="edit-label" style={{ margin: 0 }}>Bio curta</label>
+                  <span style={{ fontSize: '0.72rem', color: (formData.author.bio || '').length > 450 ? ((formData.author.bio || '').length >= 500 ? '#ef4444' : '#d97706') : '#94a3b8', fontWeight: 600 }}>
+                    {(formData.author.bio || '').length} / 500
+                  </span>
+                </div>
+                <input className="edit-input" maxLength={500} placeholder="Engenheiro em Maputo..." value={formData.author.bio} onChange={e => setAuthor('bio', e.target.value)} />
               </div>
 
               <div className="edit-field">

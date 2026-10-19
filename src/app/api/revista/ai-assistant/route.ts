@@ -37,6 +37,7 @@ Conteúdo:
 ${content.slice(0, 1500)}
 
 Gera 3 opções de títulos altamente atraentes e impactantes no estilo revista tech moderna.
+Cada título DEVE ter OBRIGATORIAMENTE no máximo 100 caracteres.
 Para cada título, indica também uma palavra ou expressão curta (2 a 4 palavras) que deve ficar com o realce colorido da revista (highlightText).
 
 Responde ESTRITAMENTE em formato JSON válido com este esquema:
@@ -53,7 +54,7 @@ Título: "${title}"
 Conteúdo:
 ${content.slice(0, 2000)}
 
-Cria um resumo impactante e magnético de 1 a 2 frases (máximo 160 caracteres) para aparecer no cartão de capa da revista e captar a atenção do leitor.
+Cria um resumo impactante e magnético de 1 a 2 frases (máximo 500 caracteres, idealmente entre 120 e 280 caracteres) para aparecer no cartão de capa da revista e captar a atenção do leitor.
 Responde apenas com o texto do resumo, sem aspas nem introduções.`;
     } else if (action === 'suggest_tags') {
       userInstruction = `Com base neste artigo de tech intitulado "${title}":
@@ -69,6 +70,7 @@ Instruções obrigatórias:
 2. Melhora a fluidez, o ritmo e o impacto das frases, sem alterar a mensagem real do autor.
 3. Mantém a formatação Markdown (usa ## para títulos de secções, > para citações marcantes, e listas com * ou 1.).
 4. Se o texto estiver desformatado ou em bloco único, organiza-o em secções claras (ex: Introdução, Desafio, Solução/Stack, Lições Aprendidas, Conclusão).
+5. O texto final NÃO DEVE em hipótese alguma exceder 5.000 caracteres.
 ${customPrompt ? `Instrução extra do autor: ${customPrompt}` : ''}
 
 Título da história: ${title || 'Sem título'}

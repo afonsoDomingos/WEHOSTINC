@@ -39,6 +39,11 @@ O conselho final que gostarias de deixar para a comunidade de desenvolvedores e 
 
 type AiActionType = 'improve_content' | 'suggest_titles' | 'generate_excerpt' | 'suggest_tags';
 
+const MAX_TITLE_CHARS = 100;
+const MAX_EXCERPT_CHARS = 500;
+const MAX_BIO_CHARS = 500;
+const MAX_CONTENT_CHARS = 5000;
+
 export default function SubmeterHistoriaPage() {
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -220,6 +225,10 @@ export default function SubmeterHistoriaPage() {
         setErrorMsg('Por favor indica um e-mail válido para contacto editorial.');
         return;
       }
+      if (formData.author.bio && formData.author.bio.length > MAX_BIO_CHARS) {
+        setErrorMsg(`A bio curta do autor não pode exceder ${MAX_BIO_CHARS} caracteres (actualmente com ${formData.author.bio.length}).`);
+        return;
+      }
       setCurrentStep(2);
       window.scrollTo({ top: 160, behavior: 'smooth' });
     } else if (currentStep === 2) {
@@ -227,8 +236,16 @@ export default function SubmeterHistoriaPage() {
         setErrorMsg('Por favor indica um título para a tua história.');
         return;
       }
+      if (formData.title.length > MAX_TITLE_CHARS) {
+        setErrorMsg(`O título da história não pode exceder ${MAX_TITLE_CHARS} caracteres (actualmente com ${formData.title.length}).`);
+        return;
+      }
       if (!formData.excerpt.trim()) {
         setErrorMsg('Por favor escreve um resumo curto de 1 a 2 frases para o cartão da revista.');
+        return;
+      }
+      if (formData.excerpt.length > MAX_EXCERPT_CHARS) {
+        setErrorMsg(`O resumo da história não pode exceder ${MAX_EXCERPT_CHARS} caracteres (actualmente com ${formData.excerpt.length}).`);
         return;
       }
       setCurrentStep(3);
@@ -252,8 +269,16 @@ export default function SubmeterHistoriaPage() {
       setErrorMsg('Por favor indica um título para a tua história.');
       return;
     }
+    if (formData.title.length > MAX_TITLE_CHARS) {
+      setErrorMsg(`O título da história não pode exceder ${MAX_TITLE_CHARS} caracteres.`);
+      return;
+    }
     if (!formData.excerpt.trim()) {
       setErrorMsg('Por favor escreve um resumo curto de 1 a 2 frases para o cartão da revista.');
+      return;
+    }
+    if (formData.excerpt.length > MAX_EXCERPT_CHARS) {
+      setErrorMsg(`O resumo da história não pode exceder ${MAX_EXCERPT_CHARS} caracteres.`);
       return;
     }
     if (!formData.author.name.trim()) {
@@ -264,8 +289,16 @@ export default function SubmeterHistoriaPage() {
       setErrorMsg('Por favor indica um e-mail válido para que possamos avisar-te quando a história for publicada.');
       return;
     }
+    if (formData.author.bio && formData.author.bio.length > MAX_BIO_CHARS) {
+      setErrorMsg(`A bio curta do autor não pode exceder ${MAX_BIO_CHARS} caracteres.`);
+      return;
+    }
     if (wordCount < 40) {
       setErrorMsg('O conteúdo parece demasiado curto. Escreve pelo menos alguns parágrafos para que a equipa editorial possa avaliar.');
+      return;
+    }
+    if (formData.content.length > MAX_CONTENT_CHARS) {
+      setErrorMsg(`A descrição completa da história não pode exceder ${MAX_CONTENT_CHARS.toLocaleString('pt-MZ')} caracteres (actualmente com ${formData.content.length.toLocaleString('pt-MZ')}).`);
       return;
     }
 
@@ -1317,9 +1350,15 @@ export default function SubmeterHistoriaPage() {
                     </div>
 
                     <div className="form-group">
-                      <label className="form-label">Bio Curta (1 a 2 frases)</label>
+                      <div className="form-label-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.45rem' }}>
+                        <label className="form-label" style={{ margin: 0 }}>Bio Curta (1 a 2 frases)</label>
+                        <span style={{ fontSize: '0.72rem', fontWeight: 600, color: (formData.author.bio || '').length > 450 ? ((formData.author.bio || '').length >= MAX_BIO_CHARS ? '#ef4444' : '#d97706') : '#94a3b8' }}>
+                          {(formData.author.bio || '').length} / {MAX_BIO_CHARS} caracteres
+                        </span>
+                      </div>
                       <textarea
                         className="form-textarea"
+                        maxLength={MAX_BIO_CHARS}
                         placeholder="Ex: Frontend Developer em Maputo, apaixonado por Next.js, interfaces limpas e código aberto."
                         value={formData.author.bio}
                         onChange={e => setAuthorField('bio', e.target.value)}
@@ -1417,7 +1456,12 @@ export default function SubmeterHistoriaPage() {
 
                     <div className="form-group">
                       <div className="form-label-row">
-                        <label className="form-label">Título da História *</label>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                          <label className="form-label" style={{ margin: 0 }}>Título da História *</label>
+                          <span style={{ fontSize: '0.72rem', fontWeight: 600, color: formData.title.length > 90 ? (formData.title.length >= MAX_TITLE_CHARS ? '#ef4444' : '#d97706') : '#94a3b8' }}>
+                            {formData.title.length} / {MAX_TITLE_CHARS} caracteres
+                          </span>
+                        </div>
                         <button
                           type="button"
                           onClick={() => runAiAssistant('suggest_titles')}
@@ -1430,6 +1474,7 @@ export default function SubmeterHistoriaPage() {
                       <input
                         className="form-input"
                         type="text"
+                        maxLength={MAX_TITLE_CHARS}
                         placeholder="Ex: Como construí o meu primeiro SaaS com Next.js em 30 dias"
                         value={formData.title}
                         onChange={e => setField('title', e.target.value)}
@@ -1468,7 +1513,12 @@ export default function SubmeterHistoriaPage() {
 
                     <div className="form-group">
                       <div className="form-label-row">
-                        <label className="form-label">Resumo Impactante (1 a 2 frases) *</label>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                          <label className="form-label" style={{ margin: 0 }}>Resumo Impactante (1 a 2 frases) *</label>
+                          <span style={{ fontSize: '0.72rem', fontWeight: 600, color: formData.excerpt.length > 450 ? (formData.excerpt.length >= MAX_EXCERPT_CHARS ? '#ef4444' : '#d97706') : '#94a3b8' }}>
+                            {formData.excerpt.length} / {MAX_EXCERPT_CHARS} caracteres
+                          </span>
+                        </div>
                         <button
                           type="button"
                           onClick={() => runAiAssistant('generate_excerpt')}
@@ -1480,12 +1530,13 @@ export default function SubmeterHistoriaPage() {
                       </div>
                       <textarea
                         className="form-textarea"
+                        maxLength={MAX_EXCERPT_CHARS}
                         placeholder="Ex: Saí do zero, sem investimento externo, e em 30 dias lancei um produto que hoje gera receita. Aqui está o que aprendi pelo caminho."
                         value={formData.excerpt}
                         onChange={e => setField('excerpt', e.target.value)}
                         required
                       />
-                      <p className="form-hint">Aparecerá nos cards da página inicial e nas redes sociais.</p>
+                      <p className="form-hint">Aparecerá nos cards da página inicial e nas redes sociais (máx. 500 caracteres).</p>
                     </div>
 
                     <div className="form-grid-2">
@@ -1557,14 +1608,17 @@ export default function SubmeterHistoriaPage() {
                 {/* Passo 3: Conteúdo */}
                 {currentStep === 3 && (
                   <div className="sub-card">
-                    <div className="sub-card-header" style={{ justifyContent: 'space-between' }}>
+                    <div className="sub-card-header" style={{ justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                         <span className="sub-card-num">3</span>
                         <h2 className="sub-card-title">O Conteúdo da História</h2>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontSize: '0.78rem', color: '#64748b' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontSize: '0.78rem', color: '#64748b', flexWrap: 'wrap' }}>
                         <span>📝 <strong>{wordCount}</strong> palavras</span>
                         <span>⏱ ~<strong>{readTimeEstimate} min</strong> de leitura</span>
+                        <span style={{ fontWeight: 600, color: formData.content.length > 4800 ? (formData.content.length >= MAX_CONTENT_CHARS ? '#ef4444' : '#d97706') : '#7B2CBF' }}>
+                          📏 {formData.content.length.toLocaleString('pt-MZ')} / {MAX_CONTENT_CHARS.toLocaleString('pt-MZ')} caracteres
+                        </span>
                       </div>
                     </div>
 
@@ -1598,6 +1652,7 @@ export default function SubmeterHistoriaPage() {
                       <div>
                         <textarea
                           className="form-textarea editor"
+                          maxLength={MAX_CONTENT_CHARS}
                           value={formData.content}
                           onChange={e => setField('content', e.target.value)}
                           placeholder="Escreve aqui a tua história usando Markdown..."
@@ -1607,6 +1662,9 @@ export default function SubmeterHistoriaPage() {
                           <span>💡 Dicas: Usa <code>## Subtítulo</code> para secções</span>
                           <span>• <code>&gt; Citação</code> para frases impactantes</span>
                           <span>• <code>* Lista</code> para tópicos</span>
+                          <span style={{ marginLeft: 'auto', fontWeight: 600, color: formData.content.length >= MAX_CONTENT_CHARS ? '#ef4444' : '#64748b' }}>
+                            Máx. 5.000 caracteres
+                          </span>
                         </div>
                       </div>
                     ) : (

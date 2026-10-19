@@ -83,6 +83,22 @@ export default function NovaHistoriaPage() {
       alert('Título, resumo e conteúdo são obrigatórios.');
       return;
     }
+    if (formData.title.length > 100) {
+      alert('O título não pode exceder 100 caracteres.');
+      return;
+    }
+    if (formData.excerpt.length > 500) {
+      alert('O resumo não pode exceder 500 caracteres.');
+      return;
+    }
+    if (formData.content.length > 5000) {
+      alert('O conteúdo não pode exceder 5.000 caracteres.');
+      return;
+    }
+    if (formData.author.bio && formData.author.bio.length > 500) {
+      alert('A bio curta do autor não pode exceder 500 caracteres.');
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetch('/api/admin/revista/historias', {
@@ -322,10 +338,16 @@ export default function NovaHistoriaPage() {
                 <p className="nova-card-title">📝 Conteúdo da História</p>
 
                 <div className="nova-field">
-                  <label className="nova-label">Título *</label>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                    <label className="nova-label" style={{ margin: 0 }}>Título *</label>
+                    <span style={{ fontSize: '0.72rem', color: formData.title.length > 90 ? (formData.title.length >= 100 ? '#ef4444' : '#d97706') : '#94a3b8', fontWeight: 600 }}>
+                      {formData.title.length} / 100
+                    </span>
+                  </div>
                   <input
                     className="nova-input"
                     type="text"
+                    maxLength={100}
                     placeholder="Ex: Como construí a minha primeira API em 24 horas"
                     value={formData.title}
                     onChange={e => set('title', e.target.value)}
@@ -363,9 +385,15 @@ export default function NovaHistoriaPage() {
                 </div>
 
                 <div className="nova-field">
-                  <label className="nova-label">Resumo / Excerpt *</label>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                    <label className="nova-label" style={{ margin: 0 }}>Resumo / Excerpt *</label>
+                    <span style={{ fontSize: '0.72rem', color: formData.excerpt.length > 450 ? (formData.excerpt.length >= 500 ? '#ef4444' : '#d97706') : '#94a3b8', fontWeight: 600 }}>
+                      {formData.excerpt.length} / 500
+                    </span>
+                  </div>
                   <textarea
                     className="nova-textarea short"
+                    maxLength={500}
                     placeholder="2-3 frases que resumem a história e motivam o leitor a continuar..."
                     value={formData.excerpt}
                     onChange={e => set('excerpt', e.target.value)}
@@ -398,12 +426,18 @@ export default function NovaHistoriaPage() {
                 </div>
 
                 <div className="nova-field">
-                  <label className="nova-label">Conteúdo *</label>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                    <label className="nova-label" style={{ margin: 0 }}>Conteúdo *</label>
+                    <span style={{ fontSize: '0.72rem', color: formData.content.length > 4800 ? (formData.content.length >= 5000 ? '#ef4444' : '#d97706') : '#94a3b8', fontWeight: 600 }}>
+                      {formData.content.length.toLocaleString('pt-MZ')} / 5.000 caracteres
+                    </span>
+                  </div>
                   <p className="nova-hint" style={{ marginBottom: '0.5rem' }}>
-                    Usa ## para títulos, {'>'} para pull quotes, * para listas.
+                    Usa ## para títulos, {'>'} para pull quotes, * para listas (máx. 5.000 caracteres).
                   </p>
                   <textarea
                     className="nova-textarea"
+                    maxLength={5000}
                     value={formData.content}
                     onChange={e => set('content', e.target.value)}
                   />
@@ -481,8 +515,13 @@ export default function NovaHistoriaPage() {
                   <input className="nova-input" type="url" placeholder="https://..." value={formData.author.avatar} onChange={e => setAuthor('avatar', e.target.value)} />
                 </div>
                 <div className="nova-field">
-                  <label className="nova-label">Bio curta</label>
-                  <input className="nova-input" placeholder="Ex: Engenheiro de software em Maputo" value={formData.author.bio} onChange={e => setAuthor('bio', e.target.value)} />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                    <label className="nova-label" style={{ margin: 0 }}>Bio curta</label>
+                    <span style={{ fontSize: '0.72rem', color: (formData.author.bio || '').length > 450 ? ((formData.author.bio || '').length >= 500 ? '#ef4444' : '#d97706') : '#94a3b8', fontWeight: 600 }}>
+                      {(formData.author.bio || '').length} / 500
+                    </span>
+                  </div>
+                  <input className="nova-input" maxLength={500} placeholder="Ex: Engenheiro de software em Maputo" value={formData.author.bio} onChange={e => setAuthor('bio', e.target.value)} />
                 </div>
                 <div className="nova-field">
                   <label className="nova-label">Website / Portfólio (URL)</label>
