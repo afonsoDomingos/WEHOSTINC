@@ -12,7 +12,8 @@ import {
   MessageSquare, Layers, Wand2, Clock, AlertCircle, RefreshCw, X,
   PanelLeftClose, PanelLeftOpen, Maximize2, Minimize2,
   UtensilsCrossed, Scissors, Palmtree, Briefcase, Palette, Tag,
-  History, Undo2, Download, ShoppingBag, FolderArchive, Edit3, Save, Upload
+  History, Undo2, Download, ShoppingBag, FolderArchive, Edit3, Save, Upload,
+  MoreHorizontal
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 
@@ -372,6 +373,10 @@ export default function AiSiteBuilderStudio() {
   const [viewportMode, setViewportMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
   const [isChatOpen, setIsChatOpen] = useState<boolean>(true);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+  const [mobileTab, setMobileTab] = useState<'chat' | 'preview' | 'code'>('chat');
+  const [isMoreMenuOpen, setIsMoreMenuOpen] = useState<boolean>(false);
+  const moreMenuRef = useRef<HTMLDivElement>(null);
   const [copiedCode, setCopiedCode] = useState<boolean>(false);
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
   const [copiedSubdomain, setCopiedSubdomain] = useState<boolean>(false);
@@ -437,11 +442,28 @@ export default function AiSiteBuilderStudio() {
     };
   }, [isDragging, isSidebarOpen]);
 
-  // Fechar dropdown de versão ao clicar fora
+  // Detetar tela mobile e ajustar layout inicial
+  useEffect(() => {
+    const handleCheckMobile = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (mobile) {
+        setIsSidebarOpen(false);
+      }
+    };
+    handleCheckMobile();
+    window.addEventListener('resize', handleCheckMobile);
+    return () => window.removeEventListener('resize', handleCheckMobile);
+  }, []);
+
+  // Fechar dropdown de versão e menu de opções ao clicar fora
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (versionMenuRef.current && !versionMenuRef.current.contains(event.target as Node)) {
         setIsVersionDropdownOpen(false);
+      }
+      if (moreMenuRef.current && !moreMenuRef.current.contains(event.target as Node)) {
+        setIsMoreMenuOpen(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
@@ -534,10 +556,16 @@ export default function AiSiteBuilderStudio() {
       {
         id: 'msg_welcome',
         role: 'assistant',
-        content: 'Olá! Sou o Construtor de Sites IA da WEHOSTHERE. O que gostaria de criar hoje? Digite o que tem em mente no campo de texto abaixo ou selecione um modelo pronto para começar!',
+        content: 'Olá! O que gostaria de criar hoje?',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }
     ]);
+
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      setIsSidebarOpen(false);
+      setIsChatOpen(true);
+      setMobileTab('chat');
+    }
   };
 
   // Selecionar projeto existente (com histórico isolado de chats)
@@ -600,6 +628,12 @@ export default function AiSiteBuilderStudio() {
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }
       ]);
+    }
+
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      setIsSidebarOpen(false);
+      setIsChatOpen(true);
+      setMobileTab('chat');
     }
   };
 
@@ -1469,10 +1503,30 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
 
   return (
     <div className="flex h-screen bg-[#09090b] text-[#fafafa] font-sans overflow-hidden antialiased selection:bg-blue-600 selection:text-white">
+      <style>{`
+        @keyframes msgSlideIn {
+          from { opacity: 0; transform: translateY(12px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes mascoteFloat {
+          0%, 100% { transform: translateY(0px); }
+          50%       { transform: translateY(-8px); }
+        }
+      `}</style>
+
+      {/* Backdrop para Mobile ao abrir a Sidebar */}
+      {isSidebarOpen && isMobile && (
+        <div 
+          onClick={() => setIsSidebarOpen(false)}
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden transition-opacity cursor-pointer"
+        />
+      )}
 
       {/* ── COLUNA 1: SIDEBAR DE PROJETOS E CONVERSAS (Estilo v0) ─────────────── */}
-      <aside className={`h-full border-r border-[#27272a] bg-[#0c0c0e] flex flex-col transition-all duration-300 z-30 shrink-0 ${
-        isSidebarOpen ? 'w-64 sm:w-72' : 'w-0 -translate-x-full overflow-hidden border-r-0'
+      <aside className={`h-full border-r border-[#27272a] bg-[#0c0c0e] flex flex-col transition-all duration-300 shrink-0 ${
+        isMobile
+          ? `fixed inset-y-0 left-0 z-50 w-72 shadow-2xl transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full pointer-events-none'}`
+          : `relative z-30 ${isSidebarOpen ? 'w-64 sm:w-72' : 'w-0 -translate-x-full overflow-hidden border-r-0'}`
       }`}>
         {/* Header da Sidebar */}
         <div className="p-3.5 border-b border-[#27272a] flex items-center justify-between">
@@ -1592,6 +1646,11 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                   <button
                     key={i}
                     onClick={() => {
+                      if (isMobile) {
+                        setIsSidebarOpen(false);
+                        setIsChatOpen(true);
+                        setMobileTab('chat');
+                      }
                       setProjectTitle(s.title);
                       handleGenerate(s.p, s.title, false);
                     }}
@@ -1621,14 +1680,20 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
       {/* ── COLUNA 2: CHAT INTERATIVO & ITERAÇÕES (Colapsável / Redimensionável) ────── */}
       <section 
         style={{ 
-          width: isChatOpen ? `${chatWidth}px` : 0,
-          minWidth: isChatOpen ? '280px' : 0,
-          maxWidth: isChatOpen ? '800px' : 0,
+          width: isMobile 
+            ? (isChatOpen ? '100%' : 0) 
+            : (isChatOpen ? `${chatWidth}px` : 0),
+          minWidth: isMobile 
+            ? 0 
+            : (isChatOpen ? '280px' : 0),
+          maxWidth: isMobile 
+            ? '100%' 
+            : (isChatOpen ? '800px' : 0),
         }}
         className={`flex flex-col h-full bg-[#09090b] relative z-20 shrink-0 ${
-          isChatOpen 
-            ? 'border-r border-[#27272a]' 
-            : 'w-0 overflow-hidden border-r-0'
+          isMobile
+            ? (isChatOpen ? 'w-full flex-1' : 'w-0 overflow-hidden hidden')
+            : (isChatOpen ? 'border-r border-[#27272a]' : 'w-0 overflow-hidden border-r-0')
         }`}
       >
         
@@ -1681,7 +1746,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
               <RotateCw className="w-3.5 h-3.5" />
             </button>
 
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 ${
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full hidden sm:flex items-center gap-1 ${
               isPublished 
                 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
                 : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
@@ -1690,10 +1755,23 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
               <span>{isPublished ? 'Publicado' : 'Rascunho'}</span>
             </span>
 
-            {/* Botão para encolher/colapsar o Chat */}
+            {/* Botão Ver Preview no Mobile */}
+            <button
+              onClick={() => {
+                setIsChatOpen(false);
+                setMobileTab('preview');
+              }}
+              className="md:hidden flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs shadow-md transition active:scale-95 cursor-pointer shrink-0"
+              title="Alternar para a Pré-visualização do Site"
+            >
+              <Eye className="w-3.5 h-3.5" />
+              <span>Preview</span>
+            </button>
+
+            {/* Botão para encolher/colapsar o Chat no Desktop */}
             <button
               onClick={() => setIsChatOpen(false)}
-              className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition cursor-pointer"
+              className="hidden md:block p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition cursor-pointer"
               title="Colapsar Barra de Chat (Ver Preview Total)"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -1703,10 +1781,17 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
 
         {/* Mensagens do Chat */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {messages.map((m) => {
+          {messages.map((m, idx) => {
             const isUser = m.role === 'user';
             return (
-              <div key={m.id} className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}>
+              <div
+                key={m.id}
+                className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}
+                style={{
+                  animation: `msgSlideIn 0.28s cubic-bezier(0.22,1,0.36,1) both`,
+                  animationDelay: `${Math.min(idx * 40, 300)}ms`,
+                }}
+              >
                 {/* Balão do Usuário */}
                 {isUser ? (
                   <div className="max-w-[90%] bg-blue-600 text-white px-4 py-3 rounded-2xl rounded-tr-sm text-xs sm:text-sm shadow-md font-medium leading-relaxed">
@@ -1831,6 +1916,27 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
               </div>
             </div>
           )}
+
+          {/* Card Mobile de Atalho Rápido para Preview */}
+          {displayedHtml && isMobile && (
+            <div className="mt-4 p-3.5 bg-gradient-to-r from-blue-900/30 to-indigo-900/30 border border-blue-500/30 rounded-2xl flex items-center justify-between gap-3 animate-in fade-in">
+              <div className="truncate min-w-0">
+                <span className="text-xs font-bold text-white block truncate">Site Pronto no Preview</span>
+                <span className="text-[10px] text-blue-300 block truncate">Interaja com a versão gerada</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsChatOpen(false);
+                  setMobileTab('preview');
+                }}
+                className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs shadow-md transition active:scale-95 flex items-center gap-1.5 shrink-0 cursor-pointer"
+              >
+                <Eye className="w-3.5 h-3.5" />
+                <span>Ver Agora</span>
+              </button>
+            </div>
+          )}
           <div ref={chatEndRef} />
         </div>
 
@@ -1868,7 +1974,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
             </div>
 
             <span className="text-[10px] text-gray-500 font-mono hidden sm:inline">
-              {interactionMode === 'builder' ? '🛠️ Altera o site' : '💬 Não altera o site'}
+              {interactionMode === 'builder' ? 'Altera o site' : 'Não altera o site'}
             </span>
           </div>
 
@@ -1970,7 +2076,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
       </section>
 
       {/* ── DIVISOR MANUAL REDIMENSIONÁVEL (Arrastar para Aumentar / Diminuir) ── */}
-      {isChatOpen && (
+      {isChatOpen && !isMobile && (
         <div
           onMouseDown={() => setIsDragging(true)}
           onDoubleClick={() => setChatWidth(prev => prev === 420 ? 580 : 420)}
@@ -1982,13 +2088,15 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
       )}
 
       {/* ── COLUNA 3: CANVAS DE PREVIEW AO VIVO + CÓDIGO + PUBLICAR (Estilo v0) ── */}
-      <main className="flex flex-1 flex-col h-full bg-[#121217] relative z-10 overflow-hidden">
+      <main className={`flex flex-1 flex-col h-full bg-[#121217] relative z-10 overflow-hidden ${
+        isMobile && isChatOpen ? 'hidden' : 'flex'
+      }`}>
         
         {/* Barra Superior do Canvas */}
-        <header className="h-14 px-3 sm:px-4 border-b border-[#27272a] bg-[#0e0e11] flex items-center justify-between gap-2">
+        <header className="h-14 px-3 sm:px-4 border-b border-[#27272a] bg-[#0e0e11] flex items-center justify-between gap-1.5 sm:gap-2">
           
           {/* Lado Esquerdo: Botões de Expandir Sidebar/Chat + Seletor Preview/Código */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
             {!isSidebarOpen && (
               <button
                 onClick={() => setIsSidebarOpen(true)}
@@ -1999,10 +2107,24 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
               </button>
             )}
 
+            {/* Botão de Voltar ao Chat no Mobile */}
+            <button
+              onClick={() => {
+                setIsChatOpen(true);
+                setMobileTab('chat');
+              }}
+              className="md:hidden flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition cursor-pointer shadow-sm active:scale-95 shrink-0"
+              title="Voltar ao Chat com IA"
+            >
+              <MessageSquare className="w-3.5 h-3.5 text-white" />
+              <span>Chat</span>
+            </button>
+
+            {/* Botão de Abrir Chat no Desktop quando fechado */}
             {!isChatOpen && (
               <button
                 onClick={() => setIsChatOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-gray-100 text-black text-xs font-bold transition cursor-pointer shadow-sm active:scale-95"
+                className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-gray-100 text-black text-xs font-bold transition cursor-pointer shadow-sm active:scale-95"
                 title="Abrir Chat com IA"
               >
                 <MessageSquare className="w-3.5 h-3.5 text-black" />
@@ -2011,10 +2133,10 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
             )}
 
             {/* Alternador Preview / Código (Compacto com Tooltip) */}
-            <div className="flex items-center gap-1 bg-[#18181b] p-1 rounded-xl border border-[#27272a]">
+            <div className="flex items-center gap-1 bg-[#18181b] p-0.5 sm:p-1 rounded-xl border border-[#27272a] shrink-0">
               <button
                 onClick={() => setActiveTab('preview')}
-                className={`p-1.5 px-2.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                className={`p-1.5 px-2 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1 ${
                   activeTab === 'preview'
                     ? 'bg-white text-black font-extrabold shadow-sm'
                     : 'text-gray-400 hover:text-white'
@@ -2022,11 +2144,11 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 title="Visualizar Preview Interativo"
               >
                 <Eye className="w-3.5 h-3.5" />
-                <span className="hidden xl:inline">Preview</span>
+                <span className="hidden sm:inline">Preview</span>
               </button>
               <button
                 onClick={() => setActiveTab('code')}
-                className={`p-1.5 px-2.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                className={`p-1.5 px-2 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1 ${
                   activeTab === 'code'
                     ? 'bg-white text-black font-extrabold shadow-sm'
                     : 'text-gray-400 hover:text-white'
@@ -2034,31 +2156,31 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 title="Visualizar Código HTML Fonte"
               >
                 <Code className="w-3.5 h-3.5" />
-                <span className="hidden xl:inline">Código</span>
+                <span className="hidden sm:inline">Código</span>
               </button>
             </div>
           </div>
 
           {/* Centro: Dropdown "Latest ▾" e Stepper de Versões < > (Exacto ao v0) */}
-          <div className="flex items-center gap-1.5 bg-[#18181b] p-1 rounded-xl border border-[#27272a] relative" ref={versionMenuRef}>
+          <div className="flex items-center gap-1 bg-[#18181b] p-1 rounded-xl border border-[#27272a] relative shrink-0" ref={versionMenuRef}>
             
             {/* Botão Dropdown Versão */}
             <button
               onClick={() => setIsVersionDropdownOpen(!isVersionDropdownOpen)}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold text-gray-200 hover:bg-white/5 transition cursor-pointer"
+              className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-bold text-gray-200 hover:bg-white/5 transition cursor-pointer"
               title="Histórico de Versões do Projeto"
             >
-              <History className="w-3.5 h-3.5 text-blue-400" />
-              <span>
+              <History className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+              <span className="text-[11px]">
                 {selectedVersionIndex === 'latest' 
                   ? 'Latest' 
                   : `v${versions[selectedVersionIndex]?.versionNumber || selectedVersionIndex + 1}`}
               </span>
-              <ChevronDown className="w-3 h-3 text-gray-400" />
+              <ChevronDown className="w-3 h-3 text-gray-400 shrink-0" />
             </button>
 
             {/* Stepper de Navegação de Versões < > */}
-            <div className="flex items-center border-l border-[#27272a] pl-1 gap-0.5 text-gray-400">
+            <div className="hidden sm:flex items-center border-l border-[#27272a] pl-1 gap-0.5 text-gray-400">
               <button
                 onClick={() => handleStepVersion('prev')}
                 disabled={versions.length <= 1 || selectedVersionIndex === 0}
@@ -2069,8 +2191,8 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
               </button>
               <span className="text-[10px] font-mono px-1 select-none text-gray-300">
                 {selectedVersionIndex === 'latest' 
-                  ? `${versions.length} / ${versions.length}` 
-                  : `${(selectedVersionIndex as number) + 1} / ${versions.length}`}
+                  ? `${versions.length}/${versions.length}` 
+                  : `${(selectedVersionIndex as number) + 1}/${versions.length}`}
               </span>
               <button
                 onClick={() => handleStepVersion('next')}
@@ -2143,8 +2265,8 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
             )}
           </div>
 
-          {/* Lado Direito: Modos Responsivos, Abrir em Nova Aba & Publicar */}
-          <div className="flex items-center gap-2">
+          {/* Lado Direito: Modos Responsivos, Abrir em Nova Aba, Menu de Opções & Publicar */}
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             
             {/* Modos Responsivos (Desktop, Tablet, Mobile) */}
             <div className="hidden lg:flex items-center gap-1 bg-[#18181b] p-1 rounded-xl border border-[#27272a]">
@@ -2171,59 +2293,142 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
               </button>
             </div>
 
-            {/* Copiar Código (Quando na aba código) */}
-            {activeTab === 'code' && (
-              <button
-                onClick={handleCopyCode}
-                className="p-2 rounded-xl bg-white/10 hover:bg-white/15 text-white border border-white/10 transition cursor-pointer"
-                title={copiedCode ? 'Código HTML Copiado!' : 'Copiar Código HTML'}
-              >
-                {copiedCode ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-              </button>
-            )}
-
-            {/* BOTÃO CONFIGURAR LOGÓTIPO DO SITE */}
-            <button
-              onClick={() => setIsLogoModalOpen(true)}
-              disabled={!displayedHtml}
-              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 transition cursor-pointer disabled:opacity-40"
-              title="Configurar Logótipo da Empresa (Upload do computador ou Link)"
-            >
-              <Upload className="w-4 h-4 text-purple-400" />
-            </button>
-
-            {/* BOTÃO EXPORTAR / BAIXAR HTML */}
-            <button
-              onClick={handleDownloadHtml}
-              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 transition cursor-pointer"
-              title="Descarregar ficheiro HTML completo para o computador"
-            >
-              <Download className="w-4 h-4 text-emerald-400" />
-            </button>
-
-            {/* BOTÃO EXPORTAR ZIP (HTML + CSS + README) */}
-            <button
-              onClick={handleDownloadZip}
-              disabled={isExportingZip || !displayedHtml}
-              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 transition cursor-pointer disabled:opacity-40"
-              title="Exportar como ZIP (HTML + CSS extraído + README)"
-            >
-              {isExportingZip ? (
-                <RefreshCw className="w-4 h-4 animate-spin text-amber-400" />
-              ) : (
-                <FolderArchive className="w-4 h-4 text-amber-400" />
+            {/* Ações Diretas em Ecrãs Médios / Grandes */}
+            <div className="hidden md:flex items-center gap-1.5">
+              {/* Copiar Código (Quando na aba código) */}
+              {activeTab === 'code' && (
+                <button
+                  onClick={handleCopyCode}
+                  className="p-2 rounded-xl bg-white/10 hover:bg-white/15 text-white border border-white/10 transition cursor-pointer"
+                  title={copiedCode ? 'Código HTML Copiado!' : 'Copiar Código HTML'}
+                >
+                  {copiedCode ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                </button>
               )}
-            </button>
 
-            {/* BOTÃO PARTILHAR LINK DE PRÉ-VISUALIZAÇÃO */}
-            <button
-              onClick={handleOpenShareModal}
-              disabled={!displayedHtml}
-              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 transition cursor-pointer disabled:opacity-40"
-              title="Partilhar link de pré-visualização com clientes antes de publicar"
-            >
-              <Share2 className="w-4 h-4 text-blue-400" />
-            </button>
+              {/* BOTÃO CONFIGURAR LOGÓTIPO DO SITE */}
+              <button
+                onClick={() => setIsLogoModalOpen(true)}
+                disabled={!displayedHtml}
+                className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 transition cursor-pointer disabled:opacity-40"
+                title="Configurar Logótipo da Empresa (Upload do computador ou Link)"
+              >
+                <Upload className="w-4 h-4 text-purple-400" />
+              </button>
+
+              {/* BOTÃO EXPORTAR / BAIXAR HTML */}
+              <button
+                onClick={handleDownloadHtml}
+                className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 transition cursor-pointer"
+                title="Descarregar ficheiro HTML completo para o computador"
+              >
+                <Download className="w-4 h-4 text-emerald-400" />
+              </button>
+
+              {/* BOTÃO EXPORTAR ZIP (HTML + CSS + README) */}
+              <button
+                onClick={handleDownloadZip}
+                disabled={isExportingZip || !displayedHtml}
+                className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 transition cursor-pointer disabled:opacity-40"
+                title="Exportar como ZIP (HTML + CSS extraído + README)"
+              >
+                {isExportingZip ? (
+                  <RefreshCw className="w-4 h-4 animate-spin text-amber-400" />
+                ) : (
+                  <FolderArchive className="w-4 h-4 text-amber-400" />
+                )}
+              </button>
+
+              {/* BOTÃO PARTILHAR LINK DE PRÉ-VISUALIZAÇÃO */}
+              <button
+                onClick={handleOpenShareModal}
+                disabled={!displayedHtml}
+                className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 transition cursor-pointer disabled:opacity-40"
+                title="Partilhar link de pré-visualização com clientes antes de publicar"
+              >
+                <Share2 className="w-4 h-4 text-blue-400" />
+              </button>
+            </div>
+
+            {/* Menu "Mais Opções" (⋯) no Mobile — Agrupa ferramentas com elegância */}
+            <div className="relative md:hidden" ref={moreMenuRef}>
+              <button
+                onClick={() => setIsMoreMenuOpen(!isMoreMenuOpen)}
+                className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 transition cursor-pointer"
+                title="Mais Ferramentas do Projeto"
+              >
+                <MoreHorizontal className="w-4 h-4" />
+              </button>
+
+              {isMoreMenuOpen && (
+                <div className="absolute right-0 top-full mt-2 w-60 bg-[#18181b] border border-[#27272a] rounded-2xl shadow-2xl p-1.5 z-50 animate-in fade-in zoom-in-95 duration-150 space-y-1">
+                  <div className="px-3 py-1 text-[10px] font-bold text-gray-400 uppercase tracking-wider border-b border-white/5">
+                    Ferramentas do Site
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      setIsLogoModalOpen(true);
+                      setIsMoreMenuOpen(false);
+                    }}
+                    disabled={!displayedHtml}
+                    className="w-full text-left px-3 py-2 rounded-xl text-xs text-gray-300 hover:text-white hover:bg-white/5 transition flex items-center gap-2.5 disabled:opacity-40 cursor-pointer"
+                  >
+                    <Upload className="w-4 h-4 text-purple-400 shrink-0" />
+                    <span>Configurar Logótipo</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      handleDownloadHtml();
+                      setIsMoreMenuOpen(false);
+                    }}
+                    disabled={!displayedHtml}
+                    className="w-full text-left px-3 py-2 rounded-xl text-xs text-gray-300 hover:text-white hover:bg-white/5 transition flex items-center gap-2.5 disabled:opacity-40 cursor-pointer"
+                  >
+                    <Download className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>Descarregar HTML</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      handleDownloadZip();
+                      setIsMoreMenuOpen(false);
+                    }}
+                    disabled={isExportingZip || !displayedHtml}
+                    className="w-full text-left px-3 py-2 rounded-xl text-xs text-gray-300 hover:text-white hover:bg-white/5 transition flex items-center gap-2.5 disabled:opacity-40 cursor-pointer"
+                  >
+                    <FolderArchive className="w-4 h-4 text-amber-400 shrink-0" />
+                    <span>Exportar como ZIP</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      handleOpenShareModal();
+                      setIsMoreMenuOpen(false);
+                    }}
+                    disabled={!displayedHtml}
+                    className="w-full text-left px-3 py-2 rounded-xl text-xs text-gray-300 hover:text-white hover:bg-white/5 transition flex items-center gap-2.5 disabled:opacity-40 cursor-pointer"
+                  >
+                    <Share2 className="w-4 h-4 text-blue-400 shrink-0" />
+                    <span>Partilhar Pré-visualização</span>
+                  </button>
+
+                  {activeTab === 'code' && (
+                    <button
+                      onClick={() => {
+                        handleCopyCode();
+                        setIsMoreMenuOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-2 rounded-xl text-xs text-gray-300 hover:text-white hover:bg-white/5 transition flex items-center gap-2.5 cursor-pointer"
+                    >
+                      {copiedCode ? <Check className="w-4 h-4 text-emerald-400 shrink-0" /> : <Copy className="w-4 h-4 text-gray-400 shrink-0" />}
+                      <span>{copiedCode ? 'Código Copiado!' : 'Copiar Código HTML'}</span>
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
 
             {/* BOTÃO OPEN IN NEW TAB */}
             <button
@@ -2237,7 +2442,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
             {/* BOTÃO PUBLICAR (Destaque Principal na cor Branca) */}
             <button
               onClick={() => setIsPublishModalOpen(true)}
-              className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-white hover:bg-gray-100 text-black font-extrabold text-xs shadow-md transition active:scale-95 cursor-pointer shrink-0"
+              className="flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-xl bg-white hover:bg-gray-100 text-black font-extrabold text-xs shadow-md transition active:scale-95 cursor-pointer shrink-0"
               title="Publicar website online com subdomínio e SSL"
             >
               <Globe className="w-3.5 h-3.5 text-black" />
@@ -2277,8 +2482,14 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
         <div className="flex-1 w-full h-[calc(100%-3.5rem)] overflow-hidden flex items-center justify-center p-2 sm:p-4 bg-[#09090b]">
           {!displayedHtml ? (
             /* Estado Inicial em Branco (Estilo v0) */
-            <div className="flex flex-col items-center justify-center text-center p-6 max-w-lg mx-auto animate-in fade-in zoom-in-95 duration-200">
-              <div className="relative w-20 h-20 mb-5 flex items-center justify-center drop-shadow-[0_12px_28px_rgba(37,99,235,0.35)] animate-pulse">
+            <div
+              className="flex flex-col items-center justify-center text-center p-6 max-w-lg mx-auto"
+              style={{ animation: 'msgSlideIn 0.35s cubic-bezier(0.22,1,0.36,1) both' }}
+            >
+              <div
+                className="relative w-20 h-20 mb-5 flex items-center justify-center drop-shadow-[0_12px_28px_rgba(37,99,235,0.35)]"
+                style={{ animation: 'mascoteFloat 3s ease-in-out infinite' }}
+              >
                 <Image
                   src="/mascote-transparent.png"
                   alt="Mascote WEHOSTHERE"
@@ -2288,13 +2499,26 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                   priority
                 />
               </div>
-              <h3 className="text-xl sm:text-2xl font-black text-white mb-2 tracking-tight">O que deseja criar hoje?</h3>
-              <p className="text-xs sm:text-sm text-gray-400 mb-8 leading-relaxed max-w-md">
-                Descreva a sua ideia no chat ao lado ou escolha um dos modelos abaixo para ver o seu site ser construído e validado em tempo real.
+              <h3
+                className="text-xl sm:text-2xl font-black text-white mb-2 tracking-tight"
+                style={{ animation: 'msgSlideIn 0.35s cubic-bezier(0.22,1,0.36,1) 0.1s both' }}
+              >
+                O que deseja criar hoje?
+              </h3>
+              <p
+                className="text-xs sm:text-sm text-gray-400 mb-8 leading-relaxed max-w-md"
+                style={{ animation: 'msgSlideIn 0.35s cubic-bezier(0.22,1,0.36,1) 0.18s both' }}
+              >
+                Descreva a sua ideia no chat ou escolha um modelo abaixo.
               </p>
 
               <div className="w-full space-y-2 text-left">
-                <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider px-1">Modelos Recomendados:</p>
+                <p
+                  className="text-[11px] font-bold text-gray-400 uppercase tracking-wider px-1"
+                  style={{ animation: 'msgSlideIn 0.3s cubic-bezier(0.22,1,0.36,1) 0.24s both' }}
+                >
+                  Modelos Recomendados:
+                </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   {[
                     { title: 'Restaurante & Lounge', icon: UtensilsCrossed, p: 'Cria uma landing page para um restaurante requintado em Maputo com cardápio, reserva e WhatsApp' },
@@ -2311,6 +2535,10 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                           handleGenerate(m.p, m.title, false);
                         }}
                         className="p-3.5 rounded-2xl bg-[#18181b] border border-[#27272a] hover:border-blue-500/40 hover:bg-white/5 transition text-left cursor-pointer group shadow-sm"
+                        style={{
+                          animation: 'msgSlideIn 0.32s cubic-bezier(0.22,1,0.36,1) both',
+                          animationDelay: `${0.28 + idx * 0.06}s`,
+                        }}
                       >
                         <div className="flex items-center gap-2 mb-1 text-blue-400">
                           <Icon className="w-4 h-4" />
