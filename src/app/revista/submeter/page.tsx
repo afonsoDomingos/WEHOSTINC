@@ -4,7 +4,8 @@ import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import {
   ArrowLeft, Send, CheckCircle2, Upload, Sparkles, BookOpen,
-  Code2, Eye, User, FileText, Image as ImageIcon, Clock, Check, HelpCircle
+  Code2, Eye, User, FileText, Image as ImageIcon, Clock, Check, HelpCircle,
+  Wand2, X, RefreshCw, Copy, Lightbulb, Tag, CheckCheck, Loader2
 } from 'lucide-react';
 
 const CATEGORIES = [
@@ -36,6 +37,8 @@ Explica o que fizeste, que tecnologias ou ferramentas usaste (ex: Next.js, Pytho
 ## Conclusão
 O conselho final que gostarias de deixar para a comunidade de desenvolvedores e criadores em Moçambique...`;
 
+type AiActionType = 'improve_content' | 'suggest_titles' | 'generate_excerpt' | 'suggest_tags';
+
 export default function SubmeterHistoriaPage() {
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -44,6 +47,15 @@ export default function SubmeterHistoriaPage() {
   const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  // AI Assistant State
+  const [aiModalOpen, setAiModalOpen] = useState(false);
+  const [aiAction, setAiAction] = useState<AiActionType>('improve_content');
+  const [aiCustomPrompt, setAiCustomPrompt] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiResult, setAiResult] = useState<any>(null);
+  const [aiToast, setAiToast] = useState('');
+  const [copied, setCopied] = useState(false);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -91,6 +103,11 @@ export default function SubmeterHistoriaPage() {
     }));
   };
 
+  const showToast = (msg: string) => {
+    setAiToast(msg);
+    setTimeout(() => setAiToast(''), 3500);
+  };
+
   const wordCount = useMemo(() => {
     return (formData.content || '').split(/\s+/).filter(Boolean).length;
   }, [formData.content]);
@@ -121,6 +138,45 @@ export default function SubmeterHistoriaPage() {
       if (isCover) setUploadingCover(false);
       else setUploadingAvatar(false);
     }
+  };
+
+  // AI Assistant trigger
+  const runAiAssistant = async (actionToRun: AiActionType, promptOverride?: string) => {
+    setAiAction(actionToRun);
+    setAiModalOpen(true);
+    setAiLoading(true);
+    setAiResult(null);
+
+    try {
+      const res = await fetch('/api/revista/ai-assistant', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: actionToRun,
+          title: formData.title,
+          content: formData.content,
+          category: formData.category,
+          customPrompt: promptOverride !== undefined ? promptOverride : aiCustomPrompt,
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setAiResult(data.result);
+      } else {
+        alert(data.error || 'Erro ao processar assistência.');
+      }
+    } catch {
+      alert('Erro de conexão com o Assistente de IA.');
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -159,15 +215,16 @@ export default function SubmeterHistoriaPage() {
 
       const data = await res.json();
 
-      if (data.success && data.story) {
-        setCreatedStory(data.story);
-        setSubmitted(true);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      } else {
-        setErrorMsg(data.error || 'Erro ao enviar a história. Tenta novamente.');
+      if (!res.ok) {
+        setErrorMsg(data.error || 'Erro ao submeter história.');
+        setLoading(false);
+        return;
       }
-    } catch {
-      setErrorMsg('Erro de conexão ao enviar a história. Verifica a tua internet.');
+
+      setCreatedStory({ id: data.id, slug: data.slug });
+      setSubmitted(true);
+    } catch (err: any) {
+      setErrorMsg('Erro de conexão com o servidor. Tenta novamente mais tarde.');
     } finally {
       setLoading(false);
     }
@@ -175,23 +232,42 @@ export default function SubmeterHistoriaPage() {
 
   return (
     <>
-      <style>{`
-        .submeter-page { font-family: 'Poppins', sans-serif; background: #f8fafc; min-height: 100vh; color: #0f172a; }
-        
+      <style jsx>{`
+        .submeter-page {
+          min-height: 100vh;
+          background: #fdfcff;
+          font-family: 'Poppins', sans-serif;
+          color: #1e293b;
+        }
+
         .sub-nav {
-          background: #ffffff; border-bottom: 1px solid #e2e8f0;
-          position: sticky; top: 0; z-index: 50;
+          border-bottom: 1px solid #f1f5f9;
+          background: #ffffff;
+          padding: 1rem 1.5rem;
+          position: sticky;
+          top: 0;
+          z-index: 40;
         }
         .sub-nav-inner {
-          max-width: 1060px; margin: 0 auto; padding: 0 1.5rem;
-          height: 64px; display: flex; align-items: center; justify-content: space-between;
+          max-width: 1000px;
+          margin: 0 auto;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
         }
         .sub-nav-back {
-          display: inline-flex; align-items: center; gap: 0.5rem;
-          color: #64748b; text-decoration: none; font-size: 0.85rem; font-weight: 600;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-size: 0.88rem;
+          font-weight: 600;
+          color: #64748b;
+          text-decoration: none;
           transition: color 0.2s;
         }
-        .sub-nav-back:hover { color: #7B2CBF; }
+        .sub-nav-back:hover {
+          color: #7B2CBF;
+        }
         
         .sub-hero {
           background: linear-gradient(135deg, #FAF5FF 0%, #F3E8FF 50%, #ffffff 100%);
@@ -236,9 +312,13 @@ export default function SubmeterHistoriaPage() {
         }
 
         .form-group { margin-bottom: 1.35rem; }
+        .form-label-row {
+          display: flex; align-items: center; justify-content: space-between;
+          margin-bottom: 0.4rem;
+        }
         .form-label {
           display: block; font-size: 0.83rem; font-weight: 600; color: #334155;
-          margin-bottom: 0.4rem;
+          margin: 0;
         }
         .form-hint {
           font-size: 0.75rem; color: #94a3b8; margin-top: 0.35rem; line-height: 1.4;
@@ -261,8 +341,20 @@ export default function SubmeterHistoriaPage() {
           .sub-card { padding: 1.25rem; }
         }
 
+        /* AI Buttons */
+        .ai-inline-btn {
+          display: inline-flex; align-items: center; gap: 0.35rem;
+          background: #FAF5FF; border: 1px solid #E0AAFF; color: #7B2CBF;
+          font-size: 0.74rem; font-weight: 700; padding: 0.25rem 0.65rem;
+          border-radius: 9999px; cursor: pointer; transition: all 0.2s;
+        }
+        .ai-inline-btn:hover {
+          background: #7B2CBF; color: #ffffff; border-color: #7B2CBF;
+          transform: translateY(-1px); box-shadow: 0 4px 12px rgba(123,44,191,0.2);
+        }
+
         .editor-tabs {
-          display: flex; gap: 0.5rem; margin-bottom: 0.75rem;
+          display: flex; gap: 0.5rem; margin-bottom: 0.75rem; flex-wrap: wrap; align-items: center;
         }
         .editor-tab-btn {
           display: flex; align-items: center; gap: 0.4rem;
@@ -272,6 +364,20 @@ export default function SubmeterHistoriaPage() {
         }
         .editor-tab-btn.active {
           background: #7B2CBF; color: #ffffff; border-color: #7B2CBF;
+        }
+
+        .ai-editor-btn {
+          display: inline-flex; align-items: center; gap: 0.4rem;
+          background: linear-gradient(135deg, #FAF5FF 0%, #F3E8FF 100%);
+          border: 1.5px solid #C77DFF; color: #5A189A;
+          font-size: 0.78rem; font-weight: 700; padding: 0.4rem 0.95rem;
+          border-radius: 8px; cursor: pointer; transition: all 0.2s;
+          margin-left: auto;
+        }
+        .ai-editor-btn:hover {
+          background: linear-gradient(135deg, #7B2CBF 0%, #5A189A 100%);
+          color: #ffffff; border-color: #5A189A;
+          box-shadow: 0 4px 14px rgba(123,44,191,0.25); transform: translateY(-1px);
         }
 
         .preview-box {
@@ -309,12 +415,479 @@ export default function SubmeterHistoriaPage() {
         }
         .upload-dropzone:hover { border-color: #7B2CBF; background: #FAF5FF; }
 
+        /* Floating AI Badge */
+        .ai-floating-badge {
+          position: fixed; bottom: 2rem; right: 2rem; z-index: 50;
+          display: flex; align-items: center; gap: 0.55rem;
+          background: linear-gradient(135deg, #7B2CBF 0%, #5A189A 100%);
+          color: #ffffff; font-weight: 700; font-size: 0.86rem;
+          padding: 0.75rem 1.35rem; border-radius: 9999px; border: 1.5px solid #E0AAFF;
+          cursor: pointer; box-shadow: 0 8px 25px rgba(123,44,191,0.35);
+          transition: all 0.25s;
+        }
+        .ai-floating-badge:hover {
+          transform: translateY(-3px) scale(1.03);
+          box-shadow: 0 12px 30px rgba(123,44,191,0.45);
+        }
+
+        /* Modal Styles */
+        .ai-modal-overlay {
+          position: fixed; inset: 0; background: rgba(15, 23, 42, 0.65);
+          backdrop-filter: blur(5px); z-index: 9999;
+          display: flex; align-items: center; justify-content: center; padding: 1.25rem;
+        }
+        .ai-modal {
+          background: #ffffff; border-radius: 20px; max-width: 760px; width: 100%;
+          max-height: 88vh; display: flex; flex-direction: column; overflow: hidden;
+          box-shadow: 0 25px 60px -15px rgba(123, 44, 191, 0.35);
+          border: 1.5px solid #E0AAFF; animation: aiModalPop 0.22s ease-out;
+        }
+        @keyframes aiModalPop {
+          from { opacity: 0; transform: scale(0.96) translateY(8px); }
+          to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .ai-modal-header {
+          padding: 1.25rem 1.75rem;
+          background: linear-gradient(135deg, #FAF5FF 0%, #F3E8FF 100%);
+          border-bottom: 1px solid #E0AAFF;
+          display: flex; align-items: center; justify-content: space-between;
+        }
+        .ai-modal-tabs {
+          display: flex; gap: 0.4rem; padding: 0.75rem 1.75rem;
+          background: #ffffff; border-bottom: 1px solid #f1f5f9; overflow-x: auto;
+        }
+        .ai-tab-btn {
+          display: inline-flex; align-items: center; gap: 0.4rem;
+          padding: 0.45rem 0.9rem; border-radius: 9999px;
+          border: 1px solid #e2e8f0; background: #f8fafc;
+          color: #64748b; font-size: 0.78rem; font-weight: 600;
+          cursor: pointer; white-space: nowrap; transition: all 0.2s;
+        }
+        .ai-tab-btn.active {
+          background: #7B2CBF; color: #ffffff; border-color: #7B2CBF;
+        }
+        .ai-modal-body {
+          padding: 1.5rem 1.75rem; overflow-y: auto; flex: 1;
+        }
+        .ai-card-option {
+          background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 12px;
+          padding: 1rem 1.25rem; margin-bottom: 0.75rem; transition: all 0.2s;
+          display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+        }
+        .ai-card-option:hover {
+          border-color: #7B2CBF; background: #FAF5FF;
+          box-shadow: 0 4px 15px rgba(123,44,191,0.08);
+        }
+        .ai-action-btn-primary {
+          display: inline-flex; align-items: center; gap: 0.4rem;
+          background: #7B2CBF; color: #ffffff; font-size: 0.8rem; font-weight: 700;
+          padding: 0.5rem 1.1rem; border-radius: 8px; border: none; cursor: pointer;
+          transition: all 0.2s;
+        }
+        .ai-action-btn-primary:hover {
+          background: #5A189A; transform: translateY(-1px);
+        }
+        .ai-action-btn-secondary {
+          display: inline-flex; align-items: center; gap: 0.4rem;
+          background: #ffffff; color: #475569; font-size: 0.8rem; font-weight: 600;
+          padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid #cbd5e1; cursor: pointer;
+          transition: all 0.2s;
+        }
+        .ai-action-btn-secondary:hover {
+          background: #f8fafc; color: #0f172a;
+        }
+
+        .toast-banner {
+          position: fixed; top: 1.5rem; left: 50%; transform: translateX(-50%);
+          z-index: 10000; background: #0f172a; color: #ffffff;
+          padding: 0.75rem 1.5rem; border-radius: 9999px; font-size: 0.86rem;
+          font-weight: 600; display: flex; align-items: center; gap: 0.6rem;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+          animation: slideDown 0.25s ease-out;
+        }
+        @keyframes slideDown {
+          from { opacity: 0; transform: translate(-50%, -10px); }
+          to { opacity: 1; transform: translate(-50%, 0); }
+        }
+
         .success-card {
           background: #ffffff; border: 2px solid #10b981; border-radius: 20px;
           padding: 3rem 2rem; text-align: center; max-width: 650px; margin: 3rem auto;
           box-shadow: 0 8px 30px rgba(16,185,129,0.12);
         }
       `}</style>
+
+      {/* Toast Notification */}
+      {aiToast && (
+        <div className="toast-banner">
+          <CheckCheck size={18} color="#10b981" />
+          <span>{aiToast}</span>
+        </div>
+      )}
+
+      {/* Botão Flutuante do Assistente IA */}
+      {!submitted && (
+        <button
+          type="button"
+          onClick={() => {
+            setAiAction('improve_content');
+            setAiModalOpen(true);
+            if (!aiResult) runAiAssistant('improve_content');
+          }}
+          className="ai-floating-badge"
+          title="Abrir Assistente Editorial IA"
+        >
+          <Sparkles size={16} />
+          <span>Assistente IA</span>
+        </button>
+      )}
+
+      {/* MODAL DO ASSISTENTE IA */}
+      {aiModalOpen && (
+        <div className="ai-modal-overlay" onClick={() => setAiModalOpen(false)}>
+          <div className="ai-modal" onClick={e => e.stopPropagation()}>
+            {/* Header */}
+            <div className="ai-modal-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                <div style={{
+                  width: 38, height: 38, borderRadius: 10,
+                  background: 'linear-gradient(135deg, #7B2CBF 0%, #5A189A 100%)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff',
+                }}>
+                  <Wand2 size={20} />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#0f172a' }}>
+                    Assistente IA Editorial • Codando Histórias
+                  </h3>
+                  <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748b' }}>
+                    Copiloto inteligente para títulos, resumos e polimento de Markdown técnico.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAiModalOpen(false)}
+                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Tabs */}
+            <div className="ai-modal-tabs">
+              <button
+                type="button"
+                className={`ai-tab-btn ${aiAction === 'improve_content' ? 'active' : ''}`}
+                onClick={() => { setAiAction('improve_content'); runAiAssistant('improve_content'); }}
+              >
+                <FileText size={14} /> Polir Conteúdo (Markdown)
+              </button>
+              <button
+                type="button"
+                className={`ai-tab-btn ${aiAction === 'suggest_titles' ? 'active' : ''}`}
+                onClick={() => { setAiAction('suggest_titles'); runAiAssistant('suggest_titles'); }}
+              >
+                <Lightbulb size={14} /> 3 Ideias de Título
+              </button>
+              <button
+                type="button"
+                className={`ai-tab-btn ${aiAction === 'generate_excerpt' ? 'active' : ''}`}
+                onClick={() => { setAiAction('generate_excerpt'); runAiAssistant('generate_excerpt'); }}
+              >
+                <BookOpen size={14} /> Resumo do Cartão
+              </button>
+              <button
+                type="button"
+                className={`ai-tab-btn ${aiAction === 'suggest_tags' ? 'active' : ''}`}
+                onClick={() => { setAiAction('suggest_tags'); runAiAssistant('suggest_tags'); }}
+              >
+                <Tag size={14} /> Sugerir Tags
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="ai-modal-body">
+              {aiLoading ? (
+                <div style={{ textAlign: 'center', padding: '3.5rem 1.5rem' }}>
+                  <div style={{
+                    width: 54, height: 54, borderRadius: '50%',
+                    background: '#FAF5FF', border: '2px solid #E0AAFF',
+                    color: '#7B2CBF', display: 'flex', alignItems: 'center',
+                    justifyContent: 'center', margin: '0 auto 1.25rem',
+                    animation: 'spin 1.5s linear infinite',
+                  }}>
+                    <Loader2 size={28} />
+                  </div>
+                  <h4 style={{ margin: '0 0 0.35rem', fontWeight: 700, color: '#0f172a', fontSize: '1rem' }}>
+                    O Copiloto IA está a analisar o teu rascunho...
+                  </h4>
+                  <p style={{ margin: 0, fontSize: '0.82rem', color: '#64748b', maxWidth: 440, marginLeft: 'auto', marginRight: 'auto' }}>
+                    Ajustando o ritmo da narrativa, aplicando directrizes de estilo tech e preservando a tua voz original.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  {/* TAB 1: Polir Conteúdo */}
+                  {aiAction === 'improve_content' && (
+                    <div>
+                      <div style={{ marginBottom: '1.25rem' }}>
+                        <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
+                          Orientação Opcional para a IA (ex: "Tom mais descontraído", "Enfatizar lições de Docker"):
+                        </label>
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <input
+                            type="text"
+                            placeholder="Escreve uma instrução personalizada..."
+                            className="form-input"
+                            style={{ flex: 1 }}
+                            value={aiCustomPrompt}
+                            onChange={e => setAiCustomPrompt(e.target.value)}
+                            onKeyDown={e => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                runAiAssistant('improve_content', aiCustomPrompt);
+                              }
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => runAiAssistant('improve_content', aiCustomPrompt)}
+                            className="ai-action-btn-primary"
+                          >
+                            <RefreshCw size={14} /> Refinar
+                          </button>
+                        </div>
+                      </div>
+
+                      {aiResult ? (
+                        <div>
+                          <div style={{
+                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                            marginBottom: '0.5rem', fontSize: '0.8rem', color: '#64748b',
+                          }}>
+                            <span>✨ Proposta Polida com Markdown e Estrutura Editorial:</span>
+                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                              <button
+                                type="button"
+                                onClick={() => copyToClipboard(aiResult)}
+                                className="ai-action-btn-secondary"
+                                style={{ padding: '0.3rem 0.75rem', fontSize: '0.74rem' }}
+                              >
+                                {copied ? <Check size={13} color="#10b981" /> : <Copy size={13} />}
+                                {copied ? 'Copiado!' : 'Copiar'}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setField('content', aiResult);
+                                  showToast('✓ Conteúdo polido aplicado com sucesso ao editor!');
+                                  setAiModalOpen(false);
+                                }}
+                                className="ai-action-btn-primary"
+                                style={{ padding: '0.3rem 0.85rem', fontSize: '0.74rem' }}
+                              >
+                                <Check size={14} /> Aplicar ao Meu Rascunho
+                              </button>
+                            </div>
+                          </div>
+
+                          <div style={{
+                            background: '#0f172a', color: '#e2e8f0', borderRadius: 12,
+                            padding: '1.25rem', fontFamily: 'Menlo, Monaco, monospace',
+                            fontSize: '0.8rem', lineHeight: 1.6, maxHeight: 360, overflowY: 'auto',
+                            whiteSpace: 'pre-wrap', border: '1px solid #334155',
+                          }}>
+                            {aiResult}
+                          </div>
+                        </div>
+                      ) : (
+                        <div style={{ textAlign: 'center', padding: '2rem 1rem', color: '#94a3b8' }}>
+                          Clica em Refinar para gerar a versão polida do conteúdo.
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* TAB 2: Sugerir Títulos */}
+                  {aiAction === 'suggest_titles' && (
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                        <span style={{ fontSize: '0.84rem', color: '#475569', fontWeight: 600 }}>
+                          Opções de títulos com palavra de destaque (highlightText) recomendada:
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => runAiAssistant('suggest_titles')}
+                          className="ai-action-btn-secondary"
+                          style={{ padding: '0.3rem 0.75rem', fontSize: '0.74rem' }}
+                        >
+                          <RefreshCw size={13} /> Gerar Outros
+                        </button>
+                      </div>
+
+                      {Array.isArray(aiResult) && aiResult.length > 0 ? (
+                        <div>
+                          {aiResult.map((item: any, i: number) => (
+                            <div key={i} className="ai-card-option">
+                              <div style={{ flex: 1 }}>
+                                <div style={{ fontSize: '0.92rem', fontWeight: 700, color: '#0f172a', marginBottom: '0.35rem' }}>
+                                  {item.title}
+                                </div>
+                                {item.highlight && (
+                                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.74rem', color: '#7B2CBF', background: '#FAF5FF', padding: '0.15rem 0.55rem', borderRadius: 9999, border: '1px solid #E0AAFF' }}>
+                                    <span>Realce roxo:</span> <strong>"{item.highlight}"</strong>
+                                  </div>
+                                )}
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setField('title', item.title);
+                                  if (item.highlight) setField('highlightText', item.highlight);
+                                  showToast('✓ Título e realce aplicados ao formulário!');
+                                  setAiModalOpen(false);
+                                }}
+                                className="ai-action-btn-primary"
+                                style={{ padding: '0.4rem 0.85rem', fontSize: '0.76rem' }}
+                              >
+                                Usar Este
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div style={{
+                          background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12,
+                          padding: '1.25rem', whiteSpace: 'pre-wrap', fontSize: '0.88rem',
+                        }}>
+                          {typeof aiResult === 'string' ? aiResult : 'Sem títulos gerados ainda.'}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* TAB 3: Gerar Resumo */}
+                  {aiAction === 'generate_excerpt' && (
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                        <span style={{ fontSize: '0.84rem', color: '#475569', fontWeight: 600 }}>
+                          Resumo de Cartão (1 a 2 frases para cativar leitores na Revista):
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => runAiAssistant('generate_excerpt')}
+                          className="ai-action-btn-secondary"
+                          style={{ padding: '0.3rem 0.75rem', fontSize: '0.74rem' }}
+                        >
+                          <RefreshCw size={13} /> Gerar Outro
+                        </button>
+                      </div>
+
+                      {aiResult ? (
+                        <div style={{ background: '#FAF5FF', border: '1.5px solid #E0AAFF', borderRadius: 14, padding: '1.5rem' }}>
+                          <p style={{ margin: '0 0 1rem', fontSize: '0.95rem', lineHeight: 1.6, color: '#1e293b', fontStyle: 'italic' }}>
+                            "{aiResult}"
+                          </p>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <span style={{ fontSize: '0.75rem', color: '#7B2CBF', fontWeight: 600 }}>
+                              {String(aiResult).length} caracteres • Perfeito para cartão
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setField('excerpt', aiResult);
+                                showToast('✓ Resumo aplicado ao formulário!');
+                                setAiModalOpen(false);
+                              }}
+                              className="ai-action-btn-primary"
+                            >
+                              <Check size={14} /> Aplicar ao Formulário
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div style={{ textAlign: 'center', padding: '2rem 1rem', color: '#94a3b8' }}>
+                          Clica em Gerar para criar o resumo impactante.
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* TAB 4: Sugerir Tags */}
+                  {aiAction === 'suggest_tags' && (
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                        <span style={{ fontSize: '0.84rem', color: '#475569', fontWeight: 600 }}>
+                          Tags sugeridas com base no conteúdo e categoria:
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => runAiAssistant('suggest_tags')}
+                          className="ai-action-btn-secondary"
+                          style={{ padding: '0.3rem 0.75rem', fontSize: '0.74rem' }}
+                        >
+                          <RefreshCw size={13} /> Gerar Novamente
+                        </button>
+                      </div>
+
+                      {aiResult ? (
+                        <div style={{ background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: 14, padding: '1.5rem' }}>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1.25rem' }}>
+                            {String(aiResult).split(',').map((t, idx) => (
+                              <span
+                                key={idx}
+                                style={{
+                                  background: '#FAF5FF', border: '1px solid #E0AAFF',
+                                  color: '#7B2CBF', fontWeight: 600, fontSize: '0.8rem',
+                                  padding: '0.3rem 0.8rem', borderRadius: 9999,
+                                }}
+                              >
+                                #{t.trim()}
+                              </span>
+                            ))}
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setField('tags', aiResult);
+                                showToast('✓ Tags aplicadas ao formulário!');
+                                setAiModalOpen(false);
+                              }}
+                              className="ai-action-btn-primary"
+                            >
+                              <Check size={14} /> Aplicar Tags ({String(aiResult).split(',').length})
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div style={{ textAlign: 'center', padding: '2rem 1rem', color: '#94a3b8' }}>
+                          Clica em Sugerir Tags para ver as recomendações.
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="ai-modal-footer">
+              <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                💡 A IA ajuda na formatação e polimento, mas a história é 100% tua.
+              </span>
+              <button
+                type="button"
+                onClick={() => setAiModalOpen(false)}
+                className="ai-action-btn-secondary"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="submeter-page">
         {/* Navigation */}
@@ -540,7 +1113,17 @@ export default function SubmeterHistoriaPage() {
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label">Título da História *</label>
+                    <div className="form-label-row">
+                      <label className="form-label">Título da História *</label>
+                      <button
+                        type="button"
+                        onClick={() => runAiAssistant('suggest_titles')}
+                        className="ai-inline-btn"
+                        title="Pedir ideias de títulos atraentes à IA"
+                      >
+                        <Sparkles size={12} /> Sugerir Títulos IA
+                      </button>
+                    </div>
                     <input
                       className="form-input"
                       type="text"
@@ -581,7 +1164,17 @@ export default function SubmeterHistoriaPage() {
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label">Resumo Impactante (1 a 2 frases) *</label>
+                    <div className="form-label-row">
+                      <label className="form-label">Resumo Impactante (1 a 2 frases) *</label>
+                      <button
+                        type="button"
+                        onClick={() => runAiAssistant('generate_excerpt')}
+                        className="ai-inline-btn"
+                        title="Gerar resumo magnético para o cartão"
+                      >
+                        <Sparkles size={12} /> Gerar com IA
+                      </button>
+                    </div>
                     <textarea
                       className="form-textarea"
                       placeholder="Ex: Saí do zero, sem investimento externo, e em 30 dias lancei um produto que hoje gera receita. Aqui está o que aprendi pelo caminho."
@@ -594,7 +1187,17 @@ export default function SubmeterHistoriaPage() {
 
                   <div className="form-grid-2">
                     <div className="form-group">
-                      <label className="form-label">Tags (separadas por vírgula)</label>
+                      <div className="form-label-row">
+                        <label className="form-label">Tags (separadas por vírgula)</label>
+                        <button
+                          type="button"
+                          onClick={() => runAiAssistant('suggest_tags')}
+                          className="ai-inline-btn"
+                          title="Sugerir tags técnicas para indexação"
+                        >
+                          <Sparkles size={12} /> Sugerir Tags
+                        </button>
+                      </div>
                       <input
                         className="form-input"
                         type="text"
@@ -654,6 +1257,15 @@ export default function SubmeterHistoriaPage() {
                       onClick={() => setActiveTab('preview')}
                     >
                       <Eye size={13} /> Pré-visualizar Como Fica
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => runAiAssistant('improve_content')}
+                      className="ai-editor-btn"
+                      title="Revisar gramática, melhorar o ritmo e organizar em Markdown com a IA"
+                    >
+                      <Wand2 size={14} /> Polir Conteúdo com IA
                     </button>
                   </div>
 
