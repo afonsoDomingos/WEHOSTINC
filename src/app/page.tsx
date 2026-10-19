@@ -834,7 +834,7 @@ export default function Home() {
 
           {/* Badge */}
           <div className="inline-flex items-center gap-2 bg-indigo-500/15 border border-indigo-400/30 rounded-full px-4 py-1.5 mb-6">
-            <span className="text-lg">📖</span>
+            <span className="text-indigo-400 text-xs font-mono font-bold tracking-tight">&lt;/&gt;</span>
             <span className="text-indigo-300 text-xs sm:text-sm font-semibold tracking-widest uppercase">Revista Digital · Codando Histórias</span>
           </div>
 
@@ -845,26 +845,24 @@ export default function Home() {
             de Moçambique
           </h2>
 
-          {/* Subtitle */}
-          <p className="text-slate-400 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto mb-10">
-            Artigos, entrevistas e histórias sobre empreendedorismo digital, tecnologia e inovação em Moçambique — escritos por quem está a construir este futuro.
+          <p className="text-slate-400 text-sm leading-relaxed max-w-xl mx-auto mb-10">
+            Artigos e histórias sobre tecnologia e inovação em Moçambique.
           </p>
 
           {/* Feature pills */}
-          <div className="flex flex-wrap items-center justify-center gap-3 mb-10">
+          <div className="flex flex-wrap items-center justify-center gap-2 mb-10">
             {[
-              { icon: '🚀', label: 'Empreendedorismo' },
-              { icon: '💡', label: 'Tecnologia & IA' },
-              { icon: '📱', label: 'Negócios Digitais' },
-              { icon: '🌍', label: 'Inovação Local' },
-              { icon: '🎓', label: 'Casos de Sucesso' },
-            ].map((pill) => (
+              'Empreendedorismo',
+              'Tecnologia & IA',
+              'Negócios Digitais',
+              'Inovação Local',
+              'Casos de Sucesso',
+            ].map((label) => (
               <span
-                key={pill.label}
-                className="inline-flex items-center gap-1.5 bg-white/5 border border-white/10 text-slate-300 text-xs sm:text-sm font-medium px-3.5 py-1.5 rounded-full hover:bg-white/10 hover:border-indigo-400/40 transition-all duration-200"
+                key={label}
+                className="inline-flex items-center bg-white/5 border border-white/10 text-slate-300 text-xs font-medium px-3 py-1.5 rounded-full hover:bg-white/10 hover:border-indigo-400/40 transition-all duration-200"
               >
-                <span>{pill.icon}</span>
-                {pill.label}
+                {label}
               </span>
             ))}
           </div>
@@ -875,9 +873,8 @@ export default function Home() {
               href="/revista"
               className="group inline-flex items-center gap-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-base sm:text-lg px-8 py-4 rounded-2xl shadow-2xl shadow-indigo-900/50 hover:shadow-indigo-700/60 transition-all duration-300 hover:-translate-y-0.5"
             >
-              <span className="text-xl">📖</span>
               Ler a Revista
-              <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform duration-200" />
+              <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
             </Link>
             <Link
               href="/revista#latest"

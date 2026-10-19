@@ -341,6 +341,7 @@ export default function RevistaStoryPage() {
   const [userReactions, setUserReactions] = useState<Record<string, boolean>>({});
   const [floatingParticles, setFloatingParticles] = useState<Array<{ id: number; text: string }>>([]);
   const [floatBarHidden, setFloatBarHidden] = useState(false);
+  const [authorBioOpen, setAuthorBioOpen] = useState(false);
 
   const pendingClapsRef = useRef(0);
   const clapTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -404,11 +405,12 @@ export default function RevistaStoryPage() {
 
   // Fechar modais ao pressionar ESC e travar scroll do corpo
   useEffect(() => {
-    if (!lightboxOpen && !shareModalOpen) return;
+    if (!lightboxOpen && !shareModalOpen && !authorBioOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setLightboxOpen(false);
         setShareModalOpen(false);
+        setAuthorBioOpen(false);
       }
     };
     document.body.style.overflow = 'hidden';
@@ -417,7 +419,7 @@ export default function RevistaStoryPage() {
       document.body.style.overflow = '';
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [lightboxOpen, shareModalOpen]);
+  }, [lightboxOpen, shareModalOpen, authorBioOpen]);
 
   useEffect(() => {
     if (slug) {
@@ -1196,7 +1198,67 @@ export default function RevistaStoryPage() {
         }
         .story-author-card-avatar img { width: 100%; height: 100%; object-fit: cover; }
         .story-author-card-name { font-weight: 700; font-size: 0.88rem; color: #0f172a; }
-        .story-author-card-bio { font-size: 0.78rem; color: #64748b; margin-top: 0.15rem; }
+        .story-author-card-bio-snippet {
+          font-size: 0.75rem; color: #64748b; margin-top: 0.2rem;
+          display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical;
+          overflow: hidden; line-height: 1.4; max-width: 240px;
+        }
+        .story-author-bio-btn {
+          display: inline-flex; align-items: center; gap: 0.25rem;
+          font-size: 0.7rem; color: #7B2CBF; background: none;
+          border: none; padding: 0; cursor: pointer; margin-top: 0.1rem;
+          font-weight: 600; opacity: 0.85; transition: opacity 0.15s;
+          text-decoration: underline; text-underline-offset: 2px;
+        }
+        .story-author-bio-btn:hover { opacity: 1; }
+        /* Bio Modal */
+        .author-bio-modal-overlay {
+          position: fixed; inset: 0; z-index: 9999;
+          background: rgba(15,23,42,0.55); backdrop-filter: blur(6px);
+          display: flex; align-items: center; justify-content: center;
+          padding: 1rem; animation: fadeInOverlay 0.18s ease;
+        }
+        .author-bio-modal {
+          background: #fff; border-radius: 16px;
+          width: 100%; max-width: 420px;
+          box-shadow: 0 20px 60px rgba(0,0,0,0.18), 0 4px 16px rgba(123,44,191,0.1);
+          animation: slideUpModal 0.22s cubic-bezier(0.34,1.56,0.64,1);
+          overflow: hidden;
+        }
+        .author-bio-modal-header {
+          display: flex; align-items: center; gap: 0.75rem;
+          padding: 1.1rem 1.25rem 0.85rem;
+          border-bottom: 1px solid #f1f5f9;
+        }
+        .author-bio-modal-avatar {
+          width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0;
+          background: linear-gradient(135deg, #7B2CBF, #5A189A);
+          color: #fff; display: flex; align-items: center; justify-content: center;
+          font-weight: 800; font-size: 1rem; overflow: hidden;
+        }
+        .author-bio-modal-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .author-bio-modal-name { font-weight: 700; font-size: 0.92rem; color: #0f172a; }
+        .author-bio-modal-label { font-size: 0.7rem; color: #94a3b8; margin-top: 0.1rem; }
+        .author-bio-modal-close {
+          margin-left: auto; width: 28px; height: 28px;
+          border-radius: 50%; border: none; background: #f1f5f9;
+          color: #64748b; cursor: pointer; display: flex;
+          align-items: center; justify-content: center; flex-shrink: 0;
+          transition: background 0.15s, color 0.15s;
+        }
+        .author-bio-modal-close:hover { background: #e2e8f0; color: #0f172a; }
+        .author-bio-modal-body {
+          padding: 1rem 1.25rem 1.25rem;
+          font-size: 0.85rem; color: #334155; line-height: 1.75;
+          max-height: 260px; overflow-y: auto;
+        }
+        @keyframes slideUpModal {
+          from { opacity: 0; transform: translateY(16px) scale(0.97); }
+          to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes fadeInOverlay {
+          from { opacity: 0; } to { opacity: 1; }
+        }
         .story-author-links {
           display: flex; align-items: center; gap: 0.5rem;
           margin-top: 0.45rem; flex-wrap: wrap;
@@ -2291,7 +2353,16 @@ export default function RevistaStoryPage() {
             <div style={{ flex: 1 }}>
               <div className="story-author-card-name">{story.author?.name}</div>
               {story.author?.bio && (
-                <div className="story-author-card-bio">{story.author.bio}</div>
+                <>
+                  <div className="story-author-card-bio-snippet">{story.author.bio}</div>
+                  <button
+                    className="story-author-bio-btn"
+                    onClick={() => setAuthorBioOpen(true)}
+                    aria-label="Ler bio completa do autor"
+                  >
+                    Ler bio completa
+                  </button>
+                </>
               )}
               {(story.author?.website || story.author?.socials?.github || story.author?.socials?.linkedin || story.author?.socials?.twitter || story.author?.socials?.instagram) && (
                 <div className="story-author-links">
@@ -2855,6 +2926,45 @@ export default function RevistaStoryPage() {
           </>
         )}
       </div>
+
+      {/* Author Bio Modal */}
+      {authorBioOpen && story?.author?.bio && (
+        <div
+          className="author-bio-modal-overlay"
+          onClick={() => setAuthorBioOpen(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Bio do autor"
+        >
+          <div
+            className="author-bio-modal"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="author-bio-modal-header">
+              <div className="author-bio-modal-avatar">
+                {story.author.avatar
+                  ? <img src={story.author.avatar} alt={story.author.name} />
+                  : story.author.name?.[0]?.toUpperCase()
+                }
+              </div>
+              <div>
+                <div className="author-bio-modal-name">{story.author.name}</div>
+                <div className="author-bio-modal-label">Autor</div>
+              </div>
+              <button
+                className="author-bio-modal-close"
+                onClick={() => setAuthorBioOpen(false)}
+                aria-label="Fechar bio"
+              >
+                <X size={13} />
+              </button>
+            </div>
+            <div className="author-bio-modal-body">
+              {story.author.bio}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
