@@ -403,7 +403,13 @@ export default function AiSiteBuilderStudio() {
   const [logoHeight, setLogoHeight] = useState<number>(36);
   const [logoShowText, setLogoShowText] = useState<boolean>(true);
   const [logoSuccessToast, setLogoSuccessToast] = useState<boolean>(false);
+  const [logoErrorMessage, setLogoErrorMessage] = useState<string>('');
   const logoFileInputRef = useRef<HTMLInputElement>(null);
+
+  // Estados de Confirmação Customizada (Substitui confirm/alert nativos do browser)
+  const [projectToDelete, setProjectToDelete] = useState<{ id: string; title: string } | null>(null);
+  const [isDeletingProject, setIsDeletingProject] = useState<boolean>(false);
+  const [isClearChatModalOpen, setIsClearChatModalOpen] = useState<boolean>(false);
 
   // Estado para redimensionamento manual do Chat (Arrastar borda)
   const [chatWidth, setChatWidth] = useState<number>(420);
@@ -1323,7 +1329,11 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
 
   // ─── Limpar Histórico de Chat do Projeto Atual ────────────────────────────
   const handleClearProjectChat = () => {
-    if (!confirm('Deseja limpar as mensagens de chat deste projeto? O código do site permanecerá intacto.')) return;
+    setIsClearChatModalOpen(true);
+  };
+
+  const handleConfirmClearChat = () => {
+    setIsClearChatModalOpen(false);
     const initialMsg: ChatMessage = {
       id: `msg_cleared_${Date.now()}`,
       role: 'assistant',
@@ -1388,11 +1398,12 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
 
   // ─── Manipular Upload e Aplicação do Logótipo ────────────────────────────
   const handleLogoFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLogoErrorMessage('');
     const file = e.target.files?.[0];
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      alert('Por favor, selecione um ficheiro de imagem válido (PNG, SVG, JPG, WebP).');
+      setLogoErrorMessage('Por favor, selecione um ficheiro de imagem válido (PNG, SVG, JPG, WebP).');
       return;
     }
 
@@ -1460,21 +1471,28 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
     }
   };
 
-  const handleDeleteProject = async (id: string) => {
-    if (!currentUser?.email) return;
-    if (!confirm('Deseja realmente eliminar este site?')) return;
+  const handleRequestDeleteProject = (id: string, title: string) => {
+    setProjectToDelete({ id, title });
+  };
+
+  const handleConfirmDeleteProject = async () => {
+    if (!currentUser?.email || !projectToDelete) return;
+    setIsDeletingProject(true);
     try {
-      const res = await fetch(`/api/ai/sites?id=${encodeURIComponent(id)}&userEmail=${encodeURIComponent(currentUser.email)}`, {
+      const res = await fetch(`/api/ai/sites?id=${encodeURIComponent(projectToDelete.id)}&userEmail=${encodeURIComponent(currentUser.email)}`, {
         method: 'DELETE'
       });
       if (res.ok) {
-        setSavedProjects(prev => prev.filter(p => p.id !== id));
-        if (projectId === id) {
+        setSavedProjects(prev => prev.filter(p => p.id !== projectToDelete.id));
+        if (projectId === projectToDelete.id) {
           initNewProject();
         }
+        setProjectToDelete(null);
       }
     } catch (err) {
       console.warn('Erro ao eliminar projeto:', err);
+    } finally {
+      setIsDeletingProject(false);
     }
   };
 
@@ -1617,9 +1635,9 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleDeleteProject(p.id);
+                      handleRequestDeleteProject(p.id, p.title || 'Sem título');
                     }}
-                    className="p-1 rounded text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition opacity-0 group-hover:opacity-100 cursor-pointer"
+                    className="p-1.5 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition opacity-70 group-hover:opacity-100 sm:opacity-0 sm:group-hover:opacity-100 cursor-pointer"
                     title="Eliminar projeto"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -3077,6 +3095,14 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 </div>
               </div>
 
+              {/* Mensagem de Erro de Upload */}
+              {logoErrorMessage && (
+                <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-400 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{logoErrorMessage}</span>
+                </div>
+              )}
+
               {/* Botões do Rodapé do Modal */}
               <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[#27272a]">
                 <button
@@ -3096,6 +3122,111 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                   <span>Aplicar no Site</span>
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL CUSTOMIZADO: CONFIRMAÇÃO DE ELIMINAR PROJETO ──────────── */}
+      {projectToDelete && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-[#121217] border border-[#27272a] rounded-3xl max-w-sm sm:max-w-md w-full p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
+            <button
+              onClick={() => setProjectToDelete(null)}
+              disabled={isDeletingProject}
+              className="absolute top-5 right-5 p-1 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-start gap-3.5 mb-5">
+              <div className="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center shrink-0 shadow-lg shadow-red-500/10">
+                <Trash2 className="w-6 h-6 text-red-400" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-white">Eliminar Projeto</h3>
+                <p className="text-xs text-gray-400 mt-0.5">Esta ação é irreversível e removerá o site permanentemente.</p>
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-[#18181b] border border-[#27272a] mb-5">
+              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block font-mono">Nome do Projeto:</span>
+              <p className="text-sm font-bold text-white truncate mt-0.5">{projectToDelete.title}</p>
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5">
+              <button
+                type="button"
+                disabled={isDeletingProject}
+                onClick={() => setProjectToDelete(null)}
+                className="px-4 py-2.5 rounded-xl text-xs font-bold text-gray-400 hover:text-white hover:bg-white/5 transition cursor-pointer disabled:opacity-40"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                disabled={isDeletingProject}
+                onClick={handleConfirmDeleteProject}
+                className="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-extrabold text-xs shadow-lg shadow-red-600/30 transition active:scale-95 flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                {isDeletingProject ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin text-white" />
+                    <span>A eliminar...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-3.5 h-3.5 text-white" />
+                    <span>Eliminar Projeto</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL CUSTOMIZADO: CONFIRMAÇÃO DE LIMPAR CONVERSA ───────────── */}
+      {isClearChatModalOpen && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-[#121217] border border-[#27272a] rounded-3xl max-w-sm sm:max-w-md w-full p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
+            <button
+              onClick={() => setIsClearChatModalOpen(false)}
+              className="absolute top-5 right-5 p-1 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-start gap-3.5 mb-5">
+              <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 shadow-lg shadow-amber-500/10">
+                <RotateCw className="w-6 h-6 text-amber-400" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-white">Reiniciar Conversa</h3>
+                <p className="text-xs text-gray-400 mt-0.5">Deseja limpar as mensagens de chat deste projeto?</p>
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-xs text-blue-300 mb-5 leading-relaxed">
+              O código HTML gerado e todas as versões anteriores do site permanecerão intactos no Preview. Apenas o histórico de mensagens deste projeto será limpo.
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5">
+              <button
+                type="button"
+                onClick={() => setIsClearChatModalOpen(false)}
+                className="px-4 py-2.5 rounded-xl text-xs font-bold text-gray-400 hover:text-white hover:bg-white/5 transition cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmClearChat}
+                className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-extrabold text-xs shadow-lg shadow-amber-500/20 transition active:scale-95 flex items-center gap-2 cursor-pointer"
+              >
+                <RotateCw className="w-3.5 h-3.5 text-black" />
+                <span>Limpar Conversa</span>
+              </button>
             </div>
           </div>
         </div>
