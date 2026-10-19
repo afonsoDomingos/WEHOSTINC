@@ -750,7 +750,7 @@ export async function POST(request: NextRequest) {
     return new Response(JSON.stringify({ error: 'Payload invalido' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
   }
 
-  const { prompt = '', currentHtml = '', title = '' } = body;
+  const { prompt = '', currentHtml = '', title = '', mode = 'builder' } = body;
   if (!prompt.trim()) {
     return new Response(JSON.stringify({ error: 'O prompt e obrigatorio' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
   }
@@ -772,7 +772,77 @@ export async function POST(request: NextRequest) {
       const encoder = new TextEncoder();
       const sse = makeSSE(controller, encoder);
 
-      // ── 0. Verificar se é conversa pura (Olá, Como funciona, Dúvidas) ─────────
+      // ── MODO CONVERSA / CONSULTORIA EXPLICITA (Sem alterar o site) ─────────
+      if (mode === 'chat') {
+        const chatPrompt = `Você é o Consultor Especialista de Presença Digital, Design e Estratégia da WEHOSTHERE (líder de hospedagem e criação de sites em Moçambique).
+O utilizador está a conversar consigo sobre o projeto de website "${title || 'Meu Site'}".
+Responda de forma clara, amigável, motivadora e estruturada em português.
+Dê sugestões práticas de marketing digital, ideias de conteúdo/textos, boas práticas de experiência do utilizador e dicas adaptadas ao mercado moçambicano (como pagamentos M-Pesa/e-Mola, pedidos via WhatsApp e moeda Meticais MZN).
+IMPORTANTE: Não gere código HTML de páginas completas. O utilizador está no Modo Conversa para planear e tirar dúvidas.
+
+PEDIDO / DÚVIDA DO UTILIZADOR: "${prompt}"`;
+
+        if (geminiKey) {
+          try {
+            const gemRes = await fetch(
+              `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`,
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  contents: [{ parts: [{ text: chatPrompt }] }],
+                  generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
+                })
+              }
+            );
+            if (gemRes.ok) {
+              const data = await gemRes.json();
+              const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+              if (reply) {
+                sse.chat(reply, 'Consultor IA WEHOSTHERE');
+                return;
+              }
+            }
+          } catch (e) {
+            console.warn('[Builder] Erro chat Gemini:', e);
+          }
+        }
+
+        if (openaiKey) {
+          try {
+            const oaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${openaiKey}`
+              },
+              body: JSON.stringify({
+                model: 'gpt-4o-mini',
+                messages: [{ role: 'user', content: chatPrompt }],
+                temperature: 0.7
+              })
+            });
+            if (oaiRes.ok) {
+              const data = await oaiRes.json();
+              const reply = data?.choices?.[0]?.message?.content;
+              if (reply) {
+                sse.chat(reply, 'Consultor IA WEHOSTHERE');
+                return;
+              }
+            }
+          } catch (e) {
+            console.warn('[Builder] Erro chat OpenAI:', e);
+          }
+        }
+
+        // Resposta de fallback inteligente
+        const conversational = detectConversationalIntent(prompt, Boolean(currentHtml));
+        const defaultChatReply = conversational.reply || `Entendido! Como seu consultor da WEHOSTHERE, recomendo estruturar o seu website com foco na simplicidade e conversão direta. Destaque uma mensagem de boas-vindas forte, mostre os seus principais produtos ou serviços com valores transparentes em Meticais (MZN) e adicione botões de contacto direto via WhatsApp.\n\nQuando estiver pronto para aplicar alterações visuais no seu site, mude para o "Modo Desenvolvimento" no topo da caixa de texto!`;
+        sse.chat(defaultChatReply, 'Consultor WEHOSTHERE');
+        return;
+      }
+
+      // ── 0. Verificar se é conversa automática (Olá, Como funciona, Dúvidas) ─
       const conversational = detectConversationalIntent(prompt, Boolean(currentHtml));
       if (conversational.isChat) {
         sse.chat(conversational.reply, 'Assistente WEHOSTHERE');

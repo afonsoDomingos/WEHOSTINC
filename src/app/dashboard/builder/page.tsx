@@ -277,6 +277,9 @@ export default function AiSiteBuilderStudio() {
   const [isShareModalOpen, setIsShareModalOpen] = useState<boolean>(false);
   const [copiedShareLink, setCopiedShareLink] = useState<boolean>(false);
 
+  // Modo de Interação: Desenvolvimento (Gera Código) vs Conversa (Consultor de IA)
+  const [interactionMode, setInteractionMode] = useState<'builder' | 'chat'>('builder');
+
   // Estado para redimensionamento manual do Chat (Arrastar borda)
   const [chatWidth, setChatWidth] = useState<number>(420);
   const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -563,8 +566,8 @@ export default function AiSiteBuilderStudio() {
 
     setPrompt('');
 
-    // Se for apenas saudação ou conversa casual -> responde direto sem proposta
-    if (isConversationalPrompt(textToSend)) {
+    // Se o utilizador está no Modo Conversa OU for saudação casual -> responde direto como consultoria sem alterar o site
+    if (interactionMode === 'chat' || isConversationalPrompt(textToSend)) {
       setMessages(prev => [...prev, userMsg]);
       await executeGeneration(textToSend, titleOverride, undefined, true);
       return;
@@ -577,7 +580,7 @@ export default function AiSiteBuilderStudio() {
       return;
     }
 
-    // Se for comando de código -> Cria primeiro o card de proposta para confirmação
+    // Se for comando de código no Modo Desenvolvimento -> Cria primeiro o card de proposta para confirmação
     const plan = generateProposalPlan(textToSend, Boolean(currentHtml));
     const proposalMsg: ChatMessage = {
       id: `msg_proposal_${Date.now()}`,
@@ -595,7 +598,7 @@ export default function AiSiteBuilderStudio() {
     setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
   };
 
-  // ─── Execução do Streaming SSE (Acionado ao Clicar em "Aceitar e Gerar Código") ─
+  // ─── Execução do Streaming SSE (Acionado ao Clicar em "Aceitar e Gerar Código" ou Chat) ─
   const executeGeneration = async (
     textToSend: string, 
     titleOverride?: string, 
@@ -634,7 +637,8 @@ export default function AiSiteBuilderStudio() {
           prompt: textToSend,
           currentHtml,
           title: titleOverride || projectTitle,
-          userEmail
+          userEmail,
+          mode: isDirectChat || interactionMode === 'chat' ? 'chat' : 'builder'
         })
       });
 
@@ -1569,6 +1573,42 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
 
         {/* Barra de Input no Fundo */}
         <div className="p-3 border-t border-[#27272a] bg-[#0c0c0e]">
+          {/* Seletor de Modo: Desenvolvimento (Gera Código) vs Conversa (Consultoria de IA) */}
+          <div className="flex items-center justify-between mb-2.5 px-0.5">
+            <div className="flex items-center gap-1 bg-[#18181b] p-0.5 rounded-xl border border-[#27272a]">
+              <button
+                type="button"
+                onClick={() => setInteractionMode('builder')}
+                className={`px-3 py-1 rounded-lg text-[11px] font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                  interactionMode === 'builder'
+                    ? 'bg-white text-black shadow-sm'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+                title="Modo Desenvolvimento: Gera e altera o código do site ao vivo no preview"
+              >
+                <Wand2 className="w-3 h-3 text-black" />
+                <span>Desenvolvimento</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setInteractionMode('chat')}
+                className={`px-3 py-1 rounded-lg text-[11px] font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                  interactionMode === 'chat'
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+                title="Modo Conversa: Consultoria, dúvidas e ideias sem alterar o site"
+              >
+                <MessageSquare className="w-3 h-3 text-white" />
+                <span>Conversa</span>
+              </button>
+            </div>
+
+            <span className="text-[10px] text-gray-500 font-mono hidden sm:inline">
+              {interactionMode === 'builder' ? '🛠️ Altera o site' : '💬 Não altera o site'}
+            </span>
+          </div>
+
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -1585,7 +1625,11 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                   handleGenerate();
                 }
               }}
-              placeholder="Peça uma alteração ou descreva o site..."
+              placeholder={
+                interactionMode === 'chat'
+                  ? 'Pergunte qualquer coisa (ideias de marketing, textos, dúvidas)...'
+                  : 'Peça uma alteração ou descreva o site para gerar código...'
+              }
               rows={2}
               className="w-full bg-[#18181b] text-gray-100 placeholder-gray-500 rounded-2xl pl-4 pr-12 py-3 text-xs sm:text-sm border border-[#27272a] focus:outline-none focus:border-blue-500 transition resize-none"
             />
@@ -1602,31 +1646,63 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
             </button>
           </form>
 
-          {/* Chips Rápidos de Iteração com Ícones Profissionais */}
-          <div className="flex items-center gap-1.5 mt-2 overflow-x-auto pb-1 text-[11px] no-scrollbar">
-            <button
-              onClick={() => handleGenerate('Muda o fundo para um tom azul escuro e adiciona mais gradientes')}
-              className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 border border-white/5 whitespace-nowrap transition cursor-pointer flex items-center gap-1.5"
-            >
-              <Palette className="w-3 h-3 text-blue-400" />
-              <span>Mudar Cores</span>
-            </button>
-            <button
-              onClick={() => handleGenerate('Adiciona um botão de WhatsApp flutuante bem visível')}
-              className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 border border-white/5 whitespace-nowrap transition cursor-pointer flex items-center gap-1.5"
-            >
-              <MessageSquare className="w-3 h-3 text-emerald-400" />
-              <span>Botão WhatsApp</span>
-            </button>
-            <button
-              onClick={() => handleGenerate('Adiciona uma tabela de preços comparativa com 3 planos')}
-              className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 border border-white/5 whitespace-nowrap transition cursor-pointer flex items-center gap-1.5"
-              title="Adicionar tabela comparativa de preços com 3 planos"
-            >
-              <Tag className="w-3 h-3 text-purple-400" />
-              <span>Preços</span>
-            </button>
-          </div>
+          {/* Chips Rápidos de Iteração Dinâmicos */}
+          {interactionMode === 'builder' ? (
+            <div className="flex items-center gap-1.5 mt-2 overflow-x-auto pb-1 text-[11px] no-scrollbar">
+              <button
+                type="button"
+                onClick={() => handleGenerate('Muda o fundo para um tom azul escuro e adiciona mais gradientes')}
+                className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 border border-white/5 whitespace-nowrap transition cursor-pointer flex items-center gap-1.5"
+              >
+                <Palette className="w-3 h-3 text-blue-400" />
+                <span>Mudar Cores</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleGenerate('Adiciona um botão de WhatsApp flutuante bem visível')}
+                className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 border border-white/5 whitespace-nowrap transition cursor-pointer flex items-center gap-1.5"
+              >
+                <MessageSquare className="w-3 h-3 text-emerald-400" />
+                <span>Botão WhatsApp</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleGenerate('Adiciona uma tabela de preços comparativa com 3 planos')}
+                className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 border border-white/5 whitespace-nowrap transition cursor-pointer flex items-center gap-1.5"
+                title="Adicionar tabela comparativa de preços com 3 planos"
+              >
+                <Tag className="w-3 h-3 text-purple-400" />
+                <span>Preços</span>
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 mt-2 overflow-x-auto pb-1 text-[11px] no-scrollbar">
+              <button
+                type="button"
+                onClick={() => handleGenerate('Como posso melhorar as vendas e conversão deste site em Moçambique?')}
+                className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 border border-white/5 whitespace-nowrap transition cursor-pointer flex items-center gap-1.5"
+              >
+                <Sparkles className="w-3 h-3 text-amber-400" />
+                <span>Dicas de Vendas</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleGenerate('Dá-me 5 ideias de slogans impactantes para este negócio')}
+                className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 border border-white/5 whitespace-nowrap transition cursor-pointer flex items-center gap-1.5"
+              >
+                <Tag className="w-3 h-3 text-blue-400" />
+                <span>Ideias de Slogan</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleGenerate('Qual a melhor estratégia para receber pagamentos via M-Pesa e e-Mola?')}
+                className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 border border-white/5 whitespace-nowrap transition cursor-pointer flex items-center gap-1.5"
+              >
+                <MessageSquare className="w-3 h-3 text-emerald-400" />
+                <span>M-Pesa / Pagamentos</span>
+              </button>
+            </div>
+          )}
         </div>
       </section>
 
