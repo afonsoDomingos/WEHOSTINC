@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import {
-  ArrowLeft, Send, CheckCircle2, Upload, Sparkles, BookOpen,
+  ArrowLeft, ArrowRight, Send, CheckCircle2, Upload, Sparkles, BookOpen,
   Code2, Eye, User, FileText, Image as ImageIcon, Clock, Check, HelpCircle,
   Wand2, X, RefreshCw, Copy, Lightbulb, Tag, CheckCheck, Loader2
 } from 'lucide-react';
@@ -47,6 +47,7 @@ export default function SubmeterHistoriaPage() {
   const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
 
   // AI Assistant State
   const [aiModalOpen, setAiModalOpen] = useState(false);
@@ -206,6 +207,41 @@ export default function SubmeterHistoriaPage() {
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const goToNextStep = () => {
+    setErrorMsg('');
+    if (currentStep === 1) {
+      if (!formData.author.name.trim()) {
+        setErrorMsg('Por favor indica o teu nome ou nome profissional de autor.');
+        return;
+      }
+      if (!formData.author.email.trim() || !formData.author.email.includes('@')) {
+        setErrorMsg('Por favor indica um e-mail válido para contacto editorial.');
+        return;
+      }
+      setCurrentStep(2);
+      window.scrollTo({ top: 160, behavior: 'smooth' });
+    } else if (currentStep === 2) {
+      if (!formData.title.trim()) {
+        setErrorMsg('Por favor indica um título para a tua história.');
+        return;
+      }
+      if (!formData.excerpt.trim()) {
+        setErrorMsg('Por favor escreve um resumo curto de 1 a 2 frases para o cartão da revista.');
+        return;
+      }
+      setCurrentStep(3);
+      window.scrollTo({ top: 160, behavior: 'smooth' });
+    }
+  };
+
+  const goToPrevStep = () => {
+    setErrorMsg('');
+    if (currentStep > 1) {
+      setCurrentStep(prev => (prev - 1) as 1 | 2 | 3);
+      window.scrollTo({ top: 160, behavior: 'smooth' });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -368,6 +404,132 @@ export default function SubmeterHistoriaPage() {
           .form-grid-2 { grid-template-columns: 1fr; }
           .sub-hero-title { font-size: 1.7rem; }
           .sub-card { padding: 1.25rem; }
+        }
+
+        /* Stepper Wizard */
+        .stepper-wrap {
+          position: relative;
+          max-width: 680px;
+          margin: 0 auto 2.5rem;
+          padding: 0 0.5rem;
+        }
+        .stepper-track {
+          position: absolute;
+          top: 22px;
+          left: 45px;
+          right: 45px;
+          height: 3px;
+          background: #e2e8f0;
+          z-index: 1;
+        }
+        .stepper-progress {
+          height: 100%;
+          background: linear-gradient(90deg, #7B2CBF, #9D4EDD);
+          transition: width 0.35s ease-in-out;
+        }
+        .stepper-steps {
+          position: relative;
+          z-index: 2;
+          display: flex;
+          justify-content: space-between;
+        }
+        .step-item {
+          background: none;
+          border: none;
+          cursor: pointer;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          padding: 0;
+          font-family: inherit;
+        }
+        .step-circle {
+          width: 44px;
+          height: 44px;
+          border-radius: 50%;
+          background: #ffffff;
+          border: 2.5px solid #cbd5e1;
+          color: #64748b;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 0.95rem;
+          font-weight: 700;
+          transition: all 0.25s;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+        .step-item.active .step-circle {
+          background: #7B2CBF;
+          border-color: #7B2CBF;
+          color: #ffffff;
+          box-shadow: 0 0 0 4px rgba(123,44,191,0.18);
+          transform: scale(1.08);
+        }
+        .step-item.completed .step-circle {
+          background: #10b981;
+          border-color: #10b981;
+          color: #ffffff;
+        }
+        .step-label {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          margin-top: 0.5rem;
+        }
+        .step-title {
+          font-size: 0.85rem;
+          font-weight: 700;
+          color: #64748b;
+          transition: color 0.2s;
+        }
+        .step-item.active .step-title {
+          color: #7B2CBF;
+        }
+        .step-item.completed .step-title {
+          color: #0f172a;
+        }
+        .step-sub {
+          font-size: 0.72rem;
+          color: #94a3b8;
+        }
+        @media (max-width: 540px) {
+          .step-sub { display: none; }
+          .step-circle { width: 36px; height: 36px; font-size: 0.82rem; }
+          .stepper-track { top: 18px; left: 24px; right: 24px; }
+        }
+
+        /* Step Nav Buttons */
+        .step-nav-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.75rem 1.6rem;
+          border-radius: 12px;
+          font-size: 0.88rem;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.2s;
+          border: none;
+          font-family: inherit;
+        }
+        .step-nav-btn.prev {
+          background: #ffffff;
+          border: 1.5px solid #cbd5e1;
+          color: #475569;
+        }
+        .step-nav-btn.prev:hover {
+          background: #f8fafc;
+          border-color: #94a3b8;
+          color: #0f172a;
+        }
+        .step-nav-btn.next {
+          background: linear-gradient(135deg, #7B2CBF 0%, #5A189A 100%);
+          color: #ffffff;
+          box-shadow: 0 4px 14px rgba(123,44,191,0.25);
+        }
+        .step-nav-btn.next:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 18px rgba(123,44,191,0.35);
         }
 
         /* AI Buttons */
@@ -1058,326 +1220,436 @@ export default function SubmeterHistoriaPage() {
                   </div>
                 )}
 
-                {/* Passo 1: O Autor */}
-                <div className="sub-card">
-                  <div className="sub-card-header">
-                    <span className="sub-card-num">1</span>
-                    <h2 className="sub-card-title">Quem És Tu? (Dados do Autor)</h2>
-                  </div>
-
-                  <div className="form-grid-2">
-                    <div className="form-group">
-                      <label className="form-label">O Teu Nome Completo ou Profissional *</label>
-                      <input
-                        className="form-input"
-                        type="text"
-                        placeholder="Ex: Afonso Domingos ou Maria Cossa"
-                        value={formData.author.name}
-                        onChange={e => setAuthorField('name', e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label className="form-label">O Teu E-mail *</label>
-                      <input
-                        className="form-input"
-                        type="email"
-                        placeholder="exemplo@gmail.com"
-                        value={formData.author.email}
-                        onChange={e => setAuthorField('email', e.target.value)}
-                        required
-                      />
-                      <p className="form-hint">Usaremos apenas para te avisar quando o artigo for aprovado.</p>
-                    </div>
-                  </div>
-
-                  <div className="form-group">
-                    <label className="form-label">Bio Curta (1 a 2 frases)</label>
-                    <textarea
-                      className="form-textarea"
-                      placeholder="Ex: Frontend Developer em Maputo, apaixonado por Next.js, interfaces limpas e código aberto."
-                      value={formData.author.bio}
-                      onChange={e => setAuthorField('bio', e.target.value)}
+                {/* Indicador de Passos (Stepper) */}
+                <div className="stepper-wrap">
+                  <div className="stepper-track">
+                    <div
+                      className="stepper-progress"
+                      style={{
+                        width: currentStep === 1 ? '0%' : currentStep === 2 ? '50%' : '100%',
+                      }}
                     />
                   </div>
 
-                  <div className="form-grid-2">
-                    <div className="form-group">
-                      <label className="form-label">Foto de Perfil / Avatar</label>
-                      <div className="upload-dropzone">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          id="avatar-file"
-                          style={{ display: 'none' }}
-                          onChange={e => {
-                            const file = e.target.files?.[0];
-                            if (file) handleUpload(file, 'avatar');
-                          }}
-                        />
-                        <label htmlFor="avatar-file" style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                          <User size={22} color="#7B2CBF" style={{ marginBottom: 4 }} />
-                          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#7B2CBF' }}>
-                            {uploadingAvatar ? 'A carregar foto...' : formData.author.avatar ? 'Foto carregada ✓ (clica para trocar)' : 'Carregar foto de perfil'}
-                          </span>
-                        </label>
+                  <div className="stepper-steps">
+                    <button
+                      type="button"
+                      className={`step-item ${currentStep === 1 ? 'active' : currentStep > 1 ? 'completed' : ''}`}
+                      onClick={() => setCurrentStep(1)}
+                    >
+                      <div className="step-circle">
+                        {currentStep > 1 ? <Check size={16} /> : '1'}
                       </div>
-                    </div>
-                    <div className="form-group">
-                      <label className="form-label">Website Pessoal ou Portfólio</label>
-                      <input
-                        className="form-input"
-                        type="text"
-                        placeholder="https://oseusite.com"
-                        value={formData.author.website}
-                        onChange={e => setAuthorField('website', e.target.value)}
-                      />
-                    </div>
-                  </div>
+                      <div className="step-label">
+                        <span className="step-title">1. O Autor</span>
+                        <span className="step-sub">Quem és tu</span>
+                      </div>
+                    </button>
 
-                  {/* Redes Sociais */}
-                  <div style={{ marginTop: '0.5rem', paddingTop: '1rem', borderTop: '1px solid #f1f5f9' }}>
-                    <label className="form-label" style={{ marginBottom: '0.75rem', color: '#64748b' }}>
-                      Redes Sociais (Opcional — exibidas no teu card de autor)
-                    </label>
-                    <div className="form-grid-2">
-                      <input
-                        className="form-input"
-                        placeholder="LinkedIn (ex: https://linkedin.com/in/... ou username)"
-                        value={formData.author.socials.linkedin}
-                        onChange={e => setAuthorSocial('linkedin', e.target.value)}
-                      />
-                      <input
-                        className="form-input"
-                        placeholder="GitHub (ex: https://github.com/... ou username)"
-                        value={formData.author.socials.github}
-                        onChange={e => setAuthorSocial('github', e.target.value)}
-                      />
-                      <input
-                        className="form-input"
-                        placeholder="Twitter / X (@username)"
-                        value={formData.author.socials.twitter}
-                        onChange={e => setAuthorSocial('twitter', e.target.value)}
-                      />
-                      <input
-                        className="form-input"
-                        placeholder="Instagram (@username)"
-                        value={formData.author.socials.instagram}
-                        onChange={e => setAuthorSocial('instagram', e.target.value)}
-                      />
-                    </div>
+                    <button
+                      type="button"
+                      className={`step-item ${currentStep === 2 ? 'active' : currentStep > 2 ? 'completed' : ''}`}
+                      onClick={() => {
+                        if (formData.author.name.trim() && formData.author.email.includes('@')) {
+                          setCurrentStep(2);
+                        }
+                      }}
+                    >
+                      <div className="step-circle">
+                        {currentStep > 2 ? <Check size={16} /> : '2'}
+                      </div>
+                      <div className="step-label">
+                        <span className="step-title">2. A História</span>
+                        <span className="step-sub">Título e resumo</span>
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      className={`step-item ${currentStep === 3 ? 'active' : ''}`}
+                      onClick={() => {
+                        if (formData.author.name.trim() && formData.title.trim()) {
+                          setCurrentStep(3);
+                        }
+                      }}
+                    >
+                      <div className="step-circle">3</div>
+                      <div className="step-label">
+                        <span className="step-title">3. O Conteúdo</span>
+                        <span className="step-sub">Escrever e polir</span>
+                      </div>
+                    </button>
                   </div>
                 </div>
 
-                {/* Passo 2: A História */}
-                <div className="sub-card">
-                  <div className="sub-card-header">
-                    <span className="sub-card-num">2</span>
-                    <h2 className="sub-card-title">Sobre a História</h2>
-                  </div>
-
-                  <div className="form-group">
-                    <div className="form-label-row">
-                      <label className="form-label">Título da História *</label>
-                      <button
-                        type="button"
-                        onClick={() => runAiAssistant('suggest_titles')}
-                        className="ai-inline-btn"
-                        title="Pedir ideias de títulos atraentes à IA"
-                      >
-                        <Sparkles size={12} /> Sugerir Títulos IA
-                      </button>
+                {/* Passo 1: O Autor */}
+                {currentStep === 1 && (
+                  <div className="sub-card">
+                    <div className="sub-card-header">
+                      <span className="sub-card-num">1</span>
+                      <h2 className="sub-card-title">Quem És Tu? (Dados do Autor)</h2>
                     </div>
-                    <input
-                      className="form-input"
-                      type="text"
-                      placeholder="Ex: Como construí o meu primeiro SaaS com Next.js em 30 dias"
-                      value={formData.title}
-                      onChange={e => setField('title', e.target.value)}
-                      required
-                    />
-                  </div>
 
-                  <div className="form-grid-2">
+                    <div className="form-grid-2">
+                      <div className="form-group">
+                        <label className="form-label">O Teu Nome Completo ou Profissional *</label>
+                        <input
+                          className="form-input"
+                          type="text"
+                          placeholder="Ex: Afonso Domingos ou Maria Cossa"
+                          value={formData.author.name}
+                          onChange={e => setAuthorField('name', e.target.value)}
+                          required
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">O Teu E-mail *</label>
+                        <input
+                          className="form-input"
+                          type="email"
+                          placeholder="exemplo@gmail.com"
+                          value={formData.author.email}
+                          onChange={e => setAuthorField('email', e.target.value)}
+                          required
+                        />
+                        <p className="form-hint">Usaremos apenas para te avisar quando o artigo for aprovado.</p>
+                      </div>
+                    </div>
+
                     <div className="form-group">
-                      <label className="form-label">Palavra ou Frase em Destaque no Título</label>
-                      <input
-                        className="form-input"
-                        type="text"
-                        placeholder="Ex: primeiro SaaS"
-                        value={formData.highlightText}
-                        onChange={e => setField('highlightText', e.target.value)}
+                      <label className="form-label">Bio Curta (1 a 2 frases)</label>
+                      <textarea
+                        className="form-textarea"
+                        placeholder="Ex: Frontend Developer em Maputo, apaixonado por Next.js, interfaces limpas e código aberto."
+                        value={formData.author.bio}
+                        onChange={e => setAuthorField('bio', e.target.value)}
                       />
-                      <p className="form-hint">Este trecho receberá o realce roxo característico da revista.</p>
                     </div>
 
-                    <div className="form-group">
-                      <label className="form-label">Categoria Principal *</label>
-                      <select
-                        className="form-select"
-                        value={formData.category}
-                        onChange={e => setField('category', e.target.value)}
-                      >
-                        {CATEGORIES.map(c => (
-                          <option key={c.value} value={c.value}>
-                            {c.label}
-                          </option>
-                        ))}
-                      </select>
+                    <div className="form-grid-2">
+                      <div className="form-group">
+                        <label className="form-label">Foto de Perfil / Avatar</label>
+                        <div className="upload-dropzone">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            id="avatar-file"
+                            style={{ display: 'none' }}
+                            onChange={e => {
+                              const file = e.target.files?.[0];
+                              if (file) handleUpload(file, 'avatar');
+                            }}
+                          />
+                          <label htmlFor="avatar-file" style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                            <User size={22} color="#7B2CBF" style={{ marginBottom: 4 }} />
+                            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#7B2CBF' }}>
+                              {uploadingAvatar ? 'A carregar foto...' : formData.author.avatar ? 'Foto carregada ✓ (clica para trocar)' : 'Carregar foto de perfil'}
+                            </span>
+                          </label>
+                        </div>
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Website Pessoal ou Portfólio</label>
+                        <input
+                          className="form-input"
+                          type="text"
+                          placeholder="https://oseusite.com"
+                          value={formData.author.website}
+                          onChange={e => setAuthorField('website', e.target.value)}
+                        />
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="form-group">
-                    <div className="form-label-row">
-                      <label className="form-label">Resumo Impactante (1 a 2 frases) *</label>
+                    {/* Redes Sociais */}
+                    <div style={{ marginTop: '0.5rem', paddingTop: '1rem', borderTop: '1px solid #f1f5f9' }}>
+                      <label className="form-label" style={{ marginBottom: '0.75rem', color: '#64748b' }}>
+                        Redes Sociais (Opcional — exibidas no teu card de autor)
+                      </label>
+                      <div className="form-grid-2">
+                        <input
+                          className="form-input"
+                          placeholder="LinkedIn (ex: https://linkedin.com/in/... ou username)"
+                          value={formData.author.socials.linkedin}
+                          onChange={e => setAuthorSocial('linkedin', e.target.value)}
+                        />
+                        <input
+                          className="form-input"
+                          placeholder="GitHub (ex: https://github.com/... ou username)"
+                          value={formData.author.socials.github}
+                          onChange={e => setAuthorSocial('github', e.target.value)}
+                        />
+                        <input
+                          className="form-input"
+                          placeholder="Twitter / X (@username)"
+                          value={formData.author.socials.twitter}
+                          onChange={e => setAuthorSocial('twitter', e.target.value)}
+                        />
+                        <input
+                          className="form-input"
+                          placeholder="Instagram (@username)"
+                          value={formData.author.socials.instagram}
+                          onChange={e => setAuthorSocial('instagram', e.target.value)}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Botão Próximo Passo */}
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '2rem', paddingTop: '1.25rem', borderTop: '1px solid #f1f5f9' }}>
                       <button
                         type="button"
-                        onClick={() => runAiAssistant('generate_excerpt')}
-                        className="ai-inline-btn"
-                        title="Gerar resumo magnético para o cartão"
+                        onClick={goToNextStep}
+                        className="step-nav-btn next"
                       >
-                        <Sparkles size={12} /> Gerar com IA
+                        <span>Continuar para a História</span>
+                        <ArrowRight size={16} />
                       </button>
                     </div>
-                    <textarea
-                      className="form-textarea"
-                      placeholder="Ex: Saí do zero, sem investimento externo, e em 30 dias lancei um produto que hoje gera receita. Aqui está o que aprendi pelo caminho."
-                      value={formData.excerpt}
-                      onChange={e => setField('excerpt', e.target.value)}
-                      required
-                    />
-                    <p className="form-hint">Aparecerá nos cards da página inicial e nas redes sociais.</p>
                   </div>
+                )}
 
-                  <div className="form-grid-2">
+                {/* Passo 2: A História */}
+                {currentStep === 2 && (
+                  <div className="sub-card">
+                    <div className="sub-card-header">
+                      <span className="sub-card-num">2</span>
+                      <h2 className="sub-card-title">Sobre a História</h2>
+                    </div>
+
                     <div className="form-group">
                       <div className="form-label-row">
-                        <label className="form-label">Tags (separadas por vírgula)</label>
+                        <label className="form-label">Título da História *</label>
                         <button
                           type="button"
-                          onClick={() => runAiAssistant('suggest_tags')}
+                          onClick={() => runAiAssistant('suggest_titles')}
                           className="ai-inline-btn"
-                          title="Sugerir tags técnicas para indexação"
+                          title="Pedir ideias de títulos atraentes à IA"
                         >
-                          <Sparkles size={12} /> Sugerir Tags
+                          <Sparkles size={12} /> Sugerir Títulos IA
                         </button>
                       </div>
                       <input
                         className="form-input"
                         type="text"
-                        placeholder="nextjs, saas, mozambique, react"
-                        value={formData.tags}
-                        onChange={e => setField('tags', e.target.value)}
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label className="form-label">Imagem de Capa (Opcional)</label>
-                      <div className="upload-dropzone">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          id="cover-file"
-                          style={{ display: 'none' }}
-                          onChange={e => {
-                            const file = e.target.files?.[0];
-                            if (file) handleUpload(file, 'cover');
-                          }}
-                        />
-                        <label htmlFor="cover-file" style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                          <ImageIcon size={22} color="#7B2CBF" style={{ marginBottom: 4 }} />
-                          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#7B2CBF' }}>
-                            {uploadingCover ? 'A carregar capa...' : formData.coverImage ? 'Imagem carregada ✓ (clica para trocar)' : 'Carregar imagem de capa'}
-                          </span>
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Passo 3: Conteúdo */}
-                <div className="sub-card">
-                  <div className="sub-card-header" style={{ justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                      <span className="sub-card-num">3</span>
-                      <h2 className="sub-card-title">O Conteúdo da História</h2>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontSize: '0.78rem', color: '#64748b' }}>
-                      <span>📝 <strong>{wordCount}</strong> palavras</span>
-                      <span>⏱ ~<strong>{readTimeEstimate} min</strong> de leitura</span>
-                    </div>
-                  </div>
-
-                  <div className="editor-tabs">
-                    <button
-                      type="button"
-                      className={`editor-tab-btn${activeTab === 'write' ? ' active' : ''}`}
-                      onClick={() => setActiveTab('write')}
-                    >
-                      <Code2 size={13} /> Escrever (Markdown)
-                    </button>
-                    <button
-                      type="button"
-                      className={`editor-tab-btn${activeTab === 'preview' ? ' active' : ''}`}
-                      onClick={() => setActiveTab('preview')}
-                    >
-                      <Eye size={13} /> Pré-visualizar Como Fica
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => runAiAssistant('improve_content')}
-                      className="ai-editor-btn"
-                      title="Revisar gramática, melhorar o ritmo e organizar em Markdown com a IA"
-                    >
-                      <Wand2 size={14} /> Polir Conteúdo com IA
-                    </button>
-                  </div>
-
-                  {activeTab === 'write' ? (
-                    <div>
-                      <textarea
-                        className="form-textarea editor"
-                        value={formData.content}
-                        onChange={e => setField('content', e.target.value)}
-                        placeholder="Escreve aqui a tua história usando Markdown..."
+                        placeholder="Ex: Como construí o meu primeiro SaaS com Next.js em 30 dias"
+                        value={formData.title}
+                        onChange={e => setField('title', e.target.value)}
                         required
                       />
-                      <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '0.5rem', fontSize: '0.72rem', color: '#94a3b8' }}>
-                        <span>💡 Dicas: Usa <code>## Subtítulo</code> para secções</span>
-                        <span>• <code>&gt; Citação</code> para frases impactantes</span>
-                        <span>• <code>* Lista</code> para tópicos</span>
+                    </div>
+
+                    <div className="form-grid-2">
+                      <div className="form-group">
+                        <label className="form-label">Palavra ou Frase em Destaque no Título</label>
+                        <input
+                          className="form-input"
+                          type="text"
+                          placeholder="Ex: primeiro SaaS"
+                          value={formData.highlightText}
+                          onChange={e => setField('highlightText', e.target.value)}
+                        />
+                        <p className="form-hint">Este trecho receberá o realce roxo característico da revista.</p>
+                      </div>
+
+                      <div className="form-group">
+                        <label className="form-label">Categoria Principal *</label>
+                        <select
+                          className="form-select"
+                          value={formData.category}
+                          onChange={e => setField('category', e.target.value)}
+                        >
+                          {CATEGORIES.map(c => (
+                            <option key={c.value} value={c.value}>
+                              {c.label}
+                            </option>
+                          ))}
+                        </select>
                       </div>
                     </div>
-                  ) : (
-                    <div className="preview-box">
-                      {formData.content.split('\n').map((line, idx) => {
-                        const trimmed = line.trim();
-                        if (!trimmed) return <div key={idx} style={{ height: 10 }} />;
-                        if (trimmed.startsWith('## ')) {
-                          return <h2 key={idx}>{trimmed.replace(/^##\s+/, '')}</h2>;
-                        }
-                        if (trimmed.startsWith('> ')) {
-                          return <blockquote key={idx}>{trimmed.replace(/^>\s+/, '')}</blockquote>;
-                        }
-                        if (trimmed.startsWith('* ') || trimmed.startsWith('- ')) {
-                          return <li key={idx} style={{ marginLeft: '1rem' }}>{trimmed.replace(/^[\*\-]\s+/, '')}</li>;
-                        }
-                        return <p key={idx} style={{ margin: '0.5rem 0' }}>{trimmed}</p>;
-                      })}
-                    </div>
-                  )}
-                </div>
 
-                {/* Submissão */}
-                <button type="submit" className="submit-btn" disabled={loading}>
-                  {loading ? (
-                    <span>A enviar história para a redacção...</span>
-                  ) : (
-                    <>
-                      <Send size={18} /> Submeter História para Revisão Editorial
-                    </>
-                  )}
-                </button>
+                    <div className="form-group">
+                      <div className="form-label-row">
+                        <label className="form-label">Resumo Impactante (1 a 2 frases) *</label>
+                        <button
+                          type="button"
+                          onClick={() => runAiAssistant('generate_excerpt')}
+                          className="ai-inline-btn"
+                          title="Gerar resumo magnético para o cartão"
+                        >
+                          <Sparkles size={12} /> Gerar com IA
+                        </button>
+                      </div>
+                      <textarea
+                        className="form-textarea"
+                        placeholder="Ex: Saí do zero, sem investimento externo, e em 30 dias lancei um produto que hoje gera receita. Aqui está o que aprendi pelo caminho."
+                        value={formData.excerpt}
+                        onChange={e => setField('excerpt', e.target.value)}
+                        required
+                      />
+                      <p className="form-hint">Aparecerá nos cards da página inicial e nas redes sociais.</p>
+                    </div>
+
+                    <div className="form-grid-2">
+                      <div className="form-group">
+                        <div className="form-label-row">
+                          <label className="form-label">Tags (separadas por vírgula)</label>
+                          <button
+                            type="button"
+                            onClick={() => runAiAssistant('suggest_tags')}
+                            className="ai-inline-btn"
+                            title="Sugerir tags técnicas para indexação"
+                          >
+                            <Sparkles size={12} /> Sugerir Tags
+                          </button>
+                        </div>
+                        <input
+                          className="form-input"
+                          type="text"
+                          placeholder="nextjs, saas, mozambique, react"
+                          value={formData.tags}
+                          onChange={e => setField('tags', e.target.value)}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Imagem de Capa (Opcional)</label>
+                        <div className="upload-dropzone">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            id="cover-file"
+                            style={{ display: 'none' }}
+                            onChange={e => {
+                              const file = e.target.files?.[0];
+                              if (file) handleUpload(file, 'cover');
+                            }}
+                          />
+                          <label htmlFor="cover-file" style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                            <ImageIcon size={22} color="#7B2CBF" style={{ marginBottom: 4 }} />
+                            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#7B2CBF' }}>
+                              {uploadingCover ? 'A carregar capa...' : formData.coverImage ? 'Imagem carregada ✓ (clica para trocar)' : 'Carregar imagem de capa'}
+                            </span>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Botões Passo 2 */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '2rem', paddingTop: '1.25rem', borderTop: '1px solid #f1f5f9' }}>
+                      <button
+                        type="button"
+                        onClick={goToPrevStep}
+                        className="step-nav-btn prev"
+                      >
+                        <ArrowLeft size={16} />
+                        <span>Voltar ao Autor</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={goToNextStep}
+                        className="step-nav-btn next"
+                      >
+                        <span>Continuar para o Conteúdo</span>
+                        <ArrowRight size={16} />
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Passo 3: Conteúdo */}
+                {currentStep === 3 && (
+                  <div className="sub-card">
+                    <div className="sub-card-header" style={{ justifyContent: 'space-between' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                        <span className="sub-card-num">3</span>
+                        <h2 className="sub-card-title">O Conteúdo da História</h2>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontSize: '0.78rem', color: '#64748b' }}>
+                        <span>📝 <strong>{wordCount}</strong> palavras</span>
+                        <span>⏱ ~<strong>{readTimeEstimate} min</strong> de leitura</span>
+                      </div>
+                    </div>
+
+                    <div className="editor-tabs">
+                      <button
+                        type="button"
+                        className={`editor-tab-btn${activeTab === 'write' ? ' active' : ''}`}
+                        onClick={() => setActiveTab('write')}
+                      >
+                        <Code2 size={13} /> Escrever (Markdown)
+                      </button>
+                      <button
+                        type="button"
+                        className={`editor-tab-btn${activeTab === 'preview' ? ' active' : ''}`}
+                        onClick={() => setActiveTab('preview')}
+                      >
+                        <Eye size={13} /> Pré-visualizar Como Fica
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => runAiAssistant('improve_content')}
+                        className="ai-editor-btn"
+                        title="Revisar gramática, melhorar o ritmo e organizar em Markdown com a IA"
+                      >
+                        <Wand2 size={14} /> Polir Conteúdo com IA
+                      </button>
+                    </div>
+
+                    {activeTab === 'write' ? (
+                      <div>
+                        <textarea
+                          className="form-textarea editor"
+                          value={formData.content}
+                          onChange={e => setField('content', e.target.value)}
+                          placeholder="Escreve aqui a tua história usando Markdown..."
+                          required
+                        />
+                        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '0.5rem', fontSize: '0.72rem', color: '#94a3b8' }}>
+                          <span>💡 Dicas: Usa <code>## Subtítulo</code> para secções</span>
+                          <span>• <code>&gt; Citação</code> para frases impactantes</span>
+                          <span>• <code>* Lista</code> para tópicos</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="preview-box">
+                        {formData.content.split('\n').map((line, idx) => {
+                          const trimmed = line.trim();
+                          if (!trimmed) return <div key={idx} style={{ height: 10 }} />;
+                          if (trimmed.startsWith('## ')) {
+                            return <h2 key={idx}>{trimmed.replace(/^##\s+/, '')}</h2>;
+                          }
+                          if (trimmed.startsWith('> ')) {
+                            return <blockquote key={idx}>{trimmed.replace(/^>\s+/, '')}</blockquote>;
+                          }
+                          if (trimmed.startsWith('* ') || trimmed.startsWith('- ')) {
+                            return <li key={idx} style={{ marginLeft: '1rem' }}>{trimmed.replace(/^[\*\-]\s+/, '')}</li>;
+                          }
+                          return <p key={idx} style={{ margin: '0.5rem 0' }}>{trimmed}</p>;
+                        })}
+                      </div>
+                    )}
+
+                    {/* Botões Passo 3 (Voltar + Submissão) */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginTop: '2.5rem', paddingTop: '1.5rem', borderTop: '1px solid #f1f5f9' }}>
+                      <button
+                        type="button"
+                        onClick={goToPrevStep}
+                        className="step-nav-btn prev"
+                      >
+                        <ArrowLeft size={16} />
+                        <span>Voltar aos Detalhes</span>
+                      </button>
+                      <button type="submit" className="submit-btn" disabled={loading} style={{ width: 'auto', minWidth: '320px' }}>
+                        {loading ? (
+                          <span>A enviar história para a redacção...</span>
+                        ) : (
+                          <>
+                            <Send size={18} /> Submeter História para Revisão Editorial
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 <p style={{ textAlign: 'center', fontSize: '0.75rem', color: '#94a3b8', marginTop: '1rem' }}>
                   Ao submeteres, concordas com a publicação do artigo na Revista Digital WEHOSTHERE &quot;Codando Histórias&quot; com os devidos créditos ao teu nome de autor.
