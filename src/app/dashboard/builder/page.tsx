@@ -12,7 +12,7 @@ import {
   MessageSquare, Layers, Wand2, Clock, AlertCircle, RefreshCw, X,
   PanelLeftClose, PanelLeftOpen, Maximize2, Minimize2,
   UtensilsCrossed, Scissors, Palmtree, Briefcase, Palette, Tag,
-  History, Undo2, Download, ShoppingBag, FolderArchive, Edit3, Save
+  History, Undo2, Download, ShoppingBag, FolderArchive, Edit3, Save, Upload
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 
@@ -191,6 +191,63 @@ function CodeBlock({ code, isStreaming = false }: { code: string; isStreaming?: 
   );
 }
 
+// ─── HELPER: Aplicar Logotipo ao Menu e Rodapé do HTML ─────────────────────
+function applyLogoToHtml(
+  html: string, 
+  logoUrl: string, 
+  logoHeight: number = 36, 
+  showText: boolean = true
+): string {
+  if (!html || !logoUrl) return html;
+
+  const logoImgTag = `<img src="${logoUrl}" alt="Logótipo" style="height:${logoHeight}px; width:auto; max-height:${logoHeight}px; object-fit:contain;" class="object-contain shrink-0" />`;
+
+  let updated = html;
+
+  // 1. Procurar e atualizar o link de marca dentro de <nav>
+  const navRegex = /(<nav[\s\S]*?<a[^>]*>)([\s\S]*?)(<\/a>[\s\S]*?<\/nav>)/i;
+  const navMatch = updated.match(navRegex);
+
+  if (navMatch) {
+    const fullAnchorContent = navMatch[2];
+    let newAnchorContent = fullAnchorContent;
+
+    // Se já tinha <img ...> dentro do link, substitui a imagem existente
+    if (/<img[^>]*>/i.test(fullAnchorContent)) {
+      newAnchorContent = fullAnchorContent.replace(/<img[^>]*>/i, logoImgTag);
+    } else {
+      // Se tinha o badge div (ex: <div class="w-8 h-8 ...">X</div>), substitui pelo logo
+      const badgeRegex = /<div[^>]*class="[^"]*(?:w-7|w-8|w-9|w-10|rounded)[^"]*"[^>]*>[\s\S]*?<\/div>/i;
+      if (badgeRegex.test(fullAnchorContent)) {
+        newAnchorContent = fullAnchorContent.replace(badgeRegex, logoImgTag);
+      } else {
+        newAnchorContent = `${logoImgTag} ${fullAnchorContent}`;
+      }
+    }
+
+    if (!showText) {
+      newAnchorContent = newAnchorContent.replace(/<span[^>]*>[\s\S]*?<\/span>/gi, '');
+    }
+
+    updated = updated.replace(navMatch[0], `${navMatch[1]}${newAnchorContent}${navMatch[3]}`);
+  }
+
+  // 2. Procurar e atualizar no rodapé se existir o badge da marca
+  const footerRegex = /(<footer[\s\S]*?<div[^>]*class="[^"]*flex items-center[^"]*"[^>]*>)([\s\S]*?)(<\/div>[\s\S]*?<\/footer>)/i;
+  const footerMatch = updated.match(footerRegex);
+  if (footerMatch) {
+    const footerInner = footerMatch[2];
+    const badgeRegex = /<div[^>]*class="[^"]*(?:w-7|w-8|w-9|w-10|rounded)[^"]*"[^>]*>[\s\S]*?<\/div>/i;
+    if (badgeRegex.test(footerInner)) {
+      const footerLogoImg = `<img src="${logoUrl}" alt="Logótipo" style="height:${Math.round(logoHeight * 0.8)}px; width:auto; max-height:${Math.round(logoHeight * 0.8)}px; object-fit:contain;" class="object-contain shrink-0" />`;
+      const newFooterInner = footerInner.replace(badgeRegex, footerLogoImg);
+      updated = updated.replace(footerMatch[0], `${footerMatch[1]}${newFooterInner}${footerMatch[3]}`);
+    }
+  }
+
+  return updated;
+}
+
 interface ChatMessage {
   id: string;
   role: 'user' | 'assistant';
@@ -279,6 +336,15 @@ export default function AiSiteBuilderStudio() {
 
   // Modo de Interação: Desenvolvimento (Gera Código) vs Conversa (Consultor de IA)
   const [interactionMode, setInteractionMode] = useState<'builder' | 'chat'>('builder');
+
+  // Estados do Modal de Logotipo
+  const [isLogoModalOpen, setIsLogoModalOpen] = useState<boolean>(false);
+  const [logoInputUrl, setLogoInputUrl] = useState<string>('');
+  const [logoPreviewUrl, setLogoPreviewUrl] = useState<string>('');
+  const [logoHeight, setLogoHeight] = useState<number>(36);
+  const [logoShowText, setLogoShowText] = useState<boolean>(true);
+  const [logoSuccessToast, setLogoSuccessToast] = useState<boolean>(false);
+  const logoFileInputRef = useRef<HTMLInputElement>(null);
 
   // Estado para redimensionamento manual do Chat (Arrastar borda)
   const [chatWidth, setChatWidth] = useState<number>(420);
@@ -1188,6 +1254,80 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
     setTimeout(() => setCopiedShareLink(false), 2000);
   };
 
+  // ─── Manipular Upload e Aplicação do Logótipo ────────────────────────────
+  const handleLogoFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Por favor, selecione um ficheiro de imagem válido (PNG, SVG, JPG, WebP).');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      if (dataUrl) {
+        setLogoPreviewUrl(dataUrl);
+        setLogoInputUrl(dataUrl);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleApplyLogo = () => {
+    const targetLogo = logoPreviewUrl || logoInputUrl;
+    if (!targetLogo || !displayedHtml) return;
+
+    const newHtml = applyLogoToHtml(displayedHtml, targetLogo, logoHeight, logoShowText);
+    setCurrentHtml(newHtml);
+    setIsLogoModalOpen(false);
+    setLogoSuccessToast(true);
+    setTimeout(() => setLogoSuccessToast(false), 3000);
+
+    // Salvar versão no histórico
+    const nextVer: ProjectVersion = {
+      versionNumber: versions.length + 1,
+      html: newHtml,
+      prompt: 'Configuração do logotipo da marca',
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+    const updatedVersions = [...versions, nextVer];
+    setVersions(updatedVersions);
+    setSelectedVersionIndex('latest');
+
+    // Registar no chat daquele projeto
+    const logoMsg: ChatMessage = {
+      id: `msg_logo_${Date.now()}`,
+      role: 'assistant',
+      content: 'Logótipo da sua empresa aplicado com sucesso na barra de navegação do site! As proporções foram ajustadas para manter a nitidez.',
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+    const updatedMessages = [...messages, logoMsg];
+    setMessages(updatedMessages);
+
+    // Guardar no MongoDB
+    if (currentUser?.email) {
+      saveProjectToDb({
+        id: projectId,
+        userEmail: currentUser.email,
+        userName: currentUser.name || 'Cliente',
+        title: projectTitle,
+        slug: projectSlug,
+        subdomain: projectSlug,
+        htmlContent: newHtml,
+        promptHistory: updatedMessages,
+        versions: updatedVersions.map(v => ({
+          versionNumber: v.versionNumber,
+          htmlContent: v.html,
+          prompt: v.prompt,
+          createdAt: new Date().toISOString()
+        })),
+        status: isPublished ? 'published' : 'draft'
+      });
+    }
+  };
+
   const handleDeleteProject = async (id: string) => {
     if (!currentUser?.email) return;
     if (!confirm('Deseja realmente eliminar este site?')) return;
@@ -1919,6 +2059,16 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
               </button>
             )}
 
+            {/* BOTÃO CONFIGURAR LOGÓTIPO DO SITE */}
+            <button
+              onClick={() => setIsLogoModalOpen(true)}
+              disabled={!displayedHtml}
+              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 transition cursor-pointer disabled:opacity-40"
+              title="Configurar Logótipo da Empresa (Upload do computador ou Link)"
+            >
+              <Upload className="w-4 h-4 text-purple-400" />
+            </button>
+
             {/* BOTÃO EXPORTAR / BAIXAR HTML */}
             <button
               onClick={handleDownloadHtml}
@@ -2456,6 +2606,144 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 <span>
                   Este link público exibe o seu site em modo de teste em tempo real na nuvem WEHOSTHERE. Quando estiver pronto, use o botão <strong>Publicar</strong> para ativar o subdomínio oficial definitivo.
                 </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL DE CONFIGURAÇÃO DE LOGÓTIPO ────────────────────────────── */}
+      {isLogoModalOpen && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-[#121217] border border-[#27272a] rounded-3xl max-w-md w-full p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
+            <button
+              onClick={() => setIsLogoModalOpen(false)}
+              className="absolute top-5 right-5 p-1 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-12 h-12 rounded-2xl bg-purple-600/20 text-purple-400 flex items-center justify-center shadow-lg shadow-purple-500/10">
+                <Upload className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-white">Logótipo do Website</h3>
+                <p className="text-xs text-gray-400">Carregue a marca da sua empresa no menu do site</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {/* Opção 1: Upload de Ficheiro do Computador / Telemóvel */}
+              <div>
+                <label className="text-[11px] font-bold text-gray-300 block mb-1.5">
+                  1. Carregar Ficheiro (PNG transparente, SVG ou JPG):
+                </label>
+                <input
+                  type="file"
+                  ref={logoFileInputRef}
+                  onChange={handleLogoFileUpload}
+                  accept="image/png, image/jpeg, image/svg+xml, image/webp"
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => logoFileInputRef.current?.click()}
+                  className="w-full py-3 px-4 rounded-xl border border-dashed border-[#3f3f46] hover:border-purple-500 bg-[#09090b] text-gray-300 hover:text-white transition flex items-center justify-center gap-2.5 cursor-pointer text-xs font-semibold group"
+                >
+                  <Upload className="w-4 h-4 text-purple-400 group-hover:scale-110 transition-transform" />
+                  <span>Escolher Imagem do Computador / Telemóvel</span>
+                </button>
+              </div>
+
+              {/* Separador OU */}
+              <div className="flex items-center gap-2 my-2 text-[10px] text-gray-500 uppercase tracking-widest font-mono">
+                <span className="flex-1 h-px bg-white/10" />
+                <span>OU</span>
+                <span className="flex-1 h-px bg-white/10" />
+              </div>
+
+              {/* Opção 2: Colar URL de Imagem */}
+              <div>
+                <label className="text-[11px] font-bold text-gray-300 block mb-1.5">
+                  2. Colar Link / URL da Imagem:
+                </label>
+                <input
+                  type="url"
+                  value={logoInputUrl}
+                  onChange={(e) => {
+                    setLogoInputUrl(e.target.value);
+                    setLogoPreviewUrl(e.target.value);
+                  }}
+                  placeholder="https://exemplo.com/logotipo.png"
+                  className="w-full bg-[#09090b] text-xs text-gray-200 placeholder-gray-500 rounded-xl px-3 py-2.5 border border-[#27272a] focus:outline-none focus:border-purple-500 transition font-mono"
+                />
+              </div>
+
+              {/* Pré-visualização do Logotipo */}
+              {logoPreviewUrl && (
+                <div className="p-3 rounded-2xl bg-[#09090b] border border-[#27272a]">
+                  <span className="text-[10px] font-bold text-gray-400 block mb-2 font-mono uppercase tracking-wider">
+                    Pré-visualização:
+                  </span>
+                  <div className="h-16 rounded-xl bg-zinc-900/60 border border-white/5 flex items-center justify-center p-2 relative overflow-hidden">
+                    <img
+                      src={logoPreviewUrl}
+                      alt="Preview do Logo"
+                      style={{ height: `${logoHeight}px`, maxHeight: '56px' }}
+                      className="object-contain"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Ajustes de Altura e Exibição de Nome */}
+              <div className="grid grid-cols-2 gap-3 pt-1">
+                <div>
+                  <label className="text-[11px] font-bold text-gray-400 block mb-1">Altura no Menu:</label>
+                  <select
+                    value={logoHeight}
+                    onChange={(e) => setLogoHeight(Number(e.target.value))}
+                    className="w-full bg-[#09090b] text-xs text-gray-200 rounded-xl px-2.5 py-2 border border-[#27272a] focus:outline-none focus:border-purple-500 cursor-pointer"
+                  >
+                    <option value={28}>Pequeno (28px)</option>
+                    <option value={36}>Médio Padrão (36px)</option>
+                    <option value={44}>Médio Alto (44px)</option>
+                    <option value={52}>Grande (52px)</option>
+                  </select>
+                </div>
+
+                <div className="flex flex-col justify-end">
+                  <label className="flex items-center gap-2 cursor-pointer text-xs text-gray-300 py-2 select-none">
+                    <input
+                      type="checkbox"
+                      checked={logoShowText}
+                      onChange={(e) => setLogoShowText(e.target.checked)}
+                      className="rounded border-[#27272a] text-purple-600 focus:ring-0 bg-[#09090b]"
+                    />
+                    <span>Manter nome escrito</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Botões do Rodapé do Modal */}
+              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[#27272a]">
+                <button
+                  type="button"
+                  onClick={() => setIsLogoModalOpen(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-gray-400 hover:text-white hover:bg-white/5 transition cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  disabled={!logoPreviewUrl && !logoInputUrl}
+                  onClick={handleApplyLogo}
+                  className="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-extrabold text-xs shadow-md shadow-purple-600/20 transition active:scale-95 flex items-center gap-2 cursor-pointer disabled:opacity-40"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  <span>Aplicar no Site</span>
+                </button>
               </div>
             </div>
           </div>
