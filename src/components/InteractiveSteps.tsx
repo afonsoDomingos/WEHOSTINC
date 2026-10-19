@@ -117,22 +117,50 @@ export default function InteractiveSteps() {
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      {/* Indicador de Auto-Play no Canto */}
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-lg sm:text-xl font-extrabold text-gray-900 flex items-center gap-2">
-          <span>{t('steps.title_section')}</span>
-          <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-700 animate-pulse">
+      {/* Cabeçalho Responsivo: Título, Badge e Botão de Auto-Play */}
+      <div className="flex flex-col gap-2 mb-4 sm:mb-6">
+        {/* Linha Principal: Título + Botão de Controle */}
+        <div className="flex items-center justify-between gap-3">
+          <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold sm:font-extrabold text-gray-900 tracking-tight leading-snug">
+            {t('steps.title_section')}
+          </h3>
+
+          <button
+            type="button"
+            onClick={() => setIsPaused(!isPaused)}
+            className={`inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-semibold px-2.5 sm:px-3 py-1 rounded-full transition-all shrink-0 cursor-pointer border ${
+              !isPaused
+                ? 'bg-purple-50 text-purple-700 border-purple-200/80 hover:bg-purple-100 shadow-sm'
+                : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
+            }`}
+            title={isPaused ? t('steps.play') : t('steps.pause')}
+          >
+            {!isPaused ? (
+              <>
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-purple-600"></span>
+                </span>
+                <Pause className="w-3 h-3 text-purple-700" />
+                <span className="hidden sm:inline">{t('steps.pause')}</span>
+                <span className="sm:hidden">Auto</span>
+              </>
+            ) : (
+              <>
+                <Play className="w-3 h-3 text-gray-600 fill-gray-600" />
+                <span className="hidden sm:inline">{t('steps.play')}</span>
+                <span className="sm:hidden">Pausado</span>
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* Subtítulo / Badge de Processo Rápido */}
+        <div className="flex items-center">
+          <span className="inline-flex items-center text-[10px] sm:text-xs font-semibold px-2.5 py-0.5 rounded-full bg-purple-50 sm:bg-purple-100 text-purple-700 border border-purple-200/60 sm:border-transparent">
             {t('steps.subtitle_section')}
           </span>
-        </h3>
-        <button
-          onClick={() => setIsPaused(!isPaused)}
-          className="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-500 hover:text-purple-600 transition bg-gray-100 hover:bg-gray-200 px-2.5 py-1 rounded-full cursor-pointer"
-          title={isPaused ? t('steps.play') : t('steps.pause')}
-        >
-          {isPaused ? <Play className="w-3 h-3 text-purple-600 fill-purple-600" /> : <Pause className="w-3 h-3 text-gray-600" />}
-          <span>{isPaused ? t('steps.pause') : t('steps.play')}</span>
-        </button>
+        </div>
       </div>
 
       {/* Container dos Passos */}
