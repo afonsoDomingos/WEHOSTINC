@@ -7,7 +7,7 @@ import {
   ArrowLeft, Clock, Eye, Calendar, Share2,
   Instagram, Linkedin, Twitter, Code2, ChevronRight,
   Globe, Github, Maximize2, X, Copy, Check, MessageCircle, Send, Facebook, Mail, Download,
-  Flame, Lightbulb, Heart, Rocket, Sparkles
+  Flame, Lightbulb, Heart, Rocket, Sparkles, ChevronUp, ChevronDown
 } from 'lucide-react';
 
 interface Story {
@@ -340,6 +340,7 @@ export default function RevistaStoryPage() {
   });
   const [userReactions, setUserReactions] = useState<Record<string, boolean>>({});
   const [floatingParticles, setFloatingParticles] = useState<Array<{ id: number; text: string }>>([]);
+  const [floatBarHidden, setFloatBarHidden] = useState(false);
 
   const pendingClapsRef = useRef(0);
   const clapTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -1789,43 +1790,43 @@ export default function RevistaStoryPage() {
           .story-excerpt-typed { font-size: 0.92rem; }
         }
 
-        /* ── Floating Sticky Interaction Bar (Estilo Medium) ── */
+        /* ── Floating Sticky Interaction Bar (Discreto & Compacto) ── */
         .story-float-bar {
           position: fixed;
-          bottom: 24px;
+          bottom: 20px;
           left: 50%;
           transform: translateX(-50%);
           z-index: 90;
-          background: rgba(15, 23, 42, 0.92);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-          border: 1px solid rgba(255, 255, 255, 0.15);
+          background: rgba(15, 23, 42, 0.88);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          border: 1px solid rgba(255, 255, 255, 0.12);
           border-radius: 9999px;
-          padding: 0.45rem 0.85rem;
+          padding: 0.25rem 0.5rem;
           display: flex;
           align-items: center;
-          gap: 0.5rem;
-          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
-          animation: floatBarIn 0.35s ease-out;
+          gap: 0.3rem;
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+          animation: floatBarIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
         @keyframes floatBarIn {
-          from { opacity: 0; transform: translate(-50%, 20px); }
-          to { opacity: 1; transform: translate(-50%, 0); }
+          from { opacity: 0; transform: translate(-50%, 15px) scale(0.96); }
+          to { opacity: 1; transform: translate(-50%, 0) scale(1); }
         }
         .float-bar-btn {
           display: inline-flex;
           align-items: center;
-          gap: 0.4rem;
+          gap: 0.3rem;
           background: transparent;
           border: none;
           color: #e2e8f0;
           font-family: 'Poppins', sans-serif;
-          font-size: 0.8rem;
+          font-size: 0.72rem;
           font-weight: 600;
-          padding: 0.4rem 0.75rem;
+          padding: 0.28rem 0.5rem;
           border-radius: 9999px;
           cursor: pointer;
-          transition: all 0.2s;
+          transition: all 0.18s;
           position: relative;
         }
         .float-bar-btn:hover {
@@ -1839,16 +1840,71 @@ export default function RevistaStoryPage() {
         .float-bar-clap {
           background: linear-gradient(135deg, #7B2CBF, #5A189A);
           color: #ffffff !important;
-          box-shadow: 0 2px 10px rgba(123, 44, 191, 0.4);
+          padding: 0.28rem 0.65rem;
+          box-shadow: 0 2px 8px rgba(123, 44, 191, 0.35);
         }
         .float-bar-clap:hover {
-          transform: scale(1.05);
+          transform: scale(1.04);
           background: linear-gradient(135deg, #9D4EDD, #7B2CBF);
         }
         .float-bar-divider {
           width: 1px;
-          height: 18px;
+          height: 14px;
+          background: rgba(255, 255, 255, 0.12);
+          margin: 0 1px;
+        }
+        .float-bar-toggle {
+          padding: 0.25rem;
+          color: #94a3b8;
+          border-radius: 50%;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 22px;
+          height: 22px;
+          opacity: 0.75;
+          margin-left: 2px;
+        }
+        .float-bar-toggle:hover {
+          opacity: 1;
           background: rgba(255, 255, 255, 0.15);
+          color: #ffffff;
+        }
+
+        /* Botão Minimizado / Discreto */
+        .story-float-minimized {
+          position: fixed;
+          bottom: 20px;
+          left: 50%;
+          transform: translateX(-50%);
+          z-index: 90;
+          background: rgba(15, 23, 42, 0.88);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          border: 1px solid rgba(255, 255, 255, 0.14);
+          border-radius: 9999px;
+          padding: 0.32rem 0.75rem;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.45rem;
+          color: #e2e8f0;
+          font-family: 'Poppins', sans-serif;
+          font-size: 0.72rem;
+          font-weight: 700;
+          cursor: pointer;
+          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+          transition: all 0.2s;
+          animation: floatMinIn 0.25s ease-out;
+        }
+        @keyframes floatMinIn {
+          from { opacity: 0; transform: translate(-50%, 12px) scale(0.9); }
+          to { opacity: 1; transform: translate(-50%, 0) scale(1); }
+        }
+        .story-float-minimized:hover {
+          background: rgba(123, 44, 191, 0.9);
+          color: #ffffff;
+          transform: translate(-50%, -2px) scale(1.02);
+          box-shadow: 0 8px 24px rgba(123, 44, 191, 0.35);
         }
         .particle-bubble {
           position: absolute;
@@ -1955,12 +2011,14 @@ export default function RevistaStoryPage() {
 
         @media (max-width: 640px) {
           .story-float-bar {
-            width: calc(100% - 2rem);
-            justify-content: space-between;
-            padding: 0.4rem 0.65rem;
-            bottom: 16px;
+            width: auto;
+            max-width: calc(100% - 1.5rem);
+            padding: 0.25rem 0.45rem;
+            bottom: 14px;
+            gap: 0.2rem;
           }
           .float-bar-text { display: none; }
+          .float-bar-btn { padding: 0.22rem 0.38rem; font-size: 0.68rem; }
         }
       `}</style>
 
@@ -2691,82 +2749,109 @@ export default function RevistaStoryPage() {
           </div>
         )}
 
-        {/* ── Barra Flutuante de Interacção (Estilo Medium) ── */}
-        <div className="story-float-bar">
-          {/* Botão de Palmas com Bolhas Flutuantes */}
-          <div style={{ position: 'relative', display: 'inline-flex' }}>
-            {floatingParticles.map(p => (
-              <span key={p.id} className="particle-bubble">
-                {p.text}
-              </span>
-            ))}
-            <button
-              className="float-bar-btn float-bar-clap"
-              onClick={handleClap}
-              title="Bater palmas a esta história (até 50)"
-              aria-label="Bater palmas"
-            >
-              <span style={{ fontSize: '1.05rem' }}>👏</span>
-              <span>{claps}</span>
-              {userClaps > 0 && (
-                <span style={{ opacity: 0.9, fontSize: '0.72rem' }}>
-                  (+{userClaps})
+        {/* ── Barra Flutuante de Interacção (Discreta com Opção de Esconder) ── */}
+        {floatBarHidden ? (
+          <button
+            type="button"
+            className="story-float-minimized"
+            onClick={() => setFloatBarHidden(false)}
+            title="Mostrar reações e partilha"
+            aria-label="Expandir barra de reações"
+          >
+            <span style={{ fontSize: '0.85rem' }}>👏</span>
+            <span>{claps + reactions.fire + reactions.insight + reactions.heart + reactions.rocket}</span>
+            <ChevronUp size={13} color="#E0AAFF" />
+          </button>
+        ) : (
+          <div className="story-float-bar">
+            {/* Botão de Palmas com Bolhas Flutuantes */}
+            <div style={{ position: 'relative', display: 'inline-flex' }}>
+              {floatingParticles.map(p => (
+                <span key={p.id} className="particle-bubble">
+                  {p.text}
                 </span>
-              )}
+              ))}
+              <button
+                className="float-bar-btn float-bar-clap"
+                onClick={handleClap}
+                title="Bater palmas a esta história (até 50)"
+                aria-label="Bater palmas"
+              >
+                <span style={{ fontSize: '0.9rem' }}>👏</span>
+                <span>{claps}</span>
+                {userClaps > 0 && (
+                  <span style={{ opacity: 0.9, fontSize: '0.68rem' }}>
+                    (+{userClaps})
+                  </span>
+                )}
+              </button>
+            </div>
+
+            <span className="float-bar-divider" />
+
+            {/* Reacções Rápidas */}
+            <button
+              className={`float-bar-btn${userReactions.fire ? ' active' : ''}`}
+              onClick={() => handleReaction('fire')}
+              title="Inspirador"
+            >
+              <span style={{ fontSize: '0.85rem' }}>🔥</span>
+              <span>{reactions.fire}</span>
+            </button>
+
+            <button
+              className={`float-bar-btn${userReactions.insight ? ' active' : ''}`}
+              onClick={() => handleReaction('insight')}
+              title="Genial / Útil"
+            >
+              <span style={{ fontSize: '0.85rem' }}>💡</span>
+              <span>{reactions.insight}</span>
+            </button>
+
+            <button
+              className={`float-bar-btn${userReactions.heart ? ' active' : ''}`}
+              onClick={() => handleReaction('heart')}
+              title="Adorei"
+            >
+              <span style={{ fontSize: '0.85rem' }}>❤️</span>
+              <span>{reactions.heart}</span>
+            </button>
+
+            <button
+              className={`float-bar-btn${userReactions.rocket ? ' active' : ''}`}
+              onClick={() => handleReaction('rocket')}
+              title="Lançamento Top"
+            >
+              <span style={{ fontSize: '0.85rem' }}>🚀</span>
+              <span>{reactions.rocket}</span>
+            </button>
+
+            <span className="float-bar-divider" />
+
+            {/* Botão de Partilha */}
+            <button
+              className="float-bar-btn"
+              onClick={() => setShareModalOpen(true)}
+              title="Partilhar história"
+            >
+              <Share2 size={13} />
+              <span className="float-bar-text">Partilhar</span>
+            </button>
+
+            <span className="float-bar-divider" />
+
+            {/* Botão de Minimizar / Esconder */}
+            <button
+              type="button"
+              className="float-bar-toggle"
+              onClick={() => setFloatBarHidden(true)}
+              title="Esconder barra de reações"
+              aria-label="Esconder barra"
+            >
+              <X size={12} />
             </button>
           </div>
-
-          <span className="float-bar-divider" />
-
-          {/* Reacções Rápidas */}
-          <button
-            className={`float-bar-btn${userReactions.fire ? ' active' : ''}`}
-            onClick={() => handleReaction('fire')}
-            title="Inspirador"
-          >
-            <span>🔥</span>
-            <span>{reactions.fire}</span>
-          </button>
-
-          <button
-            className={`float-bar-btn${userReactions.insight ? ' active' : ''}`}
-            onClick={() => handleReaction('insight')}
-            title="Genial / Útil"
-          >
-            <span>💡</span>
-            <span>{reactions.insight}</span>
-          </button>
-
-          <button
-            className={`float-bar-btn${userReactions.heart ? ' active' : ''}`}
-            onClick={() => handleReaction('heart')}
-            title="Adorei"
-          >
-            <span>❤️</span>
-            <span>{reactions.heart}</span>
-          </button>
-
-          <button
-            className={`float-bar-btn${userReactions.rocket ? ' active' : ''}`}
-            onClick={() => handleReaction('rocket')}
-            title="Lançamento Top"
-          >
-            <span>🚀</span>
-            <span>{reactions.rocket}</span>
-          </button>
-
-          <span className="float-bar-divider" />
-
-          {/* Botão de Partilha */}
-          <button
-            className="float-bar-btn"
-            onClick={() => setShareModalOpen(true)}
-            title="Partilhar história"
-          >
-            <Share2 size={14} />
-            <span className="float-bar-text">Partilhar</span>
-          </button>
-        </div>
+        )}
           </>
         )}
       </div>
