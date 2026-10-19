@@ -26,6 +26,13 @@ export interface StoryItem {
   status: 'draft' | 'pending' | 'published' | 'archived';
   featured: boolean;
   views: number;
+  claps?: number;
+  reactions?: {
+    fire?: number;
+    insight?: number;
+    heart?: number;
+    rocket?: number;
+  };
   readingTime?: number;
   highlightText?: string;
   publishedAt?: string;
@@ -305,6 +312,8 @@ export async function getStoriesList(options?: {
           status: s.status,
           featured: s.featured,
           views: s.views || 0,
+          claps: s.claps || 0,
+          reactions: s.reactions || { fire: 0, insight: 0, heart: 0, rocket: 0 },
           readingTime: s.readingTime || Math.ceil((s.content?.split(/\s+/).length || 200) / 200),
           highlightText: s.highlightText,
           publishedAt: s.publishedAt ? new Date(s.publishedAt).toISOString() : undefined,
@@ -375,6 +384,8 @@ export async function getStoryBySlug(slug: string) {
           status: s.status,
           featured: s.featured,
           views: s.views || 0,
+          claps: s.claps || 0,
+          reactions: s.reactions || { fire: 0, insight: 0, heart: 0, rocket: 0 },
           readingTime: s.readingTime || Math.ceil((s.content?.split(/\s+/).length || 200) / 200),
           highlightText: s.highlightText,
           publishedAt: s.publishedAt ? new Date(s.publishedAt).toISOString() : undefined,
@@ -595,4 +606,48 @@ export async function deleteStory(id: string) {
 
   fallbackStories = fallbackStories.filter(s => s.id !== id);
   return { success: true };
+}
+
+export async function reactToStory(slug: string, type: 'clap' | 'fire' | 'insight' | 'heart' | 'rocket', count: number = 1) {
+  const incAmount = Math.max(1, Math.min(count, 50));
+
+  if (process.env.MONGODB_URI) {
+    try {
+      await connectDB();
+      const incField = type === 'clap' ? 'claps' : `reactions.${type}`;
+      const updated = await RevistaStory.findOneAndUpdate(
+        { slug },
+        { $inc: { [incField]: incAmount } },
+        { new: true }
+      ).lean();
+
+      if (updated) {
+        return {
+          success: true,
+          claps: updated.claps || 0,
+          reactions: (updated as any).reactions || { fire: 0, insight: 0, heart: 0, rocket: 0 },
+        };
+      }
+    } catch (err) {
+      console.warn('[RevistaData] Erro ao reagir no MongoDB:', err);
+    }
+  }
+
+  // Fallback in-memory
+  const s = fallbackStories.find(st => st.slug === slug);
+  if (s) {
+    if (type === 'clap') {
+      s.claps = (s.claps || 0) + incAmount;
+    } else {
+      s.reactions = s.reactions || { fire: 0, insight: 0, heart: 0, rocket: 0 };
+      s.reactions[type] = (s.reactions[type] || 0) + incAmount;
+    }
+    return {
+      success: true,
+      claps: s.claps || 0,
+      reactions: s.reactions,
+    };
+  }
+
+  return { success: false, error: 'História não encontrada' };
 }

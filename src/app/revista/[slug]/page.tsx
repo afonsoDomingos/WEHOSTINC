@@ -6,7 +6,8 @@ import Link from 'next/link';
 import {
   ArrowLeft, Clock, Eye, Calendar, Share2,
   Instagram, Linkedin, Twitter, Code2, ChevronRight,
-  Globe, Github, Maximize2, X, Copy, Check, MessageCircle, Send, Facebook, Mail, Download
+  Globe, Github, Maximize2, X, Copy, Check, MessageCircle, Send, Facebook, Mail, Download,
+  Flame, Lightbulb, Heart, Rocket, Sparkles
 } from 'lucide-react';
 
 interface Story {
@@ -36,6 +37,13 @@ interface Story {
   highlightText?: string;
   publishedAt?: string;
   status?: string;
+  claps?: number;
+  reactions?: {
+    fire?: number;
+    insight?: number;
+    heart?: number;
+    rocket?: number;
+  };
   submission?: {
     isCommunity?: boolean;
     submitterEmail?: string;
@@ -321,6 +329,78 @@ export default function RevistaStoryPage() {
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  // ── Claps & Reacções ──
+  const [claps, setClaps] = useState<number>(0);
+  const [userClaps, setUserClaps] = useState<number>(0);
+  const [reactions, setReactions] = useState<{ fire: number; insight: number; heart: number; rocket: number }>({
+    fire: 0,
+    insight: 0,
+    heart: 0,
+    rocket: 0,
+  });
+  const [userReactions, setUserReactions] = useState<Record<string, boolean>>({});
+  const [floatingParticles, setFloatingParticles] = useState<Array<{ id: number; text: string }>>([]);
+
+  const pendingClapsRef = useRef(0);
+  const clapTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleClap = () => {
+    if (userClaps >= 50) return;
+
+    const newClaps = claps + 1;
+    const newUserClaps = userClaps + 1;
+    setClaps(newClaps);
+    setUserClaps(newUserClaps);
+    pendingClapsRef.current += 1;
+
+    try {
+      localStorage.setItem(`claps_${slug}`, newUserClaps.toString());
+    } catch (_) {}
+
+    const particleId = Date.now() + Math.random();
+    setFloatingParticles(prev => [...prev, { id: particleId, text: '+1' }]);
+    setTimeout(() => {
+      setFloatingParticles(prev => prev.filter(p => p.id !== particleId));
+    }, 900);
+
+    if (clapTimerRef.current) clearTimeout(clapTimerRef.current);
+    clapTimerRef.current = setTimeout(async () => {
+      const countToSend = pendingClapsRef.current;
+      pendingClapsRef.current = 0;
+      try {
+        await fetch(`/api/revista/${slug}/react`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'clap', count: countToSend }),
+        });
+      } catch (err) {
+        console.error('[Clap sync error]', err);
+      }
+    }, 500);
+  };
+
+  const handleReaction = async (type: 'fire' | 'insight' | 'heart' | 'rocket') => {
+    if (userReactions[type]) return;
+
+    setReactions(prev => ({ ...prev, [type]: (prev[type] || 0) + 1 }));
+    const updatedUserReactions = { ...userReactions, [type]: true };
+    setUserReactions(updatedUserReactions);
+
+    try {
+      localStorage.setItem(`reactions_${slug}`, JSON.stringify(updatedUserReactions));
+    } catch (_) {}
+
+    try {
+      await fetch(`/api/revista/${slug}/react`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type }),
+      });
+    } catch (err) {
+      console.error('[Reaction sync error]', err);
+    }
+  };
+
   // Fechar modais ao pressionar ESC e travar scroll do corpo
   useEffect(() => {
     if (!lightboxOpen && !shareModalOpen) return;
@@ -354,6 +434,19 @@ export default function RevistaStoryPage() {
       const data = await res.json();
       if (data.success) {
         setStory(data.story);
+        setClaps(data.story.claps || 0);
+        setReactions({
+          fire: data.story.reactions?.fire || 0,
+          insight: data.story.reactions?.insight || 0,
+          heart: data.story.reactions?.heart || 0,
+          rocket: data.story.reactions?.rocket || 0,
+        });
+        try {
+          const savedClaps = parseInt(localStorage.getItem(`claps_${slug}`) || '0', 10);
+          setUserClaps(savedClaps);
+          const savedReactions = JSON.parse(localStorage.getItem(`reactions_${slug}`) || '{}');
+          setUserReactions(savedReactions);
+        } catch (_) {}
         fetchRelated(data.story.category, data.story.id);
         fetchAdjacentStories(data.story.id);
       } else {
@@ -1695,6 +1788,180 @@ export default function RevistaStoryPage() {
           .story-title { font-size: 1.3rem; }
           .story-excerpt-typed { font-size: 0.92rem; }
         }
+
+        /* ── Floating Sticky Interaction Bar (Estilo Medium) ── */
+        .story-float-bar {
+          position: fixed;
+          bottom: 24px;
+          left: 50%;
+          transform: translateX(-50%);
+          z-index: 90;
+          background: rgba(15, 23, 42, 0.92);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          border-radius: 9999px;
+          padding: 0.45rem 0.85rem;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+          animation: floatBarIn 0.35s ease-out;
+        }
+        @keyframes floatBarIn {
+          from { opacity: 0; transform: translate(-50%, 20px); }
+          to { opacity: 1; transform: translate(-50%, 0); }
+        }
+        .float-bar-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.4rem;
+          background: transparent;
+          border: none;
+          color: #e2e8f0;
+          font-family: 'Poppins', sans-serif;
+          font-size: 0.8rem;
+          font-weight: 600;
+          padding: 0.4rem 0.75rem;
+          border-radius: 9999px;
+          cursor: pointer;
+          transition: all 0.2s;
+          position: relative;
+        }
+        .float-bar-btn:hover {
+          background: rgba(255, 255, 255, 0.12);
+          color: #ffffff;
+        }
+        .float-bar-btn.active {
+          color: #E0AAFF;
+          background: rgba(123, 44, 191, 0.35);
+        }
+        .float-bar-clap {
+          background: linear-gradient(135deg, #7B2CBF, #5A189A);
+          color: #ffffff !important;
+          box-shadow: 0 2px 10px rgba(123, 44, 191, 0.4);
+        }
+        .float-bar-clap:hover {
+          transform: scale(1.05);
+          background: linear-gradient(135deg, #9D4EDD, #7B2CBF);
+        }
+        .float-bar-divider {
+          width: 1px;
+          height: 18px;
+          background: rgba(255, 255, 255, 0.15);
+        }
+        .particle-bubble {
+          position: absolute;
+          top: -24px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: #7B2CBF;
+          color: #fff;
+          font-size: 0.75rem;
+          font-weight: 800;
+          padding: 2px 7px;
+          border-radius: 9999px;
+          pointer-events: none;
+          animation: particleFly 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          box-shadow: 0 2px 8px rgba(123, 44, 191, 0.4);
+          white-space: nowrap;
+        }
+        @keyframes particleFly {
+          0% { opacity: 1; transform: translate(-50%, 0) scale(0.9); }
+          100% { opacity: 0; transform: translate(-50%, -36px) scale(1.2); }
+        }
+
+        /* ── End of Article Engagement Card ── */
+        .story-engagement-card {
+          background: linear-gradient(135deg, #FAF5FF 0%, #ffffff 50%, #F3E8FF 100%);
+          border: 1.5px solid #E0AAFF;
+          border-radius: 20px;
+          padding: 2.2rem 2rem;
+          margin: 2.5rem 0;
+          text-align: center;
+          box-shadow: 0 8px 30px rgba(123, 44, 191, 0.08);
+          position: relative;
+          overflow: hidden;
+        }
+        .engagement-clap-circle {
+          width: 72px;
+          height: 72px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #7B2CBF 0%, #5A189A 100%);
+          color: #ffffff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0 auto 0.85rem;
+          font-size: 1.8rem;
+          border: 3px solid #ffffff;
+          box-shadow: 0 6px 20px rgba(123, 44, 191, 0.35);
+          cursor: pointer;
+          transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+          position: relative;
+        }
+        .engagement-clap-circle:hover {
+          transform: scale(1.1) rotate(-6deg);
+          box-shadow: 0 10px 28px rgba(123, 44, 191, 0.45);
+        }
+        .engagement-clap-circle:active {
+          transform: scale(0.95);
+        }
+        .engagement-reaction-grid {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          gap: 0.65rem;
+          flex-wrap: wrap;
+          margin-top: 1.25rem;
+        }
+        .reaction-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.45rem;
+          background: #ffffff;
+          border: 1.5px solid #e2e8f0;
+          padding: 0.5rem 0.95rem;
+          border-radius: 9999px;
+          font-size: 0.82rem;
+          font-weight: 600;
+          color: #334155;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          font-family: 'Poppins', sans-serif;
+        }
+        .reaction-pill:hover {
+          border-color: #7B2CBF;
+          background: #FAF5FF;
+          color: #7B2CBF;
+          transform: translateY(-2px);
+        }
+        .reaction-pill.active {
+          border-color: #7B2CBF;
+          background: #7B2CBF;
+          color: #ffffff;
+          box-shadow: 0 4px 14px rgba(123, 44, 191, 0.25);
+        }
+        .reaction-count {
+          font-size: 0.75rem;
+          background: rgba(0, 0, 0, 0.06);
+          padding: 1px 6px;
+          border-radius: 9999px;
+        }
+        .reaction-pill.active .reaction-count {
+          background: rgba(255, 255, 255, 0.25);
+          color: #ffffff;
+        }
+
+        @media (max-width: 640px) {
+          .story-float-bar {
+            width: calc(100% - 2rem);
+            justify-content: space-between;
+            padding: 0.4rem 0.65rem;
+            bottom: 16px;
+          }
+          .float-bar-text { display: none; }
+        }
       `}</style>
 
       <div className="story-page">
@@ -2049,6 +2316,82 @@ export default function RevistaStoryPage() {
             </div>
           )}
 
+          {/* ── Card de Aplausos e Reacções da Comunidade (Final do Artigo) ── */}
+          <div className="story-engagement-card">
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', margin: '0 0 0.35rem' }}>
+              Gostaste desta história?
+            </h3>
+            <p style={{ fontSize: '0.86rem', color: '#64748b', margin: '0 0 1.25rem' }}>
+              Bate palmas para apoiar <strong>{story.author?.name}</strong> e mostra o que achaste com uma reacção!
+            </p>
+
+            {/* Botão de Palmas com Bolhas Flutuantes */}
+            <div style={{ position: 'relative', display: 'inline-block' }}>
+              {floatingParticles.map(p => (
+                <span key={p.id} className="particle-bubble">
+                  {p.text}
+                </span>
+              ))}
+              <button
+                className="engagement-clap-circle"
+                onClick={handleClap}
+                title="Bater palmas a esta história (podes dar até 50)"
+                aria-label="Bater palmas"
+              >
+                👏
+              </button>
+            </div>
+
+            <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#7B2CBF', marginBottom: '0.35rem' }}>
+              {claps} {claps === 1 ? 'aplauso' : 'aplausos'} da comunidade
+            </div>
+            {userClaps > 0 && (
+              <div style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 600 }}>
+                ✓ Deste {userClaps} {userClaps === 1 ? 'palma' : 'palmas'} a esta história! {userClaps < 50 ? '(Podes dar até 50)' : '(Limite máximo atingido 🎉)'}
+              </div>
+            )}
+
+            {/* Reacções Rápidas */}
+            <div className="engagement-reaction-grid">
+              <button
+                className={`reaction-pill${userReactions.fire ? ' active' : ''}`}
+                onClick={() => handleReaction('fire')}
+                title="Marcar como Inspirador"
+              >
+                <span>🔥</span>
+                <span>Inspirador</span>
+                <span className="reaction-count">{reactions.fire}</span>
+              </button>
+              <button
+                className={`reaction-pill${userReactions.insight ? ' active' : ''}`}
+                onClick={() => handleReaction('insight')}
+                title="Marcar como Genial / Útil"
+              >
+                <span>💡</span>
+                <span>Genial</span>
+                <span className="reaction-count">{reactions.insight}</span>
+              </button>
+              <button
+                className={`reaction-pill${userReactions.heart ? ' active' : ''}`}
+                onClick={() => handleReaction('heart')}
+                title="Marcar como Adorei"
+              >
+                <span>❤️</span>
+                <span>Adorei</span>
+                <span className="reaction-count">{reactions.heart}</span>
+              </button>
+              <button
+                className={`reaction-pill${userReactions.rocket ? ' active' : ''}`}
+                onClick={() => handleReaction('rocket')}
+                title="Marcar como Lançamento Top"
+              >
+                <span>🚀</span>
+                <span>Top</span>
+                <span className="reaction-count">{reactions.rocket}</span>
+              </button>
+            </div>
+          </div>
+
           {/* Share bottom */}
           <div className="story-share-bottom">
             {renderShareBar('PARTILHAR ESTA HISTÓRIA')}
@@ -2347,6 +2690,83 @@ export default function RevistaStoryPage() {
             </div>
           </div>
         )}
+
+        {/* ── Barra Flutuante de Interacção (Estilo Medium) ── */}
+        <div className="story-float-bar">
+          {/* Botão de Palmas com Bolhas Flutuantes */}
+          <div style={{ position: 'relative', display: 'inline-flex' }}>
+            {floatingParticles.map(p => (
+              <span key={p.id} className="particle-bubble">
+                {p.text}
+              </span>
+            ))}
+            <button
+              className="float-bar-btn float-bar-clap"
+              onClick={handleClap}
+              title="Bater palmas a esta história (até 50)"
+              aria-label="Bater palmas"
+            >
+              <span style={{ fontSize: '1.05rem' }}>👏</span>
+              <span>{claps}</span>
+              {userClaps > 0 && (
+                <span style={{ opacity: 0.9, fontSize: '0.72rem' }}>
+                  (+{userClaps})
+                </span>
+              )}
+            </button>
+          </div>
+
+          <span className="float-bar-divider" />
+
+          {/* Reacções Rápidas */}
+          <button
+            className={`float-bar-btn${userReactions.fire ? ' active' : ''}`}
+            onClick={() => handleReaction('fire')}
+            title="Inspirador"
+          >
+            <span>🔥</span>
+            <span>{reactions.fire}</span>
+          </button>
+
+          <button
+            className={`float-bar-btn${userReactions.insight ? ' active' : ''}`}
+            onClick={() => handleReaction('insight')}
+            title="Genial / Útil"
+          >
+            <span>💡</span>
+            <span>{reactions.insight}</span>
+          </button>
+
+          <button
+            className={`float-bar-btn${userReactions.heart ? ' active' : ''}`}
+            onClick={() => handleReaction('heart')}
+            title="Adorei"
+          >
+            <span>❤️</span>
+            <span>{reactions.heart}</span>
+          </button>
+
+          <button
+            className={`float-bar-btn${userReactions.rocket ? ' active' : ''}`}
+            onClick={() => handleReaction('rocket')}
+            title="Lançamento Top"
+          >
+            <span>🚀</span>
+            <span>{reactions.rocket}</span>
+          </button>
+
+          <span className="float-bar-divider" />
+
+          {/* Botão de Partilha */}
+          <button
+            className="float-bar-btn"
+            onClick={() => setShareModalOpen(true)}
+            title="Partilhar história"
+          >
+            <Share2 size={14} />
+            <span className="float-bar-text">Partilhar</span>
+          </button>
+        </div>
           </>
         )}
       </div>

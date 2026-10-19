@@ -24,6 +24,13 @@ export interface IRevistaStory extends Document {
   status: 'draft' | 'pending' | 'published' | 'archived';
   featured: boolean;
   views: number;
+  claps?: number;
+  reactions?: {
+    fire?: number;
+    insight?: number;
+    heart?: number;
+    rocket?: number;
+  };
   readingTime?: number;
   highlightText?: string; // texto com destaque azul/roxo no título
   publishedAt?: Date;
@@ -77,6 +84,13 @@ const RevistaStorySchema = new Schema<IRevistaStory>(
     },
     featured: { type: Boolean, default: false },
     views: { type: Number, default: 0 },
+    claps: { type: Number, default: 0 },
+    reactions: {
+      fire: { type: Number, default: 0 },
+      insight: { type: Number, default: 0 },
+      heart: { type: Number, default: 0 },
+      rocket: { type: Number, default: 0 },
+    },
     readingTime: { type: Number },
     highlightText: { type: String }, // parte do título que fica com fundo colorido
     publishedAt: { type: Date },
