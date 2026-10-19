@@ -735,9 +735,52 @@ export default function SubmeterHistoriaPage() {
         }
 
         .success-card {
-          background: #ffffff; border: 2px solid #10b981; border-radius: 20px;
-          padding: 3rem 2rem; text-align: center; max-width: 650px; margin: 3rem auto;
-          box-shadow: 0 8px 30px rgba(16,185,129,0.12);
+          background: #ffffff;
+          border: 1px solid rgba(123, 44, 191, 0.14);
+          border-radius: 24px;
+          padding: 3.5rem 2rem;
+          text-align: center;
+          max-width: 580px;
+          margin: 3.5rem auto;
+          box-shadow: 0 20px 45px -10px rgba(123, 44, 191, 0.12), 0 4px 20px rgba(0, 0, 0, 0.03);
+          animation: successCardIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes successCardIn {
+          from { opacity: 0; transform: translateY(16px) scale(0.97); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .success-icon-wrap {
+          position: relative;
+          width: 76px;
+          height: 76px;
+          margin: 0 auto 1.5rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .success-icon-bg {
+          position: absolute;
+          inset: 0;
+          border-radius: 50%;
+          background: linear-gradient(135deg, rgba(123, 44, 191, 0.18), rgba(224, 170, 255, 0.35));
+          animation: successPulse 2.2s ease-in-out infinite;
+        }
+        @keyframes successPulse {
+          0%, 100% { transform: scale(1); opacity: 0.8; }
+          50% { transform: scale(1.15); opacity: 0.35; }
+        }
+        .success-icon-core {
+          position: relative;
+          z-index: 2;
+          width: 60px;
+          height: 60px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #7B2CBF 0%, #5A189A 100%);
+          color: #ffffff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 8px 22px rgba(123, 44, 191, 0.35);
         }
       `}</style>
 
@@ -1128,44 +1171,73 @@ export default function SubmeterHistoriaPage() {
         </nav>
 
         {submitted ? (
-          /* Tela de Sucesso */
+          /* Tela de Sucesso Dinâmica e Limpa */
           <div className="sub-container">
             <div className="success-card">
-              <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#ecfdf5', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
-                <CheckCircle2 size={36} />
+              <div className="success-icon-wrap">
+                <div className="success-icon-bg" />
+                <div className="success-icon-core">
+                  <Check size={30} strokeWidth={2.8} />
+                </div>
               </div>
-              <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a', margin: '0 0 0.5rem' }}>
-                História Submetida com Sucesso! 🎉
+
+              <div style={{
+                display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                background: '#FAF5FF', border: '1px solid #E0AAFF',
+                color: '#7B2CBF', fontSize: '0.74rem', fontWeight: 700,
+                padding: '0.3rem 0.85rem', borderRadius: 9999,
+                textTransform: 'uppercase', letterSpacing: '0.04em',
+                marginBottom: '1rem',
+              }}>
+                <Sparkles size={12} /> Enviada para Revisão Editorial
+              </div>
+
+              <h2 style={{ fontSize: '1.7rem', fontWeight: 800, color: '#0f172a', margin: '0 0 0.6rem', letterSpacing: '-0.02em' }}>
+                História Submetida! 🎉
               </h2>
-              <p style={{ color: '#475569', fontSize: '0.95rem', lineHeight: 1.6, maxWidth: 500, margin: '0 auto 1.5rem' }}>
-                Muito obrigado por partilhares a tua jornada com a comunidade, <strong>{formData.author.name}</strong>. A nossa equipa editorial irá analisar a história e notificar-te em <strong>{formData.author.email}</strong>.
+
+              <p style={{ color: '#475569', fontSize: '0.92rem', lineHeight: 1.6, maxWidth: 440, margin: '0 auto 1.5rem' }}>
+                Obrigado, <strong>{formData.author.name || 'Autor'}</strong>! A equipa editorial da Codando Histórias irá analisar a tua publicação e receberás atualizações em <strong>{formData.author.email || 'teu e-mail'}</strong>.
               </p>
 
-              <div style={{ background: '#FAF5FF', border: '1px solid #E0AAFF', borderRadius: '12px', padding: '1.25rem', textAlign: 'left', maxWidth: 480, margin: '0 auto 2rem' }}>
-                <div style={{ fontWeight: 700, color: '#5A189A', fontSize: '0.85rem', marginBottom: '0.4rem' }}>
-                  O que acontece agora?
+              {formData.title && (
+                <div style={{
+                  background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 14,
+                  padding: '0.85rem 1.25rem', maxWidth: 440, margin: '0 auto 2rem',
+                  display: 'flex', alignItems: 'center', gap: '0.85rem', textAlign: 'left',
+                }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 10, background: '#FAF5FF', color: '#7B2CBF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <BookOpen size={18} />
+                  </div>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ fontSize: '0.84rem', fontWeight: 700, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {formData.title}
+                    </div>
+                    <div style={{ fontSize: '0.72rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.35rem', marginTop: 2 }}>
+                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#d97706', display: 'inline-block' }} />
+                      Status: <strong style={{ color: '#d97706' }}>Pendente de Revisão</strong>
+                    </div>
+                  </div>
                 </div>
-                <ul style={{ margin: 0, paddingLeft: '1.2rem', fontSize: '0.82rem', color: '#475569', lineHeight: 1.6 }}>
-                  <li>A tua história está registrada com status <strong>Pendente de Revisão</strong>.</li>
-                  <li>O administrador irá rever a formatação e aprovar no painel.</li>
-                  <li>Assim que estiver no ar, recebes um e-mail com o link público definitivo!</li>
-                </ul>
-              </div>
+              )}
 
-              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: '0.85rem', justifyContent: 'center', flexWrap: 'wrap' }}>
                 <Link
                   href="/revista"
                   style={{
-                    background: '#7B2CBF', color: '#fff', padding: '0.75rem 1.6rem',
-                    borderRadius: '10px', textDecoration: 'none', fontWeight: 700, fontSize: '0.9rem',
-                    boxShadow: '0 4px 12px rgba(123,44,191,0.25)',
+                    background: 'linear-gradient(135deg, #7B2CBF 0%, #5A189A 100%)',
+                    color: '#fff', padding: '0.75rem 1.75rem',
+                    borderRadius: '11px', textDecoration: 'none', fontWeight: 700, fontSize: '0.88rem',
+                    boxShadow: '0 6px 18px rgba(123,44,191,0.28)',
+                    display: 'inline-flex', alignItems: 'center', gap: '0.45rem',
                   }}
                 >
-                  Voltar à Revista
+                  <BookOpen size={15} /> Explorar a Revista
                 </Link>
                 <button
                   onClick={() => {
                     setSubmitted(false);
+                    setCurrentStep(1);
                     setFormData({
                       title: '',
                       highlightText: '',
@@ -1185,12 +1257,12 @@ export default function SubmeterHistoriaPage() {
                     });
                   }}
                   style={{
-                    background: '#fff', color: '#475569', border: '1px solid #cbd5e1',
-                    padding: '0.75rem 1.6rem', borderRadius: '10px', fontWeight: 600, fontSize: '0.9rem',
+                    background: '#fff', color: '#475569', border: '1.5px solid #cbd5e1',
+                    padding: '0.75rem 1.4rem', borderRadius: '11px', fontWeight: 600, fontSize: '0.88rem',
                     cursor: 'pointer',
                   }}
                 >
-                  Submeter Outra História
+                  Submeter Nova História
                 </button>
               </div>
             </div>
