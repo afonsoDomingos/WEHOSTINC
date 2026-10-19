@@ -1989,38 +1989,38 @@ export default function RevistaStoryPage() {
           100% { opacity: 0; transform: translate(-50%, -36px) scale(1.2); }
         }
 
-        /* ── End of Article Engagement Card ── */
+        /* ── End of Article Engagement Card (Compact) ── */
         .story-engagement-card {
           background: linear-gradient(135deg, #FAF5FF 0%, #ffffff 50%, #F3E8FF 100%);
           border: 1.5px solid #E0AAFF;
-          border-radius: 20px;
-          padding: 2.2rem 2rem;
-          margin: 2.5rem 0;
+          border-radius: 16px;
+          padding: 1.15rem 1.25rem 1rem;
+          margin: 1.5rem 0;
           text-align: center;
-          box-shadow: 0 8px 30px rgba(123, 44, 191, 0.08);
+          box-shadow: 0 4px 20px rgba(123, 44, 191, 0.06);
           position: relative;
           overflow: hidden;
         }
         .engagement-clap-circle {
-          width: 72px;
-          height: 72px;
+          width: 50px;
+          height: 50px;
           border-radius: 50%;
           background: linear-gradient(135deg, #7B2CBF 0%, #5A189A 100%);
           color: #ffffff;
           display: flex;
           align-items: center;
           justify-content: center;
-          margin: 0 auto 0.85rem;
-          font-size: 1.8rem;
-          border: 3px solid #ffffff;
-          box-shadow: 0 6px 20px rgba(123, 44, 191, 0.35);
+          margin: 0 auto;
+          font-size: 1.35rem;
+          border: 2.5px solid #ffffff;
+          box-shadow: 0 4px 14px rgba(123, 44, 191, 0.3);
           cursor: pointer;
           transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
           position: relative;
         }
         .engagement-clap-circle:hover {
-          transform: scale(1.1) rotate(-6deg);
-          box-shadow: 0 10px 28px rgba(123, 44, 191, 0.45);
+          transform: scale(1.08) rotate(-4deg);
+          box-shadow: 0 6px 20px rgba(123, 44, 191, 0.4);
         }
         .engagement-clap-circle:active {
           transform: scale(0.95);
@@ -2029,19 +2029,19 @@ export default function RevistaStoryPage() {
           display: flex;
           justify-content: center;
           align-items: center;
-          gap: 0.65rem;
+          gap: 0.45rem;
           flex-wrap: wrap;
-          margin-top: 1.25rem;
+          margin-top: 0.75rem;
         }
         .reaction-pill {
           display: inline-flex;
           align-items: center;
-          gap: 0.45rem;
+          gap: 0.35rem;
           background: #ffffff;
-          border: 1.5px solid #e2e8f0;
-          padding: 0.5rem 0.95rem;
+          border: 1px solid #e2e8f0;
+          padding: 0.32rem 0.75rem;
           border-radius: 9999px;
-          font-size: 0.82rem;
+          font-size: 0.75rem;
           font-weight: 600;
           color: #334155;
           cursor: pointer;
@@ -2052,18 +2052,18 @@ export default function RevistaStoryPage() {
           border-color: #7B2CBF;
           background: #FAF5FF;
           color: #7B2CBF;
-          transform: translateY(-2px);
+          transform: translateY(-1px);
         }
         .reaction-pill.active {
           border-color: #7B2CBF;
           background: #7B2CBF;
           color: #ffffff;
-          box-shadow: 0 4px 14px rgba(123, 44, 191, 0.25);
+          box-shadow: 0 2px 10px rgba(123, 44, 191, 0.25);
         }
         .reaction-count {
-          font-size: 0.75rem;
+          font-size: 0.7rem;
           background: rgba(0, 0, 0, 0.06);
-          padding: 1px 6px;
+          padding: 1px 5px;
           border-radius: 9999px;
         }
         .reaction-pill.active .reaction-count {
@@ -2447,38 +2447,40 @@ export default function RevistaStoryPage() {
 
           {/* ── Card de Aplausos e Reacções da Comunidade (Final do Artigo) ── */}
           <div className="story-engagement-card">
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', margin: '0 0 0.35rem' }}>
+            <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#0f172a', margin: '0 0 0.15rem' }}>
               Gostaste desta história?
             </h3>
-            <p style={{ fontSize: '0.86rem', color: '#64748b', margin: '0 0 1.25rem' }}>
-              Bate palmas para apoiar <strong>{story.author?.name}</strong> e mostra o que achaste com uma reacção!
+            <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '0 0 0.75rem' }}>
+              Bate palmas para apoiar <strong>{story.author?.name}</strong> e deixa a tua reacção!
             </p>
 
             {/* Botão de Palmas com Bolhas Flutuantes */}
-            <div style={{ position: 'relative', display: 'inline-block' }}>
-              {floatingParticles.map(p => (
-                <span key={p.id} className="particle-bubble">
-                  {p.text}
-                </span>
-              ))}
-              <button
-                className="engagement-clap-circle"
-                onClick={handleClap}
-                title="Bater palmas a esta história (podes dar até 50)"
-                aria-label="Bater palmas"
-              >
-                👏
-              </button>
-            </div>
-
-            <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#7B2CBF', marginBottom: '0.35rem' }}>
-              {claps} {claps === 1 ? 'aplauso' : 'aplausos'} da comunidade
-            </div>
-            {userClaps > 0 && (
-              <div style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 600 }}>
-                ✓ Deste {userClaps} {userClaps === 1 ? 'palma' : 'palmas'} a esta história! {userClaps < 50 ? '(Podes dar até 50)' : '(Limite máximo atingido 🎉)'}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.2rem', marginBottom: '0.5rem' }}>
+              <div style={{ position: 'relative', display: 'inline-block' }}>
+                {floatingParticles.map(p => (
+                  <span key={p.id} className="particle-bubble">
+                    {p.text}
+                  </span>
+                ))}
+                <button
+                  className="engagement-clap-circle"
+                  onClick={handleClap}
+                  title="Bater palmas a esta história (podes dar até 50)"
+                  aria-label="Bater palmas"
+                >
+                  👏
+                </button>
               </div>
-            )}
+
+              <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#7B2CBF', marginTop: '0.25rem' }}>
+                {claps} {claps === 1 ? 'aplauso' : 'aplausos'} da comunidade
+              </div>
+              {userClaps > 0 && (
+                <div style={{ fontSize: '0.72rem', color: '#10b981', fontWeight: 600 }}>
+                  ✓ Deste {userClaps} {userClaps === 1 ? 'palma' : 'palmas'}! {userClaps < 50 ? '(Podes dar até 50)' : '(Máximo 🎉)'}
+                </div>
+              )}
+            </div>
 
             {/* Reacções Rápidas */}
             <div className="engagement-reaction-grid">
