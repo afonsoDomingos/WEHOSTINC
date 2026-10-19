@@ -475,6 +475,7 @@ export default function AiSiteBuilderStudio() {
     setCurrentUser(user);
     setAuthLoading(false);
     loadUserProjects(user.email);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session, status]);
 
   // Carregar lista de projetos do utilizador

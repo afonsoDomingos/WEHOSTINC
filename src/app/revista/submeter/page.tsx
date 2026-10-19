@@ -662,7 +662,7 @@ export default function SubmeterHistoriaPage() {
                     <div>
                       <div style={{ marginBottom: '1.25rem' }}>
                         <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
-                          Orientação Opcional para a IA (ex: "Tom mais descontraído", "Enfatizar lições de Docker"):
+                          Orientação Opcional para a IA (ex: &quot;Tom mais descontraído&quot;, &quot;Enfatizar lições de Docker&quot;):
                         </label>
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
                           <input
@@ -765,7 +765,7 @@ export default function SubmeterHistoriaPage() {
                                 </div>
                                 {item.highlight && (
                                   <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.74rem', color: '#7B2CBF', background: '#FAF5FF', padding: '0.15rem 0.55rem', borderRadius: 9999, border: '1px solid #E0AAFF' }}>
-                                    <span>Realce roxo:</span> <strong>"{item.highlight}"</strong>
+                                    <span>Realce roxo:</span> <strong>&quot;{item.highlight}&quot;</strong>
                                   </div>
                                 )}
                               </div>
@@ -816,7 +816,7 @@ export default function SubmeterHistoriaPage() {
                       {aiResult ? (
                         <div style={{ background: '#FAF5FF', border: '1.5px solid #E0AAFF', borderRadius: 14, padding: '1.5rem' }}>
                           <p style={{ margin: '0 0 1rem', fontSize: '0.95rem', lineHeight: 1.6, color: '#1e293b', fontStyle: 'italic' }}>
-                            "{aiResult}"
+                            &quot;{aiResult}&quot;
                           </p>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                             <span style={{ fontSize: '0.75rem', color: '#7B2CBF', fontWeight: 600 }}>
@@ -1052,7 +1052,7 @@ export default function SubmeterHistoriaPage() {
                         Olá, {inviteBanner.name}! O teu convite para a Codando Histórias está activo.
                       </h4>
                       <p style={{ margin: 0, fontSize: '0.84rem', color: '#475569', lineHeight: 1.5 }}>
-                        A nossa equipa editorial convidou-te para partilhares a tua trajectória. Já pré-preenchemos os teus dados abaixo. {inviteBanner.topic ? <span>Pauta sugerida: <strong>"{inviteBanner.topic}"</strong>.</span> : ''} Podes usar o nosso <strong>Assistente IA</strong> para polir o teu rascunho com 1 clique!
+                        A nossa equipa editorial convidou-te para partilhares a tua trajectória. Já pré-preenchemos os teus dados abaixo. {inviteBanner.topic ? <span>Pauta sugerida: <strong>&quot;{inviteBanner.topic}&quot;</strong>.</span> : ''} Podes usar o nosso <strong>Assistente IA</strong> para polir o teu rascunho com 1 clique!
                       </p>
                     </div>
                   </div>
@@ -1380,7 +1380,7 @@ export default function SubmeterHistoriaPage() {
                 </button>
 
                 <p style={{ textAlign: 'center', fontSize: '0.75rem', color: '#94a3b8', marginTop: '1rem' }}>
-                  Ao submeteres, concordas com a publicação do artigo na Revista Digital WEHOSTHERE "Codando Histórias" com os devidos créditos ao teu nome de autor.
+                  Ao submeteres, concordas com a publicação do artigo na Revista Digital WEHOSTHERE &quot;Codando Histórias&quot; com os devidos créditos ao teu nome de autor.
                 </p>
               </form>
             </main>
