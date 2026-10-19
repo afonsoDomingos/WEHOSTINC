@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import {
   Plus, Edit, Trash2, Eye, Clock, Tag, Filter,
-  ArrowLeft, Code2, Star, BookOpen, ChevronDown, Search, Check
+  ArrowLeft, Code2, Star, BookOpen, ChevronDown, Search, Check,
+  Mail, Send, X, Loader2, Sparkles, CheckCheck
 } from 'lucide-react';
 
 interface Story {
@@ -59,6 +60,54 @@ export default function AdminRevistaPage() {
   const [search, setSearch] = useState('');
   const [statusDropdown, setStatusDropdown] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
+
+  // Modal de Convite VIP
+  const [inviteModalOpen, setInviteModalOpen] = useState(false);
+  const [inviteLoading, setInviteLoading] = useState(false);
+  const [inviteFeedback, setInviteFeedback] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
+  const [inviteData, setInviteData] = useState({
+    inviteeName: '',
+    toEmail: '',
+    proposedTopic: '',
+    category: 'codigo',
+    customNote: '',
+  });
+
+  const handleSendInvite = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setInviteLoading(true);
+    setInviteFeedback(null);
+
+    try {
+      const res = await fetch('/api/admin/revista/convidar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(inviteData),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setInviteFeedback({ type: 'success', msg: data.message || 'Convite enviado com sucesso!' });
+        setTimeout(() => {
+          setInviteModalOpen(false);
+          setInviteFeedback(null);
+          setInviteData({
+            inviteeName: '',
+            toEmail: '',
+            proposedTopic: '',
+            category: 'codigo',
+            customNote: '',
+          });
+        }, 2200);
+      } else {
+        setInviteFeedback({ type: 'error', msg: data.error || 'Erro ao enviar convite.' });
+      }
+    } catch {
+      setInviteFeedback({ type: 'error', msg: 'Erro de conexão ao enviar convite.' });
+    } finally {
+      setInviteLoading(false);
+    }
+  };
 
   const fetchStories = useCallback(async () => {
     try {
@@ -300,6 +349,26 @@ export default function AdminRevistaPage() {
             <Link href="/revista" target="_blank" className="ar-action-btn" style={{ width: 'auto', padding: '0.4rem 0.85rem', gap: '0.4rem', fontSize: '0.8rem', fontWeight: 500 }}>
               <Eye size={14} /> Ver Revista
             </Link>
+            <button
+              type="button"
+              onClick={() => setInviteModalOpen(true)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.45rem',
+                background: '#FAF5FF',
+                border: '1.5px solid #C77DFF',
+                color: '#7B2CBF',
+                padding: '0.5rem 1rem',
+                borderRadius: '9px',
+                fontSize: '0.82rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+            >
+              <Mail size={15} /> Convidar Convidado VIP
+            </button>
             <Link href="/admin/revista/nova" className="ar-new-btn">
               <Plus size={16} /> Nova História
             </Link>
@@ -546,6 +615,200 @@ export default function AdminRevistaPage() {
           )}
         </div>
       </div>
+
+      {/* Modal de Convite VIP */}
+      {inviteModalOpen && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.65)',
+            backdropFilter: 'blur(5px)', zIndex: 9999,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.25rem',
+          }}
+          onClick={() => setInviteModalOpen(false)}
+        >
+          <div
+            style={{
+              background: '#ffffff', borderRadius: 20, maxWidth: 580, width: '100%',
+              border: '1.5px solid #E0AAFF', boxShadow: '0 25px 60px -15px rgba(123,44,191,0.3)',
+              overflow: 'hidden',
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{
+              background: 'linear-gradient(135deg, #FAF5FF 0%, #F3E8FF 100%)',
+              borderBottom: '1px solid #E0AAFF', padding: '1.25rem 1.75rem',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                <div style={{
+                  width: 38, height: 38, borderRadius: 10,
+                  background: 'linear-gradient(135deg, #7B2CBF, #5A189A)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff',
+                }}>
+                  <Mail size={18} />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, color: '#0f172a' }}>
+                    Convidar Autor VIP para a Revista
+                  </h3>
+                  <p style={{ margin: 0, fontSize: '0.74rem', color: '#64748b' }}>
+                    O convidado receberá um e-mail editorial com link inteligente pré-preenchido.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setInviteModalOpen(false)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleSendInvite} style={{ padding: '1.5rem 1.75rem' }}>
+              {inviteFeedback && (
+                <div style={{
+                  padding: '0.75rem 1rem', borderRadius: 10, marginBottom: '1.25rem',
+                  fontSize: '0.84rem', fontWeight: 600,
+                  background: inviteFeedback.type === 'success' ? '#ecfdf5' : '#fef2f2',
+                  border: `1px solid ${inviteFeedback.type === 'success' ? '#a7f3d0' : '#fecaca'}`,
+                  color: inviteFeedback.type === 'success' ? '#065f46' : '#991b1b',
+                  display: 'flex', alignItems: 'center', gap: '0.5rem',
+                }}>
+                  {inviteFeedback.type === 'success' ? <CheckCheck size={18} /> : <span>⚠️</span>}
+                  <span>{inviteFeedback.msg}</span>
+                </div>
+              )}
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#334155', marginBottom: '0.35rem' }}>
+                    Nome do Convidado *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Ex: Valter Manhiça"
+                    value={inviteData.inviteeName}
+                    onChange={e => setInviteData(prev => ({ ...prev, inviteeName: e.target.value }))}
+                    style={{
+                      width: '100%', padding: '0.6rem 0.85rem', borderRadius: 9,
+                      border: '1.5px solid #cbd5e1', fontSize: '0.85rem', outline: 'none',
+                    }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#334155', marginBottom: '0.35rem' }}>
+                    E-mail do Convidado *
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="valter@empresa.com"
+                    value={inviteData.toEmail}
+                    onChange={e => setInviteData(prev => ({ ...prev, toEmail: e.target.value }))}
+                    style={{
+                      width: '100%', padding: '0.6rem 0.85rem', borderRadius: 9,
+                      border: '1.5px solid #cbd5e1', fontSize: '0.85rem', outline: 'none',
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#334155', marginBottom: '0.35rem' }}>
+                    Categoria Sugerida
+                  </label>
+                  <select
+                    value={inviteData.category}
+                    onChange={e => setInviteData(prev => ({ ...prev, category: e.target.value }))}
+                    style={{
+                      width: '100%', padding: '0.6rem 0.85rem', borderRadius: 9,
+                      border: '1.5px solid #cbd5e1', fontSize: '0.85rem', outline: 'none', background: '#fff',
+                    }}
+                  >
+                    <option value="codigo">Código & Arquitectura</option>
+                    <option value="startups">Startups & Produtos</option>
+                    <option value="ia">IA & Machine Learning</option>
+                    <option value="design">Design & UI/UX</option>
+                    <option value="carreira">Carreira & Trabalho Remoto</option>
+                    <option value="tutoriais">Guias Práticos</option>
+                    <option value="noticias">Ecossistema & Notícias</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#334155', marginBottom: '0.35rem' }}>
+                    Tema / Pauta Sugerida (Opcional)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Ex: Como escalei o meu SaaS"
+                    value={inviteData.proposedTopic}
+                    onChange={e => setInviteData(prev => ({ ...prev, proposedTopic: e.target.value }))}
+                    style={{
+                      width: '100%', padding: '0.6rem 0.85rem', borderRadius: 9,
+                      border: '1.5px solid #cbd5e1', fontSize: '0.85rem', outline: 'none',
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '1.25rem' }}>
+                <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#334155', marginBottom: '0.35rem' }}>
+                  Nota Personalizada do Editor (Opcional)
+                </label>
+                <textarea
+                  rows={3}
+                  placeholder="Ex: Adorámos a tua apresentação recente sobre microsserviços e seria uma honra ter a tua perspectiva na revista..."
+                  value={inviteData.customNote}
+                  onChange={e => setInviteData(prev => ({ ...prev, customNote: e.target.value }))}
+                  style={{
+                    width: '100%', padding: '0.6rem 0.85rem', borderRadius: 9,
+                    border: '1.5px solid #cbd5e1', fontSize: '0.85rem', outline: 'none', resize: 'vertical',
+                  }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', alignItems: 'center' }}>
+                <button
+                  type="button"
+                  onClick={() => setInviteModalOpen(false)}
+                  style={{
+                    background: '#fff', border: '1px solid #cbd5e1', color: '#64748b',
+                    padding: '0.6rem 1.1rem', borderRadius: 9, fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer',
+                  }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={inviteLoading}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '0.45rem',
+                    background: 'linear-gradient(135deg, #7B2CBF, #5A189A)', color: '#fff',
+                    padding: '0.6rem 1.4rem', borderRadius: 9, border: 'none',
+                    fontSize: '0.85rem', fontWeight: 700, cursor: inviteLoading ? 'not-allowed' : 'pointer',
+                    boxShadow: '0 4px 14px rgba(123,44,191,0.3)', opacity: inviteLoading ? 0.7 : 1,
+                  }}
+                >
+                  {inviteLoading ? (
+                    <>
+                      <Loader2 size={16} /> A enviar e-mail...
+                    </>
+                  ) : (
+                    <>
+                      <Send size={15} /> Disparar Convite VIP
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </>
   );
 }

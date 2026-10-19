@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import {
   ArrowLeft, Send, CheckCircle2, Upload, Sparkles, BookOpen,
@@ -102,6 +102,35 @@ export default function SubmeterHistoriaPage() {
       },
     }));
   };
+
+  // Preenchimento automático se o autor veio de um convite VIP (?name=...&email=...&topic=...)
+  const [inviteBanner, setInviteBanner] = useState<{ name: string; topic?: string } | null>(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const name = params.get('name') || '';
+    const email = params.get('email') || '';
+    const topic = params.get('topic') || '';
+    const cat = params.get('category') || '';
+
+    if (name || email || topic || cat) {
+      setFormData(prev => ({
+        ...prev,
+        title: topic || prev.title,
+        category: cat || prev.category,
+        author: {
+          ...prev.author,
+          name: name || prev.author.name,
+          email: email || prev.author.email,
+        },
+      }));
+
+      if (name) {
+        setInviteBanner({ name, topic: topic || undefined });
+      }
+    }
+  }, []);
 
   const showToast = (msg: string) => {
     setAiToast(msg);
@@ -991,6 +1020,41 @@ export default function SubmeterHistoriaPage() {
                 {errorMsg && (
                   <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', padding: '1rem 1.25rem', borderRadius: '12px', fontSize: '0.85rem', marginBottom: '1.5rem', fontWeight: 600 }}>
                     ⚠️ {errorMsg}
+                  </div>
+                )}
+
+                {/* Banner de Convite VIP da Redacção */}
+                {inviteBanner && (
+                  <div style={{
+                    background: 'linear-gradient(135deg, #FAF5FF 0%, #F3E8FF 100%)',
+                    border: '2px solid #C77DFF',
+                    borderRadius: '16px',
+                    padding: '1.25rem 1.5rem',
+                    marginBottom: '2rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '1.2rem',
+                    boxShadow: '0 4px 18px rgba(123,44,191,0.12)',
+                  }}>
+                    <div style={{
+                      width: 48, height: 48, borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #7B2CBF, #5A189A)', color: '#fff',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      flexShrink: 0, boxShadow: '0 4px 12px rgba(123,44,191,0.3)',
+                    }}>
+                      <Sparkles size={24} />
+                    </div>
+                    <div>
+                      <div style={{ display: 'inline-block', background: '#7B2CBF', color: '#fff', fontSize: '0.7rem', fontWeight: 800, padding: '0.15rem 0.6rem', borderRadius: 9999, textTransform: 'uppercase', marginBottom: '0.25rem' }}>
+                        Convite Editorial VIP
+                      </div>
+                      <h4 style={{ margin: '0 0 0.25rem', fontSize: '1.05rem', fontWeight: 800, color: '#0f172a' }}>
+                        Olá, {inviteBanner.name}! O teu convite para a Codando Histórias está activo.
+                      </h4>
+                      <p style={{ margin: 0, fontSize: '0.84rem', color: '#475569', lineHeight: 1.5 }}>
+                        A nossa equipa editorial convidou-te para partilhares a tua trajectória. Já pré-preenchemos os teus dados abaixo. {inviteBanner.topic ? <span>Pauta sugerida: <strong>"{inviteBanner.topic}"</strong>.</span> : ''} Podes usar o nosso <strong>Assistente IA</strong> para polir o teu rascunho com 1 clique!
+                      </p>
+                    </div>
                   </div>
                 )}
 

@@ -1381,3 +1381,84 @@ export async function sendStoryApprovedEmail(opts: {
       </div>`,
   });
 }
+
+/**
+ * Envia e-mail de convite VIP da equipa editorial para um criador/desenvolvedor contar a sua história.
+ */
+export async function sendRevistaInviteEmail(opts: {
+  toEmail: string;
+  inviteeName: string;
+  proposedTopic?: string;
+  customNote?: string;
+  category?: string;
+}): Promise<{ success: boolean; error?: string }> {
+  const queryParams = new URLSearchParams({
+    name: opts.inviteeName,
+    email: opts.toEmail,
+  });
+  if (opts.proposedTopic) queryParams.set('topic', opts.proposedTopic);
+  if (opts.category) queryParams.set('category', opts.category);
+
+  const inviteUrl = `${SITE_URL}/revista/submeter?${queryParams.toString()}`;
+
+  return sendEmail({
+    to: opts.toEmail,
+    subject: `🎙️ Convite Editorial: Partilha a tua jornada na Revista "Codando Histórias" | WEHOSTHERE`,
+    html: `
+      <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;color:#0f172a;background:#ffffff;border:1px solid #E0AAFF;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(123,44,191,0.08);">
+        <div style="background:linear-gradient(135deg,#7B2CBF 0%,#5A189A 100%);padding:36px 32px;text-align:center;">
+          <div style="display:inline-block;background:rgba(255,255,255,0.15);padding:6px 14px;border-radius:9999px;color:#FAF5FF;font-size:12px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:12px;">
+            ✨ Convite Especial da Redacção
+          </div>
+          <h1 style="color:#ffffff;margin:0;font-size:24px;font-weight:800;line-height:1.3;">
+            Queremos destacar a tua história na Codando Histórias
+          </h1>
+          <p style="color:#FAF5FF;margin:8px 0 0;font-size:13px;">Revista Digital WEHOSTHERE &bull; Moçambique</p>
+        </div>
+
+        <div style="padding:32px 28px;">
+          <p style="font-size:16px;line-height:1.6;margin:0 0 16px;">
+            Olá, <strong>${opts.inviteeName}</strong>! 👋
+          </p>
+          <p style="font-size:14px;color:#334155;line-height:1.7;margin:0 0 18px;">
+            A nossa equipa editorial tem acompanhado a tua trajectória e gostaríamos muito de te convidar a publicar uma história ou relato de experiência na <strong>Codando Histórias</strong>.
+          </p>
+
+          ${opts.proposedTopic ? `
+          <div style="background:#FAF5FF;border-left:4px solid #7B2CBF;border-radius:0 10px 10px 0;padding:14px 18px;margin:20px 0;">
+            <p style="margin:0 0 4px;font-size:11px;font-weight:800;color:#7B2CBF;text-transform:uppercase;letter-spacing:0.05em;">
+              💡 Pauta / Tema Sugerido pela Redacção:
+            </p>
+            <p style="margin:0;font-size:14px;font-weight:600;color:#0f172a;">
+              "${opts.proposedTopic}"
+            </p>
+          </div>` : ''}
+
+          ${opts.customNote ? `
+          <div style="background:#f8fafc;border:1px dashed #cbd5e1;border-radius:10px;padding:14px 18px;margin:18px 0;font-size:13px;color:#475569;line-height:1.6;">
+            <strong>Mensagem do Editor:</strong><br>
+            "${opts.customNote.replace(/\n/g, '<br>')}"
+          </div>` : ''}
+
+          <p style="font-size:14px;color:#334155;line-height:1.7;margin:0 0 24px;">
+            Criámos um formulário simples com <strong>Copiloto IA integrado</strong> para te ajudar a estruturar e polir os parágrafos em minutos, sem perderes tempo com formatação técnica.
+          </p>
+
+          <div style="text-align:center;margin:30px 0;">
+            <a href="${inviteUrl}" style="background:linear-gradient(135deg,#7B2CBF 0%,#5A189A 100%);color:#ffffff;font-weight:700;font-size:15px;padding:15px 36px;border-radius:12px;text-decoration:none;display:inline-block;box-shadow:0 4px 16px rgba(123,44,191,0.35);">
+              Abrir Formulário Pré-Preenchido →
+            </a>
+            <p style="font-size:11px;color:#94a3b8;margin:8px 0 0;">O teu nome e e-mail já serão preenchidos automaticamente.</p>
+          </div>
+
+          <hr style="border:none;border-top:1px solid #f1f5f9;margin:24px 0;">
+
+          <p style="font-size:12px;color:#64748b;line-height:1.6;margin:0;">
+            Tens alguma dúvida ou preferes uma conversa prévia? Responde directamente a este e-mail.<br>
+            <strong>Equipa Editorial &bull; WEHOSTHERE Codando Histórias</strong>
+          </p>
+        </div>
+      </div>`,
+  });
+}
+
