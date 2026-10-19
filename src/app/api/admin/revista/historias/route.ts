@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getStoriesList, createStory } from '@/lib/revistaData';
+import { connectDB } from '@/lib/mongodb';
+import RevistaDownload from '@/models/RevistaDownload';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,9 +22,20 @@ export async function GET(req: Request) {
       page,
     });
 
+    let pdfDownloadsCount = 0;
+    if (process.env.MONGODB_URI) {
+      try {
+        await connectDB();
+        pdfDownloadsCount = await RevistaDownload.countDocuments();
+      } catch (err) {
+        console.warn('[Admin Stories] Erro ao contar downloads de PDF:', err);
+      }
+    }
+
     return NextResponse.json({
       success: true,
       stories,
+      pdfDownloadsCount,
       pagination: {
         page,
         limit,

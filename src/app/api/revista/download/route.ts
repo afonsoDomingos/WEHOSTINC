@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { connectDB } from '@/lib/mongodb';
 import RevistaStory from '@/models/RevistaStory';
+import RevistaDownload from '@/models/RevistaDownload';
 import { INITIAL_STORIES } from '@/lib/revistaData';
 
 export const dynamic = 'force-dynamic';
@@ -38,13 +39,36 @@ function sanitizeText(str: string): string {
     .replace(/[^\x00-\xFF]/g, ' '); // Mantém Latin-1 / acentuação portuguesa válida
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     let stories: any[] = [];
 
     if (process.env.MONGODB_URI) {
       try {
         await connectDB();
+
+        // Rastreamento de download do PDF para o painel de administração
+        try {
+          const ip =
+            req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+            req.headers.get('x-real-ip') ||
+            'unknown';
+          const userAgent = req.headers.get('user-agent') || 'unknown';
+          const referrer = req.headers.get('referer') || '';
+
+          RevistaDownload.create({
+            ip,
+            userAgent,
+            referrer,
+            edition: 'Edição 01',
+            downloadedAt: new Date(),
+          }).catch((logErr: any) =>
+            console.warn('[RevistaDownload] Erro ao gravar log assíncrono:', logErr)
+          );
+        } catch (trackErr) {
+          console.warn('[RevistaDownload] Erro ao rastrear download:', trackErr);
+        }
+
         stories = await RevistaStory.find({ status: 'published' })
           .sort({ publishedAt: -1, createdAt: -1 })
           .lean();
@@ -570,6 +594,223 @@ export async function GET() {
         sY -= (isHeading ? 10 : 8);
       }
     }
+
+    // ──────────────────────────────────────────────
+    // PÁGINA FINAL: CONTRACAPA & CONVITE WEHOSTHERE
+    // ──────────────────────────────────────────────
+    const backCoverPage = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
+
+    // Fundo escuro imersivo
+    backCoverPage.drawRectangle({
+      x: 0,
+      y: 0,
+      width: PAGE_WIDTH,
+      height: PAGE_HEIGHT,
+      color: purpleDeep,
+    });
+
+    // Faixa superior decorativa
+    backCoverPage.drawRectangle({
+      x: 0,
+      y: PAGE_HEIGHT - 130,
+      width: PAGE_WIDTH,
+      height: 130,
+      color: rgb(0.10, 0.0, 0.20),
+    });
+
+    // Badge superior
+    backCoverPage.drawRectangle({
+      x: 40,
+      y: PAGE_HEIGHT - 70,
+      width: 140,
+      height: 24,
+      color: purpleMain,
+    });
+    backCoverPage.drawText('ECOSSISTEMA DIGITAL', {
+      x: 48,
+      y: PAGE_HEIGHT - 63,
+      size: 9.5,
+      font: fontBold,
+      color: white,
+    });
+
+    backCoverPage.drawText(sanitizeText(`codando histórias </> • Edição ${editionMonthYear}`), {
+      x: 195,
+      y: PAGE_HEIGHT - 61,
+      size: 9.5,
+      font: fontBold,
+      color: purpleLight,
+    });
+
+    // Título Principal da Contracapa
+    backCoverPage.drawText(sanitizeText('O Futuro da Tua Ideia Comeca Aqui.'), {
+      x: 40,
+      y: PAGE_HEIGHT - 175,
+      size: 26,
+      font: fontBold,
+      color: white,
+    });
+
+    backCoverPage.drawText(
+      sanitizeText('A plataforma completa de hospedagem, dominios e IA para Mocambique e o Mundo.'),
+      {
+        x: 40,
+        y: PAGE_HEIGHT - 200,
+        size: 10.5,
+        font: fontRegular,
+        color: rgb(0.85, 0.85, 0.95),
+      }
+    );
+
+    // CARD DE DESTAQUE COM A URL DO SITE (GRANDE E DESTACADO)
+    backCoverPage.drawRectangle({
+      x: 40,
+      y: PAGE_HEIGHT - 315,
+      width: PAGE_WIDTH - 80,
+      height: 95,
+      color: rgb(0.18, 0.04, 0.32),
+    });
+    backCoverPage.drawRectangle({
+      x: 40,
+      y: PAGE_HEIGHT - 315,
+      width: 6,
+      height: 95,
+      color: purpleBright,
+    });
+
+    backCoverPage.drawText('VISITE O NOSSO SITE OFICIAL:', {
+      x: 60,
+      y: PAGE_HEIGHT - 245,
+      size: 9.5,
+      font: fontBold,
+      color: purpleLight,
+    });
+
+    // URL Gigante e Clara
+    backCoverPage.drawText('https://wehosthere.com', {
+      x: 60,
+      y: PAGE_HEIGHT - 275,
+      size: 24,
+      font: fontBold,
+      color: white,
+    });
+
+    backCoverPage.drawText(
+      sanitizeText('Cria o teu site com IA, hospeda os teus projectos e le a revista online.'),
+      {
+        x: 60,
+        y: PAGE_HEIGHT - 298,
+        size: 9.5,
+        font: fontRegular,
+        color: rgb(0.82, 0.84, 0.92),
+      }
+    );
+
+    // 3 CARDS DE SERVIÇOS & OPORTUNIDADES
+    const promoCards = [
+      {
+        tag: 'CONSTRUTOR DE SITES IA',
+        title: 'Cria o Teu Site em Menos de 2 Minutos',
+        desc: 'Usa a nossa Inteligencia Artificial para gerar landing pages e sites completos sem precisar programar.',
+        link: 'wehosthere.com/builder',
+      },
+      {
+        tag: 'HOSPEDAGEM SSD NVME & DOMINIOS .MZ',
+        title: 'Velocidade Extrema e Pagamentos Locais',
+        desc: 'Servidores velozes, SSL gratis, suporte local e pagamentos faceis com M-Pesa e e-Mola.',
+        link: 'wehosthere.com',
+      },
+      {
+        tag: 'QUERES APARECER NA PROXIMA EDICAO?',
+        title: 'Conta a Tua Historia na Revista',
+        desc: 'Es programador, designer ou criador? Partilha os teus projectos, desafios e licoes com a comunidade.',
+        link: 'wehosthere.com/revista/submeter',
+      },
+    ];
+
+    let cY = PAGE_HEIGHT - 345;
+    promoCards.forEach((card) => {
+      backCoverPage.drawRectangle({
+        x: 40,
+        y: cY - 82,
+        width: PAGE_WIDTH - 80,
+        height: 75,
+        color: rgb(0.13, 0.02, 0.23),
+      });
+
+      backCoverPage.drawText(sanitizeText(card.tag), {
+        x: 55,
+        y: cY - 22,
+        size: 8,
+        font: fontBold,
+        color: purpleLight,
+      });
+
+      backCoverPage.drawText(sanitizeText(card.title), {
+        x: 55,
+        y: cY - 37,
+        size: 11,
+        font: fontBold,
+        color: white,
+      });
+
+      const descLines = wrapText(sanitizeText(card.desc), 68);
+      descLines.slice(0, 2).forEach((dl, dIdx) => {
+        backCoverPage.drawText(dl, {
+          x: 55,
+          y: cY - 52 - dIdx * 12,
+          size: 8.5,
+          font: fontRegular,
+          color: rgb(0.78, 0.8, 0.88),
+        });
+      });
+
+      backCoverPage.drawText(sanitizeText(`Link directo: ${card.link}`), {
+        x: PAGE_WIDTH - 250,
+        y: cY - 22,
+        size: 8,
+        font: fontBold,
+        color: rgb(0.9, 0.8, 1.0),
+      });
+
+      cY -= 90;
+    });
+
+    // RODAPÉ FINAL DA CONTRACAPA
+    backCoverPage.drawRectangle({
+      x: 0,
+      y: 0,
+      width: PAGE_WIDTH,
+      height: 75,
+      color: rgb(0.06, 0.0, 0.12),
+    });
+
+    backCoverPage.drawText('WEHOSTHERE • TECNOLOGIA E HOSPEDAGEM PARA QUEM CRIA', {
+      x: 40,
+      y: 48,
+      size: 9.5,
+      font: fontBold,
+      color: white,
+    });
+
+    backCoverPage.drawText(
+      sanitizeText('Website Oficial: https://wehosthere.com  •  Maputo, Mocambique  •  Todos os direitos reservados'),
+      {
+        x: 40,
+        y: 32,
+        size: 8.5,
+        font: fontRegular,
+        color: rgb(0.75, 0.78, 0.85),
+      }
+    );
+
+    backCoverPage.drawText(sanitizeText(`Revista Codando Historias </> • ${editionMonthYear}`), {
+      x: 40,
+      y: 18,
+      size: 7.5,
+      font: fontBold,
+      color: purpleLight,
+    });
 
     const pdfBytes = await pdfDoc.save();
 

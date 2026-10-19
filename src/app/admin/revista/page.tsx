@@ -5,7 +5,7 @@ import Link from 'next/link';
 import {
   Plus, Edit, Trash2, Eye, Clock, Tag, Filter,
   ArrowLeft, Code2, Star, BookOpen, ChevronDown, Search, Check,
-  Mail, Send, X, Loader2, Sparkles, CheckCheck
+  Mail, Send, X, Loader2, Sparkles, CheckCheck, Download
 } from 'lucide-react';
 
 interface Story {
@@ -55,6 +55,7 @@ const CAT_COLORS: Record<string, string> = {
 
 export default function AdminRevistaPage() {
   const [stories, setStories] = useState<Story[]>([]);
+  const [pdfDownloads, setPdfDownloads] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
@@ -114,7 +115,12 @@ export default function AdminRevistaPage() {
       setLoading(true);
       const res = await fetch(`/api/admin/revista/historias?status=${filter}&limit=50`);
       const data = await res.json();
-      if (data.success) setStories(data.stories);
+      if (data.success) {
+        setStories(data.stories);
+        if (typeof data.pdfDownloadsCount === 'number') {
+          setPdfDownloads(data.pdfDownloadsCount);
+        }
+      }
     } catch (e) {
       console.error(e);
     } finally {
@@ -166,11 +172,12 @@ export default function AdminRevistaPage() {
   });
 
   const stats = {
-    total:     stories.length,
-    pending:   stories.filter(s => s.status === 'pending').length,
-    published: stories.filter(s => s.status === 'published').length,
-    draft:     stories.filter(s => s.status === 'draft').length,
-    views:     stories.reduce((acc, s) => acc + (s.views || 0), 0),
+    total:        stories.length,
+    pending:      stories.filter(s => s.status === 'pending').length,
+    published:    stories.filter(s => s.status === 'published').length,
+    draft:        stories.filter(s => s.status === 'draft').length,
+    views:        stories.reduce((acc, s) => acc + (s.views || 0), 0),
+    pdfDownloads: pdfDownloads,
   };
 
   return (
@@ -371,6 +378,16 @@ export default function AdminRevistaPage() {
             <Link href="/revista" target="_blank" className="ar-action-btn" style={{ width: 'auto', padding: '0.4rem 0.85rem', gap: '0.4rem', fontSize: '0.8rem', fontWeight: 500 }}>
               <Eye size={14} /> Ver Revista
             </Link>
+            <a
+              href="/api/revista/download"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ar-action-btn"
+              style={{ width: 'auto', padding: '0.4rem 0.85rem', gap: '0.4rem', fontSize: '0.8rem', fontWeight: 500, color: '#7B2CBF' }}
+              title="Baixar a versão atual do PDF da revista"
+            >
+              <Download size={14} /> Baixar PDF
+            </a>
             <button
               type="button"
               onClick={() => setInviteModalOpen(true)}
@@ -434,6 +451,36 @@ export default function AdminRevistaPage() {
           <div className="ar-stat">
             <div className="ar-stat-val" style={{ color: '#7B2CBF' }}>{stats.views.toLocaleString()}</div>
             <div className="ar-stat-label">Total de Leituras</div>
+          </div>
+          <div
+            className="ar-stat"
+            style={{
+              border: '1.5px solid #E0AAFF',
+              background: 'linear-gradient(135deg, #ffffff 0%, #faf5ff 100%)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div className="ar-stat-val" style={{ color: '#7B2CBF' }}>
+                {stats.pdfDownloads.toLocaleString()}
+              </div>
+              <div
+                style={{
+                  background: '#7B2CBF',
+                  color: '#fff',
+                  width: 32,
+                  height: 32,
+                  borderRadius: 8,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Download size={16} />
+              </div>
+            </div>
+            <div className="ar-stat-label" style={{ color: '#5A189A', fontWeight: 600 }}>
+              Downloads do PDF
+            </div>
           </div>
         </div>
 
