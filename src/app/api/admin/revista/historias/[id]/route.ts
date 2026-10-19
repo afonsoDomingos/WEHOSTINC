@@ -79,6 +79,18 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
           })
           .catch((e) => console.error('[Revista] Erro ao iniciar email broadcast:', e));
 
+        // Enviar e-mail de parabéns ao autor se tiver e-mail
+        const authorEmail = updatedStory?.author?.email || updatedStory?.submission?.submitterEmail;
+        if (authorEmail && authorEmail.includes('@')) {
+          const { sendStoryApprovedEmail } = await import('@/lib/sendgrid');
+          sendStoryApprovedEmail({
+            toEmail: authorEmail,
+            authorName,
+            storyTitle,
+            storySlug,
+          }).catch((e) => console.error('[Revista] Erro ao enviar email de aprovação ao autor:', e));
+        }
+
         console.log(`[Revista] Push + Email broadcast agendados para história publicada: "${storyTitle}"`);
       } catch (pushErr) {
         // Não falha a operação principal por causa do push

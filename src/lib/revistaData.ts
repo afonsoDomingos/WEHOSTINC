@@ -23,7 +23,7 @@ export interface StoryItem {
   };
   category: string;
   tags: string[];
-  status: 'draft' | 'published' | 'archived';
+  status: 'draft' | 'pending' | 'published' | 'archived';
   featured: boolean;
   views: number;
   readingTime?: number;
@@ -31,6 +31,13 @@ export interface StoryItem {
   publishedAt?: string;
   createdAt?: string;
   updatedAt?: string;
+  submission?: {
+    isCommunity?: boolean;
+    submitterEmail?: string;
+    submitterName?: string;
+    submittedAt?: string;
+    reviewNotes?: string;
+  };
   seo?: {
     metaTitle?: string;
     metaDescription?: string;
@@ -303,6 +310,13 @@ export async function getStoriesList(options?: {
           publishedAt: s.publishedAt ? new Date(s.publishedAt).toISOString() : undefined,
           createdAt: s.createdAt ? new Date(s.createdAt).toISOString() : undefined,
           updatedAt: s.updatedAt ? new Date(s.updatedAt).toISOString() : undefined,
+          submission: s.submission ? {
+            isCommunity: s.submission.isCommunity,
+            submitterEmail: s.submission.submitterEmail,
+            submitterName: s.submission.submitterName,
+            submittedAt: s.submission.submittedAt ? new Date(s.submission.submittedAt).toISOString() : undefined,
+            reviewNotes: s.submission.reviewNotes,
+          } : undefined,
           seo: s.seo,
         })),
         total,
@@ -366,6 +380,13 @@ export async function getStoryBySlug(slug: string) {
           publishedAt: s.publishedAt ? new Date(s.publishedAt).toISOString() : undefined,
           createdAt: s.createdAt ? new Date(s.createdAt).toISOString() : undefined,
           updatedAt: s.updatedAt ? new Date(s.updatedAt).toISOString() : undefined,
+          submission: s.submission ? {
+            isCommunity: s.submission.isCommunity,
+            submitterEmail: s.submission.submitterEmail,
+            submitterName: s.submission.submitterName,
+            submittedAt: s.submission.submittedAt ? new Date(s.submission.submittedAt).toISOString() : undefined,
+            reviewNotes: s.submission.reviewNotes,
+          } : undefined,
           seo: s.seo,
         };
       }

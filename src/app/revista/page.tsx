@@ -1504,6 +1504,25 @@ export default function RevistaPage() {
               >
                 IA
               </button>
+              <Link
+                href="/revista/submeter"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.35rem',
+                  background: 'linear-gradient(135deg, #7B2CBF, #5A189A)',
+                  color: '#ffffff',
+                  padding: '0.38rem 0.9rem',
+                  borderRadius: '9999px',
+                  fontSize: '0.78rem',
+                  fontWeight: 700,
+                  textDecoration: 'none',
+                  boxShadow: '0 2px 8px rgba(123, 44, 191, 0.25)',
+                  transition: 'all 0.2s',
+                }}
+              >
+                ✍️ Enviar História
+              </Link>
               <Link href="/" target="_blank" rel="noopener noreferrer" className="revista-nav-external">
                 WEHOSTHERE <ExternalLink size={12} />
               </Link>
@@ -1558,6 +1577,15 @@ export default function RevistaPage() {
                     <Home size={16} color="#7B2CBF" />
                     <span>Página Inicial da Revista</span>
                   </button>
+                  <Link
+                    href="/revista/submeter"
+                    className="revista-mobile-link"
+                    style={{ background: '#FAF5FF', color: '#7B2CBF', border: '1px solid #E0AAFF' }}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <span>✍️</span>
+                    <span>Enviar a Tua História (Comunidade)</span>
+                  </Link>
                   <Link
                     href="/"
                     className="revista-mobile-link highlight"
@@ -1830,6 +1858,47 @@ export default function RevistaPage() {
                 <Download size={15} />
                 DOWNLOAD PDF
               </a>
+            </div>
+
+            {/* ── Card Submeter História (Comunidade) ── */}
+            <div
+              style={{
+                background: 'linear-gradient(135deg, #FAF5FF 0%, #F3E8FF 100%)',
+                border: '1.5px solid #E0AAFF',
+                borderRadius: '16px',
+                padding: '1.4rem',
+                textAlign: 'center',
+                boxShadow: '0 4px 16px rgba(123, 44, 191, 0.08)',
+              }}
+            >
+              <span style={{ fontSize: '1.8rem', display: 'block', marginBottom: '0.4rem' }}>✍️</span>
+              <h4 style={{ fontSize: '0.98rem', fontWeight: 800, color: '#0f172a', margin: '0 0 0.35rem' }}>
+                Tens uma história para contar?
+              </h4>
+              <p style={{ fontSize: '0.78rem', color: '#64748b', lineHeight: 1.5, margin: '0 0 1rem' }}>
+                Partilha a tua jornada de código, produto ou carreira com a comunidade tech de Moçambique.
+              </p>
+              <Link
+                href="/revista/submeter"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.4rem',
+                  width: '100%',
+                  background: '#7B2CBF',
+                  color: '#ffffff',
+                  fontWeight: 700,
+                  fontSize: '0.82rem',
+                  padding: '0.65rem 1rem',
+                  borderRadius: '10px',
+                  textDecoration: 'none',
+                  boxShadow: '0 4px 12px rgba(123, 44, 191, 0.25)',
+                  transition: 'all 0.2s',
+                }}
+              >
+                Submeter a Minha História →
+              </Link>
             </div>
 
             {/* Mais lidas */}

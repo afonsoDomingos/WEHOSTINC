@@ -21,14 +21,21 @@ export interface IRevistaStory extends Document {
   };
   category: string;
   tags: string[];
-  status: 'draft' | 'published' | 'archived';
+  status: 'draft' | 'pending' | 'published' | 'archived';
   featured: boolean;
   views: number;
   readingTime?: number;
-  highlightText?: string; // texto com destaque azul no título
+  highlightText?: string; // texto com destaque azul/roxo no título
   publishedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
+  submission?: {
+    isCommunity?: boolean;
+    submitterEmail?: string;
+    submitterName?: string;
+    submittedAt?: Date;
+    reviewNotes?: string;
+  };
   seo?: {
     metaTitle?: string;
     metaDescription?: string;
@@ -65,14 +72,21 @@ const RevistaStorySchema = new Schema<IRevistaStory>(
     tags: [{ type: String, trim: true }],
     status: {
       type: String,
-      enum: ['draft', 'published', 'archived'],
+      enum: ['draft', 'pending', 'published', 'archived'],
       default: 'draft',
     },
     featured: { type: Boolean, default: false },
     views: { type: Number, default: 0 },
     readingTime: { type: Number },
-    highlightText: { type: String }, // parte do título que fica com fundo azul
+    highlightText: { type: String }, // parte do título que fica com fundo colorido
     publishedAt: { type: Date },
+    submission: {
+      isCommunity: { type: Boolean, default: false },
+      submitterEmail: { type: String },
+      submitterName: { type: String },
+      submittedAt: { type: Date },
+      reviewNotes: { type: String },
+    },
     seo: {
       metaTitle: { type: String },
       metaDescription: { type: String },

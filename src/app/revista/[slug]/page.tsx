@@ -35,6 +35,12 @@ interface Story {
   featured: boolean;
   highlightText?: string;
   publishedAt?: string;
+  status?: string;
+  submission?: {
+    isCommunity?: boolean;
+    submitterEmail?: string;
+    submitterName?: string;
+  };
 }
 
 function formatSocialUrl(network: 'github' | 'linkedin' | 'twitter' | 'instagram' | 'website', val: string): string {
@@ -1814,6 +1820,46 @@ export default function RevistaStoryPage() {
           </div>
         ) : (
           <>
+            {/* ── Banner de Pré-visualização se não estiver publicado ── */}
+            {story.status && story.status !== 'published' && (
+              <div
+                style={{
+                  maxWidth: 820,
+                  margin: '1.25rem auto 0',
+                  padding: '0.85rem 1.25rem',
+                  background: '#fff7ed',
+                  border: '1.5px solid #fdba74',
+                  borderRadius: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '0.75rem',
+                  fontSize: '0.82rem',
+                  color: '#9a3412',
+                  boxShadow: '0 2px 8px rgba(234, 88, 12, 0.08)',
+                }}
+              >
+                <div>
+                  <strong>👀 Modo de Pré-visualização:</strong> Esta história está com status <strong>{story.status === 'pending' ? 'Pendente de Revisão' : story.status === 'draft' ? 'Rascunho' : story.status}</strong>.
+                </div>
+                <Link
+                  href={`/admin/revista/editar/${story.id}`}
+                  style={{
+                    background: '#ea580c',
+                    color: '#fff',
+                    padding: '0.4rem 0.9rem',
+                    borderRadius: '8px',
+                    fontWeight: 700,
+                    textDecoration: 'none',
+                    fontSize: '0.78rem',
+                  }}
+                >
+                  Abrir no Editor Admin →
+                </Link>
+              </div>
+            )}
+
             {/* ── Breadcrumb ── */}
         <div className="breadcrumb">
           <Link href="/">WEHOSTHERE</Link>

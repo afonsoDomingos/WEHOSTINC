@@ -26,6 +26,12 @@ export default function EditarHistoriaPage() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [saved, setSaved] = useState(false);
   const [notFound, setNotFound] = useState(false);
+  const [submissionInfo, setSubmissionInfo] = useState<{
+    isCommunity?: boolean;
+    submitterEmail?: string;
+    submitterName?: string;
+    submittedAt?: string;
+  } | null>(null);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -36,7 +42,7 @@ export default function EditarHistoriaPage() {
     coverImage: '',
     category: 'codigo',
     tags: '',
-    status: 'draft' as 'draft' | 'published' | 'archived',
+    status: 'draft' as 'draft' | 'pending' | 'published' | 'archived',
     featured: false,
     views: 0,
     publishedAt: '',
@@ -98,6 +104,9 @@ export default function EditarHistoriaPage() {
             keywords: s.seo?.keywords || '',
           },
         });
+        if (s.submission) {
+          setSubmissionInfo(s.submission);
+        }
       } else {
         setNotFound(true);
       }
@@ -312,6 +321,7 @@ export default function EditarHistoriaPage() {
           transition: all 0.2s; font-family: 'Poppins', sans-serif;
           background: #fff;
         }
+        .status-option.active-pending { border-color: #ea580c; color: #c2410c; background: #fff7ed; }
         .status-option.active-draft { border-color: #f59e0b; color: #d97706; background: #fffbeb; }
         .status-option.active-published { border-color: #10b981; color: #059669; background: #f0fdf4; }
         .status-option.active-archived { border-color: #94a3b8; color: #64748b; background: #f8fafc; }
@@ -417,6 +427,52 @@ export default function EditarHistoriaPage() {
         <div className="edit-body">
           {/* Main Content */}
           <div>
+            {submissionInfo?.isCommunity && (
+              <div
+                style={{
+                  background: '#fff7ed',
+                  border: '1.5px solid #fdba74',
+                  borderRadius: '12px',
+                  padding: '1.25rem 1.5rem',
+                  marginBottom: '1.5rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '1rem',
+                }}
+              >
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, color: '#c2410c', fontSize: '0.9rem' }}>
+                    <span>📢</span> Submissão da Comunidade
+                  </div>
+                  <p style={{ margin: '0.35rem 0 0', fontSize: '0.82rem', color: '#9a3412', lineHeight: 1.5 }}>
+                    Enviada por <strong>{submissionInfo.submitterName || formData.author.name}</strong> ({submissionInfo.submitterEmail || formData.author.email})
+                    {submissionInfo.submittedAt && ` em ${new Date(submissionInfo.submittedAt).toLocaleDateString('pt-MZ', { day: 'numeric', month: 'long', year: 'numeric' })}`}.
+                  </p>
+                </div>
+                {formData.status !== 'published' && (
+                  <button
+                    onClick={() => handleSave('published')}
+                    disabled={loading}
+                    style={{
+                      background: '#10b981',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '8px',
+                      padding: '0.6rem 1.25rem',
+                      fontWeight: 700,
+                      fontSize: '0.84rem',
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 8px rgba(16,185,129,0.3)',
+                    }}
+                  >
+                    ✓ Aprovar & Publicar Agora
+                  </button>
+                )}
+              </div>
+            )}
+
             <div className="edit-card">
               <p className="edit-card-title">📝 Conteúdo</p>
 
@@ -605,9 +661,10 @@ export default function EditarHistoriaPage() {
               <p className="edit-card-title">📌 Status</p>
               <div className="status-row">
                 {[
-                  { key: 'draft',     label: 'Rascunho',   dot: '#f59e0b' },
-                  { key: 'published', label: 'Publicado',  dot: '#10b981' },
-                  { key: 'archived',  label: 'Arquivado',  dot: '#94a3b8' },
+                  { key: 'pending',   label: 'Pendente de Revisão', dot: '#ea580c' },
+                  { key: 'published', label: 'Publicado',           dot: '#10b981' },
+                  { key: 'draft',     label: 'Rascunho',            dot: '#f59e0b' },
+                  { key: 'archived',  label: 'Arquivado',           dot: '#94a3b8' },
                 ].map(s => (
                   <button
                     key={s.key}

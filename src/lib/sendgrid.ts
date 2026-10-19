@@ -1246,3 +1246,138 @@ export async function sendBirthdayEmail(opts: BirthdayEmailOptions): Promise<{ s
       </div>`,
   });
 }
+
+// ——————————————————————————————————————
+// Revista "Codando Histórias" — Submissões da Comunidade
+// ——————————————————————————————————————
+
+export interface StorySubmissionNotificationOpts {
+  toEmail: string;
+  authorName: string;
+  storyTitle: string;
+  category: string;
+  storySlug: string;
+}
+
+/**
+ * Envia e-mail de confirmação ao autor que submeteu uma história para a revista.
+ */
+export async function sendStorySubmissionReceivedEmail(opts: StorySubmissionNotificationOpts): Promise<{ success: boolean; error?: string }> {
+  return sendEmail({
+    to: opts.toEmail,
+    subject: `📝 Recebemos a tua história: "${opts.storyTitle}" | Revista Codando Histórias`,
+    html: `
+      <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;color:#0f172a;background:#ffffff;border:1px solid #e2e8f0;border-radius:16px;overflow:hidden;">
+        <div style="background:linear-gradient(135deg,#5A189A 0%,#7B2CBF 100%);padding:28px 32px;text-align:center;">
+          <h2 style="color:#ffffff;margin:0;font-size:22px;font-weight:800;letter-spacing:-0.02em;">Codando Histórias</h2>
+          <p style="color:#E0AAFF;margin:6px 0 0;font-size:13px;font-weight:600;">Revista Digital WEHOSTHERE</p>
+        </div>
+        <div style="padding:32px 28px;">
+          <p style="font-size:16px;line-height:1.6;margin:0 0 16px;">
+            Olá, <strong>${opts.authorName}</strong>! 👋
+          </p>
+          <p style="font-size:14px;color:#334155;line-height:1.6;margin:0 0 20px;">
+            A tua história <strong>"${opts.storyTitle}"</strong> foi submetida com sucesso para análise editorial da nossa equipa.
+          </p>
+          <div style="background:#FAF5FF;border:1px solid #E0AAFF;border-radius:12px;padding:18px;margin-bottom:24px;">
+            <p style="font-size:13px;color:#5A189A;font-weight:700;margin:0 0 6px;">O que acontece a seguir?</p>
+            <ul style="margin:0;padding-left:18px;font-size:13px;color:#475569;line-height:1.6;">
+              <li>A nossa equipa editorial irá rever a formatação e conteúdo.</li>
+              <li>Podemos fazer pequenos ajustes de revisão ortográfica para manter o padrão da revista.</li>
+              <li>Assim que for aprovada e publicada, receberás um e-mail com o link ao vivo para partilhares com a comunidade.</li>
+            </ul>
+          </div>
+          <p style="font-size:13px;color:#64748b;margin:0;">
+            Obrigado por enriqueceres o ecossistema tech de Moçambique com a tua jornada!
+          </p>
+        </div>
+        <div style="background:#f8fafc;padding:18px 28px;border-top:1px solid #e2e8f0;text-align:center;">
+          <p style="color:#94a3b8;font-size:12px;margin:0;">
+            WEHOSTHERE &bull; Codando Histórias &bull; <a href="${SITE_URL}/revista" style="color:#7B2CBF;text-decoration:none;font-weight:600;">wehosthere.com/revista</a>
+          </p>
+        </div>
+      </div>`,
+  });
+}
+
+/**
+ * Alerta o Administrador da WEHOSTHERE sobre uma nova submissão da comunidade.
+ */
+export async function sendAdminNewSubmissionEmail(opts: {
+  authorName: string;
+  authorEmail: string;
+  storyTitle: string;
+  category: string;
+  storyId: string;
+}): Promise<{ success: boolean; error?: string }> {
+  const adminEmail = process.env.ADMIN_EMAIL || 'afonso@wehosthere.com';
+  const adminReviewUrl = `${SITE_URL}/admin/revista/editar/${opts.storyId}`;
+
+  return sendEmail({
+    to: adminEmail,
+    subject: `🔔 [Revista] Nova história submetida: "${opts.storyTitle}" por ${opts.authorName}`,
+    html: `
+      <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;color:#0f172a;background:#ffffff;border:1px solid #e2e8f0;border-radius:16px;overflow:hidden;">
+        <div style="background:#0f172a;padding:24px 32px;text-align:center;">
+          <h2 style="color:#ffffff;margin:0;font-size:20px;">Nova Submissão na Revista</h2>
+          <p style="color:#94a3b8;margin:4px 0 0;font-size:13px;">Codando Histórias &bull; Painel de Moderação</p>
+        </div>
+        <div style="padding:28px;">
+          <p style="font-size:14px;color:#334155;line-height:1.6;margin:0 0 16px;">
+            Um novo artigo foi submetido pela comunidade e aguarda aprovação:
+          </p>
+          <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px;margin-bottom:24px;">
+            <p style="margin:0 0 8px;font-size:14px;"><strong>Título:</strong> ${opts.storyTitle}</p>
+            <p style="margin:0 0 8px;font-size:13px;"><strong>Autor:</strong> ${opts.authorName} (${opts.authorEmail})</p>
+            <p style="margin:0;font-size:13px;"><strong>Categoria:</strong> ${opts.category}</p>
+          </div>
+          <div style="text-align:center;">
+            <a href="${adminReviewUrl}" style="background:#7B2CBF;color:#ffffff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;display:inline-block;">
+              Rever & Aprovar no Painel →
+            </a>
+          </div>
+        </div>
+      </div>`,
+  });
+}
+
+/**
+ * Envia e-mail de parabéns ao autor quando a sua história é APROVADA e PUBLICADA.
+ */
+export async function sendStoryApprovedEmail(opts: {
+  toEmail: string;
+  authorName: string;
+  storyTitle: string;
+  storySlug: string;
+}): Promise<{ success: boolean; error?: string }> {
+  const storyUrl = `${SITE_URL}/revista/${opts.storySlug}`;
+
+  return sendEmail({
+    to: opts.toEmail,
+    subject: `🎉 Parabéns! A tua história foi publicada: "${opts.storyTitle}" | Codando Histórias`,
+    html: `
+      <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;color:#0f172a;background:#ffffff;border:1px solid #e2e8f0;border-radius:16px;overflow:hidden;">
+        <div style="background:linear-gradient(135deg,#10b981 0%,#059669 100%);padding:28px 32px;text-align:center;">
+          <span style="font-size:36px;">🎉</span>
+          <h2 style="color:#ffffff;margin:8px 0 0;font-size:22px;font-weight:800;">A tua história está no ar!</h2>
+          <p style="color:#d1fae5;margin:4px 0 0;font-size:13px;">Revista Codando Histórias &bull; WEHOSTHERE</p>
+        </div>
+        <div style="padding:32px 28px;text-align:center;">
+          <p style="font-size:16px;line-height:1.6;margin:0 0 16px;">
+            Olá, <strong>${opts.authorName}</strong>! Temos excelentes notícias.
+          </p>
+          <p style="font-size:14px;color:#334155;line-height:1.6;margin:0 0 24px;">
+            A tua história <strong>"${opts.storyTitle}"</strong> foi aprovada pela equipa editorial e já está publicada e visível para toda a comunidade.
+          </p>
+          <div style="margin-bottom:28px;">
+            <a href="${storyUrl}" style="background:#7B2CBF;color:#ffffff;font-weight:700;font-size:15px;padding:14px 32px;border-radius:10px;text-decoration:none;display:inline-block;box-shadow:0 4px 12px rgba(123,44,191,0.25);">
+              Ver a minha história ao vivo →
+            </a>
+          </div>
+          <p style="font-size:13px;color:#64748b;margin:0;">
+            Partilha com os teus colegas, no LinkedIn, Twitter ou grupos de desenvolvedores!
+          </p>
+        </div>
+      </div>`,
+  });
+}

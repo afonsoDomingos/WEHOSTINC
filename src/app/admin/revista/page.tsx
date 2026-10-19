@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import {
   Plus, Edit, Trash2, Eye, Clock, Tag, Filter,
-  ArrowLeft, Code2, Star, BookOpen, ChevronDown, Search
+  ArrowLeft, Code2, Star, BookOpen, ChevronDown, Search, Check
 } from 'lucide-react';
 
 interface Story {
@@ -12,7 +12,7 @@ interface Story {
   title: string;
   slug: string;
   excerpt: string;
-  author: { name: string };
+  author: { name: string; email?: string };
   category: string;
   status: string;
   featured: boolean;
@@ -20,16 +20,24 @@ interface Story {
   readingTime?: number;
   publishedAt?: string;
   createdAt: string;
+  submission?: {
+    isCommunity?: boolean;
+    submitterEmail?: string;
+    submitterName?: string;
+    submittedAt?: string;
+  };
 }
 
 const STATUS_LABELS: Record<string, string> = {
   published: 'Publicado',
-  draft: 'Rascunho',
-  archived: 'Arquivado',
+  pending:   'Pendente',
+  draft:     'Rascunho',
+  archived:  'Arquivado',
 };
 
 const STATUS_COLORS: Record<string, string> = {
   published: '#10b981',
+  pending:   '#f97316',
   draft:     '#f59e0b',
   archived:  '#94a3b8',
 };
@@ -110,6 +118,7 @@ export default function AdminRevistaPage() {
 
   const stats = {
     total:     stories.length,
+    pending:   stories.filter(s => s.status === 'pending').length,
     published: stories.filter(s => s.status === 'published').length,
     draft:     stories.filter(s => s.status === 'draft').length,
     views:     stories.reduce((acc, s) => acc + (s.views || 0), 0),
@@ -298,10 +307,30 @@ export default function AdminRevistaPage() {
         </div>
 
         {/* Stats */}
-        <div className="ar-stats">
+        <div className="ar-stats" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
           <div className="ar-stat">
             <div className="ar-stat-val">{stats.total}</div>
             <div className="ar-stat-label">Total de Histórias</div>
+          </div>
+          <div
+            className="ar-stat"
+            style={{
+              border: stats.pending > 0 ? '1.5px solid #fdba74' : undefined,
+              background: stats.pending > 0 ? '#fff7ed' : '#fff',
+            }}
+          >
+            <div className="ar-stat-val" style={{ color: '#ea580c' }}>
+              {stats.pending}
+            </div>
+            <div
+              className="ar-stat-label"
+              style={{
+                color: stats.pending > 0 ? '#c2410c' : '#64748b',
+                fontWeight: stats.pending > 0 ? 700 : 500,
+              }}
+            >
+              Pendentes de Revisão
+            </div>
           </div>
           <div className="ar-stat">
             <div className="ar-stat-val" style={{ color: '#10b981' }}>{stats.published}</div>
@@ -319,13 +348,19 @@ export default function AdminRevistaPage() {
 
         {/* Toolbar */}
         <div className="ar-toolbar">
-          {['all', 'published', 'draft', 'archived'].map(f => (
+          {['all', 'pending', 'published', 'draft', 'archived'].map(f => (
             <button
               key={f}
               className={`ar-filter-btn${filter === f ? ' active' : ''}`}
               onClick={() => setFilter(f)}
+              style={f === 'pending' && stats.pending > 0 && filter !== f ? { borderColor: '#fdba74', color: '#ea580c', background: '#fff7ed' } : undefined}
             >
               {f === 'all' ? 'Todas' : STATUS_LABELS[f] || f}
+              {f === 'pending' && stats.pending > 0 && (
+                <span style={{ marginLeft: 6, background: '#ea580c', color: '#fff', fontSize: '0.65rem', padding: '1px 6px', borderRadius: '9999px', fontWeight: 700 }}>
+                  {stats.pending}
+                </span>
+              )}
             </button>
           ))}
           <div className="ar-search">
@@ -369,9 +404,16 @@ export default function AdminRevistaPage() {
                     {/* Title */}
                     <td>
                       <div className="ar-title-cell">
-                        {story.featured && (
-                          <Star size={11} color="#d97706" style={{ marginRight: 4, verticalAlign: 'middle' }} />
-                        )}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 2 }}>
+                          {story.featured && (
+                            <Star size={12} color="#d97706" style={{ verticalAlign: 'middle' }} />
+                          )}
+                          {story.submission?.isCommunity && (
+                            <span style={{ fontSize: '0.62rem', background: '#fef3c7', color: '#b45309', padding: '1px 6px', borderRadius: '4px', fontWeight: 700, border: '1px solid #fde68a', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                              Comunidade
+                            </span>
+                          )}
+                        </div>
                         {story.title}
                         <div className="ar-excerpt">{story.excerpt}</div>
                         <div style={{ fontSize: '0.72rem', color: '#7B2CBF', marginTop: '3px', display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -396,7 +438,14 @@ export default function AdminRevistaPage() {
                     </td>
 
                     {/* Author */}
-                    <td style={{ fontSize: '0.82rem', color: '#475569' }}>{story.author?.name}</td>
+                    <td style={{ fontSize: '0.82rem', color: '#475569' }}>
+                      <div style={{ fontWeight: 600 }}>{story.author?.name}</div>
+                      {story.submission?.submitterEmail && (
+                        <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+                          {story.submission.submitterEmail}
+                        </div>
+                      )}
+                    </td>
 
                     {/* Status */}
                     <td onClick={e => e.stopPropagation()}>
@@ -415,7 +464,7 @@ export default function AdminRevistaPage() {
                         </button>
                         {statusDropdown === story.id && (
                           <div className="ar-status-dropdown">
-                            {['published', 'draft', 'archived'].map(s => (
+                            {['published', 'pending', 'draft', 'archived'].map(s => (
                               <div
                                 key={s}
                                 className="ar-status-option"
@@ -439,6 +488,25 @@ export default function AdminRevistaPage() {
                     {/* Actions */}
                     <td>
                       <div className="ar-actions">
+                        {story.status === 'pending' && (
+                          <button
+                            className="ar-action-btn"
+                            style={{
+                              background: '#ecfdf5',
+                              color: '#059669',
+                              borderColor: '#a7f3d0',
+                              padding: '0.3rem 0.65rem',
+                              width: 'auto',
+                              gap: 4,
+                              fontWeight: 700,
+                              fontSize: '0.74rem',
+                            }}
+                            onClick={() => handleStatusChange(story.id, 'published')}
+                            title="Aprovar e Publicar Imediatamente"
+                          >
+                            <Check size={13} /> Aprovar
+                          </button>
+                        )}
                         <button
                           className={`ar-action-btn${story.featured ? ' feature-active' : ''}`}
                           onClick={() => handleFeature(story.id, story.featured)}
