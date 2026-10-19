@@ -12,7 +12,7 @@ import {
   MessageSquare, Layers, Wand2, Clock, AlertCircle, RefreshCw, X,
   PanelLeftClose, PanelLeftOpen, Maximize2, Minimize2,
   UtensilsCrossed, Scissors, Palmtree, Briefcase, Palette, Tag,
-  History, Undo2, Download, ShoppingBag
+  History, Undo2, Download, ShoppingBag, FolderArchive, Edit3, Save
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 
@@ -267,6 +267,16 @@ export default function AiSiteBuilderStudio() {
   const [isPublishModalOpen, setIsPublishModalOpen] = useState<boolean>(false);
   const [isPublishing, setIsPublishing] = useState<boolean>(false);
 
+  // Estados do Editor de Código Inline
+  const [isEditingCode, setIsEditingCode] = useState<boolean>(false);
+  const [editedCode, setEditedCode] = useState<string>('');
+  const [editorSaveSuccess, setEditorSaveSuccess] = useState<boolean>(false);
+
+  // Estados de Exportação e Partilha
+  const [isExportingZip, setIsExportingZip] = useState<boolean>(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState<boolean>(false);
+  const [copiedShareLink, setCopiedShareLink] = useState<boolean>(false);
+
   // Estado para redimensionamento manual do Chat (Arrastar borda)
   const [chatWidth, setChatWidth] = useState<number>(420);
   const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -370,6 +380,20 @@ export default function AiSiteBuilderStudio() {
 
   // Inicializar novo projeto em branco
   const initNewProject = () => {
+    // Preservar projeto atual no estado local caso tenha conteúdo
+    if (projectId) {
+      setSavedProjects(prev => prev.map(p => {
+        if (p.id === projectId) {
+          return {
+            ...p,
+            htmlContent: currentHtml,
+            promptHistory: messages
+          };
+        }
+        return p;
+      }));
+    }
+
     const newId = `site_${Date.now()}`;
     const defaultTitle = 'Novo Projeto';
     const defaultSlug = `site-${Math.random().toString(36).substring(2, 6)}`;
@@ -378,6 +402,8 @@ export default function AiSiteBuilderStudio() {
     setProjectSlug(defaultSlug);
     setIsPublished(false);
     setCurrentHtml('');
+    setIsEditingCode(false);
+    setEditedCode('');
     setVersions([]);
     setSelectedVersionIndex('latest');
     setMessages([
@@ -390,13 +416,29 @@ export default function AiSiteBuilderStudio() {
     ]);
   };
 
-  // Selecionar projeto existente
+  // Selecionar projeto existente (com histórico isolado de chats)
   const selectProject = (proj: SavedProject) => {
+    // Preservar projeto anterior no estado local antes de trocar
+    if (projectId && projectId !== proj.id) {
+      setSavedProjects(prev => prev.map(p => {
+        if (p.id === projectId) {
+          return {
+            ...p,
+            htmlContent: currentHtml,
+            promptHistory: messages
+          };
+        }
+        return p;
+      }));
+    }
+
     setProjectId(proj.id);
     setProjectTitle(proj.title);
     setProjectSlug(proj.slug);
     setIsPublished(proj.status === 'published');
     setCurrentHtml(proj.htmlContent);
+    setIsEditingCode(false);
+    setEditedCode(proj.htmlContent || '');
 
     // Reconstruir lista de versões salvas
     if (proj.versions && proj.versions.length > 0) {
@@ -421,14 +463,20 @@ export default function AiSiteBuilderStudio() {
     }
 
     setSelectedVersionIndex('latest');
-    setMessages(proj.promptHistory && proj.promptHistory.length > 0 ? proj.promptHistory : [
-      {
-        id: `msg_${Date.now()}`,
-        role: 'assistant',
-        content: `Projeto "${proj.title}" carregado com sucesso. Como gostaria de aprimorá-lo agora?`,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      }
-    ]);
+
+    // Carregar histórico de mensagens separado para este projeto
+    if (proj.promptHistory && proj.promptHistory.length > 0) {
+      setMessages(proj.promptHistory);
+    } else {
+      setMessages([
+        {
+          id: `msg_${Date.now()}`,
+          role: 'assistant',
+          content: `Projeto "${proj.title}" carregado com sucesso. Como gostaria de aprimorá-lo agora?`,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }
+      ]);
+    }
   };
 
   // ─── Helpers para Proposta de Construção e Intenção ────────────────────────
@@ -660,7 +708,28 @@ export default function AiSiteBuilderStudio() {
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };
 
-        setMessages(prev => [...prev, aiMsg]);
+        const updatedMessages = [...messages, aiMsg];
+        setMessages(updatedMessages);
+
+        if (currentUser?.email) {
+          saveProjectToDb({
+            id: projectId,
+            userEmail,
+            userName: currentUser?.name || 'Cliente',
+            title: titleOverride || projectTitle,
+            slug: projectSlug,
+            subdomain: projectSlug,
+            htmlContent: currentHtml,
+            promptHistory: updatedMessages,
+            versions: versions.map(v => ({
+              versionNumber: v.versionNumber,
+              htmlContent: v.html,
+              prompt: v.prompt,
+              createdAt: new Date().toISOString()
+            })),
+            status: isPublished ? 'published' : 'draft'
+          });
+        }
         return;
       }
 
@@ -932,6 +1001,189 @@ export default function AiSiteBuilderStudio() {
     URL.revokeObjectURL(url);
   };
 
+  // ─── Exportar como ZIP (HTML + CSS extraído + README) ─────────────────────
+  const handleDownloadZip = async () => {
+    if (!displayedHtml) return;
+    setIsExportingZip(true);
+    try {
+      const JSZip = (await import('jszip')).default;
+      const zip = new JSZip();
+
+      // Extrair blocos de CSS de tags <style>
+      let extractedCss = '';
+      const styleRegex = /<style[^>]*>([\s\S]*?)<\/style>/gi;
+      let match;
+      while ((match = styleRegex.exec(displayedHtml)) !== null) {
+        if (match[1]?.trim()) {
+          extractedCss += match[1].trim() + '\n\n';
+        }
+      }
+
+      // Se existir CSS, salva na pasta css/style.css
+      if (extractedCss) {
+        zip.folder('css')?.file('style.css', extractedCss);
+      }
+
+      // Adicionar index.html limpo e completo
+      zip.file('index.html', displayedHtml);
+
+      // Adicionar README.md profissional com instruções
+      const readmeContent = `# ${projectTitle}
+Website criado e exportado via WEHOSTHERE Studio AI (https://www.wehosthere.com)
+Data de Exportação: ${new Date().toLocaleDateString('pt-MZ')}
+
+## Estrutura dos Ficheiros:
+- \`index.html\`: Código completo do seu website pronto para abrir em qualquer navegador.
+${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para personalização.\n' : ''}
+## Como usar:
+1. Extraia todos os ficheiros numa pasta no seu computador.
+2. Dê duplo clique em \`index.html\` para abrir diretamente no Chrome, Edge ou Safari.
+3. Para publicar online com subdomínio grátis ou domínio próprio (.co.mz / .com), aceda a https://www.wehosthere.com.
+`;
+      zip.file('README.md', readmeContent);
+
+      const content = await zip.generateAsync({ type: 'blob' });
+      const url = URL.createObjectURL(content);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${projectSlug || 'site'}-wehosthere.zip`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Erro ao gerar ficheiro ZIP:', err);
+    } finally {
+      setIsExportingZip(false);
+    }
+  };
+
+  // ─── Editor de Código Inline ──────────────────────────────────────────────
+  const handleStartCodeEditing = () => {
+    setEditedCode(displayedHtml);
+    setIsEditingCode(true);
+  };
+
+  const handleDiscardCodeEditing = () => {
+    setEditedCode(displayedHtml);
+    setIsEditingCode(false);
+  };
+
+  const handleSaveEditedCode = () => {
+    if (!editedCode) return;
+    setCurrentHtml(editedCode);
+    setIsEditingCode(false);
+    setEditorSaveSuccess(true);
+    setTimeout(() => setEditorSaveSuccess(false), 2500);
+
+    // Salvar nova versão no histórico
+    const nextVer: ProjectVersion = {
+      versionNumber: versions.length + 1,
+      html: editedCode,
+      prompt: 'Edição manual no código fonte',
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+    const updatedVersions = [...versions, nextVer];
+    setVersions(updatedVersions);
+    setSelectedVersionIndex('latest');
+
+    // Registar no chat daquele projeto
+    const manualEditMsg: ChatMessage = {
+      id: `msg_manual_${Date.now()}`,
+      role: 'assistant',
+      content: 'Código HTML atualizado manualmente via Editor Inline. As alterações já foram aplicadas ao preview interativo.',
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+    const newMessages = [...messages, manualEditMsg];
+    setMessages(newMessages);
+
+    // Salvar no MongoDB
+    if (currentUser?.email) {
+      saveProjectToDb({
+        id: projectId,
+        userEmail: currentUser.email,
+        userName: currentUser.name || 'Cliente',
+        title: projectTitle,
+        slug: projectSlug,
+        subdomain: projectSlug,
+        htmlContent: editedCode,
+        promptHistory: newMessages,
+        versions: updatedVersions.map(v => ({
+          versionNumber: v.versionNumber,
+          htmlContent: v.html,
+          prompt: v.prompt,
+          createdAt: new Date().toISOString()
+        })),
+        status: isPublished ? 'published' : 'draft'
+      });
+    }
+  };
+
+  // ─── Limpar Histórico de Chat do Projeto Atual ────────────────────────────
+  const handleClearProjectChat = () => {
+    if (!confirm('Deseja limpar as mensagens de chat deste projeto? O código do site permanecerá intacto.')) return;
+    const initialMsg: ChatMessage = {
+      id: `msg_cleared_${Date.now()}`,
+      role: 'assistant',
+      content: `Conversa reiniciada para o projeto "${projectTitle}". O seu código atual está preservado. O que deseja alterar a seguir?`,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+    setMessages([initialMsg]);
+    if (currentUser?.email) {
+      saveProjectToDb({
+        id: projectId,
+        userEmail: currentUser.email,
+        userName: currentUser.name || 'Cliente',
+        title: projectTitle,
+        slug: projectSlug,
+        subdomain: projectSlug,
+        htmlContent: currentHtml,
+        promptHistory: [initialMsg],
+        versions: versions.map(v => ({
+          versionNumber: v.versionNumber,
+          htmlContent: v.html,
+          prompt: v.prompt,
+          createdAt: new Date().toISOString()
+        })),
+        status: isPublished ? 'published' : 'draft'
+      });
+    }
+  };
+
+  // ─── Modal e Link de Partilha de Pré-visualização ─────────────────────────
+  const previewShareUrl = typeof window !== 'undefined'
+    ? `${window.location.origin}/site/${projectSlug}`
+    : `https://www.wehosthere.com/site/${projectSlug}`;
+
+  const handleOpenShareModal = async () => {
+    if (currentUser?.email && currentHtml) {
+      await saveProjectToDb({
+        id: projectId,
+        userEmail: currentUser.email,
+        userName: currentUser.name || 'Cliente',
+        title: projectTitle,
+        slug: projectSlug,
+        subdomain: projectSlug,
+        htmlContent: displayedHtml,
+        promptHistory: messages,
+        versions: versions.map(v => ({
+          versionNumber: v.versionNumber,
+          htmlContent: v.html,
+          prompt: v.prompt,
+          createdAt: new Date().toISOString()
+        })),
+        status: isPublished ? 'published' : 'draft'
+      });
+    }
+    setIsShareModalOpen(true);
+  };
+
+  const handleCopyShareUrl = () => {
+    navigator.clipboard.writeText(previewShareUrl);
+    setCopiedShareLink(true);
+    setTimeout(() => setCopiedShareLink(false), 2000);
+  };
+
   const handleDeleteProject = async (id: string) => {
     if (!currentUser?.email) return;
     if (!confirm('Deseja realmente eliminar este site?')) return;
@@ -1170,6 +1422,23 @@ export default function AiSiteBuilderStudio() {
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0">
+            {/* Contador de Histórico de Conversas */}
+            <span 
+              className="text-[10px] font-mono text-gray-400 bg-white/5 border border-white/5 px-2 py-0.5 rounded-full hidden sm:inline"
+              title="Total de mensagens guardadas no histórico deste projeto"
+            >
+              {messages.length} msgs
+            </span>
+
+            {/* Limpar Histórico de Chat deste Projeto */}
+            <button
+              onClick={handleClearProjectChat}
+              className="p-1.5 rounded-lg text-gray-500 hover:text-red-400 hover:bg-white/5 transition cursor-pointer"
+              title="Reiniciar conversa deste projeto (mantém o código do site intacto)"
+            >
+              <RotateCw className="w-3.5 h-3.5" />
+            </button>
+
             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 ${
               isPublished 
                 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
@@ -1574,7 +1843,7 @@ export default function AiSiteBuilderStudio() {
               </button>
             )}
 
-            {/* BOTÃO EXPORTAR / BAIXAR HTML (Apenas Ícone com Tooltip) */}
+            {/* BOTÃO EXPORTAR / BAIXAR HTML */}
             <button
               onClick={handleDownloadHtml}
               className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 transition cursor-pointer"
@@ -1583,7 +1852,31 @@ export default function AiSiteBuilderStudio() {
               <Download className="w-4 h-4 text-emerald-400" />
             </button>
 
-            {/* BOTÃO OPEN IN NEW TAB (Apenas Ícone com Tooltip) */}
+            {/* BOTÃO EXPORTAR ZIP (HTML + CSS + README) */}
+            <button
+              onClick={handleDownloadZip}
+              disabled={isExportingZip || !displayedHtml}
+              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 transition cursor-pointer disabled:opacity-40"
+              title="Exportar como ZIP (HTML + CSS extraído + README)"
+            >
+              {isExportingZip ? (
+                <RefreshCw className="w-4 h-4 animate-spin text-amber-400" />
+              ) : (
+                <FolderArchive className="w-4 h-4 text-amber-400" />
+              )}
+            </button>
+
+            {/* BOTÃO PARTILHAR LINK DE PRÉ-VISUALIZAÇÃO */}
+            <button
+              onClick={handleOpenShareModal}
+              disabled={!displayedHtml}
+              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 transition cursor-pointer disabled:opacity-40"
+              title="Partilhar link de pré-visualização com clientes antes de publicar"
+            >
+              <Share2 className="w-4 h-4 text-blue-400" />
+            </button>
+
+            {/* BOTÃO OPEN IN NEW TAB */}
             <button
               onClick={handleOpenInNewTab}
               className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 transition cursor-pointer"
@@ -1762,16 +2055,116 @@ export default function AiSiteBuilderStudio() {
               </div>
             </div>
           ) : (
-            /* Visualizador de Código HTML */
+            /* Visualizador / Editor de Código HTML Inline */
             <div className="w-full h-full bg-[#0e0e11] border border-[#27272a] rounded-2xl overflow-hidden flex flex-col font-mono">
-              <div className="h-8 bg-[#111114] border-b border-[#27272a] flex items-center gap-2 px-3 shrink-0">
-                <span className="w-2.5 h-2.5 rounded-full bg-red-500/70" />
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-500/70" />
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/70" />
-                <span className="text-[10px] text-gray-500 ml-2">index.html</span>
+              <div className="h-9 bg-[#111114] border-b border-[#27272a] flex items-center justify-between px-3 shrink-0">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-red-500/70" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500/70" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/70" />
+                  <span className="text-[11px] text-gray-300 font-bold ml-2">index.html</span>
+                  <span className="text-[10px] text-gray-500 hidden sm:inline">
+                    {isEditingCode ? '— Modo Edição Direta' : '— Realce de Sintaxe'}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {editorSaveSuccess && (
+                    <span className="text-[10px] text-emerald-400 font-bold flex items-center gap-1 animate-in fade-in">
+                      <Check className="w-3 h-3" /> Salvo no Preview!
+                    </span>
+                  )}
+
+                  {isEditingCode ? (
+                    <>
+                      <button
+                        type="button"
+                        onClick={handleDiscardCodeEditing}
+                        className="px-2.5 py-1 rounded-lg text-[11px] font-medium text-gray-400 hover:text-white hover:bg-white/5 transition flex items-center gap-1 cursor-pointer"
+                        title="Descartar alterações não salvas"
+                      >
+                        <X className="w-3 h-3" />
+                        <span>Descartar</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleSaveEditedCode}
+                        className="px-3 py-1 rounded-lg text-[11px] font-bold bg-white text-black hover:bg-gray-200 transition flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer"
+                        title="Salvar alterações e aplicar ao preview (Ctrl+S)"
+                      >
+                        <Save className="w-3 h-3 text-black" />
+                        <span>Salvar & Aplicar</span>
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        onClick={handleStartCodeEditing}
+                        className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-blue-600 hover:bg-blue-500 text-white transition flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer"
+                        title="Editar o código HTML diretamente nesta aba"
+                      >
+                        <Edit3 className="w-3 h-3" />
+                        <span>Editar Código</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleCopyCode}
+                        className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition cursor-pointer"
+                        title={copiedCode ? 'Código Copiado!' : 'Copiar Código'}
+                      >
+                        {copiedCode ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
-              {/* Código com Syntax Highlighting estilo VS Code Dark+ */}
-              <CodeBlock code={displayedHtml} isStreaming={false} />
+
+              {/* Área de Visualização com Realce ou Área de Edição Interativa */}
+              {isEditingCode ? (
+                <div className="flex flex-1 overflow-hidden font-mono text-[11.5px] leading-[1.65] bg-[#09090b]">
+                  {/* Linhas numeradas sincronizadas */}
+                  <div
+                    className="select-none text-right pr-3 pl-3 pt-3 shrink-0 border-r border-white/5 text-gray-600 font-mono text-[11px] leading-[1.65] overflow-hidden"
+                    style={{ minWidth: '3.2rem', userSelect: 'none' }}
+                  >
+                    {(editedCode || '').split('\n').map((_, idx) => (
+                      <div key={idx}>{idx + 1}</div>
+                    ))}
+                  </div>
+
+                  {/* Textarea editável com suporte a Tab e atalhos */}
+                  <textarea
+                    value={editedCode}
+                    onChange={(e) => setEditedCode(e.target.value)}
+                    onKeyDown={(e) => {
+                      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                        e.preventDefault();
+                        handleSaveEditedCode();
+                      }
+                      if (e.key === 'Tab') {
+                        e.preventDefault();
+                        const target = e.currentTarget;
+                        const start = target.selectionStart;
+                        const end = target.selectionEnd;
+                        const val = target.value;
+                        setEditedCode(val.substring(0, start) + '  ' + val.substring(end));
+                        setTimeout(() => {
+                          target.selectionStart = target.selectionEnd = start + 2;
+                        }, 0);
+                      }
+                    }}
+                    spellCheck={false}
+                    autoCapitalize="off"
+                    autoCorrect="off"
+                    className="flex-1 w-full h-full p-3 bg-transparent text-[#e4e4e7] font-mono text-[11.5px] leading-[1.65] outline-none border-0 resize-none whitespace-pre overflow-auto focus:ring-0 selection:bg-blue-600 selection:text-white"
+                    placeholder="Escreva ou edite o seu código HTML aqui..."
+                  />
+                </div>
+              ) : (
+                /* Código com Syntax Highlighting estilo VS Code Dark+ */
+                <CodeBlock code={displayedHtml} isStreaming={false} />
+              )}
             </div>
           )}
         </div>
@@ -1905,6 +2298,89 @@ export default function AiSiteBuilderStudio() {
                 {isPublishing ? <RefreshCw className="w-4 h-4 animate-spin text-black" /> : <Globe className="w-4 h-4 text-black" />}
                 <span>{isPublished ? 'Atualizar Publicação' : 'Publicar Agora'}</span>
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL DE PARTILHA DE PRÉ-VISUALIZAÇÃO ────────────────────────── */}
+      {isShareModalOpen && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-[#121217] border border-[#27272a] rounded-3xl max-w-md w-full p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
+            <button
+              onClick={() => setIsShareModalOpen(false)}
+              className="absolute top-5 right-5 p-1 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-12 h-12 rounded-2xl bg-blue-600/20 text-blue-400 flex items-center justify-center shadow-lg shadow-blue-500/10">
+                <Share2 className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-white">Partilhar Pré-visualização</h3>
+                <p className="text-xs text-gray-400">Envie o link do site para clientes antes de publicar</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="text-[11px] font-bold text-gray-400 block mb-1.5">Link de Acesso Direto:</label>
+                <div className="flex items-center gap-2 bg-[#09090b] border border-[#27272a] rounded-xl p-2.5">
+                  <Globe className="w-4 h-4 text-blue-400 shrink-0" />
+                  <input
+                    type="text"
+                    readOnly
+                    value={previewShareUrl}
+                    className="bg-transparent text-xs text-gray-200 truncate flex-1 outline-none font-mono"
+                  />
+                  <button
+                    onClick={handleCopyShareUrl}
+                    className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 text-white font-bold text-xs transition cursor-pointer flex items-center gap-1 shrink-0"
+                  >
+                    {copiedShareLink ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-emerald-400" />
+                        <span className="text-emerald-400">Copiado</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>Copiar</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Botões de Ação Rápida */}
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                <button
+                  onClick={() => {
+                    const text = encodeURIComponent(`Olá! Veja a pré-visualização do site "${projectTitle}" criado no Studio AI: ${previewShareUrl}`);
+                    window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+                  }}
+                  className="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer shadow-sm active:scale-95"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  <span>WhatsApp</span>
+                </button>
+                <button
+                  onClick={() => window.open(previewShareUrl, '_blank')}
+                  className="py-2.5 px-3 rounded-xl bg-white/10 hover:bg-white/15 text-white font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer active:scale-95"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  <span>Abrir no Browser</span>
+                </button>
+              </div>
+
+              <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-3 text-[11px] text-blue-300 flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
+                <span>
+                  Este link público exibe o seu site em modo de teste em tempo real na nuvem WEHOSTHERE. Quando estiver pronto, use o botão <strong>Publicar</strong> para ativar o subdomínio oficial definitivo.
+                </span>
+              </div>
             </div>
           </div>
         </div>
