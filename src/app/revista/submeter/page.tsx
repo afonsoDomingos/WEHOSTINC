@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import {
   ArrowLeft, ArrowRight, Send, CheckCircle2, Upload, Sparkles, BookOpen,
@@ -370,21 +371,92 @@ export default function SubmeterHistoriaPage() {
         .sub-hero {
           background: linear-gradient(135deg, #FAF5FF 0%, #F3E8FF 50%, #ffffff 100%);
           border-bottom: 1px solid #E0AAFF;
-          padding: 3.5rem 1.5rem 2.5rem; text-align: center;
+          padding: 3rem 1.5rem 2.5rem;
+          position: relative;
+        }
+        .sub-hero-inner {
+          max-width: 1060px;
+          margin: 0 auto;
+          display: grid;
+          grid-template-columns: 1.15fr 0.85fr;
+          gap: 2.5rem;
+          align-items: center;
+          text-align: left;
         }
         .sub-hero-badge {
           display: inline-flex; align-items: center; gap: 0.4rem;
           background: #7B2CBF; color: #fff; font-size: 0.75rem; font-weight: 700;
           padding: 0.3rem 0.85rem; border-radius: 9999px; text-transform: uppercase;
-          letter-spacing: 0.06em; margin-bottom: 1rem;
+          letter-spacing: 0.06em; margin-bottom: 0.85rem;
         }
         .sub-hero-title {
-          font-size: 2.2rem; font-weight: 800; color: #0f172a;
+          font-size: 2.15rem; font-weight: 800; color: #0f172a;
           letter-spacing: -0.03em; margin: 0 0 0.75rem; line-height: 1.2;
         }
         .sub-hero-title span { color: #7B2CBF; }
         .sub-hero-desc {
-          max-width: 620px; margin: 0 auto; font-size: 0.95rem; color: #475569; line-height: 1.6;
+          max-width: 580px; font-size: 0.95rem; color: #475569; line-height: 1.6; margin: 0;
+        }
+        .sub-hero-banner-card {
+          position: relative;
+        }
+        .sub-hero-img-wrap {
+          position: relative;
+          border-radius: 20px;
+          overflow: hidden;
+          border: 2px solid #E0AAFF;
+          box-shadow: 0 12px 32px -4px rgba(123, 44, 191, 0.22);
+          background: #000;
+          aspect-ratio: 15 / 10;
+        }
+        .sub-hero-img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+          transition: transform 0.4s ease;
+        }
+        .sub-hero-img-wrap:hover .sub-hero-img {
+          transform: scale(1.03);
+        }
+        .sub-hero-img-overlay {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(180deg, transparent 60%, rgba(16, 0, 43, 0.7) 100%);
+          pointer-events: none;
+        }
+        .sub-hero-img-tag {
+          position: absolute;
+          bottom: 12px;
+          left: 12px;
+          background: rgba(16, 0, 43, 0.85);
+          backdrop-filter: blur(8px);
+          border: 1px solid rgba(224, 170, 255, 0.4);
+          color: #E0AAFF;
+          font-size: 0.74rem;
+          font-weight: 700;
+          padding: 0.3rem 0.75rem;
+          border-radius: 9999px;
+          letter-spacing: 0.04em;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.35rem;
+          z-index: 2;
+        }
+        @media (max-width: 860px) {
+          .sub-hero-inner {
+            grid-template-columns: 1fr;
+            text-align: center;
+            gap: 1.75rem;
+          }
+          .sub-hero-desc {
+            margin: 0 auto;
+          }
+          .sub-hero-banner-card {
+            max-width: 480px;
+            margin: 0 auto;
+            width: 100%;
+          }
         }
 
         .sub-container {
@@ -1165,7 +1237,7 @@ export default function SubmeterHistoriaPage() {
             </Link>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 800, fontSize: '0.95rem' }}>
               <span>WEHOSTHERE</span>
-              <span style={{ color: '#7B2CBF' }}>• CODANDO HISTÓRIAS</span>
+              <span style={{ color: '#7B2CBF' }}>• &lt;/&gt; CODANDO HISTÓRIAS</span>
             </div>
           </div>
         </nav>
@@ -1271,15 +1343,37 @@ export default function SubmeterHistoriaPage() {
           /* Formulário de Submissão */
           <>
             <header className="sub-hero">
-              <div className="sub-hero-badge">
-                <Sparkles size={12} /> Espaço da Comunidade
+              <div className="sub-hero-inner">
+                <div className="sub-hero-content">
+                  <div className="sub-hero-badge">
+                    <Sparkles size={12} /> Espaço da Comunidade
+                  </div>
+                  <h1 className="sub-hero-title">
+                    Conta a Tua História na <span>&lt;/&gt; Codando Histórias</span>
+                  </h1>
+                  <p className="sub-hero-desc">
+                    És programador, designer, fundador de startup ou entusiasta tech? Partilha o teu projecto, erros e lições reais. O teu conhecimento inspira outros criadores em Moçambique.
+                  </p>
+                </div>
+
+                <div className="sub-hero-banner-card">
+                  <div className="sub-hero-img-wrap">
+                    <Image
+                      src="/codando banner.jpg"
+                      alt="</> Codando Histórias"
+                      width={560}
+                      height={370}
+                      className="sub-hero-img"
+                      priority
+                    />
+                    <div className="sub-hero-img-overlay" />
+                    <div className="sub-hero-img-tag">
+                      <Code2 size={13} />
+                      <span>&lt;/&gt; Codando Histórias</span>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <h1 className="sub-hero-title">
-                Conta a Tua História na <span>Codando Histórias</span>
-              </h1>
-              <p className="sub-hero-desc">
-                És programador, designer, fundador de startup ou entusiasta tech? Partilha o teu projecto, erros e lições reais. O teu conhecimento inspira outros criadores em Moçambique.
-              </p>
             </header>
 
             <main className="sub-container">
