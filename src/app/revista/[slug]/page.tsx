@@ -1859,10 +1859,10 @@ export default function RevistaStoryPage() {
           left: 50%;
           transform: translateX(-50%);
           z-index: 90;
-          background: rgba(15, 23, 42, 0.88);
-          backdrop-filter: blur(10px);
-          -webkit-backdrop-filter: blur(10px);
-          border: 1px solid rgba(255, 255, 255, 0.12);
+          background: rgba(255, 255, 255, 0.04);
+          backdrop-filter: blur(18px) saturate(160%);
+          -webkit-backdrop-filter: blur(18px) saturate(160%);
+          border: 1px solid rgba(255, 255, 255, 0.10);
           border-radius: 9999px;
           padding: 0.25rem 0.5rem;
           display: flex;

@@ -1,16 +1,37 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { MessageSquareHeart, X } from 'lucide-react';
 import FeedbackForm from './FeedbackForm';
 
 // 5 minutos em milissegundos
 const FIVE_MINUTES_MS = 5 * 60 * 1000;
+// 60 segundos antes de auto-esconder
+const AUTO_HIDE_DELAY_MS = 60 * 1000;
 
 export default function FeedbackWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [isAssistantOpen, setIsAssistantOpen] = useState(false);
+  const autoHideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Iniciar timer de auto-hide
+  const startAutoHideTimer = () => {
+    clearAutoHideTimer();
+    autoHideTimerRef.current = setTimeout(() => {
+      setIsVisible(false);
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('wehost_feedback_dismissed', 'true');
+      }
+    }, AUTO_HIDE_DELAY_MS);
+  };
+
+  const clearAutoHideTimer = () => {
+    if (autoHideTimerRef.current) {
+      clearTimeout(autoHideTimerRef.current);
+      autoHideTimerRef.current = null;
+    }
+  };
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -45,6 +66,18 @@ export default function FeedbackWidget() {
     }
   }, []);
 
+  // Iniciar auto-hide timer quando o widget fica visível
+  useEffect(() => {
+    if (isVisible && !isOpen) {
+      startAutoHideTimer();
+    } else {
+      clearAutoHideTimer();
+    }
+
+    return () => clearAutoHideTimer();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isVisible, isOpen]);
+
   // Sincronizar com o estado do Assistente Virtual
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -70,6 +103,7 @@ export default function FeedbackWidget() {
 
   const handleDismiss = (e: React.MouseEvent) => {
     e.stopPropagation();
+    clearAutoHideTimer();
     setIsVisible(false);
     sessionStorage.setItem('wehost_feedback_dismissed', 'true');
   };
@@ -79,7 +113,11 @@ export default function FeedbackWidget() {
   return (
     <>
       {/* Floating Button com posição exclusiva empilhada acima do Assistente Virtual para nunca colidir */}
-      <div className="fixed bottom-[60px] sm:bottom-[68px] left-4 sm:left-5 z-40 animate-in fade-in slide-in-from-bottom-5 duration-500">
+      <div
+        className="fixed bottom-[60px] sm:bottom-[68px] left-4 sm:left-5 z-40 animate-in fade-in slide-in-from-bottom-5 duration-500"
+        onMouseEnter={clearAutoHideTimer}
+        onMouseLeave={() => { if (!isOpen) startAutoHideTimer(); }}
+      >
         <div className="relative group">
           <button
             type="button"

@@ -344,6 +344,7 @@ export default function AiSiteBuilderStudio() {
 
   // Estados da Conversa / Prompt
   const [prompt, setPrompt] = useState<string>('');
+  const [showTemplates, setShowTemplates] = useState<boolean>(false);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [elapsedThinkingSeconds, setElapsedThinkingSeconds] = useState<number>(0);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -1996,6 +1997,45 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
               {interactionMode === 'builder' ? 'Altera o site' : 'Não altera o site'}
             </span>
           </div>
+
+          {/* ── Templates / Modelos Prontos ── */}
+          {interactionMode === 'builder' && (
+            <div className="mb-2">
+              <button
+                type="button"
+                onClick={() => setShowTemplates(prev => !prev)}
+                className="flex items-center gap-1.5 text-[11px] text-gray-400 hover:text-white transition cursor-pointer mb-1.5 group"
+              >
+                <Sparkles className="w-3 h-3 text-amber-400 group-hover:animate-spin" />
+                <span className="font-semibold">Modelos prontos</span>
+                <ChevronDown className={`w-3 h-3 transition-transform ${showTemplates ? 'rotate-180' : ''}`} />
+              </button>
+              {showTemplates && (
+                <div className="grid grid-cols-2 gap-1.5 mb-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                  {[
+                    { icon: '💼', label: 'Freelancer / CV', prompt: 'Cria um site pessoal profissional para freelancer. Inclui secção Hero com foto, serviços oferecidos (Design, Web, Marketing), portfólio com exemplos, depoimentos de clientes, e formulário de contacto com número de WhatsApp. Design moderno com cores escuras e detalhes dourados.' },
+                    { icon: '🍽️', label: 'Restaurante', prompt: 'Cria um site para restaurante moçambicano chamado "Sabor do Mar". Inclui menu com categorias (Entradas, Pratos Principais, Bebidas, Sobremesas), galeria de pratos com fotos, horário de funcionamento, localização no mapa, e botão para reserva de mesa via WhatsApp. Design quente e acolhedor.' },
+                    { icon: '✂️', label: 'Barbearia / Salão', prompt: 'Cria um site para barbearia moderna chamada "Corte & Arte". Inclui galeria de cortes, lista de serviços com preços (em Meticais), sistema de agendamento via WhatsApp, depoimentos de clientes e localização. Design urbano e masculino com preto e dourado.' },
+                    { icon: '🛍️', label: 'Loja Online', prompt: 'Cria um site para loja de produtos variados. Inclui banner promocional, catálogo de produtos com imagens, preços em Meticais, botão de compra via WhatsApp, secção de ofertas especiais, e rodapé com redes sociais. Design colorido e apelativo.' },
+                    { icon: '🎯', label: 'Coach / Formador', prompt: 'Cria um site para coach profissional e formador. Inclui apresentação pessoal impactante, lista de programas e formações oferecidas, resultados de clientes anteriores (depoimentos), calendário de eventos próximos, e formulário de inscrição. Design inspirador com gradientes vibrantes.' },
+                    { icon: '🎨', label: 'Portfólio Criativo', prompt: 'Cria um portfólio criativo para designer ou fotógrafo. Inclui galeria de trabalhos em grelha, mini bio pessoal, secção de serviços e preços, botão de contacto e links para redes sociais. Design minimalista e elegante com muito espaço branco e tipografia moderna.' },
+                    { icon: '🎉', label: 'Eventos / Festa', prompt: 'Cria um site para empresa de organização de eventos chamada "Festa Total". Inclui galeria de eventos passados, tipos de eventos que organizam (Casamentos, Aniversários, Corporativo), formulário de pedido de orçamento, countdown para próximo evento, e contactos. Design festivo e animado.' },
+                    { icon: '🎵', label: 'Músico / Artista', prompt: 'Cria um site para músico ou artista moçambicano. Inclui bio artística, discografia com capas de álbuns, vídeos do YouTube embedidos, datas de espectáculos, galeria de fotos, e links para plataformas (Spotify, YouTube, Instagram). Design artístico com cores vibrantes e efeitos visuais.' },
+                  ].map(({ icon, label, prompt: tpl }) => (
+                    <button
+                      key={label}
+                      type="button"
+                      onClick={() => { setPrompt(tpl); setShowTemplates(false); }}
+                      className="flex items-center gap-2 p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] hover:border-white/20 text-left transition cursor-pointer group"
+                    >
+                      <span className="text-base shrink-0">{icon}</span>
+                      <span className="text-[11px] font-semibold text-gray-300 group-hover:text-white leading-tight">{label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           <form
             onSubmit={(e) => {
