@@ -390,6 +390,7 @@ export default function AiSiteBuilderStudio() {
 
   // Estados de Exportação e Partilha
   const [isExportingZip, setIsExportingZip] = useState<boolean>(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState<boolean>(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState<boolean>(false);
   const [copiedShareLink, setCopiedShareLink] = useState<boolean>(false);
 
@@ -2457,6 +2458,17 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
               <ExternalLink className="w-4 h-4 text-blue-400" />
             </button>
 
+            {/* BOTÃO EXPORTAR CÓDIGO (ZIP / HTML) */}
+            <button
+              onClick={() => setIsExportModalOpen(true)}
+              disabled={!displayedHtml}
+              className="flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 font-bold text-xs transition active:scale-95 cursor-pointer shrink-0 disabled:opacity-40"
+              title="Exportar código-fonte do website em ZIP ou HTML"
+            >
+              <Download className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Exportar</span>
+            </button>
+
             {/* BOTÃO PUBLICAR (Destaque Principal na cor Branca) */}
             <button
               onClick={() => setIsPublishModalOpen(true)}
@@ -3226,6 +3238,154 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
               >
                 <RotateCw className="w-3.5 h-3.5 text-black" />
                 <span>Limpar Conversa</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL DE EXPORTAÇÃO COMPLETA DE CÓDIGO (ZIP / HTML) ────────── */}
+      {isExportModalOpen && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-[#121217] border border-[#27272a] rounded-3xl max-w-lg w-full p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
+            <button
+              onClick={() => setIsExportModalOpen(false)}
+              className="absolute top-5 right-5 p-1 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-start gap-3.5 mb-5">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 shadow-lg shadow-emerald-500/10">
+                <Download className="w-6 h-6 text-emerald-400" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-white">Exportar Código-Fonte</h3>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  Descarregue o código do website para o seu computador ou hospede onde quiser.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-3 mb-5">
+              {/* Opção 1: Pacote Completo ZIP */}
+              <div className="p-4 rounded-2xl bg-[#18181b] border border-[#27272a] hover:border-amber-500/40 transition flex items-start justify-between gap-3 group">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
+                    <FolderArchive className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold text-white">Pacote Completo (.ZIP)</span>
+                      <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 uppercase tracking-wide">
+                        Recomendado
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-gray-400 mt-1 leading-relaxed">
+                      Inclui <code className="text-amber-300 font-mono">index.html</code>, pasta <code className="text-amber-300 font-mono">css/style.css</code> extraída e <code className="text-amber-300 font-mono">README.md</code> com instruções.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleDownloadZip}
+                  disabled={isExportingZip || !displayedHtml}
+                  className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-extrabold text-xs shadow-md transition active:scale-95 flex items-center gap-1.5 shrink-0 cursor-pointer disabled:opacity-40"
+                >
+                  {isExportingZip ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>A gerar...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Baixar .ZIP</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* Opção 2: Ficheiro Único HTML */}
+              <div className="p-4 rounded-2xl bg-[#18181b] border border-[#27272a] hover:border-emerald-500/40 transition flex items-start justify-between gap-3 group">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+                    <Code className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold text-white">Ficheiro HTML Único (.HTML)</span>
+                      <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 uppercase tracking-wide">
+                        Autónomo
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-gray-400 mt-1 leading-relaxed">
+                      Arquivo único com todo o HTML e CSS embutido. Dá duplo clique para abrir diretamente no navegador.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleDownloadHtml}
+                  disabled={!displayedHtml}
+                  className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white font-bold text-xs border border-white/10 transition active:scale-95 flex items-center gap-1.5 shrink-0 cursor-pointer disabled:opacity-40"
+                >
+                  <Download className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Baixar .HTML</span>
+                </button>
+              </div>
+
+              {/* Opção 3: Copiar Código */}
+              <div className="p-4 rounded-2xl bg-[#18181b] border border-[#27272a] hover:border-blue-500/40 transition flex items-start justify-between gap-3 group">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center shrink-0 mt-0.5">
+                    <Copy className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <span className="text-sm font-bold text-white">Copiar Código-Fonte</span>
+                    <p className="text-[11px] text-gray-400 mt-1 leading-relaxed">
+                      Copia todo o código gerado para colar diretamente no seu editor de código favorito (VS Code, Cursor, etc.).
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleCopyCode}
+                  disabled={!displayedHtml}
+                  className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white font-bold text-xs border border-white/10 transition active:scale-95 flex items-center gap-1.5 shrink-0 cursor-pointer disabled:opacity-40"
+                >
+                  {copiedCode ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-emerald-400" />
+                      <span className="text-emerald-400">Copiado!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>Copiar</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Dica da Plataforma */}
+            <div className="p-3.5 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-[11px] text-blue-300 leading-relaxed flex items-center justify-between gap-3">
+              <span>
+                💡 <strong>Dica:</strong> Pode publicar este website online instantaneamente na WEHOSTHERE com SSL gratuito e domínio próprio.
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsExportModalOpen(false);
+                  setIsPublishModalOpen(true);
+                }}
+                className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shrink-0 cursor-pointer"
+              >
+                Publicar Agora
               </button>
             </div>
           </div>
