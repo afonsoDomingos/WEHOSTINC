@@ -180,6 +180,7 @@ export default function RootLayout({
                 }
               ],
               "sameAs": [
+                "https://www.wikidata.org/wiki/Q141798199",
                 "https://www.facebook.com/wehosthere",
                 "https://www.instagram.com/wehosthere"
               ],
