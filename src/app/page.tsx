@@ -307,7 +307,7 @@ export default function Home() {
               <div className="relative rounded-2xl sm:rounded-3xl lg:rounded-[32px] overflow-hidden bg-slate-950 border border-slate-800/80 shadow-2xl group">
                 
                 {/* Robot Builder Banner Image */}
-                <div className="relative w-full h-[320px] sm:h-[420px] lg:h-[480px] overflow-hidden">
+                <div className="relative w-full h-[320px] sm:h-[440px] lg:h-[500px] overflow-hidden">
                   <Image
                     src="/bulder ai.jpg"
                     alt="WEHOSTHERE Construtor de Sites IA"
@@ -316,43 +316,6 @@ export default function Home() {
                     className="object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
                     priority
                   />
-                  {/* Subtle Cinematic Vignette Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/25 to-black/30 pointer-events-none" />
-                </div>
-
-                {/* Floating Glass Windows / Screens (Inspired by Meta reference layout) */}
-
-                {/* Top-Left Floating Prompt Card */}
-                <div className="absolute top-3 left-3 sm:top-5 sm:left-5 max-w-[260px] sm:max-w-sm backdrop-blur-xl bg-slate-950/80 border border-white/15 rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-2xl text-left transition-all duration-300 hover:border-blue-400/50">
-                  <div className="flex items-center justify-between gap-2 mb-1.5 sm:mb-2">
-                    <span className="inline-flex items-center gap-1.5 text-[9px] sm:text-[10px] font-bold text-sky-300 bg-sky-500/20 border border-sky-400/30 px-2 py-0.5 rounded-full uppercase tracking-wider">
-                      <Sparkles className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-sky-300 animate-pulse" />
-                      IA Generativa
-                    </span>
-                    <span className="flex items-center gap-1 text-[9px] sm:text-[10px] text-emerald-400 font-semibold">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                      {t('builder_promo.card_status')}
-                    </span>
-                  </div>
-                  <p className="text-[10px] sm:text-xs text-slate-200 font-medium leading-relaxed italic line-clamp-3">
-                    {t('builder_promo.card_prompt_text')}
-                  </p>
-                </div>
-
-                {/* Bottom-Left Floating Live Preview Tag */}
-                <div className="absolute bottom-3 left-3 sm:bottom-5 sm:left-5 flex flex-wrap items-center gap-2">
-                  <div className="backdrop-blur-xl bg-slate-950/85 border border-white/15 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl sm:rounded-2xl shadow-xl flex items-center gap-2 text-white">
-                    <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    <span className="text-[10px] sm:text-xs font-semibold">{t('builder_promo.live_preview')}</span>
-                  </div>
-                </div>
-
-                {/* Bottom-Right Floating Tech Specs Pill */}
-                <div className="absolute bottom-3 right-3 sm:bottom-5 sm:right-5 hidden sm:flex backdrop-blur-xl bg-slate-900/85 border border-white/15 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl sm:rounded-2xl shadow-xl items-center gap-2 text-white">
-                  <LayoutTemplate className="w-3.5 h-3.5 text-blue-400" />
-                  <span className="text-[10px] sm:text-xs font-mono font-medium text-slate-200">
-                    {t('builder_promo.card_badge_tech')}
-                  </span>
                 </div>
 
               </div>
