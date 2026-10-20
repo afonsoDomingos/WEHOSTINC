@@ -327,7 +327,7 @@ export default function Home() {
                   <div className="flex items-center justify-between gap-2 mb-1.5 sm:mb-2">
                     <span className="inline-flex items-center gap-1.5 text-[9px] sm:text-[10px] font-bold text-sky-300 bg-sky-500/20 border border-sky-400/30 px-2 py-0.5 rounded-full uppercase tracking-wider">
                       <Sparkles className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-sky-300 animate-pulse" />
-                      {t('builder_promo.badge')}
+                      IA Generativa
                     </span>
                     <span className="flex items-center gap-1 text-[9px] sm:text-[10px] text-emerald-400 font-semibold">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
@@ -361,70 +361,24 @@ export default function Home() {
             {/* Right Column — Clean Bold Typography & Call to Action (Meta Style) */}
             <div className="lg:col-span-5 flex flex-col items-start text-left">
               
-              {/* Badge */}
-              <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-200 text-blue-700 px-3.5 py-1.5 rounded-full text-xs font-bold mb-4 sm:mb-5 tracking-wide shadow-sm">
-                <LayoutTemplate className="w-3.5 h-3.5 text-blue-600" />
-                <span>{t('builder_promo.badge')}</span>
-              </div>
-
               {/* Headline */}
-              <h2 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 tracking-tight leading-tight sm:leading-[1.15] mb-4 sm:mb-5">
+              <h2 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-gray-900 tracking-tight leading-[1.1] mb-5">
                 {t('builder_promo.title')}
               </h2>
 
               {/* Description */}
-              <p className="text-sm sm:text-base lg:text-lg text-gray-600 leading-relaxed mb-6 sm:mb-8 font-normal">
+              <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-8 font-normal">
                 {t('builder_promo.desc')}
               </p>
 
-              {/* 3 Value Pillars */}
-              <div className="space-y-3.5 sm:space-y-4 mb-7 sm:mb-8 w-full">
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-blue-100 border border-blue-200 text-blue-700 flex items-center justify-center shrink-0 mt-0.5">
-                    <Zap className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm sm:text-base font-bold text-gray-900">{t('builder_promo.f1_title')}</h3>
-                    <p className="text-xs sm:text-sm text-gray-500 leading-snug">{t('builder_promo.f1_desc')}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-100 border border-emerald-200 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
-                    <Smartphone className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm sm:text-base font-bold text-gray-900">{t('builder_promo.f2_title')}</h3>
-                    <p className="text-xs sm:text-sm text-gray-500 leading-snug">{t('builder_promo.f2_desc')}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-purple-100 border border-purple-200 text-purple-700 flex items-center justify-center shrink-0 mt-0.5">
-                    <Code className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm sm:text-base font-bold text-gray-900">{t('builder_promo.f3_title')}</h3>
-                    <p className="text-xs sm:text-sm text-gray-500 leading-snug">{t('builder_promo.f3_desc')}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* CTA Button & Subtext */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
-                <Link
-                  href="/dashboard/builder"
-                  className="inline-flex items-center justify-center gap-2.5 bg-primary-600 hover:bg-primary-700 active:scale-95 text-white font-bold text-sm sm:text-base px-7 py-3.5 sm:py-4 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 group"
-                >
-                  <span>{t('builder_promo.btn')}</span>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </Link>
-              </div>
-
-              <p className="text-[11px] sm:text-xs text-gray-500 mt-3 font-medium flex items-center gap-1.5">
-                <CheckCircle className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                <span>{t('builder_promo.subtext')}</span>
-              </p>
+              {/* CTA Button */}
+              <Link
+                href="/dashboard/builder"
+                className="inline-flex items-center justify-center gap-2.5 bg-primary-600 hover:bg-primary-700 active:scale-95 text-white font-bold text-sm sm:text-base px-8 py-3.5 sm:py-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 group"
+              >
+                <span>{t('builder_promo.btn')}</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
 
             </div>
 
