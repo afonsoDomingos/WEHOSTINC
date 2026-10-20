@@ -7,7 +7,8 @@ import {
   Mail, Inbox, Send, Star, Trash2, Edit3, Search, RefreshCw, 
   ArrowLeft, CheckCircle2, ShieldCheck, User, Paperclip, Reply, Forward,
   FileText, LogOut, ChevronRight, X, AlertCircle, Sparkles, Clock, Printer, Download, Loader2, Filter, Maximize2, Minimize2, Bold, Italic, Underline, Type,
-  Wand2, Bot, FileSignature, Lightbulb, Check, Wifi, WifiOff, Pin, PinOff, Flag, Flame, Lock, Key, Eye, EyeOff
+  Wand2, Bot, FileSignature, Lightbulb, Check, Wifi, WifiOff, Pin, PinOff, Flag, Flame, Lock, Key, Eye, EyeOff,
+  Bell, Calendar, TrendingUp, LayoutGrid
 } from 'lucide-react';
 import { auth, User as AuthUser } from '@/lib/auth';
 import { dataManager, EmailAccount } from '@/lib/data';
@@ -18,6 +19,24 @@ import BrandLogo from '@/components/BrandLogo';
 import PageLoader from '@/components/PageLoader';
 import { apiEndpoint } from '@/lib/siteConfig';
 import dynamic from 'next/dynamic';
+
+const templateCategoryIcons: Record<string, React.ElementType> = {
+  'Boas-vindas': Sparkles,
+  'Welcome': Sparkles,
+  'Vendas': TrendingUp,
+  'Sales': TrendingUp,
+  'Suporte': ShieldCheck,
+  'Support': ShieldCheck,
+  'Reuniões': Calendar,
+  'Meetings': Calendar,
+  'Notificações': Bell,
+  'Notifications': Bell,
+  'Pessoal': User,
+  'Personal': User,
+  'Marketing': Lightbulb,
+  'Tables': FileText,
+  'Tabelas': FileText,
+};
 
 // Dynamic import for React Quill to avoid SSR issues
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
@@ -2544,7 +2563,10 @@ function WebmailContent() {
                             : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
                         }`}
                       >
-                        {templateLanguage === 'pt' ? '📋 Todas' : '📋 All'}
+                        <span className="inline-flex items-center gap-1.5">
+                          <LayoutGrid className="h-3 w-3" />
+                          {templateLanguage === 'pt' ? 'Todas' : 'All'}
+                        </span>
                       </button>
                       {getDisplayCategories().map(cat => (
                         <button
@@ -2564,25 +2586,30 @@ function WebmailContent() {
 
                     {/* Template Grid */}
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-64 overflow-y-auto">
-                      {getFilteredTemplates().map(template => (
-                        <button
-                          key={template.id}
-                          type="button"
-                          onClick={() => handleSelectTemplate(template)}
-                          className="p-4 bg-white rounded-xl border border-gray-200 hover:border-primary-300 hover:shadow-md transition text-left group"
-                        >
-                          <div className="text-2xl mb-2">{template.icon}</div>
-                          <div className="text-xs font-bold text-gray-800 truncate mb-1">
-                            {templateLanguage === 'pt' ? template.name : template.nameEN}
-                          </div>
-                          <div className="text-[10px] text-gray-500 truncate mb-2">
-                            {templateLanguage === 'pt' ? template.category : template.categoryEN}
-                          </div>
-                          <div className="text-[9px] text-gray-400 line-clamp-2">
-                            {templateLanguage === 'pt' ? template.subject : template.subjectEN}
-                          </div>
-                        </button>
-                      ))}
+                      {getFilteredTemplates().map(template => {
+                        const IconComp = templateCategoryIcons[template.category] || templateCategoryIcons[template.categoryEN] || FileText;
+                        return (
+                          <button
+                            key={template.id}
+                            type="button"
+                            onClick={() => handleSelectTemplate(template)}
+                            className="p-4 bg-white rounded-xl border border-gray-200 hover:border-primary-300 hover:shadow-md transition text-left group"
+                          >
+                            <div className="w-8 h-8 rounded-lg bg-primary-50 border border-primary-100 flex items-center justify-center text-primary-600 mb-2 group-hover:scale-105 transition-transform">
+                              <IconComp className="h-4 w-4" />
+                            </div>
+                            <div className="text-xs font-bold text-gray-800 truncate mb-1">
+                              {templateLanguage === 'pt' ? template.name : template.nameEN}
+                            </div>
+                            <div className="text-[10px] text-gray-500 truncate mb-2">
+                              {templateLanguage === 'pt' ? template.category : template.categoryEN}
+                            </div>
+                            <div className="text-[9px] text-gray-400 line-clamp-2">
+                              {templateLanguage === 'pt' ? template.subject : template.subjectEN}
+                            </div>
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 )}

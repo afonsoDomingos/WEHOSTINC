@@ -9,7 +9,7 @@ import {
   Download, Share2, Calendar, Filter, RefreshCw, Wallet,
   ArrowUpRight, Eye, ShoppingCart, Home, BarChart3, Gift, HelpCircle,
   Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin, ArrowLeft,
-  UserCheck, UserPlus, Sparkles, ShieldCheck
+  UserCheck, UserPlus, Sparkles, ShieldCheck, Rocket, Percent, CreditCard, AlertTriangle
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 import { getUserId, getAffiliateUserInfo, isAffiliateAuthenticated } from '@/lib/affiliateAuth';
@@ -467,26 +467,29 @@ export default function AffiliatesPage() {
             <div className="p-4 sm:p-6 md:p-8">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-6 sm:mb-8">
                 {[
-                  { icon: '🚀', title: 'Comece a ganhar', desc: 'Torne-se afiliado e tenha acesso ao seu link de indicação' },
-                  { icon: '🔗', title: 'Compartilhe seu link único', desc: 'Divulgue seu link personalizado e acompanhe as vendas geradas' },
-                  { icon: '💰', title: 'Ganhe 30% de cada venda', desc: 'Receba 30% de comissão pelas vendas realizadas através do seu link' },
-                  { icon: '💳', title: 'Receba suas comissões', desc: 'Quando atingir 1.000 MZN, poderá solicitar o levantamento das suas comissões' },
-                ].map((benefit, index) => (
-                  <div
-                    key={index}
-                    className="group bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-xl p-3 sm:p-4 hover:shadow-lg hover:border-primary-300 transition-all duration-300 hover:-translate-y-1"
-                  >
-                    <div className="flex items-start space-x-2 sm:space-x-3">
-                      <div className="text-xl sm:text-2xl group-hover:scale-110 transition-transform duration-300">
-                        {benefit.icon}
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-gray-900 text-xs sm:text-sm mb-0.5">{benefit.title}</h3>
-                        <p className="text-[10px] sm:text-xs text-gray-600">{benefit.desc}</p>
+                  { icon: Rocket, color: 'text-primary-600 bg-primary-50 border-primary-100', title: 'Comece a ganhar', desc: 'Torne-se afiliado e tenha acesso ao seu link de indicação' },
+                  { icon: Share2, color: 'text-blue-600 bg-blue-50 border-blue-100', title: 'Compartilhe seu link único', desc: 'Divulgue seu link personalizado e acompanhe as vendas geradas' },
+                  { icon: Percent, color: 'text-emerald-600 bg-emerald-50 border-emerald-100', title: 'Ganhe 30% de cada venda', desc: 'Receba 30% de comissão pelas vendas realizadas através do seu link' },
+                  { icon: Wallet, color: 'text-violet-600 bg-violet-50 border-violet-100', title: 'Receba suas comissões', desc: 'Quando atingir 1.000 MZN, poderá solicitar o levantamento das suas comissões' },
+                ].map((benefit, index) => {
+                  const IconComp = benefit.icon;
+                  return (
+                    <div
+                      key={index}
+                      className="group bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-xl p-3 sm:p-4 hover:shadow-lg hover:border-primary-300 transition-all duration-300 hover:-translate-y-1"
+                    >
+                      <div className="flex items-start space-x-2 sm:space-x-3">
+                        <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl border flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-300 ${benefit.color}`}>
+                          <IconComp className="h-4 w-4 sm:h-5 sm:w-5" />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-gray-900 text-xs sm:text-sm mb-0.5">{benefit.title}</h3>
+                          <p className="text-[10px] sm:text-xs text-gray-600">{benefit.desc}</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* CTA Button */}
@@ -717,7 +720,10 @@ export default function AffiliatesPage() {
                     <Phone className="h-5 w-5 text-blue-600 mt-0.5" />
                   </div>
                   <div className="flex-1">
-                    <h4 className="text-sm font-bold text-blue-900 mb-2">💰 Recebimento de Comissões</h4>
+                    <h4 className="text-sm font-bold text-blue-900 mb-2 flex items-center gap-1.5">
+                      <Wallet className="h-4 w-4 text-blue-600" />
+                      Recebimento de Comissões
+                    </h4>
                     <p className="text-xs text-blue-800 leading-relaxed">
                       Você receberá suas comissões através do número configurado abaixo.
                       Quando atingir <strong>1.000 MZN</strong> em saldo disponível, poderá solicitar o saque.
@@ -841,12 +847,18 @@ export default function AffiliatesPage() {
                         <Phone className="h-5 w-5 text-blue-600 mt-0.5" />
                       </div>
                       <div className="flex-1">
-                        <h4 className="text-sm font-bold text-blue-900 mb-2">💰 Recebimento de Comissões</h4>
+                        <h4 className="text-sm font-bold text-blue-900 mb-2 flex items-center gap-1.5">
+                          <Wallet className="h-4 w-4 text-blue-600" />
+                          Recebimento de Comissões
+                        </h4>
                         <p className="text-xs text-blue-800 leading-relaxed">
                           Após verificar seu telefone, você receberá suas comissões através desse número quando atingir <strong>1.000 MZN</strong> em saldo disponível.
                         </p>
-                        <p className="text-xs text-blue-700 mt-2 border-t border-blue-200 pt-2">
-                          <strong>⚠️ Importante:</strong> Se quiser mudar este número no futuro, precisará pagar uma taxa de <strong>2 MZN</strong> para o novo número ser verificado (teste de segurança).
+                        <p className="text-xs text-blue-700 mt-2 border-t border-blue-200 pt-2 flex items-center gap-1">
+                          <strong className="inline-flex items-center gap-1 text-amber-700">
+                            <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />
+                            Importante:
+                          </strong> Se quiser mudar este número no futuro, precisará pagar uma taxa de <strong>2 MZN</strong> para o novo número ser verificado (teste de segurança).
                         </p>
                       </div>
                     </div>

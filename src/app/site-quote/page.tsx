@@ -24,11 +24,11 @@ const complexityLabels: Record<string, { label: string; color: string; active: s
 };
 
 const priceRanges = [
-  { id: 'all', label: 'Todos os preços', icon: '💰', fn: null },
-  { id: 'low', label: 'Até 20.000 MT', icon: '🟢', fn: (p: number) => p < 20000 },
-  { id: 'mid', label: '20.000 – 60.000 MT', icon: '🟡', fn: (p: number) => p >= 20000 && p < 60000 },
-  { id: 'high', label: '+60.000 MT', icon: '🟠', fn: (p: number) => p >= 60000 && p < 100000 },
-  { id: 'orcamento', label: 'Sob orçamento', icon: '🔵', fn: (p: number) => p >= 100000 }
+  { id: 'all', label: 'Todos os preços', dotColor: 'bg-primary-500', fn: null },
+  { id: 'low', label: 'Até 20.000 MT', dotColor: 'bg-emerald-500', fn: (p: number) => p < 20000 },
+  { id: 'mid', label: '20.000 – 60.000 MT', dotColor: 'bg-amber-500', fn: (p: number) => p >= 20000 && p < 60000 },
+  { id: 'high', label: '+60.000 MT', dotColor: 'bg-orange-500', fn: (p: number) => p >= 60000 && p < 100000 },
+  { id: 'orcamento', label: 'Sob orçamento', dotColor: 'bg-blue-500', fn: (p: number) => p >= 100000 }
 ];
 
 // Mapa de ícones Lucide por tipo de website
@@ -277,7 +277,7 @@ function SiteQuoteContent() {
                         : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
                     }`}
                   >
-                    <span className="mr-1">{range.icon}</span>
+                    <span className={`inline-block w-2 h-2 rounded-full mr-1.5 ${priceFilter === range.id ? 'bg-white' : range.dotColor}`} />
                     {range.label}
                   </button>
                 ))}

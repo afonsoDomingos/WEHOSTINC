@@ -4,7 +4,13 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-import { Server, ArrowLeft, ArrowRight, CheckCircle2, Clock, Search, SlidersHorizontal, X } from 'lucide-react';
+import {
+  Server, ArrowLeft, ArrowRight, CheckCircle2, Clock, Search, SlidersHorizontal, X,
+  Building2, ShoppingCart, Settings, Target, Monitor, Home, CalendarDays,
+  GraduationCap, HeartPulse, Plane, BookOpen, Briefcase, Palette, PenLine,
+  Tv2, Newspaper, Landmark, Handshake, Truck, UtensilsCrossed, Car,
+  DollarSign, Scale, Stethoscope, BarChart3, Globe
+} from 'lucide-react';
 import { websiteTypes, WebsiteType } from '@/lib/data';
 import DashboardNav from '@/components/DashboardNav';
 import DashboardSidebar from '@/components/DashboardSidebar';
@@ -21,12 +27,41 @@ const complexityLabels: Record<string, { label: string; color: string; active: s
 };
 
 const priceRanges = [
-  { id: 'all', label: 'Todos os preços', icon: '💰', fn: null },
-  { id: 'low', label: 'Até 20.000 MT', icon: '🟢', fn: (p: number) => p < 20000 },
-  { id: 'mid', label: '20.000 – 60.000 MT', icon: '🟡', fn: (p: number) => p >= 20000 && p < 60000 },
-  { id: 'high', label: '+60.000 MT', icon: '🟠', fn: (p: number) => p >= 60000 && p < 100000 },
-  { id: 'orcamento', label: 'Sob orçamento', icon: '🔵', fn: (p: number) => p >= 100000 }
+  { id: 'all', label: 'Todos os preços', dotColor: 'bg-primary-500', fn: null },
+  { id: 'low', label: 'Até 20.000 MT', dotColor: 'bg-emerald-500', fn: (p: number) => p < 20000 },
+  { id: 'mid', label: '20.000 – 60.000 MT', dotColor: 'bg-amber-500', fn: (p: number) => p >= 20000 && p < 60000 },
+  { id: 'high', label: '+60.000 MT', dotColor: 'bg-orange-500', fn: (p: number) => p >= 60000 && p < 100000 },
+  { id: 'orcamento', label: 'Sob orçamento', dotColor: 'bg-blue-500', fn: (p: number) => p >= 100000 }
 ];
+
+// Mapa de ícones Lucide por tipo de website
+const websiteTypeIcons: Record<string, React.ElementType> = {
+  institutional: Building2,
+  ecommerce: ShoppingCart,
+  webapp: Settings,
+  landing: Target,
+  saas: Monitor,
+  realestate: Home,
+  events: CalendarDays,
+  elearning: GraduationCap,
+  health: HeartPulse,
+  tourism: Plane,
+  education: BookOpen,
+  jobs: Briefcase,
+  portfolio: Palette,
+  blog: PenLine,
+  streaming: Tv2,
+  news: Newspaper,
+  government: Landmark,
+  ngo: Handshake,
+  logistics: Truck,
+  restaurant: UtensilsCrossed,
+  automotive: Car,
+  finance: DollarSign,
+  legal: Scale,
+  medical: Stethoscope,
+  analytics: BarChart3,
+};
 
 const WhatsAppIcon = ({ className = "h-4 w-4" }: { className?: string }) => (
   <svg className={className} fill="currentColor" viewBox="0 0 24 24">
@@ -308,7 +343,7 @@ function SiteQuoteContent() {
                         : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-primary-300 hover:text-primary-700'
                     }`}
                   >
-                    <span>{range.icon}</span>
+                    <span className={`w-2 h-2 rounded-full ${priceFilter === range.id ? 'bg-white' : range.dotColor}`} />
                     <span>{range.label}</span>
                   </button>
                 ))}
@@ -345,7 +380,7 @@ function SiteQuoteContent() {
         {/* Grid */}
         {filtered.length === 0 ? (
           <div className="text-center py-16">
-            <div className="text-5xl mb-3">🔍</div>
+            <Search className="h-12 w-12 text-gray-300 mx-auto mb-3" />
             <p className="text-gray-600 font-semibold text-lg">Nenhum tipo de site encontrado.</p>
             <p className="text-gray-400 text-sm mt-1">Tente outros termos ou remova os filtros.</p>
             <button
@@ -360,6 +395,7 @@ function SiteQuoteContent() {
             {filtered.map((type) => {
               const cx = complexityLabels[type.complexity];
               const isSelected = selected?.id === type.id;
+              const IconComponent = websiteTypeIcons[type.id] || Globe;
               return (
                 <button
                   key={type.id}
@@ -373,7 +409,9 @@ function SiteQuoteContent() {
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center space-x-3">
-                      <span className="text-3xl">{type.emoji}</span>
+                      <div className="w-12 h-12 rounded-2xl bg-primary-50 border border-primary-100 flex items-center justify-center text-primary-600 flex-shrink-0">
+                        <IconComponent className="h-6 w-6" />
+                      </div>
                       <div>
                         <h3 className="font-bold text-sm text-gray-900 leading-tight">{type.name}</h3>
                         <p className="text-xs text-gray-500 mt-0.5 leading-tight">{type.shortDesc}</p>
@@ -415,7 +453,14 @@ function SiteQuoteContent() {
         <div className="fixed bottom-0 left-0 right-0 z-40 px-4 pb-4">
           <div className="max-w-4xl mx-auto bg-white rounded-3xl border-2 border-primary-500 shadow-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div className="flex items-start space-x-4 flex-1 min-w-0">
-              <span className="text-3xl flex-shrink-0">{selected.emoji}</span>
+              {(() => {
+                const SelectedIcon = websiteTypeIcons[selected.id] || Globe;
+                return (
+                  <div className="w-10 h-10 rounded-xl bg-primary-50 border border-primary-200 flex items-center justify-center text-primary-600 flex-shrink-0">
+                    <SelectedIcon className="h-5 w-5" />
+                  </div>
+                );
+              })()}
               <div className="flex-1 min-w-0">
                 <h3 className="font-extrabold text-gray-900 text-sm">{selected.name}</h3>
                 <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{selected.description}</p>
