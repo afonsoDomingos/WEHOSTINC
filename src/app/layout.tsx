@@ -152,7 +152,7 @@ export default function RootLayout({
                 "height": 60
               },
               "description": "WEHOSTHERE é o principal provedor de hospedagem web, registo de domínios e serviços digitais de Moçambique. Oferecemos hosting partilhado, VPS, email corporativo, construtor de sites com IA e soluções de e-commerce para empresas em Moçambique, África e no mundo.",
-              "foundingDate": "2020",
+              "foundingDate": "2026",
               "foundingLocation": {
                 "@type": "Place",
                 "name": "Maputo, Moçambique"
