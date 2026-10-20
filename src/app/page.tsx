@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from "next/link";
 import Image from "next/image";
-import { Server, Mail, Shield, ShieldCheck, Activity, Smartphone, Zap, Globe, Users, Search, Sparkles, CheckCircle, Facebook, Phone, Linkedin, Star, ArrowRight, Play, Calendar, Eye, Instagram, ChevronLeft, ChevronRight } from "lucide-react";
+import { Server, Mail, Shield, ShieldCheck, Activity, Smartphone, Zap, Globe, Users, Search, Sparkles, CheckCircle, Facebook, Phone, Linkedin, Star, ArrowRight, Play, Calendar, Eye, Instagram, ChevronLeft, ChevronRight, LayoutTemplate, Code } from "lucide-react";
 import MZ from 'country-flag-icons/react/3x2/MZ';
 import { websiteTypes } from '@/lib/data';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
@@ -104,6 +104,7 @@ export default function Home() {
 
   // Refs para scroll reveal das outras seções
   const featuresRef = useScrollAnimation<HTMLDivElement>();
+  const builderPromoRef = useScrollAnimation<HTMLDivElement>();
   const pricingRef = useScrollAnimation<HTMLDivElement>();
   const siteCreationRef = useScrollAnimation<HTMLDivElement>();
   const systemsRentRef = useScrollAnimation<HTMLDivElement>();
@@ -288,6 +289,234 @@ export default function Home() {
               <h3 className="text-sm sm:text-base lg:text-lg font-bold text-gray-900 mb-1 group-hover:text-purple-700 transition-colors">{t('features.support_title')}</h3>
               <p className="text-xs sm:text-sm text-gray-500 leading-tight">{t('features.support_desc')}</p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 🚀 AI Builder Promo Section — Meta Style */}
+      <section id="construtor-ia" ref={builderPromoRef} className="anim-fade-up py-10 sm:py-20 px-3 sm:px-6 lg:px-8 bg-gradient-to-b from-white via-slate-50 to-blue-50/40 overflow-hidden">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
+            
+            {/* Left Column — Immersive Visual Showcase (Meta Style with bulder ai.jpg) */}
+            <div className="lg:col-span-7 relative">
+              {/* Outer Glow / Ambient Lighting */}
+              <div className="absolute -inset-3 bg-gradient-to-r from-blue-600/20 via-sky-500/20 to-indigo-600/20 rounded-[36px] blur-2xl opacity-75 group-hover:opacity-100 transition duration-1000 -z-10" />
+
+              {/* Main Showcase Card */}
+              <div className="relative rounded-2xl sm:rounded-3xl lg:rounded-[32px] overflow-hidden bg-slate-950 border border-slate-800/80 shadow-2xl group">
+                
+                {/* Robot Builder Banner Image */}
+                <div className="relative w-full h-[320px] sm:h-[420px] lg:h-[480px] overflow-hidden">
+                  <Image
+                    src="/bulder ai.jpg"
+                    alt="WEHOSTHERE Construtor de Sites IA"
+                    fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 60vw, 720px"
+                    className="object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
+                    priority
+                  />
+                  {/* Subtle Cinematic Vignette Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/25 to-black/30 pointer-events-none" />
+                </div>
+
+                {/* Floating Glass Windows / Screens (Inspired by Meta reference layout) */}
+
+                {/* Top-Left Floating Prompt Card */}
+                <div className="absolute top-3 left-3 sm:top-5 sm:left-5 max-w-[260px] sm:max-w-sm backdrop-blur-xl bg-slate-950/80 border border-white/15 rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-2xl text-left transition-all duration-300 hover:border-blue-400/50">
+                  <div className="flex items-center justify-between gap-2 mb-1.5 sm:mb-2">
+                    <span className="inline-flex items-center gap-1.5 text-[9px] sm:text-[10px] font-bold text-sky-300 bg-sky-500/20 border border-sky-400/30 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                      <Sparkles className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-sky-300 animate-pulse" />
+                      {t('builder_promo.badge')}
+                    </span>
+                    <span className="flex items-center gap-1 text-[9px] sm:text-[10px] text-emerald-400 font-semibold">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                      {t('builder_promo.card_status')}
+                    </span>
+                  </div>
+                  <p className="text-[10px] sm:text-xs text-slate-200 font-medium leading-relaxed italic line-clamp-3">
+                    {t('builder_promo.card_prompt_text')}
+                  </p>
+                </div>
+
+                {/* Bottom-Left Floating Live Preview Tag */}
+                <div className="absolute bottom-3 left-3 sm:bottom-5 sm:left-5 flex flex-wrap items-center gap-2">
+                  <div className="backdrop-blur-xl bg-slate-950/85 border border-white/15 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl sm:rounded-2xl shadow-xl flex items-center gap-2 text-white">
+                    <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="text-[10px] sm:text-xs font-semibold">{t('builder_promo.live_preview')}</span>
+                  </div>
+                </div>
+
+                {/* Bottom-Right Floating Tech Specs Pill */}
+                <div className="absolute bottom-3 right-3 sm:bottom-5 sm:right-5 hidden sm:flex backdrop-blur-xl bg-slate-900/85 border border-white/15 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl sm:rounded-2xl shadow-xl items-center gap-2 text-white">
+                  <LayoutTemplate className="w-3.5 h-3.5 text-blue-400" />
+                  <span className="text-[10px] sm:text-xs font-mono font-medium text-slate-200">
+                    {t('builder_promo.card_badge_tech')}
+                  </span>
+                </div>
+
+              </div>
+            </div>
+
+            {/* Right Column — Clean Bold Typography & Call to Action (Meta Style) */}
+            <div className="lg:col-span-5 flex flex-col items-start text-left">
+              
+              {/* Badge */}
+              <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-200 text-blue-700 px-3.5 py-1.5 rounded-full text-xs font-bold mb-4 sm:mb-5 tracking-wide shadow-sm">
+                <LayoutTemplate className="w-3.5 h-3.5 text-blue-600" />
+                <span>{t('builder_promo.badge')}</span>
+              </div>
+
+              {/* Headline */}
+              <h2 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 tracking-tight leading-tight sm:leading-[1.15] mb-4 sm:mb-5">
+                {t('builder_promo.title')}
+              </h2>
+
+              {/* Description */}
+              <p className="text-sm sm:text-base lg:text-lg text-gray-600 leading-relaxed mb-6 sm:mb-8 font-normal">
+                {t('builder_promo.desc')}
+              </p>
+
+              {/* 3 Value Pillars */}
+              <div className="space-y-3.5 sm:space-y-4 mb-7 sm:mb-8 w-full">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-blue-100 border border-blue-200 text-blue-700 flex items-center justify-center shrink-0 mt-0.5">
+                    <Zap className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm sm:text-base font-bold text-gray-900">{t('builder_promo.f1_title')}</h3>
+                    <p className="text-xs sm:text-sm text-gray-500 leading-snug">{t('builder_promo.f1_desc')}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-100 border border-emerald-200 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
+                    <Smartphone className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm sm:text-base font-bold text-gray-900">{t('builder_promo.f2_title')}</h3>
+                    <p className="text-xs sm:text-sm text-gray-500 leading-snug">{t('builder_promo.f2_desc')}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-purple-100 border border-purple-200 text-purple-700 flex items-center justify-center shrink-0 mt-0.5">
+                    <Code className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm sm:text-base font-bold text-gray-900">{t('builder_promo.f3_title')}</h3>
+                    <p className="text-xs sm:text-sm text-gray-500 leading-snug">{t('builder_promo.f3_desc')}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* CTA Button & Subtext */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+                <Link
+                  href="/dashboard/builder"
+                  className="inline-flex items-center justify-center gap-2.5 bg-primary-600 hover:bg-primary-700 active:scale-95 text-white font-bold text-sm sm:text-base px-7 py-3.5 sm:py-4 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 group"
+                >
+                  <span>{t('builder_promo.btn')}</span>
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </Link>
+              </div>
+
+              <p className="text-[11px] sm:text-xs text-gray-500 mt-3 font-medium flex items-center gap-1.5">
+                <CheckCircle className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                <span>{t('builder_promo.subtext')}</span>
+              </p>
+
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* 🕶️ Dual Card Showcase — Meta Style (bulderai2.jpg & bulderai03.jpg) */}
+      <section className="py-6 sm:py-12 px-3 sm:px-6 lg:px-8 bg-white overflow-hidden">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
+            
+            {/* Card 1: bulderai2.jpg (Futuristic AI Visor / Vision) */}
+            <div className="relative rounded-2xl sm:rounded-3xl lg:rounded-[36px] overflow-hidden h-[460px] sm:h-[540px] lg:h-[620px] shadow-2xl group border border-slate-200/80 bg-slate-950 flex flex-col justify-end p-6 sm:p-10 text-center">
+              <Image
+                src="/bulderai2.jpg"
+                alt="Inteligência Artificial WEHOSTHERE"
+                fill
+                sizes="(max-width: 768px) 100vw, 50vw"
+                className="object-cover object-top group-hover:scale-105 transition-transform duration-700 ease-out"
+                priority
+              />
+              {/* Bottom Gradient Overlay for High Contrast Text */}
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/40 to-transparent pointer-events-none" />
+
+              {/* Overlaid Content */}
+              <div className="relative z-10 flex flex-col items-center">
+                <span className="text-xs sm:text-sm font-semibold text-slate-300 mb-1.5 tracking-wide">
+                  Inteligência Artificial Nativa
+                </span>
+                <h3 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white mb-5 tracking-tight max-w-md">
+                  Construção Inteligente em Tempo Real
+                </h3>
+                
+                {/* Meta-style Action Buttons */}
+                <div className="flex items-center justify-center gap-3">
+                  <Link
+                    href="/dashboard/builder"
+                    className="bg-primary-600 hover:bg-primary-500 text-white font-bold text-xs sm:text-sm px-6 py-2.5 rounded-full shadow-lg transition active:scale-95"
+                  >
+                    Criar com IA
+                  </Link>
+                  <Link
+                    href="#construtor-ia"
+                    className="bg-[#f5d0c5]/90 hover:bg-[#f5d0c5] text-slate-900 font-bold text-xs sm:text-sm px-6 py-2.5 rounded-full shadow-md transition active:scale-95"
+                  >
+                    Saber mais
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 2: bulderai03.jpg (Futuristic Workspace & Studio) */}
+            <div className="relative rounded-2xl sm:rounded-3xl lg:rounded-[36px] overflow-hidden h-[460px] sm:h-[540px] lg:h-[620px] shadow-2xl group border border-slate-200/80 bg-slate-950 flex flex-col justify-end p-6 sm:p-10 text-center">
+              <Image
+                src="/bulderai03.jpg"
+                alt="Espaço Criativo WEHOSTHERE"
+                fill
+                sizes="(max-width: 768px) 100vw, 50vw"
+                className="object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
+                priority
+              />
+              {/* Bottom Gradient Overlay for High Contrast Text */}
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/40 to-transparent pointer-events-none" />
+
+              {/* Overlaid Content */}
+              <div className="relative z-10 flex flex-col items-center">
+                <span className="text-xs sm:text-sm font-semibold text-slate-300 mb-1.5 tracking-wide">
+                  Estúdio Visual & Código
+                </span>
+                <h3 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white mb-5 tracking-tight max-w-md">
+                  O Seu Estúdio Web Sem Limites
+                </h3>
+
+                {/* Meta-style Action Buttons */}
+                <div className="flex items-center justify-center gap-3">
+                  <Link
+                    href="/dashboard/builder"
+                    className="bg-primary-600 hover:bg-primary-500 text-white font-bold text-xs sm:text-sm px-6 py-2.5 rounded-full shadow-lg transition active:scale-95"
+                  >
+                    Explorar Studio
+                  </Link>
+                  <Link
+                    href="#construtor-ia"
+                    className="bg-[#f5d0c5]/90 hover:bg-[#f5d0c5] text-slate-900 font-bold text-xs sm:text-sm px-6 py-2.5 rounded-full shadow-md transition active:scale-95"
+                  >
+                    Saber mais
+                  </Link>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </section>

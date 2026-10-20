@@ -322,6 +322,92 @@ interface SavedProject {
   versions?: { versionNumber: number; htmlContent: string; prompt?: string; createdAt: string }[];
 }
 
+const DEMO_STARTER_HTML = `<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NexusTech — Inovação Digital</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 antialiased min-h-screen flex flex-col">
+  <header class="border-b border-slate-800/80 sticky top-0 bg-slate-950/90 backdrop-blur-md z-30">
+    <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center font-black text-white text-lg">N</div>
+        <span class="font-extrabold text-lg tracking-tight text-white">Nexus<span class="text-blue-500">Tech</span></span>
+      </div>
+      <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
+        <a href="#solucoes" class="hover:text-blue-400 transition">Soluções</a>
+        <a href="#vantagens" class="hover:text-blue-400 transition">Vantagens</a>
+        <a href="#contacto" class="hover:text-blue-400 transition">Contacto</a>
+      </nav>
+      <a href="https://wa.me/258840000000" target="_blank" class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs sm:text-sm px-4 py-2 rounded-xl transition shadow-lg shadow-blue-600/30">
+        Falar no WhatsApp
+      </a>
+    </div>
+  </header>
+  <main class="flex-1">
+    <section class="py-16 sm:py-24 px-6 text-center relative overflow-hidden">
+      <div class="max-w-4xl mx-auto">
+        <div class="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold px-3.5 py-1.5 rounded-full mb-6">
+          ✨ Construído com WEHOSTHERE Studio AI
+        </div>
+        <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-tight mb-6">
+          Soluções Digitais que aceleram o seu <span class="bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">Crescimento</span>
+        </h1>
+        <p class="text-slate-400 text-base sm:text-lg max-w-2xl mx-auto mb-8 leading-relaxed">
+          Desenvolvemos tecnologia de alta performance para empresas que buscam modernidade, segurança e presença digital marcante.
+        </p>
+        <div class="flex flex-wrap items-center justify-center gap-3">
+          <a href="#solucoes" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-3 rounded-xl transition shadow-xl">
+            Ver Nossos Serviços
+          </a>
+          <a href="#contacto" class="bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white font-bold px-6 py-3 rounded-xl transition">
+            Pedir Orçamento
+          </a>
+        </div>
+      </div>
+    </section>
+    <section id="solucoes" class="py-16 px-6 bg-slate-900/60 border-t border-slate-800">
+      <div class="max-w-6xl mx-auto">
+        <div class="text-center mb-12">
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-white mb-3">O Que Criamos Para Si</h2>
+          <p class="text-slate-400 text-sm">Tecnologia desenhada à medida da sua empresa.</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500/50 transition">
+            <div class="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-xl mb-4">🚀</div>
+            <h3 class="text-lg font-bold text-white mb-2">Websites & E-Commerce</h3>
+            <p class="text-slate-400 text-sm">Páginas ultrarrápidas, otimizadas para telemóveis e preparadas para vendas online.</p>
+          </div>
+          <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500/50 transition">
+            <div class="w-12 h-12 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-xl mb-4">🔒</div>
+            <h3 class="text-lg font-bold text-white mb-2">Sistemas na Cloud</h3>
+            <p class="text-slate-400 text-sm">Aplicações corporativas com segurança de nível bancário e alta disponibilidade.</p>
+          </div>
+          <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500/50 transition">
+            <div class="w-12 h-12 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center text-xl mb-4">⚡</div>
+            <h3 class="text-lg font-bold text-white mb-2">Automação & IA</h3>
+            <p class="text-slate-400 text-sm">Integrações inteligentes que poupam tempo à sua equipa e reduzem custos.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer id="contacto" class="border-t border-slate-800 py-8 px-6 text-center text-slate-500 text-xs">
+    <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      <p>© 2026 NexusTech, Lda. Todos os direitos reservados.</p>
+      <p>Desenvolvido com <span class="text-blue-400 font-bold">WEHOSTHERE Studio AI</span></p>
+    </div>
+  </footer>
+</body>
+</html>`;
+
 export default function AiSiteBuilderStudio() {
   const router = useRouter();
   const { data: session, status } = useSession();
@@ -413,6 +499,10 @@ export default function AiSiteBuilderStudio() {
   const [isDeletingProject, setIsDeletingProject] = useState<boolean>(false);
   const [isClearChatModalOpen, setIsClearChatModalOpen] = useState<boolean>(false);
 
+  // Estados de Modo Restrito para Visitantes Não Autenticados
+  const [isAuthRequiredModalOpen, setIsAuthRequiredModalOpen] = useState<boolean>(false);
+  const [authModalReason, setAuthModalReason] = useState<string>('Para gerar novos designs com IA e salvar seus projetos, aceda à sua conta.');
+
   // Estado para redimensionamento manual do Chat (Arrastar borda)
   const [chatWidth, setChatWidth] = useState<number>(420);
   const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -498,7 +588,10 @@ export default function AiSiteBuilderStudio() {
     }
 
     if (!user) {
-      router.push('/login');
+      setCurrentUser(null);
+      setAuthLoading(false);
+      setIsLoadingProjects(false);
+      initGuestProject();
       return;
     }
 
@@ -507,6 +600,40 @@ export default function AiSiteBuilderStudio() {
     loadUserProjects(user.email);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session, status]);
+
+  // Inicializar projeto em modo demonstração para visitantes
+  const initGuestProject = () => {
+    setProjectId('site_guest_demo');
+    setProjectTitle('Website de Demonstração');
+    setProjectSlug('demo-preview');
+    setIsPublished(false);
+    setCurrentHtml(DEMO_STARTER_HTML);
+    setEditedCode(DEMO_STARTER_HTML);
+    setIsEditingCode(false);
+    setVersions([
+      {
+        versionNumber: 1,
+        html: DEMO_STARTER_HTML,
+        prompt: 'Layout Inicial de Apresentação',
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }
+    ]);
+    setSelectedVersionIndex('latest');
+    setMessages([
+      {
+        id: 'msg_guest_welcome',
+        role: 'assistant',
+        content: '👋 Olá! Bem-vindo ao Construtor de Sites IA da WEHOSTHERE no Modo Demonstração.\n\nPode explorar o preview em tempo real, alternar entre modos (Computador, Tablet e Telemóvel) e inspecionar o código fonte. Para gerar novos designs com IA, salvar projetos e publicar com domínio próprio, crie uma conta gratuita ou inicie sessão!',
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }
+    ]);
+
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      setIsSidebarOpen(false);
+      setIsChatOpen(true);
+      setMobileTab('chat');
+    }
+  };
 
   // Carregar lista de projetos do utilizador
   const loadUserProjects = async (email: string) => {
@@ -533,7 +660,12 @@ export default function AiSiteBuilderStudio() {
   };
 
   // Inicializar novo projeto em branco
-  const initNewProject = () => {
+  const initNewProject = (userInitiated: boolean = false) => {
+    if (!currentUser && userInitiated) {
+      setAuthModalReason('Para criar e guardar múltiplos projetos no seu painel, inicie sessão na sua conta.');
+      setIsAuthRequiredModalOpen(true);
+      return;
+    }
     // Preservar projeto atual no estado local caso tenha conteúdo
     if (projectId) {
       setSavedProjects(prev => prev.map(p => {
@@ -753,6 +885,12 @@ export default function AiSiteBuilderStudio() {
 
   // ─── Ponto de Entrada: Enviar Prompt (Gera Proposta Prévia ou Responde Chat) ──
   const handleGenerate = async (promptText?: string, titleOverride?: string, autoAccept: boolean = false) => {
+    if (!currentUser) {
+      setAuthModalReason('Para enviar prompts e gerar websites inteligentes com a nossa IA, inicie sessão ou crie a sua conta gratuita.');
+      setIsAuthRequiredModalOpen(true);
+      return;
+    }
+
     const textToSend = promptText || prompt;
     if (!textToSend.trim() || isGenerating) return;
 
@@ -809,6 +947,12 @@ export default function AiSiteBuilderStudio() {
     proposalMsgId?: string,
     isDirectChat: boolean = false
   ) => {
+    if (!currentUser) {
+      setAuthModalReason('Para executar o modelo de IA e compilar o código do seu site, crie uma conta gratuita ou inicie sessão.');
+      setIsAuthRequiredModalOpen(true);
+      return;
+    }
+
     if (isGenerating) return;
 
     // Atualiza status da proposta para aceite
@@ -1040,6 +1184,11 @@ export default function AiSiteBuilderStudio() {
 
   // Publicar o site oficialmente
   const handlePublish = async () => {
+    if (!currentUser) {
+      setAuthModalReason('Para publicar o seu site online com subdomínio ou domínio personalizado, inicie sessão na sua conta.');
+      setIsAuthRequiredModalOpen(true);
+      return;
+    }
     if (!currentUser?.email || !currentHtml) return;
     setIsPublishing(true);
     try {
@@ -1270,6 +1419,11 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
 
   // ─── Editor de Código Inline ──────────────────────────────────────────────
   const handleStartCodeEditing = () => {
+    if (!currentUser) {
+      setAuthModalReason('Para editar diretamente o código-fonte e guardar alterações personalizadas, inicie sessão.');
+      setIsAuthRequiredModalOpen(true);
+      return;
+    }
     setEditedCode(displayedHtml);
     setIsEditingCode(true);
   };
@@ -1421,6 +1575,11 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
   };
 
   const handleApplyLogo = () => {
+    if (!currentUser) {
+      setAuthModalReason('Para personalizar e guardar o logótipo da marca nos seus projetos, inicie sessão.');
+      setIsAuthRequiredModalOpen(true);
+      return;
+    }
     const targetLogo = logoPreviewUrl || logoInputUrl;
     if (!targetLogo || !displayedHtml) return;
 
@@ -1522,7 +1681,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
   }
 
   return (
-    <div className="flex h-screen bg-[#09090b] text-[#fafafa] font-sans overflow-hidden antialiased selection:bg-blue-600 selection:text-white">
+    <div className="flex flex-col h-screen bg-[#09090b] text-[#fafafa] font-sans overflow-hidden antialiased selection:bg-blue-600 selection:text-white">
       <style>{`
         @keyframes msgSlideIn {
           from { opacity: 0; transform: translateY(12px); }
@@ -1534,13 +1693,43 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
         }
       `}</style>
 
-      {/* Backdrop para Mobile ao abrir a Sidebar */}
-      {isSidebarOpen && isMobile && (
-        <div 
-          onClick={() => setIsSidebarOpen(false)}
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden transition-opacity cursor-pointer"
-        />
+      {/* Barra de Aviso para Visitantes Não Autenticados (Modo Demonstração) */}
+      {!currentUser && (
+        <div className="bg-gradient-to-r from-blue-700 via-indigo-700 to-primary-700 text-white px-3 sm:px-4 py-2 text-xs flex flex-wrap items-center justify-between gap-2 shadow-md shrink-0 z-40 border-b border-white/10">
+          <div className="flex items-center gap-2">
+            <span className="bg-white/20 text-white border border-white/30 px-2 py-0.5 rounded-full font-bold uppercase text-[9px] sm:text-[10px] tracking-wider shrink-0">
+              Modo Demonstração
+            </span>
+            <span className="text-[11px] sm:text-xs text-white/95 font-medium">
+              Você está a explorar o Construtor IA. Faça login para gerar novos sites personalizados e publicá-los na internet.
+            </span>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Link
+              href="/login?callbackUrl=/dashboard/builder"
+              className="bg-white text-blue-900 hover:bg-blue-50 font-extrabold px-3 py-1 rounded-lg text-xs transition shadow-sm"
+            >
+              Iniciar Sessão
+            </Link>
+            <Link
+              href="/register?callbackUrl=/dashboard/builder"
+              className="bg-white/20 hover:bg-white/30 text-white font-semibold px-3 py-1 rounded-lg text-xs transition border border-white/20"
+            >
+              Criar Conta Grátis
+            </Link>
+          </div>
+        </div>
       )}
+
+      {/* Conteúdo Principal do Studio */}
+      <div className="flex flex-1 h-full overflow-hidden relative">
+        {/* Backdrop para Mobile ao abrir a Sidebar */}
+        {isSidebarOpen && isMobile && (
+          <div 
+            onClick={() => setIsSidebarOpen(false)}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden transition-opacity cursor-pointer"
+          />
+        )}
 
       {/* ── COLUNA 1: SIDEBAR DE PROJETOS E CONVERSAS (Estilo v0) ─────────────── */}
       <aside className={`h-full border-r border-[#27272a] bg-[#0c0c0e] flex flex-col transition-all duration-300 shrink-0 ${
@@ -1589,7 +1778,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
         {/* Botão Novo Site / Nova Conversa */}
         <div className="p-3">
           <button
-            onClick={initNewProject}
+            onClick={() => initNewProject(true)}
             className="w-full py-2.5 px-3 rounded-xl bg-white hover:bg-gray-100 text-black font-extrabold text-xs flex items-center justify-center gap-2 shadow-sm transition active:scale-98 cursor-pointer"
           >
             <Plus className="w-4 h-4 text-black" />
@@ -2511,7 +2700,14 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
 
             {/* BOTÃO PUBLICAR (Destaque Principal na cor Branca) */}
             <button
-              onClick={() => setIsPublishModalOpen(true)}
+              onClick={() => {
+                if (!currentUser) {
+                  setAuthModalReason('Para publicar o seu website online com subdomínio e SSL gratuito, inicie sessão na sua conta.');
+                  setIsAuthRequiredModalOpen(true);
+                  return;
+                }
+                setIsPublishModalOpen(true);
+              }}
               className="flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-xl bg-white hover:bg-gray-100 text-black font-extrabold text-xs shadow-md transition active:scale-95 cursor-pointer shrink-0"
               title="Publicar website online com subdomínio e SSL"
             >
@@ -3421,11 +3617,86 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 type="button"
                 onClick={() => {
                   setIsExportModalOpen(false);
+                  if (!currentUser) {
+                    setAuthModalReason('Para publicar o seu website online com SSL gratuito e domínio próprio, inicie sessão na sua conta.');
+                    setIsAuthRequiredModalOpen(true);
+                    return;
+                  }
                   setIsPublishModalOpen(true);
                 }}
                 className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shrink-0 cursor-pointer"
               >
                 Publicar Agora
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      </div> {/* Fim do inner container flex-1 */}
+
+      {/* 🔒 MODAL DE AUTENTICAÇÃO NECESSÁRIA PARA VISITANTES */}
+      {isAuthRequiredModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-[#121215] border border-white/15 rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl relative text-center">
+            {/* Botão Fechar */}
+            <button
+              onClick={() => setIsAuthRequiredModalOpen(false)}
+              className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white rounded-full hover:bg-white/5 transition cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Ícone com Glow */}
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 text-white flex items-center justify-center mx-auto mb-4 shadow-xl shadow-blue-500/20">
+              <Sparkles className="w-7 h-7" />
+            </div>
+
+            <h3 className="text-xl font-extrabold text-white mb-2">
+              Inicie Sessão para Continuar
+            </h3>
+            <p className="text-xs sm:text-sm text-gray-300 mb-6 leading-relaxed">
+              {authModalReason}
+            </p>
+
+            {/* Vantagens */}
+            <div className="bg-[#18181b] border border-white/10 rounded-2xl p-4 mb-6 text-left space-y-2.5">
+              <div className="flex items-center gap-2.5 text-xs text-gray-200">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>Geração ilimitada de código e páginas com IA</span>
+              </div>
+              <div className="flex items-center gap-2.5 text-xs text-gray-200">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>Salvar múltiplos projetos e histórico de versões</span>
+              </div>
+              <div className="flex items-center gap-2.5 text-xs text-gray-200">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>Publicar online com domínio próprio e SSL grátis</span>
+              </div>
+            </div>
+
+            {/* Botões de Ação */}
+            <div className="space-y-2.5">
+              <button
+                type="button"
+                onClick={() => router.push('/login?callbackUrl=/dashboard/builder')}
+                className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm shadow-lg shadow-blue-600/30 transition active:scale-98 cursor-pointer"
+              >
+                Entrar na Minha Conta
+              </button>
+              <button
+                type="button"
+                onClick={() => router.push('/register?callbackUrl=/dashboard/builder')}
+                className="w-full py-3 rounded-xl bg-white/10 hover:bg-white/15 text-white font-bold text-sm border border-white/10 transition active:scale-98 cursor-pointer"
+              >
+                Criar Conta Gratuita
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsAuthRequiredModalOpen(false)}
+                className="w-full py-2 text-gray-400 hover:text-gray-200 text-xs font-semibold transition cursor-pointer"
+              >
+                Continuar a Explorar Modo Demonstração
               </button>
             </div>
           </div>

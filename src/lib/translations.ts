@@ -100,6 +100,24 @@ export const translations: Record<Language, Record<string, string>> = {
     'systems.btn_view': 'Ver Sistemas Disponíveis',
     'systems.subtext': 'Ciclo mensal ou anual • Suporte técnico incluído',
 
+    // Construtor IA Promo (Landing Page)
+    'builder_promo.badge': 'CONSTRUTOR WEB INTELIGENTE',
+    'builder_promo.title': 'Criação de sites sem limites.',
+    'builder_promo.desc': 'Transforme qualquer ideia num website moderno, interativo e completo para o seu negócio. Descreva o que imagina e o nosso Construtor IA gera o layout, escreve o código e entrega um site 100% responsivo — sem precisar programar uma única linha.',
+    'builder_promo.f1_title': 'Geração Instantânea com IA',
+    'builder_promo.f1_desc': 'Basta digitar um prompt simples e veja o seu site ser construído em tempo real diante dos seus olhos.',
+    'builder_promo.f2_title': '100% Responsivo & Moderno',
+    'builder_promo.f2_desc': 'Layout fluido e adaptado com perfeição para telemóveis, tablets e computadores.',
+    'builder_promo.f3_title': 'Liberdade Total & Exportação',
+    'builder_promo.f3_desc': 'Alterne entre visualização e código limpo, personalize ou descarregue o código completo em .ZIP.',
+    'builder_promo.btn': 'Experimentar Construtor IA',
+    'builder_promo.subtext': 'Acesso imediato • Experimente grátis sem compromisso',
+    'builder_promo.live_preview': 'Pré-visualização em Tempo Real',
+    'builder_promo.card_prompt_title': 'Prompt em Execução:',
+    'builder_promo.card_prompt_text': '"Cria uma landing page moderna para consultoria financeira com catálogo de serviços, agendamento e botão WhatsApp"',
+    'builder_promo.card_badge_tech': 'HTML5 + Tailwind CSS • 100% Responsivo',
+    'builder_promo.card_status': 'Gerado em 3.8s',
+
     // Passos Interativos (Interactive Steps)
     'steps.title_section': 'Como Funciona em 4 Passos Simples',
     'steps.subtitle_section': 'Processo rápido, transparente e 100% online',
@@ -360,6 +378,24 @@ export const translations: Record<Language, Record<string, string>> = {
     'systems.desc': 'Rent ready-to-use software systems without developing from scratch. ERP, CRM, Inventory Management, Billing and more.',
     'systems.btn_view': 'View Available Systems',
     'systems.subtext': 'Monthly or annual cycle • Technical support included',
+
+    // AI Builder Promo (Landing Page)
+    'builder_promo.badge': 'INTELLIGENT WEB BUILDER',
+    'builder_promo.title': 'Limitless website creation.',
+    'builder_promo.desc': 'Transform any idea into a modern, interactive, and complete website for your business. Describe what you imagine and our AI Builder designs the layout, writes the code, and delivers a 100% responsive site — no coding skills required.',
+    'builder_promo.f1_title': 'Instant AI Generation',
+    'builder_promo.f1_desc': 'Simply type a text prompt and watch your website come alive in real time before your eyes.',
+    'builder_promo.f2_title': '100% Responsive & Modern',
+    'builder_promo.f2_desc': 'Fluid layout perfectly optimized across mobile phones, tablets, and desktop computers.',
+    'builder_promo.f3_title': 'Full Freedom & Code Export',
+    'builder_promo.f3_desc': 'Toggle between live preview and clean code, customize, or download complete code in .ZIP.',
+    'builder_promo.btn': 'Try AI Website Builder',
+    'builder_promo.subtext': 'Instant access • Try for free with no commitment',
+    'builder_promo.live_preview': 'Live Real-Time Preview',
+    'builder_promo.card_prompt_title': 'Active Prompt:',
+    'builder_promo.card_prompt_text': '"Create a sleek modern landing page for financial consulting with services catalog, booking, and WhatsApp button"',
+    'builder_promo.card_badge_tech': 'HTML5 + Tailwind CSS • 100% Responsive',
+    'builder_promo.card_status': 'Generated in 3.8s',
 
     // Passos Interativos (Interactive Steps)
     'steps.title_section': 'How It Works in 4 Simple Steps',
