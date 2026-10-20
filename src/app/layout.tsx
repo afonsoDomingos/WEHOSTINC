@@ -251,6 +251,42 @@ export default function RootLayout({
                       "description": "Construtor de sites com inteligência artificial — cria um site profissional em minutos",
                       "applicationCategory": "WebApplication"
                     }
+                  },
+                  {
+                    "@type": "Offer",
+                    "itemOffered": {
+                      "@type": "Service",
+                      "name": "Desenvolvimento de Sistemas e Plataformas",
+                      "url": "https://www.wehosthere.com/systems",
+                      "description": "Criação e aluguer de sistemas de gestão, ERP, POS e software empresarial em Moçambique"
+                    }
+                  },
+                  {
+                    "@type": "Offer",
+                    "itemOffered": {
+                      "@type": "Service",
+                      "name": "Criação de Sites Profissionais",
+                      "url": "https://www.wehosthere.com/criar-site",
+                      "description": "Desenvolvimento de websites modernos e responsivos com cotação online imediata"
+                    }
+                  },
+                  {
+                    "@type": "Offer",
+                    "itemOffered": {
+                      "@type": "Service",
+                      "name": "Lojas Virtuais e Pagamentos M-Pesa",
+                      "url": "https://www.wehosthere.com/loja-online",
+                      "description": "Soluções de e-commerce com integração automática de pagamentos M-Pesa e e-Mola"
+                    }
+                  },
+                  {
+                    "@type": "Offer",
+                    "itemOffered": {
+                      "@type": "Periodical",
+                      "name": "Revista Codando Histórias",
+                      "url": "https://www.wehosthere.com/revista",
+                      "description": "Revista digital moçambicana sobre tecnologia, programação, startups e inovação"
+                    }
                   }
                 ]
               }
