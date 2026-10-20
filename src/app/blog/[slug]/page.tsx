@@ -120,6 +120,7 @@ export default async function BlogPostPage({ params }: Props) {
     },
     publisher: {
       '@type': 'Organization',
+      '@id': 'https://www.wehosthere.com/#organization',
       name: 'WEHOSTHERE',
       logo: {
         '@type': 'ImageObject',
@@ -130,6 +131,40 @@ export default async function BlogPostPage({ params }: Props) {
       '@type': 'WebPage',
       '@id': `https://www.wehosthere.com/blog/${post.slug}`,
     },
+    keywords: post.tags?.join(', ') || '',
+    articleSection: post.category || 'Tecnologia',
+    inLanguage: 'pt',
+    isPartOf: {
+      '@type': 'Blog',
+      '@id': 'https://www.wehosthere.com/blog',
+      name: 'Blog WEHOSTHERE',
+    },
+  };
+
+  // GEO: BreadcrumbList — sinaliza hierarquia de conteúdo a LLMs e Google
+  const breadcrumbLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Início',
+        item: 'https://www.wehosthere.com',
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Blog',
+        item: 'https://www.wehosthere.com/blog',
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: post.title,
+        item: `https://www.wehosthere.com/blog/${post.slug}`,
+      },
+    ],
   };
 
   const initialPost: BlogPostData = {
@@ -152,6 +187,10 @@ export default async function BlogPostPage({ params }: Props) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
       <BlogPostClient initialPost={initialPost} initialRelatedPosts={relatedPosts} />
     </>

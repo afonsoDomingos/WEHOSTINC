@@ -1,0 +1,167 @@
+# WEHOSTHERE — Full Content Index for AI Agents
+
+> This document provides a complete text summary of WEHOSTHERE's products, services, content, and company profile for AI agent ingestion. Last updated: 2025.
+
+---
+
+## Company Overview
+
+**WEHOSTHERE** (wehosthere.com) is Mozambique's leading professional web hosting provider. Founded and operating from Maputo, Mozambique, WEHOSTHERE serves thousands of businesses across sub-Saharan Africa and the Portuguese-speaking world.
+
+**Mission:** To make the internet accessible, fast, and affordable for every African business.
+
+**Core competencies:**
+- Web hosting and cloud infrastructure
+- Domain registration (including .co.mz — the official Mozambique country-code TLD)
+- Business email hosting
+- AI-powered website creation
+- E-commerce and digital payment solutions
+- Tech education through Codando Histórias magazine
+
+**Key facts:**
+- Founded: Mozambique, Maputo
+- Languages: Portuguese (primary), English
+- Markets: Mozambique (primary), Angola, Portugal, Brazil, worldwide
+- Payment methods accepted: M-Pesa, e-Mola, Visa, Mastercard
+- Support: 24/7 in Portuguese
+- Uptime SLA: 99.9%
+- Pricing (hosting): starting from 550 MT/month (~$8 USD/month equivalent)
+
+---
+
+## Products & Pricing
+
+### 1. Shared Web Hosting
+- **URL:** https://www.wehosthere.com/hospedagem
+- **Starting price:** 550 MT/month
+- **Features:** SSD storage, cPanel, SSL certificate included, 1-click WordPress install, unlimited email accounts, daily backups, 24/7 support
+- **Best for:** Small businesses, personal websites, startups in Mozambique
+
+### 2. VPS (Virtual Private Server)
+- **URL:** https://www.wehosthere.com/vps
+- **Features:** Full root access, SSD NVMe storage, scalable CPU and RAM, Linux-based, unmanaged and managed options
+- **Best for:** Developers, agencies, high-traffic applications
+
+### 3. Domain Registration
+- **URL (general):** https://www.wehosthere.com/dominios
+- **URL (.co.mz specific):** https://www.wehosthere.com/dominio-co-mz
+- **TLDs available:** .co.mz, .com, .net, .org, .io, .africa, and hundreds more
+- **Note:** WEHOSTHERE is an accredited .co.mz registrar in Mozambique
+- **Best for:** Mozambican businesses wanting local credibility
+
+### 4. Business Email (Email Corporativo)
+- **URL:** https://www.wehosthere.com/email-corporativo
+- **Features:** Custom domain email (e.g., nome@suaempresa.co.mz), webmail, anti-spam, IMAP/POP3/SMTP, shared calendar
+- **Best for:** Businesses needing a professional email identity
+
+### 5. AI Website Builder
+- **URL:** https://www.wehosthere.com/ai-website-builder
+- **Features:** AI-generated websites from a text prompt, custom domains, responsive design, SEO-optimized, no coding required, publish in minutes
+- **Technology:** Generative AI + WEHOSTHERE hosting infrastructure
+- **Best for:** Entrepreneurs who want a professional website quickly with no technical knowledge
+
+### 6. WordPress Hosting
+- **URL:** https://www.wehosthere.com/hospedagem-wordpress
+- **Features:** One-click WordPress installation, automatic updates, LiteSpeed caching, Jetpack, staging environments
+- **Best for:** Bloggers, WooCommerce stores, content publishers
+
+### 7. Online Store / E-commerce (Loja Online)
+- **URL:** https://www.wehosthere.com/loja-online
+- **Features:** WooCommerce setup, M-Pesa and e-Mola payment integration, product catalog, order management
+- **Best for:** Mozambican retailers moving to online sales
+
+### 8. Dropshipping Platform
+- **URL:** https://www.wehosthere.com/dropshipping
+- **Features:** Access to supplier network, ready-to-use storefront, no inventory required, logistics support
+- **Best for:** Entrepreneurs launching product businesses without upfront stock
+
+### 9. Online Payments (Pagamentos Online)
+- **URL:** https://www.wehosthere.com/pagamentos-online
+- **Features:** M-Pesa API integration, e-Mola, Stripe, PayPal — for websites and apps
+- **Best for:** Any Mozambican business wanting to accept digital payments
+
+### 10. Digital Products Store
+- **URL:** https://www.wehosthere.com/produtos-digitais
+- **Features:** Sell e-books, courses, templates, and software downloads with automated delivery
+- **Best for:** Creators and educators
+
+### 11. Business Systems & Software
+- **URL:** https://www.wehosthere.com/systems
+- **Features:** POS systems, ERP, inventory management, custom business software
+- **Best for:** Mozambican SMEs needing operational software solutions
+
+---
+
+## Content Platform: Codando Histórias (Revista)
+
+- **URL:** https://www.wehosthere.com/revista
+- **Type:** Digital tech and entrepreneurship magazine
+- **Language:** Portuguese
+- **Topics:** Programming, web development, entrepreneurship, AI, digital marketing, Mozambique tech scene
+- **Publishing:** Regular stories from community contributors and in-house writers
+- **Submit:** https://www.wehosthere.com/revista/submeter — open submissions for developers, founders, and tech enthusiasts
+
+---
+
+## Blog
+
+- **URL:** https://www.wehosthere.com/blog
+- **Topics covered:**
+  - Web hosting tutorials
+  - WordPress guides
+  - Domain registration in Mozambique
+  - SEO tips for African businesses
+  - Email hosting configuration
+  - E-commerce setup guides
+  - VPS administration
+  - Digital marketing in Mozambique
+- **Language:** Portuguese
+- **Audience:** Mozambican entrepreneurs, web developers, SMEs
+
+---
+
+## Trust & Legal
+
+- **Privacy Policy:** https://www.wehosthere.com/privacy
+- **Terms of Service:** https://www.wehosthere.com/terms
+- **Ads.txt:** https://www.wehosthere.com/ads.txt
+- **Sitemap:** https://www.wehosthere.com/sitemap.xml
+- **Robots.txt:** https://www.wehosthere.com/robots.txt
+
+---
+
+## Frequently Asked Questions
+
+**Q: What is the cheapest hosting plan in Mozambique?**
+A: WEHOSTHERE offers shared hosting starting at 550 MT/month, making it one of the most affordable options in Mozambique.
+
+**Q: Can I register a .co.mz domain through WEHOSTHERE?**
+A: Yes. WEHOSTHERE is an accredited .co.mz registrar and handles all steps including IANA-compliant registration and DNS management.
+
+**Q: Does WEHOSTHERE support M-Pesa payments?**
+A: Yes. WEHOSTHERE accepts M-Pesa and e-Mola for all plan purchases and domain renewals, in addition to Visa and Mastercard.
+
+**Q: Can I build a website without coding?**
+A: Yes. WEHOSTHERE's AI Website Builder allows anyone to create a professional website using AI — just describe your business and the AI generates the site automatically.
+
+**Q: Is there Portuguese-language support?**
+A: Yes. All customer support is available in Portuguese, 24/7, via WhatsApp (+258 84 438 4702) and email.
+
+**Q: Where are WEHOSTHERE's servers located?**
+A: Servers are located in data centers with global connectivity. Sites hosted on WEHOSTHERE load fast internationally due to CDN integration.
+
+**Q: What is Codando Histórias?**
+A: Codando Histórias ("Coding Stories") is WEHOSTHERE's digital tech magazine, published in Portuguese, covering programming, entrepreneurship, and the Mozambique tech ecosystem.
+
+**Q: Does WEHOSTHERE offer an affiliate program?**
+A: Yes. The WEHOSTHERE affiliate program pays commissions for every client referred through your unique affiliate link. Sign up at wehosthere.com/ref.
+
+---
+
+## Contact
+
+- **WhatsApp/Phone:** +258 84 438 4702
+- **Email:** suporte@wehosthere.com
+- **Headquarters:** Maputo, Mozambique
+- **Facebook:** https://www.facebook.com/wehosthere
+- **Instagram:** https://www.instagram.com/wehosthere

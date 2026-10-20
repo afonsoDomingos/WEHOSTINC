@@ -72,7 +72,7 @@ export default async function RevistaStoryPage({ params }: Props) {
     notFound();
   }
 
-  // Schema.org Article estruturado
+  // Schema.org Article estruturado (GEO-enriched)
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Article',
@@ -81,12 +81,16 @@ export default async function RevistaStoryPage({ params }: Props) {
     image: story.coverImage || 'https://www.wehosthere.com/servidores-banner.png',
     datePublished: story.publishedAt,
     dateModified: story.updatedAt || story.publishedAt,
+    inLanguage: 'pt',
+    articleSection: story.category || 'Tecnologia',
+    keywords: story.tags?.join(', ') || 'tecnologia, programação, moçambique',
     author: {
       '@type': 'Person',
       name: story.author?.name || 'WEHOSTHERE',
     },
     publisher: {
       '@type': 'Organization',
+      '@id': 'https://www.wehosthere.com/#organization',
       name: 'WEHOSTHERE — Codando Histórias',
       logo: {
         '@type': 'ImageObject',
@@ -97,6 +101,38 @@ export default async function RevistaStoryPage({ params }: Props) {
       '@type': 'WebPage',
       '@id': `https://www.wehosthere.com/revista/${story.slug}`,
     },
+    isPartOf: {
+      '@type': 'Periodical',
+      '@id': 'https://www.wehosthere.com/revista',
+      name: 'Codando Histórias',
+      issn: '',
+    },
+  };
+
+  // GEO: BreadcrumbList — hierarquia de conteúdo para LLMs e Google
+  const breadcrumbLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Início',
+        item: 'https://www.wehosthere.com',
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Codando Histórias',
+        item: 'https://www.wehosthere.com/revista',
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: story.title,
+        item: `https://www.wehosthere.com/revista/${story.slug}`,
+      },
+    ],
   };
 
   return (
@@ -104,6 +140,10 @@ export default async function RevistaStoryPage({ params }: Props) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
       <RevistaStoryClient initialStory={story as any} />
     </>

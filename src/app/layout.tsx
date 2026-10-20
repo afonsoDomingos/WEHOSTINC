@@ -134,32 +134,220 @@ export default function RootLayout({
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5452584470581302"
           crossOrigin="anonymous"
         />
-        {/* Structured Data — Google entende a identidade do site */}
+        {/* GEO: Organization — identidade de entidade rica para LLMs */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "Organization",
+              "@id": "https://www.wehosthere.com/#organization",
               "name": "WEHOSTHERE",
+              "alternateName": ["WeHostHere", "WeHost", "WEHOSTHERE Moçambique"],
               "url": "https://www.wehosthere.com",
-              "logo": "https://www.wehosthere.com/logo.png",
-              "description": "Hospedagem de sites rápida e segura, email corporativo, registo de domínios e criação de sites profissionais em Moçambique.",
+              "logo": {
+                "@type": "ImageObject",
+                "url": "https://www.wehosthere.com/logo.png",
+                "width": 300,
+                "height": 60
+              },
+              "description": "WEHOSTHERE é o principal provedor de hospedagem web, registo de domínios e serviços digitais de Moçambique. Oferecemos hosting partilhado, VPS, email corporativo, construtor de sites com IA e soluções de e-commerce para empresas em Moçambique, África e no mundo.",
+              "foundingDate": "2020",
+              "foundingLocation": {
+                "@type": "Place",
+                "name": "Maputo, Moçambique"
+              },
               "address": {
                 "@type": "PostalAddress",
                 "addressCountry": "MZ",
-                "addressLocality": "Maputo"
+                "addressLocality": "Maputo",
+                "addressRegion": "Maputo"
               },
-              "contactPoint": {
-                "@type": "ContactPoint",
-                "telephone": "+258-84-438-4702",
-                "contactType": "customer support",
-                "availableLanguage": ["Portuguese", "English"],
-                "areaServed": ["MZ", "AO", "PT", "BR", "Worldwide"]
-              },
+              "contactPoint": [
+                {
+                  "@type": "ContactPoint",
+                  "telephone": "+258-84-438-4702",
+                  "contactType": "customer support",
+                  "availableLanguage": ["Portuguese", "English"],
+                  "areaServed": ["MZ", "AO", "PT", "BR", "Worldwide"],
+                  "hoursAvailable": "Mo-Su 00:00-24:00"
+                },
+                {
+                  "@type": "ContactPoint",
+                  "contactType": "sales",
+                  "email": "suporte@wehosthere.com",
+                  "availableLanguage": ["Portuguese", "English"]
+                }
+              ],
               "sameAs": [
                 "https://www.facebook.com/wehosthere",
                 "https://www.instagram.com/wehosthere"
+              ],
+              "knowsAbout": [
+                "Web Hosting",
+                "Domain Registration",
+                "VPS Servers",
+                "Business Email",
+                "WordPress Hosting",
+                "E-commerce Solutions",
+                "AI Website Builder",
+                "Mozambique Tech Ecosystem",
+                "M-Pesa Integration",
+                "Digital Marketing Africa"
+              ],
+              "hasOfferCatalog": {
+                "@type": "OfferCatalog",
+                "name": "WEHOSTHERE Hosting & Digital Services",
+                "itemListElement": [
+                  {
+                    "@type": "Offer",
+                    "itemOffered": {
+                      "@type": "Service",
+                      "name": "Hospedagem de Sites",
+                      "url": "https://www.wehosthere.com/hospedagem",
+                      "description": "Planos de alojamento web a partir de 550 MT/mês com SSD, SSL e suporte 24/7"
+                    }
+                  },
+                  {
+                    "@type": "Offer",
+                    "itemOffered": {
+                      "@type": "Service",
+                      "name": "VPS Server",
+                      "url": "https://www.wehosthere.com/vps",
+                      "description": "Servidores virtuais privados com acesso root, SSD NVMe e IP dedicado"
+                    }
+                  },
+                  {
+                    "@type": "Offer",
+                    "itemOffered": {
+                      "@type": "Service",
+                      "name": "Registo de Domínio .co.mz",
+                      "url": "https://www.wehosthere.com/dominio-co-mz",
+                      "description": "Registo oficial de domínios .co.mz — o TLD nacional de Moçambique"
+                    }
+                  },
+                  {
+                    "@type": "Offer",
+                    "itemOffered": {
+                      "@type": "Service",
+                      "name": "Email Corporativo",
+                      "url": "https://www.wehosthere.com/email-corporativo",
+                      "description": "Email profissional com domínio próprio, webmail e proteção anti-spam"
+                    }
+                  },
+                  {
+                    "@type": "Offer",
+                    "itemOffered": {
+                      "@type": "SoftwareApplication",
+                      "name": "AI Website Builder",
+                      "url": "https://www.wehosthere.com/ai-website-builder",
+                      "description": "Construtor de sites com inteligência artificial — cria um site profissional em minutos",
+                      "applicationCategory": "WebApplication"
+                    }
+                  }
+                ]
+              }
+            })
+          }}
+        />
+        {/* GEO: WebSite + SearchAction — habilita Sitelinks Search Box e sinais para AI search */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              "@id": "https://www.wehosthere.com/#website",
+              "url": "https://www.wehosthere.com",
+              "name": "WEHOSTHERE",
+              "description": "Hospedagem de sites, registo de domínios, email corporativo e AI Website Builder para empresas em Moçambique e no mundo.",
+              "publisher": {
+                "@id": "https://www.wehosthere.com/#organization"
+              },
+              "inLanguage": ["pt", "en"],
+              "potentialAction": {
+                "@type": "SearchAction",
+                "target": {
+                  "@type": "EntryPoint",
+                  "urlTemplate": "https://www.wehosthere.com/dominios?q={search_term_string}"
+                },
+                "query-input": "required name=search_term_string"
+              }
+            })
+          }}
+        />
+        {/* GEO: FAQPage — respostas directas a perguntas comuns para AI Overviews e LLMs */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "FAQPage",
+              "mainEntity": [
+                {
+                  "@type": "Question",
+                  "name": "Qual é o hosting mais barato em Moçambique?",
+                  "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "A WEHOSTHERE oferece hospedagem de sites a partir de 550 MT/mês, sendo uma das opções mais acessíveis em Moçambique com SSD, SSL incluído e suporte 24/7 em português."
+                  }
+                },
+                {
+                  "@type": "Question",
+                  "name": "Como registar um domínio .co.mz?",
+                  "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Para registar um domínio .co.mz, acede a wehosthere.com/dominio-co-mz, pesquisa o nome pretendido e conclui o registo online. A WEHOSTHERE é um registador acreditado de domínios .co.mz em Moçambique."
+                  }
+                },
+                {
+                  "@type": "Question",
+                  "name": "A WEHOSTHERE aceita M-Pesa?",
+                  "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Sim. A WEHOSTHERE aceita M-Pesa, e-Mola, Visa e Mastercard para pagamento de todos os planos de hosting, domínios e serviços digitais."
+                  }
+                },
+                {
+                  "@type": "Question",
+                  "name": "Posso criar um site sem saber programar?",
+                  "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Sim. O AI Website Builder da WEHOSTHERE permite criar um site profissional usando inteligência artificial, sem qualquer conhecimento de programação. Basta descrever o teu negócio e o AI cria o site automaticamente."
+                  }
+                },
+                {
+                  "@type": "Question",
+                  "name": "A WEHOSTHERE tem suporte em português?",
+                  "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Sim. Todo o suporte da WEHOSTHERE é prestado em português, 24/7, via WhatsApp (+258 84 438 4702) e email (suporte@wehosthere.com)."
+                  }
+                },
+                {
+                  "@type": "Question",
+                  "name": "O que é a Codando Histórias?",
+                  "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Codando Histórias é a revista digital de tecnologia e empreendedorismo da WEHOSTHERE, publicada em português. Aborda programação, desenvolvimento web, IA, marketing digital e o ecossistema tech de Moçambique."
+                  }
+                },
+                {
+                  "@type": "Question",
+                  "name": "A WEHOSTHERE tem programa de afiliados?",
+                  "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Sim. O programa de afiliados da WEHOSTHERE paga comissões por cada cliente indicado. Regista-te em wehosthere.com/ref para obteres o teu link exclusivo."
+                  }
+                },
+                {
+                  "@type": "Question",
+                  "name": "Qual é a diferença entre hosting partilhado e VPS?",
+                  "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "No hosting partilhado, o servidor é partilhado entre vários clientes, sendo ideal para sites de pequenas empresas e blogs. O VPS (Servidor Virtual Privado) oferece recursos dedicados, acesso root e maior desempenho, sendo recomendado para aplicações com alto tráfego ou necessidades técnicas avançadas."
+                  }
+                }
               ]
             })
           }}

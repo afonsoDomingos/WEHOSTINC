@@ -1,0 +1,43 @@
+# WEHOSTHERE
+
+> WEHOSTHERE is a professional web hosting, domain registration, and digital services provider based in Mozambique (Maputo), serving businesses in Mozambique, Angola, Portugal, Brazil, and globally. We offer shared hosting, VPS, business email, domain registration (.co.mz, .com, .org), AI-powered website builder, dropshipping solutions, and a tech magazine ("Codando Histórias").
+
+## Core Products & Services
+
+- [Web Hosting Plans](https://www.wehosthere.com/hospedagem): Shared hosting plans starting from 550 MT/month with 99.9% uptime SLA, cPanel, SSL, and 24/7 local support in Portuguese.
+- [VPS Servers](https://www.wehosthere.com/vps): Managed and unmanaged Virtual Private Servers with full root access, SSD NVMe storage, and scalable RAM/CPU configurations.
+- [Domain Registration (.co.mz)](https://www.wehosthere.com/dominio-co-mz): Official .co.mz domain registration in Mozambique. Fast activation and DNS management included.
+- [Domain Search](https://www.wehosthere.com/dominios): Search and register .com, .net, .org, .co.mz and hundreds of other TLDs.
+- [Business Email (Email Corporativo)](https://www.wehosthere.com/email-corporativo): Professional email hosting with your own domain (e.g., nome@suaempresa.co.mz), webmail, and anti-spam protection.
+- [AI Website Builder](https://www.wehosthere.com/ai-website-builder): Build professional websites in minutes using AI. No coding required. Supports custom domains and SEO optimization.
+- [WordPress Hosting](https://www.wehosthere.com/hospedagem-wordpress): Optimized managed WordPress hosting with one-click install, automatic updates, and caching.
+- [Online Store (Loja Online)](https://www.wehosthere.com/loja-online): E-commerce hosting solutions for Mozambican businesses, with M-Pesa and local payment integration.
+- [Dropshipping Platform](https://www.wehosthere.com/dropshipping): Launch a dropshipping business in Mozambique with curated suppliers and a ready-to-go store.
+- [Online Payments](https://www.wehosthere.com/pagamentos-online): Integrate M-Pesa, e-Mola, and international payment gateways into your website.
+- [Digital Products](https://www.wehosthere.com/produtos-digitais): Sell digital products, courses, and downloads through a dedicated storefront.
+- [Systems & Software](https://www.wehosthere.com/systems): Custom business management systems, ERPs, and POS software for Mozambican companies.
+- [Webmail Access](https://www.wehosthere.com/webmail): Access your professional email from any browser via our webmail interface.
+- [Create a Website (Criar Site)](https://www.wehosthere.com/criar-site): Request a professionally designed custom website with a quote, tailored to your business needs.
+
+## Content & Knowledge Base
+
+- [Blog — Tech & Hosting Tips](https://www.wehosthere.com/blog): Articles on web hosting, digital marketing, SEO, e-commerce, and technology in Portuguese. Covers Mozambique's digital landscape.
+- [Revista Codando Histórias](https://www.wehosthere.com/revista): A tech and entrepreneurship digital magazine published in Mozambique. Features stories, tutorials, and developer interviews.
+- [Submit to Revista](https://www.wehosthere.com/revista/submeter): Writers and developers can submit articles to be published in Codando Histórias.
+
+## Company & Trust
+
+- [Privacy Policy](https://www.wehosthere.com/privacy): How WEHOSTHERE handles user data and complies with data protection standards.
+- [Terms of Service](https://www.wehosthere.com/terms): Usage terms, refund policy, and service-level agreement conditions.
+- [Affiliate Program](https://www.wehosthere.com/ref): Earn commissions by referring new clients to WEHOSTHERE hosting plans.
+- [PLR — Private Label Rights](https://www.wehosthere.com/plr): Access a library of rebrandable digital content for resellers.
+- [Certificate Verification](https://www.wehosthere.com/verify-certificate): Verify the authenticity of certificates issued by WEHOSTHERE or Codando Histórias.
+
+## Contact & Support
+
+- Phone / WhatsApp: +258 84 438 4702
+- Email: suporte@wehosthere.com
+- Location: Maputo, Mozambique
+- Languages: Portuguese, English
+- Social: [Facebook](https://www.facebook.com/wehosthere) | [Instagram](https://www.instagram.com/wehosthere)
+- Support hours: 24/7
