@@ -342,7 +342,7 @@ export default function SubmeterHistoriaPage() {
         .sub-nav {
           border-bottom: 1px solid #f1f5f9;
           background: #ffffff;
-          padding: 1rem 1.5rem;
+          padding: 0.75rem 1.5rem;
           position: sticky;
           top: 0;
           z-index: 40;
@@ -353,19 +353,64 @@ export default function SubmeterHistoriaPage() {
           display: flex;
           align-items: center;
           justify-content: space-between;
+          gap: 0.75rem;
+          min-width: 0;
         }
         .sub-nav-back {
           display: flex;
           align-items: center;
-          gap: 0.5rem;
+          gap: 0.4rem;
           font-size: 0.88rem;
           font-weight: 600;
           color: #64748b;
           text-decoration: none;
           transition: color 0.2s;
+          white-space: nowrap;
+          flex-shrink: 0;
         }
         .sub-nav-back:hover {
           color: #7B2CBF;
+        }
+        .sub-nav-brand {
+          display: flex;
+          align-items: center;
+          gap: 0.4rem;
+          font-weight: 800;
+          font-size: 0.88rem;
+          min-width: 0;
+          overflow: hidden;
+        }
+        .sub-nav-brand-host {
+          white-space: nowrap;
+          color: #0f172a;
+        }
+        .sub-nav-brand-tag {
+          color: #7B2CBF;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        @media (max-width: 480px) {
+          .sub-nav {
+            padding: 0.6rem 1rem;
+          }
+          .sub-nav-back-label {
+            display: none;
+          }
+          .sub-nav-brand-host {
+            display: none;
+          }
+          .sub-nav-brand {
+            font-size: 0.82rem;
+          }
+          .sub-nav-brand-tag {
+            max-width: 180px;
+          }
+        }
+        @media (max-width: 360px) {
+          .sub-nav-brand-tag {
+            max-width: 130px;
+          }
         }
         
         .sub-hero {
@@ -1233,11 +1278,12 @@ export default function SubmeterHistoriaPage() {
         <nav className="sub-nav">
           <div className="sub-nav-inner">
             <Link href="/revista" className="sub-nav-back">
-              <ArrowLeft size={16} /> Voltar à Revista
+              <ArrowLeft size={16} />
+              <span className="sub-nav-back-label">Voltar à Revista</span>
             </Link>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 800, fontSize: '0.95rem' }}>
-              <span>WEHOSTHERE</span>
-              <span style={{ color: '#7B2CBF' }}>• &lt;/&gt; CODANDO HISTÓRIAS</span>
+            <div className="sub-nav-brand">
+              <span className="sub-nav-brand-host">WEHOSTHERE</span>
+              <span className="sub-nav-brand-tag">• &lt;/&gt; CODANDO HISTÓRIAS</span>
             </div>
           </div>
         </nav>
