@@ -103,9 +103,13 @@ export const metadata: Metadata = {
       '-WIDb6-E1CZzvXz2qkam2i118tdjPuEsgdnpbTpA7_0',
       'qv9KkmeWVR-rCTkCP4KxWRkN0E1IJKDkrjsv40nDZ1w',
     ],
+    other: {
+      'msvalidate.01': 'D4BB59AFE8DE80471DF0E7FC4E0A9B87',
+    },
   },
   other: {
     'google-adsense-account': 'ca-pub-5452584470581302',
+    'msvalidate.01': 'D4BB59AFE8DE80471DF0E7FC4E0A9B87',
   },
   category: 'technology',
 };
@@ -127,6 +131,8 @@ export default function RootLayout({
         {/* Google Site Verification — Múltiplas Contas Search Console */}
         <meta name="google-site-verification" content="-WIDb6-E1CZzvXz2qkam2i118tdjPuEsgdnpbTpA7_0" />
         <meta name="google-site-verification" content="qv9KkmeWVR-rCTkCP4KxWRkN0E1IJKDkrjsv40nDZ1w" />
+        {/* Bing Webmaster Tools Verification */}
+        <meta name="msvalidate.01" content="D4BB59AFE8DE80471DF0E7FC4E0A9B87" />
         {/* Google AdSense — lido pelo Mediapartners-Google como script estático no <head> */}
         <meta name="google-adsense-account" content="ca-pub-5452584470581302" />
         <script
