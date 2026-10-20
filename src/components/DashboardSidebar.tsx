@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
   LayoutDashboard, Globe, Mail, Database, Settings as SettingsIcon, 
-  LifeBuoy, Sparkles, Link2, FileText, Star, Package, BookOpen, Activity, Bell, Users
+  LifeBuoy, Link2, FileText, Star, Package, BookOpen, Activity, Bell, Users,
+  LayoutTemplate, Sparkles
 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -18,7 +19,7 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
 
   const navItems = [
     { href: '/dashboard', label: t('dash.nav_dashboard'), icon: LayoutDashboard },
-    { href: '/dashboard/builder', label: 'Construtor IA (v0)', icon: Sparkles, isAi: true },
+    { href: '/dashboard/builder', label: 'Construtor IA', icon: LayoutTemplate, isAi: true },
     { href: '/dashboard/sites', label: t('dash.nav_sites'), icon: Globe },
     { href: '/dashboard/systems', label: t('dash.nav_systems'), icon: Package },
     { href: '/dashboard/orders', label: t('dash.nav_orders'), icon: FileText },
