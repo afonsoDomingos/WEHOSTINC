@@ -9,6 +9,7 @@ import {
   Globe, Github, Maximize2, X, Copy, Check, MessageCircle, Send, Facebook, Mail, Download,
   Flame, Lightbulb, Heart, Rocket, Sparkles, ChevronUp, ChevronDown
 } from 'lucide-react';
+import AdSenseBanner from '@/components/AdSenseBanner';
 
 interface Story {
   id: string;
@@ -300,6 +301,23 @@ function renderContent(content: string) {
     // Parágrafo normal
     elements.push(<p key={i} className="content-p">{line}</p>);
     i++;
+  }
+
+  // Intercalar anúncio Google AdSense no meio da história se houver conteúdo suficiente
+  if (elements.length >= 4) {
+    const midPoint = Math.floor(elements.length / 2);
+    const inArticleAd = (
+      <div
+        key="mid-story-adsense"
+        className="story-in-article-ad my-8 p-4 rounded-2xl bg-slate-50/80 border border-dashed border-slate-200/80 text-center"
+      >
+        <span className="text-[10px] uppercase font-bold tracking-widest text-slate-400 block mb-2 select-none">
+          Publicidade
+        </span>
+        <AdSenseBanner format="auto" responsive={true} />
+      </div>
+    );
+    elements.splice(midPoint, 0, inArticleAd);
   }
 
   return elements;
@@ -2445,6 +2463,14 @@ export default function RevistaStoryClient({ initialStory }: { initialStory?: St
           {/* Content */}
           <div className="story-content">
             {renderContent(story.content)}
+          </div>
+
+          {/* AdSense — Fim do Artigo */}
+          <div className="story-bottom-ad my-8 p-4 rounded-2xl bg-slate-50/80 border border-dashed border-slate-200/80 text-center">
+            <span className="text-[10px] uppercase font-bold tracking-widest text-slate-400 block mb-2 select-none">
+              Publicidade
+            </span>
+            <AdSenseBanner format="auto" responsive={true} />
           </div>
 
           {/* Tags */}
