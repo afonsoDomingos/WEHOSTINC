@@ -3,7 +3,13 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Server, ArrowLeft, ArrowRight, CheckCircle2, Clock, Search, SlidersHorizontal, X } from 'lucide-react';
+import {
+  Server, ArrowLeft, ArrowRight, CheckCircle2, Search, SlidersHorizontal, X,
+  Building2, ShoppingCart, Settings, Target, Monitor, Home, CalendarDays,
+  GraduationCap, HeartPulse, Plane, BookOpen, Briefcase, Palette, PenLine,
+  Tv2, Newspaper, Landmark, Handshake, Truck, UtensilsCrossed, Car,
+  DollarSign, Scale, Stethoscope, BarChart3, Globe
+} from 'lucide-react';
 import { websiteTypes, WebsiteType } from '@/lib/data';
 import Navbar from '@/components/Navbar';
 import PageLoader from '@/components/PageLoader';
@@ -24,6 +30,35 @@ const priceRanges = [
   { id: 'high', label: '+60.000 MT', icon: '🟠', fn: (p: number) => p >= 60000 && p < 100000 },
   { id: 'orcamento', label: 'Sob orçamento', icon: '🔵', fn: (p: number) => p >= 100000 }
 ];
+
+// Mapa de ícones Lucide por tipo de website
+const websiteTypeIcons: Record<string, React.ElementType> = {
+  institutional: Building2,
+  ecommerce: ShoppingCart,
+  webapp: Settings,
+  landing: Target,
+  saas: Monitor,
+  realestate: Home,
+  events: CalendarDays,
+  elearning: GraduationCap,
+  health: HeartPulse,
+  tourism: Plane,
+  education: BookOpen,
+  jobs: Briefcase,
+  portfolio: Palette,
+  blog: PenLine,
+  streaming: Tv2,
+  news: Newspaper,
+  government: Landmark,
+  ngo: Handshake,
+  logistics: Truck,
+  restaurant: UtensilsCrossed,
+  automotive: Car,
+  finance: DollarSign,
+  legal: Scale,
+  medical: Stethoscope,
+  analytics: BarChart3,
+};
 
 const WhatsAppIcon = ({ className = "h-4 w-4" }: { className?: string }) => (
   <svg className={className} fill="currentColor" viewBox="0 0 24 24">
@@ -273,7 +308,15 @@ function SiteQuoteContent() {
                 className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group"
               >
                 <div className="flex items-start justify-between mb-3">
-                  <div className="text-3xl">{type.emoji}</div>
+                  {/* Ícone Profissional Lucide */}
+                  {(() => {
+                    const IconComponent = websiteTypeIcons[type.id] || Globe;
+                    return (
+                      <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-primary-50 border border-primary-100 group-hover:bg-primary-100 transition-colors">
+                        <IconComponent className="h-6 w-6 text-primary-600" />
+                      </div>
+                    );
+                  })()}
                   <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase border ${
                     complexityLabels[type.complexity].color
                   }`}>

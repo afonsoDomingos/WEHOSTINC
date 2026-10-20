@@ -317,89 +317,33 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 🕶️ Dual Card Showcase — Meta Style (bulderai2.jpg & bulderai03.jpg) */}
-      <section className="py-6 sm:py-12 px-3 sm:px-6 lg:px-8 bg-white overflow-hidden">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
-            
-            {/* Card 1: bulderai2.jpg (Futuristic AI Visor / Vision) */}
-            <div className="relative rounded-2xl sm:rounded-3xl lg:rounded-[36px] overflow-hidden h-[460px] sm:h-[540px] lg:h-[620px] shadow-2xl group border border-slate-200/80 bg-slate-950 flex flex-col justify-end p-6 sm:p-10 text-center">
+      {/* 🕶️ Dual Image Showcase */}
+      <section className="py-4 sm:py-8 px-3 sm:px-6 lg:px-8 bg-transparent overflow-hidden">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-5">
+
+            {/* Card 1: bulderai2.jpg */}
+            <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden h-[260px] sm:h-[340px] lg:h-[400px] shadow-xl group bg-transparent">
               <Image
                 src="/bulderai2.jpg"
-                alt="Inteligência Artificial WEHOSTHERE"
-                fill
-                sizes="(max-width: 768px) 100vw, 50vw"
-                className="object-cover object-top group-hover:scale-105 transition-transform duration-700 ease-out"
-                priority
-              />
-              {/* Bottom Gradient Overlay for High Contrast Text */}
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/40 to-transparent pointer-events-none" />
-
-              {/* Overlaid Content */}
-              <div className="relative z-10 flex flex-col items-center">
-                <span className="text-xs sm:text-sm font-semibold text-slate-300 mb-1.5 tracking-wide">
-                  Inteligência Artificial Nativa
-                </span>
-                <h3 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white mb-5 tracking-tight max-w-md">
-                  Construção Inteligente em Tempo Real
-                </h3>
-                
-                {/* Meta-style Action Buttons */}
-                <div className="flex items-center justify-center gap-3">
-                  <Link
-                    href="/dashboard/builder"
-                    className="bg-primary-600 hover:bg-primary-500 text-white font-bold text-xs sm:text-sm px-6 py-2.5 rounded-full shadow-lg transition active:scale-95"
-                  >
-                    Criar com IA
-                  </Link>
-                  <Link
-                    href="#construtor-ia"
-                    className="bg-[#f5d0c5]/90 hover:bg-[#f5d0c5] text-slate-900 font-bold text-xs sm:text-sm px-6 py-2.5 rounded-full shadow-md transition active:scale-95"
-                  >
-                    Saber mais
-                  </Link>
-                </div>
-              </div>
-            </div>
-
-            {/* Card 2: bulderai03.jpg (Futuristic Workspace & Studio) */}
-            <div className="relative rounded-2xl sm:rounded-3xl lg:rounded-[36px] overflow-hidden h-[460px] sm:h-[540px] lg:h-[620px] shadow-2xl group border border-slate-200/80 bg-slate-950 flex flex-col justify-end p-6 sm:p-10 text-center">
-              <Image
-                src="/bulderai03.jpg"
-                alt="Espaço Criativo WEHOSTHERE"
+                alt="Construtor IA WEHOSTHERE"
                 fill
                 sizes="(max-width: 768px) 100vw, 50vw"
                 className="object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
                 priority
               />
-              {/* Bottom Gradient Overlay for High Contrast Text */}
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/40 to-transparent pointer-events-none" />
+            </div>
 
-              {/* Overlaid Content */}
-              <div className="relative z-10 flex flex-col items-center">
-                <span className="text-xs sm:text-sm font-semibold text-slate-300 mb-1.5 tracking-wide">
-                  Estúdio Visual & Código
-                </span>
-                <h3 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white mb-5 tracking-tight max-w-md">
-                  O Seu Estúdio Web Sem Limites
-                </h3>
-
-                {/* Meta-style Action Buttons */}
-                <div className="flex items-center justify-center gap-3">
-                  <Link
-                    href="/dashboard/builder"
-                    className="bg-primary-600 hover:bg-primary-500 text-white font-bold text-xs sm:text-sm px-6 py-2.5 rounded-full shadow-lg transition active:scale-95"
-                  >
-                    Explorar Studio
-                  </Link>
-                  <Link
-                    href="#construtor-ia"
-                    className="bg-[#f5d0c5]/90 hover:bg-[#f5d0c5] text-slate-900 font-bold text-xs sm:text-sm px-6 py-2.5 rounded-full shadow-md transition active:scale-95"
-                  >
-                    Saber mais
-                  </Link>
-                </div>
-              </div>
+            {/* Card 2: bulderai03.jpg */}
+            <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden h-[260px] sm:h-[340px] lg:h-[400px] shadow-xl group bg-transparent">
+              <Image
+                src="/bulderai03.jpg"
+                alt="Estúdio Web WEHOSTHERE"
+                fill
+                sizes="(max-width: 768px) 100vw, 50vw"
+                className="object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
+                priority
+              />
             </div>
 
           </div>
