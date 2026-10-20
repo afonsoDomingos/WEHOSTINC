@@ -1,498 +1,159 @@
-'use client';
+import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import { connectDB } from '@/lib/mongodb';
+import BlogPostModel from '@/lib/models/BlogPost';
+import BlogPostClient, { BlogPostData } from './BlogPostClient';
 
-import { useState, useEffect, useRef } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { Calendar, User, Tag, ArrowLeft, Share2, Eye, Facebook, Twitter, Linkedin, MessageCircle, EyeOff } from 'lucide-react';
-import AdSenseBanner from '@/components/AdSenseBanner';
+export const dynamic = 'force-dynamic';
 
-// Hook de efeito de digitação
-function useTypingEffect(text: string, speed: number = 50) {
-  const [displayText, setDisplayText] = useState('');
-  const [isComplete, setIsComplete] = useState(false);
-
-  useEffect(() => {
-    setDisplayText('');
-    setIsComplete(false);
-
-    let index = 0;
-    const interval = setInterval(() => {
-      if (index < text.length) {
-        setDisplayText((prev) => prev + text.charAt(index));
-        index++;
-      } else {
-        clearInterval(interval);
-        setIsComplete(true);
-      }
-    }, speed);
-
-    return () => clearInterval(interval);
-  }, [text, speed]);
-
-  return { displayText, isComplete };
+interface Props {
+  params: Promise<{ slug: string }>;
 }
 
-// Hook de efeito de scroll reveal
-function useScrollReveal(enabled: boolean = true) {
-  const [visibleSections, setVisibleSections] = useState<number[]>([]);
-  const contentRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!enabled) {
-      // Se desabilitado, mostrar tudo imediatamente
-      const sections = contentRef.current?.querySelectorAll('.scroll-section');
-      if (sections) {
-        const allIndices = Array.from({ length: sections.length }, (_, i) => i);
-        setVisibleSections(allIndices);
-      }
-      return;
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  try {
+    await connectDB();
+    const post: any = await BlogPostModel.findOne({ slug, status: 'published' }).lean();
+    if (!post) {
+      return {
+        title: 'Post Não Encontrado',
+      };
     }
 
-    // Mostrar primeira seção imediatamente
-    setVisibleSections([0]);
+    const title = post.seo?.metaTitle || post.title;
+    const description = post.seo?.metaDescription || post.excerpt;
+    const url = `https://www.wehosthere.com/blog/${post.slug}`;
+    const ogImage = post.coverImage || 'https://www.wehosthere.com/servidores-banner.png';
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const index = parseInt(entry.target.getAttribute('data-index') || '0');
-            setVisibleSections((prev) => {
-              if (!prev.includes(index)) {
-                return [...prev, index];
-              }
-              return prev;
-            });
-          }
-        });
+    return {
+      title,
+      description,
+      keywords: post.seo?.keywords?.length ? post.seo.keywords : post.tags,
+      alternates: {
+        canonical: url,
       },
-      {
-        threshold: 0.1,
-        rootMargin: '0px 0px -100px 0px'
-      }
-    );
-
-    const sections = contentRef.current?.querySelectorAll('.scroll-section');
-    sections?.forEach((section) => observer.observe(section));
-
-    return () => observer.disconnect();
-  }, [enabled]);
-
-  return { contentRef, visibleSections };
+      openGraph: {
+        type: 'article',
+        locale: 'pt_MZ',
+        url,
+        title,
+        description,
+        publishedTime: post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined,
+        modifiedTime: post.updatedAt ? new Date(post.updatedAt).toISOString() : undefined,
+        authors: [post.author?.name || 'WEHOSTHERE'],
+        tags: post.tags,
+        images: [
+          {
+            url: ogImage,
+            width: 1200,
+            height: 630,
+            alt: title,
+          },
+        ],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+        images: [ogImage],
+      },
+    };
+  } catch (e) {
+    return {
+      title: 'Blog',
+    };
+  }
 }
 
-interface BlogPost {
-  id: string;
-  title: string;
-  slug: string;
-  excerpt: string;
-  content: string;
-  coverImage: string;
-  author: { name: string };
-  category: string;
-  tags: string[];
-  publishedAt: string;
-  views: number;
-  featured: boolean;
-}
+export default async function BlogPostPage({ params }: Props) {
+  const { slug } = await params;
+  await connectDB();
+  const post: any = await BlogPostModel.findOne({ slug, status: 'published' }).lean();
 
-export default function BlogPostPage() {
-  const params = useParams();
-  const router = useRouter();
-  const [post, setPost] = useState<BlogPost | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [scrollRevealEnabled, setScrollRevealEnabled] = useState(true);
-  const [relatedPosts, setRelatedPosts] = useState<BlogPost[]>([]);
-  
-  // Efeito de digitação no título
-  const { displayText: typedTitle, isComplete: titleComplete } = useTypingEffect(post?.title || '', 30);
-  
-  // Efeito de scroll reveal
-  const { contentRef, visibleSections } = useScrollReveal(scrollRevealEnabled);
-
-  useEffect(() => {
-    if (params.slug) {
-      fetchPost(params.slug as string);
-      // Incrementar views quando o post é carregado
-      incrementViews(params.slug as string);
-    }
-  }, [params.slug]);
-
-  const incrementViews = async (slug: string) => {
-    try {
-      await fetch(`/api/blog/${slug}/view`, { method: 'POST' });
-    } catch (error) {
-      console.error('Erro ao incrementar views:', error);
-    }
-  };
-
-  const incrementClick = async (slug: string) => {
-    try {
-      await fetch(`/api/blog/${slug}/click`, { method: 'POST' });
-    } catch (error) {
-      console.error('Erro ao incrementar cliques:', error);
-    }
-  };
-
-  const fetchPost = async (slug: string) => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      // Buscar post por slug
-      const response = await fetch(`/api/admin/blog/posts?status=published&limit=100`);
-      const data = await response.json();
-      
-      if (data.success) {
-        const foundPost = data.posts.find((p: BlogPost) => p.slug === slug);
-        
-        if (foundPost) {
-          setPost(foundPost);
-          
-          // Buscar posts relacionados
-          const related = data.posts
-            .filter((p: BlogPost) => 
-              p.slug !== slug && // Excluir o post atual
-              (p.category === foundPost.category || // Mesma categoria
-               p.tags?.some((tag: string) => foundPost.tags?.includes(tag))) // Tags em comum
-            )
-            .slice(0, 3); // Limitar a 3 posts
-          
-          setRelatedPosts(related);
-        } else {
-          setError('Post não encontrado');
-        }
-      } else {
-        setError('Erro ao buscar post');
-      }
-    } catch (error) {
-      console.error('Erro ao buscar post:', error);
-      setError('Erro ao carregar post');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getCategoryLabel = (category: string) => {
-    const labels: Record<string, string> = {
-      news: 'Notícias',
-      tutorial: 'Tutoriais',
-      announcement: 'Anúncios',
-      update: 'Atualizações',
-      feature: 'Funcionalidades'
-    };
-    return labels[category] || category;
-  };
-
-  const getCategoryColor = (category: string) => {
-    const colors: Record<string, string> = {
-      news: 'bg-blue-100 text-blue-800',
-      tutorial: 'bg-green-100 text-green-800',
-      announcement: 'bg-purple-100 text-purple-800',
-      update: 'bg-orange-100 text-orange-800',
-      feature: 'bg-pink-100 text-pink-800'
-    };
-    return colors[category] || 'bg-gray-100 text-gray-800';
-  };
-
-  const sharePost = () => {
-    if (typeof window !== 'undefined' && post) {
-      navigator.clipboard.writeText(window.location.href);
-      alert('Link copiado para a área de transferência!');
-    }
-  };
-
-  const shareToFacebook = () => {
-    if (typeof window !== 'undefined' && post) {
-      const url = encodeURIComponent(window.location.href);
-      window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
-    }
-  };
-
-  const shareToTwitter = () => {
-    if (typeof window !== 'undefined' && post) {
-      const url = encodeURIComponent(window.location.href);
-      const text = encodeURIComponent(post.title);
-      window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank');
-    }
-  };
-
-  const shareToLinkedIn = () => {
-    if (typeof window !== 'undefined' && post) {
-      const url = encodeURIComponent(window.location.href);
-      const title = encodeURIComponent(post.title);
-      window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}&title=${title}`, '_blank');
-    }
-  };
-
-  const shareToWhatsApp = () => {
-    if (typeof window !== 'undefined' && post) {
-      const url = encodeURIComponent(window.location.href);
-      const text = encodeURIComponent(`${post.title} - ${window.location.href}`);
-      window.open(`https://wa.me/?text=${text}`, '_blank');
-    }
-  };
-
-  // Dividir conteúdo em seções para scroll reveal
-  const splitContentIntoSections = (content: string): string[] => {
-    // Dividir por parágrafos para seções mais naturais
-    const paragraphs = content.split(/<\/p>|<br\s*\/?>|<\/h[1-6]>|<\/div>/i);
-    const result: string[] = [];
-    let currentSection = '';
-    
-    for (let i = 0; i < paragraphs.length; i++) {
-      const para = paragraphs[i].trim();
-      if (!para) continue;
-      
-      currentSection += para;
-      
-      // Se atingir um tamanho razoável, criar nova seção
-      if (currentSection.length > 500) {
-        result.push(currentSection);
-        currentSection = '';
-      }
-    }
-    
-    if (currentSection.trim()) {
-      result.push(currentSection);
-    }
-    
-    // Se não conseguiu dividir bem, retorna o conteúdo completo como uma seção
-    if (result.length === 0 || result.length === 1 && result[0].length < 100) {
-      return [content];
-    }
-    
-    return result;
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Carregando post...</p>
-        </div>
-      </div>
-    );
+  if (!post) {
+    notFound();
   }
 
-  if (error || !post) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">{error || 'Post não encontrado'}</h1>
-          <Link href="/blog" className="text-blue-600 hover:text-blue-700 flex items-center justify-center gap-2">
-            <ArrowLeft size={20} />
-            Voltar para o blog
-          </Link>
-        </div>
-      </div>
-    );
-  }
+  // Buscar posts relacionados no servidor
+  let relatedPosts: BlogPostData[] = [];
+  try {
+    const rawRelated = await BlogPostModel.find({
+      status: 'published',
+      slug: { $ne: slug },
+      $or: [
+        { category: post.category },
+        { tags: { $in: post.tags || [] } }
+      ]
+    })
+      .limit(3)
+      .lean();
+
+    relatedPosts = rawRelated.map((p: any) => ({
+      id: p._id?.toString() || '',
+      title: p.title,
+      slug: p.slug,
+      excerpt: p.excerpt,
+      content: p.content,
+      coverImage: p.coverImage || '',
+      author: { name: p.author?.name || 'WEHOSTHERE' },
+      category: p.category,
+      tags: p.tags || [],
+      publishedAt: p.publishedAt ? new Date(p.publishedAt).toISOString() : '',
+      views: p.views || 0,
+      featured: Boolean(p.featured),
+    }));
+  } catch (_) {}
+
+  // Schema.org BlogPosting estruturado
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: post.title,
+    description: post.excerpt,
+    image: post.coverImage || 'https://www.wehosthere.com/servidores-banner.png',
+    datePublished: post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined,
+    dateModified: post.updatedAt ? new Date(post.updatedAt).toISOString() : undefined,
+    author: {
+      '@type': 'Person',
+      name: post.author?.name || 'WEHOSTHERE',
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'WEHOSTHERE',
+      logo: {
+        '@type': 'ImageObject',
+        url: 'https://www.wehosthere.com/logo.png',
+      },
+    },
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': `https://www.wehosthere.com/blog/${post.slug}`,
+    },
+  };
+
+  const initialPost: BlogPostData = {
+    id: (post as any)._id?.toString() || '',
+    title: post.title,
+    slug: post.slug,
+    excerpt: post.excerpt,
+    content: post.content,
+    coverImage: post.coverImage || '',
+    author: { name: post.author?.name || 'WEHOSTHERE' },
+    category: post.category,
+    tags: post.tags || [],
+    publishedAt: post.publishedAt ? new Date(post.publishedAt).toISOString() : '',
+    views: post.views || 0,
+    featured: Boolean(post.featured),
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b">
-        <div className="container mx-auto px-4 py-4">
-          <Link href="/blog" className="text-blue-600 hover:text-blue-700 flex items-center gap-2">
-            <ArrowLeft size={20} />
-            Voltar para o blog
-          </Link>
-        </div>
-      </div>
-
-      {/* Post Content */}
-      <article className="container mx-auto px-4 py-12 max-w-4xl">
-        {/* Cover Image */}
-        {post.coverImage && (
-          <div className="mb-8 rounded-lg overflow-hidden">
-            <img
-              src={post.coverImage}
-              alt={post.title}
-              className="w-full h-auto object-contain max-h-96 mx-auto"
-            />
-          </div>
-        )}
-
-        {/* Post Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-2 mb-4">
-            <span className={`px-3 py-1 rounded-full text-sm font-medium ${getCategoryColor(post.category)}`}>
-              {getCategoryLabel(post.category)}
-            </span>
-            {post.featured && (
-              <span className="px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
-                Em Destaque
-              </span>
-            )}
-          </div>
-
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            {typedTitle}
-            <span className="inline-block w-0.5 h-8 bg-blue-600 ml-1 animate-pulse" />
-          </h1>
-
-          <div className="flex items-center gap-6 text-gray-600">
-            <span className="flex items-center gap-2">
-              <User size={18} />
-              {post.author.name}
-            </span>
-            <span className="flex items-center gap-2">
-              <Calendar size={18} />
-              {new Date(post.publishedAt).toLocaleDateString('pt-MZ', {
-                day: '2-digit',
-                month: '2-digit',
-                year: '2-digit'
-              })}
-            </span>
-            <span className="flex items-center gap-2">
-              <Eye size={18} />
-              <span className="font-semibold">{post.views}</span>
-            </span>
-          </div>
-
-          {post.tags.length > 0 && (
-            <div className="flex items-center gap-2 mt-4">
-              <Tag size={18} className="text-gray-600" />
-              <div className="flex gap-2 flex-wrap">
-                {post.tags.map((tag, index) => (
-                  <span key={index} className="text-sm text-gray-600">
-                    #{tag}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Share Buttons */}
-        <div className="mb-8 flex flex-wrap items-center justify-end gap-3">
-          <button
-            onClick={sharePost}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-            title="Copiar link"
-          >
-            <Share2 size={18} />
-            <span className="hidden sm:inline">Copiar Link</span>
-          </button>
-          <button
-            onClick={shareToFacebook}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-            title="Compartilhar no Facebook"
-          >
-            <Facebook size={18} />
-            <span className="hidden sm:inline">Facebook</span>
-          </button>
-          <button
-            onClick={shareToTwitter}
-            className="flex items-center gap-2 px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-lg transition-colors"
-            title="Compartilhar no Twitter"
-          >
-            <Twitter size={18} />
-            <span className="hidden sm:inline">Twitter</span>
-          </button>
-          <button
-            onClick={shareToLinkedIn}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-lg transition-colors"
-            title="Compartilhar no LinkedIn"
-          >
-            <Linkedin size={18} />
-            <span className="hidden sm:inline">LinkedIn</span>
-          </button>
-          <button
-            onClick={shareToWhatsApp}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
-            title="Compartilhar no WhatsApp"
-          >
-            <MessageCircle size={18} />
-            <span className="hidden sm:inline">WhatsApp</span>
-          </button>
-          <button
-            onClick={() => setScrollRevealEnabled(!scrollRevealEnabled)}
-            className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
-            title={scrollRevealEnabled ? "Mostrar todo o conteúdo" : "Ativar efeito de scroll"}
-          >
-            {scrollRevealEnabled ? <EyeOff size={18} /> : <Eye size={18} />}
-            <span className="hidden sm:inline">{scrollRevealEnabled ? "Ver Tudo" : "Scroll Reveal"}</span>
-          </button>
-        </div>
-
-        {/* Post Content */}
-        <div className="prose prose-lg max-w-none bg-white p-8 rounded-lg shadow-sm overflow-visible">
-          {post.content ? (
-            <div ref={contentRef} className="whitespace-pre-wrap break-words">
-              {scrollRevealEnabled ? (
-                // Modo scroll reveal - conteúdo dividido em seções
-                splitContentIntoSections(post.content).map((section, index) => (
-                  <div
-                    key={index}
-                    data-index={index}
-                    className={`scroll-section transition-all duration-700 ease-out ${
-                      visibleSections.includes(index)
-                        ? 'opacity-100 translate-y-0'
-                        : 'opacity-0 translate-y-8'
-                    }`}
-                    dangerouslySetInnerHTML={{ __html: section }}
-                  />
-                ))
-              ) : (
-                // Modo normal - conteúdo completo
-                <div dangerouslySetInnerHTML={{ __html: post.content }} />
-              )}
-            </div>
-          ) : (
-            <div className="text-gray-500">Conteúdo não disponível</div>
-          )}
-        </div>
-
-        {/* AdSense Banner Responsivo */}
-        <AdSenseBanner className="my-8" />
-
-        {/* Excerpt */}
-        <div className="mt-8 p-6 bg-blue-50 rounded-lg border border-blue-200">
-          <h3 className="font-bold text-blue-900 mb-2">Resumo</h3>
-          <p className="text-blue-800">{post.excerpt}</p>
-        </div>
-
-        {/* Related Posts */}
-        {relatedPosts.length > 0 && (
-          <div className="mt-12">
-            <h2 className="text-2xl font-bold mb-6 text-gray-800">Posts Relacionados</h2>
-            <div className="grid md:grid-cols-3 gap-6">
-              {relatedPosts.map((relatedPost) => (
-                <Link 
-                  key={relatedPost.id} 
-                  href={`/blog/${relatedPost.slug}`}
-                  onClick={() => incrementClick(relatedPost.slug)}
-                  className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow group"
-                >
-                  {relatedPost.coverImage && (
-                    <img 
-                      src={relatedPost.coverImage} 
-                      alt={relatedPost.title}
-                      className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  )}
-                  <div className="p-6">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${getCategoryColor(relatedPost.category)}`}>
-                      {getCategoryLabel(relatedPost.category)}
-                    </span>
-                    <h3 className="font-bold mt-3 mb-2 text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
-                      {relatedPost.title}
-                    </h3>
-                    <p className="text-gray-600 text-sm line-clamp-3">{relatedPost.excerpt}</p>
-                    <div className="flex items-center gap-2 mt-4 text-xs text-gray-500">
-                      <Eye size={14} />
-                      <span>{relatedPost.views}</span>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
-      </article>
-    </div>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <BlogPostClient initialPost={initialPost} initialRelatedPosts={relatedPosts} />
+    </>
   );
 }

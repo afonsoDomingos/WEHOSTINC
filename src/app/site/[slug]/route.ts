@@ -56,12 +56,28 @@ export async function GET(request: NextRequest, { params }: Props) {
       );
     }
 
-    // Retorna o HTML puro sem intervenção de layouts externos
-    return new Response(site.htmlContent, {
+    const isPublished = site.status === 'published';
+    let html = site.htmlContent;
+
+    // Se não tiver canonical, injeta a URL primária para evitar conteúdo duplicado entre subdomínio e /site/[slug]
+    const canonicalDomain = site.customDomain 
+      ? `https://${site.customDomain}` 
+      : `https://${site.subdomain || site.slug}.wehosthere.com`;
+
+    if (!html.includes('rel="canonical"') && !html.includes("rel='canonical'")) {
+      const canonicalTag = `<link rel="canonical" href="${canonicalDomain}" />`;
+      if (html.includes('</head>')) {
+        html = html.replace('</head>', `  ${canonicalTag}\n</head>`);
+      }
+    }
+
+    // Retorna o HTML puro com cabeçalhos otimizados para motores de busca
+    return new Response(html, {
       status: 200,
       headers: {
         'Content-Type': 'text/html; charset=utf-8',
-        'Cache-Control': 'public, max-age=60, s-maxage=300',
+        'Cache-Control': isPublished ? 'public, max-age=60, s-maxage=300' : 'no-store, no-cache',
+        'X-Robots-Tag': isPublished ? 'index, follow' : 'noindex, nofollow',
         'X-Powered-By': 'WEHOSTHERE AI Cloud',
       },
     });

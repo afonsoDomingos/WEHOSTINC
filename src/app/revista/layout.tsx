@@ -40,7 +40,6 @@ export const metadata: Metadata = {
     description: 'Histórias reais de código, startups, design e carreira tech em Moçambique.',
     images: ['https://www.wehosthere.com/servidores-banner.png'],
   },
-  alternates: { canonical: 'https://www.wehosthere.com/revista' },
 };
 
 function RevistaFooter() {

@@ -1,14 +1,17 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Blog — WEHOSTHERE | Dicas de Hospedagem, Domínios e Tecnologia em Moçambique',
-  description: 'Artigos, tutoriais e notícias sobre hospedagem de sites, registo de domínios, email corporativo e tecnologia web em Moçambique. Actualizações e guias práticos da WEHOSTHERE.',
+  title: {
+    default: 'Blog — WEHOSTHERE | Dicas de Hospedagem, Domínios e Tecnologia',
+    template: '%s | WEHOSTHERE Blog',
+  },
+  description: 'Artigos, tutoriais e notícias sobre hospedagem de sites, registo de domínios, email corporativo, IA e tecnologia web.',
   keywords: [
-    'blog hospedagem Moçambique',
-    'tutoriais web Moçambique',
-    'dicas domínios .co.mz',
+    'blog hospedagem',
+    'tutoriais web',
+    'dicas domínios',
     'hospedagem sites dicas',
-    'tecnologia web Maputo',
+    'tecnologia web',
     'WEHOSTHERE blog',
     'notícias hosting',
     'email corporativo tutorial',
@@ -18,8 +21,8 @@ export const metadata: Metadata = {
     locale: 'pt_MZ',
     url: 'https://www.wehosthere.com/blog',
     siteName: 'WEHOSTHERE',
-    title: 'Blog — WEHOSTHERE | Hospedagem & Tecnologia em Moçambique',
-    description: 'Artigos e tutoriais sobre hospedagem de sites, domínios e tecnologia web em Moçambique.',
+    title: 'Blog — WEHOSTHERE | Hospedagem & Tecnologia',
+    description: 'Artigos e tutoriais sobre hospedagem de sites, domínios e tecnologia web.',
     images: [
       {
         url: 'https://www.wehosthere.com/servidores-banner.png',
@@ -34,11 +37,8 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Blog — WEHOSTHERE',
-    description: 'Artigos e tutoriais sobre hospedagem e tecnologia web em Moçambique.',
+    description: 'Artigos e tutoriais sobre hospedagem e tecnologia web.',
     images: ['https://www.wehosthere.com/servidores-banner.png'],
-  },
-  alternates: {
-    canonical: 'https://www.wehosthere.com/blog',
   },
 };
 

@@ -63,6 +63,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'daily',
       priority: 0.8,
     },
+    // Revista Digital
+    {
+      url: `${BASE_URL}/revista`,
+      lastModified: now,
+      changeFrequency: 'daily',
+      priority: 0.9,
+    },
+    {
+      url: `${BASE_URL}/revista/submeter`,
+      lastModified: oneMonthAgo,
+      changeFrequency: 'monthly',
+      priority: 0.5,
+    },
     // Páginas SEO - Domínios
     {
       url: `${BASE_URL}/dominios`,
@@ -147,12 +160,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'weekly',
       priority: 0.8,
     },
-    // Páginas SEO - Inteligência Artificial
+    // Páginas SEO - Inteligência Artificial & AI Builder
     {
       url: `${BASE_URL}/inteligencia-artificial`,
       lastModified: now,
       changeFrequency: 'weekly',
       priority: 0.8,
+    },
+    {
+      url: `${BASE_URL}/ai-website-builder`,
+      lastModified: now,
+      changeFrequency: 'weekly',
+      priority: 0.9,
     },
     // Páginas SEO - Pagamentos
     {
@@ -182,11 +201,30 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${BASE_URL}/blog/${post.slug}`,
       lastModified: post.updatedAt || post.publishedAt || now,
       changeFrequency: 'weekly' as const,
-      priority: 0.7,
+      priority: 0.8,
     }));
   } catch (error) {
     console.error('[Sitemap] Erro ao buscar posts do blog:', error);
   }
 
-  return [...staticPages, ...blogPosts];
+  // Buscar histórias da revista dinamicamente
+  let revistaStories: MetadataRoute.Sitemap = [];
+  try {
+    await connectDB();
+    const RevistaStory = (await import('@/models/RevistaStory')).default;
+    const stories = await RevistaStory.find({ status: 'published' })
+      .select('slug updatedAt publishedAt')
+      .lean();
+
+    revistaStories = stories.map((story: any) => ({
+      url: `${BASE_URL}/revista/${story.slug}`,
+      lastModified: story.updatedAt || story.publishedAt || now,
+      changeFrequency: 'weekly' as const,
+      priority: 0.8,
+    }));
+  } catch (error) {
+    console.error('[Sitemap] Erro ao buscar histórias da revista:', error);
+  }
+
+  return [...staticPages, ...blogPosts, ...revistaStories];
 }

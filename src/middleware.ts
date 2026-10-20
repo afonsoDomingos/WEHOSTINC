@@ -26,6 +26,15 @@ export function middleware(request: NextRequest) {
   const hostname = host.split(':')[0].toLowerCase();
   const { pathname } = request.nextUrl;
 
+  // 0. Redirecionamento Canónico 301: Apex para WWW (wehosthere.com -> www.wehosthere.com)
+  if (hostname === 'wehosthere.com') {
+    const url = request.nextUrl.clone();
+    url.host = 'www.wehosthere.com';
+    url.protocol = 'https:';
+    url.port = '';
+    return NextResponse.redirect(url, { status: 301 });
+  }
+
   // 1. Tratar solicitações de API e CORS
   if (pathname.startsWith('/api/')) {
     const origin = request.headers.get('origin');

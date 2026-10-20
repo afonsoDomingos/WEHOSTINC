@@ -154,7 +154,8 @@ export default function RootLayout({
                 "@type": "ContactPoint",
                 "telephone": "+258-84-438-4702",
                 "contactType": "customer support",
-                "availableLanguage": ["Portuguese"]
+                "availableLanguage": ["Portuguese", "English"],
+                "areaServed": ["MZ", "AO", "PT", "BR", "Worldwide"]
               },
               "sameAs": [
                 "https://www.facebook.com/wehosthere",
