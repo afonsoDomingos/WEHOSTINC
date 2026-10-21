@@ -7,7 +7,7 @@ import { useSession, signOut } from 'next-auth/react';
 import { 
   Server, Mail, LayoutDashboard, Settings, LogOut, 
   Plus, Globe, Database, TrendingUp, Users, CheckCircle, Sparkles, ArrowRight, Link2, Loader2, ShoppingBag,
-  Activity, Cpu, HardDrive, Wifi, ShieldCheck, Zap, Star, Bell, X, Download
+  Activity, Cpu, HardDrive, Wifi, ShieldCheck, Zap, Star, Bell, X, Download, Layers
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 import { dataManager } from '@/lib/data';
@@ -496,6 +496,13 @@ export default function DashboardPage() {
                 >
                   <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-gray-900" />
                   <span>{t('dash.btn_request_site')}</span>
+                </Link>
+                <Link
+                  href="/dashboard/visual-builder"
+                  className="flex items-center space-x-1.5 sm:space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white px-3 sm:px-5 py-2 sm:py-3 rounded-lg font-extrabold text-[10px] sm:text-sm shadow-md transition"
+                >
+                  <Layers className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+                  <span>Editor Visual Pro</span>
                 </Link>
                 <Link
                   href="/dashboard/sites"

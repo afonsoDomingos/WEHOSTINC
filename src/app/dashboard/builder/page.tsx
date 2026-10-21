@@ -3152,6 +3152,23 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 <span className="hidden sm:inline">Código</span>
               </button>
             </div>
+
+            {/* Botão de Atalho para o Editor Visual Estilo Elementor */}
+            <button
+              onClick={() => {
+                if (typeof window !== 'undefined' && displayedHtml) {
+                  sessionStorage.setItem('wehost_visual_builder_html', displayedHtml);
+                  sessionStorage.setItem('wehost_visual_builder_title', projectTitle || 'Meu Website');
+                }
+                const targetUrl = projectId ? `/dashboard/visual-builder?id=${projectId}` : '/dashboard/visual-builder';
+                router.push(targetUrl);
+              }}
+              className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 transition cursor-pointer active:scale-95 shadow-xs"
+              title="Abrir no Editor Visual Estilo Elementor (Editar e reorganizar blocos visualmente)"
+            >
+              <Layers className="w-3.5 h-3.5 text-blue-400" />
+              <span>Editor Visual</span>
+            </button>
           </div>
 
           {/* Centro: Dropdown "Latest ▾" e Stepper de Versões < > (Exacto ao v0) */}

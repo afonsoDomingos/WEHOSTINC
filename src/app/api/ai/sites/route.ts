@@ -21,8 +21,20 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const userEmail = searchParams.get('userEmail');
     const slug = searchParams.get('slug');
+    const id = searchParams.get('id');
 
     await connectDB();
+
+    // Se estiver a procurar por id específico
+    if (id) {
+      const query: any = { id };
+      if (userEmail) query.userEmail = userEmail.toLowerCase();
+      const site = await AiSiteModel.findOne(query).lean();
+      if (!site) {
+        return NextResponse.json({ error: 'Site não encontrado' }, { status: 404 });
+      }
+      return NextResponse.json({ success: true, site });
+    }
 
     // Se estiver a procurar por slug (para visualização pública)
     if (slug) {
@@ -60,6 +72,7 @@ export async function POST(request: NextRequest) {
       slug: customSlug,
       subdomain,
       htmlContent,
+      documentJson,
       promptHistory = [],
       versions = [],
       status = 'draft',
@@ -90,6 +103,10 @@ export async function POST(request: NextRequest) {
       customDomain: customDomain ? customDomain.trim().toLowerCase() : undefined,
       updatedAt: new Date().toISOString(),
     };
+
+    if (documentJson !== undefined) {
+      updateData.documentJson = documentJson;
+    }
 
     if (status === 'published') {
       updateData.publishedAt = new Date().toISOString();

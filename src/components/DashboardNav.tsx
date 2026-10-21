@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { 
   Server, LayoutDashboard, Globe, Mail, 
   Database, Settings as SettingsIcon, LogOut, Menu, X, User, LifeBuoy, Sparkles, Link2, RefreshCw, FileText, Star, Package, BookOpen, Bell, Users, Activity,
-  LayoutTemplate
+  LayoutTemplate, Layers
 } from 'lucide-react';
 
 import BrandLogo from '@/components/BrandLogo';
@@ -43,6 +43,7 @@ export default function DashboardNav({ userName, userAvatar, onLogout, onRefresh
   const navItems = [
     { href: '/dashboard', label: t('dash.nav_dashboard'), icon: LayoutDashboard },
     { href: '/dashboard/builder', label: 'Construtor IA', icon: LayoutTemplate },
+    { href: '/dashboard/visual-builder', label: 'Editor Visual Pro', icon: Layers },
     { href: '/dashboard/sites', label: t('dash.nav_sites'), icon: Globe },
     { href: '/dashboard/systems', label: t('dash.nav_systems'), icon: Package },
     { href: '/dashboard/orders', label: t('dash.nav_orders'), icon: FileText },

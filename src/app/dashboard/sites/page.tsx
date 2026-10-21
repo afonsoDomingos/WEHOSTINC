@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import { 
   Globe, Plus, Trash2, Settings, CheckCircle, Clock, XCircle,
-  LayoutDashboard, Mail, Database, Settings as SettingsIcon, LogOut, Server, Sparkles, ArrowRight, Search, X, ShoppingBag
+  LayoutDashboard, Mail, Database, Settings as SettingsIcon, LogOut, Server, Sparkles, ArrowRight, Search, X, ShoppingBag, Layers
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 import { dataManager, Site } from '@/lib/data';
@@ -297,7 +297,14 @@ export default function SitesPage() {
                         <div className="flex items-center justify-between sm:justify-end space-x-3 w-full sm:w-auto pt-2.5 sm:pt-0 border-t sm:border-t-0 border-gray-100 shrink-0">
                           <StatusBadge status={site.status} />
                           <div className="flex items-center space-x-1 shrink-0">
-                            <button className="p-2 text-gray-500 hover:text-primary-600 transition hover:bg-gray-100 rounded-lg cursor-pointer">
+                            <Link
+                              href={`/dashboard/visual-builder?slug=${site.domain}`}
+                              className="p-2 text-gray-500 hover:text-blue-600 transition hover:bg-blue-50 rounded-lg cursor-pointer"
+                              title="Editar no Editor Visual Pro"
+                            >
+                              <Layers className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
+                            </Link>
+                            <button className="p-2 text-gray-500 hover:text-primary-600 transition hover:bg-gray-100 rounded-lg cursor-pointer" title="Configurações">
                               <Settings className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
                             </button>
                             <button

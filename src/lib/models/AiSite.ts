@@ -12,6 +12,7 @@ export interface IPromptMessage {
 export interface IAiSiteVersion {
   versionNumber: number;
   htmlContent: string;
+  documentJson?: Record<string, any>;
   prompt?: string;
   createdAt: string;
   diffSummary?: string;
@@ -25,6 +26,7 @@ export interface IAiSite extends Document {
   slug: string;
   subdomain?: string;
   htmlContent: string;
+  documentJson?: Record<string, any>;
   promptHistory: IPromptMessage[];
   versions?: IAiSiteVersion[];
   status: 'draft' | 'published';
@@ -47,6 +49,7 @@ const PromptMessageSchema = new Schema<IPromptMessage>({
 const VersionSchema = new Schema<IAiSiteVersion>({
   versionNumber: { type: Number, required: true },
   htmlContent: { type: String, required: true },
+  documentJson: { type: Schema.Types.Mixed },
   prompt: { type: String },
   createdAt: { type: String, default: () => new Date().toISOString() },
   diffSummary: { type: String },
@@ -60,6 +63,7 @@ const AiSiteSchema = new Schema<IAiSite>({
   slug: { type: String, required: true, unique: true, lowercase: true, trim: true, index: true },
   subdomain: { type: String, lowercase: true, trim: true },
   htmlContent: { type: String, required: true },
+  documentJson: { type: Schema.Types.Mixed },
   promptHistory: { type: [PromptMessageSchema], default: [] },
   versions: { type: [VersionSchema], default: [] },
   status: { type: String, enum: ['draft', 'published'], default: 'draft', index: true },
