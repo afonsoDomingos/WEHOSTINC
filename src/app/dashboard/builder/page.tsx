@@ -3086,10 +3086,10 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
       }`}>
         
         {/* Barra Superior do Canvas */}
-        <header className="h-14 px-3 sm:px-4 border-b border-[#27272a] bg-[#0e0e11] flex items-center justify-between gap-1.5 sm:gap-2">
+        <header className="h-14 px-2.5 sm:px-4 border-b border-[#27272a] bg-[#0e0e11] flex items-center justify-between gap-2 overflow-x-auto no-scrollbar">
           
           {/* Lado Esquerdo: Botões de Expandir Sidebar/Chat + Seletor Preview/Código */}
-          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {!isSidebarOpen && (
               <button
                 onClick={() => setIsSidebarOpen(true)}
@@ -3261,8 +3261,8 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
           {/* Lado Direito: Modos Responsivos, Abrir em Nova Aba, Menu de Opções & Publicar */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             
-            {/* Modos Responsivos (Desktop, Tablet, Mobile) */}
-            <div className="hidden lg:flex items-center gap-1 bg-[#18181b] p-1 rounded-xl border border-[#27272a]">
+            {/* Modos Responsivos (Desktop, Tablet, Mobile) - Compacto e elegante */}
+            <div className="hidden xl:flex items-center gap-1 bg-[#18181b] p-1 rounded-xl border border-[#27272a]">
               <button
                 onClick={() => setViewportMode('desktop')}
                 className={`p-1.5 rounded-lg transition cursor-pointer ${viewportMode === 'desktop' ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white'}`}
@@ -3286,8 +3286,8 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
               </button>
             </div>
 
-            {/* Ações Diretas em Ecrãs Médios / Grandes */}
-            <div className="hidden md:flex items-center gap-1.5">
+            {/* Ações Diretas em Ecrãs Muito Grandes (2XL) */}
+            <div className="hidden 2xl:flex items-center gap-1.5">
               {/* Copiar Código (Quando na aba código) */}
               {activeTab === 'code' && (
                 <button
@@ -3343,8 +3343,8 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
               </button>
             </div>
 
-            {/* Menu "Mais Opções" (⋯) no Mobile — Agrupa ferramentas com elegância */}
-            <div className="relative md:hidden" ref={moreMenuRef}>
+            {/* Menu "Mais Ferramentas" (⋯) — Sempre acessível em ecrãs com barra lateral expandida */}
+            <div className="relative 2xl:hidden" ref={moreMenuRef}>
               <button
                 onClick={() => setIsMoreMenuOpen(!isMoreMenuOpen)}
                 className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 transition cursor-pointer"
@@ -3354,26 +3354,11 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
               </button>
 
               {isMoreMenuOpen && (
-                <div className="absolute right-0 top-full mt-2 w-60 bg-[#18181b] border border-[#27272a] rounded-2xl shadow-2xl p-1.5 z-50 animate-in fade-in zoom-in-95 duration-150 space-y-1">
-                  <div className="px-3 py-1 text-[10px] font-bold text-gray-400 uppercase tracking-wider border-b border-white/5">
-                    Ferramentas do Site
+                <div className="absolute right-0 top-full mt-2 w-64 bg-[#18181b] border border-[#27272a] rounded-2xl shadow-2xl p-1.5 z-50 animate-in fade-in zoom-in-95 duration-150 space-y-1">
+                  <div className="px-3 py-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider border-b border-white/5 flex items-center justify-between">
+                    <span>Ferramentas do Site</span>
+                    <span className="text-[9px] text-blue-400">Atalhos</span>
                   </div>
-
-                  <button
-                    onClick={() => {
-                      if (typeof window !== 'undefined' && displayedHtml) {
-                        sessionStorage.setItem('wehost_visual_builder_html', displayedHtml);
-                        sessionStorage.setItem('wehost_visual_builder_title', projectTitle || 'Meu Website');
-                      }
-                      const targetUrl = projectId ? `/dashboard/visual-builder?id=${projectId}` : '/dashboard/visual-builder';
-                      router.push(targetUrl);
-                      setIsMoreMenuOpen(false);
-                    }}
-                    className="w-full text-left px-3 py-2 rounded-xl text-xs text-blue-400 hover:text-blue-300 hover:bg-blue-600/10 transition flex items-center gap-2.5 font-bold cursor-pointer"
-                  >
-                    <Layers className="w-4 h-4 text-blue-400 shrink-0" />
-                    <span>Editor Visual Pro</span>
-                  </button>
 
                   <button
                     onClick={() => {
@@ -3385,6 +3370,29 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                   >
                     <Upload className="w-4 h-4 text-purple-400 shrink-0" />
                     <span>Configurar Logótipo</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      handleOpenShareModal();
+                      setIsMoreMenuOpen(false);
+                    }}
+                    disabled={!displayedHtml}
+                    className="w-full text-left px-3 py-2 rounded-xl text-xs text-gray-300 hover:text-white hover:bg-white/5 transition flex items-center gap-2.5 disabled:opacity-40 cursor-pointer"
+                  >
+                    <Share2 className="w-4 h-4 text-blue-400 shrink-0" />
+                    <span>Partilhar Pré-visualização</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      handleOpenInNewTab();
+                      setIsMoreMenuOpen(false);
+                    }}
+                    className="w-full text-left px-3 py-2 rounded-xl text-xs text-gray-300 hover:text-white hover:bg-white/5 transition flex items-center gap-2.5 cursor-pointer"
+                  >
+                    <ExternalLink className="w-4 h-4 text-blue-400 shrink-0" />
+                    <span>Abrir em Nova Aba</span>
                   </button>
 
                   <button
@@ -3411,18 +3419,6 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                     <span>Exportar como ZIP</span>
                   </button>
 
-                  <button
-                    onClick={() => {
-                      handleOpenShareModal();
-                      setIsMoreMenuOpen(false);
-                    }}
-                    disabled={!displayedHtml}
-                    className="w-full text-left px-3 py-2 rounded-xl text-xs text-gray-300 hover:text-white hover:bg-white/5 transition flex items-center gap-2.5 disabled:opacity-40 cursor-pointer"
-                  >
-                    <Share2 className="w-4 h-4 text-blue-400 shrink-0" />
-                    <span>Partilhar Pré-visualização</span>
-                  </button>
-
                   {activeTab === 'code' && (
                     <button
                       onClick={() => {
@@ -3439,10 +3435,10 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
               )}
             </div>
 
-            {/* BOTÃO OPEN IN NEW TAB */}
+            {/* BOTÃO OPEN IN NEW TAB (Directo) */}
             <button
               onClick={handleOpenInNewTab}
-              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 transition cursor-pointer"
+              className="hidden sm:flex p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 transition cursor-pointer"
               title="Abrir em Nova Aba no Navegador"
             >
               <ExternalLink className="w-4 h-4 text-blue-400" />
