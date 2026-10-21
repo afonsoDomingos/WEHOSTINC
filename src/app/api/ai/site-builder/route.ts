@@ -646,7 +646,12 @@ DIRETRIZES CRITICAS DE DESIGN E ESTRUTURA:
      Nos cards: <i data-lucide="shield" class="w-6 h-6 text-white"></i> (ou "zap", "server", "globe", "cpu", "star", "phone", etc.)
      Antes de </body>: <script>lucide.createIcons();</script>
    - Envolva sempre cada ícone numa caixa elegante de suporte com cantos arredondados (ex: <div class="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white mb-4">...</div>).
-9. Se houver HTML atual, REFINE e ATUALIZE mantendo essa estetica preta e branca minimalista de alto luxo e garantindo que todos os ícones sejam profissionais em SVG.`;
+9. Se houver HTML atual, REFINE e ATUALIZE mantendo essa estetica preta e branca minimalista de alto luxo e garantindo que todos os ícones sejam profissionais em SVG.
+10. NAVEGAÇÃO E LINKS CLICÁVEIS (REGRA OBRIGATÓRIA):
+    - TODOS os links de navegação (<nav> e menu do cabeçalho) DEVEM ser 100% clicáveis e funcionar com âncoras (<a href="#inicio">, <a href="#solucoes"> ou <a href="#servicos">, <a href="#vantagens">, <a href="#precos">, <a href="#contacto">).
+    - Para CADA link de navegação no menu, DEVE OBRIGATORIAMENTE existir no corpo do documento a respectiva secção com o atributo id exato (ex: <section id="inicio">, <section id="solucoes">, <section id="vantagens">, <section id="precos">, <footer id="contacto">).
+    - O <head> DEVE conter SEMPRE: <style>html { scroll-behavior: smooth; } section[id] { scroll-margin-top: 5rem; }</style> para que a navegação suave funcione sem que o cabeçalho fixo cubra os títulos.
+    - Se houver botão de WhatsApp, DEVE ter link real no formato: href="https://wa.me/NUMERO?text=MENSAGEM".`;
 
 // ─── Detecção de Intenção Conversacional (Chat vs Geração de Código) ──────────
 function detectConversationalIntent(prompt: string, hasCurrentHtml: boolean): { isChat: boolean; reply: string } {

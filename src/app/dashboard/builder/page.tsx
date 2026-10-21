@@ -13,7 +13,7 @@ import {
   PanelLeftClose, PanelLeftOpen, Maximize2, Minimize2,
   UtensilsCrossed, Scissors, Palmtree, Briefcase, Palette, Tag,
   History, Undo2, Download, ShoppingBag, FolderArchive, Edit3, Save, Upload,
-  MoreHorizontal
+  MoreHorizontal, Sliders, Phone, Layout, DollarSign
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 
@@ -249,6 +249,448 @@ function applyLogoToHtml(
   return updated;
 }
 
+// ─── HELPER: Paletas de Cores Pré-Definidas & Refinamento ───────────────────
+interface ColorPalettePreset {
+  id: string;
+  name: string;
+  primary: string;
+  primaryGradient: string;
+  accent: string;
+  bgDark: string;
+  bgLight: string;
+  textDark: string;
+  textLight: string;
+}
+
+const COLOR_PALETTES: ColorPalettePreset[] = [
+  {
+    id: 'ocean',
+    name: 'Azul Moderno & Ciano',
+    primary: '#2563eb',
+    primaryGradient: 'from-blue-600 to-indigo-600',
+    accent: '#06b6d4',
+    bgDark: '#020617',
+    bgLight: '#f8fafc',
+    textDark: '#f8fafc',
+    textLight: '#0f172a'
+  },
+  {
+    id: 'emerald',
+    name: 'Esmeralda & Menta (Tech)',
+    primary: '#059669',
+    primaryGradient: 'from-emerald-600 to-teal-600',
+    accent: '#10b981',
+    bgDark: '#022c22',
+    bgLight: '#f0fdf4',
+    textDark: '#f0fdf4',
+    textLight: '#064e3b'
+  },
+  {
+    id: 'gold',
+    name: 'Preto & Dourado Real (Luxo)',
+    primary: '#d97706',
+    primaryGradient: 'from-amber-500 to-yellow-600',
+    accent: '#fbbf24',
+    bgDark: '#09090b',
+    bgLight: '#fffbeb',
+    textDark: '#fef3c7',
+    textLight: '#451a03'
+  },
+  {
+    id: 'purple',
+    name: 'Roxo Cyberpunk & IA',
+    primary: '#7c3aed',
+    primaryGradient: 'from-purple-600 to-indigo-600',
+    accent: '#c084fc',
+    bgDark: '#090514',
+    bgLight: '#faf5ff',
+    textDark: '#f5f3ff',
+    textLight: '#2e1065'
+  },
+  {
+    id: 'sunset',
+    name: 'Laranja Sunset & Coral',
+    primary: '#ea580c',
+    primaryGradient: 'from-orange-500 to-rose-500',
+    accent: '#f97316',
+    bgDark: '#120703',
+    bgLight: '#fff7ed',
+    textDark: '#fff7ed',
+    textLight: '#431407'
+  },
+  {
+    id: 'minimal',
+    name: 'Preto & Branco Puro (Minimalista)',
+    primary: '#ffffff',
+    primaryGradient: 'from-white to-gray-200',
+    accent: '#a1a1aa',
+    bgDark: '#000000',
+    bgLight: '#ffffff',
+    textDark: '#ffffff',
+    textLight: '#09090b'
+  }
+];
+
+function applyColorsToHtml(
+  html: string,
+  paletteId: string,
+  customHex: string,
+  mode: 'dark' | 'light'
+): string {
+  if (!html) return html;
+  const palette = COLOR_PALETTES.find(p => p.id === paletteId) || COLOR_PALETTES[0];
+  const primaryColor = customHex || palette.primary;
+  const bgColor = mode === 'dark' ? palette.bgDark : palette.bgLight;
+  const textColor = mode === 'dark' ? palette.textDark : palette.textLight;
+
+  let updated = html;
+
+  const styleTag = `  <style id="builder-custom-theme">
+    :root {
+      --primary-brand: ${primaryColor};
+      --accent-brand: ${palette.accent};
+      --bg-brand: ${bgColor};
+      --text-brand: ${textColor};
+    }
+    body {
+      background-color: ${bgColor} !important;
+      color: ${textColor} !important;
+    }
+    .text-theme-primary { color: ${primaryColor} !important; }
+    .bg-theme-primary { background-color: ${primaryColor} !important; }
+    .border-theme-primary { border-color: ${primaryColor} !important; }
+  </style>`;
+
+  if (updated.includes('id="builder-custom-theme"')) {
+    updated = updated.replace(/<style id="builder-custom-theme">[\s\S]*?<\/style>/i, styleTag.trim());
+  } else if (updated.includes('</head>')) {
+    updated = updated.replace('</head>', `${styleTag}\n</head>`);
+  }
+
+  // Atualizar botões de cor primária comuns
+  updated = updated.replace(/bg-(?:blue|indigo|emerald|purple|orange|violet)-[56]00/g, `bg-[${primaryColor}]`);
+  updated = updated.replace(/hover:bg-(?:blue|indigo|emerald|purple|orange|violet)-[567]00/g, `hover:opacity-90`);
+  updated = updated.replace(/text-(?:blue|indigo|emerald|purple|orange|violet)-[45]00/g, `text-[${primaryColor}]`);
+
+  if (mode === 'light') {
+    updated = updated.replace(/class="([^"]*)bg-(?:slate-950|black|zinc-950)([^"]*)"/i, 'class="$1bg-white text-slate-900$2"');
+  } else {
+    updated = updated.replace(/class="([^"]*)bg-white([^"]*)"/i, `class="$1bg-[${bgColor}] text-white$2"`);
+  }
+
+  return updated;
+}
+
+// ─── HELPER: Vincular WhatsApp com link oficial e botão flutuante ───────────
+function applyWhatsAppToHtml(
+  html: string,
+  phone: string,
+  message: string,
+  buttonText: string = 'Falar no WhatsApp',
+  position: 'right' | 'left' = 'right'
+): string {
+  if (!html) return html;
+  const cleanPhone = phone.replace(/[^0-9]/g, '');
+  const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+
+  let updated = html;
+
+  // Atualizar links existentes de WhatsApp
+  updated = updated.replace(/https:\/\/wa\.me\/[0-9]+(?:\?[^"'\s]*)?/gi, waUrl);
+
+  const floatingBtn = `  <!-- 💬 Botão Flutuante de WhatsApp Configurado -->
+  <a id="wehost-floating-whatsapp" href="${waUrl}" target="_blank" rel="noopener noreferrer"
+     class="fixed ${position === 'left' ? 'bottom-6 left-6' : 'bottom-6 right-6'} z-50 flex items-center gap-2.5 bg-[#25D366] hover:bg-[#20ba5a] text-white px-4 py-3 rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 font-bold text-sm group"
+     title="${buttonText}">
+    <span class="relative flex h-3 w-3">
+      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+      <span class="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+    </span>
+    <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
+      <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
+    </svg>
+    <span class="hidden sm:inline">${buttonText}</span>
+  </a>`;
+
+  if (updated.includes('id="wehost-floating-whatsapp"')) {
+    updated = updated.replace(/<!-- 💬 Botão Flutuante de WhatsApp Configurado -->[\s\S]*?<\/a>/i, floatingBtn.trim());
+  } else if (updated.includes('</body>')) {
+    updated = updated.replace('</body>', `${floatingBtn}\n</body>`);
+  } else {
+    updated += floatingBtn;
+  }
+
+  return updated;
+}
+
+// ─── HELPER: Inserir Tabela de Preços com Benefícios Personalizados ─────────
+interface PricingConfigData {
+  currency: string;
+  cycle: string;
+  plan1: { name: string; price: string; features: string[] };
+  plan2: { name: string; price: string; badge: string; features: string[] };
+  plan3: { name: string; price: string; features: string[] };
+}
+
+function applyPricingToHtml(html: string, config: PricingConfigData): string {
+  if (!html) return html;
+
+  const renderFeatures = (feats: string[]) => feats.filter(f => f.trim().length > 0).map(f => `
+            <li class="flex items-start gap-2.5 text-xs sm:text-sm text-slate-300">
+              <svg class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+              <span>${f.trim()}</span>
+            </li>`).join('');
+
+  const pricingSection = `
+    <!-- 🏷️ Tabela de Preços e Benefícios -->
+    <section id="precos" class="py-20 px-6 bg-slate-900/80 border-t border-slate-800 relative">
+      <div class="max-w-6xl mx-auto">
+        <div class="text-center mb-16">
+          <div class="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold px-3.5 py-1.5 rounded-full mb-4">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span>Investimento Transparente</span>
+          </div>
+          <h2 class="text-3xl sm:text-4xl font-extrabold text-white mb-4 tracking-tight">Planos & Preços Sob Medida</h2>
+          <p class="text-slate-400 text-sm sm:text-base max-w-xl mx-auto">Escolha o plano ideal para a sua empresa com todos os benefícios inclusos.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
+          <div class="p-8 rounded-3xl bg-slate-900 border border-slate-800 flex flex-col justify-between hover:border-slate-700 transition shadow-lg">
+            <div>
+              <h3 class="text-lg font-bold text-white mb-2">${config.plan1.name}</h3>
+              <div class="flex items-baseline gap-1 my-4">
+                <span class="text-3xl sm:text-4xl font-black text-white">${config.plan1.price}</span>
+                <span class="text-sm font-semibold text-slate-400">${config.currency} ${config.cycle}</span>
+              </div>
+              <ul class="space-y-3 pt-4 border-t border-slate-800 mb-8">
+                ${renderFeatures(config.plan1.features)}
+              </ul>
+            </div>
+            <a href="#contacto" class="w-full py-3 px-4 rounded-xl text-center bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs sm:text-sm transition shadow">
+              Escolher ${config.plan1.name}
+            </a>
+          </div>
+
+          <div class="p-8 rounded-3xl bg-gradient-to-b from-blue-950/60 to-slate-900 border-2 border-blue-500/80 flex flex-col justify-between relative shadow-2xl scale-105 z-10">
+            <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-[11px] font-black uppercase tracking-wider px-3.5 py-1 rounded-full shadow-md">
+              ${config.plan2.badge || 'Mais Popular'}
+            </div>
+            <div>
+              <h3 class="text-lg font-bold text-white mb-2">${config.plan2.name}</h3>
+              <div class="flex items-baseline gap-1 my-4">
+                <span class="text-3xl sm:text-4xl font-black text-white">${config.plan2.price}</span>
+                <span class="text-sm font-semibold text-blue-300">${config.currency} ${config.cycle}</span>
+              </div>
+              <ul class="space-y-3 pt-4 border-t border-blue-900/60 mb-8">
+                ${renderFeatures(config.plan2.features)}
+              </ul>
+            </div>
+            <a href="#contacto" class="w-full py-3 px-4 rounded-xl text-center bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs sm:text-sm transition shadow-lg shadow-blue-600/30">
+              Contratar ${config.plan2.name}
+            </a>
+          </div>
+
+          <div class="p-8 rounded-3xl bg-slate-900 border border-slate-800 flex flex-col justify-between hover:border-slate-700 transition shadow-lg">
+            <div>
+              <h3 class="text-lg font-bold text-white mb-2">${config.plan3.name}</h3>
+              <div class="flex items-baseline gap-1 my-4">
+                <span class="text-3xl sm:text-4xl font-black text-white">${config.plan3.price}</span>
+                <span class="text-sm font-semibold text-slate-400">${config.currency} ${config.cycle}</span>
+              </div>
+              <ul class="space-y-3 pt-4 border-t border-slate-800 mb-8">
+                ${renderFeatures(config.plan3.features)}
+              </ul>
+            </div>
+            <a href="#contacto" class="w-full py-3 px-4 rounded-xl text-center bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs sm:text-sm transition shadow">
+              Escolher ${config.plan3.name}
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>`;
+
+  let updated = html;
+
+  const existingPricingRegex = /<!-- 🏷️ Tabela de Preços[\s\S]*?<\/section>|<section[^>]*id=["'](?:precos|pricing|tabela-precos)["'][\s\S]*?<\/section>/i;
+  if (existingPricingRegex.test(updated)) {
+    updated = updated.replace(existingPricingRegex, pricingSection.trim());
+  } else if (/<\/main>/i.test(updated)) {
+    updated = updated.replace('</main>', `${pricingSection}\n  </main>`);
+  } else if (/<footer/i.test(updated)) {
+    updated = updated.replace(/<footer/i, `${pricingSection}\n<footer`);
+  } else {
+    updated += pricingSection;
+  }
+
+  // Garantir link no menu
+  if (!updated.includes('href="#precos"') && updated.includes('<nav')) {
+    updated = updated.replace(/(<nav[\s\S]*?)(<\/nav>)/i, `$1  <a href="#precos" class="hover:text-blue-400 transition">Preços</a>\n      $2`);
+  }
+
+  return updated;
+}
+
+// ─── HELPER: Configurar Banner / Hero com Textos e Estilo ───────────────────
+interface BannerConfigData {
+  headline: string;
+  subtitle: string;
+  ctaText: string;
+  ctaLink: string;
+  secondaryText: string;
+  secondaryLink: string;
+  badge: string;
+  style: string;
+}
+
+function applyBannerToHtml(html: string, config: BannerConfigData): string {
+  if (!html) return html;
+
+  const bgStyleClass = config.style === 'minimal'
+    ? 'bg-black text-white'
+    : config.style === 'executive'
+    ? 'bg-gradient-to-b from-slate-950 via-zinc-950 to-slate-900 text-white'
+    : 'bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white';
+
+  const newHero = `
+    <!-- 🖼️ Banner Principal / Hero -->
+    <section id="inicio" class="py-20 sm:py-28 px-6 text-center relative overflow-hidden ${bgStyleClass}">
+      <div class="max-w-4xl mx-auto relative z-10">
+        ${config.badge ? `
+        <div class="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold px-4 py-1.5 rounded-full mb-6 shadow-sm">
+          <svg class="w-3.5 h-3.5 text-blue-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
+          <span>${config.badge}</span>
+        </div>` : ''}
+        <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight mb-6">
+          ${config.headline}
+        </h1>
+        <p class="text-slate-300 text-base sm:text-lg max-w-2xl mx-auto mb-10 leading-relaxed font-normal">
+          ${config.subtitle}
+        </p>
+        <div class="flex flex-wrap items-center justify-center gap-3.5">
+          <a href="${config.ctaLink || '#contacto'}" class="bg-blue-600 hover:bg-blue-500 text-white font-extrabold px-7 py-3.5 rounded-xl transition shadow-xl shadow-blue-600/30 hover:scale-105 active:scale-95 text-sm">
+            ${config.ctaText || 'Começar Agora'}
+          </a>
+          ${config.secondaryText ? `
+          <a href="${config.secondaryLink || '#solucoes'}" class="bg-slate-900/90 hover:bg-slate-800 border border-slate-700 text-white font-bold px-7 py-3.5 rounded-xl transition hover:scale-105 active:scale-95 text-sm">
+            ${config.secondaryText}
+          </a>` : ''}
+        </div>
+      </div>
+    </section>`;
+
+  let updated = html;
+
+  if (/<section[^>]*id=["'](?:inicio|hero)["']/i.test(updated)) {
+    updated = updated.replace(/<section[^>]*id=["'](?:inicio|hero)["'][\s\S]*?<\/section>/i, newHero.trim());
+  } else if (/<main[^>]*>[\s\S]*?<section[^>]*>/i.test(updated)) {
+    updated = updated.replace(/(<main[^>]*>[\s\S]*?)(<section[\s\S]*?<\/section>)/i, `$1${newHero.trim()}`);
+  } else {
+    updated = updated.replace('<main>', `<main>\n${newHero.trim()}`);
+  }
+
+  // Garantir link Início no menu
+  if (!updated.includes('href="#inicio"') && updated.includes('<nav')) {
+    updated = updated.replace(/(<nav[\s\S]*?>)/i, `$1\n        <a href="#inicio" class="hover:text-blue-400 transition">Início</a>`);
+  }
+
+  return updated;
+}
+
+// ─── HELPER: Garantir que Todos os Links do Menu São Clicáveis ───────────────
+function ensureClickableNavigation(html: string): string {
+  if (!html) return html;
+  let updated = html;
+
+  // 1. Garantir scroll suave no <head> com scroll-margin-top para o menu sticky não cobrir o título
+  if (!updated.includes('scroll-behavior: smooth')) {
+    const styleSnippet = '  <style>html { scroll-behavior: smooth; } section[id], footer[id] { scroll-margin-top: 5rem; }</style>\n</head>';
+    if (updated.includes('</head>')) {
+      updated = updated.replace('</head>', styleSnippet);
+    }
+  }
+
+  // 2. Extrair todas as âncoras do menu <a href="#target">
+  const anchorRegex = /<a[^>]*href="#([^"]+)"[^>]*>/gi;
+  let match;
+  const targetIds = new Set<string>();
+  while ((match = anchorRegex.exec(updated)) !== null) {
+    const id = match[1].trim();
+    if (id && id !== '' && !id.startsWith('!')) {
+      targetIds.add(id);
+    }
+  }
+
+  // 3. Para cada id referenciado no menu, garantir que existe elemento no body com esse id
+  targetIds.forEach(id => {
+    const hasTarget = new RegExp(`id=["']${id}["']`, 'i').test(updated);
+    if (!hasTarget) {
+      if (id === 'contacto' || id === 'contato') {
+        if (/<footer/i.test(updated)) {
+          updated = updated.replace(/<footer/i, `<footer id="${id}"`);
+        }
+      } else if (id === 'vantagens') {
+        const vantagensSection = `
+    <!-- Secção Vantagens (Link do Menu) -->
+    <section id="vantagens" class="py-16 px-6 bg-slate-900/40 border-t border-slate-800">
+      <div class="max-w-6xl mx-auto text-center">
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-white mb-3">Vantagens & Benefícios</h2>
+        <p class="text-slate-400 text-sm max-w-xl mx-auto mb-10">Razões pelas quais centenas de clientes confiam no nosso trabalho.</p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+          <div class="p-6 rounded-2xl bg-slate-900/80 border border-slate-800">
+            <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center font-bold mb-3">✓</div>
+            <h3 class="font-bold text-white mb-1">Velocidade & Desempenho</h3>
+            <p class="text-slate-400 text-xs">Páginas ultrarrápidas que retêm visitantes e convertem.</p>
+          </div>
+          <div class="p-6 rounded-2xl bg-slate-900/80 border border-slate-800">
+            <div class="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-bold mb-3">★</div>
+            <h3 class="font-bold text-white mb-1">Design de Elite</h3>
+            <p class="text-slate-400 text-xs">Visual premium pensado para impressionar à primeira vista.</p>
+          </div>
+          <div class="p-6 rounded-2xl bg-slate-900/80 border border-slate-800">
+            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold mb-3">⚡</div>
+            <h3 class="font-bold text-white mb-1">Suporte em Moçambique</h3>
+            <p class="text-slate-400 text-xs">Atendimento em português com suporte ágil via WhatsApp.</p>
+          </div>
+        </div>
+      </div>
+    </section>`;
+        if (/<\/main>/i.test(updated)) {
+          updated = updated.replace('</main>', `${vantagensSection}\n  </main>`);
+        } else if (/<footer/i.test(updated)) {
+          updated = updated.replace(/<footer/i, `${vantagensSection}\n<footer`);
+        }
+      }
+    }
+  });
+
+  // 4. Script para garantir rolagem suave e clique perfeito no iframe
+  if (!updated.includes('id="wehost-nav-script"')) {
+    const navScript = `
+  <script id="wehost-nav-script">
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('a[href^="#"]').forEach(function(anchor) {
+        anchor.addEventListener('click', function(e) {
+          var targetId = this.getAttribute('href').substring(1);
+          if (!targetId) return;
+          var targetEl = document.getElementById(targetId);
+          if (targetEl) {
+            e.preventDefault();
+            targetEl.scrollIntoView({ behavior: 'smooth' });
+          }
+        });
+      });
+    });
+  </script>`;
+    if (updated.includes('</body>')) {
+      updated = updated.replace('</body>', `${navScript}\n</body>`);
+    } else {
+      updated += navScript;
+    }
+  }
+
+  return updated;
+}
+
 // ─── HELPER: Formatar Markdown suave para mensagens da IA ──────────────────
 function formatMessageContent(content: string) {
   if (!content) return null;
@@ -331,6 +773,8 @@ const DEMO_STARTER_HTML = `<!DOCTYPE html>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
+    html { scroll-behavior: smooth; }
+    section[id], footer[id] { scroll-margin-top: 5rem; }
     body { font-family: 'Plus Jakarta Sans', sans-serif; }
   </style>
 </head>
@@ -341,18 +785,20 @@ const DEMO_STARTER_HTML = `<!DOCTYPE html>
         <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center font-black text-white text-lg">N</div>
         <span class="font-extrabold text-lg tracking-tight text-white">Nexus<span class="text-blue-500">Tech</span></span>
       </div>
-      <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
+      <nav class="hidden md:flex items-center gap-7 text-sm font-medium text-slate-300">
+        <a href="#inicio" class="hover:text-blue-400 transition">Início</a>
         <a href="#solucoes" class="hover:text-blue-400 transition">Soluções</a>
         <a href="#vantagens" class="hover:text-blue-400 transition">Vantagens</a>
+        <a href="#precos" class="hover:text-blue-400 transition">Preços</a>
         <a href="#contacto" class="hover:text-blue-400 transition">Contacto</a>
       </nav>
-      <a href="https://wa.me/258840000000" target="_blank" class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs sm:text-sm px-4 py-2 rounded-xl transition shadow-lg shadow-blue-600/30">
+      <a href="https://wa.me/258840000000?text=Ola!%20Gostaria%20de%20saber%20mais%20sobre%20a%20NexusTech" target="_blank" class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs sm:text-sm px-4 py-2 rounded-xl transition shadow-lg shadow-blue-600/30">
         Falar no WhatsApp
       </a>
     </div>
   </header>
   <main class="flex-1">
-    <section class="py-16 sm:py-24 px-6 text-center relative overflow-hidden">
+    <section id="inicio" class="py-16 sm:py-24 px-6 text-center relative overflow-hidden">
       <div class="max-w-4xl mx-auto">
         <div class="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold px-3.5 py-1.5 rounded-full mb-6">
           <svg class="w-3.5 h-3.5 text-blue-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
@@ -368,12 +814,14 @@ const DEMO_STARTER_HTML = `<!DOCTYPE html>
           <a href="#solucoes" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-3 rounded-xl transition shadow-xl">
             Ver Nossos Serviços
           </a>
-          <a href="#contacto" class="bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white font-bold px-6 py-3 rounded-xl transition">
-            Pedir Orçamento
+          <a href="#precos" class="bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white font-bold px-6 py-3 rounded-xl transition">
+            Ver Tabela de Preços
           </a>
         </div>
       </div>
     </section>
+
+    <!-- Secção Soluções -->
     <section id="solucoes" class="py-16 px-6 bg-slate-900/60 border-t border-slate-800">
       <div class="max-w-6xl mx-auto">
         <div class="text-center mb-12">
@@ -405,6 +853,84 @@ const DEMO_STARTER_HTML = `<!DOCTYPE html>
         </div>
       </div>
     </section>
+
+    <!-- Secção Vantagens -->
+    <section id="vantagens" class="py-16 px-6 bg-slate-950 border-t border-slate-800/80">
+      <div class="max-w-6xl mx-auto">
+        <div class="text-center mb-12">
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-white mb-3">Vantagens & Benefícios</h2>
+          <p class="text-slate-400 text-sm">O padrão de qualidade que impulsiona o seu sucesso.</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="p-6 rounded-2xl bg-slate-900/70 border border-slate-800">
+            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center font-black mb-3">✓</div>
+            <h3 class="font-bold text-white mb-1">Velocidade Extrema</h3>
+            <p class="text-slate-400 text-xs leading-relaxed">Carregamento instantâneo que garante a melhor experiência ao cliente.</p>
+          </div>
+          <div class="p-6 rounded-2xl bg-slate-900/70 border border-slate-800">
+            <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center font-black mb-3">★</div>
+            <h3 class="font-bold text-white mb-1">Responsivo & Adaptável</h3>
+            <p class="text-slate-400 text-xs leading-relaxed">Funciona perfeitamente em qualquer smartphone, tablet ou computador.</p>
+          </div>
+          <div class="p-6 rounded-2xl bg-slate-900/70 border border-slate-800">
+            <div class="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center font-black mb-3">⚡</div>
+            <h3 class="font-bold text-white mb-1">Pagamentos M-Pesa</h3>
+            <p class="text-slate-400 text-xs leading-relaxed">Pronto para receber pagamentos locais em Moçambique com facilidade.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Secção Preços -->
+    <section id="precos" class="py-20 px-6 bg-slate-900/80 border-t border-slate-800">
+      <div class="max-w-6xl mx-auto">
+        <div class="text-center mb-14">
+          <h2 class="text-2xl sm:text-4xl font-extrabold text-white mb-3">Planos & Preços</h2>
+          <p class="text-slate-400 text-sm">Sem contratos ocultos ou surpresas.</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+          <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col justify-between">
+            <div>
+              <h3 class="font-bold text-white text-lg">Básico</h3>
+              <div class="my-4"><span class="text-3xl font-black text-white">1.500</span> <span class="text-xs text-slate-400">MT /mês</span></div>
+              <ul class="space-y-2 text-xs text-slate-300 pt-3 border-t border-slate-800 mb-6">
+                <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> Website Institucional</li>
+                <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> Otimizado para Telemóveis</li>
+                <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> Certificado SSL Grátis</li>
+              </ul>
+            </div>
+            <a href="#contacto" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-center text-xs font-bold text-white transition">Escolher Básico</a>
+          </div>
+          <div class="p-6 rounded-2xl bg-gradient-to-b from-blue-950/60 to-slate-900 border-2 border-blue-500 flex flex-col justify-between relative shadow-xl scale-105">
+            <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-[10px] font-black uppercase px-3 py-0.5 rounded-full">Mais Popular</span>
+            <div>
+              <h3 class="font-bold text-white text-lg">Profissional</h3>
+              <div class="my-4"><span class="text-3xl font-black text-white">3.500</span> <span class="text-xs text-blue-300">MT /mês</span></div>
+              <ul class="space-y-2 text-xs text-slate-200 pt-3 border-t border-blue-900/60 mb-6">
+                <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> Tudo do Plano Básico</li>
+                <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> Domínio .co.mz Incluído</li>
+                <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> Integração de M-Pesa</li>
+                <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> Suporte Prioritário 24/7</li>
+              </ul>
+            </div>
+            <a href="#contacto" class="py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-center text-xs font-extrabold text-white transition shadow-lg shadow-blue-600/30">Contratar Profissional</a>
+          </div>
+          <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col justify-between">
+            <div>
+              <h3 class="font-bold text-white text-lg">Empresarial</h3>
+              <div class="my-4"><span class="text-3xl font-black text-white">7.500</span> <span class="text-xs text-slate-400">MT /mês</span></div>
+              <ul class="space-y-2 text-xs text-slate-300 pt-3 border-t border-slate-800 mb-6">
+                <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> Infraestrutura Ilimitada</li>
+                <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> Painel de Gestão Personalizado</li>
+                <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> M-Pesa & e-Mola</li>
+                <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> Gerente de Conta Dedicado</li>
+              </ul>
+            </div>
+            <a href="#contacto" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-center text-xs font-bold text-white transition">Escolher Empresarial</a>
+          </div>
+        </div>
+      </div>
+    </section>
   </main>
   <footer id="contacto" class="border-t border-slate-800 py-8 px-6 text-center text-slate-500 text-xs">
     <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -412,6 +938,21 @@ const DEMO_STARTER_HTML = `<!DOCTYPE html>
       <p>Desenvolvido com <span class="text-blue-400 font-bold">WEHOSTHERE Studio AI</span></p>
     </div>
   </footer>
+  <script id="wehost-nav-script">
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('a[href^="#"]').forEach(function(anchor) {
+        anchor.addEventListener('click', function(e) {
+          var targetId = this.getAttribute('href').substring(1);
+          if (!targetId) return;
+          var el = document.getElementById(targetId);
+          if (el) {
+            e.preventDefault();
+            el.scrollIntoView({ behavior: 'smooth' });
+          }
+        });
+      });
+    });
+  </script>
 </body>
 </html>`;
 
@@ -500,6 +1041,46 @@ export default function AiSiteBuilderStudio() {
   const [logoSuccessToast, setLogoSuccessToast] = useState<boolean>(false);
   const [logoErrorMessage, setLogoErrorMessage] = useState<string>('');
   const logoFileInputRef = useRef<HTMLInputElement>(null);
+
+  // 🎨 Estados do Refinamento Rápido: Mudar Cores
+  const [isColorModalOpen, setIsColorModalOpen] = useState<boolean>(false);
+  const [selectedColorPalette, setSelectedColorPalette] = useState<string>('ocean');
+  const [customPrimaryColor, setCustomPrimaryColor] = useState<string>('#2563eb');
+  const [colorMode, setColorMode] = useState<'dark' | 'light'>('dark');
+
+  // 💬 Estados do Refinamento Rápido: Botão WhatsApp
+  const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = useState<boolean>(false);
+  const [waCountryCode, setWaCountryCode] = useState<string>('+258');
+  const [waPhoneNumber, setWaPhoneNumber] = useState<string>('840000000');
+  const [waMessage, setWaMessage] = useState<string>('Olá! Vim através do website e gostaria de obter mais informações sobre os vossos serviços.');
+  const [waButtonText, setWaButtonText] = useState<string>('Falar no WhatsApp');
+  const [waPosition, setWaPosition] = useState<'right' | 'left'>('right');
+
+  // 🏷️ Estados do Refinamento Rápido: Tabela de Preços & Benefícios
+  const [isPricingModalOpen, setIsPricingModalOpen] = useState<boolean>(false);
+  const [pricingCurrency, setPricingCurrency] = useState<string>('MT');
+  const [pricingCycle, setPricingCycle] = useState<string>('/mês');
+  const [plan1Name, setPlan1Name] = useState<string>('Básico');
+  const [plan1Price, setPlan1Price] = useState<string>('1.500');
+  const [plan1Features, setPlan1Features] = useState<string>('Website Institucional\nOtimizado para Telemóveis\nCertificado SSL Grátis\nSuporte por Email');
+  const [plan2Name, setPlan2Name] = useState<string>('Profissional');
+  const [plan2Price, setPlan2Price] = useState<string>('3.500');
+  const [plan2Badge, setPlan2Badge] = useState<string>('Mais Popular');
+  const [plan2Features, setPlan2Features] = useState<string>('Tudo do Plano Básico\nDomínio .co.mz Incluído\nIntegração de M-Pesa & e-Mola\nSuporte Prioritário 24/7');
+  const [plan3Name, setPlan3Name] = useState<string>('Empresarial');
+  const [plan3Price, setPlan3Price] = useState<string>('7.500');
+  const [plan3Features, setPlan3Features] = useState<string>('Infraestrutura Cloud Ilimitada\nPainel de Gestão Personalizado\nIntegração M-Pesa & Cartões\nGerente de Conta Exclusivo');
+
+  // 🖼️ Estados do Refinamento Rápido: Configuração de Banner / Hero
+  const [isBannerModalOpen, setIsBannerModalOpen] = useState<boolean>(false);
+  const [bannerHeadline, setBannerHeadline] = useState<string>('Soluções Digitais que aceleram o seu Crescimento');
+  const [bannerSubtitle, setBannerSubtitle] = useState<string>('Desenvolvemos tecnologia de alta performance para empresas que buscam modernidade, segurança e presença digital marcante.');
+  const [bannerCtaText, setBannerCtaText] = useState<string>('Ver Nossos Serviços');
+  const [bannerCtaLink, setBannerCtaLink] = useState<string>('#solucoes');
+  const [bannerSecondaryText, setBannerSecondaryText] = useState<string>('Ver Tabela de Preços');
+  const [bannerSecondaryLink, setBannerSecondaryLink] = useState<string>('#precos');
+  const [bannerBadge, setBannerBadge] = useState<string>('Construído com WEHOSTHERE Studio AI');
+  const [bannerTheme, setBannerTheme] = useState<string>('tech-dark');
 
   // Estados de Confirmação Customizada (Substitui confirm/alert nativos do browser)
   const [projectToDelete, setProjectToDelete] = useState<{ id: string; title: string } | null>(null);
@@ -1639,6 +2220,154 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
     }
   };
 
+  // ─── COMMITTER UNIVERSAL DE REFINAMENTO (Garante Versões, Sincronização e Links) ─
+  const commitNewHtmlVersion = (newHtml: string, actionPrompt: string, explanation: string) => {
+    const finalHtml = ensureClickableNavigation(newHtml);
+    setCurrentHtml(finalHtml);
+
+    // Salvar versão no histórico
+    const nextVer: ProjectVersion = {
+      versionNumber: versions.length + 1,
+      html: finalHtml,
+      prompt: actionPrompt,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+    const updatedVersions = [...versions, nextVer];
+    setVersions(updatedVersions);
+    setSelectedVersionIndex('latest');
+
+    // Registar no chat daquele projeto
+    const actionMsg: ChatMessage = {
+      id: `msg_refine_${Date.now()}`,
+      role: 'assistant',
+      content: explanation,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+    const updatedMessages = [...messages, actionMsg];
+    setMessages(updatedMessages);
+
+    // Guardar no MongoDB
+    if (currentUser?.email) {
+      saveProjectToDb({
+        id: projectId,
+        userEmail: currentUser.email,
+        userName: currentUser.name || 'Cliente',
+        title: projectTitle,
+        slug: projectSlug,
+        subdomain: projectSlug,
+        htmlContent: finalHtml,
+        promptHistory: updatedMessages,
+        versions: updatedVersions.map(v => ({
+          versionNumber: v.versionNumber,
+          htmlContent: v.html,
+          prompt: v.prompt,
+          createdAt: new Date().toISOString()
+        })),
+        status: isPublished ? 'published' : 'draft'
+      });
+    }
+  };
+
+  // 🎨 Aplicar Paleta de Cores
+  const handleApplyColors = () => {
+    if (!currentUser) {
+      setAuthModalReason('Para personalizar as cores e guardar as alterações no seu projeto, inicie sessão.');
+      setIsAuthRequiredModalOpen(true);
+      return;
+    }
+    if (!displayedHtml) return;
+    const newHtml = applyColorsToHtml(displayedHtml, selectedColorPalette, customPrimaryColor, colorMode);
+    const pName = COLOR_PALETTES.find(p => p.id === selectedColorPalette)?.name || 'Personalizada';
+    commitNewHtmlVersion(
+      newHtml,
+      `Mudar paleta de cores para ${pName} (${colorMode === 'dark' ? 'Modo Escuro' : 'Modo Claro'})`,
+      `Paleta de cores **${pName}** aplicada com sucesso! Os botões de ação, fundos e destaques foram atualizados com harmonia visual e alto contraste.`
+    );
+    setIsColorModalOpen(false);
+  };
+
+  // 💬 Aplicar Configuração do WhatsApp
+  const handleApplyWhatsApp = () => {
+    if (!currentUser) {
+      setAuthModalReason('Para vincular o botão de WhatsApp ao seu website, inicie sessão.');
+      setIsAuthRequiredModalOpen(true);
+      return;
+    }
+    if (!displayedHtml) return;
+    const fullPhone = `${waCountryCode}${waPhoneNumber}`;
+    const newHtml = applyWhatsAppToHtml(displayedHtml, fullPhone, waMessage, waButtonText, waPosition);
+    commitNewHtmlVersion(
+      newHtml,
+      `Vincular botão oficial de WhatsApp (${fullPhone})`,
+      `Botão oficial de WhatsApp vinculado com sucesso ao número **${fullPhone}**! O botão flutuante e os links do menu foram conectados para iniciar conversa direta com a mensagem personalizada.`
+    );
+    setIsWhatsAppModalOpen(false);
+  };
+
+  // 🏷️ Aplicar Tabela de Preços & Benefícios
+  const handleApplyPricing = () => {
+    if (!currentUser) {
+      setAuthModalReason('Para inserir a tabela de preços no seu website, inicie sessão.');
+      setIsAuthRequiredModalOpen(true);
+      return;
+    }
+    if (!displayedHtml) return;
+    const config: PricingConfigData = {
+      currency: pricingCurrency,
+      cycle: pricingCycle,
+      plan1: {
+        name: plan1Name,
+        price: plan1Price,
+        features: plan1Features.split('\n').filter(Boolean)
+      },
+      plan2: {
+        name: plan2Name,
+        price: plan2Price,
+        badge: plan2Badge,
+        features: plan2Features.split('\n').filter(Boolean)
+      },
+      plan3: {
+        name: plan3Name,
+        price: plan3Price,
+        features: plan3Features.split('\n').filter(Boolean)
+      }
+    };
+    const newHtml = applyPricingToHtml(displayedHtml, config);
+    commitNewHtmlVersion(
+      newHtml,
+      `Inserção de Tabela de Preços com 3 planos em ${pricingCurrency}`,
+      `Tabela de preços e benefícios inserida com sucesso com os planos **${plan1Name}**, **${plan2Name}** e **${plan3Name}**! O link no menu de navegação foi sincronizado para rolagem suave até a secção de preços.`
+    );
+    setIsPricingModalOpen(false);
+  };
+
+  // 🖼️ Aplicar Configuração de Banner / Hero
+  const handleApplyBanner = () => {
+    if (!currentUser) {
+      setAuthModalReason('Para personalizar o banner principal do seu website, inicie sessão.');
+      setIsAuthRequiredModalOpen(true);
+      return;
+    }
+    if (!displayedHtml) return;
+    const config: BannerConfigData = {
+      headline: bannerHeadline,
+      subtitle: bannerSubtitle,
+      ctaText: bannerCtaText,
+      ctaLink: bannerCtaLink,
+      secondaryText: bannerSecondaryText,
+      secondaryLink: bannerSecondaryLink,
+      badge: bannerBadge,
+      style: bannerTheme
+    };
+    const newHtml = applyBannerToHtml(displayedHtml, config);
+    commitNewHtmlVersion(
+      newHtml,
+      `Configuração do Banner Principal / Hero`,
+      `Banner principal atualizado com sucesso! O título, mensagem de suporte e botões de chamada à ação foram configurados com layout responsivo e moderno.`
+    );
+    setIsBannerModalOpen(false);
+  };
+
   const handleRequestDeleteProject = (id: string, title: string) => {
     setProjectToDelete({ id, title });
   };
@@ -2275,28 +3004,37 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
             <div className="flex items-center gap-1.5 mt-2 overflow-x-auto pb-1 text-[11px] no-scrollbar">
               <button
                 type="button"
-                onClick={() => handleGenerate('Muda o fundo para um tom azul escuro e adiciona mais gradientes')}
-                className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 border border-white/5 whitespace-nowrap transition cursor-pointer flex items-center gap-1.5"
+                onClick={() => setIsColorModalOpen(true)}
+                className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 border border-white/5 whitespace-nowrap transition cursor-pointer flex items-center gap-1.5 hover:border-blue-500/40"
               >
-                <Palette className="w-3 h-3 text-blue-400" />
+                <Palette className="w-3.5 h-3.5 text-blue-400" />
                 <span>Mudar Cores</span>
               </button>
               <button
                 type="button"
-                onClick={() => handleGenerate('Adiciona um botão de WhatsApp flutuante bem visível')}
-                className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 border border-white/5 whitespace-nowrap transition cursor-pointer flex items-center gap-1.5"
+                onClick={() => setIsWhatsAppModalOpen(true)}
+                className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 border border-white/5 whitespace-nowrap transition cursor-pointer flex items-center gap-1.5 hover:border-emerald-500/40"
               >
-                <MessageSquare className="w-3 h-3 text-emerald-400" />
+                <MessageSquare className="w-3.5 h-3.5 text-emerald-400" />
                 <span>Botão WhatsApp</span>
               </button>
               <button
                 type="button"
-                onClick={() => handleGenerate('Adiciona uma tabela de preços comparativa com 3 planos')}
-                className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 border border-white/5 whitespace-nowrap transition cursor-pointer flex items-center gap-1.5"
-                title="Adicionar tabela comparativa de preços com 3 planos"
+                onClick={() => setIsPricingModalOpen(true)}
+                className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 border border-white/5 whitespace-nowrap transition cursor-pointer flex items-center gap-1.5 hover:border-purple-500/40"
+                title="Configurar e Inserir Tabela de Preços com Benefícios"
               >
-                <Tag className="w-3 h-3 text-purple-400" />
-                <span>Preços</span>
+                <Tag className="w-3.5 h-3.5 text-purple-400" />
+                <span>Tabela de Preços</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsBannerModalOpen(true)}
+                className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 border border-white/5 whitespace-nowrap transition cursor-pointer flex items-center gap-1.5 hover:border-amber-500/40"
+                title="Configurar Título, Mensagem e Estilo do Banner / Hero"
+              >
+                <Sliders className="w-3.5 h-3.5 text-amber-400" />
+                <span>Configurar Banner</span>
               </button>
             </div>
           ) : (
@@ -2875,7 +3613,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 title="Preview"
                 srcDoc={displayedHtml}
                 className="w-full flex-1 border-0 bg-transparent"
-                sandbox="allow-scripts allow-forms allow-popups"
+                sandbox="allow-scripts allow-forms allow-popups allow-same-origin allow-modals"
               />
             </div>
           ) : isStreaming ? (
@@ -3705,6 +4443,593 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
               >
                 Continuar a Explorar Modo Demonstração
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: 🎨 Mudar Cores do Website ────────────────────────────── */}
+      {isColorModalOpen && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-[#121217] border border-[#27272a] rounded-3xl max-w-lg w-full p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto no-scrollbar">
+            <button
+              onClick={() => setIsColorModalOpen(false)}
+              className="absolute top-5 right-5 p-1 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-12 h-12 rounded-2xl bg-blue-600/20 text-blue-400 flex items-center justify-center shadow-lg shadow-blue-500/10">
+                <Palette className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-white">Paleta de Cores do Website</h3>
+                <p className="text-xs text-gray-400">Selecione o esquema cromático ideal para a sua marca</p>
+              </div>
+            </div>
+
+            <div className="space-y-5">
+              {/* Seletor de Modo Claro / Escuro */}
+              <div>
+                <label className="text-[11px] font-bold text-gray-300 block mb-2">1. Modo de Fundo:</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setColorMode('dark')}
+                    className={`py-2 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
+                      colorMode === 'dark'
+                        ? 'border-blue-500 bg-blue-500/15 text-white shadow-sm'
+                        : 'border-[#27272a] bg-[#18181b] text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    <span className="w-2.5 h-2.5 rounded-full bg-slate-950 border border-slate-700" />
+                    <span>Modo Escuro (Dark)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setColorMode('light')}
+                    className={`py-2 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
+                      colorMode === 'light'
+                        ? 'border-blue-500 bg-blue-500/15 text-white shadow-sm'
+                        : 'border-[#27272a] bg-[#18181b] text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    <span className="w-2.5 h-2.5 rounded-full bg-white border border-gray-300" />
+                    <span>Modo Claro (Light)</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Grid de Paletas Pré-Definidas */}
+              <div>
+                <label className="text-[11px] font-bold text-gray-300 block mb-2">2. Escolha a Paleta Harmônica:</label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {COLOR_PALETTES.map(p => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedColorPalette(p.id);
+                        setCustomPrimaryColor(p.primary);
+                      }}
+                      className={`p-3 rounded-2xl border text-left transition flex items-center justify-between cursor-pointer ${
+                        selectedColorPalette === p.id
+                          ? 'border-blue-500 bg-blue-500/10 ring-1 ring-blue-500/50'
+                          : 'border-[#27272a] bg-[#18181b] hover:border-[#3f3f46]'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className="flex -space-x-1.5">
+                          <span className="w-5 h-5 rounded-full border border-black/40 shadow-sm" style={{ backgroundColor: p.primary }} />
+                          <span className="w-5 h-5 rounded-full border border-black/40 shadow-sm" style={{ backgroundColor: p.accent }} />
+                          <span className="w-5 h-5 rounded-full border border-black/40 shadow-sm" style={{ backgroundColor: colorMode === 'dark' ? p.bgDark : p.bgLight }} />
+                        </div>
+                        <span className="text-xs font-semibold text-gray-200">{p.name}</span>
+                      </div>
+                      {selectedColorPalette === p.id && <Check className="w-4 h-4 text-blue-400 shrink-0" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Ajuste Fino de Cor Primária Customizada */}
+              <div className="p-3.5 rounded-2xl bg-[#18181b] border border-[#27272a]">
+                <label className="text-[11px] font-bold text-gray-300 block mb-2">3. Ou Ajuste a Cor Primária Exata:</label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={customPrimaryColor}
+                    onChange={e => setCustomPrimaryColor(e.target.value)}
+                    className="w-10 h-10 rounded-xl border border-white/20 bg-transparent cursor-pointer p-0.5"
+                  />
+                  <input
+                    type="text"
+                    value={customPrimaryColor}
+                    onChange={e => setCustomPrimaryColor(e.target.value)}
+                    className="flex-1 bg-[#0f0f12] border border-[#27272a] rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-blue-500"
+                    placeholder="#2563eb"
+                  />
+                </div>
+              </div>
+
+              {/* Botões do Rodapé */}
+              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[#27272a]">
+                <button
+                  type="button"
+                  onClick={() => setIsColorModalOpen(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-gray-400 hover:text-white transition cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={handleApplyColors}
+                  className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs shadow-md shadow-blue-600/30 transition active:scale-95 flex items-center gap-2 cursor-pointer"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  <span>Aplicar Cores ao Site</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: 💬 Configuração do Botão WhatsApp ───────────────────── */}
+      {isWhatsAppModalOpen && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-[#121217] border border-[#27272a] rounded-3xl max-w-md w-full p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
+            <button
+              onClick={() => setIsWhatsAppModalOpen(false)}
+              className="absolute top-5 right-5 p-1 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-600/20 text-emerald-400 flex items-center justify-center shadow-lg shadow-emerald-500/10">
+                <MessageSquare className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-white">Botão WhatsApp Oficial</h3>
+                <p className="text-xs text-gray-400">Vincule o seu contacto direto para receber mensagens de clientes</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {/* Número de Telefone com Código do País */}
+              <div>
+                <label className="text-[11px] font-bold text-gray-300 block mb-1.5">Número de WhatsApp do Negócio:</label>
+                <div className="flex items-center gap-2">
+                  <select
+                    value={waCountryCode}
+                    onChange={e => setWaCountryCode(e.target.value)}
+                    className="bg-[#18181b] border border-[#27272a] text-white text-xs font-semibold rounded-xl px-2.5 py-2.5 focus:outline-none focus:border-emerald-500"
+                  >
+                    <option value="+258">🇲🇿 +258 (Moçambique)</option>
+                    <option value="+351">🇵🇹 +351 (Portugal)</option>
+                    <option value="+55">🇧🇷 +55 (Brasil)</option>
+                    <option value="+244">🇦🇴 +244 (Angola)</option>
+                    <option value="+27">🇿🇦 +27 (África do Sul)</option>
+                    <option value="+1">🇺🇸 +1 (EUA / Global)</option>
+                  </select>
+                  <input
+                    type="text"
+                    value={waPhoneNumber}
+                    onChange={e => setWaPhoneNumber(e.target.value)}
+                    placeholder="84 123 4567"
+                    className="flex-1 bg-[#18181b] border border-[#27272a] text-white text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+              </div>
+
+              {/* Mensagem Inicial Padrão */}
+              <div>
+                <label className="text-[11px] font-bold text-gray-300 block mb-1.5">Mensagem Inicial que o Cliente Enviará:</label>
+                <textarea
+                  value={waMessage}
+                  onChange={e => setWaMessage(e.target.value)}
+                  rows={2}
+                  className="w-full bg-[#18181b] border border-[#27272a] text-white text-xs rounded-xl p-3 focus:outline-none focus:border-emerald-500 resize-none"
+                  placeholder="Olá! Gostaria de mais informações sobre os vossos serviços."
+                />
+              </div>
+
+              {/* Texto do Botão */}
+              <div>
+                <label className="text-[11px] font-bold text-gray-300 block mb-1.5">Texto do Botão Flutuante:</label>
+                <input
+                  type="text"
+                  value={waButtonText}
+                  onChange={e => setWaButtonText(e.target.value)}
+                  className="w-full bg-[#18181b] border border-[#27272a] text-white text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-emerald-500"
+                  placeholder="Falar no WhatsApp"
+                />
+              </div>
+
+              {/* Posição */}
+              <div>
+                <label className="text-[11px] font-bold text-gray-300 block mb-1.5">Posição do Botão na Página:</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setWaPosition('right')}
+                    className={`py-2 px-3 rounded-xl border text-xs font-semibold transition cursor-pointer ${
+                      waPosition === 'right'
+                        ? 'border-emerald-500 bg-emerald-500/10 text-emerald-400 font-bold'
+                        : 'border-[#27272a] bg-[#18181b] text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    Canto Inferior Direito
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setWaPosition('left')}
+                    className={`py-2 px-3 rounded-xl border text-xs font-semibold transition cursor-pointer ${
+                      waPosition === 'left'
+                        ? 'border-emerald-500 bg-emerald-500/10 text-emerald-400 font-bold'
+                        : 'border-[#27272a] bg-[#18181b] text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    Canto Inferior Esquerdo
+                  </button>
+                </div>
+              </div>
+
+              {/* Botões do Rodapé */}
+              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[#27272a]">
+                <button
+                  type="button"
+                  onClick={() => setIsWhatsAppModalOpen(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-gray-400 hover:text-white transition cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={handleApplyWhatsApp}
+                  disabled={!waPhoneNumber.trim()}
+                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-md shadow-emerald-600/30 transition active:scale-95 flex items-center gap-2 cursor-pointer disabled:opacity-40"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  <span>Vincular WhatsApp</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: 🏷️ Tabela de Preços & Benefícios ───────────────────── */}
+      {isPricingModalOpen && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-[#121217] border border-[#27272a] rounded-3xl max-w-2xl w-full p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto no-scrollbar">
+            <button
+              onClick={() => setIsPricingModalOpen(false)}
+              className="absolute top-5 right-5 p-1 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-12 h-12 rounded-2xl bg-purple-600/20 text-purple-400 flex items-center justify-center shadow-lg shadow-purple-500/10">
+                <Tag className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-white">Configuração da Tabela de Preços</h3>
+                <p className="text-xs text-gray-400">Defina os planos, valores e benefícios transparentes para os seus clientes</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {/* Moeda e Ciclo */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[11px] font-bold text-gray-300 block mb-1">Moeda:</label>
+                  <select
+                    value={pricingCurrency}
+                    onChange={e => setPricingCurrency(e.target.value)}
+                    className="w-full bg-[#18181b] border border-[#27272a] text-white text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-purple-500"
+                  >
+                    <option value="MT">MT (Meticais Moçambique)</option>
+                    <option value="USD">USD ($ Dólar)</option>
+                    <option value="EUR">EUR (€ Euro)</option>
+                    <option value="BRL">BRL (R$ Real)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[11px] font-bold text-gray-300 block mb-1">Ciclo de Cobrança:</label>
+                  <select
+                    value={pricingCycle}
+                    onChange={e => setPricingCycle(e.target.value)}
+                    className="w-full bg-[#18181b] border border-[#27272a] text-white text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-purple-500"
+                  >
+                    <option value="/mês">/mês (Mensal)</option>
+                    <option value="/ano">/ano (Anual)</option>
+                    <option value="Pagamento Único">Pagamento Único</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* 3 Planos Lado a Lado / Empilhados */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {/* Plano 1 */}
+                <div className="p-3.5 rounded-2xl bg-[#18181b] border border-[#27272a] flex flex-col justify-between">
+                  <div>
+                    <span className="text-[10px] font-black uppercase text-gray-400">Plano 1</span>
+                    <input
+                      type="text"
+                      value={plan1Name}
+                      onChange={e => setPlan1Name(e.target.value)}
+                      placeholder="Nome do Plano"
+                      className="w-full bg-[#0f0f12] border border-[#27272a] text-white text-xs font-bold rounded-lg px-2.5 py-1.5 my-1.5"
+                    />
+                    <input
+                      type="text"
+                      value={plan1Price}
+                      onChange={e => setPlan1Price(e.target.value)}
+                      placeholder="Preço (ex: 1.500)"
+                      className="w-full bg-[#0f0f12] border border-[#27272a] text-white text-xs font-bold rounded-lg px-2.5 py-1.5 mb-2"
+                    />
+                    <label className="text-[10px] text-gray-400 block mb-1">Benefícios (1 por linha):</label>
+                    <textarea
+                      value={plan1Features}
+                      onChange={e => setPlan1Features(e.target.value)}
+                      rows={4}
+                      className="w-full bg-[#0f0f12] border border-[#27272a] text-gray-200 text-[11px] rounded-lg p-2 resize-none"
+                    />
+                  </div>
+                </div>
+
+                {/* Plano 2 (Destaque) */}
+                <div className="p-3.5 rounded-2xl bg-blue-950/20 border-2 border-blue-500/60 flex flex-col justify-between relative">
+                  <span className="text-[10px] font-black uppercase text-blue-400">Plano 2 (Destaque)</span>
+                  <input
+                    type="text"
+                    value={plan2Name}
+                    onChange={e => setPlan2Name(e.target.value)}
+                    placeholder="Nome do Plano"
+                    className="w-full bg-[#0f0f12] border border-blue-500/40 text-white text-xs font-bold rounded-lg px-2.5 py-1.5 my-1.5"
+                  />
+                  <input
+                    type="text"
+                    value={plan2Price}
+                    onChange={e => setPlan2Price(e.target.value)}
+                    placeholder="Preço (ex: 3.500)"
+                    className="w-full bg-[#0f0f12] border border-blue-500/40 text-white text-xs font-bold rounded-lg px-2.5 py-1.5 mb-1.5"
+                  />
+                  <input
+                    type="text"
+                    value={plan2Badge}
+                    onChange={e => setPlan2Badge(e.target.value)}
+                    placeholder="Badge (ex: Mais Popular)"
+                    className="w-full bg-[#0f0f12] border border-blue-500/40 text-blue-300 text-[10px] font-bold rounded-lg px-2.5 py-1 mb-2"
+                  />
+                  <label className="text-[10px] text-blue-300 block mb-1">Benefícios (1 por linha):</label>
+                  <textarea
+                    value={plan2Features}
+                    onChange={e => setPlan2Features(e.target.value)}
+                    rows={4}
+                    className="w-full bg-[#0f0f12] border border-blue-500/40 text-gray-200 text-[11px] rounded-lg p-2 resize-none"
+                  />
+                </div>
+
+                {/* Plano 3 */}
+                <div className="p-3.5 rounded-2xl bg-[#18181b] border border-[#27272a] flex flex-col justify-between">
+                  <div>
+                    <span className="text-[10px] font-black uppercase text-gray-400">Plano 3</span>
+                    <input
+                      type="text"
+                      value={plan3Name}
+                      onChange={e => setPlan3Name(e.target.value)}
+                      placeholder="Nome do Plano"
+                      className="w-full bg-[#0f0f12] border border-[#27272a] text-white text-xs font-bold rounded-lg px-2.5 py-1.5 my-1.5"
+                    />
+                    <input
+                      type="text"
+                      value={plan3Price}
+                      onChange={e => setPlan3Price(e.target.value)}
+                      placeholder="Preço (ex: 7.500)"
+                      className="w-full bg-[#0f0f12] border border-[#27272a] text-white text-xs font-bold rounded-lg px-2.5 py-1.5 mb-2"
+                    />
+                    <label className="text-[10px] text-gray-400 block mb-1">Benefícios (1 por linha):</label>
+                    <textarea
+                      value={plan3Features}
+                      onChange={e => setPlan3Features(e.target.value)}
+                      rows={4}
+                      className="w-full bg-[#0f0f12] border border-[#27272a] text-gray-200 text-[11px] rounded-lg p-2 resize-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Botões do Rodapé */}
+              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[#27272a]">
+                <button
+                  type="button"
+                  onClick={() => setIsPricingModalOpen(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-gray-400 hover:text-white transition cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={handleApplyPricing}
+                  className="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-extrabold text-xs shadow-md shadow-purple-600/30 transition active:scale-95 flex items-center gap-2 cursor-pointer"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  <span>Inserir Tabela de Preços</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: 🖼️ Configuração de Banner / Hero ─────────────────────── */}
+      {isBannerModalOpen && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-[#121217] border border-[#27272a] rounded-3xl max-w-lg w-full p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto no-scrollbar">
+            <button
+              onClick={() => setIsBannerModalOpen(false)}
+              className="absolute top-5 right-5 p-1 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-12 h-12 rounded-2xl bg-amber-600/20 text-amber-400 flex items-center justify-center shadow-lg shadow-amber-500/10">
+                <Sliders className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-white">Configuração do Banner / Hero</h3>
+                <p className="text-xs text-gray-400">Personalize o título, a proposta de valor e os botões de ação do topo</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {/* Badge de Destaque */}
+              <div>
+                <label className="text-[11px] font-bold text-gray-300 block mb-1">Badge de Destaque (Topo do Banner):</label>
+                <input
+                  type="text"
+                  value={bannerBadge}
+                  onChange={e => setBannerBadge(e.target.value)}
+                  placeholder="Ex: ⚡ Nova Geração 2026"
+                  className="w-full bg-[#18181b] border border-[#27272a] text-white text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-amber-500"
+                />
+              </div>
+
+              {/* Título Principal (Headline) */}
+              <div>
+                <label className="text-[11px] font-bold text-gray-300 block mb-1">Título Principal (Headline):</label>
+                <input
+                  type="text"
+                  value={bannerHeadline}
+                  onChange={e => setBannerHeadline(e.target.value)}
+                  placeholder="Ex: Soluções Digitais que aceleram o seu Crescimento"
+                  className="w-full bg-[#18181b] border border-[#27272a] text-white text-xs font-bold rounded-xl px-3 py-2.5 focus:outline-none focus:border-amber-500"
+                />
+              </div>
+
+              {/* Subtítulo / Descrição */}
+              <div>
+                <label className="text-[11px] font-bold text-gray-300 block mb-1">Subtítulo / Proposta de Valor:</label>
+                <textarea
+                  value={bannerSubtitle}
+                  onChange={e => setBannerSubtitle(e.target.value)}
+                  rows={2}
+                  placeholder="Ex: Desenvolvemos tecnologia de alta performance para empresas modernas..."
+                  className="w-full bg-[#18181b] border border-[#27272a] text-white text-xs rounded-xl p-3 focus:outline-none focus:border-amber-500 resize-none"
+                />
+              </div>
+
+              {/* Botões de Ação */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[11px] font-bold text-gray-300 block mb-1">Botão Principal (Texto):</label>
+                  <input
+                    type="text"
+                    value={bannerCtaText}
+                    onChange={e => setBannerCtaText(e.target.value)}
+                    placeholder="Começar Agora"
+                    className="w-full bg-[#18181b] border border-[#27272a] text-white text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] font-bold text-gray-300 block mb-1">Link do Botão (Âncora):</label>
+                  <input
+                    type="text"
+                    value={bannerCtaLink}
+                    onChange={e => setBannerCtaLink(e.target.value)}
+                    placeholder="#contacto"
+                    className="w-full bg-[#18181b] border border-[#27272a] text-white text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[11px] font-bold text-gray-300 block mb-1">Botão Secundário (Texto):</label>
+                  <input
+                    type="text"
+                    value={bannerSecondaryText}
+                    onChange={e => setBannerSecondaryText(e.target.value)}
+                    placeholder="Ver Serviços"
+                    className="w-full bg-[#18181b] border border-[#27272a] text-white text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] font-bold text-gray-300 block mb-1">Link Secundário (Âncora):</label>
+                  <input
+                    type="text"
+                    value={bannerSecondaryLink}
+                    onChange={e => setBannerSecondaryLink(e.target.value)}
+                    placeholder="#solucoes"
+                    className="w-full bg-[#18181b] border border-[#27272a] text-white text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+              </div>
+
+              {/* Estilo do Banner */}
+              <div>
+                <label className="text-[11px] font-bold text-gray-300 block mb-1.5">Estilo Visual do Banner:</label>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setBannerTheme('tech-dark')}
+                    className={`py-2 px-2.5 rounded-xl border text-[11px] font-semibold transition cursor-pointer text-center ${
+                      bannerTheme === 'tech-dark'
+                        ? 'border-amber-500 bg-amber-500/10 text-amber-400 font-bold'
+                        : 'border-[#27272a] bg-[#18181b] text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    Tech Escuro
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBannerTheme('minimal')}
+                    className={`py-2 px-2.5 rounded-xl border text-[11px] font-semibold transition cursor-pointer text-center ${
+                      bannerTheme === 'minimal'
+                        ? 'border-amber-500 bg-amber-500/10 text-amber-400 font-bold'
+                        : 'border-[#27272a] bg-[#18181b] text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    Minimalista
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBannerTheme('executive')}
+                    className={`py-2 px-2.5 rounded-xl border text-[11px] font-semibold transition cursor-pointer text-center ${
+                      bannerTheme === 'executive'
+                        ? 'border-amber-500 bg-amber-500/10 text-amber-400 font-bold'
+                        : 'border-[#27272a] bg-[#18181b] text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    Executivo
+                  </button>
+                </div>
+              </div>
+
+              {/* Botões do Rodapé */}
+              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[#27272a]">
+                <button
+                  type="button"
+                  onClick={() => setIsBannerModalOpen(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-gray-400 hover:text-white transition cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={handleApplyBanner}
+                  className="px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-extrabold text-xs shadow-md shadow-amber-600/30 transition active:scale-95 flex items-center gap-2 cursor-pointer"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  <span>Atualizar Banner</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
