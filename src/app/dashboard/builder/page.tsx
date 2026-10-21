@@ -3448,7 +3448,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
               <ExternalLink className="w-4 h-4 text-blue-400" />
             </button>
 
-            {/* BOTÃO ATALHO PARA O EDITOR VISUAL PRO (Elementor-like) */}
+            {/* BOTÃO ATALHO PARA O EDITOR VISUAL PRO (Icon-only para poupar espaço) */}
             <button
               onClick={() => {
                 if (typeof window !== 'undefined' && displayedHtml) {
@@ -3458,14 +3458,10 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 const targetUrl = projectId ? `/dashboard/visual-builder?id=${projectId}` : '/dashboard/visual-builder';
                 router.push(targetUrl);
               }}
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-blue-600/25 to-indigo-600/25 hover:from-blue-600/40 hover:to-indigo-600/40 text-blue-300 hover:text-white border border-blue-500/40 font-bold text-xs transition active:scale-95 cursor-pointer shrink-0 shadow-sm"
-              title="Abrir no Editor Visual Pro (Editar blocos visualmente estilo Elementor)"
+              className="p-2 rounded-xl bg-blue-600/15 hover:bg-blue-600/25 text-blue-400 hover:text-blue-300 border border-blue-500/30 transition cursor-pointer shrink-0 shadow-xs active:scale-95"
+              title="Editor Visual Pro (Modo Elementor — Editar e reorganizar blocos visualmente)"
             >
-              <Layers className="w-3.5 h-3.5 text-blue-400" />
-              <span>Editor Visual</span>
-              <span className="text-[9px] font-black tracking-wider uppercase px-1.5 py-0.5 rounded-full bg-blue-500/30 text-blue-300">
-                PRO
-              </span>
+              <Layers className="w-4 h-4 text-blue-400" />
             </button>
 
             {/* BOTÃO EXPORTAR CÓDIGO (ZIP / HTML) */}
