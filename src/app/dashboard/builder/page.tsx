@@ -3152,23 +3152,6 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 <span className="hidden sm:inline">Código</span>
               </button>
             </div>
-
-            {/* Botão de Atalho para o Editor Visual Estilo Elementor */}
-            <button
-              onClick={() => {
-                if (typeof window !== 'undefined' && displayedHtml) {
-                  sessionStorage.setItem('wehost_visual_builder_html', displayedHtml);
-                  sessionStorage.setItem('wehost_visual_builder_title', projectTitle || 'Meu Website');
-                }
-                const targetUrl = projectId ? `/dashboard/visual-builder?id=${projectId}` : '/dashboard/visual-builder';
-                router.push(targetUrl);
-              }}
-              className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 transition cursor-pointer active:scale-95 shadow-xs"
-              title="Abrir no Editor Visual Estilo Elementor (Editar e reorganizar blocos visualmente)"
-            >
-              <Layers className="w-3.5 h-3.5 text-blue-400" />
-              <span>Editor Visual</span>
-            </button>
           </div>
 
           {/* Centro: Dropdown "Latest ▾" e Stepper de Versões < > (Exacto ao v0) */}
@@ -3378,6 +3361,22 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
 
                   <button
                     onClick={() => {
+                      if (typeof window !== 'undefined' && displayedHtml) {
+                        sessionStorage.setItem('wehost_visual_builder_html', displayedHtml);
+                        sessionStorage.setItem('wehost_visual_builder_title', projectTitle || 'Meu Website');
+                      }
+                      const targetUrl = projectId ? `/dashboard/visual-builder?id=${projectId}` : '/dashboard/visual-builder';
+                      router.push(targetUrl);
+                      setIsMoreMenuOpen(false);
+                    }}
+                    className="w-full text-left px-3 py-2 rounded-xl text-xs text-blue-400 hover:text-blue-300 hover:bg-blue-600/10 transition flex items-center gap-2.5 font-bold cursor-pointer"
+                  >
+                    <Layers className="w-4 h-4 text-blue-400 shrink-0" />
+                    <span>Editor Visual Pro</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
                       setIsLogoModalOpen(true);
                       setIsMoreMenuOpen(false);
                     }}
@@ -3447,6 +3446,26 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
               title="Abrir em Nova Aba no Navegador"
             >
               <ExternalLink className="w-4 h-4 text-blue-400" />
+            </button>
+
+            {/* BOTÃO ATALHO PARA O EDITOR VISUAL PRO (Elementor-like) */}
+            <button
+              onClick={() => {
+                if (typeof window !== 'undefined' && displayedHtml) {
+                  sessionStorage.setItem('wehost_visual_builder_html', displayedHtml);
+                  sessionStorage.setItem('wehost_visual_builder_title', projectTitle || 'Meu Website');
+                }
+                const targetUrl = projectId ? `/dashboard/visual-builder?id=${projectId}` : '/dashboard/visual-builder';
+                router.push(targetUrl);
+              }}
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-blue-600/25 to-indigo-600/25 hover:from-blue-600/40 hover:to-indigo-600/40 text-blue-300 hover:text-white border border-blue-500/40 font-bold text-xs transition active:scale-95 cursor-pointer shrink-0 shadow-sm"
+              title="Abrir no Editor Visual Pro (Editar blocos visualmente estilo Elementor)"
+            >
+              <Layers className="w-3.5 h-3.5 text-blue-400" />
+              <span>Editor Visual</span>
+              <span className="text-[9px] font-black tracking-wider uppercase px-1.5 py-0.5 rounded-full bg-blue-500/30 text-blue-300">
+                PRO
+              </span>
             </button>
 
             {/* BOTÃO EXPORTAR CÓDIGO (ZIP / HTML) */}
