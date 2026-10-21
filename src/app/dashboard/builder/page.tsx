@@ -3154,48 +3154,45 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
             </div>
           </div>
 
-          {/* Centro: Dropdown "Latest ▾" e Stepper de Versões < > (Exacto ao v0) */}
+          {/* Centro: Dropdown Histórico/Versões (Ícone apenas para máxima economia de espaço) */}
           <div className="flex items-center gap-1 bg-[#18181b] p-1 rounded-xl border border-[#27272a] relative shrink-0" ref={versionMenuRef}>
             
-            {/* Botão Dropdown Versão */}
+            {/* Botão Dropdown Versão (Apenas ícone conforme solicitado para poupar espaço) */}
             <button
               onClick={() => setIsVersionDropdownOpen(!isVersionDropdownOpen)}
-              className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-bold text-gray-200 hover:bg-white/5 transition cursor-pointer"
-              title="Histórico de Versões do Projeto"
+              className="flex items-center gap-1 px-1.5 py-1 rounded-lg text-xs font-bold text-gray-200 hover:bg-white/5 transition cursor-pointer"
+              title={`Histórico de Versões: ${selectedVersionIndex === 'latest' ? 'Latest (Mais Recente)' : `v${versions[selectedVersionIndex]?.versionNumber || selectedVersionIndex + 1}`}`}
             >
               <History className="w-3.5 h-3.5 text-blue-400 shrink-0" />
-              <span className="text-[11px]">
-                {selectedVersionIndex === 'latest' 
-                  ? 'Latest' 
-                  : `v${versions[selectedVersionIndex]?.versionNumber || selectedVersionIndex + 1}`}
-              </span>
-              <ChevronDown className="w-3 h-3 text-gray-400 shrink-0" />
+              <ChevronDown className="w-2.5 h-2.5 text-gray-400 shrink-0" />
             </button>
 
-            {/* Stepper de Navegação de Versões < > */}
-            <div className="hidden sm:flex items-center border-l border-[#27272a] pl-1 gap-0.5 text-gray-400">
-              <button
-                onClick={() => handleStepVersion('prev')}
-                disabled={versions.length <= 1 || selectedVersionIndex === 0}
-                className="p-1 rounded hover:text-white hover:bg-white/5 disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer disabled:cursor-not-allowed transition"
-                title="Versão Anterior"
-              >
-                <ChevronLeft className="w-3.5 h-3.5" />
-              </button>
-              <span className="text-[10px] font-mono px-1 select-none text-gray-300">
-                {selectedVersionIndex === 'latest' 
-                  ? `${versions.length}/${versions.length}` 
-                  : `${(selectedVersionIndex as number) + 1}/${versions.length}`}
-              </span>
-              <button
-                onClick={() => handleStepVersion('next')}
-                disabled={versions.length <= 1 || selectedVersionIndex === 'latest'}
-                className="p-1 rounded hover:text-white hover:bg-white/5 disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer disabled:cursor-not-allowed transition"
-                title="Versão Seguinte"
-              >
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
+            {/* Stepper de Navegação de Versões < > (Apenas quando há mais de 1 versão e em ecrãs largos) */}
+            {versions.length > 1 && (
+              <div className="hidden xl:flex items-center border-l border-[#27272a] pl-1 gap-0.5 text-gray-400">
+                <button
+                  onClick={() => handleStepVersion('prev')}
+                  disabled={selectedVersionIndex === 0}
+                  className="p-1 rounded hover:text-white hover:bg-white/5 disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer disabled:cursor-not-allowed transition"
+                  title="Versão Anterior"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                </button>
+                <span className="text-[10px] font-mono px-1 select-none text-gray-300">
+                  {selectedVersionIndex === 'latest' 
+                    ? `${versions.length}/${versions.length}` 
+                    : `${(selectedVersionIndex as number) + 1}/${versions.length}`}
+                </span>
+                <button
+                  onClick={() => handleStepVersion('next')}
+                  disabled={selectedVersionIndex === 'latest'}
+                  className="p-1 rounded hover:text-white hover:bg-white/5 disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer disabled:cursor-not-allowed transition"
+                  title="Versão Seguinte"
+                >
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
 
             {/* Menu Popover das Versões */}
             {isVersionDropdownOpen && (
