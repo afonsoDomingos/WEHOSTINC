@@ -639,7 +639,14 @@ DIRETRIZES CRITICAS DE DESIGN E ESTRUTURA:
 5. MENU / NAVBAR: Simples e bonito, fixo ou sticky no topo (sticky top-0 backdrop-blur-xl bg-black/85 border-b border-white/10), com logo em caixa monocromatica, links essenciais e botao WhatsApp em branco.
 6. RODAPE / FOOTER: Simples e bonito no fundo com divisor (border-t border-white/10), nome da marca, links rapidos e copyright "2026. Todos os direitos reservados."
 7. ESTRUTURA: Navbar, Hero impactante, Secao de Servicos/Cardapio/Produtos com precos claros em Meticais (MZN), CTA no WhatsApp e Rodape.
-8. Se houver HTML atual, REFINE e ATUALIZE mantendo essa estetica preta e branca minimalista de alto luxo.`;
+8. ÍCONES PROFISSIONAIS OBRIGATÓRIOS (REGRA DE OURO):
+   - É ESTRITAMENTE PROIBIDO USAR EMOJIS (ex: 🚀, 💻, ⚡, 🔒, 🎯, ⭐, 🍕, 🏨, 🛒, etc.) como ícones de cards, serviços, vantagens ou títulos. Emojis parecem amadores e destroem o visual profissional.
+   - USE SEMPRE ÍCONES SVG PROFISSIONAIS INLINE com Tailwind CSS (ex: <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="..."/></svg>) OU utilize a biblioteca Lucide Icons via CDN:
+     No <head>: <script src="https://unpkg.com/lucide@latest"></script>
+     Nos cards: <i data-lucide="shield" class="w-6 h-6 text-white"></i> (ou "zap", "server", "globe", "cpu", "star", "phone", etc.)
+     Antes de </body>: <script>lucide.createIcons();</script>
+   - Envolva sempre cada ícone numa caixa elegante de suporte com cantos arredondados (ex: <div class="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white mb-4">...</div>).
+9. Se houver HTML atual, REFINE e ATUALIZE mantendo essa estetica preta e branca minimalista de alto luxo e garantindo que todos os ícones sejam profissionais em SVG.`;
 
 // ─── Detecção de Intenção Conversacional (Chat vs Geração de Código) ──────────
 function detectConversationalIntent(prompt: string, hasCurrentHtml: boolean): { isChat: boolean; reply: string } {
@@ -955,7 +962,7 @@ PEDIDO / DÚVIDA DO UTILIZADOR: "${prompt}"`;
               model: 'gpt-4o-mini',
               stream: true,
               messages: [
-                { role: 'system', content: 'Retorne APENAS o codigo HTML5 completo (Tailwind via CDN, Google Fonts). Nada mais.' },
+                { role: 'system', content: SYSTEM_INSTRUCTION },
                 { role: 'user', content: userPrompt }
               ],
               temperature: 0.7,
