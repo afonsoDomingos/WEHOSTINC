@@ -3461,18 +3461,17 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
               <span>Editor</span>
             </button>
 
-            {/* BOTÃO EXPORTAR CÓDIGO (ZIP / HTML) */}
+            {/* BOTÃO EXPORTAR CÓDIGO (Ícone compacto para poupar espaço) */}
             <button
               onClick={() => setIsExportModalOpen(true)}
               disabled={!displayedHtml}
-              className="flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 font-bold text-xs transition active:scale-95 cursor-pointer shrink-0 disabled:opacity-40"
-              title="Exportar código-fonte do website em ZIP ou HTML"
+              className="p-2 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 hover:text-emerald-300 border border-emerald-500/30 transition active:scale-95 cursor-pointer shrink-0 disabled:opacity-40 shadow-xs"
+              title="Exportar código-fonte do website (ZIP ou HTML)"
             >
-              <Download className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Exportar</span>
+              <Download className="w-4 h-4 text-emerald-400" />
             </button>
 
-            {/* BOTÃO PUBLICAR (Destaque Principal na cor Branca) */}
+            {/* BOTÃO PUBLICAR (Destaque Principal Compacto) */}
             <button
               onClick={() => {
                 if (!currentUser) {
@@ -3482,7 +3481,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 }
                 setIsPublishModalOpen(true);
               }}
-              className="flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-xl bg-white hover:bg-gray-100 text-black font-extrabold text-xs shadow-md transition active:scale-95 cursor-pointer shrink-0"
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-white hover:bg-gray-100 text-black font-extrabold text-xs shadow-sm transition active:scale-95 cursor-pointer shrink-0"
               title="Publicar website online com subdomínio e SSL"
             >
               <Globe className="w-3.5 h-3.5 text-black" />
