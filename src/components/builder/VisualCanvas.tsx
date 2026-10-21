@@ -139,75 +139,6 @@ export default function VisualCanvas({
 
   return (
     <div className="flex flex-col h-full bg-[#080c14] flex-1 min-w-0 overflow-hidden">
-      {/* ─── Barra de Ferramentas do Canvas ────────────────────────────────── */}
-      <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-800/80 bg-[#0b0f1a] flex-shrink-0 gap-4">
-        {/* Seletor de Dispositivo */}
-        <div className="flex items-center gap-1 bg-slate-800/60 rounded-xl p-1 border border-slate-700/40">
-          {(['desktop', 'tablet', 'mobile'] as DeviceMode[]).map((mode) => {
-            const icons = { desktop: Laptop, tablet: Tablet, mobile: Smartphone };
-            const Icon = icons[mode];
-            return (
-              <button
-                key={mode}
-                title={DEVICE_LABELS[mode]}
-                onClick={() => onDeviceModeChange(mode)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
-                  deviceMode === mode
-                    ? 'bg-blue-600 text-white shadow-[0_0_12px_rgba(59,130,246,0.4)]'
-                    : 'text-slate-500 hover:text-slate-200 hover:bg-slate-700/50'
-                }`}
-              >
-                <Icon className="w-3.5 h-3.5" />
-                <span className="hidden lg:block">{DEVICE_LABELS[mode]}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Info de largura */}
-        <div className="text-[11px] text-slate-600 font-mono hidden md:block">
-          {deviceMode === 'desktop' ? 'Largura total' : `${iframeWidth}`}
-          {selectedComponentId && (
-            <span className="ml-3 text-blue-500/70">
-              ● Componente selecionado
-            </span>
-          )}
-        </div>
-
-        {/* Controles de Zoom e Refresh */}
-        <div className="flex items-center gap-1.5">
-          <button
-            onClick={zoomOut}
-            className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-700/50 text-slate-500 hover:text-slate-200 transition"
-            title="Diminuir zoom"
-          >
-            <ZoomOut className="w-3.5 h-3.5" />
-          </button>
-          <button
-            onClick={zoomReset}
-            className="text-[11px] font-mono text-slate-500 hover:text-slate-200 px-2 py-1 rounded-lg hover:bg-slate-700/50 transition min-w-[44px] text-center"
-            title="Repor zoom"
-          >
-            {canvasZoom}%
-          </button>
-          <button
-            onClick={zoomIn}
-            className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-700/50 text-slate-500 hover:text-slate-200 transition"
-            title="Aumentar zoom"
-          >
-            <ZoomIn className="w-3.5 h-3.5" />
-          </button>
-          <div className="w-px h-5 bg-slate-700/50 mx-0.5" />
-          <button
-            onClick={handleRefresh}
-            className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-700/50 text-slate-500 hover:text-slate-200 transition"
-            title="Forçar atualização"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      </div>
-
       {/* ─── Ribbon de Ações Rápidas do Elemento Selecionado ───────────────── */}
       {selectedComponent && (
         <div className="flex items-center justify-between px-4 py-2 bg-gradient-to-r from-blue-950/60 to-slate-900/60 border-b border-blue-600/30 flex-shrink-0 animate-in fade-in duration-150 backdrop-blur-sm">
@@ -357,17 +288,49 @@ export default function VisualCanvas({
         </div>
       </div>
 
-      {/* ─── Barra de Info Inferior ─────────────────────────────────────────── */}
-      <div className="flex items-center gap-4 px-4 py-1.5 border-t border-slate-800/60 bg-[#0b0f1a] flex-shrink-0">
-        <div className="flex items-center gap-1.5">
-          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-          <span className="text-[10px] text-slate-600">Canvas Ativo</span>
+      {/* ─── Barra de Info Inferior & Controles de Zoom ────────────────────── */}
+      <div className="flex items-center justify-between px-4 py-2 border-t border-slate-800/80 bg-[#0b0f1a] flex-shrink-0">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5">
+            <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+            <span className="text-[11px] text-slate-400 font-medium">Canvas Pronto</span>
+          </div>
+          <div className="text-[11px] text-slate-600 font-mono hidden sm:block">
+            Modo: <span className="text-slate-400">{DEVICE_LABELS[deviceMode]}</span> ({iframeWidth})
+          </div>
         </div>
-        <div className="text-[10px] text-slate-700 font-mono">
-          {siteDocument.site.name}
-        </div>
-        <div className="ml-auto text-[10px] text-slate-700">
-          Zoom: {canvasZoom}%
+
+        {/* Controles de Zoom e Atualização */}
+        <div className="flex items-center gap-1.5 bg-slate-900/80 px-2 py-1 rounded-xl border border-slate-800">
+          <button
+            onClick={zoomOut}
+            className="w-6 h-6 flex items-center justify-center rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition cursor-pointer"
+            title="Reduzir zoom"
+          >
+            <ZoomOut className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={zoomReset}
+            className="text-[11px] font-mono text-slate-300 hover:text-white px-1.5 py-0.5 rounded transition cursor-pointer"
+            title="Repor zoom para 100%"
+          >
+            {canvasZoom}%
+          </button>
+          <button
+            onClick={zoomIn}
+            className="w-6 h-6 flex items-center justify-center rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition cursor-pointer"
+            title="Aumentar zoom"
+          >
+            <ZoomIn className="w-3.5 h-3.5" />
+          </button>
+          <div className="w-px h-3.5 bg-slate-800 mx-0.5" />
+          <button
+            onClick={handleRefresh}
+            className="w-6 h-6 flex items-center justify-center rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition cursor-pointer"
+            title="Recarregar pré-visualização"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+          </button>
         </div>
       </div>
     </div>

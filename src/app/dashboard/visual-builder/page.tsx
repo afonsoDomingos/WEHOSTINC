@@ -540,6 +540,8 @@ export default function VisualBuilderPage() {
       <BuilderTopbar
         siteDocument={siteDocument}
         siteSlug={siteSlug || siteDocument.site.slug}
+        deviceMode={deviceMode}
+        onDeviceModeChange={setDeviceMode}
         isSaving={isSaving}
         isPublishing={isPublishing}
         isPublished={isPublished}

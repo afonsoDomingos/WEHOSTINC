@@ -8,6 +8,7 @@ import {
   ArrowLeft, Save, Globe, Eye, Undo2, Redo2, Wand2,
   ExternalLink, ChevronDown, Loader2, Check, History,
   Palette, Settings, Download, Share2, Sparkles, Lock,
+  Laptop, Tablet, Smartphone,
 } from 'lucide-react';
 import Link from 'next/link';
 import { SiteDocument } from '@/lib/builder/types';
@@ -15,6 +16,8 @@ import { SiteDocument } from '@/lib/builder/types';
 interface BuilderTopbarProps {
   siteDocument: SiteDocument;
   siteSlug: string;
+  deviceMode: 'desktop' | 'tablet' | 'mobile';
+  onDeviceModeChange: (mode: 'desktop' | 'tablet' | 'mobile') => void;
   isSaving: boolean;
   isPublishing: boolean;
   isPublished: boolean;
@@ -31,6 +34,8 @@ interface BuilderTopbarProps {
 export default function BuilderTopbar({
   siteDocument,
   siteSlug,
+  deviceMode,
+  onDeviceModeChange,
   isSaving,
   isPublishing,
   isPublished,
@@ -135,42 +140,83 @@ export default function BuilderTopbar({
         </div>
       </div>
 
-      {/* ─── Lado Central — Undo / Redo & Assistente IA ──────────────────── */}
-      <div className="flex items-center gap-1.5 flex-shrink-0">
-        {/* Desfazer */}
-        <button
-          onClick={onUndo}
-          disabled={!canUndo}
-          title="Desfazer (Ctrl+Z)"
-          className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-slate-800/60 text-slate-500 hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition"
-        >
-          <Undo2 className="w-3.5 h-3.5" />
-        </button>
+      {/* ─── Lado Central — Seletor de Dispositivo & Undo / Redo ────────── */}
+      <div className="flex items-center gap-2 flex-shrink-0">
+        {/* Seletor de Dispositivo (Desktop | Tablet | Mobile) */}
+        <div className="flex items-center gap-0.5 bg-slate-900/90 rounded-xl p-0.5 border border-slate-800">
+          <button
+            onClick={() => onDeviceModeChange('desktop')}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition ${
+              deviceMode === 'desktop'
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+            }`}
+            title="Visualização Desktop (100%)"
+          >
+            <Laptop className="w-3.5 h-3.5" />
+            <span className="hidden md:inline text-[11px]">Desktop</span>
+          </button>
+          <button
+            onClick={() => onDeviceModeChange('tablet')}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition ${
+              deviceMode === 'tablet'
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+            }`}
+            title="Visualização Tablet (768px)"
+          >
+            <Tablet className="w-3.5 h-3.5" />
+            <span className="hidden md:inline text-[11px]">Tablet</span>
+          </button>
+          <button
+            onClick={() => onDeviceModeChange('mobile')}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition ${
+              deviceMode === 'mobile'
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+            }`}
+            title="Visualização Mobile (375px)"
+          >
+            <Smartphone className="w-3.5 h-3.5" />
+            <span className="hidden md:inline text-[11px]">Mobile</span>
+          </button>
+        </div>
 
-        {/* Refazer */}
-        <button
-          onClick={onRedo}
-          disabled={!canRedo}
-          title="Refazer (Ctrl+Y)"
-          className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-slate-800/60 text-slate-500 hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition"
-        >
-          <Redo2 className="w-3.5 h-3.5" />
-        </button>
+        <div className="w-px h-4 bg-slate-800 hidden sm:block" />
 
-        <div className="w-px h-5 bg-slate-800" />
+        {/* Desfazer / Refazer */}
+        <div className="flex items-center gap-0.5">
+          <button
+            onClick={onUndo}
+            disabled={!canUndo}
+            title="Desfazer (Ctrl+Z)"
+            className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-800 text-slate-400 hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition"
+          >
+            <Undo2 className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={onRedo}
+            disabled={!canRedo}
+            title="Refazer (Ctrl+Y)"
+            className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-800 text-slate-400 hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition"
+          >
+            <Redo2 className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
 
+      {/* ─── Lado Direito — IA, Guardar & Publicar ───────────────────────────── */}
+      <div className="flex items-center gap-2 flex-shrink-0">
         {/* Botão de Assistente IA */}
         <button
           onClick={onOpenAiChat}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-violet-600/80 to-blue-600/80 hover:from-violet-500 hover:to-blue-500 border border-violet-500/30 text-white text-[12px] font-semibold transition-all shadow-[0_0_14px_rgba(124,58,237,0.3)] hover:shadow-[0_0_20px_rgba(124,58,237,0.5)] active:scale-95"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-violet-600/20 hover:bg-violet-600/30 text-violet-300 border border-violet-500/30 text-xs font-bold transition shadow-xs active:scale-95"
+          title="Assistente de Edição Inteligente"
         >
-          <Sparkles className="w-3.5 h-3.5" />
-          <span className="hidden sm:block">IA Assistente</span>
+          <Sparkles className="w-3.5 h-3.5 text-violet-400" />
+          <span className="hidden sm:inline">IA Assistente</span>
         </button>
-      </div>
 
-      {/* ─── Lado Direito — Guardar & Publicar ───────────────────────────── */}
-      <div className="flex items-center gap-2 flex-shrink-0">
         {/* Botão Guardar */}
         <button
           onClick={handleSave}
