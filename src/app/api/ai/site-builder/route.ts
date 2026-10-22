@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 
-// ─── Fallback HTML (Modelos Pré-Prontos Preto & Branco Ricos: Hero, Stats, Grid, Galeria com Imagens Unsplash, Depoimentos, FAQ, CTA, Botão Flutuante, Rodapé Multi-Coluna) ─
+// ─── Fallback HTML (Modelos Pré-Prontos Preto & Branco Ricos: Hero, Stats, Grid, Galeria com Imagens Unsplash, Depoimentos, FAQ, Formulário de Agendamento WhatsApp, CTA, Botão Flutuante, Rodapé Multi-Coluna) ─
 function getFallbackHtml(prompt: string, title?: string): string {
   const p = prompt.toLowerCase();
 
@@ -160,6 +160,62 @@ function getFallbackHtml(prompt: string, title?: string): string {
     </div>
   </section>`;
 
+  const renderBookingForm = (title: string, subtitle: string, options: string[], btnText: string) => `
+  <section id="agendamento" class="py-24 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="relative rounded-3xl bg-zinc-950 border border-white/10 p-8 sm:p-12 overflow-hidden shadow-2xl">
+      <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.06),transparent_60%)] pointer-events-none"></div>
+      
+      <div class="text-center max-w-xl mx-auto mb-10 relative z-10">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/5 text-[11px] uppercase tracking-wider text-zinc-300 mb-4">
+          <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+          <span>Atendimento Direto &bull; Moçambique</span>
+        </div>
+        <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white mb-3">${title}</h2>
+        <p class="text-zinc-400 text-xs sm:text-sm leading-relaxed">${subtitle}</p>
+      </div>
+
+      <form onsubmit="handleBookingSubmit(event)" class="relative z-10 space-y-5">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div>
+            <label class="block text-xs font-semibold text-zinc-300 mb-2 uppercase tracking-wider">O Seu Nome</label>
+            <input type="text" name="booking_name" required placeholder="Ex: Carlos Mondlane" class="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-zinc-500 text-sm focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/40 transition" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-zinc-300 mb-2 uppercase tracking-wider">Telemóvel / WhatsApp</label>
+            <input type="tel" name="booking_phone" required placeholder="Ex: +258 84 000 0000" class="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-zinc-500 text-sm focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/40 transition" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div>
+            <label class="block text-xs font-semibold text-zinc-300 mb-2 uppercase tracking-wider">Opção / Serviço Desejado</label>
+            <select name="booking_service" required class="w-full px-4 py-3 rounded-xl bg-zinc-900 border border-white/10 text-white text-sm focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/40 transition">
+              <option value="" disabled selected class="text-zinc-500">Selecione uma opção...</option>
+              ${options.map(opt => `<option value="${opt}" class="bg-zinc-900 text-white">${opt}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-zinc-300 mb-2 uppercase tracking-wider">Data Preferencial</label>
+            <input type="date" name="booking_date" class="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-zinc-500 text-sm focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/40 transition" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-zinc-300 mb-2 uppercase tracking-wider">Mensagem ou Observações (Opcional)</label>
+          <textarea name="booking_notes" rows="3" placeholder="Indique qualquer preferência específica ou detalhe adicional..." class="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-zinc-500 text-sm focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/40 transition resize-none"></textarea>
+        </div>
+
+        <button type="submit" class="w-full py-4 px-6 rounded-xl bg-white text-black font-extrabold text-sm tracking-wide hover:bg-zinc-200 transition shadow-xl flex items-center justify-center gap-2 group cursor-pointer">
+          <i data-lucide="send" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+          <span>${btnText}</span>
+        </button>
+        <p class="text-[11px] text-center text-zinc-500 mt-2">
+          🔒 Ao submeter, abrirá o WhatsApp com a mensagem formatada para confirmação imediata.
+        </p>
+      </form>
+    </div>
+  </section>`;
+
   const renderCta = (title: string, desc: string, btnText: string, waMsg: string) => `
   <section class="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="relative rounded-3xl bg-gradient-to-b from-zinc-900 via-zinc-950 to-black border border-white/15 p-10 sm:p-16 text-center overflow-hidden">
@@ -269,6 +325,25 @@ function getFallbackHtml(prompt: string, title?: string): string {
         icon.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
       }
     }
+    function handleBookingSubmit(e) {
+      e.preventDefault();
+      const form = e.target;
+      const name = form.querySelector('[name="booking_name"]')?.value || '';
+      const phone = form.querySelector('[name="booking_phone"]')?.value || '';
+      const service = form.querySelector('[name="booking_service"]')?.value || '';
+      const date = form.querySelector('[name="booking_date"]')?.value || '';
+      const notes = form.querySelector('[name="booking_notes"]')?.value || '';
+
+      let text = 'Olá! Gostaria de fazer uma solicitação:\n\n';
+      if (name) text += '👤 *Nome:* ' + name + '\n';
+      if (phone) text += '📱 *Contacto:* ' + phone + '\n';
+      if (service) text += '🎯 *Opção:* ' + service + '\n';
+      if (date) text += '📅 *Data:* ' + date + '\n';
+      if (notes) text += '📝 *Mensagem:* ' + notes + '\n';
+
+      const waUrl = 'https://wa.me/258840000000?text=' + encodeURIComponent(text);
+      window.open(waUrl, '_blank');
+    }
   </script>`;
 
   // 1. RESTAURANTE / GASTRONOMIA
@@ -280,6 +355,7 @@ function getFallbackHtml(prompt: string, title?: string): string {
       { label: 'Galeria', href: '#galeria' },
       { label: 'Depoimentos', href: '#depoimentos' },
       { label: 'FAQ', href: '#faq' },
+      { label: 'Reservar Mesa', href: '#agendamento' },
       { label: 'Contacto', href: '#contacto' }
     ];
     const waDefault = 'Olá! Gostaria de reservar uma mesa no ' + brand;
@@ -308,9 +384,9 @@ ${renderHead(brand + ' | Gastronomia de Excelência')}
           <i data-lucide="utensils" class="w-4 h-4"></i>
           <span>Ver Cardápio Especial</span>
         </a>
-        <a href="https://wa.me/258840000000?text=${encodeURIComponent('Olá! Gostaria de fazer uma reserva de mesa.')}" target="_blank" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 border border-white/20 bg-white/5 text-white font-bold text-sm px-8 py-4 rounded-full hover:bg-white/10 transition">
+        <a href="#agendamento" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 border border-white/20 bg-white/5 text-white font-bold text-sm px-8 py-4 rounded-full hover:bg-white/10 transition">
           <i data-lucide="calendar" class="w-4 h-4"></i>
-          <span>Reservar Mesa</span>
+          <span>Reservar Mesa Online</span>
         </a>
       </div>
     </div>
@@ -380,6 +456,14 @@ ${renderHead(brand + ' | Gastronomia de Excelência')}
     { q: 'Fazem reservas para eventos corporativos e aniversários?', a: 'Com certeza. Dispomos de menus de grupo personalizados e área reservada para celebrações e conferências.' }
   ])}
 
+  ${renderBookingForm('Reserve a Sua Mesa Online', 'Preencha os dados abaixo e confirme instantaneamente a sua reserva pelo WhatsApp.', [
+    'Reserva de Mesa (Casal)',
+    'Reserva de Mesa (Família / 4+ pessoas)',
+    'Almoço de Negócios / Reunião',
+    'Celebração de Aniversário / Evento',
+    'Menu Degustação Especial do Chef'
+  ], 'Confirmar Reserva pelo WhatsApp')}
+
   ${renderCta('Viva uma Noite Inesquecível Conosco', 'Reserve já a sua mesa ou encomende os nossos pratos exclusivos diretamente para a sua residência.', 'Fazer Reserva Imediata', 'Olá! Gostaria de reservar uma mesa no restaurante.')}
 
   ${renderFooter(brand, navItems, waDefault)}
@@ -396,6 +480,7 @@ ${renderHead(brand + ' | Gastronomia de Excelência')}
       { label: 'Galeria', href: '#galeria' },
       { label: 'Depoimentos', href: '#depoimentos' },
       { label: 'FAQ', href: '#faq' },
+      { label: 'Agendar', href: '#agendamento' },
       { label: 'Contacto', href: '#contacto' }
     ];
     const waDefault = 'Olá! Gostaria de agendar um horário na ' + brand;
@@ -424,9 +509,9 @@ ${renderHead(brand + ' | Estilo & Barbearia Premium')}
           <i data-lucide="scissors" class="w-4 h-4"></i>
           <span>Ver Tabela de Serviços</span>
         </a>
-        <a href="https://wa.me/258840000000?text=${encodeURIComponent('Olá! Gostaria de marcar um corte de cabelo e barba.')}" target="_blank" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 border border-white/20 bg-white/5 text-white font-bold text-sm px-8 py-4 rounded-full hover:bg-white/10 transition">
+        <a href="#agendamento" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 border border-white/20 bg-white/5 text-white font-bold text-sm px-8 py-4 rounded-full hover:bg-white/10 transition">
           <i data-lucide="calendar" class="w-4 h-4"></i>
-          <span>Agendar no WhatsApp</span>
+          <span>Agendar Horário Online</span>
         </a>
       </div>
     </div>
@@ -496,6 +581,15 @@ ${renderHead(brand + ' | Estilo & Barbearia Premium')}
     { q: 'Possuem estacionamento privativo?', a: 'Sim, dispomos de estacionamento vigiado e gratuito em frente ao estabelecimento.' }
   ])}
 
+  ${renderBookingForm('Agendamento de Horário VIP', 'Escolha o serviço desejado e a data para confirmação instantânea da sua sessão.', [
+    'Corte Moderno & Fade (450 MT)',
+    'Barboterapia com Toalha Quente (400 MT)',
+    'Combo Executivo Cabelo + Barba (750 MT)',
+    'Tratamento & Hidratação Capilar (500 MT)',
+    'Limpeza de Pele Facial Masculina (600 MT)',
+    'Corte Infantil Estiloso (350 MT)'
+  ], 'Confirmar Agendamento pelo WhatsApp')}
+
   ${renderCta('Renove o Seu Visual Hoje Mesmo', 'Agende a sua sessão com os melhores barbeiros da cidade em poucos segundos pelo WhatsApp.', 'Marcar Horário VIP', 'Olá! Gostaria de agendar um horário na barbearia.')}
 
   ${renderFooter(brand, navItems, waDefault)}
@@ -512,6 +606,7 @@ ${renderHead(brand + ' | Estilo & Barbearia Premium')}
       { label: 'Galeria', href: '#galeria' },
       { label: 'Depoimentos', href: '#depoimentos' },
       { label: 'FAQ', href: '#faq' },
+      { label: 'Reservar Suíte', href: '#agendamento' },
       { label: 'Contacto', href: '#contacto' }
     ];
     const waDefault = 'Olá! Gostaria de consultar tarifas e disponibilidade no ' + brand;
@@ -540,9 +635,9 @@ ${renderHead(brand + ' | Hospitalidade & Conforto 5 Estrelas')}
           <i data-lucide="bed" class="w-4 h-4"></i>
           <span>Explorar Suítes</span>
         </a>
-        <a href="https://wa.me/258840000000?text=${encodeURIComponent('Olá! Gostaria de consultar disponibilidade de quartos.')}" target="_blank" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 border border-white/20 bg-white/5 text-white font-bold text-sm px-8 py-4 rounded-full hover:bg-white/10 transition">
+        <a href="#agendamento" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 border border-white/20 bg-white/5 text-white font-bold text-sm px-8 py-4 rounded-full hover:bg-white/10 transition">
           <i data-lucide="calendar" class="w-4 h-4"></i>
-          <span>Consultar Disponibilidade</span>
+          <span>Reservar Estadia Online</span>
         </a>
       </div>
     </div>
@@ -612,6 +707,15 @@ ${renderHead(brand + ' | Hospitalidade & Conforto 5 Estrelas')}
     { q: 'Qual é a política de cancelamento?', a: 'Cancelamentos gratuitos até 48 horas antes da data de check-in sem qualquer taxa.' }
   ])}
 
+  ${renderBookingForm('Solicitação de Reserva de Hospedagem', 'Indique as suas preferências para que a nossa equipa de concierge confirme a melhor suíte disponível.', [
+    'Suíte Presidencial Oceano (9.800 MT / noite)',
+    'Suíte Executiva Premium (4.800 MT / noite)',
+    'Quarto Deluxe Casal (3.400 MT / noite)',
+    'Pacote Fim-de-Semana Romântico',
+    'Sessão Especial de Spa & Bem-Estar',
+    'Reserva de Sala de Conferências'
+  ], 'Consultar Disponibilidade no WhatsApp')}
+
   ${renderCta('Planeie a Sua Próxima Estadia Inesquecível', 'Consulte datas disponíveis e garanta a sua suíte com desconto exclusivo para reservas diretas.', 'Consultar Tarifas no WhatsApp', 'Olá! Gostaria de consultar tarifas para o hotel.')}
 
   ${renderFooter(brand, navItems, waDefault)}
@@ -628,6 +732,7 @@ ${renderHead(brand + ' | Hospitalidade & Conforto 5 Estrelas')}
       { label: 'Galeria', href: '#galeria' },
       { label: 'Depoimentos', href: '#depoimentos' },
       { label: 'FAQ', href: '#faq' },
+      { label: 'Encomendar', href: '#agendamento' },
       { label: 'Contacto', href: '#contacto' }
     ];
     const waDefault = 'Olá! Gostaria de comprar um produto da ' + brand;
@@ -656,9 +761,9 @@ ${renderHead(brand + ' | Alta Moda & Design')}
           <i data-lucide="shopping-bag" class="w-4 h-4"></i>
           <span>Explorar Catálogo</span>
         </a>
-        <a href="https://wa.me/258840000000?text=${encodeURIComponent('Olá! Gostaria de ver o catálogo completo da loja.')}" target="_blank" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 border border-white/20 bg-white/5 text-white font-bold text-sm px-8 py-4 rounded-full hover:bg-white/10 transition">
-          <i data-lucide="message-circle" class="w-4 h-4"></i>
-          <span>Pedir no WhatsApp</span>
+        <a href="#agendamento" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 border border-white/20 bg-white/5 text-white font-bold text-sm px-8 py-4 rounded-full hover:bg-white/10 transition">
+          <i data-lucide="package" class="w-4 h-4"></i>
+          <span>Fazer Encomenda Rápida</span>
         </a>
       </div>
     </div>
@@ -728,6 +833,15 @@ ${renderHead(brand + ' | Alta Moda & Design')}
     { q: 'Os produtos são originais com garantia?', a: 'Sim, todas as peças acompanham certificado de garantia e padrão de fabricação rigoroso.' }
   ])}
 
+  ${renderBookingForm('Formulário de Encomenda Direta', 'Selecione a peça desejada e informe o seu contacto para envio rápido na sua morada.', [
+    'Ténis Minimalist Black & White (3.800 MT)',
+    'Casaco Bomber Urban Noir (4.200 MT)',
+    'Camisa Linho Puro Algodão (2.400 MT)',
+    'Relógio Monocromático Sapphire (6.500 MT)',
+    'Carteira Slim Couro Genuíno (1.600 MT)',
+    'Mochila Executiva Waterproof (3.200 MT)'
+  ], 'Finalizar Encomenda no WhatsApp')}
+
   ${renderCta('Adquira Peças Exclusivas Hoje', 'Fale diretamente com os nossos consultores e reserve o seu tamanho antes que esgote.', 'Fazer Pedido pelo WhatsApp', 'Olá! Gostaria de consultar peças disponíveis na loja.')}
 
   ${renderFooter(brand, navItems, waDefault)}
@@ -744,6 +858,7 @@ ${renderHead(brand + ' | Alta Moda & Design')}
       { label: 'Galeria', href: '#galeria' },
       { label: 'Depoimentos', href: '#depoimentos' },
       { label: 'FAQ', href: '#faq' },
+      { label: 'Proposta', href: '#agendamento' },
       { label: 'Contacto', href: '#contacto' }
     ];
     const waDefault = 'Olá! Gostaria de conversar sobre um projeto com ' + brand;
@@ -772,9 +887,9 @@ ${renderHead(brand + ' | Estratégia, Design & Tecnologia')}
           <i data-lucide="layers" class="w-4 h-4"></i>
           <span>Ver Áreas de Atuação</span>
         </a>
-        <a href="https://wa.me/258840000000?text=${encodeURIComponent('Olá Alexandre! Gostaria de agendar uma conversa sobre um novo projeto.')}" target="_blank" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 border border-white/20 bg-white/5 text-white font-bold text-sm px-8 py-4 rounded-full hover:bg-white/10 transition">
+        <a href="#agendamento" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 border border-white/20 bg-white/5 text-white font-bold text-sm px-8 py-4 rounded-full hover:bg-white/10 transition">
           <i data-lucide="message-circle" class="w-4 h-4"></i>
-          <span>Iniciar Conversa</span>
+          <span>Solicitar Proposta</span>
         </a>
       </div>
     </div>
@@ -844,6 +959,15 @@ ${renderHead(brand + ' | Estratégia, Design & Tecnologia')}
     { q: 'Podemos agendar uma reunião inicial sem compromisso?', a: 'Certamente! Realizo chamadas de 20 minutos por Google Meet ou WhatsApp para entender o escopo da sua ideia.' }
   ])}
 
+  ${renderBookingForm('Iniciar Novo Projeto', 'Conte-me sobre os seus objetivos e marque uma sessão de consultoria personalizada.', [
+    'Identidade Visual & Branding Completo',
+    'UI/UX Design de Aplicativo / SaaS',
+    'Desenvolvimento de Website Institucional',
+    'Consultoria de Posicionamento Digital',
+    'Otimização de Conversão e Vendas (CRO)',
+    'Design System para Equipa'
+  ], 'Enviar Proposta pelo WhatsApp')}
+
   ${renderCta('Tem um Projeto Ambicioso em Mente?', 'Vamos construir algo memorável que destaque a sua empresa da concorrência.', 'Agendar Conversa no WhatsApp', 'Olá Alexandre! Gostaria de conversar sobre um projeto.')}
 
   ${renderFooter(brand, navItems, waDefault)}
@@ -860,6 +984,7 @@ ${renderHead(brand + ' | Estratégia, Design & Tecnologia')}
       { label: 'Galeria', href: '#galeria' },
       { label: 'Depoimentos', href: '#depoimentos' },
       { label: 'FAQ', href: '#faq' },
+      { label: 'Ativar Plano', href: '#agendamento' },
       { label: 'Contacto', href: '#contacto' }
     ];
     const waDefault = 'Olá! Gostaria de saber mais sobre a infraestrutura da ' + brand;
@@ -888,9 +1013,9 @@ ${renderHead(brand + ' | Infraestrutura Cloud & Alta Performance')}
           <i data-lucide="server" class="w-4 h-4"></i>
           <span>Ver Planos & Recursos</span>
         </a>
-        <a href="https://wa.me/258840000000?text=${encodeURIComponent('Olá! Gostaria de contratar um plano na WeHost.')}" target="_blank" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 border border-white/20 bg-white/5 text-white font-bold text-sm px-8 py-4 rounded-full hover:bg-white/10 transition">
+        <a href="#agendamento" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 border border-white/20 bg-white/5 text-white font-bold text-sm px-8 py-4 rounded-full hover:bg-white/10 transition">
           <i data-lucide="zap" class="w-4 h-4"></i>
-          <span>Falar com Especialista</span>
+          <span>Solicitar Ativação Imediata</span>
         </a>
       </div>
     </div>
@@ -960,6 +1085,14 @@ ${renderHead(brand + ' | Infraestrutura Cloud & Alta Performance')}
     { q: 'Posso fazer upgrade de plano quando meu site crescer?', a: 'Com certeza! Pode mudar de plano instantaneamente sem qualquer perda de dados ou configuração.' }
   ])}
 
+  ${renderBookingForm('Ativação de Conta & Suporte Comercial', 'Escolha o serviço pretendido para receber atendimento imediato da equipa técnica da WeHost.', [
+    'Hospedagem SSD NVMe (350 MT / mês)',
+    'Servidor Cloud VPS Dedicado (1.450 MT / mês)',
+    'Registo de Domínio Nacional .CO.MZ / .MZ',
+    'Migração Gratuita de Website e E-mails',
+    'Pacote Corporativo Customizado'
+  ], 'Falar com Especialista no WhatsApp')}
+
   ${renderCta('Coloque o Seu Projeto Online Hoje Mesmo', 'Comece com a infraestrutura cloud mais estável e rápida de Moçambique.', 'Ativar Conta no WhatsApp', 'Olá! Gostaria de ativar um plano de hospedagem.')}
 
   ${renderFooter(brand, navItems, waDefault)}
@@ -975,6 +1108,7 @@ ${renderHead(brand + ' | Infraestrutura Cloud & Alta Performance')}
     { label: 'Galeria', href: '#galeria' },
     { label: 'Depoimentos', href: '#depoimentos' },
     { label: 'FAQ', href: '#faq' },
+    { label: 'Agendar Reunião', href: '#agendamento' },
     { label: 'Contacto', href: '#contacto' }
   ];
   const waDefault = 'Olá! Gostaria de agendar uma reunião com a equipa da ' + brand;
@@ -1003,9 +1137,9 @@ ${renderHead(brand + ' | Liderança & Inovação')}
           <i data-lucide="compass" class="w-4 h-4"></i>
           <span>Nossas Soluções</span>
         </a>
-        <a href="https://wa.me/258840000000?text=${encodeURIComponent('Olá! Gostaria de agendar uma reunião corporativa.')}" target="_blank" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 border border-white/20 bg-white/5 text-white font-bold text-sm px-8 py-4 rounded-full hover:bg-white/10 transition">
-          <i data-lucide="phone" class="w-4 h-4"></i>
-          <span>Falar com Consultor</span>
+        <a href="#agendamento" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 border border-white/20 bg-white/5 text-white font-bold text-sm px-8 py-4 rounded-full hover:bg-white/10 transition">
+          <i data-lucide="calendar" class="w-4 h-4"></i>
+          <span>Agendar Reunião</span>
         </a>
       </div>
     </div>
@@ -1075,6 +1209,15 @@ ${renderHead(brand + ' | Liderança & Inovação')}
     { q: 'Como é garantida a confidencialidade?', a: 'Todos os trabalhos são protegidos por acordos de confidencialidade estritos e protocolos de segurança de dados.' }
   ])}
 
+  ${renderBookingForm('Sessão Diagnóstica & Proposta Executiva', 'Preencha o formulário institucional para agendarmos uma reunião com os nossos consultores seniores.', [
+    'Consultoria de Gestão & Governança',
+    'Planeamento Estratégico & Financeiro',
+    'Transformação Digital & Automação',
+    'Auditoria de Processos & Compliance',
+    'Programa de Desenvolvimento de Lideranças',
+    'Estudo de Viabilidade para Novos Mercados'
+  ], 'Solicitar Reunião pelo WhatsApp')}
+
   ${renderCta('Agende uma Sessão Estratégica Executiva', 'Descubra como podemos acelerar a consolidação e eficiência da sua empresa.', 'Falar com Consultor no WhatsApp', 'Olá! Gostaria de agendar uma reunião estratégica.')}
 
   ${renderFooter(brand, navItems, waDefault)}
@@ -1100,6 +1243,7 @@ DIRETRIZES CRITICAS DE DESIGN E ESTRUTURA:
    - Galeria / Showcase Visual (3 cards com IMAGENS REAIS E DE ALTA DEFINIÇÃO DO UNSPLASH https://images.unsplash.com/photo-... com proporção h-60 w-full object-cover, tags de categoria e efeito hover zoom)
    - Depoimentos / Prova Social (3 testemunhos com 5 estrelas e localização em Moçambique)
    - FAQ Interativo (4 perguntas frequentes com accordion retrátil em JavaScript nativo)
+   - Formulário Interativo de Agendamento/Contacto (#agendamento): campos Nome, Telemóvel, Serviço/Opção e Data, com validação e envio formatado direto para o WhatsApp via window.open
    - Banner de CTA Final de alto impacto com gradiente radial e link para WhatsApp
    - Botão Flutuante do WhatsApp no canto inferior direito (fixed bottom-6 right-6 z-50 bg-white text-black font-extrabold px-5 py-3.5 rounded-full shadow-2xl hover:scale-110)
    - Rodapé Multi-Coluna (Marca & bio, Navegação, Contacto em Moçambique e Pagamentos: M-Pesa, E-Mola, BIM/BCI).
