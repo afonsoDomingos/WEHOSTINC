@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -13,7 +13,7 @@ import {
   PanelLeftClose, PanelLeftOpen, Maximize2, Minimize2,
   UtensilsCrossed, Scissors, Palmtree, Briefcase, Palette, Tag,
   History, Undo2, Download, ShoppingBag, FolderArchive, Edit3, Save, Upload,
-  MoreHorizontal, Sliders, Phone, Layout, DollarSign
+  MoreHorizontal, Sliders, Phone, Layout, DollarSign, QrCode
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 
@@ -1023,6 +1023,10 @@ export default function AiSiteBuilderStudio() {
   const [editedCode, setEditedCode] = useState<string>('');
   const [editorSaveSuccess, setEditorSaveSuccess] = useState<boolean>(false);
 
+  // Estados de Edição Direta por Clique ("Click to Edit")
+  const [isClickToEditEnabled, setIsClickToEditEnabled] = useState<boolean>(true);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
   // Estados de Exportação e Partilha
   const [isExportingZip, setIsExportingZip] = useState<boolean>(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState<boolean>(false);
@@ -1817,6 +1821,102 @@ export default function AiSiteBuilderStudio() {
     ? currentHtml
     : versions[selectedVersionIndex]?.html || currentHtml;
 
+  // Injetar script de Edição Direta por Clique no Preview do Iframe
+  const editorInjectedHtml = useMemo(() => {
+    if (!displayedHtml) return '';
+    if (!isClickToEditEnabled) return displayedHtml;
+
+    const scriptToInject = `
+<style id="__wehost_edit_style__">
+  [data-wehost-hover="true"] { outline: 2px dashed rgba(59, 130, 246, 0.7) !important; outline-offset: 3px !important; cursor: text !important; }
+  [contenteditable="true"] { outline: 2px solid #3b82f6 !important; outline-offset: 3px !important; background: rgba(59, 130, 246, 0.08) !important; border-radius: 4px !important; }
+</style>
+<script id="__wehost_click_to_edit__">
+  (function() {
+    var validTags = ['H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'P', 'SPAN', 'A', 'LI', 'LABEL', 'BUTTON'];
+    
+    document.addEventListener('mouseover', function(e) {
+      var t = e.target;
+      if (!t || t.isContentEditable) return;
+      if (validTags.indexOf(t.tagName) !== -1 || (t.childNodes.length === 1 && t.childNodes[0].nodeType === 3)) {
+        t.setAttribute('data-wehost-hover', 'true');
+      }
+    }, true);
+
+    document.addEventListener('mouseout', function(e) {
+      var t = e.target;
+      if (t && t.hasAttribute('data-wehost-hover')) {
+        t.removeAttribute('data-wehost-hover');
+      }
+    }, true);
+
+    document.addEventListener('click', function(e) {
+      var t = e.target;
+      if (!t) return;
+      if (t.isContentEditable) return;
+      if (validTags.indexOf(t.tagName) !== -1 || (t.childNodes.length === 1 && t.childNodes[0].nodeType === 3)) {
+        e.preventDefault();
+        e.stopPropagation();
+        t.removeAttribute('data-wehost-hover');
+        t.contentEditable = 'true';
+        t.focus();
+        
+        var originalText = t.innerHTML;
+        
+        var onBlur = function() {
+          t.contentEditable = 'false';
+          t.removeAttribute('data-wehost-hover');
+          t.removeEventListener('blur', onBlur);
+          
+          if (t.innerHTML !== originalText) {
+            var clone = document.documentElement.cloneNode(true);
+            var styleEl = clone.querySelector('#__wehost_edit_style__');
+            if (styleEl) styleEl.remove();
+            var scriptEl = clone.querySelector('#__wehost_click_to_edit__');
+            if (scriptEl) scriptEl.remove();
+            clone.querySelectorAll('[data-wehost-hover]').forEach(function(el) { el.removeAttribute('data-wehost-hover'); });
+            clone.querySelectorAll('[contenteditable]').forEach(function(el) { el.removeAttribute('contenteditable'); });
+            
+            window.parent.postMessage({
+              type: 'WEHOST_HTML_EDITED',
+              html: '<!DOCTYPE html>\\n' + clone.outerHTML
+            }, '*');
+          }
+        };
+        
+        t.addEventListener('blur', onBlur);
+        
+        t.addEventListener('keydown', function(evt) {
+          if (evt.key === 'Enter' && t.tagName !== 'P') {
+            evt.preventDefault();
+            t.blur();
+          }
+        });
+      }
+    }, true);
+  })();
+</script>`;
+
+    if (displayedHtml.includes('</body>')) {
+      return displayedHtml.replace('</body>', `${scriptToInject}</body>`);
+    }
+    return displayedHtml + scriptToInject;
+  }, [displayedHtml, isClickToEditEnabled]);
+
+  // Listener para atualizações feitas por clique direto no Iframe
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data && event.data.type === 'WEHOST_HTML_EDITED' && typeof event.data.html === 'string') {
+        const cleanHtml = event.data.html;
+        setCurrentHtml(cleanHtml);
+        setToastMessage('Texto atualizado com sucesso!');
+        setTimeout(() => setToastMessage(null), 2500);
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
   // Restaurar uma versão antiga como atual
   const handleRestoreVersion = (index: number) => {
     const targetVersion = versions[index];
@@ -1916,7 +2016,7 @@ export default function AiSiteBuilderStudio() {
   // URLs de Subdomínio e Direto
   const subdomainHost = typeof window !== 'undefined' && window.location.host.includes('localhost')
     ? `${projectSlug}.localhost:3000`
-    : `${projectSlug}.wehosthere.com`;
+    : `${projectSlug}.wehosthere.co.mz`;
 
   const subdomainUrl = `https://${subdomainHost}`;
   const directPathUrl = typeof window !== 'undefined'
@@ -3617,7 +3717,27 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                   <ExternalLink className="w-2.5 h-2.5 text-gray-500 shrink-0" />
                 </div>
 
-                <div className="w-10 text-right flex items-center justify-end gap-1.5">
+                <div className="flex items-center justify-end gap-2">
+                  {/* BOTÃO TOGGLE EDIÇÃO POR CLIQUE */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const nextState = !isClickToEditEnabled;
+                      setIsClickToEditEnabled(nextState);
+                      setToastMessage(nextState ? 'Edição por Clique ativada! Clique em qualquer texto no preview para editar.' : 'Edição por Clique desativada.');
+                      setTimeout(() => setToastMessage(null), 3000);
+                    }}
+                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-extrabold transition cursor-pointer border ${
+                      isClickToEditEnabled
+                        ? 'bg-blue-600 hover:bg-blue-500 text-white border-blue-400/50 shadow-sm'
+                        : 'bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white border-white/10'
+                    }`}
+                    title={isClickToEditEnabled ? 'Edição por Clique Ativa (clique em qualquer texto para editar diretamente)' : 'Ativar Edição Direta por Clique'}
+                  >
+                    <Edit3 className="w-3 h-3" />
+                    <span className="hidden sm:inline">{isClickToEditEnabled ? 'Edição Ativa' : 'Editar Texto'}</span>
+                  </button>
+
                   <button
                     type="button"
                     title="Recarregar Preview"
@@ -3633,10 +3753,10 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 </div>
               </div>
 
-              {/* Iframe que renderiza o HTML */}
+              {/* Iframe que renderiza o HTML com suporte a Edição por Clique */}
               <iframe
                 title="Preview"
-                srcDoc={displayedHtml}
+                srcDoc={editorInjectedHtml}
                 className="w-full flex-1 border-0 bg-transparent"
                 sandbox="allow-scripts allow-forms allow-popups allow-same-origin allow-modals"
               />
@@ -3827,7 +3947,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                     className="flex-1 bg-transparent py-2.5 text-white font-bold focus:outline-none"
                     placeholder="meu-negocio"
                   />
-                  <span className="text-gray-400 font-mono select-none">.wehosthere.com</span>
+                  <span className="text-gray-400 font-mono select-none">.wehosthere.co.mz</span>
                 </div>
               </div>
 
@@ -3835,7 +3955,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
               <div className="p-3.5 rounded-2xl bg-[#18181b] border border-[#27272a] space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] text-gray-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
-                    <Globe className="w-3.5 h-3.5 text-blue-400" /> Endereço de Subdomínio
+                    <Globe className="w-3.5 h-3.5 text-blue-400" /> Endereço Oficial Moçambique
                   </span>
                   <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full font-bold">
                     SSL Grátis & Ativo
@@ -3874,22 +3994,57 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
               </div>
 
               {isPublished && (
-                <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-between">
-                  <div className="truncate pr-2">
-                    <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider block flex items-center gap-1">
-                      <CheckCircle2 className="w-3 h-3" /> Site Publicado com Sucesso!
-                    </span>
-                    <a href={subdomainUrl} target="_blank" rel="noreferrer" className="text-xs font-bold text-white underline truncate block mt-0.5">
-                      {subdomainUrl}
-                    </a>
+                <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 space-y-4 animate-in fade-in zoom-in-95 duration-200">
+                  <div className="flex items-center justify-between">
+                    <div className="truncate pr-2">
+                      <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Site Publicado com Sucesso!
+                      </span>
+                      <a href={subdomainUrl} target="_blank" rel="noreferrer" className="text-xs font-bold text-white underline truncate block mt-0.5">
+                        {subdomainUrl}
+                      </a>
+                    </div>
+                    <button
+                      onClick={handleCopySubdomain}
+                      className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition cursor-pointer"
+                      title="Copiar Link"
+                    >
+                      {copiedSubdomain ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                    </button>
                   </div>
-                  <button
-                    onClick={handleCopySubdomain}
-                    className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition cursor-pointer"
-                    title="Copiar Link"
-                  >
-                    {copiedSubdomain ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-                  </button>
+
+                  {/* QR Code Interativo para Partilha e Teste no Telemóvel */}
+                  <div className="p-3.5 rounded-2xl bg-black/60 border border-white/10 flex flex-col sm:flex-row items-center gap-4">
+                    <div className="w-24 h-24 bg-white p-1.5 rounded-xl shrink-0 flex items-center justify-center shadow-md">
+                      <img 
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(subdomainUrl)}&margin=1`} 
+                        alt="QR Code do Website"
+                        className="w-full h-full object-contain" 
+                      />
+                    </div>
+                    <div className="text-center sm:text-left space-y-2 flex-1">
+                      <div>
+                        <span className="text-xs font-bold text-white flex items-center justify-center sm:justify-start gap-1.5">
+                          <QrCode className="w-3.5 h-3.5 text-emerald-400" /> Aceder no Telemóvel
+                        </span>
+                        <p className="text-[10px] text-gray-400 leading-relaxed mt-0.5">
+                          Aponte a câmara do seu smartphone para abrir o site ou partilhe no status do WhatsApp.
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
+                        <button
+                          onClick={() => {
+                            const text = encodeURIComponent(`Olá! Veja o meu novo website oficial na WeHost: ${subdomainUrl}`);
+                            window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+                          }}
+                          className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] flex items-center gap-1.5 transition cursor-pointer shadow-sm active:scale-95"
+                        >
+                          <MessageSquare className="w-3 h-3" />
+                          <span>Partilhar no WhatsApp</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -3986,6 +4141,25 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                   <ExternalLink className="w-4 h-4" />
                   <span>Abrir no Browser</span>
                 </button>
+              </div>
+
+              {/* QR Code para Teste Imediato no Telemóvel */}
+              <div className="p-3.5 rounded-2xl bg-[#09090b] border border-[#27272a] flex items-center gap-4">
+                <div className="w-20 h-20 bg-white p-1.5 rounded-xl shrink-0 flex items-center justify-center shadow-md">
+                  <img 
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(previewShareUrl)}&margin=1`} 
+                    alt="QR Code de Pré-visualização"
+                    className="w-full h-full object-contain" 
+                  />
+                </div>
+                <div className="space-y-1 text-left">
+                  <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                    <QrCode className="w-3.5 h-3.5 text-blue-400" /> Aceder pelo Telemóvel
+                  </span>
+                  <p className="text-[10px] text-gray-400 leading-relaxed">
+                    Aponte a câmara do telemóvel para abrir a pré-visualização instantaneamente antes de publicar.
+                  </p>
+                </div>
               </div>
 
               <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-3 text-[11px] text-blue-300 flex items-start gap-2">
@@ -5057,6 +5231,14 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Toast de Notificação (Edição por Clique / Ações Rápidas) */}
+      {toastMessage && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-2.5 rounded-full bg-emerald-500 text-black font-extrabold text-xs shadow-2xl flex items-center gap-2 animate-in fade-in slide-in-from-bottom-3 duration-200 pointer-events-none">
+          <CheckCircle2 className="w-4 h-4 text-black shrink-0" />
+          <span>{toastMessage}</span>
         </div>
       )}
 
