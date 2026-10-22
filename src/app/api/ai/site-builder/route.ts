@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 
-// ─── Fallback HTML (Modelos Pré-Prontos Preto & Branco Ricos: Hero, Stats, Grid, Galeria, Depoimentos, FAQ, CTA, Rodapé Multi-Coluna) ─
+// ─── Fallback HTML (Modelos Pré-Prontos Preto & Branco Ricos: Hero, Stats, Grid, Galeria com Imagens Unsplash, Depoimentos, FAQ, CTA, Botão Flutuante, Rodapé Multi-Coluna) ─
 function getFallbackHtml(prompt: string, title?: string): string {
   const p = prompt.toLowerCase();
 
@@ -65,7 +65,7 @@ function getFallbackHtml(prompt: string, title?: string): string {
     </div>
   </section>`;
 
-  const renderGallery = (title: string, subtitle: string, items: { title: string; desc: string; icon: string; tag: string }[]) => `
+  const renderGallery = (title: string, subtitle: string, items: { title: string; desc: string; image: string; tag: string }[]) => `
   <section id="galeria" class="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="text-center max-w-2xl mx-auto mb-16">
       <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/5 text-[11px] uppercase tracking-wider text-zinc-300 mb-4">
@@ -76,23 +76,25 @@ function getFallbackHtml(prompt: string, title?: string): string {
       <p class="text-zinc-400 text-sm sm:text-base leading-relaxed">${subtitle}</p>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
       ${items.map(item => `
-      <div class="group relative rounded-2xl bg-gradient-to-b from-zinc-900/90 to-zinc-950 border border-white/10 p-8 hover:border-white/25 transition-all duration-300 flex flex-col justify-between overflow-hidden">
-        <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.06),transparent_60%)] pointer-events-none"></div>
-        <div>
-          <div class="flex items-center justify-between mb-8">
-            <div class="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white group-hover:bg-white group-hover:text-black transition">
-              <i data-lucide="${item.icon}" class="w-6 h-6"></i>
-            </div>
-            <span class="text-[10px] uppercase font-bold tracking-wider px-3 py-1 rounded-full bg-white/5 text-zinc-300 border border-white/10">${item.tag}</span>
+      <div class="group relative rounded-2xl bg-zinc-950 border border-white/10 hover:border-white/25 transition-all duration-500 flex flex-col overflow-hidden shadow-2xl">
+        <div class="relative h-60 sm:h-64 overflow-hidden w-full bg-zinc-900">
+          <img src="${item.image}" alt="${item.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out brightness-95 contrast-105" loading="lazy" />
+          <div class="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/20 to-transparent"></div>
+          <div class="absolute top-4 left-4 z-10">
+            <span class="text-[10px] uppercase font-bold tracking-wider px-3 py-1 rounded-full bg-black/70 backdrop-blur-md text-white border border-white/20">${item.tag}</span>
           </div>
-          <h3 class="text-xl font-bold text-white mb-2 tracking-tight group-hover:text-zinc-200 transition">${item.title}</h3>
-          <p class="text-xs text-zinc-400 leading-relaxed">${item.desc}</p>
         </div>
-        <div class="mt-8 pt-4 border-t border-white/5 flex items-center justify-between text-xs text-zinc-300 font-semibold group-hover:text-white">
-          <span>Ver detalhes</span>
-          <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+        <div class="p-6 flex flex-col justify-between flex-1">
+          <div>
+            <h3 class="text-lg font-bold text-white mb-2 tracking-tight group-hover:text-zinc-200 transition">${item.title}</h3>
+            <p class="text-xs text-zinc-400 leading-relaxed">${item.desc}</p>
+          </div>
+          <div class="mt-6 pt-4 border-t border-white/5 flex items-center justify-between text-xs text-zinc-300 font-semibold group-hover:text-white">
+            <span>Explorar detalhe</span>
+            <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+          </div>
         </div>
       </div>`).join('')}
     </div>
@@ -178,7 +180,13 @@ function getFallbackHtml(prompt: string, title?: string): string {
     </div>
   </section>`;
 
-  const renderFooter = (brand: string, navItems: { label: string; href: string }[]) => `
+  const renderFooter = (brand: string, navItems: { label: string; href: string }[], waMsg?: string) => `
+  <!-- Botão Flutuante do WhatsApp -->
+  <a href="https://wa.me/258840000000?text=${encodeURIComponent(waMsg || 'Olá! Gostaria de mais informações.')}" target="_blank" rel="noopener noreferrer" class="fixed bottom-6 right-6 z-50 inline-flex items-center gap-2.5 bg-white text-black font-extrabold text-xs py-3 px-5 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 hover:bg-zinc-200 border border-white/20 group">
+    <i data-lucide="message-circle" class="w-4 h-4 group-hover:rotate-12 transition-transform"></i>
+    <span class="font-bold tracking-tight">WhatsApp</span>
+  </a>
+
   <footer id="contacto" class="border-t border-white/10 bg-black pt-16 pb-12">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="grid grid-cols-1 md:grid-cols-4 gap-10 pb-16 border-b border-white/10">
@@ -274,12 +282,13 @@ function getFallbackHtml(prompt: string, title?: string): string {
       { label: 'FAQ', href: '#faq' },
       { label: 'Contacto', href: '#contacto' }
     ];
+    const waDefault = 'Olá! Gostaria de reservar uma mesa no ' + brand;
 
     return `<!DOCTYPE html>
 <html lang="pt" class="dark">
 ${renderHead(brand + ' | Gastronomia de Excelência')}
 <body class="bg-black text-white antialiased">
-  ${renderNavbar(brand, navItems, 'Olá! Gostaria de reservar uma mesa no ' + brand)}
+  ${renderNavbar(brand, navItems, waDefault)}
 
   <section id="inicio" class="relative min-h-[85vh] flex items-center justify-center text-center px-4 sm:px-6 lg:px-8 py-24 overflow-hidden">
     <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(255,255,255,0.1),transparent_70%)] pointer-events-none"></div>
@@ -352,10 +361,10 @@ ${renderHead(brand + ' | Gastronomia de Excelência')}
     </div>
   </section>
 
-  ${renderGallery('O Nosso Ambiente', 'Espaços desenhados para proporcionar momentos memoráveis.', [
-    { title: 'Salão Principal Acolhedor', desc: 'Design contemporâneo, iluminação acolhedora e mesas espaçosas para encontros inesquecíveis.', icon: 'coffee', tag: 'Ambiente' },
-    { title: 'Garrafeira de Vinhos Raros', desc: 'Mais de 80 rótulos selecionados de Portugal, África do Sul e das melhores regiões do mundo.', icon: 'wine', tag: 'Vinhos' },
-    { title: 'Área Lounge ao Ar Livre', desc: 'Perfeito para fins de tarde, cocktails relaxantes e conversas descontraídas.', icon: 'moon', tag: 'Lounge' }
+  ${renderGallery('O Nosso Ambiente & Pratos', 'Espaços e apresentações desenhados para proporcionar momentos memoráveis.', [
+    { title: 'Salão Principal Acolhedor', desc: 'Design contemporâneo, iluminação acolhedora e mesas espaçosas para encontros inesquecíveis.', image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80', tag: 'Ambiente' },
+    { title: 'Garrafeira de Vinhos Selecionados', desc: 'Mais de 80 rótulos selecionados de Portugal, África do Sul e das melhores regiões do mundo.', image: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=800&q=80', tag: 'Vinhos Raros' },
+    { title: 'Gastronomia & Carnes Nobres', desc: 'Cortes nobres grelhados na brasa com temperos artesanais e apresentação impecável.', image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=800&q=80', tag: 'Pratos de Assinatura' }
   ])}
 
   ${renderTestimonials('O Que Dizem os Nossos Clientes', 'A opinião de quem vive a experiência gastronómica no nosso restaurante.', [
@@ -373,7 +382,7 @@ ${renderHead(brand + ' | Gastronomia de Excelência')}
 
   ${renderCta('Viva uma Noite Inesquecível Conosco', 'Reserve já a sua mesa ou encomende os nossos pratos exclusivos diretamente para a sua residência.', 'Fazer Reserva Imediata', 'Olá! Gostaria de reservar uma mesa no restaurante.')}
 
-  ${renderFooter(brand, navItems)}
+  ${renderFooter(brand, navItems, waDefault)}
 </body>
 </html>`;
   }
@@ -389,12 +398,13 @@ ${renderHead(brand + ' | Gastronomia de Excelência')}
       { label: 'FAQ', href: '#faq' },
       { label: 'Contacto', href: '#contacto' }
     ];
+    const waDefault = 'Olá! Gostaria de agendar um horário na ' + brand;
 
     return `<!DOCTYPE html>
 <html lang="pt" class="dark">
 ${renderHead(brand + ' | Estilo & Barbearia Premium')}
 <body class="bg-black text-white antialiased">
-  ${renderNavbar(brand, navItems, 'Olá! Gostaria de agendar um horário na ' + brand)}
+  ${renderNavbar(brand, navItems, waDefault)}
 
   <section id="inicio" class="relative min-h-[85vh] flex items-center justify-center text-center px-4 sm:px-6 lg:px-8 py-24 overflow-hidden">
     <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(255,255,255,0.08),transparent_70%)] pointer-events-none"></div>
@@ -467,10 +477,10 @@ ${renderHead(brand + ' | Estilo & Barbearia Premium')}
     </div>
   </section>
 
-  ${renderGallery('O Nosso Espaço', 'Ambiente pensado no seu conforto e bem-estar.', [
-    { title: 'Cadeiras Vintage em Couro', desc: 'Conforto máximo durante todo o seu atendimento com reclinação suave.', icon: 'armchair', tag: 'Conforto' },
-    { title: 'Bar & Café Exclusivo', desc: 'Café expresso de cortesia ou bebida refrescante enquanto espera a sua sessão.', icon: 'coffee', tag: 'Lounge' },
-    { title: 'Produtos Profissionais Importados', desc: 'Pomadas, óleos para barba e loções de alta performance dermatológica.', icon: 'award', tag: 'Qualidade' }
+  ${renderGallery('O Nosso Espaço & Equipamento', 'Ambiente contemporâneo pensado no seu conforto e bem-estar.', [
+    { title: 'Cadeiras Vintage em Couro', desc: 'Conforto máximo durante todo o seu atendimento com reclinação suave e ergonomia.', image: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=800&q=80', tag: 'Conforto VIP' },
+    { title: 'Barboterapia com Toalha Quente', desc: 'Cuidado milimétrico com navalha afiada, óleos essenciais e toalha vaporizada relaxante.', image: 'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=800&q=80', tag: 'Tradição & Precisão' },
+    { title: 'Produtos Grooming Profissionais', desc: 'Pomadas de fixação mate, óleos para barba e loções de alta performance dermatológica.', image: 'https://images.unsplash.com/photo-1621607512214-68297480165e?auto=format&fit=crop&w=800&q=80', tag: 'Alta Qualidade' }
   ])}
 
   ${renderTestimonials('Depoimentos de Cavalheiros', 'O que dizem os clientes que confiam no nosso trabalho semanalmente.', [
@@ -488,7 +498,7 @@ ${renderHead(brand + ' | Estilo & Barbearia Premium')}
 
   ${renderCta('Renove o Seu Visual Hoje Mesmo', 'Agende a sua sessão com os melhores barbeiros da cidade em poucos segundos pelo WhatsApp.', 'Marcar Horário VIP', 'Olá! Gostaria de agendar um horário na barbearia.')}
 
-  ${renderFooter(brand, navItems)}
+  ${renderFooter(brand, navItems, waDefault)}
 </body>
 </html>`;
   }
@@ -504,12 +514,13 @@ ${renderHead(brand + ' | Estilo & Barbearia Premium')}
       { label: 'FAQ', href: '#faq' },
       { label: 'Contacto', href: '#contacto' }
     ];
+    const waDefault = 'Olá! Gostaria de consultar tarifas e disponibilidade no ' + brand;
 
     return `<!DOCTYPE html>
 <html lang="pt" class="dark">
 ${renderHead(brand + ' | Hospitalidade & Conforto 5 Estrelas')}
 <body class="bg-black text-white antialiased">
-  ${renderNavbar(brand, navItems, 'Olá! Gostaria de consultar tarifas e disponibilidade no ' + brand)}
+  ${renderNavbar(brand, navItems, waDefault)}
 
   <section id="inicio" class="relative min-h-[85vh] flex items-center justify-center text-center px-4 sm:px-6 lg:px-8 py-24 overflow-hidden">
     <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(255,255,255,0.08),transparent_70%)] pointer-events-none"></div>
@@ -582,10 +593,10 @@ ${renderHead(brand + ' | Hospitalidade & Conforto 5 Estrelas')}
     </div>
   </section>
 
-  ${renderGallery('Instalações & Lazer', 'Estrutura completa para relaxamento ou reuniões empresariais.', [
-    { title: 'Piscina com Borda Infinita', desc: 'Espreguiçadeiras aquecidas e serviço de bar com vista para a Baía de Maputo.', icon: 'sun', tag: 'Lazer' },
-    { title: 'Restaurante Fine Dining', desc: 'Cozinha autoral com os melhores chefes e ingredientes selecionados diariamente.', icon: 'utensils', tag: 'Gastronomia' },
-    { title: 'Centro de Convenções & Salas VIP', desc: 'Equipamentos audiovisuais modernos para reuniões corporativas e conferências.', icon: 'monitor', tag: 'Negócios' }
+  ${renderGallery('Instalações & Lazer', 'Estrutura completa para relaxamento ou reuniões empresariais de alto padrão.', [
+    { title: 'Suítes Master com Vista Panorâmica', desc: 'Acomodações de luxo com camas king-size, acabamento nobre em mármore e varanda privativa.', image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80', tag: 'Acomodações' },
+    { title: 'Piscina Panorâmica com Borda Infinita', desc: 'Espreguiçadeiras aquecidas e serviço de bar com vista deslumbrante para a Baía de Maputo.', image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=800&q=80', tag: 'Lazer & Relaxamento' },
+    { title: 'Spa & Terapias Holísticas', desc: 'Massagens terapêuticas, sauna finlandesa e banhos de imersão revigorantes com óleos locais.', image: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80', tag: 'Bem-Estar' }
   ])}
 
   ${renderTestimonials('A Experiência dos Nossos Hóspedes', 'Testemunhos de viajantes de negócios e turismo que escolheram o nosso hotel.', [
@@ -603,7 +614,7 @@ ${renderHead(brand + ' | Hospitalidade & Conforto 5 Estrelas')}
 
   ${renderCta('Planeie a Sua Próxima Estadia Inesquecível', 'Consulte datas disponíveis e garanta a sua suíte com desconto exclusivo para reservas diretas.', 'Consultar Tarifas no WhatsApp', 'Olá! Gostaria de consultar tarifas para o hotel.')}
 
-  ${renderFooter(brand, navItems)}
+  ${renderFooter(brand, navItems, waDefault)}
 </body>
 </html>`;
   }
@@ -619,12 +630,13 @@ ${renderHead(brand + ' | Hospitalidade & Conforto 5 Estrelas')}
       { label: 'FAQ', href: '#faq' },
       { label: 'Contacto', href: '#contacto' }
     ];
+    const waDefault = 'Olá! Gostaria de comprar um produto da ' + brand;
 
     return `<!DOCTYPE html>
 <html lang="pt" class="dark">
 ${renderHead(brand + ' | Alta Moda & Design')}
 <body class="bg-black text-white antialiased">
-  ${renderNavbar(brand, navItems, 'Olá! Gostaria de comprar um produto da ' + brand)}
+  ${renderNavbar(brand, navItems, waDefault)}
 
   <section id="inicio" class="relative min-h-[85vh] flex items-center justify-center text-center px-4 sm:px-6 lg:px-8 py-24 overflow-hidden">
     <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(255,255,255,0.08),transparent_70%)] pointer-events-none"></div>
@@ -697,10 +709,10 @@ ${renderHead(brand + ' | Alta Moda & Design')}
     </div>
   </section>
 
-  ${renderGallery('Qualidade & Detalhes', 'Cada peça reflete o mais alto rigor em matérias-primas.', [
-    { title: 'Materiais de Alto Padrão', desc: 'Tecidos seleccionados que mantêm a textura e cor mesmo após múltiplos usos.', icon: 'award', tag: 'Qualidade' },
-    { title: 'Costura e Acabamento Preciso', desc: 'Reforço de costuras e design desenhado para durabilidade extrema.', icon: 'scissors', tag: 'Artesanal' },
-    { title: 'Embalagem de Presente Exclusiva', desc: 'Receba a sua encomenda numa caixa preta personalizada com fita acetinada.', icon: 'gift', tag: 'Presente' }
+  ${renderGallery('Qualidade & Detalhes da Coleção', 'Cada peça reflete o mais alto rigor em matérias-primas e artesanato.', [
+    { title: 'Calçado & Ténis Minimalistas', desc: 'Couro nobre macio, sola vulcanizada durável e linhas limpas para uso casual e formal.', image: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=800&q=80', tag: 'Calçado' },
+    { title: 'Moda Tailored Contemporânea', desc: 'Cortes estruturados, tecidos resistentes ao calor e caimento impecável para todas as ocasiões.', image: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=800&q=80', tag: 'Vestuário' },
+    { title: 'Acessórios & Relojoaria de Luxo', desc: 'Peças em aço escovado negro, vidro em cristal de safira e acabamentos de alta resistência.', image: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=800&q=80', tag: 'Acessórios VIP' }
   ])}
 
   ${renderTestimonials('Opiniões de Quem Já Comprou', 'Clientes que atestam a qualidade e o caimento das nossas peças.', [
@@ -718,7 +730,7 @@ ${renderHead(brand + ' | Alta Moda & Design')}
 
   ${renderCta('Adquira Peças Exclusivas Hoje', 'Fale diretamente com os nossos consultores e reserve o seu tamanho antes que esgote.', 'Fazer Pedido pelo WhatsApp', 'Olá! Gostaria de consultar peças disponíveis na loja.')}
 
-  ${renderFooter(brand, navItems)}
+  ${renderFooter(brand, navItems, waDefault)}
 </body>
 </html>`;
   }
@@ -734,12 +746,13 @@ ${renderHead(brand + ' | Alta Moda & Design')}
       { label: 'FAQ', href: '#faq' },
       { label: 'Contacto', href: '#contacto' }
     ];
+    const waDefault = 'Olá! Gostaria de conversar sobre um projeto com ' + brand;
 
     return `<!DOCTYPE html>
 <html lang="pt" class="dark">
 ${renderHead(brand + ' | Estratégia, Design & Tecnologia')}
 <body class="bg-black text-white antialiased">
-  ${renderNavbar(brand, navItems, 'Olá! Gostaria de conversar sobre um projeto com ' + brand)}
+  ${renderNavbar(brand, navItems, waDefault)}
 
   <section id="inicio" class="relative min-h-[85vh] flex items-center justify-center text-center px-4 sm:px-6 lg:px-8 py-24 overflow-hidden">
     <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(255,255,255,0.08),transparent_70%)] pointer-events-none"></div>
@@ -812,10 +825,10 @@ ${renderHead(brand + ' | Estratégia, Design & Tecnologia')}
     </div>
   </section>
 
-  ${renderGallery('Casos de Sucesso', 'Projetos reais que geraram impacto nos negócios.', [
-    { title: 'Plataforma FinTech Nacional', desc: 'Redesign completo da experiência de onboarding, elevando a taxa de conclusão em 42%.', icon: 'credit-card', tag: 'Finanças' },
-    { title: 'Portal de E-commerce Premium', desc: 'Arquitetura moderna e checkout simplificado com integração a gateways de pagamento locais.', icon: 'shopping-cart', tag: 'Comércio' },
-    { title: 'Identidade Corporativa de Advocacia', desc: 'Branding institucional elegante que consolidou a presença do escritório no mercado regional.', icon: 'shield', tag: 'Corporativo' }
+  ${renderGallery('Casos de Sucesso & Projetos', 'Projetos reais com interfaces elegantes que geraram impacto nos negócios.', [
+    { title: 'Design System & Interfaces Digitais', desc: 'Arquitetura de UI/UX limpa e escalável para aplicações de alta conversão.', image: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&w=800&q=80', tag: 'UI/UX Design' },
+    { title: 'Espaço de Criação & Estratégia', desc: 'Metodologias de design thinking e ideação ágil com foco no público moçambicano.', image: 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=800&q=80', tag: 'Branding & Estratégia' },
+    { title: 'Planeamento de Produto & Wireframing', desc: 'Testes de usabilidade e prototipagem interativa para validação de hipóteses de negócio.', image: 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&w=800&q=80', tag: 'Engenharia Web' }
   ])}
 
   ${renderTestimonials('Reconhecimento de Parceiros', 'Feedback de líderes e empresas que confiaram nos meus serviços.', [
@@ -833,7 +846,7 @@ ${renderHead(brand + ' | Estratégia, Design & Tecnologia')}
 
   ${renderCta('Tem um Projeto Ambicioso em Mente?', 'Vamos construir algo memorável que destaque a sua empresa da concorrência.', 'Agendar Conversa no WhatsApp', 'Olá Alexandre! Gostaria de conversar sobre um projeto.')}
 
-  ${renderFooter(brand, navItems)}
+  ${renderFooter(brand, navItems, waDefault)}
 </body>
 </html>`;
   }
@@ -849,12 +862,13 @@ ${renderHead(brand + ' | Estratégia, Design & Tecnologia')}
       { label: 'FAQ', href: '#faq' },
       { label: 'Contacto', href: '#contacto' }
     ];
+    const waDefault = 'Olá! Gostaria de saber mais sobre a infraestrutura da ' + brand;
 
     return `<!DOCTYPE html>
 <html lang="pt" class="dark">
 ${renderHead(brand + ' | Infraestrutura Cloud & Alta Performance')}
 <body class="bg-black text-white antialiased">
-  ${renderNavbar(brand, navItems, 'Olá! Gostaria de saber mais sobre a infraestrutura da ' + brand)}
+  ${renderNavbar(brand, navItems, waDefault)}
 
   <section id="inicio" class="relative min-h-[85vh] flex items-center justify-center text-center px-4 sm:px-6 lg:px-8 py-24 overflow-hidden">
     <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(255,255,255,0.08),transparent_70%)] pointer-events-none"></div>
@@ -927,10 +941,10 @@ ${renderHead(brand + ' | Infraestrutura Cloud & Alta Performance')}
     </div>
   </section>
 
-  ${renderGallery('Tecnologia & Infraestrutura', 'Estrutura técnica desenhada para empresas que não podem parar.', [
-    { title: 'Data Center com Latência Mínima', desc: 'Conexão direta aos principais pontos de troca de tráfego de Moçambique e região.', icon: 'activity', tag: 'Rede' },
-    { title: 'Painel de Controlo Amigável', desc: 'Gestão simples de ficheiros, bases de dados MySQL, e-mails e certificados SSL.', icon: 'sliders', tag: 'Painel' },
-    { title: 'Monitoramento 24/7/365', desc: 'Equipa de engenharia atenta a cada alerta para garantir 100% de disponibilidade contínua.', icon: 'eye', tag: 'Segurança' }
+  ${renderGallery('Tecnologia & Infraestrutura de Ponta', 'Estrutura técnica robusta desenhada para empresas que não podem parar.', [
+    { title: 'Data Center com Racks de Servidores', desc: 'Hardware corporativo com refrigeração avançada e alimentação elétrica ininterrupta.', image: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=800&q=80', tag: 'Datacenter' },
+    { title: 'Backbone de Fibra & Baixa Latência', desc: 'Conexão direta aos principais pontos de troca de tráfego de Moçambique e da África Austral.', image: 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=800&q=80', tag: 'Fibra Óptica' },
+    { title: 'Segurança & Monitoramento 24/7', desc: 'Sistemas inteligentes com proteção contra ataques DDoS e supervisão de rede 365 dias por ano.', image: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=800&q=80', tag: 'Segurança Contínua' }
   ])}
 
   ${renderTestimonials('Confiança das Melhores Empresas', 'Empresas e desenvolvedores que escolheram hospedar com estabilidade.', [
@@ -948,7 +962,7 @@ ${renderHead(brand + ' | Infraestrutura Cloud & Alta Performance')}
 
   ${renderCta('Coloque o Seu Projeto Online Hoje Mesmo', 'Comece com a infraestrutura cloud mais estável e rápida de Moçambique.', 'Ativar Conta no WhatsApp', 'Olá! Gostaria de ativar um plano de hospedagem.')}
 
-  ${renderFooter(brand, navItems)}
+  ${renderFooter(brand, navItems, waDefault)}
 </body>
 </html>`;
   }
@@ -963,12 +977,13 @@ ${renderHead(brand + ' | Infraestrutura Cloud & Alta Performance')}
     { label: 'FAQ', href: '#faq' },
     { label: 'Contacto', href: '#contacto' }
   ];
+  const waDefault = 'Olá! Gostaria de agendar uma reunião com a equipa da ' + brand;
 
   return `<!DOCTYPE html>
 <html lang="pt" class="dark">
 ${renderHead(brand + ' | Liderança & Inovação')}
 <body class="bg-black text-white antialiased">
-  ${renderNavbar(brand, navItems, 'Olá! Gostaria de agendar uma reunião com a equipa da ' + brand)}
+  ${renderNavbar(brand, navItems, waDefault)}
 
   <section id="inicio" class="relative min-h-[85vh] flex items-center justify-center text-center px-4 sm:px-6 lg:px-8 py-24 overflow-hidden">
     <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(255,255,255,0.08),transparent_70%)] pointer-events-none"></div>
@@ -1041,10 +1056,10 @@ ${renderHead(brand + ' | Liderança & Inovação')}
     </div>
   </section>
 
-  ${renderGallery('Diferenciais Competitivos', 'O que nos posiciona como parceiro de confiança das maiores empresas.', [
-    { title: 'Inteligência de Mercado Local', desc: 'Compreensão profunda das especificidades regulatórias e comerciais de Moçambique.', icon: 'map', tag: 'Mercado' },
-    { title: 'Metodologias Ágeis Comprovadas', desc: 'Foco em execução rápida, entregas incrementais e medição constante de ROI.', icon: 'zap', tag: 'Agilidade' },
-    { title: 'Confidencialidade Absoluta', desc: 'Rigoroso sigilo corporativo e acordos de confidencialidade (NDA) em todos os projetos.', icon: 'lock', tag: 'Segurança' }
+  ${renderGallery('Diferenciais Competitivos & Estrutura', 'O que nos posiciona como parceiro de confiança das maiores empresas em Moçambique.', [
+    { title: 'Salas Executivas de Alta Governança', desc: 'Espaços pensados para deliberações estratégicas, reuniões de conselho e parcerias.', image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80', tag: 'Governança Corporativa' },
+    { title: 'Presença e Credibilidade Regional', desc: 'Infraestrutura corporativa sólida e relações institucionais em todo o país.', image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80', tag: 'Presença Regional' },
+    { title: 'Inteligência e Análise de Dados', desc: 'Relatórios preditivos e auditoria para tomada de decisões financeiras seguras e rentáveis.', image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80', tag: 'Inteligência de Mercado' }
   ])}
 
   ${renderTestimonials('A Confiança dos Nossos Parceiros', 'Líderes empresariais que alcançaram novos patamares connosco.', [
@@ -1062,11 +1077,10 @@ ${renderHead(brand + ' | Liderança & Inovação')}
 
   ${renderCta('Agende uma Sessão Estratégica Executiva', 'Descubra como podemos acelerar a consolidação e eficiência da sua empresa.', 'Falar com Consultor no WhatsApp', 'Olá! Gostaria de agendar uma reunião estratégica.')}
 
-  ${renderFooter(brand, navItems)}
+  ${renderFooter(brand, navItems, waDefault)}
 </body>
 </html>`;
 }
-
 
 // ─── System Instruction (Diretrizes Estritas Preto & Branco com Menu e Rodapé) ─
 const SYSTEM_INSTRUCTION = `Voce e o Construtor de Sites IA da WEHOSTHERE (uma plataforma cloud em Mocambique).
@@ -1083,10 +1097,11 @@ DIRETRIZES CRITICAS DE DESIGN E ESTRUTURA:
    - Hero impactante com badge pulsante ("Disponível em Moçambique"), H1 marcante, subtítulo e 2 botões de CTA
    - Barra de Estatísticas (Stats bar com 4 métricas expressivas)
    - Secção Principal (Serviços/Cardápio/Produtos) com grid de 6 cards ricos, preços em Meticais (MT) e botões de ação
-   - Galeria / Showcase Visual (3 destaques com tags e ícones elegantes)
+   - Galeria / Showcase Visual (3 cards com IMAGENS REAIS E DE ALTA DEFINIÇÃO DO UNSPLASH https://images.unsplash.com/photo-... com proporção h-60 w-full object-cover, tags de categoria e efeito hover zoom)
    - Depoimentos / Prova Social (3 testemunhos com 5 estrelas e localização em Moçambique)
    - FAQ Interativo (4 perguntas frequentes com accordion retrátil em JavaScript nativo)
    - Banner de CTA Final de alto impacto com gradiente radial e link para WhatsApp
+   - Botão Flutuante do WhatsApp no canto inferior direito (fixed bottom-6 right-6 z-50 bg-white text-black font-extrabold px-5 py-3.5 rounded-full shadow-2xl hover:scale-110)
    - Rodapé Multi-Coluna (Marca & bio, Navegação, Contacto em Moçambique e Pagamentos: M-Pesa, E-Mola, BIM/BCI).
 8. ÍCONES PROFISSIONAIS OBRIGATÓRIOS (REGRA DE OURO):
    - É ESTRITAMENTE PROIBIDO USAR EMOJIS (ex: 🚀, 💻, ⚡, 🔒, 🎯, ⭐, 🍕, 🏨, 🛒, etc.) como ícones de cards, serviços, vantagens ou títulos. Emojis parecem amadores e destroem o visual profissional.
