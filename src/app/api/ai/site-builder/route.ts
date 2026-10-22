@@ -1,14 +1,14 @@
-﻿import { NextRequest } from 'next/server';
+import { NextRequest } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 
-// â”€â”€â”€ Fallback HTML (Modelos PrÃ©-Prontos Preto & Branco Ricos: Hero, Stats, Grid, Galeria com Imagens Unsplash, Depoimentos, FAQ, FormulÃ¡rio de Agendamento WhatsApp, CTA, BotÃ£o Flutuante, RodapÃ© Multi-Coluna) â”€
+// â”€â”€â”€ Fallback HTML (Modelos Pré-Prontos Preto & Branco Ricos: Hero, Stats, Grid, Galeria com Imagens Unsplash, Depoimentos, FAQ, Formulário de Agendamento WhatsApp, CTA, Botão Flutuante, Rodapé Multi-Coluna) â”€
 function getFallbackHtml(prompt: string, title?: string): string {
   const p = prompt.toLowerCase();
 
-  // Componentes Auxiliares ReutilizÃ¡veis
+  // Componentes Auxiliares Reutilizáveis
   const renderHead = (pageTitle: string) => `
 <head>
   <meta charset="UTF-8">
@@ -87,7 +87,7 @@ function getFallbackHtml(prompt: string, title?: string): string {
     <div class="text-center max-w-2xl mx-auto mb-16">
       <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/5 text-[11px] uppercase tracking-wider text-zinc-300 mb-4">
         <i data-lucide="eye" class="w-3.5 h-3.5"></i>
-        <span>ExperiÃªncia Visual</span>
+        <span>Experiência Visual</span>
       </div>
       <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white mb-4">${title}</h2>
       <p class="text-zinc-400 text-sm sm:text-base leading-relaxed">${subtitle}</p>
@@ -123,7 +123,7 @@ function getFallbackHtml(prompt: string, title?: string): string {
       <div class="text-center max-w-2xl mx-auto mb-16">
         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/5 text-[11px] uppercase tracking-wider text-zinc-300 mb-4">
           <i data-lucide="star" class="w-3.5 h-3.5 fill-white text-white"></i>
-          <span>ExcelÃªncia Comprovada</span>
+          <span>Excelência Comprovada</span>
         </div>
         <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white mb-4">${title}</h2>
         <p class="text-zinc-400 text-sm sm:text-base leading-relaxed">${subtitle}</p>
@@ -185,7 +185,7 @@ function getFallbackHtml(prompt: string, title?: string): string {
       <div class="text-center max-w-xl mx-auto mb-10 relative z-10">
         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/5 text-[11px] uppercase tracking-wider text-zinc-300 mb-4">
           <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
-          <span>Atendimento Direto &bull; MoÃ§ambique</span>
+          <span>Atendimento Direto &bull; Moçambique</span>
         </div>
         <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white mb-3">${title}</h2>
         <p class="text-zinc-400 text-xs sm:text-sm leading-relaxed">${subtitle}</p>
@@ -198,16 +198,16 @@ function getFallbackHtml(prompt: string, title?: string): string {
             <input type="text" name="booking_name" required placeholder="Ex: Carlos Mondlane" class="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-zinc-500 text-sm focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/40 transition" />
           </div>
           <div>
-            <label class="block text-xs font-semibold text-zinc-300 mb-2 uppercase tracking-wider">TelemÃ³vel / WhatsApp</label>
+            <label class="block text-xs font-semibold text-zinc-300 mb-2 uppercase tracking-wider">Telemóvel / WhatsApp</label>
             <input type="tel" name="booking_phone" required placeholder="Ex: +258 84 000 0000" class="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-zinc-500 text-sm focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/40 transition" />
           </div>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div>
-            <label class="block text-xs font-semibold text-zinc-300 mb-2 uppercase tracking-wider">OpÃ§Ã£o / ServiÃ§o Desejado</label>
+            <label class="block text-xs font-semibold text-zinc-300 mb-2 uppercase tracking-wider">Opção / Serviço Desejado</label>
             <select name="booking_service" required class="w-full px-4 py-3 rounded-xl bg-zinc-900 border border-white/10 text-white text-sm focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/40 transition">
-              <option value="" disabled selected class="text-zinc-500">Selecione uma opÃ§Ã£o...</option>
+              <option value="" disabled selected class="text-zinc-500">Selecione uma opção...</option>
               ${options.map(opt => `<option value="${opt}" class="bg-zinc-900 text-white">${opt}</option>`).join('')}
             </select>
           </div>
@@ -218,8 +218,8 @@ function getFallbackHtml(prompt: string, title?: string): string {
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-zinc-300 mb-2 uppercase tracking-wider">Mensagem ou ObservaÃ§Ãµes (Opcional)</label>
-          <textarea name="booking_notes" rows="3" placeholder="Indique qualquer preferÃªncia especÃ­fica ou detalhe adicional..." class="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-zinc-500 text-sm focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/40 transition resize-none"></textarea>
+          <label class="block text-xs font-semibold text-zinc-300 mb-2 uppercase tracking-wider">Mensagem ou Observações (Opcional)</label>
+          <textarea name="booking_notes" rows="3" placeholder="Indique qualquer preferência específica ou detalhe adicional..." class="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-zinc-500 text-sm focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/40 transition resize-none"></textarea>
         </div>
 
         <button type="submit" class="w-full py-4 px-6 rounded-xl bg-white text-black font-extrabold text-sm tracking-wide hover:bg-zinc-200 transition shadow-xl flex items-center justify-center gap-2 group cursor-pointer">
@@ -227,7 +227,7 @@ function getFallbackHtml(prompt: string, title?: string): string {
           <span>${btnText}</span>
         </button>
         <p class="text-[11px] text-center text-zinc-500 mt-2">
-          ðŸ”’ Ao submeter, abrirÃ¡ o WhatsApp com a mensagem formatada para confirmaÃ§Ã£o imediata.
+          ðŸ”’ Ao submeter, abrirá o WhatsApp com a mensagem formatada para confirmação imediata.
         </p>
       </form>
     </div>
@@ -247,15 +247,15 @@ function getFallbackHtml(prompt: string, title?: string): string {
           </a>
         </div>
         <div class="mt-6 text-[11px] text-zinc-400 font-medium">
-          âœ“ Atendimento Imediato &bull; MoÃ§ambique &bull; DisponÃ­vel 24/7
+          âœ“ Atendimento Imediato &bull; Moçambique &bull; Disponível 24/7
         </div>
       </div>
     </div>
   </section>`;
 
   const renderFooter = (brand: string, navItems: { label: string; href: string }[], waMsg?: string) => `
-  <!-- BotÃ£o Flutuante do WhatsApp -->
-  <a href="https://wa.me/258848335618?text=${encodeURIComponent(waMsg || 'OlÃ¡! Gostaria de mais informaÃ§Ãµes.')}" target="_blank" rel="noopener noreferrer" class="fixed bottom-6 right-6 z-50 inline-flex items-center gap-2.5 bg-white text-black font-extrabold text-xs py-3 px-5 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 hover:bg-zinc-200 border border-white/20 group">
+  <!-- Botão Flutuante do WhatsApp -->
+  <a href="https://wa.me/258848335618?text=${encodeURIComponent(waMsg || 'Olá! Gostaria de mais informações.')}" target="_blank" rel="noopener noreferrer" class="fixed bottom-6 right-6 z-50 inline-flex items-center gap-2.5 bg-white text-black font-extrabold text-xs py-3 px-5 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 hover:bg-zinc-200 border border-white/20 group">
     <i data-lucide="message-circle" class="w-4 h-4 group-hover:rotate-12 transition-transform"></i>
     <span class="font-bold tracking-tight">WhatsApp</span>
   </a>
@@ -271,7 +271,7 @@ function getFallbackHtml(prompt: string, title?: string): string {
             <span class="font-bold text-lg text-white tracking-tight">${brand}</span>
           </div>
           <p class="text-xs text-zinc-400 leading-relaxed">
-            ExcelÃªncia, design refinado e compromisso com o mais alto padrÃ£o em MoÃ§ambique.
+            Excelência, design refinado e compromisso com o mais alto padrão em Moçambique.
           </p>
           <div class="flex items-center gap-3 pt-2">
             <a href="https://wa.me/258848335618" target="_blank" class="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-zinc-300 hover:text-white hover:border-white transition"><i data-lucide="message-circle" class="w-4 h-4"></i></a>
@@ -281,18 +281,18 @@ function getFallbackHtml(prompt: string, title?: string): string {
         </div>
 
         <div>
-          <h4 class="text-xs font-bold uppercase tracking-wider text-white mb-4">NavegaÃ§Ã£o</h4>
+          <h4 class="text-xs font-bold uppercase tracking-wider text-white mb-4">Navegação</h4>
           <ul class="space-y-2.5">
             ${navItems.map(item => `<li><a href="${item.href}" class="text-xs text-zinc-400 hover:text-white transition">${item.label}</a></li>`).join('')}
           </ul>
         </div>
 
         <div>
-          <h4 class="text-xs font-bold uppercase tracking-wider text-white mb-4">Contacto & LocalizaÃ§Ã£o</h4>
+          <h4 class="text-xs font-bold uppercase tracking-wider text-white mb-4">Contacto & Localização</h4>
           <ul class="space-y-2.5 text-xs text-zinc-400">
             <li class="flex items-center gap-2">
               <i data-lucide="map-pin" class="w-4 h-4 text-white"></i>
-              <span>Maputo &bull; Matola, MoÃ§ambique</span>
+              <span>Maputo &bull; Matola, Moçambique</span>
             </li>
             <li class="flex items-center gap-2">
               <i data-lucide="phone" class="w-4 h-4 text-white"></i>
@@ -304,19 +304,19 @@ function getFallbackHtml(prompt: string, title?: string): string {
             </li>
             <li class="flex items-center gap-2">
               <i data-lucide="clock" class="w-4 h-4 text-white"></i>
-              <span>Seg - SÃ¡b: 08:00 Ã s 20:00</span>
+              <span>Seg - Sáb: 08:00 às 20:00</span>
             </li>
           </ul>
         </div>
 
         <div>
           <h4 class="text-xs font-bold uppercase tracking-wider text-white mb-4">Pagamentos Aceites</h4>
-          <p class="text-xs text-zinc-400 mb-4">Aceitamos as principais soluÃ§Ãµes financeiras de MoÃ§ambique:</p>
+          <p class="text-xs text-zinc-400 mb-4">Aceitamos as principais soluções financeiras de Moçambique:</p>
           <div class="flex flex-wrap gap-2 text-[10px] text-zinc-300 font-semibold">
             <span class="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10">M-Pesa</span>
             <span class="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10">E-Mola</span>
             <span class="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10">BIM / BCI</span>
-            <span class="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10">NumerÃ¡rio</span>
+            <span class="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10">Numerário</span>
           </div>
         </div>
       </div>
@@ -353,10 +353,10 @@ function getFallbackHtml(prompt: string, title?: string): string {
       const date = form.querySelector('[name="booking_date"]')?.value || '';
       const notes = form.querySelector('[name="booking_notes"]')?.value || '';
 
-      let text = 'OlÃ¡! Gostaria de fazer uma solicitaÃ§Ã£o:\n\n';
+      let text = 'Olá! Gostaria de fazer uma solicitação:\n\n';
       if (name) text += 'ðŸ‘¤ *Nome:* ' + name + '\n';
       if (phone) text += 'ðŸ“± *Contacto:* ' + phone + '\n';
-      if (service) text += 'ðŸŽ¯ *OpÃ§Ã£o:* ' + service + '\n';
+      if (service) text += 'ðŸŽ¯ *Opção:* ' + service + '\n';
       if (date) text += 'ðŸ“… *Data:* ' + date + '\n';
       if (notes) text += 'ðŸ“ *Mensagem:* ' + notes + '\n';
 
@@ -366,22 +366,22 @@ function getFallbackHtml(prompt: string, title?: string): string {
   </script>`;
 
   // 1. RESTAURANTE / GASTRONOMIA
-  if (p.includes('restaurante') || p.includes('comida') || p.includes('menu') || p.includes('cafe') || p.includes('cafÃ©') || p.includes('hamburguer') || p.includes('pizza') || p.includes('bistrÃ´')) {
-    const brand = title || 'BistrÃ´ Savana Gourmet';
+  if (p.includes('restaurante') || p.includes('comida') || p.includes('menu') || p.includes('cafe') || p.includes('café') || p.includes('hamburguer') || p.includes('pizza') || p.includes('bistrô')) {
+    const brand = title || 'Bistrô Savana Gourmet';
     const navItems = [
-      { label: 'InÃ­cio', href: '#inicio' },
-      { label: 'CardÃ¡pio', href: '#cardapio' },
+      { label: 'Início', href: '#inicio' },
+      { label: 'Cardápio', href: '#cardapio' },
       { label: 'Galeria', href: '#galeria' },
       { label: 'Depoimentos', href: '#depoimentos' },
       { label: 'FAQ', href: '#faq' },
       { label: 'Reservar Mesa', href: '#agendamento' },
       { label: 'Contacto', href: '#contacto' }
     ];
-    const waDefault = 'OlÃ¡! Gostaria de reservar uma mesa no ' + brand;
+    const waDefault = 'Olá! Gostaria de reservar uma mesa no ' + brand;
 
     return `<!DOCTYPE html>
 <html lang="pt" class="dark">
-${renderHead(brand + ' | Gastronomia de ExcelÃªncia')}
+${renderHead(brand + ' | Gastronomia de Excelência')}
 <body class="bg-black text-white antialiased">
   ${renderNavbar(brand, navItems, waDefault)}
 
@@ -393,15 +393,15 @@ ${renderHead(brand + ' | Gastronomia de ExcelÃªncia')}
         <span>Aberto Hoje &bull; Sommerschield, Maputo</span>
       </div>
       <h1 class="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-white mb-6 leading-tight">
-        Sabores AutÃªnticos com a Arte da <span class="underline decoration-white/30 decoration-wavy">Alta CulinÃ¡ria</span>
+        Sabores Autênticos com a Arte da <span class="underline decoration-white/30 decoration-wavy">Alta Culinária</span>
       </h1>
       <p class="text-zinc-400 text-base sm:text-lg max-w-2xl mx-auto mb-10 leading-relaxed">
-        Uma experiÃªncia gastronÃ³mica inesquecÃ­vel com mariscos frescos da costa moÃ§ambicana, carnes nobres e ingredientes cuidadosamente selecionados.
+        Uma experiência gastronómica inesquecível com mariscos frescos da costa moçambicana, carnes nobres e ingredientes cuidadosamente selecionados.
       </p>
       <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
         <a href="#cardapio" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white text-black font-extrabold text-sm px-8 py-4 rounded-full hover:bg-zinc-200 transition shadow-xl">
           <i data-lucide="utensils" class="w-4 h-4"></i>
-          <span>Ver CardÃ¡pio Especial</span>
+          <span>Ver Cardápio Especial</span>
         </a>
         <a href="#agendamento" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 border border-white/20 bg-white/5 text-white font-bold text-sm px-8 py-4 rounded-full hover:bg-white/10 transition">
           <i data-lucide="calendar" class="w-4 h-4"></i>
@@ -413,7 +413,7 @@ ${renderHead(brand + ' | Gastronomia de ExcelÃªncia')}
 
   ${renderStats([
     { value: '18.500+', label: 'Clientes Atendidos' },
-    { value: '4.9/5', label: 'AvaliaÃ§Ã£o MÃ©dia' },
+    { value: '4.9/5', label: 'Avaliação Média' },
     { value: '100%', label: 'Ingredientes Frescos' },
     { value: '2 Chefes', label: 'Premiados Internacionais' }
   ])}
@@ -425,17 +425,17 @@ ${renderHead(brand + ' | Gastronomia de ExcelÃªncia')}
         <span>Pratos Selecionados</span>
       </div>
       <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white mb-4">Especialidades do Chef</h2>
-      <p class="text-zinc-400 text-sm sm:text-base leading-relaxed">ConheÃ§a as nossas opÃ§Ãµes mais aclamadas pelos clientes em Maputo.</p>
+      <p class="text-zinc-400 text-sm sm:text-base leading-relaxed">Conheça as nossas opções mais aclamadas pelos clientes em Maputo.</p>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       ${[
-        { name: 'CamarÃ£o Tigre Grelhado', desc: 'CamarÃ£o gigante com manteiga de ervas, alho tostado e arroz de coco perfumado.', price: '1.450 MT', icon: 'utensils' },
+        { name: 'Camarão Tigre Grelhado', desc: 'Camarão gigante com manteiga de ervas, alho tostado e arroz de coco perfumado.', price: '1.450 MT', icon: 'utensils' },
         { name: 'Picanha Nobre na Brasa', desc: 'Corte premium grelhado no ponto perfeito, acompanhado de farofa crocante e mandioca.', price: '980 MT', icon: 'flame' },
-        { name: 'Frango Zambeziano AutÃªntico', desc: 'Receita tradicional marinada em leite de coco fresco, piripiri suave e especiarias.', price: '690 MT', icon: 'drumstick' },
-        { name: 'Massa Trufada com Cogumelos', desc: 'Fettuccine artesanal envolto em molho cremoso de trufas e parmesÃ£o ralado na hora.', price: '780 MT', icon: 'chef-hat' },
-        { name: 'Petit GÃ¢teau de Chocolate', desc: 'Bolo quente com coraÃ§Ã£o derretido de chocolate belga e gelado de baunilha de MadagÃ¡scar.', price: '380 MT', icon: 'cake' },
-        { name: 'Cocktail de Assinatura Savana', desc: 'Gin artesanal infundido com frutos tropicais, alecrim e tÃ³nica botÃ¢nica.', price: '320 MT', icon: 'wine' }
+        { name: 'Frango Zambeziano Autêntico', desc: 'Receita tradicional marinada em leite de coco fresco, piripiri suave e especiarias.', price: '690 MT', icon: 'drumstick' },
+        { name: 'Massa Trufada com Cogumelos', desc: 'Fettuccine artesanal envolto em molho cremoso de trufas e parmesão ralado na hora.', price: '780 MT', icon: 'chef-hat' },
+        { name: 'Petit Gâteau de Chocolate', desc: 'Bolo quente com coração derretido de chocolate belga e gelado de baunilha de Madagáscar.', price: '380 MT', icon: 'cake' },
+        { name: 'Cocktail de Assinatura Savana', desc: 'Gin artesanal infundido com frutos tropicais, alecrim e tónica botânica.', price: '320 MT', icon: 'wine' }
       ].map(dish => `
       <div class="group p-6 rounded-2xl bg-zinc-950 border border-white/10 hover:border-white/25 transition duration-300 flex flex-col justify-between">
         <div>
@@ -448,7 +448,7 @@ ${renderHead(brand + ' | Gastronomia de ExcelÃªncia')}
           <h3 class="text-lg font-bold text-white mb-2 tracking-tight group-hover:text-zinc-200 transition">${dish.name}</h3>
           <p class="text-xs text-zinc-400 leading-relaxed mb-6">${dish.desc}</p>
         </div>
-        <a href="https://wa.me/258848335618?text=${encodeURIComponent('OlÃ¡! Gostaria de pedir: ' + dish.name)}" target="_blank" class="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl border border-white/15 bg-white/5 text-xs font-semibold text-white hover:bg-white hover:text-black transition">
+        <a href="https://wa.me/258848335618?text=${encodeURIComponent('Olá! Gostaria de pedir: ' + dish.name)}" target="_blank" class="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl border border-white/15 bg-white/5 text-xs font-semibold text-white hover:bg-white hover:text-black transition">
           <i data-lucide="shopping-bag" class="w-3.5 h-3.5"></i>
           <span>Pedir no WhatsApp</span>
         </a>
@@ -456,53 +456,53 @@ ${renderHead(brand + ' | Gastronomia de ExcelÃªncia')}
     </div>
   </section>
 
-  ${renderGallery('O Nosso Ambiente & Pratos', 'EspaÃ§os e apresentaÃ§Ãµes desenhados para proporcionar momentos memorÃ¡veis.', [
-    { title: 'SalÃ£o Principal Acolhedor', desc: 'Design contemporÃ¢neo, iluminaÃ§Ã£o acolhedora e mesas espaÃ§osas para encontros inesquecÃ­veis.', image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80', tag: 'Ambiente' },
-    { title: 'Garrafeira de Vinhos Selecionados', desc: 'Mais de 80 rÃ³tulos selecionados de Portugal, Ãfrica do Sul e das melhores regiÃµes do mundo.', image: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=800&q=80', tag: 'Vinhos Raros' },
-    { title: 'Gastronomia & Carnes Nobres', desc: 'Cortes nobres grelhados na brasa com temperos artesanais e apresentaÃ§Ã£o impecÃ¡vel.', image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=800&q=80', tag: 'Pratos de Assinatura' }
+  ${renderGallery('O Nosso Ambiente & Pratos', 'Espaços e apresentações desenhados para proporcionar momentos memoráveis.', [
+    { title: 'Salão Principal Acolhedor', desc: 'Design contemporâneo, iluminação acolhedora e mesas espaçosas para encontros inesquecíveis.', image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80', tag: 'Ambiente' },
+    { title: 'Garrafeira de Vinhos Selecionados', desc: 'Mais de 80 rótulos selecionados de Portugal, África do Sul e das melhores regiões do mundo.', image: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=800&q=80', tag: 'Vinhos Raros' },
+    { title: 'Gastronomia & Carnes Nobres', desc: 'Cortes nobres grelhados na brasa com temperos artesanais e apresentação impecável.', image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=800&q=80', tag: 'Pratos de Assinatura' }
   ])}
 
-  ${renderTestimonials('O Que Dizem os Nossos Clientes', 'A opiniÃ£o de quem vive a experiÃªncia gastronÃ³mica no nosso restaurante.', [
-    { name: 'Dr. Carlos Mondlane', role: 'Cliente Frequente &bull; Maputo', comment: 'O camarÃ£o grelhado Ã© simplesmente incomparÃ¡vel. Atendimento nobre e garrafeira de topo.' },
-    { name: 'Ana Machava', role: 'CrÃ­tica GastronÃ³mica &bull; Sommerschield', comment: 'Ambiente sofisticado e comida que respeita a identidade moÃ§ambicana com tÃ©cnicas de classe mundial.' },
-    { name: 'TomÃ¡s Sitoe', role: 'EmpresÃ¡rio &bull; Matola', comment: 'Lugar predileto para almoÃ§os de negÃ³cios e jantares em famÃ­lia. A picanha na brasa Ã© perfeita.' }
+  ${renderTestimonials('O Que Dizem os Nossos Clientes', 'A opinião de quem vive a experiência gastronómica no nosso restaurante.', [
+    { name: 'Dr. Carlos Mondlane', role: 'Cliente Frequente &bull; Maputo', comment: 'O camarão grelhado é simplesmente incomparável. Atendimento nobre e garrafeira de topo.' },
+    { name: 'Ana Machava', role: 'Crítica Gastronómica &bull; Sommerschield', comment: 'Ambiente sofisticado e comida que respeita a identidade moçambicana com técnicas de classe mundial.' },
+    { name: 'Tomás Sitoe', role: 'Empresário &bull; Matola', comment: 'Lugar predileto para almoços de negócios e jantares em família. A picanha na brasa é perfeita.' }
   ])}
 
   ${renderFaq('Perguntas Frequentes', 'Tudo o que precisa de saber antes da sua visita.', [
-    { q: 'Ã‰ obrigatÃ³rio fazer reserva prÃ©via?', a: 'NÃ£o Ã© obrigatÃ³rio, mas Ã© altamente recomendÃ¡vel nos finais de semana e jantares para garantir a sua mesa sem tempo de espera.' },
-    { q: 'TÃªm opÃ§Ãµes vegetarianas e sem glÃºten?', a: 'Sim! Dispomos de pratos vegetarianos dedicados e os nossos chefes adaptam receitas para clientes com restriÃ§Ãµes alimentares.' },
-    { q: 'Aceitam pagamentos por M-Pesa e cartÃµes bancÃ¡rios?', a: 'Sim, aceitamos M-Pesa, E-Mola, cartÃµes Visa/Mastercard (POS nacional e internacional) e numerÃ¡rio.' },
-    { q: 'Fazem reservas para eventos corporativos e aniversÃ¡rios?', a: 'Com certeza. Dispomos de menus de grupo personalizados e Ã¡rea reservada para celebraÃ§Ãµes e conferÃªncias.' }
+    { q: 'É obrigatório fazer reserva prévia?', a: 'Não é obrigatório, mas é altamente recomendável nos finais de semana e jantares para garantir a sua mesa sem tempo de espera.' },
+    { q: 'Têm opções vegetarianas e sem glúten?', a: 'Sim! Dispomos de pratos vegetarianos dedicados e os nossos chefes adaptam receitas para clientes com restrições alimentares.' },
+    { q: 'Aceitam pagamentos por M-Pesa e cartões bancários?', a: 'Sim, aceitamos M-Pesa, E-Mola, cartões Visa/Mastercard (POS nacional e internacional) e numerário.' },
+    { q: 'Fazem reservas para eventos corporativos e aniversários?', a: 'Com certeza. Dispomos de menus de grupo personalizados e área reservada para celebrações e conferências.' }
   ])}
 
   ${renderBookingForm('Reserve a Sua Mesa Online', 'Preencha os dados abaixo e confirme instantaneamente a sua reserva pelo WhatsApp.', [
     'Reserva de Mesa (Casal)',
-    'Reserva de Mesa (FamÃ­lia / 4+ pessoas)',
-    'AlmoÃ§o de NegÃ³cios / ReuniÃ£o',
-    'CelebraÃ§Ã£o de AniversÃ¡rio / Evento',
-    'Menu DegustaÃ§Ã£o Especial do Chef'
+    'Reserva de Mesa (Família / 4+ pessoas)',
+    'Almoço de Negócios / Reunião',
+    'Celebração de Aniversário / Evento',
+    'Menu Degustação Especial do Chef'
   ], 'Confirmar Reserva pelo WhatsApp')}
 
-  ${renderCta('Viva uma Noite InesquecÃ­vel Conosco', 'Reserve jÃ¡ a sua mesa ou encomende os nossos pratos exclusivos diretamente para a sua residÃªncia.', 'Fazer Reserva Imediata', 'OlÃ¡! Gostaria de reservar uma mesa no restaurante.')}
+  ${renderCta('Viva uma Noite Inesquecível Conosco', 'Reserve já a sua mesa ou encomende os nossos pratos exclusivos diretamente para a sua residência.', 'Fazer Reserva Imediata', 'Olá! Gostaria de reservar uma mesa no restaurante.')}
 
   ${renderFooter(brand, navItems, waDefault)}
 </body>
 </html>`;
   }
 
-  // 2. BARBEARIA & ESTÃ‰TICA MASCULINA
-  if (p.includes('barbearia') || p.includes('cabelo') || p.includes('barba') || p.includes('estetica') || p.includes('salÃ£o') || p.includes('salao')) {
+  // 2. BARBEARIA & ESTÉTICA MASCULINA
+  if (p.includes('barbearia') || p.includes('cabelo') || p.includes('barba') || p.includes('estetica') || p.includes('salão') || p.includes('salao')) {
     const brand = title || 'Barbearia Real Club';
     const navItems = [
-      { label: 'InÃ­cio', href: '#inicio' },
-      { label: 'ServiÃ§os', href: '#servicos' },
+      { label: 'Início', href: '#inicio' },
+      { label: 'Serviços', href: '#servicos' },
       { label: 'Galeria', href: '#galeria' },
       { label: 'Depoimentos', href: '#depoimentos' },
       { label: 'FAQ', href: '#faq' },
       { label: 'Agendar', href: '#agendamento' },
       { label: 'Contacto', href: '#contacto' }
     ];
-    const waDefault = 'OlÃ¡! Gostaria de agendar um horÃ¡rio na ' + brand;
+    const waDefault = 'Olá! Gostaria de agendar um horário na ' + brand;
 
     return `<!DOCTYPE html>
 <html lang="pt" class="dark">
@@ -518,19 +518,19 @@ ${renderHead(brand + ' | Estilo & Barbearia Premium')}
         <span>Atendimento com Hora Marcada &bull; Maputo</span>
       </div>
       <h1 class="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-white mb-6 leading-tight">
-        PrecisÃ£o, Estilo e Atendimento de <span class="underline decoration-white/30 decoration-wavy">Cavalheiro</span>
+        Precisão, Estilo e Atendimento de <span class="underline decoration-white/30 decoration-wavy">Cavalheiro</span>
       </h1>
       <p class="text-zinc-400 text-base sm:text-lg max-w-2xl mx-auto mb-10 leading-relaxed">
-        O espaÃ§o ideal para homens que valorizam a excelÃªncia. Cortes clÃ¡ssicos e modernos, terapia de barba e produtos de primeira linha.
+        O espaço ideal para homens que valorizam a excelência. Cortes clássicos e modernos, terapia de barba e produtos de primeira linha.
       </p>
       <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
         <a href="#servicos" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white text-black font-extrabold text-sm px-8 py-4 rounded-full hover:bg-zinc-200 transition shadow-xl">
           <i data-lucide="scissors" class="w-4 h-4"></i>
-          <span>Ver Tabela de ServiÃ§os</span>
+          <span>Ver Tabela de Serviços</span>
         </a>
         <a href="#agendamento" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 border border-white/20 bg-white/5 text-white font-bold text-sm px-8 py-4 rounded-full hover:bg-white/10 transition">
           <i data-lucide="calendar" class="w-4 h-4"></i>
-          <span>Agendar HorÃ¡rio Online</span>
+          <span>Agendar Horário Online</span>
         </a>
       </div>
     </div>
@@ -538,7 +538,7 @@ ${renderHead(brand + ' | Estilo & Barbearia Premium')}
 
   ${renderStats([
     { value: '4.800+', label: 'Cortes Realizados' },
-    { value: '4.9/5', label: 'SatisfaÃ§Ã£o dos Clientes' },
+    { value: '4.9/5', label: 'Satisfação dos Clientes' },
     { value: '6 Barbeiros', label: 'Mestres Especialistas' },
     { value: '100%', label: 'Pontualidade Garantida' }
   ])}
@@ -547,19 +547,19 @@ ${renderHead(brand + ' | Estilo & Barbearia Premium')}
     <div class="text-center max-w-2xl mx-auto mb-16">
       <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/5 text-[11px] uppercase tracking-wider text-zinc-300 mb-4">
         <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
-        <span>PreÃ§os Transparentes</span>
+        <span>Preços Transparentes</span>
       </div>
-      <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white mb-4">ServiÃ§os de Assinatura</h2>
-      <p class="text-zinc-400 text-sm sm:text-base leading-relaxed">Cada detalhe planeado para realÃ§ar a sua presenÃ§a e confianÃ§a.</p>
+      <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white mb-4">Serviços de Assinatura</h2>
+      <p class="text-zinc-400 text-sm sm:text-base leading-relaxed">Cada detalhe planeado para realçar a sua presença e confiança.</p>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       ${[
-        { name: 'Corte Moderno & Fade', desc: 'GraduaÃ§Ã£o milimÃ©trica com tesoura e mÃ¡quina, finalizaÃ§Ã£o com pomada mate de alta fixaÃ§Ã£o.', price: '450 MT', icon: 'scissors' },
-        { name: 'Barboterapia com Toalha Quente', desc: 'Alinhamento com navalha afiada, Ã³leos essenciais, massagem facial e toalha vaporizada.', price: '400 MT', icon: 'sparkles' },
-        { name: 'Combo Executivo (Cabelo + Barba)', desc: 'O pacote completo para estar sempre impecÃ¡vel com economia de tempo e desconto exclusivo.', price: '750 MT', icon: 'crown' },
-        { name: 'Tratamento & HidrataÃ§Ã£o Capilar', desc: 'NutriÃ§Ã£o profunda para cabelos ressecados, restauraÃ§Ã£o de brilho e fortalecimento do couro cabeludo.', price: '500 MT', icon: 'shield-check' },
-        { name: 'Limpeza de Pele Facial Masculina', desc: 'DesobstruÃ§Ã£o de poros, esfoliaÃ§Ã£o suave e hidrataÃ§Ã£o anti-brilho revigorante.', price: '600 MT', icon: 'smile' },
+        { name: 'Corte Moderno & Fade', desc: 'Graduação milimétrica com tesoura e máquina, finalização com pomada mate de alta fixação.', price: '450 MT', icon: 'scissors' },
+        { name: 'Barboterapia com Toalha Quente', desc: 'Alinhamento com navalha afiada, óleos essenciais, massagem facial e toalha vaporizada.', price: '400 MT', icon: 'sparkles' },
+        { name: 'Combo Executivo (Cabelo + Barba)', desc: 'O pacote completo para estar sempre impecável com economia de tempo e desconto exclusivo.', price: '750 MT', icon: 'crown' },
+        { name: 'Tratamento & Hidratação Capilar', desc: 'Nutrição profunda para cabelos ressecados, restauração de brilho e fortalecimento do couro cabeludo.', price: '500 MT', icon: 'shield-check' },
+        { name: 'Limpeza de Pele Facial Masculina', desc: 'Desobstrução de poros, esfoliação suave e hidratação anti-brilho revigorante.', price: '600 MT', icon: 'smile' },
         { name: 'Corte Infantil Estiloso', desc: 'Atendimento paciente e cuidadoso para os pequenos, garantindo um visual moderno e divertido.', price: '350 MT', icon: 'user' }
       ].map(srv => `
       <div class="group p-6 rounded-2xl bg-zinc-950 border border-white/10 hover:border-white/25 transition duration-300 flex flex-col justify-between">
@@ -573,43 +573,43 @@ ${renderHead(brand + ' | Estilo & Barbearia Premium')}
           <h3 class="text-lg font-bold text-white mb-2 tracking-tight group-hover:text-zinc-200 transition">${srv.name}</h3>
           <p class="text-xs text-zinc-400 leading-relaxed mb-6">${srv.desc}</p>
         </div>
-        <a href="https://wa.me/258848335618?text=${encodeURIComponent('OlÃ¡! Gostaria de agendar: ' + srv.name)}" target="_blank" class="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl border border-white/15 bg-white/5 text-xs font-semibold text-white hover:bg-white hover:text-black transition">
+        <a href="https://wa.me/258848335618?text=${encodeURIComponent('Olá! Gostaria de agendar: ' + srv.name)}" target="_blank" class="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl border border-white/15 bg-white/5 text-xs font-semibold text-white hover:bg-white hover:text-black transition">
           <i data-lucide="check" class="w-3.5 h-3.5"></i>
-          <span>Agendar Este ServiÃ§o</span>
+          <span>Agendar Este Serviço</span>
         </a>
       </div>`).join('')}
     </div>
   </section>
 
-  ${renderGallery('O Nosso EspaÃ§o & Equipamento', 'Ambiente contemporÃ¢neo pensado no seu conforto e bem-estar.', [
-    { title: 'Cadeiras Vintage em Couro', desc: 'Conforto mÃ¡ximo durante todo o seu atendimento com reclinaÃ§Ã£o suave e ergonomia.', image: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=800&q=80', tag: 'Conforto VIP' },
-    { title: 'Barboterapia com Toalha Quente', desc: 'Cuidado milimÃ©trico com navalha afiada, Ã³leos essenciais e toalha vaporizada relaxante.', image: 'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=800&q=80', tag: 'TradiÃ§Ã£o & PrecisÃ£o' },
-    { title: 'Produtos Grooming Profissionais', desc: 'Pomadas de fixaÃ§Ã£o mate, Ã³leos para barba e loÃ§Ãµes de alta performance dermatolÃ³gica.', image: 'https://images.unsplash.com/photo-1621607512214-68297480165e?auto=format&fit=crop&w=800&q=80', tag: 'Alta Qualidade' }
+  ${renderGallery('O Nosso Espaço & Equipamento', 'Ambiente contemporâneo pensado no seu conforto e bem-estar.', [
+    { title: 'Cadeiras Vintage em Couro', desc: 'Conforto máximo durante todo o seu atendimento com reclinação suave e ergonomia.', image: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=800&q=80', tag: 'Conforto VIP' },
+    { title: 'Barboterapia com Toalha Quente', desc: 'Cuidado milimétrico com navalha afiada, óleos essenciais e toalha vaporizada relaxante.', image: 'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=800&q=80', tag: 'Tradição & Precisão' },
+    { title: 'Produtos Grooming Profissionais', desc: 'Pomadas de fixação mate, óleos para barba e loções de alta performance dermatológica.', image: 'https://images.unsplash.com/photo-1621607512214-68297480165e?auto=format&fit=crop&w=800&q=80', tag: 'Alta Qualidade' }
   ])}
 
   ${renderTestimonials('Depoimentos de Cavalheiros', 'O que dizem os clientes que confiam no nosso trabalho semanalmente.', [
-    { name: 'Daniel Cossa', role: 'Engenheiro &bull; Maputo', comment: 'O degradÃª Ã© o mais preciso de Maputo. Pontualidade impecÃ¡vel, sem esperas desnecessÃ¡rias.' },
-    { name: 'Nelson Tembe', role: 'Advogado &bull; Polana Cimento', comment: 'A barboterapia com toalha quente Ã© um verdadeiro momento de relaxamento apÃ³s um dia longo.' },
-    { name: 'Jorge Macamo', role: 'Gestor &bull; Matola Rio', comment: 'Ambiente de alto nÃ­vel, barbeiros educados e atendimento de cavalheiro. Nota 10!' }
+    { name: 'Daniel Cossa', role: 'Engenheiro &bull; Maputo', comment: 'O degradê é o mais preciso de Maputo. Pontualidade impecável, sem esperas desnecessárias.' },
+    { name: 'Nelson Tembe', role: 'Advogado &bull; Polana Cimento', comment: 'A barboterapia com toalha quente é um verdadeiro momento de relaxamento após um dia longo.' },
+    { name: 'Jorge Macamo', role: 'Gestor &bull; Matola Rio', comment: 'Ambiente de alto nível, barbeiros educados e atendimento de cavalheiro. Nota 10!' }
   ])}
 
-  ${renderFaq('Perguntas Frequentes', 'DÃºvidas comuns sobre o agendamento e serviÃ§os.', [
-    { q: 'Preciso marcar com antecedÃªncia ou posso ir direto?', a: 'Atendemos por ordem de chegada se houver vaga, mas recomendamos agendar pelo WhatsApp para garantir atendimento sem espera.' },
-    { q: 'Quanto tempo dura uma sessÃ£o de corte e barba?', a: 'O combo de corte e barba dura aproximadamente 45 a 60 minutos com todos os cuidados e toalha vaporizada.' },
-    { q: 'Quais os mÃ©todos de pagamento aceites?', a: 'Aceitamos M-Pesa, E-Mola, cartÃµes POS de dÃ©bito/crÃ©dito e pagamento em numerÃ¡rio.' },
+  ${renderFaq('Perguntas Frequentes', 'Dúvidas comuns sobre o agendamento e serviços.', [
+    { q: 'Preciso marcar com antecedência ou posso ir direto?', a: 'Atendemos por ordem de chegada se houver vaga, mas recomendamos agendar pelo WhatsApp para garantir atendimento sem espera.' },
+    { q: 'Quanto tempo dura uma sessão de corte e barba?', a: 'O combo de corte e barba dura aproximadamente 45 a 60 minutos com todos os cuidados e toalha vaporizada.' },
+    { q: 'Quais os métodos de pagamento aceites?', a: 'Aceitamos M-Pesa, E-Mola, cartões POS de débito/crédito e pagamento em numerário.' },
     { q: 'Possuem estacionamento privativo?', a: 'Sim, dispomos de estacionamento vigiado e gratuito em frente ao estabelecimento.' }
   ])}
 
-  ${renderBookingForm('Agendamento de HorÃ¡rio VIP', 'Escolha o serviÃ§o desejado e a data para confirmaÃ§Ã£o instantÃ¢nea da sua sessÃ£o.', [
+  ${renderBookingForm('Agendamento de Horário VIP', 'Escolha o serviço desejado e a data para confirmação instantânea da sua sessão.', [
     'Corte Moderno & Fade (450 MT)',
     'Barboterapia com Toalha Quente (400 MT)',
     'Combo Executivo Cabelo + Barba (750 MT)',
-    'Tratamento & HidrataÃ§Ã£o Capilar (500 MT)',
+    'Tratamento & Hidratação Capilar (500 MT)',
     'Limpeza de Pele Facial Masculina (600 MT)',
     'Corte Infantil Estiloso (350 MT)'
   ], 'Confirmar Agendamento pelo WhatsApp')}
 
-  ${renderCta('Renove o Seu Visual Hoje Mesmo', 'Agende a sua sessÃ£o com os melhores barbeiros da cidade em poucos segundos pelo WhatsApp.', 'Marcar HorÃ¡rio VIP', 'OlÃ¡! Gostaria de agendar um horÃ¡rio na barbearia.')}
+  ${renderCta('Renove o Seu Visual Hoje Mesmo', 'Agende a sua sessão com os melhores barbeiros da cidade em poucos segundos pelo WhatsApp.', 'Marcar Horário VIP', 'Olá! Gostaria de agendar um horário na barbearia.')}
 
   ${renderFooter(brand, navItems, waDefault)}
 </body>
@@ -620,15 +620,15 @@ ${renderHead(brand + ' | Estilo & Barbearia Premium')}
   if (p.includes('hotel') || p.includes('pousada') || p.includes('resort') || p.includes('hospedagem') || p.includes('quarto') || p.includes('lodge')) {
     const brand = title || 'Palace Grand Hotel & Resort';
     const navItems = [
-      { label: 'InÃ­cio', href: '#inicio' },
-      { label: 'AcomodaÃ§Ãµes', href: '#acomodacoes' },
+      { label: 'Início', href: '#inicio' },
+      { label: 'Acomodações', href: '#acomodacoes' },
       { label: 'Galeria', href: '#galeria' },
       { label: 'Depoimentos', href: '#depoimentos' },
       { label: 'FAQ', href: '#faq' },
-      { label: 'Reservar SuÃ­te', href: '#agendamento' },
+      { label: 'Reservar Suíte', href: '#agendamento' },
       { label: 'Contacto', href: '#contacto' }
     ];
-    const waDefault = 'OlÃ¡! Gostaria de consultar tarifas e disponibilidade no ' + brand;
+    const waDefault = 'Olá! Gostaria de consultar tarifas e disponibilidade no ' + brand;
 
     return `<!DOCTYPE html>
 <html lang="pt" class="dark">
@@ -641,18 +641,18 @@ ${renderHead(brand + ' | Hospitalidade & Conforto 5 Estrelas')}
     <div class="relative z-10 max-w-4xl mx-auto">
       <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/15 bg-white/5 text-xs text-zinc-300 mb-8 backdrop-blur-md">
         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-        <span>Reservas Abertas &bull; Vista para o Ãndico</span>
+        <span>Reservas Abertas &bull; Vista para o Índico</span>
       </div>
       <h1 class="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-white mb-6 leading-tight">
-        Hospitalidade de Luxo e <span class="underline decoration-white/30 decoration-wavy">Conforto IncomparÃ¡vel</span>
+        Hospitalidade de Luxo e <span class="underline decoration-white/30 decoration-wavy">Conforto Incomparável</span>
       </h1>
       <p class="text-zinc-400 text-base sm:text-lg max-w-2xl mx-auto mb-10 leading-relaxed">
-        SuÃ­tes de alto padrÃ£o com vista panorÃ¢mica, gastronomia internacional e atendimento personalizado para tornar cada estadia inesquecÃ­vel.
+        Suítes de alto padrão com vista panorâmica, gastronomia internacional e atendimento personalizado para tornar cada estadia inesquecível.
       </p>
       <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
         <a href="#acomodacoes" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white text-black font-extrabold text-sm px-8 py-4 rounded-full hover:bg-zinc-200 transition shadow-xl">
           <i data-lucide="bed" class="w-4 h-4"></i>
-          <span>Explorar SuÃ­tes</span>
+          <span>Explorar Suítes</span>
         </a>
         <a href="#agendamento" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 border border-white/20 bg-white/5 text-white font-bold text-sm px-8 py-4 rounded-full hover:bg-white/10 transition">
           <i data-lucide="calendar" class="w-4 h-4"></i>
@@ -663,30 +663,30 @@ ${renderHead(brand + ' | Hospitalidade & Conforto 5 Estrelas')}
   </section>
 
   ${renderStats([
-    { value: '96 SuÃ­tes', label: 'Luxo & Vista Mar' },
-    { value: '5 Estrelas', label: 'PadrÃ£o Internacional' },
+    { value: '96 Suítes', label: 'Luxo & Vista Mar' },
+    { value: '5 Estrelas', label: 'Padrão Internacional' },
     { value: '2 Piscinas', label: 'Borda Infinita' },
-    { value: '24/7', label: 'ServiÃ§o de Concierge' }
+    { value: '24/7', label: 'Serviço de Concierge' }
   ])}
 
   <section id="acomodacoes" class="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="text-center max-w-2xl mx-auto mb-16">
       <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/5 text-[11px] uppercase tracking-wider text-zinc-300 mb-4">
         <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
-        <span>AcomodaÃ§Ãµes Selecionadas</span>
+        <span>Acomodações Selecionadas</span>
       </div>
-      <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white mb-4">SuÃ­tes & AcomodaÃ§Ãµes de Luxo</h2>
-      <p class="text-zinc-400 text-sm sm:text-base leading-relaxed">Concebidas para o mÃ¡ximo relaxamento e produtividade.</p>
+      <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white mb-4">Suítes & Acomodações de Luxo</h2>
+      <p class="text-zinc-400 text-sm sm:text-base leading-relaxed">Concebidas para o máximo relaxamento e produtividade.</p>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       ${[
-        { name: 'SuÃ­te Presidencial Oceano', desc: '120mÂ², cama king-size, varanda panorÃ¢mica com vista mar, banheira de hidromassagem e mordomo privativo.', price: '9.800 MT / noite', icon: 'crown' },
-        { name: 'SuÃ­te Executiva Premium', desc: 'EspaÃ§o de trabalho ergonÃ³mico, Wi-Fi 6 de alta velocidade, cama king e acesso ao lounge VIP executivo.', price: '4.800 MT / noite', icon: 'briefcase' },
-        { name: 'Quarto Deluxe com Varanda', desc: 'Design minimalista e aconchegante, lenÃ§Ã³is de 400 fios em algodÃ£o egÃ­pcio e minibar completo.', price: '3.400 MT / noite', icon: 'bed' },
-        { name: 'Spa & Tratamentos TÃ©rmicos', desc: 'Massagens relaxantes, sauna finlandesa e terapias holÃ­sticas com Ã³leos essenciais locais.', price: '1.200 MT / sessÃ£o', icon: 'sparkles' },
+        { name: 'Suíte Presidencial Oceano', desc: '120mÂ², cama king-size, varanda panorâmica com vista mar, banheira de hidromassagem e mordomo privativo.', price: '9.800 MT / noite', icon: 'crown' },
+        { name: 'Suíte Executiva Premium', desc: 'Espaço de trabalho ergonómico, Wi-Fi 6 de alta velocidade, cama king e acesso ao lounge VIP executivo.', price: '4.800 MT / noite', icon: 'briefcase' },
+        { name: 'Quarto Deluxe com Varanda', desc: 'Design minimalista e aconchegante, lençóis de 400 fios em algodão egípcio e minibar completo.', price: '3.400 MT / noite', icon: 'bed' },
+        { name: 'Spa & Tratamentos Térmicos', desc: 'Massagens relaxantes, sauna finlandesa e terapias holísticas com óleos essenciais locais.', price: '1.200 MT / sessão', icon: 'sparkles' },
         { name: 'Transfer Executivo Aeroporto', desc: 'Transporte em viatura de luxo com ar-condicionado direto do Aeroporto Internacional de Maputo.', price: '900 MT / viagem', icon: 'car' },
-        { name: 'Pequeno-AlmoÃ§o Buffet Continental', desc: 'Frutas tropicais frescas, pastelaria artesanal, queijos nobres e sumos naturais de MoÃ§ambique.', price: 'Incluso na Reserva', icon: 'coffee' }
+        { name: 'Pequeno-Almoço Buffet Continental', desc: 'Frutas tropicais frescas, pastelaria artesanal, queijos nobres e sumos naturais de Moçambique.', price: 'Incluso na Reserva', icon: 'coffee' }
       ].map(room => `
       <div class="group p-6 rounded-2xl bg-zinc-950 border border-white/10 hover:border-white/25 transition duration-300 flex flex-col justify-between">
         <div>
@@ -699,43 +699,43 @@ ${renderHead(brand + ' | Hospitalidade & Conforto 5 Estrelas')}
           <h3 class="text-lg font-bold text-white mb-2 tracking-tight group-hover:text-zinc-200 transition">${room.name}</h3>
           <p class="text-xs text-zinc-400 leading-relaxed mb-6">${room.desc}</p>
         </div>
-        <a href="https://wa.me/258848335618?text=${encodeURIComponent('OlÃ¡! Gostaria de reservar: ' + room.name)}" target="_blank" class="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl border border-white/15 bg-white/5 text-xs font-semibold text-white hover:bg-white hover:text-black transition">
+        <a href="https://wa.me/258848335618?text=${encodeURIComponent('Olá! Gostaria de reservar: ' + room.name)}" target="_blank" class="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl border border-white/15 bg-white/5 text-xs font-semibold text-white hover:bg-white hover:text-black transition">
           <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
-          <span>Reservar Esta SuÃ­te</span>
+          <span>Reservar Esta Suíte</span>
         </a>
       </div>`).join('')}
     </div>
   </section>
 
-  ${renderGallery('InstalaÃ§Ãµes & Lazer', 'Estrutura completa para relaxamento ou reuniÃµes empresariais de alto padrÃ£o.', [
-    { title: 'SuÃ­tes Master com Vista PanorÃ¢mica', desc: 'AcomodaÃ§Ãµes de luxo com camas king-size, acabamento nobre em mÃ¡rmore e varanda privativa.', image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80', tag: 'AcomodaÃ§Ãµes' },
-    { title: 'Piscina PanorÃ¢mica com Borda Infinita', desc: 'EspreguiÃ§adeiras aquecidas e serviÃ§o de bar com vista deslumbrante para a BaÃ­a de Maputo.', image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=800&q=80', tag: 'Lazer & Relaxamento' },
-    { title: 'Spa & Terapias HolÃ­sticas', desc: 'Massagens terapÃªuticas, sauna finlandesa e banhos de imersÃ£o revigorantes com Ã³leos locais.', image: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80', tag: 'Bem-Estar' }
+  ${renderGallery('Instalações & Lazer', 'Estrutura completa para relaxamento ou reuniões empresariais de alto padrão.', [
+    { title: 'Suítes Master com Vista Panorâmica', desc: 'Acomodações de luxo com camas king-size, acabamento nobre em mármore e varanda privativa.', image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80', tag: 'Acomodações' },
+    { title: 'Piscina Panorâmica com Borda Infinita', desc: 'Espreguiçadeiras aquecidas e serviço de bar com vista deslumbrante para a Baía de Maputo.', image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=800&q=80', tag: 'Lazer & Relaxamento' },
+    { title: 'Spa & Terapias Holísticas', desc: 'Massagens terapêuticas, sauna finlandesa e banhos de imersão revigorantes com óleos locais.', image: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80', tag: 'Bem-Estar' }
   ])}
 
-  ${renderTestimonials('A ExperiÃªncia dos Nossos HÃ³spedes', 'Testemunhos de viajantes de negÃ³cios e turismo que escolheram o nosso hotel.', [
-    { name: 'Sofia Langa', role: 'HÃ³spede de FÃ©rias &bull; Inhambane', comment: 'Vista espetacular do quarto, cafÃ© da manhÃ£ maravilhoso e serviÃ§o de quarto com muita agilidade.' },
-    { name: 'Marcus Berg', role: 'Consultor Internacional &bull; Joanesburgo', comment: 'A internet rÃ¡pida e a tranquilidade da suÃ­te permitiram-me trabalhar sem interrupÃ§Ãµes. Recomendo!' },
-    { name: 'FÃ¡tima Noormahomed', role: 'HÃ³spede Frequente &bull; Nampula', comment: 'Hotel com acabamento luxuoso e atendimento que faz toda a diferenÃ§a. Sentimo-nos em casa.' }
+  ${renderTestimonials('A Experiência dos Nossos Hóspedes', 'Testemunhos de viajantes de negócios e turismo que escolheram o nosso hotel.', [
+    { name: 'Sofia Langa', role: 'Hóspede de Férias &bull; Inhambane', comment: 'Vista espetacular do quarto, café da manhã maravilhoso e serviço de quarto com muita agilidade.' },
+    { name: 'Marcus Berg', role: 'Consultor Internacional &bull; Joanesburgo', comment: 'A internet rápida e a tranquilidade da suíte permitiram-me trabalhar sem interrupções. Recomendo!' },
+    { name: 'Fátima Noormahomed', role: 'Hóspede Frequente &bull; Nampula', comment: 'Hotel com acabamento luxuoso e atendimento que faz toda a diferença. Sentimo-nos em casa.' }
   ])}
 
-  ${renderFaq('Perguntas Frequentes', 'InformaÃ§Ãµes essenciais para planear a sua estadia.', [
-    { q: 'Quais sÃ£o os horÃ¡rios de check-in e check-out?', a: 'Check-in a partir das 14:00 e check-out atÃ© Ã s 11:00. Late check-out mediante disponibilidade.' },
-    { q: 'O pequeno-almoÃ§o estÃ¡ incluÃ­do em todas as tarifas?', a: 'Sim, todas as reservas incluem buffet de pequeno-almoÃ§o continental completo no restaurante principal.' },
-    { q: 'Disponibilizam transporte do aeroporto?', a: 'Sim, dispomos de transfers executivos privativos sob solicitaÃ§Ã£o prÃ©via.' },
-    { q: 'Qual Ã© a polÃ­tica de cancelamento?', a: 'Cancelamentos gratuitos atÃ© 48 horas antes da data de check-in sem qualquer taxa.' }
+  ${renderFaq('Perguntas Frequentes', 'Informações essenciais para planear a sua estadia.', [
+    { q: 'Quais são os horários de check-in e check-out?', a: 'Check-in a partir das 14:00 e check-out até às 11:00. Late check-out mediante disponibilidade.' },
+    { q: 'O pequeno-almoço está incluído em todas as tarifas?', a: 'Sim, todas as reservas incluem buffet de pequeno-almoço continental completo no restaurante principal.' },
+    { q: 'Disponibilizam transporte do aeroporto?', a: 'Sim, dispomos de transfers executivos privativos sob solicitação prévia.' },
+    { q: 'Qual é a política de cancelamento?', a: 'Cancelamentos gratuitos até 48 horas antes da data de check-in sem qualquer taxa.' }
   ])}
 
-  ${renderBookingForm('SolicitaÃ§Ã£o de Reserva de Hospedagem', 'Indique as suas preferÃªncias para que a nossa equipa de concierge confirme a melhor suÃ­te disponÃ­vel.', [
-    'SuÃ­te Presidencial Oceano (9.800 MT / noite)',
-    'SuÃ­te Executiva Premium (4.800 MT / noite)',
+  ${renderBookingForm('Solicitação de Reserva de Hospedagem', 'Indique as suas preferências para que a nossa equipa de concierge confirme a melhor suíte disponível.', [
+    'Suíte Presidencial Oceano (9.800 MT / noite)',
+    'Suíte Executiva Premium (4.800 MT / noite)',
     'Quarto Deluxe Casal (3.400 MT / noite)',
-    'Pacote Fim-de-Semana RomÃ¢ntico',
-    'SessÃ£o Especial de Spa & Bem-Estar',
-    'Reserva de Sala de ConferÃªncias'
+    'Pacote Fim-de-Semana Romântico',
+    'Sessão Especial de Spa & Bem-Estar',
+    'Reserva de Sala de Conferências'
   ], 'Consultar Disponibilidade no WhatsApp')}
 
-  ${renderCta('Planeie a Sua PrÃ³xima Estadia InesquecÃ­vel', 'Consulte datas disponÃ­veis e garanta a sua suÃ­te com desconto exclusivo para reservas diretas.', 'Consultar Tarifas no WhatsApp', 'OlÃ¡! Gostaria de consultar tarifas para o hotel.')}
+  ${renderCta('Planeie a Sua Próxima Estadia Inesquecível', 'Consulte datas disponíveis e garanta a sua suíte com desconto exclusivo para reservas diretas.', 'Consultar Tarifas no WhatsApp', 'Olá! Gostaria de consultar tarifas para o hotel.')}
 
   ${renderFooter(brand, navItems, waDefault)}
 </body>
@@ -743,18 +743,18 @@ ${renderHead(brand + ' | Hospitalidade & Conforto 5 Estrelas')}
   }
 
   // 4. LOJA / E-COMMERCE / MODA & PRODUTOS
-  if (p.includes('loja') || p.includes('moda') || p.includes('roupa') || p.includes('calcado') || p.includes('calÃ§ado') || p.includes('produto') || p.includes('ecommerce') || p.includes('e-commerce') || p.includes('tenis') || p.includes('tÃ©nis')) {
-    const brand = title || 'Atelier PrivÃ© | ColeÃ§Ã£o';
+  if (p.includes('loja') || p.includes('moda') || p.includes('roupa') || p.includes('calcado') || p.includes('calçado') || p.includes('produto') || p.includes('ecommerce') || p.includes('e-commerce') || p.includes('tenis') || p.includes('ténis')) {
+    const brand = title || 'Atelier Privé | Coleção';
     const navItems = [
-      { label: 'InÃ­cio', href: '#inicio' },
-      { label: 'ColeÃ§Ã£o', href: '#produtos' },
+      { label: 'Início', href: '#inicio' },
+      { label: 'Coleção', href: '#produtos' },
       { label: 'Galeria', href: '#galeria' },
       { label: 'Depoimentos', href: '#depoimentos' },
       { label: 'FAQ', href: '#faq' },
       { label: 'Encomendar', href: '#agendamento' },
       { label: 'Contacto', href: '#contacto' }
     ];
-    const waDefault = 'OlÃ¡! Gostaria de comprar um produto da ' + brand;
+    const waDefault = 'Olá! Gostaria de comprar um produto da ' + brand;
 
     return `<!DOCTYPE html>
 <html lang="pt" class="dark">
@@ -767,52 +767,52 @@ ${renderHead(brand + ' | Alta Moda & Design')}
     <div class="relative z-10 max-w-4xl mx-auto">
       <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/15 bg-white/5 text-xs text-zinc-300 mb-8 backdrop-blur-md">
         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-        <span>Nova Temporada 2026 &bull; EdiÃ§Ã£o Limitada</span>
+        <span>Nova Temporada 2026 &bull; Edição Limitada</span>
       </div>
       <h1 class="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-white mb-6 leading-tight">
-        ElegÃ¢ncia Intemporal e <span class="underline decoration-white/30 decoration-wavy">Design ContemporÃ¢neo</span>
+        Elegância Intemporal e <span class="underline decoration-white/30 decoration-wavy">Design Contemporâneo</span>
       </h1>
       <p class="text-zinc-400 text-base sm:text-lg max-w-2xl mx-auto mb-10 leading-relaxed">
-        PeÃ§as exclusivas desenhadas para quem valoriza minimalismo, cortes precisos e materiais nobres de altÃ­ssima durabilidade.
+        Peças exclusivas desenhadas para quem valoriza minimalismo, cortes precisos e materiais nobres de altíssima durabilidade.
       </p>
       <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
         <a href="#produtos" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white text-black font-extrabold text-sm px-8 py-4 rounded-full hover:bg-zinc-200 transition shadow-xl">
           <i data-lucide="shopping-bag" class="w-4 h-4"></i>
-          <span>Explorar CatÃ¡logo</span>
+          <span>Explorar Catálogo</span>
         </a>
         <a href="#agendamento" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 border border-white/20 bg-white/5 text-white font-bold text-sm px-8 py-4 rounded-full hover:bg-white/10 transition">
           <i data-lucide="package" class="w-4 h-4"></i>
-          <span>Fazer Encomenda RÃ¡pida</span>
+          <span>Fazer Encomenda Rápida</span>
         </a>
       </div>
     </div>
   </section>
 
   ${renderStats([
-    { value: '2.500+', label: 'PeÃ§as Entregues' },
-    { value: '48 Horas', label: 'Entrega RÃ¡pida em Maputo' },
+    { value: '2.500+', label: 'Peças Entregues' },
+    { value: '48 Horas', label: 'Entrega Rápida em Maputo' },
     { value: '100%', label: 'Garantia de Autenticidade' },
-    { value: '4.9/5', label: 'AvaliaÃ§Ã£o dos Clientes' }
+    { value: '4.9/5', label: 'Avaliação dos Clientes' }
   ])}
 
   <section id="produtos" class="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="text-center max-w-2xl mx-auto mb-16">
       <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/5 text-[11px] uppercase tracking-wider text-zinc-300 mb-4">
         <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
-        <span>Destaques da ColeÃ§Ã£o</span>
+        <span>Destaques da Coleção</span>
       </div>
-      <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white mb-4">PeÃ§as em Destaque</h2>
-      <p class="text-zinc-400 text-sm sm:text-base leading-relaxed">DisponÃ­veis para envio imediato com embalagem de luxo.</p>
+      <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white mb-4">Peças em Destaque</h2>
+      <p class="text-zinc-400 text-sm sm:text-base leading-relaxed">Disponíveis para envio imediato com embalagem de luxo.</p>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       ${[
-        { name: 'TÃ©nis Minimalist Black & White', desc: 'Couro nobre macio, sola vulcanizada antiderrapante e acabamento feito Ã  mÃ£o.', price: '3.800 MT', icon: 'footprints' },
-        { name: 'Casaco Bomber Urban Noir', desc: 'Tecido tÃ©cnico impermeÃ¡vel, forro tÃ©rmico premium e fechos selados a laser.', price: '4.200 MT', icon: 'shirt' },
-        { name: 'Camisa Linho Puro AlgodÃ£o', desc: 'RespirÃ¡vel, corte tailored moderno para climas quentes com botÃµes em madrepÃ©rola.', price: '2.400 MT', icon: 'sparkles' },
-        { name: 'RelÃ³gio MonocromÃ¡tico Sapphire', desc: 'Movimento quartz de alta precisÃ£o, vidro em cristal de safira e pulseira de aÃ§o negro.', price: '6.500 MT', icon: 'watch' },
-        { name: 'Carteira Slim Couro GenuÃ­no', desc: 'ProteÃ§Ã£o RFID antifurto, compartimentos prÃ¡ticos para cartÃµes e notas com espessura ultra fina.', price: '1.600 MT', icon: 'wallet' },
-        { name: 'Mochila Executiva Waterproof', desc: 'Compartimento acolchoado para portÃ¡til atÃ© 16", porta USB embutida e tecido Ã  prova de Ã¡gua.', price: '3.200 MT', icon: 'backpack' }
+        { name: 'Ténis Minimalist Black & White', desc: 'Couro nobre macio, sola vulcanizada antiderrapante e acabamento feito à mão.', price: '3.800 MT', icon: 'footprints' },
+        { name: 'Casaco Bomber Urban Noir', desc: 'Tecido técnico impermeável, forro térmico premium e fechos selados a laser.', price: '4.200 MT', icon: 'shirt' },
+        { name: 'Camisa Linho Puro Algodão', desc: 'Respirável, corte tailored moderno para climas quentes com botões em madrepérola.', price: '2.400 MT', icon: 'sparkles' },
+        { name: 'Relógio Monocromático Sapphire', desc: 'Movimento quartz de alta precisão, vidro em cristal de safira e pulseira de aço negro.', price: '6.500 MT', icon: 'watch' },
+        { name: 'Carteira Slim Couro Genuíno', desc: 'Proteção RFID antifurto, compartimentos práticos para cartões e notas com espessura ultra fina.', price: '1.600 MT', icon: 'wallet' },
+        { name: 'Mochila Executiva Waterproof', desc: 'Compartimento acolchoado para portátil até 16", porta USB embutida e tecido à prova de água.', price: '3.200 MT', icon: 'backpack' }
       ].map(prod => `
       <div class="group p-6 rounded-2xl bg-zinc-950 border border-white/10 hover:border-white/25 transition duration-300 flex flex-col justify-between">
         <div>
@@ -825,7 +825,7 @@ ${renderHead(brand + ' | Alta Moda & Design')}
           <h3 class="text-lg font-bold text-white mb-2 tracking-tight group-hover:text-zinc-200 transition">${prod.name}</h3>
           <p class="text-xs text-zinc-400 leading-relaxed mb-6">${prod.desc}</p>
         </div>
-        <a href="https://wa.me/258848335618?text=${encodeURIComponent('OlÃ¡! Gostaria de encomendar: ' + prod.name + ' (' + prod.price + ')')}" target="_blank" class="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl border border-white/15 bg-white/5 text-xs font-semibold text-white hover:bg-white hover:text-black transition">
+        <a href="https://wa.me/258848335618?text=${encodeURIComponent('Olá! Gostaria de encomendar: ' + prod.name + ' (' + prod.price + ')')}" target="_blank" class="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl border border-white/15 bg-white/5 text-xs font-semibold text-white hover:bg-white hover:text-black transition">
           <i data-lucide="shopping-bag" class="w-3.5 h-3.5"></i>
           <span>Comprar pelo WhatsApp</span>
         </a>
@@ -833,46 +833,46 @@ ${renderHead(brand + ' | Alta Moda & Design')}
     </div>
   </section>
 
-  ${renderGallery('Qualidade & Detalhes da ColeÃ§Ã£o', 'Cada peÃ§a reflete o mais alto rigor em matÃ©rias-primas e artesanato.', [
-    { title: 'CalÃ§ado & TÃ©nis Minimalistas', desc: 'Couro nobre macio, sola vulcanizada durÃ¡vel e linhas limpas para uso casual e formal.', image: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=800&q=80', tag: 'CalÃ§ado' },
-    { title: 'Moda Tailored ContemporÃ¢nea', desc: 'Cortes estruturados, tecidos resistentes ao calor e caimento impecÃ¡vel para todas as ocasiÃµes.', image: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=800&q=80', tag: 'VestuÃ¡rio' },
-    { title: 'AcessÃ³rios & Relojoaria de Luxo', desc: 'PeÃ§as em aÃ§o escovado negro, vidro em cristal de safira e acabamentos de alta resistÃªncia.', image: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=800&q=80', tag: 'AcessÃ³rios VIP' }
+  ${renderGallery('Qualidade & Detalhes da Coleção', 'Cada peça reflete o mais alto rigor em matérias-primas e artesanato.', [
+    { title: 'Calçado & Ténis Minimalistas', desc: 'Couro nobre macio, sola vulcanizada durável e linhas limpas para uso casual e formal.', image: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=800&q=80', tag: 'Calçado' },
+    { title: 'Moda Tailored Contemporânea', desc: 'Cortes estruturados, tecidos resistentes ao calor e caimento impecável para todas as ocasiões.', image: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=800&q=80', tag: 'Vestuário' },
+    { title: 'Acessórios & Relojoaria de Luxo', desc: 'Peças em aço escovado negro, vidro em cristal de safira e acabamentos de alta resistência.', image: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=800&q=80', tag: 'Acessórios VIP' }
   ])}
 
-  ${renderTestimonials('OpiniÃµes de Quem JÃ¡ Comprou', 'Clientes que atestam a qualidade e o caimento das nossas peÃ§as.', [
-    { name: 'PatrÃ­cia Neves', role: 'Cliente &bull; Maputo', comment: 'O tecido da camisa Ã© fantÃ¡stico! Veste muito bem e a entrega foi feita no mesmo dia.' },
-    { name: 'AmÃ©rico Vilanculos', role: 'Cliente &bull; Matola', comment: 'O tÃ©nis Ã© extremamente confortÃ¡vel e minimalista. Qualidade de loja internacional.' },
-    { name: 'ZÃ©lia Guambe', role: 'Cliente &bull; Beira', comment: 'A encomenda chegou Ã  Beira perfeitamente embalada e em Ã³timo estado. Recomendo com certeza.' }
+  ${renderTestimonials('Opiniões de Quem Já Comprou', 'Clientes que atestam a qualidade e o caimento das nossas peças.', [
+    { name: 'Patrícia Neves', role: 'Cliente &bull; Maputo', comment: 'O tecido da camisa é fantástico! Veste muito bem e a entrega foi feita no mesmo dia.' },
+    { name: 'Américo Vilanculos', role: 'Cliente &bull; Matola', comment: 'O ténis é extremamente confortável e minimalista. Qualidade de loja internacional.' },
+    { name: 'Zélia Guambe', role: 'Cliente &bull; Beira', comment: 'A encomenda chegou à Beira perfeitamente embalada e em ótimo estado. Recomendo com certeza.' }
   ])}
 
-  ${renderFaq('Perguntas Frequentes', 'InformaÃ§Ãµes sobre envio, trocas e garantias.', [
-    { q: 'Fazem envios para todas as provÃ­ncias de MoÃ§ambique?', a: 'Sim! Entregamos em Maputo e Matola em atÃ© 24h/48h e despachamos para as restantes provÃ­ncias por transportadora de confianÃ§a.' },
-    { q: 'Qual a polÃ­tica de trocas de tamanho?', a: 'Disponibilizamos 7 dias para troca de tamanho sem custos caso a peÃ§a nÃ£o assente perfeitamente.' },
-    { q: 'Quais as formas de pagamento disponÃ­veis?', a: 'Pagamento via M-Pesa, E-Mola, transferÃªncia bancÃ¡ria (BIM/BCI) ou no ato da entrega (apenas Maputo).' },
-    { q: 'Os produtos sÃ£o originais com garantia?', a: 'Sim, todas as peÃ§as acompanham certificado de garantia e padrÃ£o de fabricaÃ§Ã£o rigoroso.' }
+  ${renderFaq('Perguntas Frequentes', 'Informações sobre envio, trocas e garantias.', [
+    { q: 'Fazem envios para todas as províncias de Moçambique?', a: 'Sim! Entregamos em Maputo e Matola em até 24h/48h e despachamos para as restantes províncias por transportadora de confiança.' },
+    { q: 'Qual a política de trocas de tamanho?', a: 'Disponibilizamos 7 dias para troca de tamanho sem custos caso a peça não assente perfeitamente.' },
+    { q: 'Quais as formas de pagamento disponíveis?', a: 'Pagamento via M-Pesa, E-Mola, transferência bancária (BIM/BCI) ou no ato da entrega (apenas Maputo).' },
+    { q: 'Os produtos são originais com garantia?', a: 'Sim, todas as peças acompanham certificado de garantia e padrão de fabricação rigoroso.' }
   ])}
 
-  ${renderBookingForm('FormulÃ¡rio de Encomenda Direta', 'Selecione a peÃ§a desejada e informe o seu contacto para envio rÃ¡pido na sua morada.', [
-    'TÃ©nis Minimalist Black & White (3.800 MT)',
+  ${renderBookingForm('Formulário de Encomenda Direta', 'Selecione a peça desejada e informe o seu contacto para envio rápido na sua morada.', [
+    'Ténis Minimalist Black & White (3.800 MT)',
     'Casaco Bomber Urban Noir (4.200 MT)',
-    'Camisa Linho Puro AlgodÃ£o (2.400 MT)',
-    'RelÃ³gio MonocromÃ¡tico Sapphire (6.500 MT)',
-    'Carteira Slim Couro GenuÃ­no (1.600 MT)',
+    'Camisa Linho Puro Algodão (2.400 MT)',
+    'Relógio Monocromático Sapphire (6.500 MT)',
+    'Carteira Slim Couro Genuíno (1.600 MT)',
     'Mochila Executiva Waterproof (3.200 MT)'
   ], 'Finalizar Encomenda no WhatsApp')}
 
-  ${renderCta('Adquira PeÃ§as Exclusivas Hoje', 'Fale diretamente com os nossos consultores e reserve o seu tamanho antes que esgote.', 'Fazer Pedido pelo WhatsApp', 'OlÃ¡! Gostaria de consultar peÃ§as disponÃ­veis na loja.')}
+  ${renderCta('Adquira Peças Exclusivas Hoje', 'Fale diretamente com os nossos consultores e reserve o seu tamanho antes que esgote.', 'Fazer Pedido pelo WhatsApp', 'Olá! Gostaria de consultar peças disponíveis na loja.')}
 
   ${renderFooter(brand, navItems, waDefault)}
 </body>
 </html>`;
   }
 
-  // 5. PORTFÃ“LIO / CONSULTOR / DESIGNER / FOTÃ“GRAFO / PROFISSIONAL
-  if (p.includes('portfolio') || p.includes('portfÃ³lio') || p.includes('designer') || p.includes('programador') || p.includes('advogado') || p.includes('consultor') || p.includes('fotografo') || p.includes('fotÃ³grafo')) {
+  // 5. PORTFÓLIO / CONSULTOR / DESIGNER / FOTÓGRAFO / PROFISSIONAL
+  if (p.includes('portfolio') || p.includes('portfólio') || p.includes('designer') || p.includes('programador') || p.includes('advogado') || p.includes('consultor') || p.includes('fotografo') || p.includes('fotógrafo')) {
     const brand = title || 'Alexandre Bila | Portfolio';
     const navItems = [
-      { label: 'InÃ­cio', href: '#inicio' },
+      { label: 'Início', href: '#inicio' },
       { label: 'Especialidades', href: '#especialidades' },
       { label: 'Galeria', href: '#galeria' },
       { label: 'Depoimentos', href: '#depoimentos' },
@@ -880,11 +880,11 @@ ${renderHead(brand + ' | Alta Moda & Design')}
       { label: 'Proposta', href: '#agendamento' },
       { label: 'Contacto', href: '#contacto' }
     ];
-    const waDefault = 'OlÃ¡! Gostaria de conversar sobre um projeto com ' + brand;
+    const waDefault = 'Olá! Gostaria de conversar sobre um projeto com ' + brand;
 
     return `<!DOCTYPE html>
 <html lang="pt" class="dark">
-${renderHead(brand + ' | EstratÃ©gia, Design & Tecnologia')}
+${renderHead(brand + ' | Estratégia, Design & Tecnologia')}
 <body class="bg-black text-white antialiased">
   ${renderNavbar(brand, navItems, waDefault)}
 
@@ -893,18 +893,18 @@ ${renderHead(brand + ' | EstratÃ©gia, Design & Tecnologia')}
     <div class="relative z-10 max-w-4xl mx-auto">
       <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/15 bg-white/5 text-xs text-zinc-300 mb-8 backdrop-blur-md">
         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-        <span>Agenda DisponÃ­vel para Novos Projetos &bull; 2026</span>
+        <span>Agenda Disponível para Novos Projetos &bull; 2026</span>
       </div>
       <h1 class="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-white mb-6 leading-tight">
-        Transformando Ideias em <span class="underline decoration-white/30 decoration-wavy">SoluÃ§Ãµes de Alto Impacto</span>
+        Transformando Ideias em <span class="underline decoration-white/30 decoration-wavy">Soluções de Alto Impacto</span>
       </h1>
       <p class="text-zinc-400 text-base sm:text-lg max-w-2xl mx-auto mb-10 leading-relaxed">
-        Ajudo empresas e lÃ­deres a construir marcas memorÃ¡veis, produtos digitais intuitivos e estratÃ©gias que geram resultados concretos e mensurÃ¡veis.
+        Ajudo empresas e líderes a construir marcas memoráveis, produtos digitais intuitivos e estratégias que geram resultados concretos e mensuráveis.
       </p>
       <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
         <a href="#especialidades" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white text-black font-extrabold text-sm px-8 py-4 rounded-full hover:bg-zinc-200 transition shadow-xl">
           <i data-lucide="layers" class="w-4 h-4"></i>
-          <span>Ver Ãreas de AtuaÃ§Ã£o</span>
+          <span>Ver Áreas de Atuação</span>
         </a>
         <a href="#agendamento" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 border border-white/20 bg-white/5 text-white font-bold text-sm px-8 py-4 rounded-full hover:bg-white/10 transition">
           <i data-lucide="message-circle" class="w-4 h-4"></i>
@@ -916,29 +916,29 @@ ${renderHead(brand + ' | EstratÃ©gia, Design & Tecnologia')}
 
   ${renderStats([
     { value: '45+ Projetos', label: 'Entregues com Sucesso' },
-    { value: '8+ Anos', label: 'ExperiÃªncia Profissional' },
-    { value: '99%', label: 'SatisfaÃ§Ã£o de Clientes' },
-    { value: '12 PrÃ©mios', label: 'DistinÃ§Ãµes & MenÃ§Ãµes' }
+    { value: '8+ Anos', label: 'Experiência Profissional' },
+    { value: '99%', label: 'Satisfação de Clientes' },
+    { value: '12 Prémios', label: 'Distinções & Menções' }
   ])}
 
   <section id="especialidades" class="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="text-center max-w-2xl mx-auto mb-16">
       <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/5 text-[11px] uppercase tracking-wider text-zinc-300 mb-4">
         <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
-        <span>CompetÃªncias Essenciais</span>
+        <span>Competências Essenciais</span>
       </div>
-      <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white mb-4">Especialidades & SoluÃ§Ãµes</h2>
-      <p class="text-zinc-400 text-sm sm:text-base leading-relaxed">Abordagem centrada em simplicidade, elegÃ¢ncia e conversÃ£o.</p>
+      <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white mb-4">Especialidades & Soluções</h2>
+      <p class="text-zinc-400 text-sm sm:text-base leading-relaxed">Abordagem centrada em simplicidade, elegância e conversão.</p>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       ${[
-        { name: 'Identidade Visual & Branding', desc: 'ConstruÃ§Ã£o de marcas sÃ³lidas com manuais de identidade, tipografia e diretrizes de autoridade.', price: 'Sob Medida', icon: 'pen-tool' },
+        { name: 'Identidade Visual & Branding', desc: 'Construção de marcas sólidas com manuais de identidade, tipografia e diretrizes de autoridade.', price: 'Sob Medida', icon: 'pen-tool' },
         { name: 'UI/UX Design de Produtos Digitais', desc: 'Interfaces intuitivas para aplicativos e plataformas web focadas na melhor usabilidade.', price: 'Sob Medida', icon: 'layout' },
-        { name: 'Desenvolvimento Web de Alta Performance', desc: 'Websites rÃ¡pidos, responsivos e otimizados para motores de busca e conversÃ£o comercial.', price: 'Sob Medida', icon: 'code' },
-        { name: 'Consultoria de Posicionamento Digital', desc: 'DiagnÃ³stico de canais, funil de conversÃ£o e estratÃ©gias para aumentar o valor percebido.', price: 'Sob Medida', icon: 'trending-up' },
-        { name: 'OtimizaÃ§Ã£o de ConversÃ£o (CRO)', desc: 'Testes e melhorias na jornada do utilizador para converter mais visitantes em clientes ativos.', price: 'Sob Medida', icon: 'target' },
-        { name: 'Design Systems EscalÃ¡veis', desc: 'Bibliotecas de componentes reutilizÃ¡veis para equipas de engenharia e produto.', price: 'Sob Medida', icon: 'box' }
+        { name: 'Desenvolvimento Web de Alta Performance', desc: 'Websites rápidos, responsivos e otimizados para motores de busca e conversão comercial.', price: 'Sob Medida', icon: 'code' },
+        { name: 'Consultoria de Posicionamento Digital', desc: 'Diagnóstico de canais, funil de conversão e estratégias para aumentar o valor percebido.', price: 'Sob Medida', icon: 'trending-up' },
+        { name: 'Otimização de Conversão (CRO)', desc: 'Testes e melhorias na jornada do utilizador para converter mais visitantes em clientes ativos.', price: 'Sob Medida', icon: 'target' },
+        { name: 'Design Systems Escaláveis', desc: 'Bibliotecas de componentes reutilizáveis para equipas de engenharia e produto.', price: 'Sob Medida', icon: 'box' }
       ].map(esp => `
       <div class="group p-6 rounded-2xl bg-zinc-950 border border-white/10 hover:border-white/25 transition duration-300 flex flex-col justify-between">
         <div>
@@ -951,43 +951,43 @@ ${renderHead(brand + ' | EstratÃ©gia, Design & Tecnologia')}
           <h3 class="text-lg font-bold text-white mb-2 tracking-tight group-hover:text-zinc-200 transition">${esp.name}</h3>
           <p class="text-xs text-zinc-400 leading-relaxed mb-6">${esp.desc}</p>
         </div>
-        <a href="https://wa.me/258848335618?text=${encodeURIComponent('OlÃ¡! Gostaria de falar sobre: ' + esp.name)}" target="_blank" class="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl border border-white/15 bg-white/5 text-xs font-semibold text-white hover:bg-white hover:text-black transition">
+        <a href="https://wa.me/258848335618?text=${encodeURIComponent('Olá! Gostaria de falar sobre: ' + esp.name)}" target="_blank" class="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl border border-white/15 bg-white/5 text-xs font-semibold text-white hover:bg-white hover:text-black transition">
           <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
-          <span>Solicitar OrÃ§amento</span>
+          <span>Solicitar Orçamento</span>
         </a>
       </div>`).join('')}
     </div>
   </section>
 
-  ${renderGallery('Casos de Sucesso & Projetos', 'Projetos reais com interfaces elegantes que geraram impacto nos negÃ³cios.', [
-    { title: 'Design System & Interfaces Digitais', desc: 'Arquitetura de UI/UX limpa e escalÃ¡vel para aplicaÃ§Ãµes de alta conversÃ£o.', image: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&w=800&q=80', tag: 'UI/UX Design' },
-    { title: 'EspaÃ§o de CriaÃ§Ã£o & EstratÃ©gia', desc: 'Metodologias de design thinking e ideaÃ§Ã£o Ã¡gil com foco no pÃºblico moÃ§ambicano.', image: 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=800&q=80', tag: 'Branding & EstratÃ©gia' },
-    { title: 'Planeamento de Produto & Wireframing', desc: 'Testes de usabilidade e prototipagem interativa para validaÃ§Ã£o de hipÃ³teses de negÃ³cio.', image: 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&w=800&q=80', tag: 'Engenharia Web' }
+  ${renderGallery('Casos de Sucesso & Projetos', 'Projetos reais com interfaces elegantes que geraram impacto nos negócios.', [
+    { title: 'Design System & Interfaces Digitais', desc: 'Arquitetura de UI/UX limpa e escalável para aplicações de alta conversão.', image: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&w=800&q=80', tag: 'UI/UX Design' },
+    { title: 'Espaço de Criação & Estratégia', desc: 'Metodologias de design thinking e ideação ágil com foco no público moçambicano.', image: 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=800&q=80', tag: 'Branding & Estratégia' },
+    { title: 'Planeamento de Produto & Wireframing', desc: 'Testes de usabilidade e prototipagem interativa para validação de hipóteses de negócio.', image: 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&w=800&q=80', tag: 'Engenharia Web' }
   ])}
 
-  ${renderTestimonials('Reconhecimento de Parceiros', 'Feedback de lÃ­deres e empresas que confiaram nos meus serviÃ§os.', [
-    { name: 'Dr. Edson Mugabe', role: 'CEO &bull; WeHost MoÃ§ambique', comment: 'O rigor tÃ©cnico e a visÃ£o estÃ©tica do Alexandre transformaram a perceÃ§Ã£o da nossa plataforma.' },
-    { name: 'Beatriz Cuna', role: 'Fundadora &bull; Studio B Maputo', comment: 'Pontualidade britÃ¢nica, comunicaÃ§Ã£o transparente e um resultado final acima de qualquer expetativa.' },
-    { name: 'Manuel Chirindza', role: 'Diretor de Marketing &bull; Matola', comment: 'AumentÃ¡mos a retenÃ§Ã£o de clientes em 35% apÃ³s o lanÃ§amento do novo design. Recomendo vivamente.' }
+  ${renderTestimonials('Reconhecimento de Parceiros', 'Feedback de líderes e empresas que confiaram nos meus serviços.', [
+    { name: 'Dr. Edson Mugabe', role: 'CEO &bull; WeHost Moçambique', comment: 'O rigor técnico e a visão estética do Alexandre transformaram a perceção da nossa plataforma.' },
+    { name: 'Beatriz Cuna', role: 'Fundadora &bull; Studio B Maputo', comment: 'Pontualidade britânica, comunicação transparente e um resultado final acima de qualquer expetativa.' },
+    { name: 'Manuel Chirindza', role: 'Diretor de Marketing &bull; Matola', comment: 'Aumentámos a retenção de clientes em 35% após o lançamento do novo design. Recomendo vivamente.' }
   ])}
 
-  ${renderFaq('Perguntas Frequentes', 'Como funciona o processo de contrataÃ§Ã£o e entrega.', [
-    { q: 'Qual Ã© o prazo tÃ­pico para entrega de um website ou marca?', a: 'Projetos mÃ©dios sÃ£o entregues entre 2 a 4 semanas, com etapas claras de validaÃ§Ã£o e feedback contÃ­nuo.' },
-    { q: 'Como funciona a divisÃ£o de pagamentos?', a: 'Normalmente trabalhamos com 50% na aprovaÃ§Ã£o da proposta e 50% apÃ³s a conclusÃ£o e lanÃ§amento oficial.' },
-    { q: 'Disponibiliza suporte e manutenÃ§Ã£o apÃ³s a entrega?', a: 'Sim! Todos os projetos contam com 30 dias de suporte gratuito e planos mensais de manutenÃ§Ã£o sob medida.' },
-    { q: 'Podemos agendar uma reuniÃ£o inicial sem compromisso?', a: 'Certamente! Realizo chamadas de 20 minutos por Google Meet ou WhatsApp para entender o escopo da sua ideia.' }
+  ${renderFaq('Perguntas Frequentes', 'Como funciona o processo de contratação e entrega.', [
+    { q: 'Qual é o prazo típico para entrega de um website ou marca?', a: 'Projetos médios são entregues entre 2 a 4 semanas, com etapas claras de validação e feedback contínuo.' },
+    { q: 'Como funciona a divisão de pagamentos?', a: 'Normalmente trabalhamos com 50% na aprovação da proposta e 50% após a conclusão e lançamento oficial.' },
+    { q: 'Disponibiliza suporte e manutenção após a entrega?', a: 'Sim! Todos os projetos contam com 30 dias de suporte gratuito e planos mensais de manutenção sob medida.' },
+    { q: 'Podemos agendar uma reunião inicial sem compromisso?', a: 'Certamente! Realizo chamadas de 20 minutos por Google Meet ou WhatsApp para entender o escopo da sua ideia.' }
   ])}
 
-  ${renderBookingForm('Iniciar Novo Projeto', 'Conte-me sobre os seus objetivos e marque uma sessÃ£o de consultoria personalizada.', [
+  ${renderBookingForm('Iniciar Novo Projeto', 'Conte-me sobre os seus objetivos e marque uma sessão de consultoria personalizada.', [
     'Identidade Visual & Branding Completo',
     'UI/UX Design de Aplicativo / SaaS',
     'Desenvolvimento de Website Institucional',
     'Consultoria de Posicionamento Digital',
-    'OtimizaÃ§Ã£o de ConversÃ£o e Vendas (CRO)',
+    'Otimização de Conversão e Vendas (CRO)',
     'Design System para Equipa'
   ], 'Enviar Proposta pelo WhatsApp')}
 
-  ${renderCta('Tem um Projeto Ambicioso em Mente?', 'Vamos construir algo memorÃ¡vel que destaque a sua empresa da concorrÃªncia.', 'Agendar Conversa no WhatsApp', 'OlÃ¡ Alexandre! Gostaria de conversar sobre um projeto.')}
+  ${renderCta('Tem um Projeto Ambicioso em Mente?', 'Vamos construir algo memorável que destaque a sua empresa da concorrência.', 'Agendar Conversa no WhatsApp', 'Olá Alexandre! Gostaria de conversar sobre um projeto.')}
 
   ${renderFooter(brand, navItems, waDefault)}
 </body>
@@ -995,18 +995,18 @@ ${renderHead(brand + ' | EstratÃ©gia, Design & Tecnologia')}
   }
 
   // 6. CLOUD / SISTEMA / SAAS / WEHOST / TECH
-  if (p.includes('simples') || p.includes('sistema') || p.includes('inicio') || p.includes('inÃ­cio') || p.includes('software') || p.includes('cloud') || p.includes('tech') || p.includes('wehost')) {
+  if (p.includes('simples') || p.includes('sistema') || p.includes('inicio') || p.includes('início') || p.includes('software') || p.includes('cloud') || p.includes('tech') || p.includes('wehost')) {
     const brand = title || 'WeHost Cloud Suite';
     const navItems = [
-      { label: 'InÃ­cio', href: '#inicio' },
-      { label: 'ServiÃ§os', href: '#servicos' },
+      { label: 'Início', href: '#inicio' },
+      { label: 'Serviços', href: '#servicos' },
       { label: 'Galeria', href: '#galeria' },
       { label: 'Depoimentos', href: '#depoimentos' },
       { label: 'FAQ', href: '#faq' },
       { label: 'Ativar Plano', href: '#agendamento' },
       { label: 'Contacto', href: '#contacto' }
     ];
-    const waDefault = 'OlÃ¡! Gostaria de saber mais sobre a infraestrutura da ' + brand;
+    const waDefault = 'Olá! Gostaria de saber mais sobre a infraestrutura da ' + brand;
 
     return `<!DOCTYPE html>
 <html lang="pt" class="dark">
@@ -1019,13 +1019,13 @@ ${renderHead(brand + ' | Infraestrutura Cloud & Alta Performance')}
     <div class="relative z-10 max-w-4xl mx-auto">
       <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/15 bg-white/5 text-xs text-zinc-300 mb-8 backdrop-blur-md">
         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-        <span>Servidores Ativos em MoÃ§ambique &bull; 99.99% Uptime</span>
+        <span>Servidores Ativos em Moçambique &bull; 99.99% Uptime</span>
       </div>
       <h1 class="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-white mb-6 leading-tight">
-        A Nuvem Mais RÃ¡pida e ConfiÃ¡vel para o <span class="underline decoration-white/30 decoration-wavy">Seu NegÃ³cio</span>
+        A Nuvem Mais Rápida e Confiável para o <span class="underline decoration-white/30 decoration-wavy">Seu Negócio</span>
       </h1>
       <p class="text-zinc-400 text-base sm:text-lg max-w-2xl mx-auto mb-10 leading-relaxed">
-        Hospedagem de alta velocidade com armazenamento SSD NVMe, baixa latÃªncia para o territÃ³rio nacional e suporte tÃ©cnico dedicado 24 horas por dia.
+        Hospedagem de alta velocidade com armazenamento SSD NVMe, baixa latência para o território nacional e suporte técnico dedicado 24 horas por dia.
       </p>
       <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
         <a href="#servicos" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white text-black font-extrabold text-sm px-8 py-4 rounded-full hover:bg-zinc-200 transition shadow-xl">
@@ -1034,7 +1034,7 @@ ${renderHead(brand + ' | Infraestrutura Cloud & Alta Performance')}
         </a>
         <a href="#agendamento" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 border border-white/20 bg-white/5 text-white font-bold text-sm px-8 py-4 rounded-full hover:bg-white/10 transition">
           <i data-lucide="zap" class="w-4 h-4"></i>
-          <span>Solicitar AtivaÃ§Ã£o Imediata</span>
+          <span>Solicitar Ativação Imediata</span>
         </a>
       </div>
     </div>
@@ -1042,9 +1042,9 @@ ${renderHead(brand + ' | Infraestrutura Cloud & Alta Performance')}
 
   ${renderStats([
     { value: '99.99%', label: 'Uptime SLA Garantido' },
-    { value: '5ms', label: 'LatÃªncia Local UltrarrÃ¡pida' },
+    { value: '5ms', label: 'Latência Local Ultrarrápida' },
     { value: '12.000+', label: 'Websites Alojados' },
-    { value: '24/7/365', label: 'Suporte TÃ©cnico Local' }
+    { value: '24/7/365', label: 'Suporte Técnico Local' }
   ])}
 
   <section id="servicos" class="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -1053,18 +1053,18 @@ ${renderHead(brand + ' | Infraestrutura Cloud & Alta Performance')}
         <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
         <span>Recursos Corporativos</span>
       </div>
-      <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white mb-4">SoluÃ§Ãµes Cloud de Alto Desempenho</h2>
-      <p class="text-zinc-400 text-sm sm:text-base leading-relaxed">Tecnologia de ponta pensada para a estabilidade contÃ­nua das suas aplicaÃ§Ãµes.</p>
+      <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white mb-4">Soluções Cloud de Alto Desempenho</h2>
+      <p class="text-zinc-400 text-sm sm:text-base leading-relaxed">Tecnologia de ponta pensada para a estabilidade contínua das suas aplicações.</p>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       ${[
-        { name: 'Hospedagem NVMe UltrarrÃ¡pida', desc: 'Discos SSD NVMe de Ãºltima geraÃ§Ã£o, cPanel intuitivo e contas de e-mail corporativo ilimitadas.', price: 'Desde 350 MT / mÃªs', icon: 'hard-drive' },
-        { name: 'Servidores Cloud VPS Dedicados', desc: 'Recursos 100% isolados (vCPU, RAM DDR5) com acesso root completo e IP moÃ§ambicano.', price: 'Desde 1.450 MT / mÃªs', icon: 'server' },
-        { name: 'DomÃ­nios .MZ e Internacionais', desc: 'Registo e ativaÃ§Ã£o imediata de extensÃµes .co.mz, .mz, .com, .net com DNS Anycast redundante.', price: 'AtivaÃ§Ã£o RÃ¡pida', icon: 'globe' },
-        { name: 'SeguranÃ§a & ProteÃ§Ã£o Anti-DDoS', desc: 'Filtro inteligente de trÃ¡fego que bloqueia ataques maliciosos antes de atingirem o seu servidor.', price: 'Incluso GrÃ¡tis', icon: 'shield-check' },
-        { name: 'Backups DiÃ¡rios Automatizados', desc: 'CÃ³pias de seguranÃ§a automÃ¡ticas com restauraÃ§Ã£o em 1-clique para tranquilidade absoluta.', price: 'Incluso GrÃ¡tis', icon: 'database' },
-        { name: 'Construtor de Sites IA Integrado', desc: 'Crie e edite websites profissionais em minutos com auxÃ­lio da nossa IA exclusiva.', price: 'Incluso no Plano', icon: 'cpu' }
+        { name: 'Hospedagem NVMe Ultrarrápida', desc: 'Discos SSD NVMe de última geração, cPanel intuitivo e contas de e-mail corporativo ilimitadas.', price: 'Desde 350 MT / mês', icon: 'hard-drive' },
+        { name: 'Servidores Cloud VPS Dedicados', desc: 'Recursos 100% isolados (vCPU, RAM DDR5) com acesso root completo e IP moçambicano.', price: 'Desde 1.450 MT / mês', icon: 'server' },
+        { name: 'Domínios .MZ e Internacionais', desc: 'Registo e ativação imediata de extensões .co.mz, .mz, .com, .net com DNS Anycast redundante.', price: 'Ativação Rápida', icon: 'globe' },
+        { name: 'Segurança & Proteção Anti-DDoS', desc: 'Filtro inteligente de tráfego que bloqueia ataques maliciosos antes de atingirem o seu servidor.', price: 'Incluso Grátis', icon: 'shield-check' },
+        { name: 'Backups Diários Automatizados', desc: 'Cópias de segurança automáticas com restauração em 1-clique para tranquilidade absoluta.', price: 'Incluso Grátis', icon: 'database' },
+        { name: 'Construtor de Sites IA Integrado', desc: 'Crie e edite websites profissionais em minutos com auxílio da nossa IA exclusiva.', price: 'Incluso no Plano', icon: 'cpu' }
       ].map(srv => `
       <div class="group p-6 rounded-2xl bg-zinc-950 border border-white/10 hover:border-white/25 transition duration-300 flex flex-col justify-between">
         <div>
@@ -1077,7 +1077,7 @@ ${renderHead(brand + ' | Infraestrutura Cloud & Alta Performance')}
           <h3 class="text-lg font-bold text-white mb-2 tracking-tight group-hover:text-zinc-200 transition">${srv.name}</h3>
           <p class="text-xs text-zinc-400 leading-relaxed mb-6">${srv.desc}</p>
         </div>
-        <a href="https://wa.me/258848335618?text=${encodeURIComponent('OlÃ¡! Gostaria de assinar o serviÃ§o: ' + srv.name)}" target="_blank" class="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl border border-white/15 bg-white/5 text-xs font-semibold text-white hover:bg-white hover:text-black transition">
+        <a href="https://wa.me/258848335618?text=${encodeURIComponent('Olá! Gostaria de assinar o serviço: ' + srv.name)}" target="_blank" class="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl border border-white/15 bg-white/5 text-xs font-semibold text-white hover:bg-white hover:text-black transition">
           <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
           <span>Ativar Este Plano</span>
         </a>
@@ -1085,56 +1085,56 @@ ${renderHead(brand + ' | Infraestrutura Cloud & Alta Performance')}
     </div>
   </section>
 
-  ${renderGallery('Tecnologia & Infraestrutura de Ponta', 'Estrutura tÃ©cnica robusta desenhada para empresas que nÃ£o podem parar.', [
-    { title: 'Data Center com Racks de Servidores', desc: 'Hardware corporativo com refrigeraÃ§Ã£o avanÃ§ada e alimentaÃ§Ã£o elÃ©trica ininterrupta.', image: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=800&q=80', tag: 'Datacenter' },
-    { title: 'Backbone de Fibra & Baixa LatÃªncia', desc: 'ConexÃ£o direta aos principais pontos de troca de trÃ¡fego de MoÃ§ambique e da Ãfrica Austral.', image: 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=800&q=80', tag: 'Fibra Ã“ptica' },
-    { title: 'SeguranÃ§a & Monitoramento 24/7', desc: 'Sistemas inteligentes com proteÃ§Ã£o contra ataques DDoS e supervisÃ£o de rede 365 dias por ano.', image: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=800&q=80', tag: 'SeguranÃ§a ContÃ­nua' }
+  ${renderGallery('Tecnologia & Infraestrutura de Ponta', 'Estrutura técnica robusta desenhada para empresas que não podem parar.', [
+    { title: 'Data Center com Racks de Servidores', desc: 'Hardware corporativo com refrigeração avançada e alimentação elétrica ininterrupta.', image: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=800&q=80', tag: 'Datacenter' },
+    { title: 'Backbone de Fibra & Baixa Latência', desc: 'Conexão direta aos principais pontos de troca de tráfego de Moçambique e da África Austral.', image: 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=800&q=80', tag: 'Fibra Óptica' },
+    { title: 'Segurança & Monitoramento 24/7', desc: 'Sistemas inteligentes com proteção contra ataques DDoS e supervisão de rede 365 dias por ano.', image: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=800&q=80', tag: 'Segurança Contínua' }
   ])}
 
-  ${renderTestimonials('ConfianÃ§a das Melhores Empresas', 'Empresas e desenvolvedores que escolheram hospedar com estabilidade.', [
-    { name: 'ClÃ¡udio Matusse', role: 'CTO &bull; StartupMz', comment: 'A latÃªncia dentro de MoÃ§ambique fez as nossas pÃ¡ginas abrirem em menos de 1 segundo. FantÃ¡stico.' },
-    { name: 'Teresa Chissano', role: 'Gestora &bull; AgÃªncia Criativa', comment: 'O suporte via WhatsApp resolveu a nossa migraÃ§Ã£o em 15 minutos num domingo. Nunca vi igual.' },
-    { name: 'Rui Sumbana', role: 'Engenheiro de Software &bull; Maputo', comment: 'Os servidores VPS tÃªm desempenho real sem sobrealocaÃ§Ã£o. Estabilidade de padrÃ£o global.' }
+  ${renderTestimonials('Confiança das Melhores Empresas', 'Empresas e desenvolvedores que escolheram hospedar com estabilidade.', [
+    { name: 'Cláudio Matusse', role: 'CTO &bull; StartupMz', comment: 'A latência dentro de Moçambique fez as nossas páginas abrirem em menos de 1 segundo. Fantástico.' },
+    { name: 'Teresa Chissano', role: 'Gestora &bull; Agência Criativa', comment: 'O suporte via WhatsApp resolveu a nossa migração em 15 minutos num domingo. Nunca vi igual.' },
+    { name: 'Rui Sumbana', role: 'Engenheiro de Software &bull; Maputo', comment: 'Os servidores VPS têm desempenho real sem sobrealocação. Estabilidade de padrão global.' }
   ])}
 
-  ${renderFaq('Perguntas Frequentes', 'Respostas rÃ¡pidas sobre migraÃ§Ã£o e funcionamento.', [
-    { q: 'A migraÃ§Ã£o do meu site atual para a WeHost tem algum custo?', a: 'NÃ£o! Migramos o seu site e contas de e-mail do seu provedor antigo sem qualquer custo e com zero tempo de inatividade.' },
-    { q: 'Quais mÃ©todos de pagamento aceitam?', a: 'Aceitamos pagamentos mensais ou anuais por M-Pesa, E-Mola, transferÃªncia bancÃ¡ria (BIM/BCI) e cartÃµes.' },
-    { q: 'O suporte tÃ©cnico funciona aos finais de semana e feriados?', a: 'Sim! A nossa equipa de suporte local opera 24 horas por dia, 7 dias por semana, inclusive feriados nacionais.' },
-    { q: 'Posso fazer upgrade de plano quando meu site crescer?', a: 'Com certeza! Pode mudar de plano instantaneamente sem qualquer perda de dados ou configuraÃ§Ã£o.' }
+  ${renderFaq('Perguntas Frequentes', 'Respostas rápidas sobre migração e funcionamento.', [
+    { q: 'A migração do meu site atual para a WeHost tem algum custo?', a: 'Não! Migramos o seu site e contas de e-mail do seu provedor antigo sem qualquer custo e com zero tempo de inatividade.' },
+    { q: 'Quais métodos de pagamento aceitam?', a: 'Aceitamos pagamentos mensais ou anuais por M-Pesa, E-Mola, transferência bancária (BIM/BCI) e cartões.' },
+    { q: 'O suporte técnico funciona aos finais de semana e feriados?', a: 'Sim! A nossa equipa de suporte local opera 24 horas por dia, 7 dias por semana, inclusive feriados nacionais.' },
+    { q: 'Posso fazer upgrade de plano quando meu site crescer?', a: 'Com certeza! Pode mudar de plano instantaneamente sem qualquer perda de dados ou configuração.' }
   ])}
 
-  ${renderBookingForm('AtivaÃ§Ã£o de Conta & Suporte Comercial', 'Escolha o serviÃ§o pretendido para receber atendimento imediato da equipa tÃ©cnica da WeHost.', [
-    'Hospedagem SSD NVMe (350 MT / mÃªs)',
-    'Servidor Cloud VPS Dedicado (1.450 MT / mÃªs)',
-    'Registo de DomÃ­nio Nacional .CO.MZ / .MZ',
-    'MigraÃ§Ã£o Gratuita de Website e E-mails',
+  ${renderBookingForm('Ativação de Conta & Suporte Comercial', 'Escolha o serviço pretendido para receber atendimento imediato da equipa técnica da WeHost.', [
+    'Hospedagem SSD NVMe (350 MT / mês)',
+    'Servidor Cloud VPS Dedicado (1.450 MT / mês)',
+    'Registo de Domínio Nacional .CO.MZ / .MZ',
+    'Migração Gratuita de Website e E-mails',
     'Pacote Corporativo Customizado'
   ], 'Falar com Especialista no WhatsApp')}
 
-  ${renderCta('Coloque o Seu Projeto Online Hoje Mesmo', 'Comece com a infraestrutura cloud mais estÃ¡vel e rÃ¡pida de MoÃ§ambique.', 'Ativar Conta no WhatsApp', 'OlÃ¡! Gostaria de ativar um plano de hospedagem.')}
+  ${renderCta('Coloque o Seu Projeto Online Hoje Mesmo', 'Comece com a infraestrutura cloud mais estável e rápida de Moçambique.', 'Ativar Conta no WhatsApp', 'Olá! Gostaria de ativar um plano de hospedagem.')}
 
   ${renderFooter(brand, navItems, waDefault)}
 </body>
 </html>`;
   }
 
-  // 7. GENÃ‰RICO / CORPORATIVO / EMPRESA DE ALTO PADRÃƒO
+  // 7. GENÉRICO / CORPORATIVO / EMPRESA DE ALTO PADRÃO
   const brand = title || 'Apex Corporativo & Consultoria';
   const navItems = [
-    { label: 'InÃ­cio', href: '#inicio' },
-    { label: 'SoluÃ§Ãµes', href: '#solucoes' },
+    { label: 'Início', href: '#inicio' },
+    { label: 'Soluções', href: '#solucoes' },
     { label: 'Galeria', href: '#galeria' },
     { label: 'Depoimentos', href: '#depoimentos' },
     { label: 'FAQ', href: '#faq' },
-    { label: 'Agendar ReuniÃ£o', href: '#agendamento' },
+    { label: 'Agendar Reunião', href: '#agendamento' },
     { label: 'Contacto', href: '#contacto' }
   ];
-  const waDefault = 'OlÃ¡! Gostaria de agendar uma reuniÃ£o com a equipa da ' + brand;
+  const waDefault = 'Olá! Gostaria de agendar uma reunião com a equipa da ' + brand;
 
   return `<!DOCTYPE html>
 <html lang="pt" class="dark">
-${renderHead(brand + ' | LideranÃ§a & InovaÃ§Ã£o')}
+${renderHead(brand + ' | Liderança & Inovação')}
 <body class="bg-black text-white antialiased">
   ${renderNavbar(brand, navItems, waDefault)}
 
@@ -1143,22 +1143,22 @@ ${renderHead(brand + ' | LideranÃ§a & InovaÃ§Ã£o')}
     <div class="relative z-10 max-w-4xl mx-auto">
       <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/15 bg-white/5 text-xs text-zinc-300 mb-8 backdrop-blur-md">
         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-        <span>Atendimento Corporativo &bull; MoÃ§ambique 2026</span>
+        <span>Atendimento Corporativo &bull; Moçambique 2026</span>
       </div>
       <h1 class="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-white mb-6 leading-tight">
-        SoluÃ§Ãµes EstratÃ©gicas para <span class="underline decoration-white/30 decoration-wavy">Empresas LÃ­deres</span>
+        Soluções Estratégicas para <span class="underline decoration-white/30 decoration-wavy">Empresas Líderes</span>
       </h1>
       <p class="text-zinc-400 text-base sm:text-lg max-w-2xl mx-auto mb-10 leading-relaxed">
-        Impulsionamos o crescimento sustentÃ¡vel de organizaÃ§Ãµes atravÃ©s de inteligÃªncia de mercado, processos eficientes e governaÃ§Ã£o sÃ³lida.
+        Impulsionamos o crescimento sustentável de organizações através de inteligência de mercado, processos eficientes e governação sólida.
       </p>
       <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
         <a href="#solucoes" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white text-black font-extrabold text-sm px-8 py-4 rounded-full hover:bg-zinc-200 transition shadow-xl">
           <i data-lucide="compass" class="w-4 h-4"></i>
-          <span>Nossas SoluÃ§Ãµes</span>
+          <span>Nossas Soluções</span>
         </a>
         <a href="#agendamento" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 border border-white/20 bg-white/5 text-white font-bold text-sm px-8 py-4 rounded-full hover:bg-white/10 transition">
           <i data-lucide="calendar" class="w-4 h-4"></i>
-          <span>Agendar ReuniÃ£o</span>
+          <span>Agendar Reunião</span>
         </a>
       </div>
     </div>
@@ -1166,8 +1166,8 @@ ${renderHead(brand + ' | LideranÃ§a & InovaÃ§Ã£o')}
 
   ${renderStats([
     { value: '140+ Empresas', label: 'Assessoradas com ÃŠxito' },
-    { value: '15+ Anos', label: 'TradiÃ§Ã£o no Mercado' },
-    { value: '98%', label: 'Ãndice de RetenÃ§Ã£o' },
+    { value: '15+ Anos', label: 'Tradição no Mercado' },
+    { value: '98%', label: 'Índice de Retenção' },
     { value: '24/7', label: 'Apoio aos Executivos' }
   ])}
 
@@ -1175,20 +1175,20 @@ ${renderHead(brand + ' | LideranÃ§a & InovaÃ§Ã£o')}
     <div class="text-center max-w-2xl mx-auto mb-16">
       <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/5 text-[11px] uppercase tracking-wider text-zinc-300 mb-4">
         <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
-        <span>PortfÃ³lio de ServiÃ§os</span>
+        <span>Portfólio de Serviços</span>
       </div>
-      <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white mb-4">SoluÃ§Ãµes Corporativas Integradas</h2>
-      <p class="text-zinc-400 text-sm sm:text-base leading-relaxed">Desenvolvidas para responder aos desafios dinÃ¢micos do ecossistema empresarial.</p>
+      <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white mb-4">Soluções Corporativas Integradas</h2>
+      <p class="text-zinc-400 text-sm sm:text-base leading-relaxed">Desenvolvidas para responder aos desafios dinâmicos do ecossistema empresarial.</p>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       ${[
-        { name: 'Consultoria de GestÃ£o & GovernanÃ§a', desc: 'EstruturaÃ§Ã£o de processos, conformidade legal e boas prÃ¡ticas para tomada de decisÃ£o assertiva.', price: 'Personalizado', icon: 'shield' },
-        { name: 'Planeamento Financeiro & EstratÃ©gico', desc: 'AnÃ¡lise de fluxo de caixa, orÃ§amento preditivo e maximizaÃ§Ã£o do retorno sobre investimento.', price: 'Personalizado', icon: 'trending-up' },
-        { name: 'TransformaÃ§Ã£o Digital & AutomaÃ§Ã£o', desc: 'ImplementaÃ§Ã£o de ferramentas modernas para reduzir custos operacionais e acelerar tarefas.', price: 'Personalizado', icon: 'cpu' },
-        { name: 'Auditoria & GestÃ£o de Riscos', desc: 'Mapeamento preventivo de vulnerabilidades fiscais, contratuais e operacionais na empresa.', price: 'Personalizado', icon: 'check-square' },
-        { name: 'Desenvolvimento de LideranÃ§as', desc: 'Programas executivos de capacitaÃ§Ã£o para gestores e diretores de alto rendimento.', price: 'Personalizado', icon: 'users' },
-        { name: 'ExpansÃ£o & Novos Mercados', desc: 'Estudos de viabilidade econÃ³mica e apoio estratÃ©gico na entrada em novos territÃ³rios.', price: 'Personalizado', icon: 'globe' }
+        { name: 'Consultoria de Gestão & Governança', desc: 'Estruturação de processos, conformidade legal e boas práticas para tomada de decisão assertiva.', price: 'Personalizado', icon: 'shield' },
+        { name: 'Planeamento Financeiro & Estratégico', desc: 'Análise de fluxo de caixa, orçamento preditivo e maximização do retorno sobre investimento.', price: 'Personalizado', icon: 'trending-up' },
+        { name: 'Transformação Digital & Automação', desc: 'Implementação de ferramentas modernas para reduzir custos operacionais e acelerar tarefas.', price: 'Personalizado', icon: 'cpu' },
+        { name: 'Auditoria & Gestão de Riscos', desc: 'Mapeamento preventivo de vulnerabilidades fiscais, contratuais e operacionais na empresa.', price: 'Personalizado', icon: 'check-square' },
+        { name: 'Desenvolvimento de Lideranças', desc: 'Programas executivos de capacitação para gestores e diretores de alto rendimento.', price: 'Personalizado', icon: 'users' },
+        { name: 'Expansão & Novos Mercados', desc: 'Estudos de viabilidade económica e apoio estratégico na entrada em novos territórios.', price: 'Personalizado', icon: 'globe' }
       ].map(item => `
       <div class="group p-6 rounded-2xl bg-zinc-950 border border-white/10 hover:border-white/25 transition duration-300 flex flex-col justify-between">
         <div>
@@ -1201,7 +1201,7 @@ ${renderHead(brand + ' | LideranÃ§a & InovaÃ§Ã£o')}
           <h3 class="text-lg font-bold text-white mb-2 tracking-tight group-hover:text-zinc-200 transition">${item.name}</h3>
           <p class="text-xs text-zinc-400 leading-relaxed mb-6">${item.desc}</p>
         </div>
-        <a href="https://wa.me/258848335618?text=${encodeURIComponent('OlÃ¡! Gostaria de uma proposta sobre: ' + item.name)}" target="_blank" class="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl border border-white/15 bg-white/5 text-xs font-semibold text-white hover:bg-white hover:text-black transition">
+        <a href="https://wa.me/258848335618?text=${encodeURIComponent('Olá! Gostaria de uma proposta sobre: ' + item.name)}" target="_blank" class="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl border border-white/15 bg-white/5 text-xs font-semibold text-white hover:bg-white hover:text-black transition">
           <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
           <span>Solicitar Proposta</span>
         </a>
@@ -1209,89 +1209,89 @@ ${renderHead(brand + ' | LideranÃ§a & InovaÃ§Ã£o')}
     </div>
   </section>
 
-  ${renderGallery('Diferenciais Competitivos & Estrutura', 'O que nos posiciona como parceiro de confianÃ§a das maiores empresas em MoÃ§ambique.', [
-    { title: 'Salas Executivas de Alta GovernanÃ§a', desc: 'EspaÃ§os pensados para deliberaÃ§Ãµes estratÃ©gicas, reuniÃµes de conselho e parcerias.', image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80', tag: 'GovernanÃ§a Corporativa' },
-    { title: 'PresenÃ§a e Credibilidade Regional', desc: 'Infraestrutura corporativa sÃ³lida e relaÃ§Ãµes institucionais em todo o paÃ­s.', image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80', tag: 'PresenÃ§a Regional' },
-    { title: 'InteligÃªncia e AnÃ¡lise de Dados', desc: 'RelatÃ³rios preditivos e auditoria para tomada de decisÃµes financeiras seguras e rentÃ¡veis.', image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80', tag: 'InteligÃªncia de Mercado' }
+  ${renderGallery('Diferenciais Competitivos & Estrutura', 'O que nos posiciona como parceiro de confiança das maiores empresas em Moçambique.', [
+    { title: 'Salas Executivas de Alta Governança', desc: 'Espaços pensados para deliberações estratégicas, reuniões de conselho e parcerias.', image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80', tag: 'Governança Corporativa' },
+    { title: 'Presença e Credibilidade Regional', desc: 'Infraestrutura corporativa sólida e relações institucionais em todo o país.', image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80', tag: 'Presença Regional' },
+    { title: 'Inteligência e Análise de Dados', desc: 'Relatórios preditivos e auditoria para tomada de decisões financeiras seguras e rentáveis.', image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80', tag: 'Inteligência de Mercado' }
   ])}
 
-  ${renderTestimonials('A ConfianÃ§a dos Nossos Parceiros', 'LÃ­deres empresariais que alcanÃ§aram novos patamares connosco.', [
-    { name: 'Dra. Laura Sitoe', role: 'Diretora Geral &bull; Grupo LS', comment: 'A clareza estratÃ©gica e o rigor da consultoria transformaram a nossa rentabilidade num momento crucial.' },
-    { name: 'Alberto Mondlane', role: 'Fundador &bull; AM IndÃºstrias', comment: 'Parceiros indispensÃ¡veis no nosso processo de transiÃ§Ã£o geracional e expansÃ£o regional.' },
-    { name: 'Celso Tembe', role: 'CFO &bull; LogÃ­stica MoÃ§ambique', comment: 'CompetÃªncia tÃ©cnica invejÃ¡vel, postura Ã©tica e resultados mensurÃ¡veis desde as primeiras semanas.' }
+  ${renderTestimonials('A Confiança dos Nossos Parceiros', 'Líderes empresariais que alcançaram novos patamares connosco.', [
+    { name: 'Dra. Laura Sitoe', role: 'Diretora Geral &bull; Grupo LS', comment: 'A clareza estratégica e o rigor da consultoria transformaram a nossa rentabilidade num momento crucial.' },
+    { name: 'Alberto Mondlane', role: 'Fundador &bull; AM Indústrias', comment: 'Parceiros indispensáveis no nosso processo de transição geracional e expansão regional.' },
+    { name: 'Celso Tembe', role: 'CFO &bull; Logística Moçambique', comment: 'Competência técnica invejável, postura ética e resultados mensuráveis desde as primeiras semanas.' }
   ])}
 
-  ${renderFaq('Perguntas Frequentes', 'Respostas sobre o nosso formato de actuaÃ§Ã£o.', [
-    { q: 'Como iniciamos um trabalho de consultoria?', a: 'Realizamos primeiro uma sessÃ£o diagnÃ³stica sem custos para avaliar os principais gargalos e oportunidades da organizaÃ§Ã£o.' },
-    { q: 'Atendem empresas fora de Maputo?', a: 'Sim! Atendemos organizaÃ§Ãµes em todas as provÃ­ncias de MoÃ§ambique de forma presencial ou remota.' },
-    { q: 'Qual o tempo mÃ©dio de um projeto corporativo?', a: 'Os contratos variam de intervenÃ§Ãµes pontuais de 60 dias a acompanhamentos contÃ­nuos de governanÃ§a anual.' },
-    { q: 'Como Ã© garantida a confidencialidade?', a: 'Todos os trabalhos sÃ£o protegidos por acordos de confidencialidade estritos e protocolos de seguranÃ§a de dados.' }
+  ${renderFaq('Perguntas Frequentes', 'Respostas sobre o nosso formato de actuação.', [
+    { q: 'Como iniciamos um trabalho de consultoria?', a: 'Realizamos primeiro uma sessão diagnóstica sem custos para avaliar os principais gargalos e oportunidades da organização.' },
+    { q: 'Atendem empresas fora de Maputo?', a: 'Sim! Atendemos organizações em todas as províncias de Moçambique de forma presencial ou remota.' },
+    { q: 'Qual o tempo médio de um projeto corporativo?', a: 'Os contratos variam de intervenções pontuais de 60 dias a acompanhamentos contínuos de governança anual.' },
+    { q: 'Como é garantida a confidencialidade?', a: 'Todos os trabalhos são protegidos por acordos de confidencialidade estritos e protocolos de segurança de dados.' }
   ])}
 
-  ${renderBookingForm('SessÃ£o DiagnÃ³stica & Proposta Executiva', 'Preencha o formulÃ¡rio institucional para agendarmos uma reuniÃ£o com os nossos consultores seniores.', [
-    'Consultoria de GestÃ£o & GovernanÃ§a',
-    'Planeamento EstratÃ©gico & Financeiro',
-    'TransformaÃ§Ã£o Digital & AutomaÃ§Ã£o',
+  ${renderBookingForm('Sessão Diagnóstica & Proposta Executiva', 'Preencha o formulário institucional para agendarmos uma reunião com os nossos consultores seniores.', [
+    'Consultoria de Gestão & Governança',
+    'Planeamento Estratégico & Financeiro',
+    'Transformação Digital & Automação',
     'Auditoria de Processos & Compliance',
-    'Programa de Desenvolvimento de LideranÃ§as',
+    'Programa de Desenvolvimento de Lideranças',
     'Estudo de Viabilidade para Novos Mercados'
-  ], 'Solicitar ReuniÃ£o pelo WhatsApp')}
+  ], 'Solicitar Reunião pelo WhatsApp')}
 
-  ${renderCta('Agende uma SessÃ£o EstratÃ©gica Executiva', 'Descubra como podemos acelerar a consolidaÃ§Ã£o e eficiÃªncia da sua empresa.', 'Falar com Consultor no WhatsApp', 'OlÃ¡! Gostaria de agendar uma reuniÃ£o estratÃ©gica.')}
+  ${renderCta('Agende uma Sessão Estratégica Executiva', 'Descubra como podemos acelerar a consolidação e eficiência da sua empresa.', 'Falar com Consultor no WhatsApp', 'Olá! Gostaria de agendar uma reunião estratégica.')}
 
   ${renderFooter(brand, navItems, waDefault)}
 </body>
 </html>`;
 }
 
-// â”€â”€â”€ System Instruction (Diretrizes Estritas Preto & Branco com Menu e RodapÃ©) â”€
+// â”€â”€â”€ System Instruction (Diretrizes Estritas Preto & Branco com Menu e Rodapé) â”€
 const SYSTEM_INSTRUCTION = `Voce e o Construtor de Sites IA da WEHOSTHERE (uma plataforma cloud em Mocambique).
 Sua missao e gerar ou aprimorar uma pagina web HTML5 COMPLETA, AUTONOMA, MODERNA, RESPONSIVA e IMPRESSIONANTE para o cliente.
 DIRETRIZES CRITICAS DE DESIGN E ESTRUTURA:
 1. Retorne APENAS o codigo HTML completo (comecando em <!DOCTYPE html> e terminando em </html>). NAO inclua explicacoes ou texto antes ou depois.
 2. Use Tailwind CSS via CDN: <script src="https://cdn.tailwindcss.com"></script>
 3. Use Google Fonts (Plus Jakarta Sans ou Inter).
-4. ESTETICA OBRIGATORIA: TEMA PRETO E BRANCO (Black & White / Minimalist Luxury). Fundo preto (#000000 ou #050505), texto em branco (#ffffff) e cinza (#a1a1aa), com bordas suaves (border-white/10). BotÃµes de acao principais em BRANCO PURO com texto preto (bg-white text-black font-extrabold hover:bg-zinc-200).
+4. ESTETICA OBRIGATORIA: TEMA PRETO E BRANCO (Black & White / Minimalist Luxury). Fundo preto (#000000 ou #050505), texto em branco (#ffffff) e cinza (#a1a1aa), com bordas suaves (border-white/10). Botões de acao principais em BRANCO PURO com texto preto (bg-white text-black font-extrabold hover:bg-zinc-200).
 5. MENU / NAVBAR: Simples e bonito, fixo ou sticky no topo (sticky top-0 backdrop-blur-xl bg-black/85 border-b border-white/10), com logo em caixa monocromatica, links essenciais e botao WhatsApp em branco.
 6. RODAPE / FOOTER: Simples e bonito no fundo com divisor (border-t border-white/10), nome da marca, links rapidos e copyright "2026. Todos os direitos reservados."
 7. ESTRUTURA COMPLETA E RICA (LOGO NO PRIMEIRO PROMPT):
-   - Navbar com logo monocromÃ¡tico, links Ã¢ncora e botÃ£o WhatsApp em branco
-   - Hero impactante com badge pulsante ("DisponÃ­vel em MoÃ§ambique"), H1 marcante, subtÃ­tulo e 2 botÃµes de CTA
-   - Barra de EstatÃ­sticas (Stats bar com 4 mÃ©tricas expressivas)
-   - SecÃ§Ã£o Principal (ServiÃ§os/CardÃ¡pio/Produtos) com grid de 6 cards ricos, preÃ§os em Meticais (MT) e botÃµes de aÃ§Ã£o
-   - Galeria / Showcase Visual (3 cards com IMAGENS REAIS E DE ALTA DEFINIÃ‡ÃƒO DO UNSPLASH https://images.unsplash.com/photo-... com proporÃ§Ã£o h-60 w-full object-cover, tags de categoria e efeito hover zoom)
-   - Depoimentos / Prova Social (3 testemunhos com 5 estrelas e localizaÃ§Ã£o em MoÃ§ambique)
-   - FAQ Interativo (4 perguntas frequentes com accordion retrÃ¡til em JavaScript nativo)
-   - FormulÃ¡rio Interativo de Agendamento/Contacto (#agendamento): campos Nome, TelemÃ³vel, ServiÃ§o/OpÃ§Ã£o e Data, com validaÃ§Ã£o e envio formatado direto para o WhatsApp via window.open
+   - Navbar com logo monocromático, links âncora e botão WhatsApp em branco
+   - Hero impactante com badge pulsante ("Disponível em Moçambique"), H1 marcante, subtítulo e 2 botões de CTA
+   - Barra de Estatísticas (Stats bar com 4 métricas expressivas)
+   - Secção Principal (Serviços/Cardápio/Produtos) com grid de 6 cards ricos, preços em Meticais (MT) e botões de ação
+   - Galeria / Showcase Visual (3 cards com IMAGENS REAIS E DE ALTA DEFINIÇÃO DO UNSPLASH https://images.unsplash.com/photo-... com proporção h-60 w-full object-cover, tags de categoria e efeito hover zoom)
+   - Depoimentos / Prova Social (3 testemunhos com 5 estrelas e localização em Moçambique)
+   - FAQ Interativo (4 perguntas frequentes com accordion retrátil em JavaScript nativo)
+   - Formulário Interativo de Agendamento/Contacto (#agendamento): campos Nome, Telemóvel, Serviço/Opção e Data, com validação e envio formatado direto para o WhatsApp via window.open
    - Banner de CTA Final de alto impacto com gradiente radial e link para WhatsApp
-   - BotÃ£o Flutuante do WhatsApp no canto inferior direito (fixed bottom-6 right-6 z-50 bg-white text-black font-extrabold px-5 py-3.5 rounded-full shadow-2xl hover:scale-110)
-   - RodapÃ© Multi-Coluna (Marca & bio, NavegaÃ§Ã£o, Contacto em MoÃ§ambique e Pagamentos: M-Pesa, E-Mola, BIM/BCI).
-8. ÃCONES PROFISSIONAIS OBRIGATÃ“RIOS (REGRA DE OURO):
-   - Ã‰ ESTRITAMENTE PROIBIDO USAR EMOJIS (ex: ðŸš€, ðŸ’», âš¡, ðŸ”’, ðŸŽ¯, â­, ðŸ•, ðŸ¨, ðŸ›’, etc.) como Ã­cones de cards, serviÃ§os, vantagens ou tÃ­tulos. Emojis parecem amadores e destroem o visual profissional.
-   - USE SEMPRE ÃCONES SVG PROFISSIONAIS INLINE com Tailwind CSS (ex: <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="..."/></svg>) OU utilize a biblioteca Lucide Icons via CDN:
+   - Botão Flutuante do WhatsApp no canto inferior direito (fixed bottom-6 right-6 z-50 bg-white text-black font-extrabold px-5 py-3.5 rounded-full shadow-2xl hover:scale-110)
+   - Rodapé Multi-Coluna (Marca & bio, Navegação, Contacto em Moçambique e Pagamentos: M-Pesa, E-Mola, BIM/BCI).
+8. ÍCONES PROFISSIONAIS OBRIGATÓRIOS (REGRA DE OURO):
+   - É ESTRITAMENTE PROIBIDO USAR EMOJIS (ex: ðŸš€, ðŸ’», âš¡, ðŸ”’, ðŸŽ¯, â­, ðŸ•, ðŸ¨, ðŸ›’, etc.) como ícones de cards, serviços, vantagens ou títulos. Emojis parecem amadores e destroem o visual profissional.
+   - USE SEMPRE ÍCONES SVG PROFISSIONAIS INLINE com Tailwind CSS (ex: <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="..."/></svg>) OU utilize a biblioteca Lucide Icons via CDN:
      No <head>: <script src="https://unpkg.com/lucide@latest"></script>
      Nos cards: <i data-lucide="shield" class="w-6 h-6 text-white"></i> (ou "zap", "server", "globe", "cpu", "star", "phone", etc.)
      Antes de </body>: <script>lucide.createIcons();</script>
-   - Envolva sempre cada Ã­cone numa caixa elegante de suporte com cantos arredondados (ex: <div class="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white mb-4">...</div>).
-9. Se houver HTML atual, REFINE e ATUALIZE mantendo essa estetica preta e branca minimalista de alto luxo e garantindo que todos os Ã­cones sejam profissionais em SVG.
-10. NAVEGAÃ‡ÃƒO E LINKS CLICÃVEIS (REGRA OBRIGATÃ“RIA):
-    - TODOS os links de navegaÃ§Ã£o (<nav> e menu do cabeÃ§alho) DEVEM ser 100% clicÃ¡veis e funcionar com Ã¢ncoras (<a href="#inicio">, <a href="#solucoes"> ou <a href="#servicos">, <a href="#vantagens">, <a href="#precos">, <a href="#contacto">).
-    - Para CADA link de navegaÃ§Ã£o no menu, DEVE OBRIGATORIAMENTE existir no corpo do documento a respectiva secÃ§Ã£o com o atributo id exato (ex: <section id="inicio">, <section id="solucoes">, <section id="vantagens">, <section id="precos">, <footer id="contacto">).
-    - O <head> DEVE conter SEMPRE: <style>html { scroll-behavior: smooth; } section[id] { scroll-margin-top: 5rem; }</style> para que a navegaÃ§Ã£o suave funcione sem que o cabeÃ§alho fixo cubra os tÃ­tulos.
-    - Se houver botÃ£o de WhatsApp, DEVE ter link real no formato: href="https://wa.me/NUMERO?text=MENSAGEM".`;
+   - Envolva sempre cada ícone numa caixa elegante de suporte com cantos arredondados (ex: <div class="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white mb-4">...</div>).
+9. Se houver HTML atual, REFINE e ATUALIZE mantendo essa estetica preta e branca minimalista de alto luxo e garantindo que todos os ícones sejam profissionais em SVG.
+10. NAVEGAÇÃO E LINKS CLICÁVEIS (REGRA OBRIGATÓRIA):
+    - TODOS os links de navegação (<nav> e menu do cabeçalho) DEVEM ser 100% clicáveis e funcionar com âncoras (<a href="#inicio">, <a href="#solucoes"> ou <a href="#servicos">, <a href="#vantagens">, <a href="#precos">, <a href="#contacto">).
+    - Para CADA link de navegação no menu, DEVE OBRIGATORIAMENTE existir no corpo do documento a respectiva secção com o atributo id exato (ex: <section id="inicio">, <section id="solucoes">, <section id="vantagens">, <section id="precos">, <footer id="contacto">).
+    - O <head> DEVE conter SEMPRE: <style>html { scroll-behavior: smooth; } section[id] { scroll-margin-top: 5rem; }</style> para que a navegação suave funcione sem que o cabeçalho fixo cubra os títulos.
+    - Se houver botão de WhatsApp, DEVE ter link real no formato: href="https://wa.me/NUMERO?text=MENSAGEM".`;
 
-// â”€â”€â”€ DetecÃ§Ã£o de IntenÃ§Ã£o Conversacional (Chat vs GeraÃ§Ã£o de CÃ³digo) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// â”€â”€â”€ Detecção de Intenção Conversacional (Chat vs Geração de Código) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function detectConversationalIntent(prompt: string, hasCurrentHtml: boolean): { isChat: boolean; reply: string } {
   const p = prompt.trim().toLowerCase();
 
-  // Palavras-chave que indicam claramente um comando ou pedido de construÃ§Ã£o/ediÃ§Ã£o de site
+  // Palavras-chave que indicam claramente um comando ou pedido de construção/edição de site
   const actionKeywords = [
     'cria', 'criar', 'construir', 'construa', 'faz', 'fazer', 'muda', 'mudar', 
     'altera', 'alterar', 'adiciona', 'adicionar', 'remove', 'remover', 'elimina',
     'troca', 'trocar', 'coloca', 'colocar', 'desenvolve', 'desenvolver',
-    'site', 'website', 'landing', 'pagina', 'pÃ¡gina', 'loja', 'ecommerce', 
-    'restaurante', 'barbearia', 'hotel', 'resort', 'preÃ§o', 'preco', 'precos',
-    'botao', 'botÃ£o', 'whatsapp', 'formulario', 'formulÃ¡rio', 'tabela', 'cor', 'cores',
+    'site', 'website', 'landing', 'pagina', 'página', 'loja', 'ecommerce', 
+    'restaurante', 'barbearia', 'hotel', 'resort', 'preço', 'preco', 'precos',
+    'botao', 'botão', 'whatsapp', 'formulario', 'formulário', 'tabela', 'cor', 'cores',
     'tema', 'fundo', 'header', 'footer', 'menu', 'navbar', 'hero', 'banner', 'design'
   ];
 
@@ -1300,39 +1300,39 @@ function detectConversationalIntent(prompt: string, hasCurrentHtml: boolean): { 
     return { isChat: false, reply: '' };
   }
 
-  // SaudaÃ§Ãµes tÃ­picas (sem pedido de aÃ§Ã£o)
+  // Saudações típicas (sem pedido de ação)
   const greetings = [
-    'ola', 'olÃ¡', 'oi', 'oii', 'oiii', 'hey', 'hello', 'hi', 'bom dia', 'boa tarde', 
-    'boa noite', 'tudo bem', 'tudo bom', 'tudo bem?', 'opa', 'e aÃ­', 'e ai', 
-    'fala aÃ­', 'salve'
+    'ola', 'olá', 'oi', 'oii', 'oiii', 'hey', 'hello', 'hi', 'bom dia', 'boa tarde', 
+    'boa noite', 'tudo bem', 'tudo bom', 'tudo bem?', 'opa', 'e aí', 'e ai', 
+    'fala aí', 'salve'
   ];
   if (greetings.includes(p) || greetings.some(g => p === g || p === `${g}!` || p === `${g}.` || p === `${g}?`)) {
     return {
       isChat: true,
       reply: hasCurrentHtml
-        ? 'OlÃ¡! Como posso ajudar a aprimorar o seu website? Pode pedir para mudar cores, adicionar novas secÃ§Ãµes, incluir botÃ£o de WhatsApp, catÃ¡logo de serviÃ§os ou preÃ§os.'
-        : 'OlÃ¡! Sou o Construtor com InteligÃªncia Artificial da WEHOSTHERE. Que tipo de website ou sistema deseja criar hoje? (Por exemplo: um restaurante, barbearia, portfÃ³lio, loja online ou pÃ¡gina de captura).'
+        ? 'Olá! Como posso ajudar a aprimorar o seu website? Pode pedir para mudar cores, adicionar novas secções, incluir botão de WhatsApp, catálogo de serviços ou preços.'
+        : 'Olá! Sou o Construtor com Inteligência Artificial da WEHOSTHERE. Que tipo de website ou sistema deseja criar hoje? (Por exemplo: um restaurante, barbearia, portfólio, loja online ou página de captura).'
     };
   }
 
-  // DÃºvidas de como usar ou quem Ã©
+  // Dúvidas de como usar ou quem é
   if (
     p.includes('como funciona') || p.includes('o que fazes') || p.includes('o que podes fazer') || 
-    p.includes('quem Ã©s tu') || p.includes('quem e voce') || p.includes('como usar') ||
+    p.includes('quem és tu') || p.includes('quem e voce') || p.includes('como usar') ||
     p === 'ajuda' || p === 'help' || p.includes('podes me ajudar')
   ) {
     return {
       isChat: true,
-      reply: 'Eu crio e altero websites completos e responsivos em tempo real! Pode simplesmente descrever o que precisa no chat, por exemplo:\n\nâ€¢ "Cria uma landing page para uma clÃ­nica mÃ©dica com agendamento"\nâ€¢ "Adiciona um botÃ£o de WhatsApp flutuante"\nâ€¢ "Muda a paleta de cores para tema escuro e dourado"\n\nAssim que fizer o pedido, vou gerar o cÃ³digo ao vivo no terminal e atualizar o preview!'
+      reply: 'Eu crio e altero websites completos e responsivos em tempo real! Pode simplesmente descrever o que precisa no chat, por exemplo:\n\nâ€¢ "Cria uma landing page para uma clínica médica com agendamento"\nâ€¢ "Adiciona um botão de WhatsApp flutuante"\nâ€¢ "Muda a paleta de cores para tema escuro e dourado"\n\nAssim que fizer o pedido, vou gerar o código ao vivo no terminal e atualizar o preview!'
     };
   }
 
-  // Elogios ou confirmaÃ§Ãµes curtas
+  // Elogios ou confirmações curtas
   const courtesies = ['obrigado', 'obrigada', 'valeu', 'top', 'muito bom', 'gostei', 'show', 'legal', 'perfeito', 'ok', 'entendi'];
   if (courtesies.includes(p) || courtesies.some(c => p === c || p === `${c}!` || p === `${c}.`)) {
     return {
       isChat: true,
-      reply: 'De nada! O projeto continua pronto no preview. Se quiser fazer mais alteraÃ§Ãµes Ã© sÃ³ pedir, ou pode clicar no botÃ£o branco "Publicar" para colocÃ¡-lo online no seu subdomÃ­nio com SSL!'
+      reply: 'De nada! O projeto continua pronto no preview. Se quiser fazer mais alterações é só pedir, ou pode clicar no botão branco "Publicar" para colocá-lo online no seu subdomínio com SSL!'
     };
   }
 
@@ -1413,13 +1413,13 @@ export async function POST(request: NextRequest) {
 
       // â”€â”€ MODO CONVERSA / CONSULTORIA EXPLICITA (Sem alterar o site) â”€â”€â”€â”€â”€â”€â”€â”€â”€
       if (mode === 'chat') {
-        const chatPrompt = `VocÃª Ã© o Consultor Especialista de PresenÃ§a Digital, Design e EstratÃ©gia da WEHOSTHERE (lÃ­der de hospedagem e criaÃ§Ã£o de sites em MoÃ§ambique).
-O utilizador estÃ¡ a conversar consigo sobre o projeto de website "${title || 'Meu Site'}".
-Responda de forma clara, amigÃ¡vel, motivadora e estruturada em portuguÃªs.
-DÃª sugestÃµes prÃ¡ticas de marketing digital, ideias de conteÃºdo/textos, boas prÃ¡ticas de experiÃªncia do utilizador e dicas adaptadas ao mercado moÃ§ambicano (como pagamentos M-Pesa/e-Mola, pedidos via WhatsApp e moeda Meticais MZN).
-IMPORTANTE: NÃ£o gere cÃ³digo HTML de pÃ¡ginas completas. O utilizador estÃ¡ no Modo Conversa para planear e tirar dÃºvidas.
+        const chatPrompt = `Você é o Consultor Especialista de Presença Digital, Design e Estratégia da WEHOSTHERE (líder de hospedagem e criação de sites em Moçambique).
+O utilizador está a conversar consigo sobre o projeto de website "${title || 'Meu Site'}".
+Responda de forma clara, amigável, motivadora e estruturada em português.
+Dê sugestões práticas de marketing digital, ideias de conteúdo/textos, boas práticas de experiência do utilizador e dicas adaptadas ao mercado moçambicano (como pagamentos M-Pesa/e-Mola, pedidos via WhatsApp e moeda Meticais MZN).
+IMPORTANTE: Não gere código HTML de páginas completas. O utilizador está no Modo Conversa para planear e tirar dúvidas.
 
-PEDIDO / DÃšVIDA DO UTILIZADOR: "${prompt}"`;
+PEDIDO / DÚVIDA DO UTILIZADOR: "${prompt}"`;
 
         if (geminiKey) {
           try {
@@ -1476,12 +1476,12 @@ PEDIDO / DÃšVIDA DO UTILIZADOR: "${prompt}"`;
 
         // Resposta de fallback inteligente
         const conversational = detectConversationalIntent(prompt, Boolean(currentHtml));
-        const defaultChatReply = conversational.reply || `Entendido! Como seu consultor da WEHOSTHERE, recomendo estruturar o seu website com foco na simplicidade e conversÃ£o direta. Destaque uma mensagem de boas-vindas forte, mostre os seus principais produtos ou serviÃ§os com valores transparentes em Meticais (MZN) e adicione botÃµes de contacto direto via WhatsApp.\n\nQuando estiver pronto para aplicar alteraÃ§Ãµes visuais no seu site, mude para o "Modo Desenvolvimento" no topo da caixa de texto!`;
+        const defaultChatReply = conversational.reply || `Entendido! Como seu consultor da WEHOSTHERE, recomendo estruturar o seu website com foco na simplicidade e conversão direta. Destaque uma mensagem de boas-vindas forte, mostre os seus principais produtos ou serviços com valores transparentes em Meticais (MZN) e adicione botões de contacto direto via WhatsApp.\n\nQuando estiver pronto para aplicar alterações visuais no seu site, mude para o "Modo Desenvolvimento" no topo da caixa de texto!`;
         sse.chat(defaultChatReply, 'Consultor WEHOSTHERE');
         return;
       }
 
-      // â”€â”€ 0. Verificar se Ã© conversa automÃ¡tica (OlÃ¡, Como funciona, DÃºvidas) â”€
+      // â”€â”€ 0. Verificar se é conversa automática (Olá, Como funciona, Dúvidas) â”€
       const conversational = detectConversationalIntent(prompt, Boolean(currentHtml));
       if (conversational.isChat) {
         sse.chat(conversational.reply, 'Assistente WEHOSTHERE');
@@ -1661,7 +1661,7 @@ PEDIDO / DÃšVIDA DO UTILIZADOR: "${prompt}"`;
       sse.done(
         currentHtml
           ? `Ajustamos o seu site com base no pedido: "${prompt}".`
-          : `Pagina base criada para "${prompt}". Pode refinÃ¡-la agora!`,
+          : `Pagina base criada para "${prompt}". Pode refiná-la agora!`,
         currentHtml ? '+18 / -5' : '+95 linhas',
         elapsed(),
         'Modelo Base Local (Offline)'

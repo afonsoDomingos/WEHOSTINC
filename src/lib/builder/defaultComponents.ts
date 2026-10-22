@@ -1,5 +1,5 @@
-﻿// ============================================================================
-// ðŸŽ¨ WEHOSTHERE VISUAL BUILDER â€” COMPONENTES PADRÃƒO & BIBLIOTECA ELEMENTOR-LIKE
+// ============================================================================
+// ðŸŽ¨ WEHOSTHERE VISUAL BUILDER â€” COMPONENTES PADRÃO & BIBLIOTECA ELEMENTOR-LIKE
 // ============================================================================
 
 import {
@@ -25,36 +25,36 @@ export interface ComponentMeta {
 
 export const COMPONENT_CATALOG: ComponentMeta[] = [
   // Layout
-  { type: 'section', title: 'SecÃ§Ã£o', category: 'layout', icon: 'Layout', description: 'Bloco de largura total com container centrado' },
-  { type: 'container', title: 'Container', category: 'layout', icon: 'Box', description: 'Caixa de conteÃºdo com largura mÃ¡xima' },
-  { type: 'grid', title: 'Grelha (Grid)', category: 'layout', icon: 'Grid3X3', description: 'DistribuiÃ§Ã£o em colunas responsivas' },
-  { type: 'row', title: 'Linha Flex', category: 'layout', icon: 'Rows', description: 'Linha horizontal flexÃ­vel com espaÃ§amento' },
-  { type: 'column', title: 'Coluna', category: 'layout', icon: 'Columns', description: 'Coluna vertical flexÃ­vel' },
-  { type: 'navbar', title: 'Menu Superior', category: 'layout', icon: 'Navigation', description: 'Barra de navegaÃ§Ã£o com logotipo e links' },
-  { type: 'footer', title: 'RodapÃ©', category: 'layout', icon: 'PanelBottom', description: 'RodapÃ© com links, direitos e redes sociais' },
+  { type: 'section', title: 'Secção', category: 'layout', icon: 'Layout', description: 'Bloco de largura total com container centrado' },
+  { type: 'container', title: 'Container', category: 'layout', icon: 'Box', description: 'Caixa de conteúdo com largura máxima' },
+  { type: 'grid', title: 'Grelha (Grid)', category: 'layout', icon: 'Grid3X3', description: 'Distribuição em colunas responsivas' },
+  { type: 'row', title: 'Linha Flex', category: 'layout', icon: 'Rows', description: 'Linha horizontal flexível com espaçamento' },
+  { type: 'column', title: 'Coluna', category: 'layout', icon: 'Columns', description: 'Coluna vertical flexível' },
+  { type: 'navbar', title: 'Menu Superior', category: 'layout', icon: 'Navigation', description: 'Barra de navegação com logotipo e links' },
+  { type: 'footer', title: 'Rodapé', category: 'layout', icon: 'PanelBottom', description: 'Rodapé com links, direitos e redes sociais' },
 
-  // ConteÃºdo BÃ¡sico
-  { type: 'heading', title: 'TÃ­tulo', category: 'basic', icon: 'Heading', description: 'TÃ­tulos H1 a H6 com tipografia expressiva' },
-  { type: 'text', title: 'Texto / ParÃ¡grafo', category: 'basic', icon: 'AlignLeft', description: 'Bloco de texto com formataÃ§Ã£o visual' },
-  { type: 'button', title: 'BotÃ£o CTA', category: 'basic', icon: 'MousePointerClick', description: 'BotÃ£o de aÃ§Ã£o clicÃ¡vel com variantes de estilo' },
+  // Conteúdo Básico
+  { type: 'heading', title: 'Título', category: 'basic', icon: 'Heading', description: 'Títulos H1 a H6 com tipografia expressiva' },
+  { type: 'text', title: 'Texto / Parágrafo', category: 'basic', icon: 'AlignLeft', description: 'Bloco de texto com formatação visual' },
+  { type: 'button', title: 'Botão CTA', category: 'basic', icon: 'MousePointerClick', description: 'Botão de ação clicável com variantes de estilo' },
   { type: 'image', title: 'Imagem', category: 'basic', icon: 'Image', description: 'Imagem responsiva com cantos arredondados' },
-  { type: 'icon', title: 'Ãcone', category: 'basic', icon: 'Sparkles', description: 'Ãcone Lucide com cor e tamanho ajustÃ¡veis' },
+  { type: 'icon', title: 'Ícone', category: 'basic', icon: 'Sparkles', description: 'Ícone Lucide com cor e tamanho ajustáveis' },
   { type: 'badge', title: 'Distintivo / Pill', category: 'basic', icon: 'Tag', description: 'Etiqueta compacta para destacar novidades' },
-  { type: 'divider', title: 'Separador', category: 'basic', icon: 'Minus', description: 'Linha divisÃ³ria sutil com gradiente' },
-  { type: 'spacer', title: 'EspaÃ§ador', category: 'basic', icon: 'MoveVertical', description: 'EspaÃ§o em branco para respiro visual' },
+  { type: 'divider', title: 'Separador', category: 'basic', icon: 'Minus', description: 'Linha divisória sutil com gradiente' },
+  { type: 'spacer', title: 'Espaçador', category: 'basic', icon: 'MoveVertical', description: 'Espaço em branco para respiro visual' },
 
   // Blocos Compostos
-  { type: 'card', title: 'Card de Destaque', category: 'blocks', icon: 'SquareCode', description: 'Card com Ã­cone, tÃ­tulo, descriÃ§Ã£o e link' },
-  { type: 'features', title: '3 BenefÃ­cios', category: 'blocks', icon: 'CheckCircle2', description: 'Grelha de 3 recursos com Ã­cones modernos' },
-  { type: 'pricing-table', title: 'Tabela de PreÃ§os', category: 'blocks', icon: 'CreditCard', description: 'Planos comparativos com plano destaque' },
-  { type: 'testimonials', title: 'Depoimentos', category: 'blocks', icon: 'Quote', description: 'AvaliaÃ§Ãµes de clientes com estrelas e fotos' },
-  { type: 'faq', title: 'Perguntas Frequentes', category: 'blocks', icon: 'HelpCircle', description: 'Lista de FAQ com respostas em acordeÃ£o' },
-  { type: 'contact-form', title: 'FormulÃ¡rio', category: 'blocks', icon: 'Mail', description: 'FormulÃ¡rio de contacto com validaÃ§Ã£o' },
-  { type: 'whatsapp-button', title: 'BotÃ£o WhatsApp', category: 'blocks', icon: 'MessageCircle', description: 'BotÃ£o com link direto para conversa no WhatsApp' },
-  { type: 'custom-html', title: 'HTML Livre', category: 'blocks', icon: 'Code', description: 'Bloco de cÃ³digo livre para embeds ou widgets' },
+  { type: 'card', title: 'Card de Destaque', category: 'blocks', icon: 'SquareCode', description: 'Card com ícone, título, descrição e link' },
+  { type: 'features', title: '3 Benefícios', category: 'blocks', icon: 'CheckCircle2', description: 'Grelha de 3 recursos com ícones modernos' },
+  { type: 'pricing-table', title: 'Tabela de Preços', category: 'blocks', icon: 'CreditCard', description: 'Planos comparativos com plano destaque' },
+  { type: 'testimonials', title: 'Depoimentos', category: 'blocks', icon: 'Quote', description: 'Avaliações de clientes com estrelas e fotos' },
+  { type: 'faq', title: 'Perguntas Frequentes', category: 'blocks', icon: 'HelpCircle', description: 'Lista de FAQ com respostas em acordeão' },
+  { type: 'contact-form', title: 'Formulário', category: 'blocks', icon: 'Mail', description: 'Formulário de contacto com validação' },
+  { type: 'whatsapp-button', title: 'Botão WhatsApp', category: 'blocks', icon: 'MessageCircle', description: 'Botão com link direto para conversa no WhatsApp' },
+  { type: 'custom-html', title: 'HTML Livre', category: 'blocks', icon: 'Code', description: 'Bloco de código livre para embeds ou widgets' },
 ];
 
-// â”€â”€â”€ Tema Global PadrÃ£o â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// â”€â”€â”€ Tema Global Padrão â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const DEFAULT_THEME: GlobalSiteTheme = {
   primaryColor: '#3b82f6',
   secondaryColor: '#6366f1',
@@ -67,7 +67,7 @@ export const DEFAULT_THEME: GlobalSiteTheme = {
   mode: 'dark',
 };
 
-// â”€â”€â”€ FÃ¡brica de Componentes PadrÃ£o â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// â”€â”€â”€ Fábrica de Componentes Padrão â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export function createDefaultComponent(type: ComponentType, customName?: string): VisualComponent {
   const id = generateComponentId(type);
 
@@ -79,7 +79,7 @@ export function createDefaultComponent(type: ComponentType, customName?: string)
       return {
         id,
         type: 'section',
-        name: customName || 'SecÃ§Ã£o',
+        name: customName || 'Secção',
         content: {},
         styles: {
           desktop: {
@@ -93,7 +93,7 @@ export function createDefaultComponent(type: ComponentType, customName?: string)
         },
         parentId: null,
         children: [
-          createDefaultComponent('container', 'Container da SecÃ§Ã£o'),
+          createDefaultComponent('container', 'Container da Secção'),
         ],
       };
 
@@ -122,7 +122,7 @@ export function createDefaultComponent(type: ComponentType, customName?: string)
       return {
         id,
         type: 'row',
-        name: customName || 'Linha FlexÃ­vel',
+        name: customName || 'Linha Flexível',
         content: {},
         styles: {
           desktop: {
@@ -188,9 +188,9 @@ export function createDefaultComponent(type: ComponentType, customName?: string)
       return {
         id,
         type: 'heading',
-        name: customName || 'TÃ­tulo Principal',
+        name: customName || 'Título Principal',
         content: {
-          text: 'Construa Algo ExtraordinÃ¡rio Hoje',
+          text: 'Construa Algo Extraordinário Hoje',
           headingLevel: 'h2',
         },
         styles: {
@@ -215,9 +215,9 @@ export function createDefaultComponent(type: ComponentType, customName?: string)
       return {
         id,
         type: 'text',
-        name: customName || 'ParÃ¡grafo',
+        name: customName || 'Parágrafo',
         content: {
-          text: 'Desenvolvemos soluÃ§Ãµes digitais de alta performance que impulsionam o crescimento do seu negÃ³cio com rapidez, seguranÃ§a e design de classe mundial.',
+          text: 'Desenvolvemos soluções digitais de alta performance que impulsionam o crescimento do seu negócio com rapidez, segurança e design de classe mundial.',
         },
         styles: {
           desktop: {
@@ -235,9 +235,9 @@ export function createDefaultComponent(type: ComponentType, customName?: string)
       return {
         id,
         type: 'button',
-        name: customName || 'BotÃ£o de AÃ§Ã£o',
+        name: customName || 'Botão de Ação',
         content: {
-          text: 'ComeÃ§ar Agora',
+          text: 'Começar Agora',
           href: '#contacto',
           target: '_self',
           iconName: 'ArrowRight',
@@ -268,7 +268,7 @@ export function createDefaultComponent(type: ComponentType, customName?: string)
         name: customName || 'Imagem',
         content: {
           src: 'https://images.unsplash.com/photo-1551434678-e076c223a692?w=1200&auto=format&fit=crop&q=80',
-          alt: 'Equipa de tecnologia WeHostHere em aÃ§Ã£o',
+          alt: 'Equipa de tecnologia WeHostHere em ação',
         },
         styles: {
           desktop: {
@@ -288,7 +288,7 @@ export function createDefaultComponent(type: ComponentType, customName?: string)
       return {
         id,
         type: 'icon',
-        name: customName || 'Ãcone Lucide',
+        name: customName || 'Ícone Lucide',
         content: {
           iconName: 'Sparkles',
         },
@@ -315,7 +315,7 @@ export function createDefaultComponent(type: ComponentType, customName?: string)
         type: 'badge',
         name: customName || 'Distintivo / Pill',
         content: {
-          badgeText: 'âœ¨ NOVO LANÃ‡AMENTO',
+          badgeText: 'âœ¨ NOVO LANÇAMENTO',
         },
         styles: {
           desktop: {
@@ -360,7 +360,7 @@ export function createDefaultComponent(type: ComponentType, customName?: string)
       return {
         id,
         type: 'spacer',
-        name: customName || 'EspaÃ§ador',
+        name: customName || 'Espaçador',
         content: {},
         styles: {
           desktop: {
@@ -376,11 +376,11 @@ export function createDefaultComponent(type: ComponentType, customName?: string)
       return {
         id,
         type: 'card',
-        name: customName || 'Card de ServiÃ§o',
+        name: customName || 'Card de Serviço',
         content: {
           iconName: 'Zap',
           headingLevel: 'h3',
-          text: 'Hospedagem UltrarrÃ¡pida com NVMe e CDN Global que garante carregamentos em milissegundos para o seu site.',
+          text: 'Hospedagem Ultrarrápida com NVMe e CDN Global que garante carregamentos em milissegundos para o seu site.',
           badgeText: 'Velocidade Extrema',
         },
         styles: {
@@ -405,26 +405,26 @@ export function createDefaultComponent(type: ComponentType, customName?: string)
       return {
         id,
         type: 'pricing-table',
-        name: customName || 'Tabela de PreÃ§os',
+        name: customName || 'Tabela de Preços',
         content: {
           pricingPlans: [
             {
               name: 'Iniciante',
               price: '1.500',
               currency: 'MT',
-              cycle: '/mÃªs',
-              features: ['1 Website incluÃ­do', '10 GB Armazenamento SSD', 'Certificado SSL GrÃ¡tis', 'Suporte por Email'],
-              buttonText: 'Escolher BÃ¡sico',
+              cycle: '/mês',
+              features: ['1 Website incluído', '10 GB Armazenamento SSD', 'Certificado SSL Grátis', 'Suporte por Email'],
+              buttonText: 'Escolher Básico',
               buttonLink: '#contratar-iniciante',
             },
             {
               name: 'Profissional',
               price: '3.500',
               currency: 'MT',
-              cycle: '/mÃªs',
+              cycle: '/mês',
               badge: 'MAIS POPULAR',
               isPopular: true,
-              features: ['5 Websites incluÃ­dos', '50 GB Armazenamento NVMe', 'Contas de Email Ilimitadas', 'Suporte PrioritÃ¡rio 24/7', 'Backups AutomÃ¡ticos'],
+              features: ['5 Websites incluídos', '50 GB Armazenamento NVMe', 'Contas de Email Ilimitadas', 'Suporte Prioritário 24/7', 'Backups Automáticos'],
               buttonText: 'Contratar Profissional',
               buttonLink: '#contratar-pro',
             },
@@ -432,7 +432,7 @@ export function createDefaultComponent(type: ComponentType, customName?: string)
               name: 'Empresarial',
               price: '7.900',
               currency: 'MT',
-              cycle: '/mÃªs',
+              cycle: '/mês',
               features: ['Websites Ilimitados', '200 GB Armazenamento NVMe', 'IP Dedicado Exclusivo', 'Gestor de Conta Pessoal', 'SLA 99.9% Garantido'],
               buttonText: 'Falar com Consultor',
               buttonLink: '#contratar-empresa',
@@ -457,18 +457,18 @@ export function createDefaultComponent(type: ComponentType, customName?: string)
           features: [
             {
               iconName: 'ShieldCheck',
-              title: 'SeguranÃ§a de NÃ­vel BancÃ¡rio',
-              description: 'ProteÃ§Ã£o contra ataques DDoS, isolamento de contas e certificaÃ§Ã£o SSL inclusa gratuitamente.',
+              title: 'Segurança de Nível Bancário',
+              description: 'Proteção contra ataques DDoS, isolamento de contas e certificação SSL inclusa gratuitamente.',
             },
             {
               iconName: 'Cpu',
               title: 'Tecnologia de Ponta com IA',
-              description: 'OtimizaÃ§Ã£o inteligente de recursos com servidores de Ãºltima geraÃ§Ã£o para mÃ¡xima estabilidade.',
+              description: 'Otimização inteligente de recursos com servidores de última geração para máxima estabilidade.',
             },
             {
               iconName: 'Headphones',
               title: 'Suporte Humanizado 24/7',
-              description: 'Nossa equipa de engenheiros estÃ¡ disponÃ­vel a qualquer hora pelo WhatsApp e chat direto.',
+              description: 'Nossa equipa de engenheiros está disponível a qualquer hora pelo WhatsApp e chat direto.',
             },
           ],
         },
@@ -499,7 +499,7 @@ export function createDefaultComponent(type: ComponentType, customName?: string)
               name: 'Dra. Beatriz Santos',
               role: 'Diretora de Marketing na Brandify',
               avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80',
-              comment: 'O construtor com IA reduziu o tempo de lanÃ§amento das nossas landing pages de semanas para meros minutos.',
+              comment: 'O construtor com IA reduziu o tempo de lançamento das nossas landing pages de semanas para meros minutos.',
               rating: 5,
             },
           ],
@@ -521,16 +521,16 @@ export function createDefaultComponent(type: ComponentType, customName?: string)
         content: {
           faqItems: [
             {
-              question: 'Como funciona a ativaÃ§Ã£o imediata?',
-              answer: 'Assim que a confirmaÃ§Ã£o de pagamento for concluÃ­da, as credenciais e o acesso ao construtor sÃ£o liberados no mesmo segundo.',
+              question: 'Como funciona a ativação imediata?',
+              answer: 'Assim que a confirmação de pagamento for concluída, as credenciais e o acesso ao construtor são liberados no mesmo segundo.',
             },
             {
-              question: 'Posso usar o meu domÃ­nio personalizado?',
-              answer: 'Sim! Pode conectar qualquer domÃ­nio .com, .co.mz, .org ou utilizar gratuitamente o subdomÃ­nio da WeHostHere.',
+              question: 'Posso usar o meu domínio personalizado?',
+              answer: 'Sim! Pode conectar qualquer domínio .com, .co.mz, .org ou utilizar gratuitamente o subdomínio da WeHostHere.',
             },
             {
-              question: 'Como posso editar o meu site apÃ³s a publicaÃ§Ã£o?',
-              answer: 'Basta aceder ao painel do builder, efetuar as alteraÃ§Ãµes visuais que desejar ou pedir Ã  IA e clicar em Atualizar.',
+              question: 'Como posso editar o meu site após a publicação?',
+              answer: 'Basta aceder ao painel do builder, efetuar as alterações visuais que desejar ou pedir à IA e clicar em Atualizar.',
             },
           ],
         },
@@ -547,14 +547,14 @@ export function createDefaultComponent(type: ComponentType, customName?: string)
       return {
         id,
         type: 'contact-form',
-        name: customName || 'FormulÃ¡rio de Contacto',
+        name: customName || 'Formulário de Contacto',
         content: {
           formSubmitText: 'Enviar Mensagem',
           formActionUrl: '#',
           formFields: [
             { id: 'name', label: 'Nome Completo', type: 'text', placeholder: 'Seu nome ou empresa', required: true },
-            { id: 'email', label: 'EndereÃ§o de Email', type: 'email', placeholder: 'seuemail@exemplo.com', required: true },
-            { id: 'phone', label: 'Contacto TelefÃ³nico / WhatsApp', type: 'tel', placeholder: '+258 84 000 0000', required: false },
+            { id: 'email', label: 'Endereço de Email', type: 'email', placeholder: 'seuemail@exemplo.com', required: true },
+            { id: 'phone', label: 'Contacto Telefónico / WhatsApp', type: 'tel', placeholder: '+258 84 000 0000', required: false },
             { id: 'message', label: 'Como podemos ajudar?', type: 'textarea', placeholder: 'Descreva resumidamente o seu projeto...', required: true },
           ],
         },
@@ -582,10 +582,10 @@ export function createDefaultComponent(type: ComponentType, customName?: string)
       return {
         id,
         type: 'whatsapp-button',
-        name: customName || 'BotÃ£o Flutuante WhatsApp',
+        name: customName || 'Botão Flutuante WhatsApp',
         content: {
           text: 'Falar no WhatsApp',
-          href: 'https://wa.me/258848335618?text=OlÃ¡!%20Gostaria%20de%20mais%20informaÃ§Ãµes',
+          href: 'https://wa.me/258848335618?text=Olá!%20Gostaria%20de%20mais%20informações',
           target: '_blank',
           iconName: 'MessageCircle',
         },
@@ -612,7 +612,7 @@ export function createDefaultComponent(type: ComponentType, customName?: string)
       return {
         id,
         type: 'navbar',
-        name: customName || 'NavegaÃ§Ã£o Superior',
+        name: customName || 'Navegação Superior',
         content: {
           text: 'WeHostHere',
           href: '/',
@@ -642,9 +642,9 @@ export function createDefaultComponent(type: ComponentType, customName?: string)
       return {
         id,
         type: 'footer',
-        name: customName || 'RodapÃ© Principal',
+        name: customName || 'Rodapé Principal',
         content: {
-          text: 'Â© 2026 WeHostHere. Todos os direitos reservados. Hospedagem & Construtor com InteligÃªncia Artificial.',
+          text: 'Â© 2026 WeHostHere. Todos os direitos reservados. Hospedagem & Construtor com Inteligência Artificial.',
         },
         styles: {
           desktop: {
@@ -669,9 +669,9 @@ export function createDefaultComponent(type: ComponentType, customName?: string)
       return {
         id,
         type: 'custom-html',
-        name: customName || 'CÃ³digo HTML Customizado',
+        name: customName || 'Código HTML Customizado',
         content: {
-          htmlRaw: '<div class="p-6 rounded-xl border border-dashed border-slate-700 text-center text-slate-400">Insira o seu cÃ³digo HTML personalizado ou widget aqui.</div>',
+          htmlRaw: '<div class="p-6 rounded-xl border border-dashed border-slate-700 text-center text-slate-400">Insira o seu código HTML personalizado ou widget aqui.</div>',
         },
         styles: {
           desktop: {
@@ -695,32 +695,32 @@ export function createDefaultComponent(type: ComponentType, customName?: string)
   }
 }
 
-// â”€â”€â”€ CriaÃ§Ã£o de uma SecÃ§Ã£o Hero PrÃ©-configurada â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// â”€â”€â”€ Criação de uma Secção Hero Pré-configurada â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export function createHeroSection(): VisualComponent {
-  const section = createDefaultComponent('section', 'SecÃ§Ã£o Hero');
+  const section = createDefaultComponent('section', 'Secção Hero');
   const container = section.children[0];
 
   const badge = createDefaultComponent('badge', 'Badge de Destaque');
   badge.content.badgeText = 'ðŸš€ Plataforma de Hospedagem & IA WeHostHere';
 
-  const heading = createDefaultComponent('heading', 'TÃ­tulo Hero');
-  heading.content.text = 'O Seu NegÃ³cio Online com Velocidade e Estilo IncomparÃ¡veis';
+  const heading = createDefaultComponent('heading', 'Título Hero');
+  heading.content.text = 'O Seu Negócio Online com Velocidade e Estilo Incomparáveis';
   heading.styles.desktop.fontSize = '48px';
   heading.styles.desktop.textAlign = 'center';
 
-  const paragraph = createDefaultComponent('text', 'SubtÃ­tulo Hero');
-  paragraph.content.text = 'Crie pÃ¡ginas de alta conversÃ£o, publique com um clique e conquiste mais clientes com tecnologia de ponta e infraestrutura em nuvem dedicada.';
+  const paragraph = createDefaultComponent('text', 'Subtítulo Hero');
+  paragraph.content.text = 'Crie páginas de alta conversão, publique com um clique e conquiste mais clientes com tecnologia de ponta e infraestrutura em nuvem dedicada.';
   paragraph.styles.desktop.fontSize = '18px';
   paragraph.styles.desktop.textAlign = 'center';
   paragraph.styles.desktop.maxWidth = '760px';
   paragraph.styles.desktop.marginLeft = 'auto';
   paragraph.styles.desktop.marginRight = 'auto';
 
-  const rowButtons = createDefaultComponent('row', 'Linha de BotÃµes');
+  const rowButtons = createDefaultComponent('row', 'Linha de Botões');
   rowButtons.styles.desktop.justifyContent = 'center';
   rowButtons.children = [
-    createDefaultComponent('button', 'BotÃ£o ComeÃ§ar Agora'),
-    createDefaultComponent('whatsapp-button', 'BotÃ£o WhatsApp'),
+    createDefaultComponent('button', 'Botão Começar Agora'),
+    createDefaultComponent('whatsapp-button', 'Botão WhatsApp'),
   ];
 
   const imageHero = createDefaultComponent('image', 'Imagem de Destaque');
@@ -733,51 +733,51 @@ export function createHeroSection(): VisualComponent {
   return section;
 }
 
-// â”€â”€â”€ Documento Inicial PadrÃ£o (Full Working Site) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-export function createInitialSiteDocument(title = 'Meu Site IncrÃ­vel', slug = 'meu-site'): SiteDocument {
+// â”€â”€â”€ Documento Inicial Padrão (Full Working Site) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+export function createInitialSiteDocument(title = 'Meu Site Incrível', slug = 'meu-site'): SiteDocument {
   const heroSection = createHeroSection();
 
-  // SecÃ§Ã£o de BenefÃ­cios
-  const featuresSection = createDefaultComponent('section', 'SecÃ§Ã£o de BenefÃ­cios');
+  // Secção de Benefícios
+  const featuresSection = createDefaultComponent('section', 'Secção de Benefícios');
   const featuresContainer = featuresSection.children[0];
-  const featHeading = createDefaultComponent('heading', 'TÃ­tulo de BenefÃ­cios');
-  featHeading.content.text = 'Por Que Escolher a Nossa SoluÃ§Ã£o';
+  const featHeading = createDefaultComponent('heading', 'Título de Benefícios');
+  featHeading.content.text = 'Por Que Escolher a Nossa Solução';
   featHeading.content.headingLevel = 'h2';
   featHeading.styles.desktop.textAlign = 'center';
   const featComponent = createDefaultComponent('features', 'Lista de 3 Recursos');
   featuresContainer.children = [featHeading, featComponent];
 
-  // SecÃ§Ã£o de PreÃ§os
-  const pricingSection = createDefaultComponent('section', 'SecÃ§Ã£o de PreÃ§os');
+  // Secção de Preços
+  const pricingSection = createDefaultComponent('section', 'Secção de Preços');
   const pricingContainer = pricingSection.children[0];
-  const priceHeading = createDefaultComponent('heading', 'TÃ­tulo PreÃ§os');
+  const priceHeading = createDefaultComponent('heading', 'Título Preços');
   priceHeading.content.text = 'Planos Simples e Transparentes';
   priceHeading.content.headingLevel = 'h2';
   priceHeading.styles.desktop.textAlign = 'center';
-  const priceComponent = createDefaultComponent('pricing-table', 'Tabela de PreÃ§os');
+  const priceComponent = createDefaultComponent('pricing-table', 'Tabela de Preços');
   pricingContainer.children = [priceHeading, priceComponent];
 
-  // SecÃ§Ã£o de Contacto
-  const contactSection = createDefaultComponent('section', 'SecÃ§Ã£o de Contacto');
+  // Secção de Contacto
+  const contactSection = createDefaultComponent('section', 'Secção de Contacto');
   const contactContainer = contactSection.children[0];
-  const contactHeading = createDefaultComponent('heading', 'TÃ­tulo Contacto');
+  const contactHeading = createDefaultComponent('heading', 'Título Contacto');
   contactHeading.content.text = 'Entre em Contacto Connosco';
   contactHeading.content.headingLevel = 'h2';
   contactHeading.styles.desktop.textAlign = 'center';
-  const contactForm = createDefaultComponent('contact-form', 'FormulÃ¡rio');
+  const contactForm = createDefaultComponent('contact-form', 'Formulário');
   contactContainer.children = [contactHeading, contactForm];
 
-  // Navbar e RodapÃ©
-  const navbar = createDefaultComponent('navbar', 'NavegaÃ§Ã£o');
-  const footer = createDefaultComponent('footer', 'RodapÃ©');
+  // Navbar e Rodapé
+  const navbar = createDefaultComponent('navbar', 'Navegação');
+  const footer = createDefaultComponent('footer', 'Rodapé');
 
   const homePage: PageDocument = {
     id: 'page_home',
-    title: 'PÃ¡gina Inicial',
+    title: 'Página Inicial',
     slug: '/',
     seo: {
       metaTitle: `${title} | WeHostHere`,
-      metaDescription: 'Website profissional construÃ­do com WeHostHere AI Builder.',
+      metaDescription: 'Website profissional construído com WeHostHere AI Builder.',
     },
     rootComponents: [
       navbar,
