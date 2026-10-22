@@ -1,5 +1,5 @@
-// ============================================================================
-// ⚙️ WEHOSTHERE VISUAL BUILDER — MOTOR DE COMPILAÇÃO (JSON Document -> HTML)
+﻿// ============================================================================
+// âš™ï¸ WEHOSTHERE VISUAL BUILDER â€” MOTOR DE COMPILAÃ‡ÃƒO (JSON Document -> HTML)
 // ============================================================================
 
 import { 
@@ -115,7 +115,7 @@ function compileStyles(styles: { desktop: StyleProps; tablet?: Partial<StyleProp
   };
 }
 
-// ─── Compilação de um Componente Visual Individual ───────────────────────────
+// â”€â”€â”€ CompilaÃ§Ã£o de um Componente Visual Individual â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function compileComponent(
   comp: VisualComponent, 
   theme: GlobalSiteTheme,
@@ -130,7 +130,7 @@ function compileComponent(
 
   const styleAttr = inlineStyle ? `style="${inlineStyle}"` : '';
 
-  // 1. Secção
+  // 1. SecÃ§Ã£o
   if (comp.type === 'section') {
     const innerHtml = comp.children.map(c => compileComponent(c, theme, isEditorMode)).join('\n');
     return `
@@ -174,20 +174,20 @@ function compileComponent(
       </div>`;
   }
 
-  // 5. Título (Heading)
+  // 5. TÃ­tulo (Heading)
   if (comp.type === 'heading') {
     const Tag = comp.content.headingLevel || 'h2';
-    const text = comp.content.text || 'Título da Secção';
+    const text = comp.content.text || 'TÃ­tulo da SecÃ§Ã£o';
     return `<${Tag} ${dataAttrs} class="font-extrabold tracking-tight ${classes}" ${styleAttr}>${text}</${Tag}>`;
   }
 
-  // 6. Texto / Parágrafo
+  // 6. Texto / ParÃ¡grafo
   if (comp.type === 'text') {
-    const text = comp.content.text || 'Texto explicativo do conteúdo...';
+    const text = comp.content.text || 'Texto explicativo do conteÃºdo...';
     return `<p ${dataAttrs} class="leading-relaxed ${classes}" ${styleAttr}>${text}</p>`;
   }
 
-  // 7. Botão CTA
+  // 7. BotÃ£o CTA
   if (comp.type === 'button') {
     const text = comp.content.text || 'Clique Aqui';
     const href = comp.content.href || '#contacto';
@@ -206,7 +206,7 @@ function compileComponent(
       <img ${dataAttrs} src="${src}" alt="${alt}" class="w-full h-auto object-cover rounded-2xl ${classes}" ${styleAttr} />`;
   }
 
-  // 9. Ícone Vetorial / Lucide
+  // 9. Ãcone Vetorial / Lucide
   if (comp.type === 'icon') {
     const iconName = comp.content.iconName || 'sparkles';
     return `
@@ -215,7 +215,7 @@ function compileComponent(
       </div>`;
   }
 
-  // 10. Badge / Pílula
+  // 10. Badge / PÃ­lula
   if (comp.type === 'badge') {
     const text = comp.content.badgeText || comp.content.text || 'Novo Recurso';
     return `
@@ -229,31 +229,31 @@ function compileComponent(
     return `<hr ${dataAttrs} class="border-t border-slate-800 my-6 ${classes}" ${styleAttr} />`;
   }
 
-  // 12. Espaçador
+  // 12. EspaÃ§ador
   if (comp.type === 'spacer') {
     return `<div ${dataAttrs} class="w-full h-8 ${classes}" ${styleAttr}></div>`;
   }
 
-  // 13. Tabela de Preços (Composta)
+  // 13. Tabela de PreÃ§os (Composta)
   if (comp.type === 'pricing-table') {
     const plans: PricingPlanItem[] = comp.content.pricingPlans || [
       {
-        name: 'Básico',
+        name: 'BÃ¡sico',
         price: '1.500',
         currency: 'MT',
-        cycle: '/mês',
-        features: ['Website Institucional', 'Otimizado para Telemóveis', 'Certificado SSL Grátis'],
-        buttonText: 'Escolher Básico',
+        cycle: '/mÃªs',
+        features: ['Website Institucional', 'Otimizado para TelemÃ³veis', 'Certificado SSL GrÃ¡tis'],
+        buttonText: 'Escolher BÃ¡sico',
         buttonLink: '#contacto'
       },
       {
         name: 'Profissional',
         price: '3.500',
         currency: 'MT',
-        cycle: '/mês',
+        cycle: '/mÃªs',
         badge: 'Mais Popular',
         isPopular: true,
-        features: ['Tudo do Plano Básico', 'Domínio .co.mz Incluído', 'Integração de M-Pesa', 'Suporte Prioritário 24/7'],
+        features: ['Tudo do Plano BÃ¡sico', 'DomÃ­nio .co.mz IncluÃ­do', 'IntegraÃ§Ã£o de M-Pesa', 'Suporte PrioritÃ¡rio 24/7'],
         buttonText: 'Contratar Profissional',
         buttonLink: '#contacto'
       },
@@ -261,8 +261,8 @@ function compileComponent(
         name: 'Empresarial',
         price: '7.500',
         currency: 'MT',
-        cycle: '/mês',
-        features: ['Infraestrutura Dedicada', 'Painel de Gestão Exclusivo', 'M-Pesa & e-Mola', 'Gerente de Conta Dedicado'],
+        cycle: '/mÃªs',
+        features: ['Infraestrutura Dedicada', 'Painel de GestÃ£o Exclusivo', 'M-Pesa & e-Mola', 'Gerente de Conta Dedicado'],
         buttonText: 'Escolher Empresarial',
         buttonLink: '#contacto'
       }
@@ -299,9 +299,9 @@ function compileComponent(
       </div>`;
   }
 
-  // 14. Botão Flutuante de WhatsApp
+  // 14. BotÃ£o Flutuante de WhatsApp
   if (comp.type === 'whatsapp-button') {
-    const href = comp.content.href || 'https://wa.me/258840000000?text=Ola!%20Gostaria%20de%20saber%20mais.';
+    const href = comp.content.href || 'https://wa.me/258848335618?text=Ola!%20Gostaria%20de%20saber%20mais.';
     const text = comp.content.text || 'Falar no WhatsApp';
     return `
       <a ${dataAttrs} href="${href}" target="_blank" rel="noopener noreferrer" 
@@ -315,7 +315,7 @@ function compileComponent(
       </a>`;
   }
 
-  // 15. Código HTML Customizado
+  // 15. CÃ³digo HTML Customizado
   if (comp.type === 'custom-html') {
     return `<div ${dataAttrs} class="${classes}" ${styleAttr}>${comp.content.htmlRaw || ''}</div>`;
   }
@@ -325,7 +325,7 @@ function compileComponent(
   return `<div ${dataAttrs} class="${classes}" ${styleAttr}>${childrenHtml}</div>`;
 }
 
-// ─── COMPILADOR PRINCIPAL (SiteDocument -> HTML5 Completo) ───────────────────
+// â”€â”€â”€ COMPILADOR PRINCIPAL (SiteDocument -> HTML5 Completo) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export function compileSiteDocumentToHtml(
   doc: SiteDocument, 
   pageId?: string,
@@ -334,7 +334,7 @@ export function compileSiteDocumentToHtml(
   const targetPage = doc.pages.find(p => p.id === (pageId || doc.activePageId)) || doc.pages[0];
   const theme = doc.site.theme;
 
-  // Se estiver em modo editor, renderizar botões sutis de adição de secções
+  // Se estiver em modo editor, renderizar botÃµes sutis de adiÃ§Ã£o de secÃ§Ãµes
   const renderedComponents = targetPage.rootComponents
     .map((comp, idx) => {
       const compHtml = compileComponent(comp, theme, isEditorMode);
@@ -345,7 +345,7 @@ export function compileSiteDocumentToHtml(
           <div class="wb-add-section-divider">
             <button type="button" class="wb-add-section-btn" onclick="window.parent.postMessage({ type: 'OPEN_ADD_SECTION', insertIndex: ${idx + 1} }, '*')">
               <span>+</span>
-              <span>Adicionar Secção Aqui</span>
+              <span>Adicionar SecÃ§Ã£o Aqui</span>
             </button>
           </div>
         </div>
@@ -353,7 +353,7 @@ export function compileSiteDocumentToHtml(
     })
     .join('\n');
 
-  // Estilos globais e variáveis de tema
+  // Estilos globais e variÃ¡veis de tema
   const globalStyles = `
     :root {
       --primary-brand: ${theme.primaryColor};
@@ -374,7 +374,7 @@ export function compileSiteDocumentToHtml(
     }
   `;
 
-  // Script de suporte ao Editor Visual (Comunicação bidirecional com Canvas via postMessage)
+  // Script de suporte ao Editor Visual (ComunicaÃ§Ã£o bidirecional com Canvas via postMessage)
   const editorBridgeScript = isEditorMode ? `
   <style>
     /* Estilos de Destaque no Canvas do Editor */
@@ -444,7 +444,7 @@ export function compileSiteDocumentToHtml(
     }
   </style>
   <script>
-    // Bridge de comunicação com o iframe
+    // Bridge de comunicaÃ§Ã£o com o iframe
     window.addEventListener('message', function(event) {
       if (!event.data || !event.data.type) return;
       if (event.data.type === 'SELECT_COMPONENT') {
@@ -473,7 +473,7 @@ export function compileSiteDocumentToHtml(
       }
     });
 
-    // Double-click: Edição de texto direta inline ou seletor de imagens
+    // Double-click: EdiÃ§Ã£o de texto direta inline ou seletor de imagens
     document.addEventListener('dblclick', function(e) {
       var target = e.target.closest('[data-wb-id]');
       if (!target) return;
@@ -545,11 +545,11 @@ export function compileSiteDocumentToHtml(
     ${renderedComponents}
   </main>
   <script>
-    // Inicializar ícones da Lucide Icons
+    // Inicializar Ã­cones da Lucide Icons
     if (window.lucide) {
       lucide.createIcons();
     }
-    // Suporte a âncoras suaves
+    // Suporte a Ã¢ncoras suaves
     document.querySelectorAll('a[href^="#"]').forEach(function(anchor) {
       anchor.addEventListener('click', function(e) {
         var href = this.getAttribute('href');
@@ -569,3 +569,4 @@ export function compileSiteDocumentToHtml(
 
 // Alias de compatibilidade
 export { compileSiteDocumentToHtml as compileSiteDocument };
+

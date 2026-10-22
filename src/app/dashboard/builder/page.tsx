@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import Image from 'next/image';
@@ -18,7 +18,7 @@ import {
 import { auth, User } from '@/lib/auth';
 
 // ============================================================
-// 🎨 SYNTAX HIGHLIGHTER — VS Code Dark+ Theme (zero deps)
+// ðŸŽ¨ SYNTAX HIGHLIGHTER â€” VS Code Dark+ Theme (zero deps)
 // ============================================================
 function highlightHtml(code: string): string {
   // Escape html entities first to avoid XSS via code content
@@ -135,7 +135,7 @@ function highlightHtml(code: string): string {
       continue;
     }
 
-    // Plain text / anything else — check for style/script blocks first
+    // Plain text / anything else â€” check for style/script blocks first
     // For style blocks colorize as CSS
     if (code.startsWith('<style', i)) {
       const closeStyle = code.toLowerCase().indexOf('</style', i + 6);
@@ -192,7 +192,7 @@ function CodeBlock({ code, isStreaming = false }: { code: string; isStreaming?: 
   );
 }
 
-// ─── HELPER: Aplicar Logotipo ao Menu e Rodapé do HTML ─────────────────────
+// â”€â”€â”€ HELPER: Aplicar Logotipo ao Menu e RodapÃ© do HTML â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function applyLogoToHtml(
   html: string, 
   logoUrl: string, 
@@ -201,7 +201,7 @@ function applyLogoToHtml(
 ): string {
   if (!html || !logoUrl) return html;
 
-  const logoImgTag = `<img src="${logoUrl}" alt="Logótipo" style="height:${logoHeight}px; width:auto; max-height:${logoHeight}px; object-fit:contain;" class="object-contain shrink-0" />`;
+  const logoImgTag = `<img src="${logoUrl}" alt="LogÃ³tipo" style="height:${logoHeight}px; width:auto; max-height:${logoHeight}px; object-fit:contain;" class="object-contain shrink-0" />`;
 
   let updated = html;
 
@@ -213,7 +213,7 @@ function applyLogoToHtml(
     const fullAnchorContent = navMatch[2];
     let newAnchorContent = fullAnchorContent;
 
-    // Se já tinha <img ...> dentro do link, substitui a imagem existente
+    // Se jÃ¡ tinha <img ...> dentro do link, substitui a imagem existente
     if (/<img[^>]*>/i.test(fullAnchorContent)) {
       newAnchorContent = fullAnchorContent.replace(/<img[^>]*>/i, logoImgTag);
     } else {
@@ -233,14 +233,14 @@ function applyLogoToHtml(
     updated = updated.replace(navMatch[0], `${navMatch[1]}${newAnchorContent}${navMatch[3]}`);
   }
 
-  // 2. Procurar e atualizar no rodapé se existir o badge da marca
+  // 2. Procurar e atualizar no rodapÃ© se existir o badge da marca
   const footerRegex = /(<footer[\s\S]*?<div[^>]*class="[^"]*flex items-center[^"]*"[^>]*>)([\s\S]*?)(<\/div>[\s\S]*?<\/footer>)/i;
   const footerMatch = updated.match(footerRegex);
   if (footerMatch) {
     const footerInner = footerMatch[2];
     const badgeRegex = /<div[^>]*class="[^"]*(?:w-7|w-8|w-9|w-10|rounded)[^"]*"[^>]*>[\s\S]*?<\/div>/i;
     if (badgeRegex.test(footerInner)) {
-      const footerLogoImg = `<img src="${logoUrl}" alt="Logótipo" style="height:${Math.round(logoHeight * 0.8)}px; width:auto; max-height:${Math.round(logoHeight * 0.8)}px; object-fit:contain;" class="object-contain shrink-0" />`;
+      const footerLogoImg = `<img src="${logoUrl}" alt="LogÃ³tipo" style="height:${Math.round(logoHeight * 0.8)}px; width:auto; max-height:${Math.round(logoHeight * 0.8)}px; object-fit:contain;" class="object-contain shrink-0" />`;
       const newFooterInner = footerInner.replace(badgeRegex, footerLogoImg);
       updated = updated.replace(footerMatch[0], `${footerMatch[1]}${newFooterInner}${footerMatch[3]}`);
     }
@@ -249,7 +249,7 @@ function applyLogoToHtml(
   return updated;
 }
 
-// ─── HELPER: Paletas de Cores Pré-Definidas & Refinamento ───────────────────
+// â”€â”€â”€ HELPER: Paletas de Cores PrÃ©-Definidas & Refinamento â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 interface ColorPalettePreset {
   id: string;
   name: string;
@@ -367,7 +367,7 @@ function applyColorsToHtml(
     updated = updated.replace('</head>', `${styleTag}\n</head>`);
   }
 
-  // Atualizar botões de cor primária comuns
+  // Atualizar botÃµes de cor primÃ¡ria comuns
   updated = updated.replace(/bg-(?:blue|indigo|emerald|purple|orange|violet)-[56]00/g, `bg-[${primaryColor}]`);
   updated = updated.replace(/hover:bg-(?:blue|indigo|emerald|purple|orange|violet)-[567]00/g, `hover:opacity-90`);
   updated = updated.replace(/text-(?:blue|indigo|emerald|purple|orange|violet)-[45]00/g, `text-[${primaryColor}]`);
@@ -381,7 +381,7 @@ function applyColorsToHtml(
   return updated;
 }
 
-// ─── HELPER: Vincular WhatsApp com link oficial e botão flutuante ───────────
+// â”€â”€â”€ HELPER: Vincular WhatsApp com link oficial e botÃ£o flutuante â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function applyWhatsAppToHtml(
   html: string,
   phone: string,
@@ -398,7 +398,7 @@ function applyWhatsAppToHtml(
   // Atualizar links existentes de WhatsApp
   updated = updated.replace(/https:\/\/wa\.me\/[0-9]+(?:\?[^"'\s]*)?/gi, waUrl);
 
-  const floatingBtn = `  <!-- 💬 Botão Flutuante de WhatsApp Configurado -->
+  const floatingBtn = `  <!-- ðŸ’¬ BotÃ£o Flutuante de WhatsApp Configurado -->
   <a id="wehost-floating-whatsapp" href="${waUrl}" target="_blank" rel="noopener noreferrer"
      class="fixed ${position === 'left' ? 'bottom-6 left-6' : 'bottom-6 right-6'} z-50 flex items-center gap-2.5 bg-[#25D366] hover:bg-[#20ba5a] text-white px-4 py-3 rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 font-bold text-sm group"
      title="${buttonText}">
@@ -413,7 +413,7 @@ function applyWhatsAppToHtml(
   </a>`;
 
   if (updated.includes('id="wehost-floating-whatsapp"')) {
-    updated = updated.replace(/<!-- 💬 Botão Flutuante de WhatsApp Configurado -->[\s\S]*?<\/a>/i, floatingBtn.trim());
+    updated = updated.replace(/<!-- ðŸ’¬ BotÃ£o Flutuante de WhatsApp Configurado -->[\s\S]*?<\/a>/i, floatingBtn.trim());
   } else if (updated.includes('</body>')) {
     updated = updated.replace('</body>', `${floatingBtn}\n</body>`);
   } else {
@@ -423,7 +423,7 @@ function applyWhatsAppToHtml(
   return updated;
 }
 
-// ─── HELPER: Inserir Tabela de Preços com Benefícios Personalizados ─────────
+// â”€â”€â”€ HELPER: Inserir Tabela de PreÃ§os com BenefÃ­cios Personalizados â”€â”€â”€â”€â”€â”€â”€â”€â”€
 interface PricingConfigData {
   currency: string;
   cycle: string;
@@ -442,7 +442,7 @@ function applyPricingToHtml(html: string, config: PricingConfigData): string {
             </li>`).join('');
 
   const pricingSection = `
-    <!-- 🏷️ Tabela de Preços e Benefícios -->
+    <!-- ðŸ·ï¸ Tabela de PreÃ§os e BenefÃ­cios -->
     <section id="precos" class="py-20 px-6 bg-slate-900/80 border-t border-slate-800 relative">
       <div class="max-w-6xl mx-auto">
         <div class="text-center mb-16">
@@ -450,8 +450,8 @@ function applyPricingToHtml(html: string, config: PricingConfigData): string {
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             <span>Investimento Transparente</span>
           </div>
-          <h2 class="text-3xl sm:text-4xl font-extrabold text-white mb-4 tracking-tight">Planos & Preços Sob Medida</h2>
-          <p class="text-slate-400 text-sm sm:text-base max-w-xl mx-auto">Escolha o plano ideal para a sua empresa com todos os benefícios inclusos.</p>
+          <h2 class="text-3xl sm:text-4xl font-extrabold text-white mb-4 tracking-tight">Planos & PreÃ§os Sob Medida</h2>
+          <p class="text-slate-400 text-sm sm:text-base max-w-xl mx-auto">Escolha o plano ideal para a sua empresa com todos os benefÃ­cios inclusos.</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
@@ -511,7 +511,7 @@ function applyPricingToHtml(html: string, config: PricingConfigData): string {
 
   let updated = html;
 
-  const existingPricingRegex = /<!-- 🏷️ Tabela de Preços[\s\S]*?<\/section>|<section[^>]*id=["'](?:precos|pricing|tabela-precos)["'][\s\S]*?<\/section>/i;
+  const existingPricingRegex = /<!-- ðŸ·ï¸ Tabela de PreÃ§os[\s\S]*?<\/section>|<section[^>]*id=["'](?:precos|pricing|tabela-precos)["'][\s\S]*?<\/section>/i;
   if (existingPricingRegex.test(updated)) {
     updated = updated.replace(existingPricingRegex, pricingSection.trim());
   } else if (/<\/main>/i.test(updated)) {
@@ -524,13 +524,13 @@ function applyPricingToHtml(html: string, config: PricingConfigData): string {
 
   // Garantir link no menu
   if (!updated.includes('href="#precos"') && updated.includes('<nav')) {
-    updated = updated.replace(/(<nav[\s\S]*?)(<\/nav>)/i, `$1  <a href="#precos" class="hover:text-blue-400 transition">Preços</a>\n      $2`);
+    updated = updated.replace(/(<nav[\s\S]*?)(<\/nav>)/i, `$1  <a href="#precos" class="hover:text-blue-400 transition">PreÃ§os</a>\n      $2`);
   }
 
   return updated;
 }
 
-// ─── HELPER: Configurar Banner / Hero com Textos e Estilo ───────────────────
+// â”€â”€â”€ HELPER: Configurar Banner / Hero com Textos e Estilo â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 interface BannerConfigData {
   headline: string;
   subtitle: string;
@@ -552,7 +552,7 @@ function applyBannerToHtml(html: string, config: BannerConfigData): string {
     : 'bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white';
 
   const newHero = `
-    <!-- 🖼️ Banner Principal / Hero -->
+    <!-- ðŸ–¼ï¸ Banner Principal / Hero -->
     <section id="inicio" class="py-20 sm:py-28 px-6 text-center relative overflow-hidden ${bgStyleClass}">
       <div class="max-w-4xl mx-auto relative z-10">
         ${config.badge ? `
@@ -568,7 +568,7 @@ function applyBannerToHtml(html: string, config: BannerConfigData): string {
         </p>
         <div class="flex flex-wrap items-center justify-center gap-3.5">
           <a href="${config.ctaLink || '#contacto'}" class="bg-blue-600 hover:bg-blue-500 text-white font-extrabold px-7 py-3.5 rounded-xl transition shadow-xl shadow-blue-600/30 hover:scale-105 active:scale-95 text-sm">
-            ${config.ctaText || 'Começar Agora'}
+            ${config.ctaText || 'ComeÃ§ar Agora'}
           </a>
           ${config.secondaryText ? `
           <a href="${config.secondaryLink || '#solucoes'}" class="bg-slate-900/90 hover:bg-slate-800 border border-slate-700 text-white font-bold px-7 py-3.5 rounded-xl transition hover:scale-105 active:scale-95 text-sm">
@@ -588,20 +588,20 @@ function applyBannerToHtml(html: string, config: BannerConfigData): string {
     updated = updated.replace('<main>', `<main>\n${newHero.trim()}`);
   }
 
-  // Garantir link Início no menu
+  // Garantir link InÃ­cio no menu
   if (!updated.includes('href="#inicio"') && updated.includes('<nav')) {
-    updated = updated.replace(/(<nav[\s\S]*?>)/i, `$1\n        <a href="#inicio" class="hover:text-blue-400 transition">Início</a>`);
+    updated = updated.replace(/(<nav[\s\S]*?>)/i, `$1\n        <a href="#inicio" class="hover:text-blue-400 transition">InÃ­cio</a>`);
   }
 
   return updated;
 }
 
-// ─── HELPER: Garantir que Todos os Links do Menu São Clicáveis ───────────────
+// â”€â”€â”€ HELPER: Garantir que Todos os Links do Menu SÃ£o ClicÃ¡veis â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function ensureClickableNavigation(html: string): string {
   if (!html) return html;
   let updated = html;
 
-  // 1. Garantir scroll suave no <head> com scroll-margin-top para o menu sticky não cobrir o título
+  // 1. Garantir scroll suave no <head> com scroll-margin-top para o menu sticky nÃ£o cobrir o tÃ­tulo
   if (!updated.includes('scroll-behavior: smooth')) {
     const styleSnippet = '  <style>html { scroll-behavior: smooth; } section[id], footer[id] { scroll-margin-top: 5rem; }</style>\n</head>';
     if (updated.includes('</head>')) {
@@ -609,7 +609,7 @@ function ensureClickableNavigation(html: string): string {
     }
   }
 
-  // 2. Extrair todas as âncoras do menu <a href="#target">
+  // 2. Extrair todas as Ã¢ncoras do menu <a href="#target">
   const anchorRegex = /<a[^>]*href="#([^"]+)"[^>]*>/gi;
   let match;
   const targetIds = new Set<string>();
@@ -630,26 +630,26 @@ function ensureClickableNavigation(html: string): string {
         }
       } else if (id === 'vantagens') {
         const vantagensSection = `
-    <!-- Secção Vantagens (Link do Menu) -->
+    <!-- SecÃ§Ã£o Vantagens (Link do Menu) -->
     <section id="vantagens" class="py-16 px-6 bg-slate-900/40 border-t border-slate-800">
       <div class="max-w-6xl mx-auto text-center">
-        <h2 class="text-2xl sm:text-3xl font-extrabold text-white mb-3">Vantagens & Benefícios</h2>
-        <p class="text-slate-400 text-sm max-w-xl mx-auto mb-10">Razões pelas quais centenas de clientes confiam no nosso trabalho.</p>
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-white mb-3">Vantagens & BenefÃ­cios</h2>
+        <p class="text-slate-400 text-sm max-w-xl mx-auto mb-10">RazÃµes pelas quais centenas de clientes confiam no nosso trabalho.</p>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
           <div class="p-6 rounded-2xl bg-slate-900/80 border border-slate-800">
-            <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center font-bold mb-3">✓</div>
+            <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center font-bold mb-3">âœ“</div>
             <h3 class="font-bold text-white mb-1">Velocidade & Desempenho</h3>
-            <p class="text-slate-400 text-xs">Páginas ultrarrápidas que retêm visitantes e convertem.</p>
+            <p class="text-slate-400 text-xs">PÃ¡ginas ultrarrÃ¡pidas que retÃªm visitantes e convertem.</p>
           </div>
           <div class="p-6 rounded-2xl bg-slate-900/80 border border-slate-800">
-            <div class="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-bold mb-3">★</div>
+            <div class="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-bold mb-3">â˜…</div>
             <h3 class="font-bold text-white mb-1">Design de Elite</h3>
-            <p class="text-slate-400 text-xs">Visual premium pensado para impressionar à primeira vista.</p>
+            <p class="text-slate-400 text-xs">Visual premium pensado para impressionar Ã  primeira vista.</p>
           </div>
           <div class="p-6 rounded-2xl bg-slate-900/80 border border-slate-800">
-            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold mb-3">⚡</div>
-            <h3 class="font-bold text-white mb-1">Suporte em Moçambique</h3>
-            <p class="text-slate-400 text-xs">Atendimento em português com suporte ágil via WhatsApp.</p>
+            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold mb-3">âš¡</div>
+            <h3 class="font-bold text-white mb-1">Suporte em MoÃ§ambique</h3>
+            <p class="text-slate-400 text-xs">Atendimento em portuguÃªs com suporte Ã¡gil via WhatsApp.</p>
           </div>
         </div>
       </div>
@@ -691,17 +691,17 @@ function ensureClickableNavigation(html: string): string {
   return updated;
 }
 
-// ─── HELPER: Formatar Markdown suave para mensagens da IA ──────────────────
+// â”€â”€â”€ HELPER: Formatar Markdown suave para mensagens da IA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function formatMessageContent(content: string) {
   if (!content) return null;
   const lines = content.split('\n');
 
   return lines.map((line, idx) => {
     const trimmed = line.trim();
-    const isBullet = trimmed.startsWith('•') || trimmed.startsWith('- ') || trimmed.startsWith('* ');
-    const rawContent = isBullet ? trimmed.replace(/^[•\-\*]\s*/, '') : line;
+    const isBullet = trimmed.startsWith('â€¢') || trimmed.startsWith('- ') || trimmed.startsWith('* ');
+    const rawContent = isBullet ? trimmed.replace(/^[â€¢\-\*]\s*/, '') : line;
 
-    // Parser simples de negrito **texto** e código `codigo`
+    // Parser simples de negrito **texto** e cÃ³digo `codigo`
     const parts = rawContent.split(/(\*\*.*?\*\*|`.*?`)/g);
     const elements = parts.map((part, pIdx) => {
       if (part.startsWith('**') && part.endsWith('**')) {
@@ -765,193 +765,665 @@ interface SavedProject {
 }
 
 const DEMO_STARTER_HTML = `<!DOCTYPE html>
-<html lang="pt">
+<html lang="pt" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NexusTech — Inovação Digital</title>
+  <title>WeHost Cloud Suite | Infraestrutura & Alta Performance</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
-    section[id], footer[id] { scroll-margin-top: 5rem; }
-    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    body { background: #000000; color: #ffffff; font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; }
+    ::selection { background: #ffffff; color: #000000; }
+    section[id] { scroll-margin-top: 5rem; }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 antialiased min-h-screen flex flex-col">
-  <header class="border-b border-slate-800/80 sticky top-0 bg-slate-950/90 backdrop-blur-md z-30">
-    <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center font-black text-white text-lg">N</div>
-        <span class="font-extrabold text-lg tracking-tight text-white">Nexus<span class="text-blue-500">Tech</span></span>
-      </div>
-      <nav class="hidden md:flex items-center gap-7 text-sm font-medium text-slate-300">
-        <a href="#inicio" class="hover:text-blue-400 transition">Início</a>
-        <a href="#solucoes" class="hover:text-blue-400 transition">Soluções</a>
-        <a href="#vantagens" class="hover:text-blue-400 transition">Vantagens</a>
-        <a href="#precos" class="hover:text-blue-400 transition">Preços</a>
-        <a href="#contacto" class="hover:text-blue-400 transition">Contacto</a>
-      </nav>
-      <a href="https://wa.me/258840000000?text=Ola!%20Gostaria%20de%20saber%20mais%20sobre%20a%20NexusTech" target="_blank" class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs sm:text-sm px-4 py-2 rounded-xl transition shadow-lg shadow-blue-600/30">
-        Falar no WhatsApp
+<body class="bg-black text-white antialiased">
+  <!-- Header / Navbar -->
+  <header class="sticky top-0 z-50 backdrop-blur-xl bg-black/85 border-b border-white/10 transition-all">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      <a href="#inicio" class="flex items-center gap-3 group">
+        <div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-black font-extrabold text-lg shadow-lg group-hover:scale-105 transition">
+          W
+        </div>
+        <div>
+          <span class="font-extrabold text-lg tracking-tight text-white block">WeHost Cloud</span>
+          <span class="text-[10px] uppercase tracking-widest text-zinc-400 block font-medium">Infraestrutura em MoÃ§ambique</span>
+        </div>
       </a>
+      
+      <nav class="hidden md:flex items-center gap-8" id="desktop-nav">
+        <a href="#inicio" class="text-xs uppercase tracking-wider text-zinc-400 hover:text-white transition font-medium">Início</a>
+        <a href="#servicos" class="text-xs uppercase tracking-wider text-zinc-400 hover:text-white transition font-medium">Serviços</a>
+        <a href="#galeria" class="text-xs uppercase tracking-wider text-zinc-400 hover:text-white transition font-medium">Galeria</a>
+        <a href="#depoimentos" class="text-xs uppercase tracking-wider text-zinc-400 hover:text-white transition font-medium">Depoimentos</a>
+        <a href="#faq" class="text-xs uppercase tracking-wider text-zinc-400 hover:text-white transition font-medium">FAQ</a>
+        <a href="#agendamento" class="text-xs uppercase tracking-wider text-zinc-400 hover:text-white transition font-medium">Ativar Plano</a>
+        <a href="#contacto" class="text-xs uppercase tracking-wider text-zinc-400 hover:text-white transition font-medium">Contacto</a>
+      </nav>
+
+      <div class="flex items-center gap-3">
+        <a href="https://wa.me/258848335618?text=Ol%C3%A1!%20Gostaria%20de%20saber%20mais%20sobre%20a%20WeHost%20Cloud" target="_blank" rel="noopener noreferrer" class="hidden sm:inline-flex items-center gap-2 bg-white text-black font-bold text-xs px-5 py-2.5 rounded-full hover:bg-zinc-200 transition shadow-sm hover:scale-[1.02]">
+          <i data-lucide="message-circle" class="w-4 h-4"></i>
+          <span>Falar no WhatsApp</span>
+        </a>
+        <button id="menu-toggle" aria-label="Abrir menu" onclick="toggleMobileMenu()" class="md:hidden flex flex-col justify-center items-center w-10 h-10 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition gap-1.5">
+          <span id="hb1" class="block w-5 h-0.5 bg-white transition-all duration-300 origin-center"></span>
+          <span id="hb2" class="block w-5 h-0.5 bg-white transition-all duration-300"></span>
+          <span id="hb3" class="block w-5 h-0.5 bg-white transition-all duration-300 origin-center"></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Menu Drawer -->
+    <div id="mobile-menu" style="display:none;flex-direction:column;" class="md:hidden bg-black/98 backdrop-blur-2xl border-t border-white/10 px-4 py-5 space-y-1">
+      <a href="#inicio" onclick="closeMobileMenu()" class="block px-4 py-3.5 rounded-xl text-sm font-semibold text-zinc-300 hover:text-white hover:bg-white/5 transition">Início</a>
+      <a href="#servicos" onclick="closeMobileMenu()" class="block px-4 py-3.5 rounded-xl text-sm font-semibold text-zinc-300 hover:text-white hover:bg-white/5 transition">Serviços</a>
+      <a href="#galeria" onclick="closeMobileMenu()" class="block px-4 py-3.5 rounded-xl text-sm font-semibold text-zinc-300 hover:text-white hover:bg-white/5 transition">Galeria</a>
+      <a href="#depoimentos" onclick="closeMobileMenu()" class="block px-4 py-3.5 rounded-xl text-sm font-semibold text-zinc-300 hover:text-white hover:bg-white/5 transition">Depoimentos</a>
+      <a href="#faq" onclick="closeMobileMenu()" class="block px-4 py-3.5 rounded-xl text-sm font-semibold text-zinc-300 hover:text-white hover:bg-white/5 transition">FAQ</a>
+      <a href="#agendamento" onclick="closeMobileMenu()" class="block px-4 py-3.5 rounded-xl text-sm font-semibold text-zinc-300 hover:text-white hover:bg-white/5 transition">Ativar Plano</a>
+      <a href="#contacto" onclick="closeMobileMenu()" class="block px-4 py-3.5 rounded-xl text-sm font-semibold text-zinc-300 hover:text-white hover:bg-white/5 transition">Contacto</a>
+      <div class="pt-3 mt-2 border-t border-white/10">
+        <a href="https://wa.me/258848335618?text=Ol%C3%A1!%20Gostaria%20de%20saber%20mais%20sobre%20a%20WeHost%20Cloud" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-2 bg-white text-black font-extrabold text-sm px-6 py-3.5 rounded-xl hover:bg-zinc-200 transition w-full">
+          <i data-lucide="message-circle" class="w-4 h-4"></i>
+          <span>Falar no WhatsApp</span>
+        </a>
+      </div>
     </div>
   </header>
-  <main class="flex-1">
-    <section id="inicio" class="py-16 sm:py-24 px-6 text-center relative overflow-hidden">
-      <div class="max-w-4xl mx-auto">
-        <div class="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold px-3.5 py-1.5 rounded-full mb-6">
-          <svg class="w-3.5 h-3.5 text-blue-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
-          <span>Construído com WEHOSTHERE Studio AI</span>
+
+  <!-- Hero Section -->
+  <section id="inicio" class="relative min-h-[85vh] flex items-center justify-center text-center px-4 sm:px-6 lg:px-8 py-24 overflow-hidden">
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(255,255,255,0.08),transparent_70%)] pointer-events-none"></div>
+    <div class="relative z-10 max-w-4xl mx-auto">
+      <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/15 bg-white/5 text-xs text-zinc-300 mb-8 backdrop-blur-md">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span>Servidores Ativos em MoÃ§ambique &bull; 99.99% Uptime</span>
+      </div>
+      <h1 class="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-white mb-6 leading-tight">
+        A Nuvem Mais RÃ¡pida e ConfiÃ¡vel para o <span class="underline decoration-white/30 decoration-wavy">Seu NegÃ³cio</span>
+      </h1>
+      <p class="text-zinc-400 text-base sm:text-lg max-w-2xl mx-auto mb-10 leading-relaxed">
+        Hospedagem de alta velocidade com armazenamento SSD NVMe, baixa latÃªncia para o territÃ³rio nacional e suporte tÃ©cnico dedicado 24 horas por dia.
+      </p>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a href="#servicos" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white text-black font-extrabold text-sm px-8 py-4 rounded-full hover:bg-zinc-200 transition shadow-xl">
+          <i data-lucide="server" class="w-4 h-4"></i>
+          <span>Ver Planos & Recursos</span>
+        </a>
+        <a href="#agendamento" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 border border-white/20 bg-white/5 text-white font-bold text-sm px-8 py-4 rounded-full hover:bg-white/10 transition">
+          <i data-lucide="zap" class="w-4 h-4"></i>
+          <span>Solicitar AtivaÃ§Ã£o Imediata</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats Bar -->
+  <section class="border-y border-white/10 bg-white/[0.02] py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-8 text-center divide-y lg:divide-y-0 lg:divide-x divide-white/10">
+        <div class="pt-4 lg:pt-0">
+          <div class="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight">99.99%</div>
+          <div class="text-xs uppercase tracking-widest text-zinc-400 mt-2 font-medium">Uptime SLA Garantido</div>
         </div>
-        <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-tight mb-6">
-          Soluções Digitais que aceleram o seu <span class="bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">Crescimento</span>
-        </h1>
-        <p class="text-slate-400 text-base sm:text-lg max-w-2xl mx-auto mb-8 leading-relaxed">
-          Desenvolvemos tecnologia de alta performance para empresas que buscam modernidade, segurança e presença digital marcante.
+        <div class="pt-4 lg:pt-0">
+          <div class="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight">5ms</div>
+          <div class="text-xs uppercase tracking-widest text-zinc-400 mt-2 font-medium">LatÃªncia Local UltrarrÃ¡pida</div>
+        </div>
+        <div class="pt-4 lg:pt-0">
+          <div class="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight">12.000+</div>
+          <div class="text-xs uppercase tracking-widest text-zinc-400 mt-2 font-medium">Websites Alojados</div>
+        </div>
+        <div class="pt-4 lg:pt-0">
+          <div class="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight">24/7/365</div>
+          <div class="text-xs uppercase tracking-widest text-zinc-400 mt-2 font-medium">Suporte TÃ©cnico Local</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Services Grid (6 Cards) -->
+  <section id="servicos" class="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center max-w-2xl mx-auto mb-16">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/5 text-[11px] uppercase tracking-wider text-zinc-300 mb-4">
+        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+        <span>Recursos Corporativos</span>
+      </div>
+      <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white mb-4">SoluÃ§Ãµes Cloud de Alto Desempenho</h2>
+      <p class="text-zinc-400 text-sm sm:text-base leading-relaxed">Tecnologia de ponta pensada para a estabilidade contÃ­nua das suas aplicaÃ§Ãµes.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="group p-6 rounded-2xl bg-zinc-950 border border-white/10 hover:border-white/25 transition duration-300 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white group-hover:bg-white group-hover:text-black transition">
+              <i data-lucide="hard-drive" class="w-5 h-5"></i>
+            </div>
+            <span class="text-xs font-bold text-white tracking-wider">Desde 350 MT / mÃªs</span>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2 tracking-tight group-hover:text-zinc-200 transition">Hospedagem NVMe UltrarrÃ¡pida</h3>
+          <p class="text-xs text-zinc-400 leading-relaxed mb-6">Discos SSD NVMe de Ãºltima geraÃ§Ã£o, cPanel intuitivo e contas de e-mail corporativo ilimitadas.</p>
+        </div>
+        <a href="https://wa.me/258848335618?text=Ol%C3%A1!%20Gostaria%20de%20assinar%20o%20servi%C3%A7o%3A%20Hospedagem%20NVMe%20Ultrarr%C3%A1pida" target="_blank" class="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl border border-white/15 bg-white/5 text-xs font-semibold text-white hover:bg-white hover:text-black transition">
+          <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+          <span>Ativar Este Plano</span>
+        </a>
+      </div>
+
+      <div class="group p-6 rounded-2xl bg-zinc-950 border border-white/10 hover:border-white/25 transition duration-300 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white group-hover:bg-white group-hover:text-black transition">
+              <i data-lucide="server" class="w-5 h-5"></i>
+            </div>
+            <span class="text-xs font-bold text-white tracking-wider">Desde 1.450 MT / mÃªs</span>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2 tracking-tight group-hover:text-zinc-200 transition">Servidores Cloud VPS Dedicados</h3>
+          <p class="text-xs text-zinc-400 leading-relaxed mb-6">Recursos 100% isolados (vCPU, RAM DDR5) com acesso root completo e IP moÃ§ambicano.</p>
+        </div>
+        <a href="https://wa.me/258848335618?text=Ol%C3%A1!%20Gostaria%20de%20assinar%20o%20servi%C3%A7o%3A%20Servidores%20Cloud%20VPS%20Dedicados" target="_blank" class="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl border border-white/15 bg-white/5 text-xs font-semibold text-white hover:bg-white hover:text-black transition">
+          <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+          <span>Ativar Este Plano</span>
+        </a>
+      </div>
+
+      <div class="group p-6 rounded-2xl bg-zinc-950 border border-white/10 hover:border-white/25 transition duration-300 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white group-hover:bg-white group-hover:text-black transition">
+              <i data-lucide="globe" class="w-5 h-5"></i>
+            </div>
+            <span class="text-xs font-bold text-white tracking-wider">AtivaÃ§Ã£o RÃ¡pida</span>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2 tracking-tight group-hover:text-zinc-200 transition">DomÃ­nios .MZ e Internacionais</h3>
+          <p class="text-xs text-zinc-400 leading-relaxed mb-6">Registo e ativaÃ§Ã£o imediata de extensÃµes .co.mz, .mz, .com, .net com DNS Anycast redundante.</p>
+        </div>
+        <a href="https://wa.me/258848335618?text=Ol%C3%A1!%20Gostaria%20de%20assinar%20o%20servi%C3%A7o%3A%20Dom%C3%ADnios%20.MZ%20e%20Internacionais" target="_blank" class="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl border border-white/15 bg-white/5 text-xs font-semibold text-white hover:bg-white hover:text-black transition">
+          <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+          <span>Ativar Este Plano</span>
+        </a>
+      </div>
+
+      <div class="group p-6 rounded-2xl bg-zinc-950 border border-white/10 hover:border-white/25 transition duration-300 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white group-hover:bg-white group-hover:text-black transition">
+              <i data-lucide="shield-check" class="w-5 h-5"></i>
+            </div>
+            <span class="text-xs font-bold text-white tracking-wider">Incluso GrÃ¡tis</span>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2 tracking-tight group-hover:text-zinc-200 transition">SeguranÃ§a & ProteÃ§Ã£o Anti-DDoS</h3>
+          <p class="text-xs text-zinc-400 leading-relaxed mb-6">Filtro inteligente de trÃ¡fego que bloqueia ataques maliciosos antes de atingirem o seu servidor.</p>
+        </div>
+        <a href="https://wa.me/258848335618?text=Ol%C3%A1!%20Gostaria%20de%20assinar%20o%20servi%C3%A7o%3A%20Seguran%C3%A7a%20%26%20Prote%C3%A7%C3%A3o%20Anti-DDoS" target="_blank" class="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl border border-white/15 bg-white/5 text-xs font-semibold text-white hover:bg-white hover:text-black transition">
+          <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+          <span>Ativar Este Plano</span>
+        </a>
+      </div>
+
+      <div class="group p-6 rounded-2xl bg-zinc-950 border border-white/10 hover:border-white/25 transition duration-300 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white group-hover:bg-white group-hover:text-black transition">
+              <i data-lucide="database" class="w-5 h-5"></i>
+            </div>
+            <span class="text-xs font-bold text-white tracking-wider">Incluso GrÃ¡tis</span>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2 tracking-tight group-hover:text-zinc-200 transition">Backups DiÃ¡rios Automatizados</h3>
+          <p class="text-xs text-zinc-400 leading-relaxed mb-6">CÃ³pias de seguranÃ§a automÃ¡ticas com restauraÃ§Ã£o em 1-clique para tranquilidade absoluta.</p>
+        </div>
+        <a href="https://wa.me/258848335618?text=Ol%C3%A1!%20Gostaria%20de%20assinar%20o%20servi%C3%A7o%3A%20Backups%20Di%C3%A1rios%20Automatizados" target="_blank" class="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl border border-white/15 bg-white/5 text-xs font-semibold text-white hover:bg-white hover:text-black transition">
+          <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+          <span>Ativar Este Plano</span>
+        </a>
+      </div>
+
+      <div class="group p-6 rounded-2xl bg-zinc-950 border border-white/10 hover:border-white/25 transition duration-300 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white group-hover:bg-white group-hover:text-black transition">
+              <i data-lucide="cpu" class="w-5 h-5"></i>
+            </div>
+            <span class="text-xs font-bold text-white tracking-wider">Incluso no Plano</span>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2 tracking-tight group-hover:text-zinc-200 transition">Construtor de Sites IA Integrado</h3>
+          <p class="text-xs text-zinc-400 leading-relaxed mb-6">Crie e edite websites profissionais em minutos com auxÃ­lio da nossa inteligÃªncia artificial exclusiva.</p>
+        </div>
+        <a href="https://wa.me/258848335618?text=Ol%C3%A1!%20Gostaria%20de%20assinar%20o%20servi%C3%A7o%3A%20Construtor%20de%20Sites%20IA%20Integrado" target="_blank" class="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl border border-white/15 bg-white/5 text-xs font-semibold text-white hover:bg-white hover:text-black transition">
+          <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+          <span>Ativar Este Plano</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Showcase / Galeria com Fotos Reais Unsplash -->
+  <section id="galeria" class="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center max-w-2xl mx-auto mb-16">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/5 text-[11px] uppercase tracking-wider text-zinc-300 mb-4">
+        <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+        <span>ExperiÃªncia Visual</span>
+      </div>
+      <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white mb-4">Tecnologia & Infraestrutura de Ponta</h2>
+      <p class="text-zinc-400 text-sm sm:text-base leading-relaxed">Estrutura tÃ©cnica robusta desenhada para empresas que nÃ£o podem parar.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div class="group relative rounded-2xl bg-zinc-950 border border-white/10 hover:border-white/25 transition-all duration-500 flex flex-col overflow-hidden shadow-2xl">
+        <div class="relative h-60 sm:h-64 overflow-hidden w-full bg-zinc-900">
+          <img src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=800&q=80" alt="Data Center com Racks de Servidores" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out brightness-95 contrast-105" loading="lazy" />
+          <div class="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/20 to-transparent"></div>
+          <div class="absolute top-4 left-4 z-10">
+            <span class="text-[10px] uppercase font-bold tracking-wider px-3 py-1 rounded-full bg-black/70 backdrop-blur-md text-white border border-white/20">Datacenter</span>
+          </div>
+        </div>
+        <div class="p-6 flex flex-col justify-between flex-1">
+          <div>
+            <h3 class="text-lg font-bold text-white mb-2 tracking-tight group-hover:text-zinc-200 transition">Data Center com Racks de Servidores</h3>
+            <p class="text-xs text-zinc-400 leading-relaxed">Hardware corporativo com refrigeraÃ§Ã£o avanÃ§ada e alimentaÃ§Ã£o elÃ©trica ininterrupta.</p>
+          </div>
+          <div class="mt-6 pt-4 border-t border-white/5 flex items-center justify-between text-xs text-zinc-300 font-semibold group-hover:text-white">
+            <span>Explorar detalhe</span>
+            <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="group relative rounded-2xl bg-zinc-950 border border-white/10 hover:border-white/25 transition-all duration-500 flex flex-col overflow-hidden shadow-2xl">
+        <div class="relative h-60 sm:h-64 overflow-hidden w-full bg-zinc-900">
+          <img src="https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=800&q=80" alt="Backbone de Fibra & Baixa LatÃªncia" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out brightness-95 contrast-105" loading="lazy" />
+          <div class="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/20 to-transparent"></div>
+          <div class="absolute top-4 left-4 z-10">
+            <span class="text-[10px] uppercase font-bold tracking-wider px-3 py-1 rounded-full bg-black/70 backdrop-blur-md text-white border border-white/20">Fibra Ã“ptica</span>
+          </div>
+        </div>
+        <div class="p-6 flex flex-col justify-between flex-1">
+          <div>
+            <h3 class="text-lg font-bold text-white mb-2 tracking-tight group-hover:text-zinc-200 transition">Backbone de Fibra & Baixa LatÃªncia</h3>
+            <p class="text-xs text-zinc-400 leading-relaxed">ConexÃ£o direta aos principais pontos de troca de trÃ¡fego de MoÃ§ambique e da Ãfrica Austral.</p>
+          </div>
+          <div class="mt-6 pt-4 border-t border-white/5 flex items-center justify-between text-xs text-zinc-300 font-semibold group-hover:text-white">
+            <span>Explorar detalhe</span>
+            <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="group relative rounded-2xl bg-zinc-950 border border-white/10 hover:border-white/25 transition-all duration-500 flex flex-col overflow-hidden shadow-2xl">
+        <div class="relative h-60 sm:h-64 overflow-hidden w-full bg-zinc-900">
+          <img src="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=800&q=80" alt="SeguranÃ§a & Monitoramento 24/7" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out brightness-95 contrast-105" loading="lazy" />
+          <div class="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/20 to-transparent"></div>
+          <div class="absolute top-4 left-4 z-10">
+            <span class="text-[10px] uppercase font-bold tracking-wider px-3 py-1 rounded-full bg-black/70 backdrop-blur-md text-white border border-white/20">SeguranÃ§a ContÃ­nua</span>
+          </div>
+        </div>
+        <div class="p-6 flex flex-col justify-between flex-1">
+          <div>
+            <h3 class="text-lg font-bold text-white mb-2 tracking-tight group-hover:text-zinc-200 transition">SeguranÃ§a & Monitoramento 24/7</h3>
+            <p class="text-xs text-zinc-400 leading-relaxed">Sistemas inteligentes com proteÃ§Ã£o contra ataques DDoS e supervisÃ£o de rede 365 dias por ano.</p>
+          </div>
+          <div class="mt-6 pt-4 border-t border-white/5 flex items-center justify-between text-xs text-zinc-300 font-semibold group-hover:text-white">
+            <span>Explorar detalhe</span>
+            <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Depoimentos Reais / Prova Social -->
+  <section id="depoimentos" class="py-24 border-t border-white/10 bg-white/[0.01]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-2xl mx-auto mb-16">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/5 text-[11px] uppercase tracking-wider text-zinc-300 mb-4">
+          <i data-lucide="star" class="w-3.5 h-3.5 fill-white text-white"></i>
+          <span>ExcelÃªncia Comprovada</span>
+        </div>
+        <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white mb-4">ConfianÃ§a das Melhores Empresas</h2>
+        <p class="text-zinc-400 text-sm sm:text-base leading-relaxed">Empresas e desenvolvedores que escolheram hospedar com estabilidade.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="p-8 rounded-2xl bg-zinc-950 border border-white/10 hover:border-white/20 transition flex flex-col justify-between">
+          <div>
+            <div class="flex items-center gap-1 mb-4">
+              <i data-lucide="star" class="w-4 h-4 fill-white text-white"></i>
+              <i data-lucide="star" class="w-4 h-4 fill-white text-white"></i>
+              <i data-lucide="star" class="w-4 h-4 fill-white text-white"></i>
+              <i data-lucide="star" class="w-4 h-4 fill-white text-white"></i>
+              <i data-lucide="star" class="w-4 h-4 fill-white text-white"></i>
+            </div>
+            <p class="text-xs sm:text-sm text-zinc-300 leading-relaxed italic mb-6">"A latÃªncia dentro de MoÃ§ambique fez as nossas pÃ¡ginas abrirem em menos de 1 segundo. FantÃ¡stico."</p>
+          </div>
+          <div class="flex items-center gap-3 pt-4 border-t border-white/10">
+            <div class="w-10 h-10 rounded-full bg-white/10 border border-white/15 flex items-center justify-center font-bold text-xs text-white">C</div>
+            <div>
+              <div class="text-xs font-bold text-white">ClÃ¡udio Matusse</div>
+              <div class="text-[11px] text-zinc-400">CTO &bull; StartupMz</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-8 rounded-2xl bg-zinc-950 border border-white/10 hover:border-white/20 transition flex flex-col justify-between">
+          <div>
+            <div class="flex items-center gap-1 mb-4">
+              <i data-lucide="star" class="w-4 h-4 fill-white text-white"></i>
+              <i data-lucide="star" class="w-4 h-4 fill-white text-white"></i>
+              <i data-lucide="star" class="w-4 h-4 fill-white text-white"></i>
+              <i data-lucide="star" class="w-4 h-4 fill-white text-white"></i>
+              <i data-lucide="star" class="w-4 h-4 fill-white text-white"></i>
+            </div>
+            <p class="text-xs sm:text-sm text-zinc-300 leading-relaxed italic mb-6">"O suporte via WhatsApp resolveu a nossa migraÃ§Ã£o em 15 minutos num domingo. Nunca vi igual."</p>
+          </div>
+          <div class="flex items-center gap-3 pt-4 border-t border-white/10">
+            <div class="w-10 h-10 rounded-full bg-white/10 border border-white/15 flex items-center justify-center font-bold text-xs text-white">T</div>
+            <div>
+              <div class="text-xs font-bold text-white">Teresa Chissano</div>
+              <div class="text-[11px] text-zinc-400">Gestora &bull; AgÃªncia Criativa</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-8 rounded-2xl bg-zinc-950 border border-white/10 hover:border-white/20 transition flex flex-col justify-between">
+          <div>
+            <div class="flex items-center gap-1 mb-4">
+              <i data-lucide="star" class="w-4 h-4 fill-white text-white"></i>
+              <i data-lucide="star" class="w-4 h-4 fill-white text-white"></i>
+              <i data-lucide="star" class="w-4 h-4 fill-white text-white"></i>
+              <i data-lucide="star" class="w-4 h-4 fill-white text-white"></i>
+              <i data-lucide="star" class="w-4 h-4 fill-white text-white"></i>
+            </div>
+            <p class="text-xs sm:text-sm text-zinc-300 leading-relaxed italic mb-6">"Os servidores VPS tÃªm desempenho real sem sobrealocaÃ§Ã£o. Estabilidade de padrÃ£o global."</p>
+          </div>
+          <div class="flex items-center gap-3 pt-4 border-t border-white/10">
+            <div class="w-10 h-10 rounded-full bg-white/10 border border-white/15 flex items-center justify-center font-bold text-xs text-white">R</div>
+            <div>
+              <div class="text-xs font-bold text-white">Rui Sumbana</div>
+              <div class="text-[11px] text-zinc-400">Engenheiro de Software &bull; Maputo</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Accordion -->
+  <section id="faq" class="py-24 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-16">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/5 text-[11px] uppercase tracking-wider text-zinc-300 mb-4">
+        <i data-lucide="help-circle" class="w-3.5 h-3.5"></i>
+        <span>Esclarecimentos</span>
+      </div>
+      <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white mb-4">Perguntas Frequentes</h2>
+      <p class="text-zinc-400 text-sm sm:text-base leading-relaxed">Respostas rÃ¡pidas sobre migraÃ§Ã£o e funcionamento.</p>
+    </div>
+
+    <div class="space-y-4">
+      <div class="border border-white/10 rounded-2xl overflow-hidden bg-zinc-950/60 hover:border-white/20 transition">
+        <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-6 text-left text-sm font-bold text-white hover:bg-white/5 transition">
+          <span>A migraÃ§Ã£o do meu site atual para a WeHost tem algum custo?</span>
+          <i data-lucide="chevron-down" class="w-4 h-4 text-zinc-400 transition-transform duration-200"></i>
+        </button>
+        <div class="hidden px-6 pb-6 text-xs text-zinc-400 leading-relaxed border-t border-white/5 pt-4">
+          NÃ£o! Migramos o seu site e contas de e-mail do seu provedor antigo sem qualquer custo e com zero tempo de inatividade.
+        </div>
+      </div>
+
+      <div class="border border-white/10 rounded-2xl overflow-hidden bg-zinc-950/60 hover:border-white/20 transition">
+        <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-6 text-left text-sm font-bold text-white hover:bg-white/5 transition">
+          <span>Quais mÃ©todos de pagamento aceitam?</span>
+          <i data-lucide="chevron-down" class="w-4 h-4 text-zinc-400 transition-transform duration-200"></i>
+        </button>
+        <div class="hidden px-6 pb-6 text-xs text-zinc-400 leading-relaxed border-t border-white/5 pt-4">
+          Aceitamos pagamentos mensais ou anuais por M-Pesa, E-Mola, transferÃªncia bancÃ¡ria (BIM/BCI) e cartÃµes nacionais e internacionais.
+        </div>
+      </div>
+
+      <div class="border border-white/10 rounded-2xl overflow-hidden bg-zinc-950/60 hover:border-white/20 transition">
+        <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-6 text-left text-sm font-bold text-white hover:bg-white/5 transition">
+          <span>O suporte tÃ©cnico funciona aos finais de semana e feriados?</span>
+          <i data-lucide="chevron-down" class="w-4 h-4 text-zinc-400 transition-transform duration-200"></i>
+        </button>
+        <div class="hidden px-6 pb-6 text-xs text-zinc-400 leading-relaxed border-t border-white/5 pt-4">
+          Sim! A nossa equipa de suporte local opera 24 horas por dia, 7 dias por semana, inclusive feriados nacionais.
+        </div>
+      </div>
+
+      <div class="border border-white/10 rounded-2xl overflow-hidden bg-zinc-950/60 hover:border-white/20 transition">
+        <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-6 text-left text-sm font-bold text-white hover:bg-white/5 transition">
+          <span>Posso fazer upgrade de plano quando meu site crescer?</span>
+          <i data-lucide="chevron-down" class="w-4 h-4 text-zinc-400 transition-transform duration-200"></i>
+        </button>
+        <div class="hidden px-6 pb-6 text-xs text-zinc-400 leading-relaxed border-t border-white/5 pt-4">
+          Com certeza! Pode mudar de plano instantaneamente sem qualquer perda de dados ou configuraÃ§Ã£o.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FormulÃ¡rio de Agendamento / AtivaÃ§Ã£o Direto para WhatsApp -->
+  <section id="agendamento" class="py-24 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="relative rounded-3xl bg-zinc-950 border border-white/10 p-8 sm:p-12 overflow-hidden shadow-2xl">
+      <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.06),transparent_60%)] pointer-events-none"></div>
+      
+      <div class="text-center max-w-xl mx-auto mb-10 relative z-10">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/5 text-[11px] uppercase tracking-wider text-zinc-300 mb-4">
+          <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+          <span>Atendimento Direto &bull; MoÃ§ambique</span>
+        </div>
+        <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white mb-3">AtivaÃ§Ã£o de Conta & Suporte Comercial</h2>
+        <p class="text-zinc-400 text-xs sm:text-sm leading-relaxed">Escolha o serviÃ§o pretendido para receber atendimento imediato da equipa tÃ©cnica da WeHost.</p>
+      </div>
+
+      <form onsubmit="handleBookingSubmit(event)" class="relative z-10 space-y-5">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div>
+            <label class="block text-xs font-semibold text-zinc-300 mb-2 uppercase tracking-wider">O Seu Nome</label>
+            <input type="text" name="booking_name" required placeholder="Ex: Carlos Mondlane" class="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-zinc-500 text-sm focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/40 transition" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-zinc-300 mb-2 uppercase tracking-wider">TelemÃ³vel / WhatsApp</label>
+            <input type="tel" name="booking_phone" required placeholder="Ex: +258 84 000 0000" class="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-zinc-500 text-sm focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/40 transition" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div>
+            <label class="block text-xs font-semibold text-zinc-300 mb-2 uppercase tracking-wider">OpÃ§Ã£o / ServiÃ§o Desejado</label>
+            <select name="booking_service" required class="w-full px-4 py-3 rounded-xl bg-zinc-900 border border-white/10 text-white text-sm focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/40 transition">
+              <option value="" disabled selected class="text-zinc-500">Selecione uma opÃ§Ã£o...</option>
+              <option value="Hospedagem SSD NVMe (350 MT / mÃªs)" class="bg-zinc-900 text-white">Hospedagem SSD NVMe (350 MT / mÃªs)</option>
+              <option value="Servidor Cloud VPS Dedicado (1.450 MT / mÃªs)" class="bg-zinc-900 text-white">Servidor Cloud VPS Dedicado (1.450 MT / mÃªs)</option>
+              <option value="Registo de DomÃ­nio Nacional .CO.MZ / .MZ" class="bg-zinc-900 text-white">Registo de DomÃ­nio Nacional .CO.MZ / .MZ</option>
+              <option value="MigraÃ§Ã£o Gratuita de Website e E-mails" class="bg-zinc-900 text-white">MigraÃ§Ã£o Gratuita de Website e E-mails</option>
+              <option value="Pacote Corporativo Customizado" class="bg-zinc-900 text-white">Pacote Corporativo Customizado</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-zinc-300 mb-2 uppercase tracking-wider">Data Preferencial</label>
+            <input type="date" name="booking_date" class="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-zinc-500 text-sm focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/40 transition" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-zinc-300 mb-2 uppercase tracking-wider">Mensagem ou ObservaÃ§Ãµes (Opcional)</label>
+          <textarea name="booking_notes" rows="3" placeholder="Indique qualquer preferÃªncia especÃ­fica ou detalhe adicional..." class="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-zinc-500 text-sm focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/40 transition resize-none"></textarea>
+        </div>
+
+        <button type="submit" class="w-full py-4 px-6 rounded-xl bg-white text-black font-extrabold text-sm tracking-wide hover:bg-zinc-200 transition shadow-xl flex items-center justify-center gap-2 group cursor-pointer">
+          <i data-lucide="send" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+          <span>Falar com Especialista no WhatsApp</span>
+        </button>
+        <p class="text-[11px] text-center text-zinc-500 mt-2">
+          ðŸ”’ Ao submeter, abrirÃ¡ o WhatsApp com a mensagem formatada para confirmaÃ§Ã£o imediata.
         </p>
-        <div class="flex flex-wrap items-center justify-center gap-3">
-          <a href="#solucoes" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-3 rounded-xl transition shadow-xl">
-            Ver Nossos Serviços
+      </form>
+    </div>
+  </section>
+
+  <!-- CTA Banner Final -->
+  <section class="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="relative rounded-3xl bg-gradient-to-b from-zinc-900 via-zinc-950 to-black border border-white/15 p-10 sm:p-16 text-center overflow-hidden">
+      <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.15),transparent_70%)] pointer-events-none"></div>
+      <div class="relative z-10 max-w-3xl mx-auto">
+        <h2 class="text-3xl sm:text-5xl font-black tracking-tight text-white mb-6">Coloque o Seu Projeto Online Hoje Mesmo</h2>
+        <p class="text-zinc-300 text-sm sm:text-base leading-relaxed mb-8 max-w-xl mx-auto">Comece com a infraestrutura cloud mais estÃ¡vel e rÃ¡pida de MoÃ§ambique.</p>
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <a href="https://wa.me/258848335618?text=Ol%C3%A1!%20Gostaria%20de%20ativar%20um%20plano%20de%20hospedagem" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 bg-white text-black font-extrabold text-sm px-8 py-4 rounded-full hover:bg-zinc-200 transition shadow-2xl hover:scale-105">
+            <i data-lucide="message-circle" class="w-5 h-5"></i>
+            <span>Ativar Conta no WhatsApp</span>
           </a>
-          <a href="#precos" class="bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white font-bold px-6 py-3 rounded-xl transition">
-            Ver Tabela de Preços
-          </a>
+        </div>
+        <div class="mt-6 text-[11px] text-zinc-400 font-medium">
+          âœ“ Atendimento Imediato &bull; MoÃ§ambique &bull; DisponÃ­vel 24/7
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- Secção Soluções -->
-    <section id="solucoes" class="py-16 px-6 bg-slate-900/60 border-t border-slate-800">
-      <div class="max-w-6xl mx-auto">
-        <div class="text-center mb-12">
-          <h2 class="text-2xl sm:text-3xl font-extrabold text-white mb-3">O Que Criamos Para Si</h2>
-          <p class="text-slate-400 text-sm">Tecnologia desenhada à medida da sua empresa.</p>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500/50 transition group">
-            <div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418"/></svg>
-            </div>
-            <h3 class="text-lg font-bold text-white mb-2">Websites & E-Commerce</h3>
-            <p class="text-slate-400 text-sm">Páginas ultrarrápidas, otimizadas para telemóveis e preparadas para vendas online.</p>
-          </div>
-          <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-indigo-500/50 transition group">
-            <div class="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/></svg>
-            </div>
-            <h3 class="text-lg font-bold text-white mb-2">Sistemas na Cloud</h3>
-            <p class="text-slate-400 text-sm">Aplicações corporativas com segurança de nível bancário e alta disponibilidade.</p>
-          </div>
-          <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-purple-500/50 transition group">
-            <div class="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>
-            </div>
-            <h3 class="text-lg font-bold text-white mb-2">Automação & IA</h3>
-            <p class="text-slate-400 text-sm">Integrações inteligentes que poupam tempo à sua equipa e reduzem custos.</p>
-          </div>
-        </div>
-      </div>
-    </section>
+  <!-- BotÃ£o Flutuante do WhatsApp -->
+  <a href="https://wa.me/258848335618?text=Ol%C3%A1!%20Gostaria%20de%20mais%20informa%C3%A7%C3%B5es" target="_blank" rel="noopener noreferrer" class="fixed bottom-6 right-6 z-50 inline-flex items-center gap-2.5 bg-white text-black font-extrabold text-xs py-3 px-5 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 hover:bg-zinc-200 border border-white/20 group">
+    <i data-lucide="message-circle" class="w-4 h-4 group-hover:rotate-12 transition-transform"></i>
+    <span class="font-bold tracking-tight">WhatsApp</span>
+  </a>
 
-    <!-- Secção Vantagens -->
-    <section id="vantagens" class="py-16 px-6 bg-slate-950 border-t border-slate-800/80">
-      <div class="max-w-6xl mx-auto">
-        <div class="text-center mb-12">
-          <h2 class="text-2xl sm:text-3xl font-extrabold text-white mb-3">Vantagens & Benefícios</h2>
-          <p class="text-slate-400 text-sm">O padrão de qualidade que impulsiona o seu sucesso.</p>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div class="p-6 rounded-2xl bg-slate-900/70 border border-slate-800">
-            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center font-black mb-3">✓</div>
-            <h3 class="font-bold text-white mb-1">Velocidade Extrema</h3>
-            <p class="text-slate-400 text-xs leading-relaxed">Carregamento instantâneo que garante a melhor experiência ao cliente.</p>
+  <!-- Multi-column Footer -->
+  <footer id="contacto" class="border-t border-white/10 bg-black pt-16 pb-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-10 pb-16 border-b border-white/10">
+        <div class="space-y-4">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-white flex items-center justify-center text-black font-black text-base">
+              W
+            </div>
+            <span class="font-bold text-lg text-white tracking-tight">WeHost Cloud Suite</span>
           </div>
-          <div class="p-6 rounded-2xl bg-slate-900/70 border border-slate-800">
-            <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center font-black mb-3">★</div>
-            <h3 class="font-bold text-white mb-1">Responsivo & Adaptável</h3>
-            <p class="text-slate-400 text-xs leading-relaxed">Funciona perfeitamente em qualquer smartphone, tablet ou computador.</p>
-          </div>
-          <div class="p-6 rounded-2xl bg-slate-900/70 border border-slate-800">
-            <div class="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center font-black mb-3">⚡</div>
-            <h3 class="font-bold text-white mb-1">Pagamentos M-Pesa</h3>
-            <p class="text-slate-400 text-xs leading-relaxed">Pronto para receber pagamentos locais em Moçambique com facilidade.</p>
+          <p class="text-xs text-zinc-400 leading-relaxed">
+            ExcelÃªncia, design refinado e compromisso com o mais alto padrÃ£o em MoÃ§ambique.
+          </p>
+          <div class="flex items-center gap-3 pt-2">
+            <a href="https://wa.me/258848335618" target="_blank" class="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-zinc-300 hover:text-white hover:border-white transition"><i data-lucide="message-circle" class="w-4 h-4"></i></a>
+            <a href="#" class="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-zinc-300 hover:text-white hover:border-white transition"><i data-lucide="instagram" class="w-4 h-4"></i></a>
+            <a href="#" class="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-zinc-300 hover:text-white hover:border-white transition"><i data-lucide="phone" class="w-4 h-4"></i></a>
           </div>
         </div>
-      </div>
-    </section>
 
-    <!-- Secção Preços -->
-    <section id="precos" class="py-20 px-6 bg-slate-900/80 border-t border-slate-800">
-      <div class="max-w-6xl mx-auto">
-        <div class="text-center mb-14">
-          <h2 class="text-2xl sm:text-4xl font-extrabold text-white mb-3">Planos & Preços</h2>
-          <p class="text-slate-400 text-sm">Sem contratos ocultos ou surpresas.</p>
+        <div>
+          <h4 class="text-xs font-bold uppercase tracking-wider text-white mb-4">NavegaÃ§Ã£o</h4>
+          <ul class="space-y-2.5">
+            <li><a href="#inicio" class="text-xs text-zinc-400 hover:text-white transition">InÃ­cio</a></li>
+            <li><a href="#servicos" class="text-xs text-zinc-400 hover:text-white transition">ServiÃ§os</a></li>
+            <li><a href="#galeria" class="text-xs text-zinc-400 hover:text-white transition">Galeria</a></li>
+            <li><a href="#depoimentos" class="text-xs text-zinc-400 hover:text-white transition">Depoimentos</a></li>
+            <li><a href="#faq" class="text-xs text-zinc-400 hover:text-white transition">FAQ</a></li>
+            <li><a href="#agendamento" class="text-xs text-zinc-400 hover:text-white transition">Ativar Plano</a></li>
+          </ul>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
-          <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col justify-between">
-            <div>
-              <h3 class="font-bold text-white text-lg">Básico</h3>
-              <div class="my-4"><span class="text-3xl font-black text-white">1.500</span> <span class="text-xs text-slate-400">MT /mês</span></div>
-              <ul class="space-y-2 text-xs text-slate-300 pt-3 border-t border-slate-800 mb-6">
-                <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> Website Institucional</li>
-                <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> Otimizado para Telemóveis</li>
-                <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> Certificado SSL Grátis</li>
-              </ul>
-            </div>
-            <a href="#contacto" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-center text-xs font-bold text-white transition">Escolher Básico</a>
-          </div>
-          <div class="p-6 rounded-2xl bg-gradient-to-b from-blue-950/60 to-slate-900 border-2 border-blue-500 flex flex-col justify-between relative shadow-xl scale-105">
-            <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-[10px] font-black uppercase px-3 py-0.5 rounded-full">Mais Popular</span>
-            <div>
-              <h3 class="font-bold text-white text-lg">Profissional</h3>
-              <div class="my-4"><span class="text-3xl font-black text-white">3.500</span> <span class="text-xs text-blue-300">MT /mês</span></div>
-              <ul class="space-y-2 text-xs text-slate-200 pt-3 border-t border-blue-900/60 mb-6">
-                <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> Tudo do Plano Básico</li>
-                <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> Domínio .co.mz Incluído</li>
-                <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> Integração de M-Pesa</li>
-                <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> Suporte Prioritário 24/7</li>
-              </ul>
-            </div>
-            <a href="#contacto" class="py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-center text-xs font-extrabold text-white transition shadow-lg shadow-blue-600/30">Contratar Profissional</a>
-          </div>
-          <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col justify-between">
-            <div>
-              <h3 class="font-bold text-white text-lg">Empresarial</h3>
-              <div class="my-4"><span class="text-3xl font-black text-white">7.500</span> <span class="text-xs text-slate-400">MT /mês</span></div>
-              <ul class="space-y-2 text-xs text-slate-300 pt-3 border-t border-slate-800 mb-6">
-                <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> Infraestrutura Ilimitada</li>
-                <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> Painel de Gestão Personalizado</li>
-                <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> M-Pesa & e-Mola</li>
-                <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> Gerente de Conta Dedicado</li>
-              </ul>
-            </div>
-            <a href="#contacto" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-center text-xs font-bold text-white transition">Escolher Empresarial</a>
+
+        <div>
+          <h4 class="text-xs font-bold uppercase tracking-wider text-white mb-4">Contacto & LocalizaÃ§Ã£o</h4>
+          <ul class="space-y-2.5 text-xs text-zinc-400">
+            <li class="flex items-center gap-2">
+              <i data-lucide="map-pin" class="w-4 h-4 text-white"></i>
+              <span>Maputo &bull; Matola, MoÃ§ambique</span>
+            </li>
+            <li class="flex items-center gap-2">
+              <i data-lucide="phone" class="w-4 h-4 text-white"></i>
+              <span>+258 84 000 0000</span>
+            </li>
+            <li class="flex items-center gap-2">
+              <i data-lucide="mail" class="w-4 h-4 text-white"></i>
+              <span>contacto@wehosthere.co.mz</span>
+            </li>
+            <li class="flex items-center gap-2">
+              <i data-lucide="clock" class="w-4 h-4 text-white"></i>
+              <span>Seg - SÃ¡b: 08:00 Ã s 20:00</span>
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="text-xs font-bold uppercase tracking-wider text-white mb-4">Pagamentos Aceites</h4>
+          <p class="text-xs text-zinc-400 mb-4">Aceitamos as principais soluÃ§Ãµes financeiras de MoÃ§ambique:</p>
+          <div class="flex flex-wrap gap-2 text-[10px] text-zinc-300 font-semibold">
+            <span class="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10">M-Pesa</span>
+            <span class="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10">E-Mola</span>
+            <span class="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10">BIM / BCI</span>
+            <span class="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10">NumerÃ¡rio</span>
           </div>
         </div>
       </div>
-    </section>
-  </main>
-  <footer id="contacto" class="border-t border-slate-800 py-8 px-6 text-center text-slate-500 text-xs">
-    <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-      <p>© 2026 NexusTech, Lda. Todos os direitos reservados.</p>
-      <p>Desenvolvido com <span class="text-blue-400 font-bold">WEHOSTHERE Studio AI</span></p>
+
+      <div class="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-zinc-400 gap-4">
+        <div>&copy; 2026 WeHost Cloud Suite. Todos os direitos reservados.</div>
+        <div class="flex items-center gap-2">
+          <span>Potenciado por</span>
+          <span class="font-bold text-white tracking-wider">WEHOSTHERE</span>
+        </div>
+      </div>
     </div>
   </footer>
-  <script id="wehost-nav-script">
-    document.addEventListener('DOMContentLoaded', function() {
-      document.querySelectorAll('a[href^="#"]').forEach(function(anchor) {
-        anchor.addEventListener('click', function(e) {
-          var targetId = this.getAttribute('href').substring(1);
-          if (!targetId) return;
-          var el = document.getElementById(targetId);
-          if (el) {
-            e.preventDefault();
-            el.scrollIntoView({ behavior: 'smooth' });
-          }
-        });
-      });
-    });
+
+  <script>
+    lucide.createIcons();
+    function toggleMobileMenu() {
+      var menu = document.getElementById('mobile-menu');
+      var hb1 = document.getElementById('hb1');
+      var hb2 = document.getElementById('hb2');
+      var hb3 = document.getElementById('hb3');
+      var isOpen = menu.style.display === 'flex';
+      if (isOpen) {
+        menu.style.display = 'none';
+        hb1.style.transform = ''; hb2.style.opacity = '1'; hb3.style.transform = '';
+      } else {
+        menu.style.display = 'flex';
+        hb1.style.transform = 'rotate(45deg) translate(4px,4px)';
+        hb2.style.opacity = '0';
+        hb3.style.transform = 'rotate(-45deg) translate(4px,-4px)';
+      }
+    }
+    function closeMobileMenu() {
+      var menu = document.getElementById('mobile-menu');
+      var hb1 = document.getElementById('hb1');
+      var hb2 = document.getElementById('hb2');
+      var hb3 = document.getElementById('hb3');
+      if (menu) menu.style.display = 'none';
+      if (hb1) { hb1.style.transform = ''; hb2.style.opacity = '1'; hb3.style.transform = ''; }
+    }
+    function toggleFaq(btn) {
+      const content = btn.nextElementSibling;
+      const icon = btn.querySelector('i[data-lucide="chevron-down"]');
+      const isHidden = content.classList.contains('hidden');
+      content.classList.toggle('hidden');
+      if (icon) {
+        icon.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+      }
+    }
+    function handleBookingSubmit(e) {
+      e.preventDefault();
+      const form = e.target;
+      const name = form.querySelector('[name="booking_name"]')?.value || '';
+      const phone = form.querySelector('[name="booking_phone"]')?.value || '';
+      const service = form.querySelector('[name="booking_service"]')?.value || '';
+      const date = form.querySelector('[name="booking_date"]')?.value || '';
+      const notes = form.querySelector('[name="booking_notes"]')?.value || '';
+
+      let text = 'OlÃ¡! Gostaria de fazer uma solicitaÃ§Ã£o:\n\n';
+      if (name) text += 'ðŸ‘¤ *Nome:* ' + name + '\n';
+      if (phone) text += 'ðŸ“± *Contacto:* ' + phone + '\n';
+      if (service) text += 'ðŸŽ¯ *OpÃ§Ã£o:* ' + service + '\n';
+      if (date) text += 'ðŸ“… *Data:* ' + date + '\n';
+      if (notes) text += 'ðŸ“ *Mensagem:* ' + notes + '\n';
+
+      const waUrl = 'https://wa.me/258848335618?text=' + encodeURIComponent(text);
+      window.open(waUrl, '_blank');
+    }
   </script>
 </body>
 </html>`;
@@ -971,7 +1443,7 @@ export default function AiSiteBuilderStudio() {
   const [savedProjects, setSavedProjects] = useState<SavedProject[]>([]);
   const [isLoadingProjects, setIsLoadingProjects] = useState<boolean>(true);
 
-  // Estados de Histórico de Versões (Latest Version, v1, v2, etc.)
+  // Estados de HistÃ³rico de VersÃµes (Latest Version, v1, v2, etc.)
   const [versions, setVersions] = useState<ProjectVersion[]>([]);
   const [selectedVersionIndex, setSelectedVersionIndex] = useState<number | 'latest'>('latest');
   const [isVersionDropdownOpen, setIsVersionDropdownOpen] = useState<boolean>(false);
@@ -985,7 +1457,7 @@ export default function AiSiteBuilderStudio() {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const versionMenuRef = useRef<HTMLDivElement>(null);
 
-  // Cronómetro de Raciocínio em Tempo Real (Estilo ChatGPT / Claude)
+  // CronÃ³metro de RaciocÃ­nio em Tempo Real (Estilo ChatGPT / Claude)
   useEffect(() => {
     if (!isGenerating) {
       setElapsedThinkingSeconds(0);
@@ -999,9 +1471,9 @@ export default function AiSiteBuilderStudio() {
   }, [isGenerating]);
 
   // Estados de Streaming
-  const [streamingCode, setStreamingCode] = useState<string>(''); // código a aparecer em tempo real
+  const [streamingCode, setStreamingCode] = useState<string>(''); // cÃ³digo a aparecer em tempo real
   const [isStreaming, setIsStreaming] = useState<boolean>(false);  // streaming activo
-  const streamingRef = useRef<HTMLDivElement>(null);               // scroll automático do terminal
+  const streamingRef = useRef<HTMLDivElement>(null);               // scroll automÃ¡tico do terminal
 
   // Estados de Interface e Layout
   const [activeTab, setActiveTab] = useState<'preview' | 'code'>('preview');
@@ -1018,22 +1490,22 @@ export default function AiSiteBuilderStudio() {
   const [isPublishModalOpen, setIsPublishModalOpen] = useState<boolean>(false);
   const [isPublishing, setIsPublishing] = useState<boolean>(false);
 
-  // Estados do Editor de Código Inline
+  // Estados do Editor de CÃ³digo Inline
   const [isEditingCode, setIsEditingCode] = useState<boolean>(false);
   const [editedCode, setEditedCode] = useState<string>('');
   const [editorSaveSuccess, setEditorSaveSuccess] = useState<boolean>(false);
 
-  // Estados de Edição Direta por Clique ("Click to Edit")
+  // Estados de EdiÃ§Ã£o Direta por Clique ("Click to Edit")
   const [isClickToEditEnabled, setIsClickToEditEnabled] = useState<boolean>(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Estados de Exportação e Partilha
+  // Estados de ExportaÃ§Ã£o e Partilha
   const [isExportingZip, setIsExportingZip] = useState<boolean>(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState<boolean>(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState<boolean>(false);
   const [copiedShareLink, setCopiedShareLink] = useState<boolean>(false);
 
-  // Modo de Interação: Desenvolvimento (Gera Código) vs Conversa (Consultor de IA)
+  // Modo de InteraÃ§Ã£o: Desenvolvimento (Gera CÃ³digo) vs Conversa (Consultor de IA)
   const [interactionMode, setInteractionMode] = useState<'builder' | 'chat'>('builder');
 
   // Estados do Modal de Logotipo
@@ -1046,54 +1518,54 @@ export default function AiSiteBuilderStudio() {
   const [logoErrorMessage, setLogoErrorMessage] = useState<string>('');
   const logoFileInputRef = useRef<HTMLInputElement>(null);
 
-  // 🎨 Estados do Refinamento Rápido: Mudar Cores
+  // ðŸŽ¨ Estados do Refinamento RÃ¡pido: Mudar Cores
   const [isColorModalOpen, setIsColorModalOpen] = useState<boolean>(false);
   const [selectedColorPalette, setSelectedColorPalette] = useState<string>('ocean');
   const [customPrimaryColor, setCustomPrimaryColor] = useState<string>('#2563eb');
   const [colorMode, setColorMode] = useState<'dark' | 'light'>('dark');
 
-  // 💬 Estados do Refinamento Rápido: Botão WhatsApp
+  // ðŸ’¬ Estados do Refinamento RÃ¡pido: BotÃ£o WhatsApp
   const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = useState<boolean>(false);
   const [waCountryCode, setWaCountryCode] = useState<string>('+258');
   const [waPhoneNumber, setWaPhoneNumber] = useState<string>('840000000');
-  const [waMessage, setWaMessage] = useState<string>('Olá! Vim através do website e gostaria de obter mais informações sobre os vossos serviços.');
+  const [waMessage, setWaMessage] = useState<string>('OlÃ¡! Vim atravÃ©s do website e gostaria de obter mais informaÃ§Ãµes sobre os vossos serviÃ§os.');
   const [waButtonText, setWaButtonText] = useState<string>('Falar no WhatsApp');
   const [waPosition, setWaPosition] = useState<'right' | 'left'>('right');
 
-  // 🏷️ Estados do Refinamento Rápido: Tabela de Preços & Benefícios
+  // ðŸ·ï¸ Estados do Refinamento RÃ¡pido: Tabela de PreÃ§os & BenefÃ­cios
   const [isPricingModalOpen, setIsPricingModalOpen] = useState<boolean>(false);
   const [pricingCurrency, setPricingCurrency] = useState<string>('MT');
-  const [pricingCycle, setPricingCycle] = useState<string>('/mês');
-  const [plan1Name, setPlan1Name] = useState<string>('Básico');
+  const [pricingCycle, setPricingCycle] = useState<string>('/mÃªs');
+  const [plan1Name, setPlan1Name] = useState<string>('BÃ¡sico');
   const [plan1Price, setPlan1Price] = useState<string>('1.500');
-  const [plan1Features, setPlan1Features] = useState<string>('Website Institucional\nOtimizado para Telemóveis\nCertificado SSL Grátis\nSuporte por Email');
+  const [plan1Features, setPlan1Features] = useState<string>('Website Institucional\nOtimizado para TelemÃ³veis\nCertificado SSL GrÃ¡tis\nSuporte por Email');
   const [plan2Name, setPlan2Name] = useState<string>('Profissional');
   const [plan2Price, setPlan2Price] = useState<string>('3.500');
   const [plan2Badge, setPlan2Badge] = useState<string>('Mais Popular');
-  const [plan2Features, setPlan2Features] = useState<string>('Tudo do Plano Básico\nDomínio .co.mz Incluído\nIntegração de M-Pesa & e-Mola\nSuporte Prioritário 24/7');
+  const [plan2Features, setPlan2Features] = useState<string>('Tudo do Plano BÃ¡sico\nDomÃ­nio .co.mz IncluÃ­do\nIntegraÃ§Ã£o de M-Pesa & e-Mola\nSuporte PrioritÃ¡rio 24/7');
   const [plan3Name, setPlan3Name] = useState<string>('Empresarial');
   const [plan3Price, setPlan3Price] = useState<string>('7.500');
-  const [plan3Features, setPlan3Features] = useState<string>('Infraestrutura Cloud Ilimitada\nPainel de Gestão Personalizado\nIntegração M-Pesa & Cartões\nGerente de Conta Exclusivo');
+  const [plan3Features, setPlan3Features] = useState<string>('Infraestrutura Cloud Ilimitada\nPainel de GestÃ£o Personalizado\nIntegraÃ§Ã£o M-Pesa & CartÃµes\nGerente de Conta Exclusivo');
 
-  // 🖼️ Estados do Refinamento Rápido: Configuração de Banner / Hero
+  // ðŸ–¼ï¸ Estados do Refinamento RÃ¡pido: ConfiguraÃ§Ã£o de Banner / Hero
   const [isBannerModalOpen, setIsBannerModalOpen] = useState<boolean>(false);
-  const [bannerHeadline, setBannerHeadline] = useState<string>('Soluções Digitais que aceleram o seu Crescimento');
-  const [bannerSubtitle, setBannerSubtitle] = useState<string>('Desenvolvemos tecnologia de alta performance para empresas que buscam modernidade, segurança e presença digital marcante.');
-  const [bannerCtaText, setBannerCtaText] = useState<string>('Ver Nossos Serviços');
+  const [bannerHeadline, setBannerHeadline] = useState<string>('SoluÃ§Ãµes Digitais que aceleram o seu Crescimento');
+  const [bannerSubtitle, setBannerSubtitle] = useState<string>('Desenvolvemos tecnologia de alta performance para empresas que buscam modernidade, seguranÃ§a e presenÃ§a digital marcante.');
+  const [bannerCtaText, setBannerCtaText] = useState<string>('Ver Nossos ServiÃ§os');
   const [bannerCtaLink, setBannerCtaLink] = useState<string>('#solucoes');
-  const [bannerSecondaryText, setBannerSecondaryText] = useState<string>('Ver Tabela de Preços');
+  const [bannerSecondaryText, setBannerSecondaryText] = useState<string>('Ver Tabela de PreÃ§os');
   const [bannerSecondaryLink, setBannerSecondaryLink] = useState<string>('#precos');
-  const [bannerBadge, setBannerBadge] = useState<string>('Construído com WEHOSTHERE Studio AI');
+  const [bannerBadge, setBannerBadge] = useState<string>('ConstruÃ­do com WEHOSTHERE Studio AI');
   const [bannerTheme, setBannerTheme] = useState<string>('tech-dark');
 
-  // Estados de Confirmação Customizada (Substitui confirm/alert nativos do browser)
+  // Estados de ConfirmaÃ§Ã£o Customizada (Substitui confirm/alert nativos do browser)
   const [projectToDelete, setProjectToDelete] = useState<{ id: string; title: string } | null>(null);
   const [isDeletingProject, setIsDeletingProject] = useState<boolean>(false);
   const [isClearChatModalOpen, setIsClearChatModalOpen] = useState<boolean>(false);
 
-  // Estados de Modo Restrito para Visitantes Não Autenticados
+  // Estados de Modo Restrito para Visitantes NÃ£o Autenticados
   const [isAuthRequiredModalOpen, setIsAuthRequiredModalOpen] = useState<boolean>(false);
-  const [authModalReason, setAuthModalReason] = useState<string>('Para gerar novos designs com IA e salvar seus projetos, aceda à sua conta.');
+  const [authModalReason, setAuthModalReason] = useState<string>('Para gerar novos designs com IA e salvar seus projetos, aceda Ã  sua conta.');
 
   // Estado para redimensionamento manual do Chat (Arrastar borda)
   const [chatWidth, setChatWidth] = useState<number>(420);
@@ -1146,7 +1618,7 @@ export default function AiSiteBuilderStudio() {
     return () => window.removeEventListener('resize', handleCheckMobile);
   }, []);
 
-  // Fechar dropdown de versão e menu de opções ao clicar fora
+  // Fechar dropdown de versÃ£o e menu de opÃ§Ãµes ao clicar fora
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (versionMenuRef.current && !versionMenuRef.current.contains(event.target as Node)) {
@@ -1160,7 +1632,7 @@ export default function AiSiteBuilderStudio() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Carregar utilizador e projetos (aguarda NextAuth terminar carregamento para não redirecionar indevidamente)
+  // Carregar utilizador e projetos (aguarda NextAuth terminar carregamento para nÃ£o redirecionar indevidamente)
   useEffect(() => {
     if (status === 'loading') return;
 
@@ -1193,10 +1665,10 @@ export default function AiSiteBuilderStudio() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session, status]);
 
-  // Inicializar projeto em modo demonstração para visitantes
+  // Inicializar projeto em modo demonstraÃ§Ã£o para visitantes
   const initGuestProject = () => {
     setProjectId('site_guest_demo');
-    setProjectTitle('Website de Demonstração');
+    setProjectTitle('Website de DemonstraÃ§Ã£o');
     setProjectSlug('demo-preview');
     setIsPublished(false);
     setCurrentHtml(DEMO_STARTER_HTML);
@@ -1206,7 +1678,7 @@ export default function AiSiteBuilderStudio() {
       {
         versionNumber: 1,
         html: DEMO_STARTER_HTML,
-        prompt: 'Layout Inicial de Apresentação',
+        prompt: 'Layout Inicial de ApresentaÃ§Ã£o',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }
     ]);
@@ -1215,7 +1687,7 @@ export default function AiSiteBuilderStudio() {
       {
         id: 'msg_guest_welcome',
         role: 'assistant',
-        content: '👋 Olá! Bem-vindo ao Construtor de Sites IA da WEHOSTHERE no Modo Demonstração.\n\nPode explorar o preview em tempo real, alternar entre modos (Computador, Tablet e Telemóvel) e inspecionar o código fonte. Para gerar novos designs com IA, salvar projetos e publicar com domínio próprio, crie uma conta gratuita ou inicie sessão!',
+        content: 'ðŸ‘‹ OlÃ¡! Bem-vindo ao Construtor de Sites IA da WEHOSTHERE no Modo DemonstraÃ§Ã£o.\n\nPode explorar o preview em tempo real, alternar entre modos (Computador, Tablet e TelemÃ³vel) e inspecionar o cÃ³digo fonte. Para gerar novos designs com IA, salvar projetos e publicar com domÃ­nio prÃ³prio, crie uma conta gratuita ou inicie sessÃ£o!',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }
     ]);
@@ -1254,11 +1726,11 @@ export default function AiSiteBuilderStudio() {
   // Inicializar novo projeto em branco
   const initNewProject = (userInitiated: boolean = false) => {
     if (!currentUser && userInitiated) {
-      setAuthModalReason('Para criar e guardar múltiplos projetos no seu painel, inicie sessão na sua conta.');
+      setAuthModalReason('Para criar e guardar mÃºltiplos projetos no seu painel, inicie sessÃ£o na sua conta.');
       setIsAuthRequiredModalOpen(true);
       return;
     }
-    // Preservar projeto atual no estado local caso tenha conteúdo
+    // Preservar projeto atual no estado local caso tenha conteÃºdo
     if (projectId) {
       setSavedProjects(prev => prev.map(p => {
         if (p.id === projectId) {
@@ -1288,7 +1760,7 @@ export default function AiSiteBuilderStudio() {
       {
         id: 'msg_welcome',
         role: 'assistant',
-        content: 'Olá! O que gostaria de criar hoje?',
+        content: 'OlÃ¡! O que gostaria de criar hoje?',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }
     ]);
@@ -1300,7 +1772,7 @@ export default function AiSiteBuilderStudio() {
     }
   };
 
-  // Selecionar projeto existente (com histórico isolado de chats)
+  // Selecionar projeto existente (com histÃ³rico isolado de chats)
   const selectProject = (proj: SavedProject) => {
     // Preservar projeto anterior no estado local antes de trocar
     if (projectId && projectId !== proj.id) {
@@ -1324,12 +1796,12 @@ export default function AiSiteBuilderStudio() {
     setIsEditingCode(false);
     setEditedCode(proj.htmlContent || '');
 
-    // Reconstruir lista de versões salvas
+    // Reconstruir lista de versÃµes salvas
     if (proj.versions && proj.versions.length > 0) {
       const parsedVersions: ProjectVersion[] = proj.versions.map((v) => ({
         versionNumber: v.versionNumber,
         html: v.htmlContent,
-        prompt: v.prompt || 'Atualização de código',
+        prompt: v.prompt || 'AtualizaÃ§Ã£o de cÃ³digo',
         timestamp: new Date(v.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }));
       setVersions(parsedVersions);
@@ -1338,7 +1810,7 @@ export default function AiSiteBuilderStudio() {
         {
           versionNumber: 1,
           html: proj.htmlContent,
-          prompt: 'Versão Inicial',
+          prompt: 'VersÃ£o Inicial',
           timestamp: new Date(proj.updatedAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }
       ]);
@@ -1348,7 +1820,7 @@ export default function AiSiteBuilderStudio() {
 
     setSelectedVersionIndex('latest');
 
-    // Carregar histórico de mensagens separado para este projeto
+    // Carregar histÃ³rico de mensagens separado para este projeto
     if (proj.promptHistory && proj.promptHistory.length > 0) {
       setMessages(proj.promptHistory);
     } else {
@@ -1356,7 +1828,7 @@ export default function AiSiteBuilderStudio() {
         {
           id: `msg_${Date.now()}`,
           role: 'assistant',
-          content: `Projeto "${proj.title}" carregado com sucesso. Como gostaria de aprimorá-lo agora?`,
+          content: `Projeto "${proj.title}" carregado com sucesso. Como gostaria de aprimorÃ¡-lo agora?`,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }
       ]);
@@ -1369,30 +1841,30 @@ export default function AiSiteBuilderStudio() {
     }
   };
 
-  // ─── Helpers para Proposta de Construção e Intenção ────────────────────────
+  // â”€â”€â”€ Helpers para Proposta de ConstruÃ§Ã£o e IntenÃ§Ã£o â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const isConversationalPrompt = (text: string) => {
     const p = text.trim().toLowerCase();
     const actionKeywords = [
       'cria', 'criar', 'construir', 'construa', 'faz', 'fazer', 'muda', 'mudar', 
       'altera', 'alterar', 'adiciona', 'adicionar', 'remove', 'remover', 'elimina',
       'troca', 'trocar', 'coloca', 'colocar', 'desenvolve', 'desenvolver',
-      'site', 'website', 'landing', 'pagina', 'página', 'loja', 'ecommerce', 
-      'restaurante', 'barbearia', 'hotel', 'resort', 'preço', 'preco', 'precos',
-      'botao', 'botão', 'whatsapp', 'formulario', 'formulário', 'tabela', 'cor', 'cores',
+      'site', 'website', 'landing', 'pagina', 'pÃ¡gina', 'loja', 'ecommerce', 
+      'restaurante', 'barbearia', 'hotel', 'resort', 'preÃ§o', 'preco', 'precos',
+      'botao', 'botÃ£o', 'whatsapp', 'formulario', 'formulÃ¡rio', 'tabela', 'cor', 'cores',
       'tema', 'fundo', 'header', 'footer', 'menu', 'navbar', 'hero', 'banner', 'design'
     ];
     if (actionKeywords.some(kw => p.includes(kw))) return false;
 
     const greetings = [
-      'ola', 'olá', 'oi', 'oii', 'oiii', 'hey', 'hello', 'hi', 'bom dia', 'boa tarde', 
-      'boa noite', 'tudo bem', 'tudo bom', 'tudo bem?', 'opa', 'e aí', 'e ai', 
-      'fala aí', 'salve'
+      'ola', 'olÃ¡', 'oi', 'oii', 'oiii', 'hey', 'hello', 'hi', 'bom dia', 'boa tarde', 
+      'boa noite', 'tudo bem', 'tudo bom', 'tudo bem?', 'opa', 'e aÃ­', 'e ai', 
+      'fala aÃ­', 'salve'
     ];
     if (greetings.includes(p) || greetings.some(g => p === g || p === `${g}!` || p === `${g}.` || p === `${g}?`)) return true;
 
     if (
       p.includes('como funciona') || p.includes('o que fazes') || p.includes('o que podes fazer') || 
-      p.includes('quem és tu') || p.includes('quem e voce') || p.includes('como usar') ||
+      p.includes('quem Ã©s tu') || p.includes('quem e voce') || p.includes('como usar') ||
       p === 'ajuda' || p === 'help' || p.includes('podes me ajudar')
     ) return true;
 
@@ -1405,26 +1877,26 @@ export default function AiSiteBuilderStudio() {
   const generateProposalPlan = (promptText: string, hasHtml: boolean): string => {
     const p = promptText.toLowerCase();
     if (hasHtml) {
-      return `Entendido! Preparei o seguinte plano de modificação para o seu site:\n\n• Aplicar as alterações solicitadas: "${promptText}"\n• Preservar o tema minimalista preto e branco de alto contraste\n• Manter o menu simples e o rodapé limpos e organizados\n• Testar o novo código e renderizar diretamente no preview interativo.\n\nDeseja aceitar e gerar o código agora?`;
+      return `Entendido! Preparei o seguinte plano de modificaÃ§Ã£o para o seu site:\n\nâ€¢ Aplicar as alteraÃ§Ãµes solicitadas: "${promptText}"\nâ€¢ Preservar o tema minimalista preto e branco de alto contraste\nâ€¢ Manter o menu simples e o rodapÃ© limpos e organizados\nâ€¢ Testar o novo cÃ³digo e renderizar diretamente no preview interativo.\n\nDeseja aceitar e gerar o cÃ³digo agora?`;
     }
 
-    if (p.includes('restaurante') || p.includes('lounge') || p.includes('comida') || p.includes('cardapio') || p.includes('cardápio')) {
-      return `Excelente! Preparei o plano de construção para o seu Restaurante & Lounge:\n\n• Tema sofisticado Preto & Branco com tipografia Plus Jakarta Sans\n• Menu simples e bonito com links rápidos e botão de WhatsApp\n• Seção Hero elegante com convite a reservas e culinária contemporânea\n• Cardápio digital de degustação com preços claros em Meticais (MZN)\n• Rodapé minimalista com horários, contactos e direitos reservados.\n\nDeseja aceitar e iniciar a geração do código?`;
+    if (p.includes('restaurante') || p.includes('lounge') || p.includes('comida') || p.includes('cardapio') || p.includes('cardÃ¡pio')) {
+      return `Excelente! Preparei o plano de construÃ§Ã£o para o seu Restaurante & Lounge:\n\nâ€¢ Tema sofisticado Preto & Branco com tipografia Plus Jakarta Sans\nâ€¢ Menu simples e bonito com links rÃ¡pidos e botÃ£o de WhatsApp\nâ€¢ SeÃ§Ã£o Hero elegante com convite a reservas e culinÃ¡ria contemporÃ¢nea\nâ€¢ CardÃ¡pio digital de degustaÃ§Ã£o com preÃ§os claros em Meticais (MZN)\nâ€¢ RodapÃ© minimalista com horÃ¡rios, contactos e direitos reservados.\n\nDeseja aceitar e iniciar a geraÃ§Ã£o do cÃ³digo?`;
     }
 
     if (p.includes('barbearia') || p.includes('corte') || p.includes('barba')) {
-      return `Ótimo! Preparei o plano de desenvolvimento para a sua Barbearia VIP:\n\n• Tema Preto & Branco com visual masculino moderno de alta classe\n• Menu clean e elegante com atalhos para serviços e agendamento\n• Tabela de cortes, barba terapia e combos com preços em Meticais (MZN)\n• Botão flutuante de agendamento rápido via WhatsApp\n• Rodapé simples e bonito com horários de funcionamento.\n\nDeseja aceitar e iniciar a geração do código?`;
+      return `Ã“timo! Preparei o plano de desenvolvimento para a sua Barbearia VIP:\n\nâ€¢ Tema Preto & Branco com visual masculino moderno de alta classe\nâ€¢ Menu clean e elegante com atalhos para serviÃ§os e agendamento\nâ€¢ Tabela de cortes, barba terapia e combos com preÃ§os em Meticais (MZN)\nâ€¢ BotÃ£o flutuante de agendamento rÃ¡pido via WhatsApp\nâ€¢ RodapÃ© simples e bonito com horÃ¡rios de funcionamento.\n\nDeseja aceitar e iniciar a geraÃ§Ã£o do cÃ³digo?`;
     }
 
     if (p.includes('hotel') || p.includes('resort') || p.includes('turismo') || p.includes('hospedagem')) {
-      return `Perfeito! Preparei o plano para o seu Hotel & Resort:\n\n• Estética refinada Preto & Branco com destaque para suítes exclusivas\n• Menu simples e bonito com navegação fluida e botão de reserva\n• Seção de acomodações com tarifas por noite em Meticais (MZN)\n• Comodidades premium (piscina infinita, SPA, gastronomia)\n• Rodapé minimalista com informações e termos.\n\nDeseja aceitar e iniciar a geração do código?`;
+      return `Perfeito! Preparei o plano para o seu Hotel & Resort:\n\nâ€¢ EstÃ©tica refinada Preto & Branco com destaque para suÃ­tes exclusivas\nâ€¢ Menu simples e bonito com navegaÃ§Ã£o fluida e botÃ£o de reserva\nâ€¢ SeÃ§Ã£o de acomodaÃ§Ãµes com tarifas por noite em Meticais (MZN)\nâ€¢ Comodidades premium (piscina infinita, SPA, gastronomia)\nâ€¢ RodapÃ© minimalista com informaÃ§Ãµes e termos.\n\nDeseja aceitar e iniciar a geraÃ§Ã£o do cÃ³digo?`;
     }
 
     if (p.includes('loja') || p.includes('ecommerce') || p.includes('produto') || p.includes('venda')) {
-      return `Excelente! Preparei o plano para a sua Loja Online:\n\n• Layout monocromático Preto & Branco com vitrine minimalista de produtos\n• Menu simples e bonito com categorias e botão de pedido\n• Catálogo com preços em Meticais e botões diretos de compra no WhatsApp\n• Rodapé clean com vantagens de envio, suporte e pagamentos locais.\n\nDeseja aceitar e iniciar a geração do código?`;
+      return `Excelente! Preparei o plano para a sua Loja Online:\n\nâ€¢ Layout monocromÃ¡tico Preto & Branco com vitrine minimalista de produtos\nâ€¢ Menu simples e bonito com categorias e botÃ£o de pedido\nâ€¢ CatÃ¡logo com preÃ§os em Meticais e botÃµes diretos de compra no WhatsApp\nâ€¢ RodapÃ© clean com vantagens de envio, suporte e pagamentos locais.\n\nDeseja aceitar e iniciar a geraÃ§Ã£o do cÃ³digo?`;
     }
 
-    return `Entendido! Preparei o seguinte plano de desenvolvimento:\n\n• Tema minimalista Preto & Branco de alto contraste\n• Menu simples e bonito com logotipo e navegação essencial\n• Seções completas: Hero impactante, serviços com preços, CTA e Rodapé clean\n• 100% responsivo para telemóveis e computadores.\n\nDeseja aceitar e iniciar a geração do código?`;
+    return `Entendido! Preparei o seguinte plano de desenvolvimento:\n\nâ€¢ Tema minimalista Preto & Branco de alto contraste\nâ€¢ Menu simples e bonito com logotipo e navegaÃ§Ã£o essencial\nâ€¢ SeÃ§Ãµes completas: Hero impactante, serviÃ§os com preÃ§os, CTA e RodapÃ© clean\nâ€¢ 100% responsivo para telemÃ³veis e computadores.\n\nDeseja aceitar e iniciar a geraÃ§Ã£o do cÃ³digo?`;
   };
 
   const cancelProposal = (msgId: string) => {
@@ -1439,19 +1911,19 @@ export default function AiSiteBuilderStudio() {
     }));
   };
 
-  // ─── Efeito Typewriter e Entrada Fluida (Estilo ChatGPT / Claude) ─────────
+  // â”€â”€â”€ Efeito Typewriter e Entrada Fluida (Estilo ChatGPT / Claude) â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const streamTypewriterMessage = async (
     targetMessage: ChatMessage,
     fullText: string,
     onComplete?: (finalMessages: ChatMessage[]) => void
   ) => {
     const msgId = targetMessage.id;
-    // Adicionar a mensagem inicialmente com conteúdo vazio e cursor ativo
+    // Adicionar a mensagem inicialmente com conteÃºdo vazio e cursor ativo
     setMessages(prev => [...prev, { ...targetMessage, content: '', isStreamingText: true }]);
 
     const len = fullText.length;
     let currentIdx = 0;
-    // Velocidade dinâmica: textos maiores escrevem mais rápido para fluidez sem tédio
+    // Velocidade dinÃ¢mica: textos maiores escrevem mais rÃ¡pido para fluidez sem tÃ©dio
     const chunkSize = len > 350 ? 5 : 3;
 
     await new Promise<void>((resolve) => {
@@ -1475,10 +1947,10 @@ export default function AiSiteBuilderStudio() {
     });
   };
 
-  // ─── Ponto de Entrada: Enviar Prompt (Gera Proposta Prévia ou Responde Chat) ──
+  // â”€â”€â”€ Ponto de Entrada: Enviar Prompt (Gera Proposta PrÃ©via ou Responde Chat) â”€â”€
   const handleGenerate = async (promptText?: string, titleOverride?: string, autoAccept: boolean = false) => {
     if (!currentUser) {
-      setAuthModalReason('Para enviar prompts e gerar websites inteligentes com a nossa IA, inicie sessão ou crie a sua conta gratuita.');
+      setAuthModalReason('Para enviar prompts e gerar websites inteligentes com a nossa IA, inicie sessÃ£o ou crie a sua conta gratuita.');
       setIsAuthRequiredModalOpen(true);
       return;
     }
@@ -1495,7 +1967,7 @@ export default function AiSiteBuilderStudio() {
 
     setPrompt('');
 
-    // Se o utilizador está no Modo Conversa OU for saudação casual -> responde direto como consultoria sem alterar o site
+    // Se o utilizador estÃ¡ no Modo Conversa OU for saudaÃ§Ã£o casual -> responde direto como consultoria sem alterar o site
     if (interactionMode === 'chat' || isConversationalPrompt(textToSend)) {
       setMessages(prev => [...prev, userMsg]);
       await executeGeneration(textToSend, titleOverride, undefined, true);
@@ -1509,7 +1981,7 @@ export default function AiSiteBuilderStudio() {
       return;
     }
 
-    // Se for comando de código no Modo Desenvolvimento -> Cria o card de proposta com entrada fluida
+    // Se for comando de cÃ³digo no Modo Desenvolvimento -> Cria o card de proposta com entrada fluida
     const plan = generateProposalPlan(textToSend, Boolean(currentHtml));
     const proposalMsg: ChatMessage = {
       id: `msg_proposal_${Date.now()}`,
@@ -1532,7 +2004,7 @@ export default function AiSiteBuilderStudio() {
     }, 350);
   };
 
-  // ─── Execução do Streaming SSE (Acionado ao Clicar em "Aceitar e Gerar Código" ou Chat) ─
+  // â”€â”€â”€ ExecuÃ§Ã£o do Streaming SSE (Acionado ao Clicar em "Aceitar e Gerar CÃ³digo" ou Chat) â”€
   const executeGeneration = async (
     textToSend: string, 
     titleOverride?: string, 
@@ -1540,7 +2012,7 @@ export default function AiSiteBuilderStudio() {
     isDirectChat: boolean = false
   ) => {
     if (!currentUser) {
-      setAuthModalReason('Para executar o modelo de IA e compilar o código do seu site, crie uma conta gratuita ou inicie sessão.');
+      setAuthModalReason('Para executar o modelo de IA e compilar o cÃ³digo do seu site, crie uma conta gratuita ou inicie sessÃ£o.');
       setIsAuthRequiredModalOpen(true);
       return;
     }
@@ -1625,7 +2097,7 @@ export default function AiSiteBuilderStudio() {
                 streamingRef.current.scrollTop = streamingRef.current.scrollHeight;
               }
             } else if (event.type === 'done') {
-              explanation = event.explanation || 'Página gerada e validada no preview.';
+              explanation = event.explanation || 'PÃ¡gina gerada e validada no preview.';
               diffSummary = event.diffSummary || '+150 linhas';
               executionSeconds = event.executionSeconds || 1;
               modelUsed = event.modelUsed || '';
@@ -1633,7 +2105,7 @@ export default function AiSiteBuilderStudio() {
               throw new Error(event.message);
             }
           } catch {
-            // ignorar linhas SSE intermediárias
+            // ignorar linhas SSE intermediÃ¡rias
           }
         }
       }
@@ -1678,7 +2150,7 @@ export default function AiSiteBuilderStudio() {
         return;
       }
 
-      // Caso 2: Gerou o código do site -> Efeito Typewriter na explicação
+      // Caso 2: Gerou o cÃ³digo do site -> Efeito Typewriter na explicaÃ§Ã£o
       if (accumulatedHtml) {
         setCurrentHtml(accumulatedHtml);
         setStreamingCode('');
@@ -1697,7 +2169,7 @@ export default function AiSiteBuilderStudio() {
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };
 
-        // Guardar versão no histórico
+        // Guardar versÃ£o no histÃ³rico
         const nextVersionNumber = versions.length + 1;
         const newVersionObj: ProjectVersion = {
           versionNumber: nextVersionNumber,
@@ -1739,7 +2211,7 @@ export default function AiSiteBuilderStudio() {
         {
           id: `msg_err_${Date.now()}`,
           role: 'assistant',
-          content: 'Houve uma instabilidade momentânea na conexão com o modelo de IA. Por favor, tente novamente.',
+          content: 'Houve uma instabilidade momentÃ¢nea na conexÃ£o com o modelo de IA. Por favor, tente novamente.',
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }
       ]);
@@ -1777,7 +2249,7 @@ export default function AiSiteBuilderStudio() {
   // Publicar o site oficialmente
   const handlePublish = async () => {
     if (!currentUser) {
-      setAuthModalReason('Para publicar o seu site online com subdomínio ou domínio personalizado, inicie sessão na sua conta.');
+      setAuthModalReason('Para publicar o seu site online com subdomÃ­nio ou domÃ­nio personalizado, inicie sessÃ£o na sua conta.');
       setIsAuthRequiredModalOpen(true);
       return;
     }
@@ -1816,12 +2288,12 @@ export default function AiSiteBuilderStudio() {
     }
   };
 
-  // Obter o HTML ativo para exibição (Latest ou versão específica)
+  // Obter o HTML ativo para exibiÃ§Ã£o (Latest ou versÃ£o especÃ­fica)
   const displayedHtml = selectedVersionIndex === 'latest'
     ? currentHtml
     : versions[selectedVersionIndex]?.html || currentHtml;
 
-  // Injetar script de Edição Direta por Clique no Preview do Iframe
+  // Injetar script de EdiÃ§Ã£o Direta por Clique no Preview do Iframe
   const editorInjectedHtml = useMemo(() => {
     if (!displayedHtml) return '';
     if (!isClickToEditEnabled) return displayedHtml;
@@ -1903,7 +2375,7 @@ export default function AiSiteBuilderStudio() {
     return displayedHtml + scriptToInject;
   }, [displayedHtml, isClickToEditEnabled]);
 
-  // Listener para atualizações feitas por clique direto no Iframe
+  // Listener para atualizaÃ§Ãµes feitas por clique direto no Iframe
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data && event.data.type === 'WEHOST_HTML_EDITED' && typeof event.data.html === 'string') {
@@ -1917,7 +2389,7 @@ export default function AiSiteBuilderStudio() {
     return () => window.removeEventListener('message', handleMessage);
   }, []);
 
-  // Restaurar uma versão antiga como atual
+  // Restaurar uma versÃ£o antiga como atual
   const handleRestoreVersion = (index: number) => {
     const targetVersion = versions[index];
     if (!targetVersion) return;
@@ -1930,16 +2402,16 @@ export default function AiSiteBuilderStudio() {
       {
         id: `msg_restore_${Date.now()}`,
         role: 'assistant',
-        content: `A Versão ${targetVersion.versionNumber} ("${targetVersion.prompt}") foi restaurada como versão atual de trabalho.`,
+        content: `A VersÃ£o ${targetVersion.versionNumber} ("${targetVersion.prompt}") foi restaurada como versÃ£o atual de trabalho.`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }
     ]);
 
-    // Criar nova entrada de versão
+    // Criar nova entrada de versÃ£o
     const nextVer: ProjectVersion = {
       versionNumber: versions.length + 1,
       html: targetVersion.html,
-      prompt: `Restaurada a Versão ${targetVersion.versionNumber}`,
+      prompt: `Restaurada a VersÃ£o ${targetVersion.versionNumber}`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
     const updated = [...versions, nextVer];
@@ -1966,7 +2438,7 @@ export default function AiSiteBuilderStudio() {
     }
   };
 
-  // Navegar entre versões com setas < e >
+  // Navegar entre versÃµes com setas < e >
   const handleStepVersion = (direction: 'prev' | 'next') => {
     if (versions.length <= 1) return;
     const currentIndex = selectedVersionIndex === 'latest' ? versions.length - 1 : selectedVersionIndex;
@@ -1991,7 +2463,7 @@ export default function AiSiteBuilderStudio() {
   // Abrir em Nova Aba (Funciona sempre: tanto publicado como preview em tempo real via Blob URL)
   const handleOpenInNewTab = () => {
     if (isPublished) {
-      // Abre o subdomínio ou URL público
+      // Abre o subdomÃ­nio ou URL pÃºblico
       window.open(subdomainUrl, '_blank', 'noopener,noreferrer');
     } else {
       // Abre um preview em tempo real no browser via Blob HTML
@@ -2013,7 +2485,7 @@ export default function AiSiteBuilderStudio() {
     setTimeout(() => setCopiedCode(false), 2000);
   };
 
-  // URLs de Subdomínio e Direto
+  // URLs de SubdomÃ­nio e Direto
   const subdomainHost = typeof window !== 'undefined' && window.location.host.includes('localhost')
     ? `${projectSlug}.localhost:3000`
     : `${projectSlug}.wehosthere.co.mz`;
@@ -2048,7 +2520,7 @@ export default function AiSiteBuilderStudio() {
     URL.revokeObjectURL(url);
   };
 
-  // ─── Exportar como ZIP (HTML + CSS extraído + README) ─────────────────────
+  // â”€â”€â”€ Exportar como ZIP (HTML + CSS extraÃ­do + README) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleDownloadZip = async () => {
     if (!displayedHtml) return;
     setIsExportingZip(true);
@@ -2074,18 +2546,18 @@ export default function AiSiteBuilderStudio() {
       // Adicionar index.html limpo e completo
       zip.file('index.html', displayedHtml);
 
-      // Adicionar README.md profissional com instruções
+      // Adicionar README.md profissional com instruÃ§Ãµes
       const readmeContent = `# ${projectTitle}
 Website criado e exportado via WEHOSTHERE Studio AI (https://www.wehosthere.com)
-Data de Exportação: ${new Date().toLocaleDateString('pt-MZ')}
+Data de ExportaÃ§Ã£o: ${new Date().toLocaleDateString('pt-MZ')}
 
 ## Estrutura dos Ficheiros:
-- \`index.html\`: Código completo do seu website pronto para abrir em qualquer navegador.
-${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para personalização.\n' : ''}
+- \`index.html\`: CÃ³digo completo do seu website pronto para abrir em qualquer navegador.
+${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraÃ­dos para personalizaÃ§Ã£o.\n' : ''}
 ## Como usar:
 1. Extraia todos os ficheiros numa pasta no seu computador.
-2. Dê duplo clique em \`index.html\` para abrir diretamente no Chrome, Edge ou Safari.
-3. Para publicar online com subdomínio grátis ou domínio próprio (.co.mz / .com), aceda a https://www.wehosthere.com.
+2. DÃª duplo clique em \`index.html\` para abrir diretamente no Chrome, Edge ou Safari.
+3. Para publicar online com subdomÃ­nio grÃ¡tis ou domÃ­nio prÃ³prio (.co.mz / .com), aceda a https://www.wehosthere.com.
 `;
       zip.file('README.md', readmeContent);
 
@@ -2105,10 +2577,10 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
     }
   };
 
-  // ─── Editor de Código Inline ──────────────────────────────────────────────
+  // â”€â”€â”€ Editor de CÃ³digo Inline â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleStartCodeEditing = () => {
     if (!currentUser) {
-      setAuthModalReason('Para editar diretamente o código-fonte e guardar alterações personalizadas, inicie sessão.');
+      setAuthModalReason('Para editar diretamente o cÃ³digo-fonte e guardar alteraÃ§Ãµes personalizadas, inicie sessÃ£o.');
       setIsAuthRequiredModalOpen(true);
       return;
     }
@@ -2128,11 +2600,11 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
     setEditorSaveSuccess(true);
     setTimeout(() => setEditorSaveSuccess(false), 2500);
 
-    // Salvar nova versão no histórico
+    // Salvar nova versÃ£o no histÃ³rico
     const nextVer: ProjectVersion = {
       versionNumber: versions.length + 1,
       html: editedCode,
-      prompt: 'Edição manual no código fonte',
+      prompt: 'EdiÃ§Ã£o manual no cÃ³digo fonte',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
     const updatedVersions = [...versions, nextVer];
@@ -2143,7 +2615,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
     const manualEditMsg: ChatMessage = {
       id: `msg_manual_${Date.now()}`,
       role: 'assistant',
-      content: 'Código HTML atualizado manualmente via Editor Inline. As alterações já foram aplicadas ao preview interativo.',
+      content: 'CÃ³digo HTML atualizado manualmente via Editor Inline. As alteraÃ§Ãµes jÃ¡ foram aplicadas ao preview interativo.',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
     const newMessages = [...messages, manualEditMsg];
@@ -2171,7 +2643,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
     }
   };
 
-  // ─── Limpar Histórico de Chat do Projeto Atual ────────────────────────────
+  // â”€â”€â”€ Limpar HistÃ³rico de Chat do Projeto Atual â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleClearProjectChat = () => {
     setIsClearChatModalOpen(true);
   };
@@ -2181,7 +2653,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
     const initialMsg: ChatMessage = {
       id: `msg_cleared_${Date.now()}`,
       role: 'assistant',
-      content: `Conversa reiniciada para o projeto "${projectTitle}". O seu código atual está preservado. O que deseja alterar a seguir?`,
+      content: `Conversa reiniciada para o projeto "${projectTitle}". O seu cÃ³digo atual estÃ¡ preservado. O que deseja alterar a seguir?`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
     setMessages([initialMsg]);
@@ -2206,7 +2678,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
     }
   };
 
-  // ─── Modal e Link de Partilha de Pré-visualização ─────────────────────────
+  // â”€â”€â”€ Modal e Link de Partilha de PrÃ©-visualizaÃ§Ã£o â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const previewShareUrl = typeof window !== 'undefined'
     ? `${window.location.origin}/site/${projectSlug}`
     : `https://www.wehosthere.com/site/${projectSlug}`;
@@ -2240,14 +2712,14 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
     setTimeout(() => setCopiedShareLink(false), 2000);
   };
 
-  // ─── Manipular Upload e Aplicação do Logótipo ────────────────────────────
+  // â”€â”€â”€ Manipular Upload e AplicaÃ§Ã£o do LogÃ³tipo â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleLogoFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     setLogoErrorMessage('');
     const file = e.target.files?.[0];
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      setLogoErrorMessage('Por favor, selecione um ficheiro de imagem válido (PNG, SVG, JPG, WebP).');
+      setLogoErrorMessage('Por favor, selecione um ficheiro de imagem vÃ¡lido (PNG, SVG, JPG, WebP).');
       return;
     }
 
@@ -2264,7 +2736,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
 
   const handleApplyLogo = () => {
     if (!currentUser) {
-      setAuthModalReason('Para personalizar e guardar o logótipo da marca nos seus projetos, inicie sessão.');
+      setAuthModalReason('Para personalizar e guardar o logÃ³tipo da marca nos seus projetos, inicie sessÃ£o.');
       setIsAuthRequiredModalOpen(true);
       return;
     }
@@ -2277,11 +2749,11 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
     setLogoSuccessToast(true);
     setTimeout(() => setLogoSuccessToast(false), 3000);
 
-    // Salvar versão no histórico
+    // Salvar versÃ£o no histÃ³rico
     const nextVer: ProjectVersion = {
       versionNumber: versions.length + 1,
       html: newHtml,
-      prompt: 'Configuração do logotipo da marca',
+      prompt: 'ConfiguraÃ§Ã£o do logotipo da marca',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
     const updatedVersions = [...versions, nextVer];
@@ -2292,7 +2764,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
     const logoMsg: ChatMessage = {
       id: `msg_logo_${Date.now()}`,
       role: 'assistant',
-      content: 'Logótipo da sua empresa aplicado com sucesso na barra de navegação do site! As proporções foram ajustadas para manter a nitidez.',
+      content: 'LogÃ³tipo da sua empresa aplicado com sucesso na barra de navegaÃ§Ã£o do site! As proporÃ§Ãµes foram ajustadas para manter a nitidez.',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
     const updatedMessages = [...messages, logoMsg];
@@ -2320,12 +2792,12 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
     }
   };
 
-  // ─── COMMITTER UNIVERSAL DE REFINAMENTO (Garante Versões, Sincronização e Links) ─
+  // â”€â”€â”€ COMMITTER UNIVERSAL DE REFINAMENTO (Garante VersÃµes, SincronizaÃ§Ã£o e Links) â”€
   const commitNewHtmlVersion = (newHtml: string, actionPrompt: string, explanation: string) => {
     const finalHtml = ensureClickableNavigation(newHtml);
     setCurrentHtml(finalHtml);
 
-    // Salvar versão no histórico
+    // Salvar versÃ£o no histÃ³rico
     const nextVer: ProjectVersion = {
       versionNumber: versions.length + 1,
       html: finalHtml,
@@ -2368,10 +2840,10 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
     }
   };
 
-  // 🎨 Aplicar Paleta de Cores
+  // ðŸŽ¨ Aplicar Paleta de Cores
   const handleApplyColors = () => {
     if (!currentUser) {
-      setAuthModalReason('Para personalizar as cores e guardar as alterações no seu projeto, inicie sessão.');
+      setAuthModalReason('Para personalizar as cores e guardar as alteraÃ§Ãµes no seu projeto, inicie sessÃ£o.');
       setIsAuthRequiredModalOpen(true);
       return;
     }
@@ -2381,15 +2853,15 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
     commitNewHtmlVersion(
       newHtml,
       `Mudar paleta de cores para ${pName} (${colorMode === 'dark' ? 'Modo Escuro' : 'Modo Claro'})`,
-      `Paleta de cores **${pName}** aplicada com sucesso! Os botões de ação, fundos e destaques foram atualizados com harmonia visual e alto contraste.`
+      `Paleta de cores **${pName}** aplicada com sucesso! Os botÃµes de aÃ§Ã£o, fundos e destaques foram atualizados com harmonia visual e alto contraste.`
     );
     setIsColorModalOpen(false);
   };
 
-  // 💬 Aplicar Configuração do WhatsApp
+  // ðŸ’¬ Aplicar ConfiguraÃ§Ã£o do WhatsApp
   const handleApplyWhatsApp = () => {
     if (!currentUser) {
-      setAuthModalReason('Para vincular o botão de WhatsApp ao seu website, inicie sessão.');
+      setAuthModalReason('Para vincular o botÃ£o de WhatsApp ao seu website, inicie sessÃ£o.');
       setIsAuthRequiredModalOpen(true);
       return;
     }
@@ -2398,16 +2870,16 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
     const newHtml = applyWhatsAppToHtml(displayedHtml, fullPhone, waMessage, waButtonText, waPosition);
     commitNewHtmlVersion(
       newHtml,
-      `Vincular botão oficial de WhatsApp (${fullPhone})`,
-      `Botão oficial de WhatsApp vinculado com sucesso ao número **${fullPhone}**! O botão flutuante e os links do menu foram conectados para iniciar conversa direta com a mensagem personalizada.`
+      `Vincular botÃ£o oficial de WhatsApp (${fullPhone})`,
+      `BotÃ£o oficial de WhatsApp vinculado com sucesso ao nÃºmero **${fullPhone}**! O botÃ£o flutuante e os links do menu foram conectados para iniciar conversa direta com a mensagem personalizada.`
     );
     setIsWhatsAppModalOpen(false);
   };
 
-  // 🏷️ Aplicar Tabela de Preços & Benefícios
+  // ðŸ·ï¸ Aplicar Tabela de PreÃ§os & BenefÃ­cios
   const handleApplyPricing = () => {
     if (!currentUser) {
-      setAuthModalReason('Para inserir a tabela de preços no seu website, inicie sessão.');
+      setAuthModalReason('Para inserir a tabela de preÃ§os no seu website, inicie sessÃ£o.');
       setIsAuthRequiredModalOpen(true);
       return;
     }
@@ -2435,16 +2907,16 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
     const newHtml = applyPricingToHtml(displayedHtml, config);
     commitNewHtmlVersion(
       newHtml,
-      `Inserção de Tabela de Preços com 3 planos em ${pricingCurrency}`,
-      `Tabela de preços e benefícios inserida com sucesso com os planos **${plan1Name}**, **${plan2Name}** e **${plan3Name}**! O link no menu de navegação foi sincronizado para rolagem suave até a secção de preços.`
+      `InserÃ§Ã£o de Tabela de PreÃ§os com 3 planos em ${pricingCurrency}`,
+      `Tabela de preÃ§os e benefÃ­cios inserida com sucesso com os planos **${plan1Name}**, **${plan2Name}** e **${plan3Name}**! O link no menu de navegaÃ§Ã£o foi sincronizado para rolagem suave atÃ© a secÃ§Ã£o de preÃ§os.`
     );
     setIsPricingModalOpen(false);
   };
 
-  // 🖼️ Aplicar Configuração de Banner / Hero
+  // ðŸ–¼ï¸ Aplicar ConfiguraÃ§Ã£o de Banner / Hero
   const handleApplyBanner = () => {
     if (!currentUser) {
-      setAuthModalReason('Para personalizar o banner principal do seu website, inicie sessão.');
+      setAuthModalReason('Para personalizar o banner principal do seu website, inicie sessÃ£o.');
       setIsAuthRequiredModalOpen(true);
       return;
     }
@@ -2462,8 +2934,8 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
     const newHtml = applyBannerToHtml(displayedHtml, config);
     commitNewHtmlVersion(
       newHtml,
-      `Configuração do Banner Principal / Hero`,
-      `Banner principal atualizado com sucesso! O título, mensagem de suporte e botões de chamada à ação foram configurados com layout responsivo e moderno.`
+      `ConfiguraÃ§Ã£o do Banner Principal / Hero`,
+      `Banner principal atualizado com sucesso! O tÃ­tulo, mensagem de suporte e botÃµes de chamada Ã  aÃ§Ã£o foram configurados com layout responsivo e moderno.`
     );
     setIsBannerModalOpen(false);
   };
@@ -2529,15 +3001,15 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
         }
       `}</style>
 
-      {/* Barra de Aviso para Visitantes Não Autenticados (Modo Demonstração) */}
+      {/* Barra de Aviso para Visitantes NÃ£o Autenticados (Modo DemonstraÃ§Ã£o) */}
       {!currentUser && (
         <div className="bg-gradient-to-r from-blue-700 via-indigo-700 to-primary-700 text-white px-3 sm:px-4 py-2 text-xs flex flex-wrap items-center justify-between gap-2 shadow-md shrink-0 z-40 border-b border-white/10">
           <div className="flex items-center gap-2">
             <span className="bg-white/20 text-white border border-white/30 px-2 py-0.5 rounded-full font-bold uppercase text-[9px] sm:text-[10px] tracking-wider shrink-0">
-              Modo Demonstração
+              Modo DemonstraÃ§Ã£o
             </span>
             <span className="text-[11px] sm:text-xs text-white/95 font-medium">
-              Você está a explorar o Construtor IA. Faça login para gerar novos sites personalizados e publicá-los na internet.
+              VocÃª estÃ¡ a explorar o Construtor IA. FaÃ§a login para gerar novos sites personalizados e publicÃ¡-los na internet.
             </span>
           </div>
           <div className="flex items-center gap-2 shrink-0">
@@ -2545,19 +3017,19 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
               href="/login?callbackUrl=/dashboard/builder"
               className="bg-white text-blue-900 hover:bg-blue-50 font-extrabold px-3 py-1 rounded-lg text-xs transition shadow-sm"
             >
-              Iniciar Sessão
+              Iniciar SessÃ£o
             </Link>
             <Link
               href="/register?callbackUrl=/dashboard/builder"
               className="bg-white/20 hover:bg-white/30 text-white font-semibold px-3 py-1 rounded-lg text-xs transition border border-white/20"
             >
-              Criar Conta Grátis
+              Criar Conta GrÃ¡tis
             </Link>
           </div>
         </div>
       )}
 
-      {/* Conteúdo Principal do Studio */}
+      {/* ConteÃºdo Principal do Studio */}
       <div className="flex flex-1 h-full overflow-hidden relative">
         {/* Backdrop para Mobile ao abrir a Sidebar */}
         {isSidebarOpen && isMobile && (
@@ -2567,7 +3039,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
           />
         )}
 
-      {/* ── COLUNA 1: SIDEBAR DE PROJETOS E CONVERSAS (Estilo v0) ─────────────── */}
+      {/* â”€â”€ COLUNA 1: SIDEBAR DE PROJETOS E CONVERSAS (Estilo v0) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <aside className={`h-full border-r border-[#27272a] bg-[#0c0c0e] flex flex-col transition-all duration-300 shrink-0 ${
         isMobile
           ? `fixed inset-y-0 left-0 z-50 w-72 shadow-2xl transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full pointer-events-none'}`
@@ -2611,7 +3083,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
           </div>
         </div>
 
-        {/* Botão Novo Site / Nova Conversa */}
+        {/* BotÃ£o Novo Site / Nova Conversa */}
         <div className="p-3">
           <button
             onClick={() => initNewProject(true)}
@@ -2644,7 +3116,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 }`}
               >
                 <div className="truncate flex-1 pr-2">
-                  <span className="block truncate">{p.title || 'Sem título'}</span>
+                  <span className="block truncate">{p.title || 'Sem tÃ­tulo'}</span>
                   <span className="text-[10px] text-gray-400 flex items-center gap-1.5 mt-0.5">
                     {p.status === 'published' ? (
                       <span className="text-emerald-400 flex items-center gap-1">
@@ -2662,7 +3134,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleRequestDeleteProject(p.id, p.title || 'Sem título');
+                      handleRequestDeleteProject(p.id, p.title || 'Sem tÃ­tulo');
                     }}
                     className="p-1.5 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition opacity-70 group-hover:opacity-100 sm:opacity-0 sm:group-hover:opacity-100 cursor-pointer"
                     title="Eliminar projeto"
@@ -2675,16 +3147,16 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
             ))
           )}
 
-          {/* Sugestões Rápidas com Ícones Profissionais (Sem Emojis) */}
+          {/* SugestÃµes RÃ¡pidas com Ãcones Profissionais (Sem Emojis) */}
           <div className="pt-6">
             <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider px-2 mb-2">Modelos Prontos</p>
             <div className="space-y-1">
               {[
-                { title: 'Restaurante & Lounge', icon: UtensilsCrossed, p: 'Cria uma landing page para um restaurante requintado em Maputo com cardápio, reserva e WhatsApp' },
-                { title: 'Barbearia VIP', icon: Scissors, p: 'Cria um site moderno para uma barbearia com serviços de corte, barba e agendamento' },
+                { title: 'Restaurante & Lounge', icon: UtensilsCrossed, p: 'Cria uma landing page para um restaurante requintado em Maputo com cardÃ¡pio, reserva e WhatsApp' },
+                { title: 'Barbearia VIP', icon: Scissors, p: 'Cria um site moderno para uma barbearia com serviÃ§os de corte, barba e agendamento' },
                 { title: 'Hotel & Resort Pemba', icon: Palmtree, p: 'Cria um site elegante para um Resort e Hotel em Pemba com fotos e contacto' },
-                { title: 'Portfólio Criativo', icon: Briefcase, p: 'Cria um portfólio profissional para desenvolvedor web e designer freelancer' },
-                { title: 'Loja & E-commerce', icon: ShoppingBag, p: 'Cria uma loja online elegante para moda com catálogo de produtos, preços em Meticais e botão de compra WhatsApp' },
+                { title: 'PortfÃ³lio Criativo', icon: Briefcase, p: 'Cria um portfÃ³lio profissional para desenvolvedor web e designer freelancer' },
+                { title: 'Loja & E-commerce', icon: ShoppingBag, p: 'Cria uma loja online elegante para moda com catÃ¡logo de produtos, preÃ§os em Meticais e botÃ£o de compra WhatsApp' },
               ].map((s, i) => {
                 const IconComponent = s.icon;
                 return (
@@ -2710,7 +3182,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
           </div>
         </div>
 
-        {/* Rodapé da Sidebar */}
+        {/* RodapÃ© da Sidebar */}
         <div className="p-3 border-t border-[#27272a] flex items-center justify-between text-xs text-gray-400">
           <div className="truncate">
             <p className="font-bold text-gray-200 truncate">{currentUser?.name || 'Utilizador'}</p>
@@ -2722,7 +3194,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
         </div>
       </aside>
 
-      {/* ── COLUNA 2: CHAT INTERATIVO & ITERAÇÕES (Colapsável / Redimensionável) ────── */}
+      {/* â”€â”€ COLUNA 2: CHAT INTERATIVO & ITERAÃ‡Ã•ES (ColapsÃ¡vel / RedimensionÃ¡vel) â”€â”€â”€â”€â”€â”€ */}
       <section 
         style={{ 
           width: isMobile 
@@ -2745,7 +3217,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
         {/* Header do Chat */}
         <div className="h-14 px-3 sm:px-4 border-b border-[#27272a] flex items-center justify-between bg-[#0e0e11]">
           <div className="flex items-center gap-2 min-w-0 flex-1">
-            {/* Botão de abrir/fechar sidebar */}
+            {/* BotÃ£o de abrir/fechar sidebar */}
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
               className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition cursor-pointer shrink-0"
@@ -2774,19 +3246,19 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0">
-            {/* Contador de Histórico de Conversas */}
+            {/* Contador de HistÃ³rico de Conversas */}
             <span 
               className="text-[10px] font-mono text-gray-400 bg-white/5 border border-white/5 px-2 py-0.5 rounded-full hidden sm:inline"
-              title="Total de mensagens guardadas no histórico deste projeto"
+              title="Total de mensagens guardadas no histÃ³rico deste projeto"
             >
               {messages.length} msgs
             </span>
 
-            {/* Limpar Histórico de Chat deste Projeto */}
+            {/* Limpar HistÃ³rico de Chat deste Projeto */}
             <button
               onClick={handleClearProjectChat}
               className="p-1.5 rounded-lg text-gray-500 hover:text-red-400 hover:bg-white/5 transition cursor-pointer"
-              title="Reiniciar conversa deste projeto (mantém o código do site intacto)"
+              title="Reiniciar conversa deste projeto (mantÃ©m o cÃ³digo do site intacto)"
             >
               <RotateCw className="w-3.5 h-3.5" />
             </button>
@@ -2800,20 +3272,20 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
               <span>{isPublished ? 'Publicado' : 'Rascunho'}</span>
             </span>
 
-            {/* Botão Ver Preview no Mobile */}
+            {/* BotÃ£o Ver Preview no Mobile */}
             <button
               onClick={() => {
                 setIsChatOpen(false);
                 setMobileTab('preview');
               }}
               className="md:hidden flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs shadow-md transition active:scale-95 cursor-pointer shrink-0"
-              title="Alternar para a Pré-visualização do Site"
+              title="Alternar para a PrÃ©-visualizaÃ§Ã£o do Site"
             >
               <Eye className="w-3.5 h-3.5" />
               <span>Preview</span>
             </button>
 
-            {/* Botão para encolher/colapsar o Chat no Desktop */}
+            {/* BotÃ£o para encolher/colapsar o Chat no Desktop */}
             <button
               onClick={() => setIsChatOpen(false)}
               className="hidden md:block p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition cursor-pointer"
@@ -2837,7 +3309,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                   animationDelay: `${Math.min(idx * 40, 300)}ms`,
                 }}
               >
-                {/* Balão do Usuário */}
+                {/* BalÃ£o do UsuÃ¡rio */}
                 {isUser ? (
                   <div className="max-w-[90%] bg-blue-600 text-white px-4 py-3 rounded-2xl rounded-tr-sm text-xs sm:text-sm shadow-md font-medium leading-relaxed">
                     {m.content}
@@ -2864,7 +3336,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                             {m.diffSummary}
                           </span>
                         )}
-                        <span className="text-gray-400">Página validada no preview</span>
+                        <span className="text-gray-400">PÃ¡gina validada no preview</span>
                       </div>
                     )}
 
@@ -2876,7 +3348,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                         )}
                       </div>
 
-                      {/* Card de Proposta e Confirmação de Código */}
+                      {/* Card de Proposta e ConfirmaÃ§Ã£o de CÃ³digo */}
                       {m.proposal && !m.isStreamingText && (
                         <div className="mt-3 pt-3 border-t border-[#27272a] animate-in fade-in duration-200">
                           {m.proposal.status === 'pending' && (
@@ -2888,7 +3360,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                                 className="px-4 py-2 rounded-xl bg-white hover:bg-gray-100 text-black font-extrabold text-xs shadow-md transition active:scale-95 flex items-center gap-2 cursor-pointer disabled:opacity-50"
                               >
                                 <Sparkles className="w-3.5 h-3.5 text-black" />
-                                <span>Aceitar e Gerar Código</span>
+                                <span>Aceitar e Gerar CÃ³digo</span>
                               </button>
                               <button
                                 type="button"
@@ -2903,13 +3375,13 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                           {m.proposal.status === 'accepted' && (
                             <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-400">
                               <CheckCircle2 className="w-3.5 h-3.5" />
-                              <span>Plano Aceite e Código Gerado</span>
+                              <span>Plano Aceite e CÃ³digo Gerado</span>
                             </div>
                           )}
                           {m.proposal.status === 'declined' && (
                             <div className="flex items-center gap-1.5 text-xs text-gray-500">
                               <X className="w-3.5 h-3.5" />
-                              <span>Geração cancelada</span>
+                              <span>GeraÃ§Ã£o cancelada</span>
                             </div>
                           )}
                         </div>
@@ -2922,19 +3394,19 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
             );
           })}
 
-          {/* Indicador de Raciocínio / Streaming da IA (Estilo Claude / ChatGPT / v0) */}
+          {/* Indicador de RaciocÃ­nio / Streaming da IA (Estilo Claude / ChatGPT / v0) */}
           {isGenerating && (
             <div className="space-y-2 animate-in fade-in slide-in-from-bottom-2 duration-200">
               <div className="flex items-center gap-2 text-xs text-blue-400 font-mono py-1">
                 <Sparkles className="w-3.5 h-3.5 animate-spin text-blue-400 shrink-0" />
                 <span className="font-semibold text-gray-300 truncate">
                   {isStreaming 
-                    ? 'A gerar código em tempo real...' 
+                    ? 'A gerar cÃ³digo em tempo real...' 
                     : elapsedThinkingSeconds < 1.4
                     ? 'A interpretar o seu pedido e o contexto...'
                     : elapsedThinkingSeconds < 3.2
                     ? 'A estruturar a resposta e detalhes de design...'
-                    : 'A sintetizar a melhor solução...'}
+                    : 'A sintetizar a melhor soluÃ§Ã£o...'}
                 </span>
                 <span className="ml-auto text-[10px] font-mono text-gray-400 bg-white/5 border border-white/5 px-2 py-0.5 rounded-full shrink-0">
                   {elapsedThinkingSeconds.toFixed(1)}s
@@ -2962,12 +3434,12 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
             </div>
           )}
 
-          {/* Card Mobile de Atalho Rápido para Preview */}
+          {/* Card Mobile de Atalho RÃ¡pido para Preview */}
           {displayedHtml && isMobile && (
             <div className="mt-4 p-3.5 bg-gradient-to-r from-blue-900/30 to-indigo-900/30 border border-blue-500/30 rounded-2xl flex items-center justify-between gap-3 animate-in fade-in">
               <div className="truncate min-w-0">
                 <span className="text-xs font-bold text-white block truncate">Site Pronto no Preview</span>
-                <span className="text-[10px] text-blue-300 block truncate">Interaja com a versão gerada</span>
+                <span className="text-[10px] text-blue-300 block truncate">Interaja com a versÃ£o gerada</span>
               </div>
               <button
                 type="button"
@@ -2987,7 +3459,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
 
         {/* Barra de Input no Fundo */}
         <div className="p-3 border-t border-[#27272a] bg-[#0c0c0e]">
-          {/* Seletor de Modo: Desenvolvimento (Gera Código) vs Conversa (Consultoria de IA) */}
+          {/* Seletor de Modo: Desenvolvimento (Gera CÃ³digo) vs Conversa (Consultoria de IA) */}
           <div className="flex items-center justify-between mb-2.5 px-0.5">
             <div className="flex items-center gap-1 bg-[#18181b] p-0.5 rounded-xl border border-[#27272a]">
               <button
@@ -2998,7 +3470,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                     ? 'bg-white text-black shadow-sm'
                     : 'text-gray-400 hover:text-white'
                 }`}
-                title="Modo Desenvolvimento: Gera e altera o código do site ao vivo no preview"
+                title="Modo Desenvolvimento: Gera e altera o cÃ³digo do site ao vivo no preview"
               >
                 <Wand2 className="w-3 h-3 text-black" />
                 <span>Desenvolvimento</span>
@@ -3011,7 +3483,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                     ? 'bg-blue-600 text-white shadow-sm'
                     : 'text-gray-400 hover:text-white'
                 }`}
-                title="Modo Conversa: Consultoria, dúvidas e ideias sem alterar o site"
+                title="Modo Conversa: Consultoria, dÃºvidas e ideias sem alterar o site"
               >
                 <MessageSquare className="w-3 h-3 text-white" />
                 <span>Conversa</span>
@@ -3019,11 +3491,11 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
             </div>
 
             <span className="text-[10px] text-gray-500 font-mono hidden sm:inline">
-              {interactionMode === 'builder' ? 'Altera o site' : 'Não altera o site'}
+              {interactionMode === 'builder' ? 'Altera o site' : 'NÃ£o altera o site'}
             </span>
           </div>
 
-          {/* ── Templates / Modelos Prontos ── */}
+          {/* â”€â”€ Templates / Modelos Prontos â”€â”€ */}
           {interactionMode === 'builder' && (
             <div className="mb-2">
               <button
@@ -3038,14 +3510,14 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
               {showTemplates && (
                 <div className="grid grid-cols-2 gap-1.5 mb-2 animate-in fade-in slide-in-from-top-2 duration-200">
                   {[
-                    { icon: '💼', label: 'Freelancer / CV', prompt: 'Cria um site pessoal profissional para freelancer. Inclui secção Hero com foto, serviços oferecidos (Design, Web, Marketing), portfólio com exemplos, depoimentos de clientes, e formulário de contacto com número de WhatsApp. Design moderno com cores escuras e detalhes dourados.' },
-                    { icon: '🍽️', label: 'Restaurante', prompt: 'Cria um site para restaurante moçambicano chamado "Sabor do Mar". Inclui menu com categorias (Entradas, Pratos Principais, Bebidas, Sobremesas), galeria de pratos com fotos, horário de funcionamento, localização no mapa, e botão para reserva de mesa via WhatsApp. Design quente e acolhedor.' },
-                    { icon: '✂️', label: 'Barbearia / Salão', prompt: 'Cria um site para barbearia moderna chamada "Corte & Arte". Inclui galeria de cortes, lista de serviços com preços (em Meticais), sistema de agendamento via WhatsApp, depoimentos de clientes e localização. Design urbano e masculino com preto e dourado.' },
-                    { icon: '🛍️', label: 'Loja Online', prompt: 'Cria um site para loja de produtos variados. Inclui banner promocional, catálogo de produtos com imagens, preços em Meticais, botão de compra via WhatsApp, secção de ofertas especiais, e rodapé com redes sociais. Design colorido e apelativo.' },
-                    { icon: '🎯', label: 'Coach / Formador', prompt: 'Cria um site para coach profissional e formador. Inclui apresentação pessoal impactante, lista de programas e formações oferecidas, resultados de clientes anteriores (depoimentos), calendário de eventos próximos, e formulário de inscrição. Design inspirador com gradientes vibrantes.' },
-                    { icon: '🎨', label: 'Portfólio Criativo', prompt: 'Cria um portfólio criativo para designer ou fotógrafo. Inclui galeria de trabalhos em grelha, mini bio pessoal, secção de serviços e preços, botão de contacto e links para redes sociais. Design minimalista e elegante com muito espaço branco e tipografia moderna.' },
-                    { icon: '🎉', label: 'Eventos / Festa', prompt: 'Cria um site para empresa de organização de eventos chamada "Festa Total". Inclui galeria de eventos passados, tipos de eventos que organizam (Casamentos, Aniversários, Corporativo), formulário de pedido de orçamento, countdown para próximo evento, e contactos. Design festivo e animado.' },
-                    { icon: '🎵', label: 'Músico / Artista', prompt: 'Cria um site para músico ou artista moçambicano. Inclui bio artística, discografia com capas de álbuns, vídeos do YouTube embedidos, datas de espectáculos, galeria de fotos, e links para plataformas (Spotify, YouTube, Instagram). Design artístico com cores vibrantes e efeitos visuais.' },
+                    { icon: 'ðŸ’¼', label: 'Freelancer / CV', prompt: 'Cria um site pessoal profissional para freelancer. Inclui secÃ§Ã£o Hero com foto, serviÃ§os oferecidos (Design, Web, Marketing), portfÃ³lio com exemplos, depoimentos de clientes, e formulÃ¡rio de contacto com nÃºmero de WhatsApp. Design moderno com cores escuras e detalhes dourados.' },
+                    { icon: 'ðŸ½ï¸', label: 'Restaurante', prompt: 'Cria um site para restaurante moÃ§ambicano chamado "Sabor do Mar". Inclui menu com categorias (Entradas, Pratos Principais, Bebidas, Sobremesas), galeria de pratos com fotos, horÃ¡rio de funcionamento, localizaÃ§Ã£o no mapa, e botÃ£o para reserva de mesa via WhatsApp. Design quente e acolhedor.' },
+                    { icon: 'âœ‚ï¸', label: 'Barbearia / SalÃ£o', prompt: 'Cria um site para barbearia moderna chamada "Corte & Arte". Inclui galeria de cortes, lista de serviÃ§os com preÃ§os (em Meticais), sistema de agendamento via WhatsApp, depoimentos de clientes e localizaÃ§Ã£o. Design urbano e masculino com preto e dourado.' },
+                    { icon: 'ðŸ›ï¸', label: 'Loja Online', prompt: 'Cria um site para loja de produtos variados. Inclui banner promocional, catÃ¡logo de produtos com imagens, preÃ§os em Meticais, botÃ£o de compra via WhatsApp, secÃ§Ã£o de ofertas especiais, e rodapÃ© com redes sociais. Design colorido e apelativo.' },
+                    { icon: 'ðŸŽ¯', label: 'Coach / Formador', prompt: 'Cria um site para coach profissional e formador. Inclui apresentaÃ§Ã£o pessoal impactante, lista de programas e formaÃ§Ãµes oferecidas, resultados de clientes anteriores (depoimentos), calendÃ¡rio de eventos prÃ³ximos, e formulÃ¡rio de inscriÃ§Ã£o. Design inspirador com gradientes vibrantes.' },
+                    { icon: 'ðŸŽ¨', label: 'PortfÃ³lio Criativo', prompt: 'Cria um portfÃ³lio criativo para designer ou fotÃ³grafo. Inclui galeria de trabalhos em grelha, mini bio pessoal, secÃ§Ã£o de serviÃ§os e preÃ§os, botÃ£o de contacto e links para redes sociais. Design minimalista e elegante com muito espaÃ§o branco e tipografia moderna.' },
+                    { icon: 'ðŸŽ‰', label: 'Eventos / Festa', prompt: 'Cria um site para empresa de organizaÃ§Ã£o de eventos chamada "Festa Total". Inclui galeria de eventos passados, tipos de eventos que organizam (Casamentos, AniversÃ¡rios, Corporativo), formulÃ¡rio de pedido de orÃ§amento, countdown para prÃ³ximo evento, e contactos. Design festivo e animado.' },
+                    { icon: 'ðŸŽµ', label: 'MÃºsico / Artista', prompt: 'Cria um site para mÃºsico ou artista moÃ§ambicano. Inclui bio artÃ­stica, discografia com capas de Ã¡lbuns, vÃ­deos do YouTube embedidos, datas de espectÃ¡culos, galeria de fotos, e links para plataformas (Spotify, YouTube, Instagram). Design artÃ­stico com cores vibrantes e efeitos visuais.' },
                   ].map(({ icon, label, prompt: tpl }) => (
                     <button
                       key={label}
@@ -3080,8 +3552,8 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
               }}
               placeholder={
                 interactionMode === 'chat'
-                  ? 'Pergunte qualquer coisa (ideias de marketing, textos, dúvidas)...'
-                  : 'Peça uma alteração ou descreva o site para gerar código...'
+                  ? 'Pergunte qualquer coisa (ideias de marketing, textos, dÃºvidas)...'
+                  : 'PeÃ§a uma alteraÃ§Ã£o ou descreva o site para gerar cÃ³digo...'
               }
               rows={2}
               className="w-full bg-[#18181b] text-gray-100 placeholder-gray-500 rounded-2xl pl-4 pr-12 py-3 text-xs sm:text-sm border border-[#27272a] focus:outline-none focus:border-blue-500 transition resize-none"
@@ -3099,7 +3571,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
             </button>
           </form>
 
-          {/* Chips Rápidos de Iteração Dinâmicos */}
+          {/* Chips RÃ¡pidos de IteraÃ§Ã£o DinÃ¢micos */}
           {interactionMode === 'builder' ? (
             <div className="flex items-center gap-1.5 mt-2 overflow-x-auto pb-1 text-[11px] no-scrollbar">
               <button
@@ -3116,22 +3588,22 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 border border-white/5 whitespace-nowrap transition cursor-pointer flex items-center gap-1.5 hover:border-emerald-500/40"
               >
                 <MessageSquare className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Botão WhatsApp</span>
+                <span>BotÃ£o WhatsApp</span>
               </button>
               <button
                 type="button"
                 onClick={() => setIsPricingModalOpen(true)}
                 className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 border border-white/5 whitespace-nowrap transition cursor-pointer flex items-center gap-1.5 hover:border-purple-500/40"
-                title="Configurar e Inserir Tabela de Preços com Benefícios"
+                title="Configurar e Inserir Tabela de PreÃ§os com BenefÃ­cios"
               >
                 <Tag className="w-3.5 h-3.5 text-purple-400" />
-                <span>Tabela de Preços</span>
+                <span>Tabela de PreÃ§os</span>
               </button>
               <button
                 type="button"
                 onClick={() => setIsBannerModalOpen(true)}
                 className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 border border-white/5 whitespace-nowrap transition cursor-pointer flex items-center gap-1.5 hover:border-amber-500/40"
-                title="Configurar Título, Mensagem e Estilo do Banner / Hero"
+                title="Configurar TÃ­tulo, Mensagem e Estilo do Banner / Hero"
               >
                 <Sliders className="w-3.5 h-3.5 text-amber-400" />
                 <span>Configurar Banner</span>
@@ -3141,7 +3613,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
             <div className="flex items-center gap-1.5 mt-2 overflow-x-auto pb-1 text-[11px] no-scrollbar">
               <button
                 type="button"
-                onClick={() => handleGenerate('Como posso melhorar as vendas e conversão deste site em Moçambique?')}
+                onClick={() => handleGenerate('Como posso melhorar as vendas e conversÃ£o deste site em MoÃ§ambique?')}
                 className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 border border-white/5 whitespace-nowrap transition cursor-pointer flex items-center gap-1.5"
               >
                 <Sparkles className="w-3 h-3 text-amber-400" />
@@ -3149,7 +3621,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
               </button>
               <button
                 type="button"
-                onClick={() => handleGenerate('Dá-me 5 ideias de slogans impactantes para este negócio')}
+                onClick={() => handleGenerate('DÃ¡-me 5 ideias de slogans impactantes para este negÃ³cio')}
                 className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 border border-white/5 whitespace-nowrap transition cursor-pointer flex items-center gap-1.5"
               >
                 <Tag className="w-3 h-3 text-blue-400" />
@@ -3157,7 +3629,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
               </button>
               <button
                 type="button"
-                onClick={() => handleGenerate('Qual a melhor estratégia para receber pagamentos via M-Pesa e e-Mola?')}
+                onClick={() => handleGenerate('Qual a melhor estratÃ©gia para receber pagamentos via M-Pesa e e-Mola?')}
                 className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 border border-white/5 whitespace-nowrap transition cursor-pointer flex items-center gap-1.5"
               >
                 <MessageSquare className="w-3 h-3 text-emerald-400" />
@@ -3168,7 +3640,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
         </div>
       </section>
 
-      {/* ── DIVISOR MANUAL REDIMENSIONÁVEL (Arrastar para Aumentar / Diminuir) ── */}
+      {/* â”€â”€ DIVISOR MANUAL REDIMENSIONÃVEL (Arrastar para Aumentar / Diminuir) â”€â”€ */}
       {isChatOpen && !isMobile && (
         <div
           onMouseDown={() => setIsDragging(true)}
@@ -3180,7 +3652,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
         </div>
       )}
 
-      {/* ── COLUNA 3: CANVAS DE PREVIEW AO VIVO + CÓDIGO + PUBLICAR (Estilo v0) ── */}
+      {/* â”€â”€ COLUNA 3: CANVAS DE PREVIEW AO VIVO + CÃ“DIGO + PUBLICAR (Estilo v0) â”€â”€ */}
       <main className={`flex flex-1 flex-col h-full bg-[#121217] relative z-10 overflow-hidden ${
         isMobile && isChatOpen ? 'hidden' : 'flex'
       }`}>
@@ -3188,7 +3660,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
         {/* Barra Superior do Canvas */}
         <header className="h-14 px-2.5 sm:px-4 border-b border-[#27272a] bg-[#0e0e11] flex items-center justify-between gap-2 overflow-x-auto no-scrollbar">
           
-          {/* Lado Esquerdo: Botões de Expandir Sidebar/Chat + Seletor Preview/Código */}
+          {/* Lado Esquerdo: BotÃµes de Expandir Sidebar/Chat + Seletor Preview/CÃ³digo */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {!isSidebarOpen && (
               <button
@@ -3200,7 +3672,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
               </button>
             )}
 
-            {/* Botão de Voltar ao Chat no Mobile */}
+            {/* BotÃ£o de Voltar ao Chat no Mobile */}
             <button
               onClick={() => {
                 setIsChatOpen(true);
@@ -3213,7 +3685,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
               <span>Chat</span>
             </button>
 
-            {/* Botão de Abrir Chat no Desktop quando fechado */}
+            {/* BotÃ£o de Abrir Chat no Desktop quando fechado */}
             {!isChatOpen && (
               <button
                 onClick={() => setIsChatOpen(true)}
@@ -3225,7 +3697,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
               </button>
             )}
 
-            {/* Alternador Preview / Código (Compacto com Tooltip) */}
+            {/* Alternador Preview / CÃ³digo (Compacto com Tooltip) */}
             <div className="flex items-center gap-1 bg-[#18181b] p-0.5 sm:p-1 rounded-xl border border-[#27272a] shrink-0">
               <button
                 onClick={() => setActiveTab('preview')}
@@ -3246,35 +3718,35 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                     ? 'bg-white text-black font-extrabold shadow-sm'
                     : 'text-gray-400 hover:text-white'
                 }`}
-                title="Visualizar Código HTML Fonte"
+                title="Visualizar CÃ³digo HTML Fonte"
               >
                 <Code className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Código</span>
+                <span className="hidden sm:inline">CÃ³digo</span>
               </button>
             </div>
           </div>
 
-          {/* Centro: Dropdown Histórico/Versões (Ícone apenas para máxima economia de espaço) */}
+          {/* Centro: Dropdown HistÃ³rico/VersÃµes (Ãcone apenas para mÃ¡xima economia de espaÃ§o) */}
           <div className="flex items-center gap-1 bg-[#18181b] p-1 rounded-xl border border-[#27272a] relative shrink-0" ref={versionMenuRef}>
             
-            {/* Botão Dropdown Versão (Apenas ícone conforme solicitado para poupar espaço) */}
+            {/* BotÃ£o Dropdown VersÃ£o (Apenas Ã­cone conforme solicitado para poupar espaÃ§o) */}
             <button
               onClick={() => setIsVersionDropdownOpen(!isVersionDropdownOpen)}
               className="flex items-center gap-1 px-1.5 py-1 rounded-lg text-xs font-bold text-gray-200 hover:bg-white/5 transition cursor-pointer"
-              title={`Histórico de Versões: ${selectedVersionIndex === 'latest' ? 'Latest (Mais Recente)' : `v${versions[selectedVersionIndex]?.versionNumber || selectedVersionIndex + 1}`}`}
+              title={`HistÃ³rico de VersÃµes: ${selectedVersionIndex === 'latest' ? 'Latest (Mais Recente)' : `v${versions[selectedVersionIndex]?.versionNumber || selectedVersionIndex + 1}`}`}
             >
               <History className="w-3.5 h-3.5 text-blue-400 shrink-0" />
               <ChevronDown className="w-2.5 h-2.5 text-gray-400 shrink-0" />
             </button>
 
-            {/* Stepper de Navegação de Versões < > (Apenas quando há mais de 1 versão e em ecrãs largos) */}
+            {/* Stepper de NavegaÃ§Ã£o de VersÃµes < > (Apenas quando hÃ¡ mais de 1 versÃ£o e em ecrÃ£s largos) */}
             {versions.length > 1 && (
               <div className="hidden xl:flex items-center border-l border-[#27272a] pl-1 gap-0.5 text-gray-400">
                 <button
                   onClick={() => handleStepVersion('prev')}
                   disabled={selectedVersionIndex === 0}
                   className="p-1 rounded hover:text-white hover:bg-white/5 disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer disabled:cursor-not-allowed transition"
-                  title="Versão Anterior"
+                  title="VersÃ£o Anterior"
                 >
                   <ChevronLeft className="w-3.5 h-3.5" />
                 </button>
@@ -3287,22 +3759,22 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                   onClick={() => handleStepVersion('next')}
                   disabled={selectedVersionIndex === 'latest'}
                   className="p-1 rounded hover:text-white hover:bg-white/5 disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer disabled:cursor-not-allowed transition"
-                  title="Versão Seguinte"
+                  title="VersÃ£o Seguinte"
                 >
                   <ChevronRight className="w-3.5 h-3.5" />
                 </button>
               </div>
             )}
 
-            {/* Menu Popover das Versões */}
+            {/* Menu Popover das VersÃµes */}
             {isVersionDropdownOpen && (
               <div className="absolute top-full left-0 mt-2 w-72 bg-[#18181b] border border-[#27272a] rounded-2xl shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-150">
                 <div className="px-2 py-1.5 border-b border-[#27272a] flex items-center justify-between text-[11px] font-bold text-gray-400 uppercase tracking-wider">
-                  <span>Versões do Projeto</span>
-                  <span className="text-[10px] text-blue-400">{versions.length} versões</span>
+                  <span>VersÃµes do Projeto</span>
+                  <span className="text-[10px] text-blue-400">{versions.length} versÃµes</span>
                 </div>
                 <div className="max-h-60 overflow-y-auto py-1 space-y-1">
-                  {/* Opção Latest */}
+                  {/* OpÃ§Ã£o Latest */}
                   <button
                     onClick={() => {
                       setSelectedVersionIndex('latest');
@@ -3316,12 +3788,12 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                   >
                     <div>
                       <span className="block font-semibold">Latest (Mais Recente)</span>
-                      <span className="text-[10px] opacity-70">Versão atual de trabalho</span>
+                      <span className="text-[10px] opacity-70">VersÃ£o atual de trabalho</span>
                     </div>
                     {selectedVersionIndex === 'latest' && <Check className="w-3.5 h-3.5 text-black" />}
                   </button>
 
-                  {/* Lista de Versões Históricas */}
+                  {/* Lista de VersÃµes HistÃ³ricas */}
                   {[...versions].reverse().map((v, i) => {
                     const originalIndex = versions.length - 1 - i;
                     const isSelected = selectedVersionIndex === originalIndex;
@@ -3355,7 +3827,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
             )}
           </div>
 
-          {/* Lado Direito: Modos Responsivos, Abrir em Nova Aba, Menu de Opções & Publicar */}
+          {/* Lado Direito: Modos Responsivos, Abrir em Nova Aba, Menu de OpÃ§Ãµes & Publicar */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             
             {/* Modos Responsivos (Desktop, Tablet, Mobile) - Compacto e elegante */}
@@ -3383,30 +3855,30 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
               </button>
             </div>
 
-            {/* Ações Diretas em Ecrãs Muito Grandes (2XL) */}
+            {/* AÃ§Ãµes Diretas em EcrÃ£s Muito Grandes (2XL) */}
             <div className="hidden 2xl:flex items-center gap-1.5">
-              {/* Copiar Código (Quando na aba código) */}
+              {/* Copiar CÃ³digo (Quando na aba cÃ³digo) */}
               {activeTab === 'code' && (
                 <button
                   onClick={handleCopyCode}
                   className="p-2 rounded-xl bg-white/10 hover:bg-white/15 text-white border border-white/10 transition cursor-pointer"
-                  title={copiedCode ? 'Código HTML Copiado!' : 'Copiar Código HTML'}
+                  title={copiedCode ? 'CÃ³digo HTML Copiado!' : 'Copiar CÃ³digo HTML'}
                 >
                   {copiedCode ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
                 </button>
               )}
 
-              {/* BOTÃO CONFIGURAR LOGÓTIPO DO SITE */}
+              {/* BOTÃƒO CONFIGURAR LOGÃ“TIPO DO SITE */}
               <button
                 onClick={() => setIsLogoModalOpen(true)}
                 disabled={!displayedHtml}
                 className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 transition cursor-pointer disabled:opacity-40"
-                title="Configurar Logótipo da Empresa (Upload do computador ou Link)"
+                title="Configurar LogÃ³tipo da Empresa (Upload do computador ou Link)"
               >
                 <Upload className="w-4 h-4 text-purple-400" />
               </button>
 
-              {/* BOTÃO EXPORTAR / BAIXAR HTML */}
+              {/* BOTÃƒO EXPORTAR / BAIXAR HTML */}
               <button
                 onClick={handleDownloadHtml}
                 className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 transition cursor-pointer"
@@ -3415,12 +3887,12 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 <Download className="w-4 h-4 text-emerald-400" />
               </button>
 
-              {/* BOTÃO EXPORTAR ZIP (HTML + CSS + README) */}
+              {/* BOTÃƒO EXPORTAR ZIP (HTML + CSS + README) */}
               <button
                 onClick={handleDownloadZip}
                 disabled={isExportingZip || !displayedHtml}
                 className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 transition cursor-pointer disabled:opacity-40"
-                title="Exportar como ZIP (HTML + CSS extraído + README)"
+                title="Exportar como ZIP (HTML + CSS extraÃ­do + README)"
               >
                 {isExportingZip ? (
                   <RefreshCw className="w-4 h-4 animate-spin text-amber-400" />
@@ -3429,18 +3901,18 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 )}
               </button>
 
-              {/* BOTÃO PARTILHAR LINK DE PRÉ-VISUALIZAÇÃO */}
+              {/* BOTÃƒO PARTILHAR LINK DE PRÃ‰-VISUALIZAÃ‡ÃƒO */}
               <button
                 onClick={handleOpenShareModal}
                 disabled={!displayedHtml}
                 className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 transition cursor-pointer disabled:opacity-40"
-                title="Partilhar link de pré-visualização com clientes antes de publicar"
+                title="Partilhar link de prÃ©-visualizaÃ§Ã£o com clientes antes de publicar"
               >
                 <Share2 className="w-4 h-4 text-blue-400" />
               </button>
             </div>
 
-            {/* Menu "Mais Ferramentas" (⋯) — Sempre acessível em ecrãs com barra lateral expandida */}
+            {/* Menu "Mais Ferramentas" (â‹¯) â€” Sempre acessÃ­vel em ecrÃ£s com barra lateral expandida */}
             <div className="relative 2xl:hidden" ref={moreMenuRef}>
               <button
                 onClick={() => setIsMoreMenuOpen(!isMoreMenuOpen)}
@@ -3466,7 +3938,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                     className="w-full text-left px-3 py-2 rounded-xl text-xs text-gray-300 hover:text-white hover:bg-white/5 transition flex items-center gap-2.5 disabled:opacity-40 cursor-pointer"
                   >
                     <Upload className="w-4 h-4 text-purple-400 shrink-0" />
-                    <span>Configurar Logótipo</span>
+                    <span>Configurar LogÃ³tipo</span>
                   </button>
 
                   <button
@@ -3478,7 +3950,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                     className="w-full text-left px-3 py-2 rounded-xl text-xs text-gray-300 hover:text-white hover:bg-white/5 transition flex items-center gap-2.5 disabled:opacity-40 cursor-pointer"
                   >
                     <Share2 className="w-4 h-4 text-blue-400 shrink-0" />
-                    <span>Partilhar Pré-visualização</span>
+                    <span>Partilhar PrÃ©-visualizaÃ§Ã£o</span>
                   </button>
 
                   <button
@@ -3525,14 +3997,14 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                       className="w-full text-left px-3 py-2 rounded-xl text-xs text-gray-300 hover:text-white hover:bg-white/5 transition flex items-center gap-2.5 cursor-pointer"
                     >
                       {copiedCode ? <Check className="w-4 h-4 text-emerald-400 shrink-0" /> : <Copy className="w-4 h-4 text-gray-400 shrink-0" />}
-                      <span>{copiedCode ? 'Código Copiado!' : 'Copiar Código HTML'}</span>
+                      <span>{copiedCode ? 'CÃ³digo Copiado!' : 'Copiar CÃ³digo HTML'}</span>
                     </button>
                   )}
                 </div>
               )}
             </div>
 
-            {/* BOTÃO OPEN IN NEW TAB (Directo) */}
+            {/* BOTÃƒO OPEN IN NEW TAB (Directo) */}
             <button
               onClick={handleOpenInNewTab}
               className="hidden sm:flex p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 transition cursor-pointer"
@@ -3541,7 +4013,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
               <ExternalLink className="w-4 h-4 text-blue-400" />
             </button>
 
-            {/* BOTÃO ATALHO PARA O EDITOR VISUAL (Compacto com texto "Editor") */}
+            {/* BOTÃƒO ATALHO PARA O EDITOR VISUAL (Compacto com texto "Editor") */}
             <button
               onClick={() => {
                 if (typeof window !== 'undefined' && displayedHtml) {
@@ -3552,34 +4024,34 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 router.push(targetUrl);
               }}
               className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-blue-600/15 hover:bg-blue-600/25 text-blue-400 hover:text-blue-300 border border-blue-500/30 font-bold text-xs transition active:scale-95 cursor-pointer shrink-0 shadow-xs"
-              title="Abrir no Editor Visual Pro (Estilo Elementor — editar e reorganizar blocos visualmente)"
+              title="Abrir no Editor Visual Pro (Estilo Elementor â€” editar e reorganizar blocos visualmente)"
             >
               <Layers className="w-3.5 h-3.5 text-blue-400" />
               <span>Editor</span>
             </button>
 
-            {/* BOTÃO EXPORTAR CÓDIGO (Ícone compacto para poupar espaço) */}
+            {/* BOTÃƒO EXPORTAR CÃ“DIGO (Ãcone compacto para poupar espaÃ§o) */}
             <button
               onClick={() => setIsExportModalOpen(true)}
               disabled={!displayedHtml}
               className="p-2 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 hover:text-emerald-300 border border-emerald-500/30 transition active:scale-95 cursor-pointer shrink-0 disabled:opacity-40 shadow-xs"
-              title="Exportar código-fonte do website (ZIP ou HTML)"
+              title="Exportar cÃ³digo-fonte do website (ZIP ou HTML)"
             >
               <Download className="w-4 h-4 text-emerald-400" />
             </button>
 
-            {/* BOTÃO PUBLICAR (Destaque Principal Compacto) */}
+            {/* BOTÃƒO PUBLICAR (Destaque Principal Compacto) */}
             <button
               onClick={() => {
                 if (!currentUser) {
-                  setAuthModalReason('Para publicar o seu website online com subdomínio e SSL gratuito, inicie sessão na sua conta.');
+                  setAuthModalReason('Para publicar o seu website online com subdomÃ­nio e SSL gratuito, inicie sessÃ£o na sua conta.');
                   setIsAuthRequiredModalOpen(true);
                   return;
                 }
                 setIsPublishModalOpen(true);
               }}
               className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-white hover:bg-gray-100 text-black font-extrabold text-xs shadow-sm transition active:scale-95 cursor-pointer shrink-0"
-              title="Publicar website online com subdomínio e SSL"
+              title="Publicar website online com subdomÃ­nio e SSL"
             >
               <Globe className="w-3.5 h-3.5 text-black" />
               <span>Publicar</span>
@@ -3587,13 +4059,13 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
           </div>
         </header>
 
-        {/* Banner de Aviso de Versão Antiga (Caso esteja visualizando histórico) */}
+        {/* Banner de Aviso de VersÃ£o Antiga (Caso esteja visualizando histÃ³rico) */}
         {selectedVersionIndex !== 'latest' && (
           <div className="bg-blue-600/10 border-b border-blue-500/20 px-4 py-2 flex items-center justify-between text-xs text-blue-300">
             <div className="flex items-center gap-2">
               <History className="w-4 h-4 text-blue-400" />
               <span>
-                A visualizar <strong>Versão {versions[selectedVersionIndex]?.versionNumber}</strong> ({versions[selectedVersionIndex]?.prompt})
+                A visualizar <strong>VersÃ£o {versions[selectedVersionIndex]?.versionNumber}</strong> ({versions[selectedVersionIndex]?.prompt})
               </span>
             </div>
             <div className="flex items-center gap-2">
@@ -3602,19 +4074,19 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 className="px-3 py-1 rounded-lg bg-white hover:bg-gray-100 text-black font-extrabold text-xs flex items-center gap-1.5 shadow-sm transition cursor-pointer"
               >
                 <Undo2 className="w-3.5 h-3.5 text-black" />
-                <span>Restaurar Esta Versão</span>
+                <span>Restaurar Esta VersÃ£o</span>
               </button>
               <button
                 onClick={() => setSelectedVersionIndex('latest')}
                 className="px-2 py-1 text-gray-400 hover:text-white transition cursor-pointer text-xs"
               >
-                Voltar à Mais Recente
+                Voltar Ã  Mais Recente
               </button>
             </div>
           </div>
         )}
 
-        {/* Conteúdo Principal do Canvas */}
+        {/* ConteÃºdo Principal do Canvas */}
         <div className="flex-1 w-full h-[calc(100%-3.5rem)] overflow-hidden flex items-center justify-center p-2 sm:p-4 bg-[#09090b]">
           {!displayedHtml ? (
             /* Estado Inicial em Branco (Estilo v0) */
@@ -3657,10 +4129,10 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   {[
-                    { title: 'Restaurante & Lounge', icon: UtensilsCrossed, p: 'Cria uma landing page para um restaurante requintado em Maputo com cardápio, reserva e WhatsApp' },
-                    { title: 'Barbearia VIP', icon: Scissors, p: 'Cria um site moderno para uma barbearia com serviços de corte, barba e agendamento' },
+                    { title: 'Restaurante & Lounge', icon: UtensilsCrossed, p: 'Cria uma landing page para um restaurante requintado em Maputo com cardÃ¡pio, reserva e WhatsApp' },
+                    { title: 'Barbearia VIP', icon: Scissors, p: 'Cria um site moderno para uma barbearia com serviÃ§os de corte, barba e agendamento' },
                     { title: 'Hotel & Resort Pemba', icon: Palmtree, p: 'Cria um site elegante para um Resort e Hotel em Pemba com fotos e contacto' },
-                    { title: 'Loja & E-commerce', icon: ShoppingBag, p: 'Cria uma loja online elegante para moda com catálogo de produtos, preços em Meticais e botão de compra WhatsApp' },
+                    { title: 'Loja & E-commerce', icon: ShoppingBag, p: 'Cria uma loja online elegante para moda com catÃ¡logo de produtos, preÃ§os em Meticais e botÃ£o de compra WhatsApp' },
                   ].map((m, idx) => {
                     const Icon = m.icon;
                     return (
@@ -3688,7 +4160,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
               </div>
             </div>
           ) : activeTab === 'preview' ? (
-            /* Ecrã de Iframe Interativo */
+            /* EcrÃ£ de Iframe Interativo */
             <div
               className={`h-full bg-[#0e0e11] rounded-2xl shadow-2xl transition-all duration-300 overflow-hidden border border-white/10 flex flex-col ${
                 viewportMode === 'mobile'
@@ -3698,7 +4170,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                     : 'w-full'
               }`}
             >
-              {/* Barra de Navegação Falsa do Browser com Subdomínio */}
+              {/* Barra de NavegaÃ§Ã£o Falsa do Browser com SubdomÃ­nio */}
               <div className="h-8 bg-[#18181b] border-b border-[#27272a] px-3 flex items-center justify-between text-[11px] text-gray-400 select-none">
                 <div className="flex items-center gap-1.5">
                   <span className="w-2.5 h-2.5 rounded-full bg-red-500/80 inline-block" />
@@ -3706,7 +4178,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80 inline-block" />
                 </div>
                 
-                {/* URL com Subdomínio Oficial */}
+                {/* URL com SubdomÃ­nio Oficial */}
                 <div 
                   onClick={handleOpenInNewTab}
                   className="bg-[#09090b] px-3 py-0.5 rounded-md text-[10px] text-gray-300 border border-white/5 truncate max-w-[280px] sm:max-w-[420px] cursor-pointer hover:text-blue-400 hover:border-blue-500/30 transition flex items-center gap-1.5"
@@ -3718,13 +4190,13 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 </div>
 
                 <div className="flex items-center justify-end gap-2">
-                  {/* BOTÃO TOGGLE EDIÇÃO POR CLIQUE */}
+                  {/* BOTÃƒO TOGGLE EDIÃ‡ÃƒO POR CLIQUE */}
                   <button
                     type="button"
                     onClick={() => {
                       const nextState = !isClickToEditEnabled;
                       setIsClickToEditEnabled(nextState);
-                      setToastMessage(nextState ? 'Edição por Clique ativada! Clique em qualquer texto no preview para editar.' : 'Edição por Clique desativada.');
+                      setToastMessage(nextState ? 'EdiÃ§Ã£o por Clique ativada! Clique em qualquer texto no preview para editar.' : 'EdiÃ§Ã£o por Clique desativada.');
                       setTimeout(() => setToastMessage(null), 3000);
                     }}
                     className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-extrabold transition cursor-pointer border ${
@@ -3732,10 +4204,10 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                         ? 'bg-blue-600 hover:bg-blue-500 text-white border-blue-400/50 shadow-sm'
                         : 'bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white border-white/10'
                     }`}
-                    title={isClickToEditEnabled ? 'Edição por Clique Ativa (clique em qualquer texto para editar diretamente)' : 'Ativar Edição Direta por Clique'}
+                    title={isClickToEditEnabled ? 'EdiÃ§Ã£o por Clique Ativa (clique em qualquer texto para editar diretamente)' : 'Ativar EdiÃ§Ã£o Direta por Clique'}
                   >
                     <Edit3 className="w-3 h-3" />
-                    <span className="hidden sm:inline">{isClickToEditEnabled ? 'Edição Ativa' : 'Editar Texto'}</span>
+                    <span className="hidden sm:inline">{isClickToEditEnabled ? 'EdiÃ§Ã£o Ativa' : 'Editar Texto'}</span>
                   </button>
 
                   <button
@@ -3753,7 +4225,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 </div>
               </div>
 
-              {/* Iframe que renderiza o HTML com suporte a Edição por Clique */}
+              {/* Iframe que renderiza o HTML com suporte a EdiÃ§Ã£o por Clique */}
               <iframe
                 title="Preview"
                 srcDoc={editorInjectedHtml}
@@ -3762,20 +4234,20 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
               />
             </div>
           ) : isStreaming ? (
-            /* Terminal de Código em Tempo Real (Streaming) */
+            /* Terminal de CÃ³digo em Tempo Real (Streaming) */
             <div className="w-full h-full bg-[#060608] border border-[#27272a] rounded-2xl overflow-hidden flex flex-col font-mono">
               {/* Barra do terminal */}
               <div className="h-8 bg-[#111114] border-b border-[#27272a] flex items-center gap-2 px-3 shrink-0">
                 <span className="w-2.5 h-2.5 rounded-full bg-red-500/70" />
                 <span className="w-2.5 h-2.5 rounded-full bg-amber-500/70" />
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/70" />
-                <span className="text-[10px] text-gray-500 ml-2 font-mono">index.html — em geração</span>
+                <span className="text-[10px] text-gray-500 ml-2 font-mono">index.html â€” em geraÃ§Ã£o</span>
                 <span className="ml-auto flex items-center gap-1 text-[10px] text-emerald-400 font-bold">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping inline-block" />
                   STREAMING
                 </span>
               </div>
-              {/* Código aparecendo com syntax highlighting */}
+              {/* CÃ³digo aparecendo com syntax highlighting */}
               <div
                 ref={streamingRef}
                 className="flex-1 overflow-auto relative"
@@ -3788,7 +4260,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
               </div>
             </div>
           ) : (
-            /* Visualizador / Editor de Código HTML Inline */
+            /* Visualizador / Editor de CÃ³digo HTML Inline */
             <div className="w-full h-full bg-[#0e0e11] border border-[#27272a] rounded-2xl overflow-hidden flex flex-col font-mono">
               <div className="h-9 bg-[#111114] border-b border-[#27272a] flex items-center justify-between px-3 shrink-0">
                 <div className="flex items-center gap-2">
@@ -3797,7 +4269,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/70" />
                   <span className="text-[11px] text-gray-300 font-bold ml-2">index.html</span>
                   <span className="text-[10px] text-gray-500 hidden sm:inline">
-                    {isEditingCode ? '— Modo Edição Direta' : '— Realce de Sintaxe'}
+                    {isEditingCode ? 'â€” Modo EdiÃ§Ã£o Direta' : 'â€” Realce de Sintaxe'}
                   </span>
                 </div>
 
@@ -3814,7 +4286,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                         type="button"
                         onClick={handleDiscardCodeEditing}
                         className="px-2.5 py-1 rounded-lg text-[11px] font-medium text-gray-400 hover:text-white hover:bg-white/5 transition flex items-center gap-1 cursor-pointer"
-                        title="Descartar alterações não salvas"
+                        title="Descartar alteraÃ§Ãµes nÃ£o salvas"
                       >
                         <X className="w-3 h-3" />
                         <span>Descartar</span>
@@ -3823,7 +4295,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                         type="button"
                         onClick={handleSaveEditedCode}
                         className="px-3 py-1 rounded-lg text-[11px] font-bold bg-white text-black hover:bg-gray-200 transition flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer"
-                        title="Salvar alterações e aplicar ao preview (Ctrl+S)"
+                        title="Salvar alteraÃ§Ãµes e aplicar ao preview (Ctrl+S)"
                       >
                         <Save className="w-3 h-3 text-black" />
                         <span>Salvar & Aplicar</span>
@@ -3835,16 +4307,16 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                         type="button"
                         onClick={handleStartCodeEditing}
                         className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-blue-600 hover:bg-blue-500 text-white transition flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer"
-                        title="Editar o código HTML diretamente nesta aba"
+                        title="Editar o cÃ³digo HTML diretamente nesta aba"
                       >
                         <Edit3 className="w-3 h-3" />
-                        <span>Editar Código</span>
+                        <span>Editar CÃ³digo</span>
                       </button>
                       <button
                         type="button"
                         onClick={handleCopyCode}
                         className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition cursor-pointer"
-                        title={copiedCode ? 'Código Copiado!' : 'Copiar Código'}
+                        title={copiedCode ? 'CÃ³digo Copiado!' : 'Copiar CÃ³digo'}
                       >
                         {copiedCode ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                       </button>
@@ -3853,7 +4325,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 </div>
               </div>
 
-              {/* Área de Visualização com Realce ou Área de Edição Interativa */}
+              {/* Ãrea de VisualizaÃ§Ã£o com Realce ou Ãrea de EdiÃ§Ã£o Interativa */}
               {isEditingCode ? (
                 <div className="flex flex-1 overflow-hidden font-mono text-[11.5px] leading-[1.65] bg-[#09090b]">
                   {/* Linhas numeradas sincronizadas */}
@@ -3866,7 +4338,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                     ))}
                   </div>
 
-                  {/* Textarea editável com suporte a Tab e atalhos */}
+                  {/* Textarea editÃ¡vel com suporte a Tab e atalhos */}
                   <textarea
                     value={editedCode}
                     onChange={(e) => setEditedCode(e.target.value)}
@@ -3891,11 +4363,11 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                     autoCapitalize="off"
                     autoCorrect="off"
                     className="flex-1 w-full h-full p-3 bg-transparent text-[#e4e4e7] font-mono text-[11.5px] leading-[1.65] outline-none border-0 resize-none whitespace-pre overflow-auto focus:ring-0 selection:bg-blue-600 selection:text-white"
-                    placeholder="Escreva ou edite o seu código HTML aqui..."
+                    placeholder="Escreva ou edite o seu cÃ³digo HTML aqui..."
                   />
                 </div>
               ) : (
-                /* Código com Syntax Highlighting estilo VS Code Dark+ */
+                /* CÃ³digo com Syntax Highlighting estilo VS Code Dark+ */
                 <CodeBlock code={displayedHtml} isStreaming={false} />
               )}
             </div>
@@ -3903,7 +4375,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
         </div>
       </main>
 
-      {/* ── MODAL DE PUBLICAÇÃO COM SUPORTE COMPLETO A SUBDOMÍNIOS ───────────── */}
+      {/* â”€â”€ MODAL DE PUBLICAÃ‡ÃƒO COM SUPORTE COMPLETO A SUBDOMÃNIOS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {isPublishModalOpen && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
           <div className="bg-[#121217] border border-[#27272a] rounded-3xl max-w-lg w-full p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
@@ -3920,7 +4392,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
               </div>
               <div>
                 <h3 className="text-lg font-black text-white">Publicar Seu Website</h3>
-                <p className="text-xs text-gray-400">Publique em subdomínio instantâneo na nuvem WEHOSTHERE</p>
+                <p className="text-xs text-gray-400">Publique em subdomÃ­nio instantÃ¢neo na nuvem WEHOSTHERE</p>
               </div>
             </div>
 
@@ -3935,9 +4407,9 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 />
               </div>
 
-              {/* Subdomínio Personalizado (slug.wehosthere.com) */}
+              {/* SubdomÃ­nio Personalizado (slug.wehosthere.com) */}
               <div>
-                <label className="block text-xs font-bold text-gray-300 mb-1.5">Subdomínio Gratuito WEHOSTHERE</label>
+                <label className="block text-xs font-bold text-gray-300 mb-1.5">SubdomÃ­nio Gratuito WEHOSTHERE</label>
                 <div className="flex items-center bg-[#18181b] border border-[#27272a] rounded-xl overflow-hidden px-3 text-xs">
                   <span className="text-blue-400 font-bold select-none pr-1">https://</span>
                   <input
@@ -3951,14 +4423,14 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 </div>
               </div>
 
-              {/* Box de Subdomínio Ativo */}
+              {/* Box de SubdomÃ­nio Ativo */}
               <div className="p-3.5 rounded-2xl bg-[#18181b] border border-[#27272a] space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] text-gray-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
-                    <Globe className="w-3.5 h-3.5 text-blue-400" /> Endereço Oficial Moçambique
+                    <Globe className="w-3.5 h-3.5 text-blue-400" /> EndereÃ§o Oficial MoÃ§ambique
                   </span>
                   <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full font-bold">
-                    SSL Grátis & Ativo
+                    SSL GrÃ¡tis & Ativo
                   </span>
                 </div>
                 <div className="flex items-center justify-between gap-2 bg-[#0c0c0e] p-2.5 rounded-xl border border-white/5">
@@ -3969,7 +4441,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                     <button
                       onClick={handleCopySubdomain}
                       className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition cursor-pointer"
-                      title="Copiar Subdomínio"
+                      title="Copiar SubdomÃ­nio"
                     >
                       {copiedSubdomain ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                     </button>
@@ -3984,12 +4456,12 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 </div>
               </div>
 
-              {/* Informação sobre Domínio Próprio (.co.mz, .com) */}
+              {/* InformaÃ§Ã£o sobre DomÃ­nio PrÃ³prio (.co.mz, .com) */}
               <div className="p-3.5 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-xs text-blue-300 flex items-start gap-2.5">
                 <Sparkles className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
                 <div>
-                  <span className="font-bold block text-white">Deseja apontar seu domínio próprio (.co.mz ou .com)?</span>
-                  Pode conectar este projeto diretamente ao seu domínio personalizado através do gestor de DNS em <Link href="/dashboard/domains" className="underline font-bold text-blue-400">Domínios</Link>.
+                  <span className="font-bold block text-white">Deseja apontar seu domÃ­nio prÃ³prio (.co.mz ou .com)?</span>
+                  Pode conectar este projeto diretamente ao seu domÃ­nio personalizado atravÃ©s do gestor de DNS em <Link href="/dashboard/domains" className="underline font-bold text-blue-400">DomÃ­nios</Link>.
                 </div>
               </div>
 
@@ -4013,7 +4485,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                     </button>
                   </div>
 
-                  {/* QR Code Interativo para Partilha e Teste no Telemóvel */}
+                  {/* QR Code Interativo para Partilha e Teste no TelemÃ³vel */}
                   <div className="p-3.5 rounded-2xl bg-black/60 border border-white/10 flex flex-col sm:flex-row items-center gap-4">
                     <div className="w-24 h-24 bg-white p-1.5 rounded-xl shrink-0 flex items-center justify-center shadow-md">
                       <img 
@@ -4025,16 +4497,16 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                     <div className="text-center sm:text-left space-y-2 flex-1">
                       <div>
                         <span className="text-xs font-bold text-white flex items-center justify-center sm:justify-start gap-1.5">
-                          <QrCode className="w-3.5 h-3.5 text-emerald-400" /> Aceder no Telemóvel
+                          <QrCode className="w-3.5 h-3.5 text-emerald-400" /> Aceder no TelemÃ³vel
                         </span>
                         <p className="text-[10px] text-gray-400 leading-relaxed mt-0.5">
-                          Aponte a câmara do seu smartphone para abrir o site ou partilhe no status do WhatsApp.
+                          Aponte a cÃ¢mara do seu smartphone para abrir o site ou partilhe no status do WhatsApp.
                         </p>
                       </div>
                       <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
                         <button
                           onClick={() => {
-                            const text = encodeURIComponent(`Olá! Veja o meu novo website oficial na WeHost: ${subdomainUrl}`);
+                            const text = encodeURIComponent(`OlÃ¡! Veja o meu novo website oficial na WeHost: ${subdomainUrl}`);
                             window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
                           }}
                           className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] flex items-center gap-1.5 transition cursor-pointer shadow-sm active:scale-95"
@@ -4064,14 +4536,14 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 className="px-6 py-2.5 rounded-xl bg-white hover:bg-gray-100 text-black font-extrabold text-xs shadow-md transition active:scale-95 flex items-center gap-2 cursor-pointer disabled:opacity-50"
               >
                 {isPublishing ? <RefreshCw className="w-4 h-4 animate-spin text-black" /> : <Globe className="w-4 h-4 text-black" />}
-                <span>{isPublished ? 'Atualizar Publicação' : 'Publicar Agora'}</span>
+                <span>{isPublished ? 'Atualizar PublicaÃ§Ã£o' : 'Publicar Agora'}</span>
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ── MODAL DE PARTILHA DE PRÉ-VISUALIZAÇÃO ────────────────────────── */}
+      {/* â”€â”€ MODAL DE PARTILHA DE PRÃ‰-VISUALIZAÃ‡ÃƒO â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {isShareModalOpen && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
           <div className="bg-[#121217] border border-[#27272a] rounded-3xl max-w-md w-full p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
@@ -4087,7 +4559,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 <Share2 className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-base font-black text-white">Partilhar Pré-visualização</h3>
+                <h3 className="text-base font-black text-white">Partilhar PrÃ©-visualizaÃ§Ã£o</h3>
                 <p className="text-xs text-gray-400">Envie o link do site para clientes antes de publicar</p>
               </div>
             </div>
@@ -4122,11 +4594,11 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 </div>
               </div>
 
-              {/* Botões de Ação Rápida */}
+              {/* BotÃµes de AÃ§Ã£o RÃ¡pida */}
               <div className="grid grid-cols-2 gap-2 pt-1">
                 <button
                   onClick={() => {
-                    const text = encodeURIComponent(`Olá! Veja a pré-visualização do site "${projectTitle}" criado no Studio AI: ${previewShareUrl}`);
+                    const text = encodeURIComponent(`OlÃ¡! Veja a prÃ©-visualizaÃ§Ã£o do site "${projectTitle}" criado no Studio AI: ${previewShareUrl}`);
                     window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
                   }}
                   className="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer shadow-sm active:scale-95"
@@ -4143,21 +4615,21 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 </button>
               </div>
 
-              {/* QR Code para Teste Imediato no Telemóvel */}
+              {/* QR Code para Teste Imediato no TelemÃ³vel */}
               <div className="p-3.5 rounded-2xl bg-[#09090b] border border-[#27272a] flex items-center gap-4">
                 <div className="w-20 h-20 bg-white p-1.5 rounded-xl shrink-0 flex items-center justify-center shadow-md">
                   <img 
                     src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(previewShareUrl)}&margin=1`} 
-                    alt="QR Code de Pré-visualização"
+                    alt="QR Code de PrÃ©-visualizaÃ§Ã£o"
                     className="w-full h-full object-contain" 
                   />
                 </div>
                 <div className="space-y-1 text-left">
                   <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                    <QrCode className="w-3.5 h-3.5 text-blue-400" /> Aceder pelo Telemóvel
+                    <QrCode className="w-3.5 h-3.5 text-blue-400" /> Aceder pelo TelemÃ³vel
                   </span>
                   <p className="text-[10px] text-gray-400 leading-relaxed">
-                    Aponte a câmara do telemóvel para abrir a pré-visualização instantaneamente antes de publicar.
+                    Aponte a cÃ¢mara do telemÃ³vel para abrir a prÃ©-visualizaÃ§Ã£o instantaneamente antes de publicar.
                   </p>
                 </div>
               </div>
@@ -4165,7 +4637,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
               <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-3 text-[11px] text-blue-300 flex items-start gap-2">
                 <AlertCircle className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
                 <span>
-                  Este link público exibe o seu site em modo de teste em tempo real na nuvem WEHOSTHERE. Quando estiver pronto, use o botão <strong>Publicar</strong> para ativar o subdomínio oficial definitivo.
+                  Este link pÃºblico exibe o seu site em modo de teste em tempo real na nuvem WEHOSTHERE. Quando estiver pronto, use o botÃ£o <strong>Publicar</strong> para ativar o subdomÃ­nio oficial definitivo.
                 </span>
               </div>
             </div>
@@ -4173,7 +4645,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
         </div>
       )}
 
-      {/* ── MODAL DE CONFIGURAÇÃO DE LOGÓTIPO ────────────────────────────── */}
+      {/* â”€â”€ MODAL DE CONFIGURAÃ‡ÃƒO DE LOGÃ“TIPO â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {isLogoModalOpen && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
           <div className="bg-[#121217] border border-[#27272a] rounded-3xl max-w-md w-full p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
@@ -4189,13 +4661,13 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 <Upload className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-base font-black text-white">Logótipo do Website</h3>
+                <h3 className="text-base font-black text-white">LogÃ³tipo do Website</h3>
                 <p className="text-xs text-gray-400">Carregue a marca da sua empresa no menu do site</p>
               </div>
             </div>
 
             <div className="space-y-4">
-              {/* Opção 1: Upload de Ficheiro do Computador / Telemóvel */}
+              {/* OpÃ§Ã£o 1: Upload de Ficheiro do Computador / TelemÃ³vel */}
               <div>
                 <label className="text-[11px] font-bold text-gray-300 block mb-1.5">
                   1. Carregar Ficheiro (PNG transparente, SVG ou JPG):
@@ -4213,7 +4685,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                   className="w-full py-3 px-4 rounded-xl border border-dashed border-[#3f3f46] hover:border-purple-500 bg-[#09090b] text-gray-300 hover:text-white transition flex items-center justify-center gap-2.5 cursor-pointer text-xs font-semibold group"
                 >
                   <Upload className="w-4 h-4 text-purple-400 group-hover:scale-110 transition-transform" />
-                  <span>Escolher Imagem do Computador / Telemóvel</span>
+                  <span>Escolher Imagem do Computador / TelemÃ³vel</span>
                 </button>
               </div>
 
@@ -4224,7 +4696,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 <span className="flex-1 h-px bg-white/10" />
               </div>
 
-              {/* Opção 2: Colar URL de Imagem */}
+              {/* OpÃ§Ã£o 2: Colar URL de Imagem */}
               <div>
                 <label className="text-[11px] font-bold text-gray-300 block mb-1.5">
                   2. Colar Link / URL da Imagem:
@@ -4241,11 +4713,11 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 />
               </div>
 
-              {/* Pré-visualização do Logotipo */}
+              {/* PrÃ©-visualizaÃ§Ã£o do Logotipo */}
               {logoPreviewUrl && (
                 <div className="p-3 rounded-2xl bg-[#09090b] border border-[#27272a]">
                   <span className="text-[10px] font-bold text-gray-400 block mb-2 font-mono uppercase tracking-wider">
-                    Pré-visualização:
+                    PrÃ©-visualizaÃ§Ã£o:
                   </span>
                   <div className="h-16 rounded-xl bg-zinc-900/60 border border-white/5 flex items-center justify-center p-2 relative overflow-hidden">
                     <img
@@ -4258,7 +4730,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 </div>
               )}
 
-              {/* Ajustes de Altura e Exibição de Nome */}
+              {/* Ajustes de Altura e ExibiÃ§Ã£o de Nome */}
               <div className="grid grid-cols-2 gap-3 pt-1">
                 <div>
                   <label className="text-[11px] font-bold text-gray-400 block mb-1">Altura no Menu:</label>
@@ -4268,8 +4740,8 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                     className="w-full bg-[#09090b] text-xs text-gray-200 rounded-xl px-2.5 py-2 border border-[#27272a] focus:outline-none focus:border-purple-500 cursor-pointer"
                   >
                     <option value={28}>Pequeno (28px)</option>
-                    <option value={36}>Médio Padrão (36px)</option>
-                    <option value={44}>Médio Alto (44px)</option>
+                    <option value={36}>MÃ©dio PadrÃ£o (36px)</option>
+                    <option value={44}>MÃ©dio Alto (44px)</option>
                     <option value={52}>Grande (52px)</option>
                   </select>
                 </div>
@@ -4295,7 +4767,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 </div>
               )}
 
-              {/* Botões do Rodapé do Modal */}
+              {/* BotÃµes do RodapÃ© do Modal */}
               <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[#27272a]">
                 <button
                   type="button"
@@ -4319,7 +4791,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
         </div>
       )}
 
-      {/* ── MODAL CUSTOMIZADO: CONFIRMAÇÃO DE ELIMINAR PROJETO ──────────── */}
+      {/* â”€â”€ MODAL CUSTOMIZADO: CONFIRMAÃ‡ÃƒO DE ELIMINAR PROJETO â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {projectToDelete && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
           <div className="bg-[#121217] border border-[#27272a] rounded-3xl max-w-sm sm:max-w-md w-full p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
@@ -4337,7 +4809,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
               </div>
               <div>
                 <h3 className="text-base font-black text-white">Eliminar Projeto</h3>
-                <p className="text-xs text-gray-400 mt-0.5">Esta ação é irreversível e removerá o site permanentemente.</p>
+                <p className="text-xs text-gray-400 mt-0.5">Esta aÃ§Ã£o Ã© irreversÃ­vel e removerÃ¡ o site permanentemente.</p>
               </div>
             </div>
 
@@ -4378,7 +4850,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
         </div>
       )}
 
-      {/* ── MODAL CUSTOMIZADO: CONFIRMAÇÃO DE LIMPAR CONVERSA ───────────── */}
+      {/* â”€â”€ MODAL CUSTOMIZADO: CONFIRMAÃ‡ÃƒO DE LIMPAR CONVERSA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {isClearChatModalOpen && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
           <div className="bg-[#121217] border border-[#27272a] rounded-3xl max-w-sm sm:max-w-md w-full p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
@@ -4400,7 +4872,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
             </div>
 
             <div className="p-3.5 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-xs text-blue-300 mb-5 leading-relaxed">
-              O código HTML gerado e todas as versões anteriores do site permanecerão intactos no Preview. Apenas o histórico de mensagens deste projeto será limpo.
+              O cÃ³digo HTML gerado e todas as versÃµes anteriores do site permanecerÃ£o intactos no Preview. Apenas o histÃ³rico de mensagens deste projeto serÃ¡ limpo.
             </div>
 
             <div className="flex items-center justify-end gap-2.5">
@@ -4424,7 +4896,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
         </div>
       )}
 
-      {/* ── MODAL DE EXPORTAÇÃO COMPLETA DE CÓDIGO (ZIP / HTML) ────────── */}
+      {/* â”€â”€ MODAL DE EXPORTAÃ‡ÃƒO COMPLETA DE CÃ“DIGO (ZIP / HTML) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {isExportModalOpen && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
           <div className="bg-[#121217] border border-[#27272a] rounded-3xl max-w-lg w-full p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
@@ -4440,15 +4912,15 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 <Download className="w-6 h-6 text-emerald-400" />
               </div>
               <div>
-                <h3 className="text-base font-black text-white">Exportar Código-Fonte</h3>
+                <h3 className="text-base font-black text-white">Exportar CÃ³digo-Fonte</h3>
                 <p className="text-xs text-gray-400 mt-0.5">
-                  Descarregue o código do website para o seu computador ou hospede onde quiser.
+                  Descarregue o cÃ³digo do website para o seu computador ou hospede onde quiser.
                 </p>
               </div>
             </div>
 
             <div className="space-y-3 mb-5">
-              {/* Opção 1: Pacote Completo ZIP */}
+              {/* OpÃ§Ã£o 1: Pacote Completo ZIP */}
               <div className="p-4 rounded-2xl bg-[#18181b] border border-[#27272a] hover:border-amber-500/40 transition flex items-start justify-between gap-3 group">
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
@@ -4462,7 +4934,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                       </span>
                     </div>
                     <p className="text-[11px] text-gray-400 mt-1 leading-relaxed">
-                      Inclui <code className="text-amber-300 font-mono">index.html</code>, pasta <code className="text-amber-300 font-mono">css/style.css</code> extraída e <code className="text-amber-300 font-mono">README.md</code> com instruções.
+                      Inclui <code className="text-amber-300 font-mono">index.html</code>, pasta <code className="text-amber-300 font-mono">css/style.css</code> extraÃ­da e <code className="text-amber-300 font-mono">README.md</code> com instruÃ§Ãµes.
                     </p>
                   </div>
                 </div>
@@ -4487,7 +4959,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 </button>
               </div>
 
-              {/* Opção 2: Ficheiro Único HTML */}
+              {/* OpÃ§Ã£o 2: Ficheiro Ãšnico HTML */}
               <div className="p-4 rounded-2xl bg-[#18181b] border border-[#27272a] hover:border-emerald-500/40 transition flex items-start justify-between gap-3 group">
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
@@ -4495,13 +4967,13 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-white">Ficheiro HTML Único (.HTML)</span>
+                      <span className="text-sm font-bold text-white">Ficheiro HTML Ãšnico (.HTML)</span>
                       <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 uppercase tracking-wide">
-                        Autónomo
+                        AutÃ³nomo
                       </span>
                     </div>
                     <p className="text-[11px] text-gray-400 mt-1 leading-relaxed">
-                      Arquivo único com todo o HTML e CSS embutido. Dá duplo clique para abrir diretamente no navegador.
+                      Arquivo Ãºnico com todo o HTML e CSS embutido. DÃ¡ duplo clique para abrir diretamente no navegador.
                     </p>
                   </div>
                 </div>
@@ -4517,16 +4989,16 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 </button>
               </div>
 
-              {/* Opção 3: Copiar Código */}
+              {/* OpÃ§Ã£o 3: Copiar CÃ³digo */}
               <div className="p-4 rounded-2xl bg-[#18181b] border border-[#27272a] hover:border-blue-500/40 transition flex items-start justify-between gap-3 group">
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center shrink-0 mt-0.5">
                     <Copy className="w-5 h-5" />
                   </div>
                   <div>
-                    <span className="text-sm font-bold text-white">Copiar Código-Fonte</span>
+                    <span className="text-sm font-bold text-white">Copiar CÃ³digo-Fonte</span>
                     <p className="text-[11px] text-gray-400 mt-1 leading-relaxed">
-                      Copia todo o código gerado para colar diretamente no seu editor de código favorito (VS Code, Cursor, etc.).
+                      Copia todo o cÃ³digo gerado para colar diretamente no seu editor de cÃ³digo favorito (VS Code, Cursor, etc.).
                     </p>
                   </div>
                 </div>
@@ -4555,14 +5027,14 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
             {/* Dica da Plataforma */}
             <div className="p-3.5 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-[11px] text-blue-300 leading-relaxed flex items-center justify-between gap-3">
               <span>
-                💡 <strong>Dica:</strong> Pode publicar este website online instantaneamente na WEHOSTHERE com SSL gratuito e domínio próprio.
+                ðŸ’¡ <strong>Dica:</strong> Pode publicar este website online instantaneamente na WEHOSTHERE com SSL gratuito e domÃ­nio prÃ³prio.
               </span>
               <button
                 type="button"
                 onClick={() => {
                   setIsExportModalOpen(false);
                   if (!currentUser) {
-                    setAuthModalReason('Para publicar o seu website online com SSL gratuito e domínio próprio, inicie sessão na sua conta.');
+                    setAuthModalReason('Para publicar o seu website online com SSL gratuito e domÃ­nio prÃ³prio, inicie sessÃ£o na sua conta.');
                     setIsAuthRequiredModalOpen(true);
                     return;
                   }
@@ -4579,11 +5051,11 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
 
       </div> {/* Fim do inner container flex-1 */}
 
-      {/* 🔒 MODAL DE AUTENTICAÇÃO NECESSÁRIA PARA VISITANTES */}
+      {/* ðŸ”’ MODAL DE AUTENTICAÃ‡ÃƒO NECESSÃRIA PARA VISITANTES */}
       {isAuthRequiredModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div className="bg-[#121215] border border-white/15 rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl relative text-center">
-            {/* Botão Fechar */}
+            {/* BotÃ£o Fechar */}
             <button
               onClick={() => setIsAuthRequiredModalOpen(false)}
               className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white rounded-full hover:bg-white/5 transition cursor-pointer"
@@ -4591,13 +5063,13 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
               <X className="w-5 h-5" />
             </button>
 
-            {/* Ícone com Glow */}
+            {/* Ãcone com Glow */}
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 text-white flex items-center justify-center mx-auto mb-4 shadow-xl shadow-blue-500/20">
               <Sparkles className="w-7 h-7" />
             </div>
 
             <h3 className="text-xl font-extrabold text-white mb-2">
-              Inicie Sessão para Continuar
+              Inicie SessÃ£o para Continuar
             </h3>
             <p className="text-xs sm:text-sm text-gray-300 mb-6 leading-relaxed">
               {authModalReason}
@@ -4607,19 +5079,19 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
             <div className="bg-[#18181b] border border-white/10 rounded-2xl p-4 mb-6 text-left space-y-2.5">
               <div className="flex items-center gap-2.5 text-xs text-gray-200">
                 <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span>Geração ilimitada de código e páginas com IA</span>
+                <span>GeraÃ§Ã£o ilimitada de cÃ³digo e pÃ¡ginas com IA</span>
               </div>
               <div className="flex items-center gap-2.5 text-xs text-gray-200">
                 <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span>Salvar múltiplos projetos e histórico de versões</span>
+                <span>Salvar mÃºltiplos projetos e histÃ³rico de versÃµes</span>
               </div>
               <div className="flex items-center gap-2.5 text-xs text-gray-200">
                 <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span>Publicar online com domínio próprio e SSL grátis</span>
+                <span>Publicar online com domÃ­nio prÃ³prio e SSL grÃ¡tis</span>
               </div>
             </div>
 
-            {/* Botões de Ação */}
+            {/* BotÃµes de AÃ§Ã£o */}
             <div className="space-y-2.5">
               <button
                 type="button"
@@ -4640,14 +5112,14 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 onClick={() => setIsAuthRequiredModalOpen(false)}
                 className="w-full py-2 text-gray-400 hover:text-gray-200 text-xs font-semibold transition cursor-pointer"
               >
-                Continuar a Explorar Modo Demonstração
+                Continuar a Explorar Modo DemonstraÃ§Ã£o
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ── MODAL: 🎨 Mudar Cores do Website ────────────────────────────── */}
+      {/* â”€â”€ MODAL: ðŸŽ¨ Mudar Cores do Website â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {isColorModalOpen && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
           <div className="bg-[#121217] border border-[#27272a] rounded-3xl max-w-lg w-full p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto no-scrollbar">
@@ -4664,7 +5136,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
               </div>
               <div>
                 <h3 className="text-base font-black text-white">Paleta de Cores do Website</h3>
-                <p className="text-xs text-gray-400">Selecione o esquema cromático ideal para a sua marca</p>
+                <p className="text-xs text-gray-400">Selecione o esquema cromÃ¡tico ideal para a sua marca</p>
               </div>
             </div>
 
@@ -4700,9 +5172,9 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 </div>
               </div>
 
-              {/* Grid de Paletas Pré-Definidas */}
+              {/* Grid de Paletas PrÃ©-Definidas */}
               <div>
-                <label className="text-[11px] font-bold text-gray-300 block mb-2">2. Escolha a Paleta Harmônica:</label>
+                <label className="text-[11px] font-bold text-gray-300 block mb-2">2. Escolha a Paleta HarmÃ´nica:</label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   {COLOR_PALETTES.map(p => (
                     <button
@@ -4732,9 +5204,9 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 </div>
               </div>
 
-              {/* Ajuste Fino de Cor Primária Customizada */}
+              {/* Ajuste Fino de Cor PrimÃ¡ria Customizada */}
               <div className="p-3.5 rounded-2xl bg-[#18181b] border border-[#27272a]">
-                <label className="text-[11px] font-bold text-gray-300 block mb-2">3. Ou Ajuste a Cor Primária Exata:</label>
+                <label className="text-[11px] font-bold text-gray-300 block mb-2">3. Ou Ajuste a Cor PrimÃ¡ria Exata:</label>
                 <div className="flex items-center gap-3">
                   <input
                     type="color"
@@ -4752,7 +5224,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 </div>
               </div>
 
-              {/* Botões do Rodapé */}
+              {/* BotÃµes do RodapÃ© */}
               <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[#27272a]">
                 <button
                   type="button"
@@ -4775,7 +5247,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
         </div>
       )}
 
-      {/* ── MODAL: 💬 Configuração do Botão WhatsApp ───────────────────── */}
+      {/* â”€â”€ MODAL: ðŸ’¬ ConfiguraÃ§Ã£o do BotÃ£o WhatsApp â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {isWhatsAppModalOpen && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
           <div className="bg-[#121217] border border-[#27272a] rounded-3xl max-w-md w-full p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
@@ -4791,27 +5263,27 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 <MessageSquare className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-base font-black text-white">Botão WhatsApp Oficial</h3>
+                <h3 className="text-base font-black text-white">BotÃ£o WhatsApp Oficial</h3>
                 <p className="text-xs text-gray-400">Vincule o seu contacto direto para receber mensagens de clientes</p>
               </div>
             </div>
 
             <div className="space-y-4">
-              {/* Número de Telefone com Código do País */}
+              {/* NÃºmero de Telefone com CÃ³digo do PaÃ­s */}
               <div>
-                <label className="text-[11px] font-bold text-gray-300 block mb-1.5">Número de WhatsApp do Negócio:</label>
+                <label className="text-[11px] font-bold text-gray-300 block mb-1.5">NÃºmero de WhatsApp do NegÃ³cio:</label>
                 <div className="flex items-center gap-2">
                   <select
                     value={waCountryCode}
                     onChange={e => setWaCountryCode(e.target.value)}
                     className="bg-[#18181b] border border-[#27272a] text-white text-xs font-semibold rounded-xl px-2.5 py-2.5 focus:outline-none focus:border-emerald-500"
                   >
-                    <option value="+258">🇲🇿 +258 (Moçambique)</option>
-                    <option value="+351">🇵🇹 +351 (Portugal)</option>
-                    <option value="+55">🇧🇷 +55 (Brasil)</option>
-                    <option value="+244">🇦🇴 +244 (Angola)</option>
-                    <option value="+27">🇿🇦 +27 (África do Sul)</option>
-                    <option value="+1">🇺🇸 +1 (EUA / Global)</option>
+                    <option value="+258">ðŸ‡²ðŸ‡¿ +258 (MoÃ§ambique)</option>
+                    <option value="+351">ðŸ‡µðŸ‡¹ +351 (Portugal)</option>
+                    <option value="+55">ðŸ‡§ðŸ‡· +55 (Brasil)</option>
+                    <option value="+244">ðŸ‡¦ðŸ‡´ +244 (Angola)</option>
+                    <option value="+27">ðŸ‡¿ðŸ‡¦ +27 (Ãfrica do Sul)</option>
+                    <option value="+1">ðŸ‡ºðŸ‡¸ +1 (EUA / Global)</option>
                   </select>
                   <input
                     type="text"
@@ -4823,21 +5295,21 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 </div>
               </div>
 
-              {/* Mensagem Inicial Padrão */}
+              {/* Mensagem Inicial PadrÃ£o */}
               <div>
-                <label className="text-[11px] font-bold text-gray-300 block mb-1.5">Mensagem Inicial que o Cliente Enviará:</label>
+                <label className="text-[11px] font-bold text-gray-300 block mb-1.5">Mensagem Inicial que o Cliente EnviarÃ¡:</label>
                 <textarea
                   value={waMessage}
                   onChange={e => setWaMessage(e.target.value)}
                   rows={2}
                   className="w-full bg-[#18181b] border border-[#27272a] text-white text-xs rounded-xl p-3 focus:outline-none focus:border-emerald-500 resize-none"
-                  placeholder="Olá! Gostaria de mais informações sobre os vossos serviços."
+                  placeholder="OlÃ¡! Gostaria de mais informaÃ§Ãµes sobre os vossos serviÃ§os."
                 />
               </div>
 
-              {/* Texto do Botão */}
+              {/* Texto do BotÃ£o */}
               <div>
-                <label className="text-[11px] font-bold text-gray-300 block mb-1.5">Texto do Botão Flutuante:</label>
+                <label className="text-[11px] font-bold text-gray-300 block mb-1.5">Texto do BotÃ£o Flutuante:</label>
                 <input
                   type="text"
                   value={waButtonText}
@@ -4847,9 +5319,9 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 />
               </div>
 
-              {/* Posição */}
+              {/* PosiÃ§Ã£o */}
               <div>
-                <label className="text-[11px] font-bold text-gray-300 block mb-1.5">Posição do Botão na Página:</label>
+                <label className="text-[11px] font-bold text-gray-300 block mb-1.5">PosiÃ§Ã£o do BotÃ£o na PÃ¡gina:</label>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
@@ -4876,7 +5348,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 </div>
               </div>
 
-              {/* Botões do Rodapé */}
+              {/* BotÃµes do RodapÃ© */}
               <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[#27272a]">
                 <button
                   type="button"
@@ -4900,7 +5372,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
         </div>
       )}
 
-      {/* ── MODAL: 🏷️ Tabela de Preços & Benefícios ───────────────────── */}
+      {/* â”€â”€ MODAL: ðŸ·ï¸ Tabela de PreÃ§os & BenefÃ­cios â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {isPricingModalOpen && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
           <div className="bg-[#121217] border border-[#27272a] rounded-3xl max-w-2xl w-full p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto no-scrollbar">
@@ -4916,8 +5388,8 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 <Tag className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-base font-black text-white">Configuração da Tabela de Preços</h3>
-                <p className="text-xs text-gray-400">Defina os planos, valores e benefícios transparentes para os seus clientes</p>
+                <h3 className="text-base font-black text-white">ConfiguraÃ§Ã£o da Tabela de PreÃ§os</h3>
+                <p className="text-xs text-gray-400">Defina os planos, valores e benefÃ­cios transparentes para os seus clientes</p>
               </div>
             </div>
 
@@ -4931,22 +5403,22 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                     onChange={e => setPricingCurrency(e.target.value)}
                     className="w-full bg-[#18181b] border border-[#27272a] text-white text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-purple-500"
                   >
-                    <option value="MT">MT (Meticais Moçambique)</option>
-                    <option value="USD">USD ($ Dólar)</option>
-                    <option value="EUR">EUR (€ Euro)</option>
+                    <option value="MT">MT (Meticais MoÃ§ambique)</option>
+                    <option value="USD">USD ($ DÃ³lar)</option>
+                    <option value="EUR">EUR (â‚¬ Euro)</option>
                     <option value="BRL">BRL (R$ Real)</option>
                   </select>
                 </div>
                 <div>
-                  <label className="text-[11px] font-bold text-gray-300 block mb-1">Ciclo de Cobrança:</label>
+                  <label className="text-[11px] font-bold text-gray-300 block mb-1">Ciclo de CobranÃ§a:</label>
                   <select
                     value={pricingCycle}
                     onChange={e => setPricingCycle(e.target.value)}
                     className="w-full bg-[#18181b] border border-[#27272a] text-white text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-purple-500"
                   >
-                    <option value="/mês">/mês (Mensal)</option>
+                    <option value="/mÃªs">/mÃªs (Mensal)</option>
                     <option value="/ano">/ano (Anual)</option>
-                    <option value="Pagamento Único">Pagamento Único</option>
+                    <option value="Pagamento Ãšnico">Pagamento Ãšnico</option>
                   </select>
                 </div>
               </div>
@@ -4968,10 +5440,10 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                       type="text"
                       value={plan1Price}
                       onChange={e => setPlan1Price(e.target.value)}
-                      placeholder="Preço (ex: 1.500)"
+                      placeholder="PreÃ§o (ex: 1.500)"
                       className="w-full bg-[#0f0f12] border border-[#27272a] text-white text-xs font-bold rounded-lg px-2.5 py-1.5 mb-2"
                     />
-                    <label className="text-[10px] text-gray-400 block mb-1">Benefícios (1 por linha):</label>
+                    <label className="text-[10px] text-gray-400 block mb-1">BenefÃ­cios (1 por linha):</label>
                     <textarea
                       value={plan1Features}
                       onChange={e => setPlan1Features(e.target.value)}
@@ -4995,7 +5467,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                     type="text"
                     value={plan2Price}
                     onChange={e => setPlan2Price(e.target.value)}
-                    placeholder="Preço (ex: 3.500)"
+                    placeholder="PreÃ§o (ex: 3.500)"
                     className="w-full bg-[#0f0f12] border border-blue-500/40 text-white text-xs font-bold rounded-lg px-2.5 py-1.5 mb-1.5"
                   />
                   <input
@@ -5005,7 +5477,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                     placeholder="Badge (ex: Mais Popular)"
                     className="w-full bg-[#0f0f12] border border-blue-500/40 text-blue-300 text-[10px] font-bold rounded-lg px-2.5 py-1 mb-2"
                   />
-                  <label className="text-[10px] text-blue-300 block mb-1">Benefícios (1 por linha):</label>
+                  <label className="text-[10px] text-blue-300 block mb-1">BenefÃ­cios (1 por linha):</label>
                   <textarea
                     value={plan2Features}
                     onChange={e => setPlan2Features(e.target.value)}
@@ -5029,10 +5501,10 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                       type="text"
                       value={plan3Price}
                       onChange={e => setPlan3Price(e.target.value)}
-                      placeholder="Preço (ex: 7.500)"
+                      placeholder="PreÃ§o (ex: 7.500)"
                       className="w-full bg-[#0f0f12] border border-[#27272a] text-white text-xs font-bold rounded-lg px-2.5 py-1.5 mb-2"
                     />
-                    <label className="text-[10px] text-gray-400 block mb-1">Benefícios (1 por linha):</label>
+                    <label className="text-[10px] text-gray-400 block mb-1">BenefÃ­cios (1 por linha):</label>
                     <textarea
                       value={plan3Features}
                       onChange={e => setPlan3Features(e.target.value)}
@@ -5043,7 +5515,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 </div>
               </div>
 
-              {/* Botões do Rodapé */}
+              {/* BotÃµes do RodapÃ© */}
               <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[#27272a]">
                 <button
                   type="button"
@@ -5058,7 +5530,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                   className="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-extrabold text-xs shadow-md shadow-purple-600/30 transition active:scale-95 flex items-center gap-2 cursor-pointer"
                 >
                   <Check className="w-3.5 h-3.5" />
-                  <span>Inserir Tabela de Preços</span>
+                  <span>Inserir Tabela de PreÃ§os</span>
                 </button>
               </div>
             </div>
@@ -5066,7 +5538,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
         </div>
       )}
 
-      {/* ── MODAL: 🖼️ Configuração de Banner / Hero ─────────────────────── */}
+      {/* â”€â”€ MODAL: ðŸ–¼ï¸ ConfiguraÃ§Ã£o de Banner / Hero â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {isBannerModalOpen && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
           <div className="bg-[#121217] border border-[#27272a] rounded-3xl max-w-lg w-full p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto no-scrollbar">
@@ -5082,8 +5554,8 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 <Sliders className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-base font-black text-white">Configuração do Banner / Hero</h3>
-                <p className="text-xs text-gray-400">Personalize o título, a proposta de valor e os botões de ação do topo</p>
+                <h3 className="text-base font-black text-white">ConfiguraÃ§Ã£o do Banner / Hero</h3>
+                <p className="text-xs text-gray-400">Personalize o tÃ­tulo, a proposta de valor e os botÃµes de aÃ§Ã£o do topo</p>
               </div>
             </div>
 
@@ -5095,26 +5567,26 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                   type="text"
                   value={bannerBadge}
                   onChange={e => setBannerBadge(e.target.value)}
-                  placeholder="Ex: ⚡ Nova Geração 2026"
+                  placeholder="Ex: âš¡ Nova GeraÃ§Ã£o 2026"
                   className="w-full bg-[#18181b] border border-[#27272a] text-white text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-amber-500"
                 />
               </div>
 
-              {/* Título Principal (Headline) */}
+              {/* TÃ­tulo Principal (Headline) */}
               <div>
-                <label className="text-[11px] font-bold text-gray-300 block mb-1">Título Principal (Headline):</label>
+                <label className="text-[11px] font-bold text-gray-300 block mb-1">TÃ­tulo Principal (Headline):</label>
                 <input
                   type="text"
                   value={bannerHeadline}
                   onChange={e => setBannerHeadline(e.target.value)}
-                  placeholder="Ex: Soluções Digitais que aceleram o seu Crescimento"
+                  placeholder="Ex: SoluÃ§Ãµes Digitais que aceleram o seu Crescimento"
                   className="w-full bg-[#18181b] border border-[#27272a] text-white text-xs font-bold rounded-xl px-3 py-2.5 focus:outline-none focus:border-amber-500"
                 />
               </div>
 
-              {/* Subtítulo / Descrição */}
+              {/* SubtÃ­tulo / DescriÃ§Ã£o */}
               <div>
-                <label className="text-[11px] font-bold text-gray-300 block mb-1">Subtítulo / Proposta de Valor:</label>
+                <label className="text-[11px] font-bold text-gray-300 block mb-1">SubtÃ­tulo / Proposta de Valor:</label>
                 <textarea
                   value={bannerSubtitle}
                   onChange={e => setBannerSubtitle(e.target.value)}
@@ -5124,20 +5596,20 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 />
               </div>
 
-              {/* Botões de Ação */}
+              {/* BotÃµes de AÃ§Ã£o */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[11px] font-bold text-gray-300 block mb-1">Botão Principal (Texto):</label>
+                  <label className="text-[11px] font-bold text-gray-300 block mb-1">BotÃ£o Principal (Texto):</label>
                   <input
                     type="text"
                     value={bannerCtaText}
                     onChange={e => setBannerCtaText(e.target.value)}
-                    placeholder="Começar Agora"
+                    placeholder="ComeÃ§ar Agora"
                     className="w-full bg-[#18181b] border border-[#27272a] text-white text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-amber-500"
                   />
                 </div>
                 <div>
-                  <label className="text-[11px] font-bold text-gray-300 block mb-1">Link do Botão (Âncora):</label>
+                  <label className="text-[11px] font-bold text-gray-300 block mb-1">Link do BotÃ£o (Ã‚ncora):</label>
                   <input
                     type="text"
                     value={bannerCtaLink}
@@ -5150,17 +5622,17 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[11px] font-bold text-gray-300 block mb-1">Botão Secundário (Texto):</label>
+                  <label className="text-[11px] font-bold text-gray-300 block mb-1">BotÃ£o SecundÃ¡rio (Texto):</label>
                   <input
                     type="text"
                     value={bannerSecondaryText}
                     onChange={e => setBannerSecondaryText(e.target.value)}
-                    placeholder="Ver Serviços"
+                    placeholder="Ver ServiÃ§os"
                     className="w-full bg-[#18181b] border border-[#27272a] text-white text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-amber-500"
                   />
                 </div>
                 <div>
-                  <label className="text-[11px] font-bold text-gray-300 block mb-1">Link Secundário (Âncora):</label>
+                  <label className="text-[11px] font-bold text-gray-300 block mb-1">Link SecundÃ¡rio (Ã‚ncora):</label>
                   <input
                     type="text"
                     value={bannerSecondaryLink}
@@ -5211,7 +5683,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                 </div>
               </div>
 
-              {/* Botões do Rodapé */}
+              {/* BotÃµes do RodapÃ© */}
               <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[#27272a]">
                 <button
                   type="button"
@@ -5234,7 +5706,7 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
         </div>
       )}
 
-      {/* Toast de Notificação (Edição por Clique / Ações Rápidas) */}
+      {/* Toast de NotificaÃ§Ã£o (EdiÃ§Ã£o por Clique / AÃ§Ãµes RÃ¡pidas) */}
       {toastMessage && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-2.5 rounded-full bg-emerald-500 text-black font-extrabold text-xs shadow-2xl flex items-center gap-2 animate-in fade-in slide-in-from-bottom-3 duration-200 pointer-events-none">
           <CheckCircle2 className="w-4 h-4 text-black shrink-0" />
@@ -5245,3 +5717,4 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
     </div>
   );
 }
+
