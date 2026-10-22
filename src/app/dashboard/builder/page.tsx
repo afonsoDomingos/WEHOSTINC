@@ -784,18 +784,21 @@ const DEMO_STARTER_HTML = `<!DOCTYPE html>
 <body class="bg-black text-white antialiased">
   <!-- Header / Navbar -->
   <header class="sticky top-0 z-50 backdrop-blur-xl bg-black/85 border-b border-white/10 transition-all">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-      <a href="#inicio" class="flex items-center gap-3 group">
-        <div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-black font-extrabold text-lg shadow-lg group-hover:scale-105 transition">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-3">
+
+      <!-- Logo -->
+      <a href="#inicio" class="flex items-center gap-2.5 group shrink-0">
+        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white flex items-center justify-center text-black font-extrabold text-base sm:text-lg shadow-lg group-hover:scale-105 transition">
           W
         </div>
-        <div>
-          <span class="font-extrabold text-lg tracking-tight text-white block">WeHost Cloud</span>
-          <span class="text-[10px] uppercase tracking-widest text-zinc-400 block font-medium">Infraestrutura em Moçambique</span>
+        <div class="hidden sm:block">
+          <span class="font-extrabold text-base tracking-tight text-white block leading-tight">WeHost Cloud</span>
+          <span class="text-[9px] uppercase tracking-widest text-zinc-400 block font-medium">Infraestrutura em Moçambique</span>
         </div>
       </a>
-      
-      <nav class="hidden md:flex items-center gap-8" id="desktop-nav">
+
+      <!-- Desktop Nav -->
+      <nav class="hidden md:flex items-center gap-6 lg:gap-8" id="desktop-nav">
         <a href="#inicio" class="text-xs uppercase tracking-wider text-zinc-400 hover:text-white transition font-medium">Início</a>
         <a href="#servicos" class="text-xs uppercase tracking-wider text-zinc-400 hover:text-white transition font-medium">Serviços</a>
         <a href="#galeria" class="text-xs uppercase tracking-wider text-zinc-400 hover:text-white transition font-medium">Galeria</a>
@@ -805,20 +808,30 @@ const DEMO_STARTER_HTML = `<!DOCTYPE html>
         <a href="#contacto" class="text-xs uppercase tracking-wider text-zinc-400 hover:text-white transition font-medium">Contacto</a>
       </nav>
 
-      <div class="flex items-center gap-3">
-        <a href="https://wa.me/258848335618?text=Ol%C3%A1!%20Gostaria%20de%20saber%20mais%20sobre%20a%20WeHost%20Cloud" target="_blank" rel="noopener noreferrer" class="hidden sm:inline-flex items-center gap-2 bg-white text-black font-bold text-xs px-5 py-2.5 rounded-full hover:bg-zinc-200 transition shadow-sm hover:scale-[1.02]">
+      <!-- Right actions -->
+      <div class="flex items-center gap-2">
+        <!-- WA icon only (mobile) -->
+        <a href="https://wa.me/258848335618?text=Ol%C3%A1!%20Gostaria%20de%20saber%20mais%20sobre%20a%20WeHost%20Cloud" target="_blank" rel="noopener noreferrer"
+           class="sm:hidden w-9 h-9 rounded-xl bg-white flex items-center justify-center text-black hover:bg-zinc-200 transition shadow-sm">
           <i data-lucide="message-circle" class="w-4 h-4"></i>
-          <span>Falar no WhatsApp</span>
         </a>
-        <button id="menu-toggle" aria-label="Abrir menu" onclick="toggleMobileMenu()" class="md:hidden flex flex-col justify-center items-center w-10 h-10 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition gap-1.5">
-          <span id="hb1" class="block w-5 h-0.5 bg-white transition-all duration-300 origin-center"></span>
-          <span id="hb2" class="block w-5 h-0.5 bg-white transition-all duration-300"></span>
-          <span id="hb3" class="block w-5 h-0.5 bg-white transition-all duration-300 origin-center"></span>
+        <!-- WA full button (sm+) -->
+        <a href="https://wa.me/258848335618?text=Ol%C3%A1!%20Gostaria%20de%20saber%20mais%20sobre%20a%20WeHost%20Cloud" target="_blank" rel="noopener noreferrer"
+           class="hidden sm:inline-flex items-center gap-2 bg-white text-black font-bold text-xs px-4 py-2.5 rounded-full hover:bg-zinc-200 transition shadow-sm hover:scale-[1.02]">
+          <i data-lucide="message-circle" class="w-4 h-4"></i>
+          <span>WhatsApp</span>
+        </a>
+        <!-- Hamburger (mobile) -->
+        <button id="menu-toggle" aria-label="Abrir menu" onclick="toggleMobileMenu()"
+                class="md:hidden flex flex-col justify-center items-center w-9 h-9 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition gap-[5px]">
+          <span id="hb1" class="block w-4 h-0.5 bg-white transition-all duration-300 origin-center"></span>
+          <span id="hb2" class="block w-4 h-0.5 bg-white transition-all duration-300"></span>
+          <span id="hb3" class="block w-4 h-0.5 bg-white transition-all duration-300 origin-center"></span>
         </button>
       </div>
     </div>
 
-    <!-- Mobile Menu Drawer -->
+    <!-- Mobile Drawer -->
     <div id="mobile-menu" style="display:none;flex-direction:column;" class="md:hidden bg-black/98 backdrop-blur-2xl border-t border-white/10 px-4 py-5 space-y-1">
       <a href="#inicio" onclick="closeMobileMenu()" class="block px-4 py-3.5 rounded-xl text-sm font-semibold text-zinc-300 hover:text-white hover:bg-white/5 transition">Início</a>
       <a href="#servicos" onclick="closeMobileMenu()" class="block px-4 py-3.5 rounded-xl text-sm font-semibold text-zinc-300 hover:text-white hover:bg-white/5 transition">Serviços</a>
@@ -828,7 +841,8 @@ const DEMO_STARTER_HTML = `<!DOCTYPE html>
       <a href="#agendamento" onclick="closeMobileMenu()" class="block px-4 py-3.5 rounded-xl text-sm font-semibold text-zinc-300 hover:text-white hover:bg-white/5 transition">Ativar Plano</a>
       <a href="#contacto" onclick="closeMobileMenu()" class="block px-4 py-3.5 rounded-xl text-sm font-semibold text-zinc-300 hover:text-white hover:bg-white/5 transition">Contacto</a>
       <div class="pt-3 mt-2 border-t border-white/10">
-        <a href="https://wa.me/258848335618?text=Ol%C3%A1!%20Gostaria%20de%20saber%20mais%20sobre%20a%20WeHost%20Cloud" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-2 bg-white text-black font-extrabold text-sm px-6 py-3.5 rounded-xl hover:bg-zinc-200 transition w-full">
+        <a href="https://wa.me/258848335618?text=Ol%C3%A1!%20Gostaria%20de%20saber%20mais%20sobre%20a%20WeHost%20Cloud" target="_blank" rel="noopener noreferrer"
+           class="flex items-center justify-center gap-2 bg-white text-black font-extrabold text-sm px-6 py-3.5 rounded-xl hover:bg-zinc-200 transition w-full">
           <i data-lucide="message-circle" class="w-4 h-4"></i>
           <span>Falar no WhatsApp</span>
         </a>
@@ -1288,9 +1302,9 @@ const DEMO_STARTER_HTML = `<!DOCTYPE html>
   </section>
 
   <!-- Botão Flutuante do WhatsApp -->
-  <a href="https://wa.me/258848335618?text=Ol%C3%A1!%20Gostaria%20de%20mais%20informa%C3%A7%C3%B5es" target="_blank" rel="noopener noreferrer" class="fixed bottom-6 right-6 z-50 inline-flex items-center gap-2.5 bg-white text-black font-extrabold text-xs py-3 px-5 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 hover:bg-zinc-200 border border-white/20 group">
+  <a href="https://wa.me/258848335618?text=Ol%C3%A1!%20Gostaria%20de%20mais%20informa%C3%A7%C3%B5es" target="_blank" rel="noopener noreferrer" class="fixed bottom-5 right-4 z-50 inline-flex items-center gap-2 bg-white text-black font-bold text-xs py-2.5 px-3 sm:px-5 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 hover:bg-zinc-200 border border-white/20 group">
     <i data-lucide="message-circle" class="w-4 h-4 group-hover:rotate-12 transition-transform"></i>
-    <span class="font-bold tracking-tight">WhatsApp</span>
+    <span class="hidden sm:inline font-bold tracking-tight">WhatsApp</span>
   </a>
 
   <!-- Multi-column Footer -->

@@ -28,31 +28,43 @@ function getFallbackHtml(prompt: string, title?: string): string {
 
   const renderNavbar = (brand: string, navItems: { label: string; href: string }[], waMsg: string) => `
   <header class="sticky top-0 z-50 backdrop-blur-xl bg-black/85 border-b border-white/10 transition-all">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-      <a href="#inicio" class="flex items-center gap-3 group">
-        <div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-black font-extrabold text-lg shadow-lg group-hover:scale-105 transition">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-3">
+
+      <!-- Logo: initial only on mobile, full name on sm+ -->
+      <a href="#inicio" class="flex items-center gap-2.5 group shrink-0">
+        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white flex items-center justify-center text-black font-extrabold text-base sm:text-lg shadow-lg group-hover:scale-105 transition">
           ${brand.charAt(0).toUpperCase()}
         </div>
-        <div>
-          <span class="font-extrabold text-lg tracking-tight text-white block">${brand}</span>
-          <span class="text-[10px] uppercase tracking-widest text-zinc-400 block font-medium">Exclusividade &amp; Luxo</span>
+        <div class="hidden sm:block">
+          <span class="font-extrabold text-base tracking-tight text-white block leading-tight">${brand}</span>
+          <span class="text-[9px] uppercase tracking-widest text-zinc-400 block font-medium">Exclusividade &amp; Luxo</span>
         </div>
       </a>
 
-      <nav class="hidden md:flex items-center gap-8" id="desktop-nav">
+      <!-- Desktop Nav -->
+      <nav class="hidden md:flex items-center gap-6 lg:gap-8" id="desktop-nav">
         ${navItems.map(item => `<a href="${item.href}" class="text-xs uppercase tracking-wider text-zinc-400 hover:text-white transition font-medium">${item.label}</a>`).join('')}
       </nav>
 
-      <div class="flex items-center gap-3">
-        <a href="https://wa.me/258848335618?text=${encodeURIComponent(waMsg)}" target="_blank" rel="noopener noreferrer" class="hidden sm:inline-flex items-center gap-2 bg-white text-black font-bold text-xs px-5 py-2.5 rounded-full hover:bg-zinc-200 transition shadow-sm hover:scale-[1.02]">
+      <!-- Right side: WA icon-only on mobile, full button on sm+ | hamburger on mobile -->
+      <div class="flex items-center gap-2">
+        <!-- WhatsApp icon-only (mobile) -->
+        <a href="https://wa.me/258848335618?text=${encodeURIComponent(waMsg)}" target="_blank" rel="noopener noreferrer"
+           class="sm:hidden w-9 h-9 rounded-xl bg-white flex items-center justify-center text-black hover:bg-zinc-200 transition shadow-sm">
           <i data-lucide="message-circle" class="w-4 h-4"></i>
-          <span>Falar no WhatsApp</span>
         </a>
-        <!-- Botão Hamburger (mobile) -->
-        <button id="menu-toggle" aria-label="Abrir menu" onclick="toggleMobileMenu()" class="md:hidden flex flex-col justify-center items-center w-10 h-10 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition gap-1.5">
-          <span id="hb1" class="block w-5 h-0.5 bg-white transition-all duration-300 origin-center"></span>
-          <span id="hb2" class="block w-5 h-0.5 bg-white transition-all duration-300"></span>
-          <span id="hb3" class="block w-5 h-0.5 bg-white transition-all duration-300 origin-center"></span>
+        <!-- WhatsApp full button (sm+) -->
+        <a href="https://wa.me/258848335618?text=${encodeURIComponent(waMsg)}" target="_blank" rel="noopener noreferrer"
+           class="hidden sm:inline-flex items-center gap-2 bg-white text-black font-bold text-xs px-4 py-2.5 rounded-full hover:bg-zinc-200 transition shadow-sm hover:scale-[1.02]">
+          <i data-lucide="message-circle" class="w-4 h-4"></i>
+          <span>WhatsApp</span>
+        </a>
+        <!-- Hamburger (mobile only) -->
+        <button id="menu-toggle" aria-label="Abrir menu" onclick="toggleMobileMenu()"
+                class="md:hidden flex flex-col justify-center items-center w-9 h-9 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition gap-[5px]">
+          <span id="hb1" class="block w-4 h-0.5 bg-white transition-all duration-300 origin-center"></span>
+          <span id="hb2" class="block w-4 h-0.5 bg-white transition-all duration-300"></span>
+          <span id="hb3" class="block w-4 h-0.5 bg-white transition-all duration-300 origin-center"></span>
         </button>
       </div>
     </div>
@@ -61,7 +73,8 @@ function getFallbackHtml(prompt: string, title?: string): string {
     <div id="mobile-menu" style="display:none;flex-direction:column;" class="md:hidden bg-black/98 backdrop-blur-2xl border-t border-white/10 px-4 py-5 space-y-1">
       ${navItems.map(item => `<a href="${item.href}" onclick="closeMobileMenu()" class="block px-4 py-3.5 rounded-xl text-sm font-semibold text-zinc-300 hover:text-white hover:bg-white/5 transition">${item.label}</a>`).join('\n      ')}
       <div class="pt-3 mt-2 border-t border-white/10">
-        <a href="https://wa.me/258848335618?text=${encodeURIComponent(waMsg)}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-2 bg-white text-black font-extrabold text-sm px-6 py-3.5 rounded-xl hover:bg-zinc-200 transition w-full">
+        <a href="https://wa.me/258848335618?text=${encodeURIComponent(waMsg)}" target="_blank" rel="noopener noreferrer"
+           class="flex items-center justify-center gap-2 bg-white text-black font-extrabold text-sm px-6 py-3.5 rounded-xl hover:bg-zinc-200 transition w-full">
           <i data-lucide="message-circle" class="w-4 h-4"></i>
           <span>Falar no WhatsApp</span>
         </a>
@@ -255,9 +268,9 @@ function getFallbackHtml(prompt: string, title?: string): string {
 
   const renderFooter = (brand: string, navItems: { label: string; href: string }[], waMsg?: string) => `
   <!-- Botão Flutuante do WhatsApp -->
-  <a href="https://wa.me/258848335618?text=${encodeURIComponent(waMsg || 'Olá! Gostaria de mais informações.')}" target="_blank" rel="noopener noreferrer" class="fixed bottom-6 right-6 z-50 inline-flex items-center gap-2.5 bg-white text-black font-extrabold text-xs py-3 px-5 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 hover:bg-zinc-200 border border-white/20 group">
+  <a href="https://wa.me/258848335618?text=${encodeURIComponent(waMsg || 'Olá! Gostaria de mais informações.')}" target="_blank" rel="noopener noreferrer" class="fixed bottom-5 right-4 z-50 inline-flex items-center gap-2 bg-white text-black font-bold text-xs py-2.5 px-3.5 sm:px-5 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 hover:bg-zinc-200 border border-white/20 group">
     <i data-lucide="message-circle" class="w-4 h-4 group-hover:rotate-12 transition-transform"></i>
-    <span class="font-bold tracking-tight">WhatsApp</span>
+    <span class="hidden sm:inline font-bold tracking-tight">WhatsApp</span>
   </a>
 
   <footer id="contacto" class="border-t border-white/10 bg-black pt-16 pb-12">
