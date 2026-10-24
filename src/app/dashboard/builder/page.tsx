@@ -14,7 +14,7 @@ import {
   UtensilsCrossed, Scissors, Palmtree, Briefcase, Palette, Tag,
   History, Undo2, Download, ShoppingBag, FolderArchive, Edit3, Save, Upload,
   MoreHorizontal, Sliders, Phone, Layout, DollarSign, QrCode
-} from 'lucide-react';
+, PanelBottom } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 
 // ============================================================
@@ -1442,6 +1442,237 @@ const DEMO_STARTER_HTML = `<!DOCTYPE html>
 </body>
 </html>`;
 
+// ─── Navbar Models ────────────────────────────────────────────────────────────
+const NAVBAR_MODELS: { id: string; label: string; preview: string; html: (brand: string, links: string) => string }[] = [
+  {
+    id: 'minimal',
+    label: 'Minimalista',
+    preview: 'Logo | Links centrados | CTA direita',
+    html: (brand, links) => `<header class="sticky top-0 z-50 bg-black/90 backdrop-blur-xl border-b border-white/10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-4">
+      <a href="#inicio" class="flex items-center gap-2.5 shrink-0">
+        <div class="w-9 h-9 rounded-xl bg-white flex items-center justify-center text-black font-black text-base">${brand.charAt(0).toUpperCase()}</div>
+        <span class="hidden sm:block font-extrabold text-sm tracking-tight text-white">${brand}</span>
+      </a>
+      <nav class="hidden md:flex items-center gap-7">${links}</nav>
+      <div class="flex items-center gap-2">
+        <a href="https://wa.me/258848335618" target="_blank" class="sm:hidden w-9 h-9 rounded-xl bg-white flex items-center justify-center text-black"><i data-lucide="message-circle" class="w-4 h-4"></i></a>
+        <a href="https://wa.me/258848335618" target="_blank" class="hidden sm:inline-flex items-center gap-2 bg-white text-black text-xs font-bold px-4 py-2 rounded-full hover:bg-zinc-200 transition"><i data-lucide="message-circle" class="w-3.5 h-3.5"></i><span>WhatsApp</span></a>
+        <button onclick="toggleMobileMenu()" class="md:hidden w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex flex-col items-center justify-center gap-[5px]"><span id="hb1" class="block w-4 h-0.5 bg-white transition-all origin-center"></span><span id="hb2" class="block w-4 h-0.5 bg-white transition-all"></span><span id="hb3" class="block w-4 h-0.5 bg-white transition-all origin-center"></span></button>
+      </div>
+    </div>
+    <div id="mobile-menu" style="display:none;flex-direction:column" class="md:hidden bg-black border-t border-white/10 px-4 py-4 space-y-1">
+      <a href="#inicio" onclick="closeMobileMenu()" class="block px-4 py-3 rounded-xl text-sm font-semibold text-zinc-300 hover:text-white hover:bg-white/5">Início</a>
+      <div class="pt-3 border-t border-white/10"><a href="https://wa.me/258848335618" target="_blank" class="flex items-center justify-center gap-2 bg-white text-black font-bold text-sm px-6 py-3 rounded-xl w-full"><i data-lucide="message-circle" class="w-4 h-4"></i> WhatsApp</a></div>
+    </div>
+  </header>`,
+  },
+  {
+    id: 'centered',
+    label: 'Logo Centrado',
+    preview: 'Links esquerda | LOGO centro | CTA direita',
+    html: (brand, links) => `<header class="sticky top-0 z-50 bg-black/90 backdrop-blur-xl border-b border-white/10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 grid grid-cols-3 items-center gap-4">
+      <nav class="hidden md:flex items-center gap-5">${links}</nav>
+      <a href="#inicio" class="flex items-center justify-center gap-2">
+        <div class="w-9 h-9 rounded-xl bg-white flex items-center justify-center text-black font-black text-base">${brand.charAt(0).toUpperCase()}</div>
+        <span class="font-extrabold text-sm tracking-tight text-white">${brand}</span>
+      </a>
+      <div class="flex items-center justify-end gap-2">
+        <a href="https://wa.me/258848335618" target="_blank" class="sm:hidden w-9 h-9 rounded-xl bg-white flex items-center justify-center text-black"><i data-lucide="message-circle" class="w-4 h-4"></i></a>
+        <a href="https://wa.me/258848335618" target="_blank" class="hidden sm:inline-flex items-center gap-2 bg-white text-black text-xs font-bold px-4 py-2 rounded-full hover:bg-zinc-200 transition"><i data-lucide="message-circle" class="w-3.5 h-3.5"></i><span>WhatsApp</span></a>
+        <button onclick="toggleMobileMenu()" class="md:hidden w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex flex-col items-center justify-center gap-[5px]"><span id="hb1" class="block w-4 h-0.5 bg-white transition-all origin-center"></span><span id="hb2" class="block w-4 h-0.5 bg-white transition-all"></span><span id="hb3" class="block w-4 h-0.5 bg-white transition-all origin-center"></span></button>
+      </div>
+    </div>
+    <div id="mobile-menu" style="display:none;flex-direction:column" class="md:hidden bg-black border-t border-white/10 px-4 py-4 space-y-1">
+      <a href="#inicio" onclick="closeMobileMenu()" class="block px-4 py-3 rounded-xl text-sm font-semibold text-zinc-300 hover:text-white hover:bg-white/5">Início</a>
+      <div class="pt-3 border-t border-white/10"><a href="https://wa.me/258848335618" target="_blank" class="flex items-center justify-center gap-2 bg-white text-black font-bold text-sm px-6 py-3 rounded-xl w-full">WhatsApp</a></div>
+    </div>
+  </header>`,
+  },
+  {
+    id: 'transparent',
+    label: 'Transparente / Hero',
+    preview: 'Fundo transparente sobre imagem hero',
+    html: (brand, links) => `<header class="fixed top-0 left-0 right-0 z-50 bg-gradient-to-b from-black/70 to-transparent backdrop-blur-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
+      <a href="#inicio" class="flex items-center gap-2.5 shrink-0">
+        <div class="w-9 h-9 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-white font-black text-base backdrop-blur-md">${brand.charAt(0).toUpperCase()}</div>
+        <span class="hidden sm:block font-extrabold text-sm tracking-tight text-white">${brand}</span>
+      </a>
+      <nav class="hidden md:flex items-center gap-7">${links}</nav>
+      <div class="flex items-center gap-2">
+        <a href="https://wa.me/258848335618" target="_blank" class="hidden sm:inline-flex items-center gap-2 bg-white/10 border border-white/25 text-white text-xs font-bold px-4 py-2 rounded-full hover:bg-white hover:text-black transition backdrop-blur-md"><i data-lucide="message-circle" class="w-3.5 h-3.5"></i><span>WhatsApp</span></a>
+        <button onclick="toggleMobileMenu()" class="md:hidden w-9 h-9 rounded-xl bg-white/10 border border-white/20 flex flex-col items-center justify-center gap-[5px] backdrop-blur-md"><span id="hb1" class="block w-4 h-0.5 bg-white transition-all origin-center"></span><span id="hb2" class="block w-4 h-0.5 bg-white transition-all"></span><span id="hb3" class="block w-4 h-0.5 bg-white transition-all origin-center"></span></button>
+      </div>
+    </div>
+    <div id="mobile-menu" style="display:none;flex-direction:column" class="md:hidden bg-black/95 backdrop-blur-2xl border-t border-white/10 px-4 py-4 space-y-1">
+      <a href="#inicio" onclick="closeMobileMenu()" class="block px-4 py-3 rounded-xl text-sm font-semibold text-zinc-300 hover:text-white hover:bg-white/5">Início</a>
+      <div class="pt-3 border-t border-white/10"><a href="https://wa.me/258848335618" target="_blank" class="flex items-center justify-center gap-2 bg-white text-black font-bold text-sm px-6 py-3 rounded-xl w-full">WhatsApp</a></div>
+    </div>
+  </header>`,
+  },
+  {
+    id: 'pill',
+    label: 'Flutuante / Pill',
+    preview: 'Navbar flutuante com cantos arredondados',
+    html: (brand, links) => `<div class="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-5xl">
+    <header class="bg-zinc-900/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl">
+      <div class="px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
+        <a href="#inicio" class="flex items-center gap-2 shrink-0">
+          <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-black font-black text-sm">${brand.charAt(0).toUpperCase()}</div>
+          <span class="hidden sm:block font-extrabold text-xs tracking-tight text-white">${brand}</span>
+        </a>
+        <nav class="hidden md:flex items-center gap-5">${links}</nav>
+        <div class="flex items-center gap-2">
+          <a href="https://wa.me/258848335618" target="_blank" class="hidden sm:inline-flex items-center gap-1.5 bg-white text-black text-xs font-bold px-3 py-1.5 rounded-xl hover:bg-zinc-200 transition"><i data-lucide="message-circle" class="w-3.5 h-3.5"></i><span>WhatsApp</span></a>
+          <button onclick="toggleMobileMenu()" class="md:hidden w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex flex-col items-center justify-center gap-1"><span id="hb1" class="block w-3.5 h-0.5 bg-white transition-all origin-center"></span><span id="hb2" class="block w-3.5 h-0.5 bg-white transition-all"></span><span id="hb3" class="block w-3.5 h-0.5 bg-white transition-all origin-center"></span></button>
+        </div>
+      </div>
+    </header>
+    <div id="mobile-menu" style="display:none;flex-direction:column" class="mt-2 bg-zinc-900/95 backdrop-blur-2xl border border-white/10 rounded-2xl px-4 py-4 space-y-1">
+      <a href="#inicio" onclick="closeMobileMenu()" class="block px-4 py-3 rounded-xl text-sm font-semibold text-zinc-300 hover:text-white hover:bg-white/5">Início</a>
+      <div class="pt-3 border-t border-white/10"><a href="https://wa.me/258848335618" target="_blank" class="flex items-center justify-center gap-2 bg-white text-black font-bold text-sm px-6 py-3 rounded-xl w-full">WhatsApp</a></div>
+    </div>
+  </div>
+  <div class="h-20"></div>`,
+  },
+];
+
+// ─── Footer Models ─────────────────────────────────────────────────────────────
+const FOOTER_MODELS: { id: string; label: string; preview: string; html: (brand: string) => string }[] = [
+  {
+    id: 'multicolumn',
+    label: 'Multi-coluna',
+    preview: '4 colunas: Marca | Navegação | Contacto | Pagamentos',
+    html: (brand) => `<footer class="border-t border-white/10 bg-black pt-16 pb-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10 pb-12 border-b border-white/10">
+        <div class="space-y-4">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-xl bg-white flex items-center justify-center text-black font-black text-base">${brand.charAt(0).toUpperCase()}</div>
+            <span class="font-bold text-base text-white tracking-tight">${brand}</span>
+          </div>
+          <p class="text-xs text-zinc-400 leading-relaxed">Qualidade, confiança e excelência no serviço.</p>
+          <div class="flex gap-2 pt-1">
+            <a href="https://wa.me/258848335618" target="_blank" class="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white hover:border-white transition"><i data-lucide="message-circle" class="w-3.5 h-3.5"></i></a>
+            <a href="#" class="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white hover:border-white transition"><i data-lucide="instagram" class="w-3.5 h-3.5"></i></a>
+            <a href="#" class="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white hover:border-white transition"><i data-lucide="facebook" class="w-3.5 h-3.5"></i></a>
+          </div>
+        </div>
+        <div>
+          <h4 class="text-xs font-bold uppercase tracking-wider text-white mb-4">Navegação</h4>
+          <ul class="space-y-2.5 text-xs text-zinc-400">
+            <li><a href="#inicio" class="hover:text-white transition">Início</a></li>
+            <li><a href="#servicos" class="hover:text-white transition">Serviços</a></li>
+            <li><a href="#galeria" class="hover:text-white transition">Galeria</a></li>
+            <li><a href="#depoimentos" class="hover:text-white transition">Depoimentos</a></li>
+            <li><a href="#contacto" class="hover:text-white transition">Contacto</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-xs font-bold uppercase tracking-wider text-white mb-4">Contacto</h4>
+          <ul class="space-y-2.5 text-xs text-zinc-400">
+            <li class="flex items-center gap-2"><i data-lucide="map-pin" class="w-3.5 h-3.5 text-white shrink-0"></i><span>Maputo, Moçambique</span></li>
+            <li class="flex items-center gap-2"><i data-lucide="phone" class="w-3.5 h-3.5 text-white shrink-0"></i><span>+258 84 833 5618</span></li>
+            <li class="flex items-center gap-2"><i data-lucide="mail" class="w-3.5 h-3.5 text-white shrink-0"></i><span>info@wehosthere.co.mz</span></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-xs font-bold uppercase tracking-wider text-white mb-4">Pagamentos</h4>
+          <div class="flex flex-wrap gap-2">
+            <span class="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[10px] text-zinc-300 font-semibold">M-Pesa</span>
+            <span class="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[10px] text-zinc-300 font-semibold">e-Mola</span>
+            <span class="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[10px] text-zinc-300 font-semibold">BIM/BCI</span>
+            <span class="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[10px] text-zinc-300 font-semibold">Numerário</span>
+          </div>
+        </div>
+      </div>
+      <div class="pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-zinc-500 gap-3">
+        <span>© ${new Date().getFullYear()} ${brand}. Todos os direitos reservados.</span>
+        <span class="flex items-center gap-1.5">Feito com <span class="text-white font-bold">WEHOSTHERE Studio AI</span></span>
+      </div>
+    </div>
+  </footer>`,
+  },
+  {
+    id: 'centered',
+    label: 'Centrado / Minimalista',
+    preview: 'Logo centro | Links | Redes sociais | Copyright',
+    html: (brand) => `<footer class="border-t border-white/10 bg-black py-12">
+    <div class="max-w-3xl mx-auto px-4 text-center">
+      <div class="flex items-center justify-center gap-2.5 mb-6">
+        <div class="w-9 h-9 rounded-xl bg-white flex items-center justify-center text-black font-black text-base">${brand.charAt(0).toUpperCase()}</div>
+        <span class="font-bold text-base text-white">${brand}</span>
+      </div>
+      <nav class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mb-6">
+        <a href="#inicio" class="text-xs text-zinc-400 hover:text-white transition">Início</a>
+        <a href="#servicos" class="text-xs text-zinc-400 hover:text-white transition">Serviços</a>
+        <a href="#galeria" class="text-xs text-zinc-400 hover:text-white transition">Galeria</a>
+        <a href="#depoimentos" class="text-xs text-zinc-400 hover:text-white transition">Depoimentos</a>
+        <a href="#contacto" class="text-xs text-zinc-400 hover:text-white transition">Contacto</a>
+      </nav>
+      <div class="flex items-center justify-center gap-3 mb-8">
+        <a href="https://wa.me/258848335618" target="_blank" class="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white hover:border-white transition"><i data-lucide="message-circle" class="w-3.5 h-3.5"></i></a>
+        <a href="#" class="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white hover:border-white transition"><i data-lucide="instagram" class="w-3.5 h-3.5"></i></a>
+        <a href="#" class="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white hover:border-white transition"><i data-lucide="facebook" class="w-3.5 h-3.5"></i></a>
+      </div>
+      <div class="border-t border-white/10 pt-6 text-xs text-zinc-500">© ${new Date().getFullYear()} ${brand}. Todos os direitos reservados.</div>
+    </div>
+  </footer>`,
+  },
+  {
+    id: 'dark-cta',
+    label: 'Dark + CTA',
+    preview: 'Secção CTA + rodapé dark com 2 colunas',
+    html: (brand) => `<footer>
+    <div class="bg-zinc-950 border-t border-white/10 py-16">
+      <div class="max-w-4xl mx-auto px-4 text-center">
+        <h3 class="text-2xl sm:text-3xl font-black text-white mb-3 tracking-tight">Pronto para começar?</h3>
+        <p class="text-zinc-400 text-sm mb-8 max-w-md mx-auto">Entre em contacto agora e receba uma proposta personalizada para o seu negócio.</p>
+        <a href="https://wa.me/258848335618" target="_blank" class="inline-flex items-center gap-2 bg-white text-black font-extrabold text-sm px-8 py-3.5 rounded-full hover:bg-zinc-200 transition shadow-xl hover:scale-105">
+          <i data-lucide="message-circle" class="w-4 h-4"></i> Falar no WhatsApp
+        </a>
+      </div>
+    </div>
+    <div class="bg-black border-t border-white/10 py-8">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-500">
+        <div class="flex items-center gap-2.5">
+          <div class="w-7 h-7 rounded-lg bg-white flex items-center justify-center text-black font-black text-xs">${brand.charAt(0).toUpperCase()}</div>
+          <span class="font-semibold text-zinc-400">${brand}</span>
+        </div>
+        <div class="flex gap-6">
+          <a href="#inicio" class="hover:text-white transition">Início</a>
+          <a href="#servicos" class="hover:text-white transition">Serviços</a>
+          <a href="#contacto" class="hover:text-white transition">Contacto</a>
+        </div>
+        <span>© ${new Date().getFullYear()} ${brand}</span>
+      </div>
+    </div>
+  </footer>`,
+  },
+  {
+    id: 'simple',
+    label: 'Simples / Linha única',
+    preview: 'Uma linha: logo + links + copyright',
+    html: (brand) => `<footer class="border-t border-white/10 bg-zinc-950 py-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-400">
+      <div class="flex items-center gap-2">
+        <div class="w-7 h-7 rounded-lg bg-white flex items-center justify-center text-black font-black text-xs">${brand.charAt(0).toUpperCase()}</div>
+        <span class="font-semibold text-white">${brand}</span>
+      </div>
+      <nav class="flex items-center gap-5">
+        <a href="#inicio" class="hover:text-white transition">Início</a>
+        <a href="#servicos" class="hover:text-white transition">Serviços</a>
+        <a href="#galeria" class="hover:text-white transition">Galeria</a>
+        <a href="#contacto" class="hover:text-white transition">Contacto</a>
+      </nav>
+      <span>© ${new Date().getFullYear()} ${brand}. Todos os direitos reservados.</span>
+    </div>
+  </footer>`,
+  },
+];
+
 export default function AiSiteBuilderStudio() {
   const router = useRouter();
   const { data: session, status } = useSession();
@@ -1572,7 +1803,11 @@ export default function AiSiteBuilderStudio() {
   const [bannerBadge, setBannerBadge] = useState<string>('Construído com WEHOSTHERE Studio AI');
   const [bannerTheme, setBannerTheme] = useState<string>('tech-dark');
 
-  // Estados de Confirmação Customizada (Substitui confirm/alert nativos do browser)
+  // 🧭 Estados: Modelos de Navbar e Rodapé
+  const [isNavbarPickerOpen, setIsNavbarPickerOpen] = useState<boolean>(false);
+  const [isFooterPickerOpen, setIsFooterPickerOpen] = useState<boolean>(false);
+
+    // Estados de Confirmação Customizada (Substitui confirm/alert nativos do browser)
   const [projectToDelete, setProjectToDelete] = useState<{ id: string; title: string } | null>(null);
   const [isDeletingProject, setIsDeletingProject] = useState<boolean>(false);
   const [isClearChatModalOpen, setIsClearChatModalOpen] = useState<boolean>(false);
@@ -3621,6 +3856,24 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
               >
                 <Sliders className="w-3.5 h-3.5 text-amber-400" />
                 <span>Configurar Banner</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsNavbarPickerOpen(true)}
+                className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 border border-white/5 whitespace-nowrap transition cursor-pointer flex items-center gap-1.5 hover:border-cyan-500/40"
+                title="Escolher estilo de Navbar para o site"
+              >
+                <Layout className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Modelo Navbar</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsFooterPickerOpen(true)}
+                className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 border border-white/5 whitespace-nowrap transition cursor-pointer flex items-center gap-1.5 hover:border-pink-500/40"
+                title="Escolher estilo de Rodapé para o site"
+              >
+                <PanelBottom className="w-3.5 h-3.5 text-pink-400" />
+                <span>Modelo Rodapé</span>
               </button>
             </div>
           ) : (
@@ -5715,6 +5968,146 @@ ${extractedCss ? '- `css/style.css`: Estilos e regras CSS extraídos para person
                   <span>Atualizar Banner</span>
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+            {/* ─── Modal: Escolher Modelo de Navbar ─── */}
+      {isNavbarPickerOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={() => setIsNavbarPickerOpen(false)}>
+          <div className="bg-[#121217] border border-white/10 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
+                  <Layout className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-white">Modelos de Navbar</h3>
+                  <p className="text-[11px] text-gray-400">Selecione um estilo de cabeçalho para aplicar no site</p>
+                </div>
+              </div>
+              <button onClick={() => setIsNavbarPickerOpen(false)} className="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center text-gray-400 hover:text-white transition cursor-pointer">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-4 space-y-2.5 max-h-[60vh] overflow-y-auto no-scrollbar">
+              {NAVBAR_MODELS.map(model => (
+                <button
+                  key={model.id}
+                  type="button"
+                  onClick={() => {
+                    const titleMatch = currentHtml.match(/<title>([^<]+)<\/title>/i);
+                    const brand = titleMatch ? titleMatch[1].split(/[-|•]/)[0].trim() : 'Minha Empresa';
+                    const navMatch = currentHtml.match(/<nav[^>]*>([\s\S]*?)<\/nav>/i);
+                    const links = navMatch ? navMatch[1].trim() : [
+                      '<a href="#inicio" class="text-xs uppercase tracking-wider text-zinc-400 hover:text-white transition font-medium">Início</a>',
+                      '<a href="#servicos" class="text-xs uppercase tracking-wider text-zinc-400 hover:text-white transition font-medium">Serviços</a>',
+                      '<a href="#galeria" class="text-xs uppercase tracking-wider text-zinc-400 hover:text-white transition font-medium">Galeria</a>',
+                      '<a href="#contacto" class="text-xs uppercase tracking-wider text-zinc-400 hover:text-white transition font-medium">Contacto</a>'
+                    ].join('');
+
+                    const navHtml = model.html(brand, links);
+                    const mobileJS = "function toggleMobileMenu(){var m=document.getElementById('mobile-menu'),h1=document.getElementById('hb1'),h2=document.getElementById('hb2'),h3=document.getElementById('hb3'),o=m&&m.style.display==='flex';if(m)m.style.display=o?'none':'flex';if(h1){h1.style.transform=o?'':'rotate(45deg) translate(4px,4px)';h2.style.opacity=o?'1':'0';h3.style.transform=o?'':'rotate(-45deg) translate(4px,-4px)';}}function closeMobileMenu(){var m=document.getElementById('mobile-menu');if(m)m.style.display='none';var h1=document.getElementById('hb1'),h2=document.getElementById('hb2'),h3=document.getElementById('hb3');if(h1){h1.style.transform='';h2.style.opacity='1';h3.style.transform='';}}";
+
+                    let html = currentHtml;
+                    const pillRegex = /<div class="fixed top-4[^"]*"[\s\S]*?<\/header>(\s*<div class="h-20"><\/div>)?/;
+                    if (pillRegex.test(html)) {
+                      html = html.replace(pillRegex, navHtml);
+                    } else {
+                      const headerRegex = /<header[\s\S]*?<\/header>/;
+                      if (headerRegex.test(html)) {
+                        html = html.replace(headerRegex, navHtml);
+                      } else {
+                        html = html.replace(/<body[^>]*>/, m => m + '\n' + navHtml);
+                      }
+                    }
+
+                    if (!html.includes('toggleMobileMenu')) {
+                      html = html.replace('</body>', `<script>${mobileJS}<\/script>\n</body>`);
+                    }
+                    if (!html.includes('lucide.createIcons')) {
+                      html = html.replace('</body>', `<script>if(window.lucide)lucide.createIcons();<\/script>\n</body>`);
+                    }
+
+                    setCurrentHtml(html);
+                    setEditedCode(html);
+                    setIsNavbarPickerOpen(false);
+                    setToastMessage('Modelo de Navbar aplicado com sucesso!');
+                    setTimeout(() => setToastMessage(null), 3000);
+                  }}
+                  className="w-full flex items-start gap-3.5 p-3.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.06] hover:border-cyan-500/40 text-left transition cursor-pointer group"
+                >
+                  <div className="w-9 h-9 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0 group-hover:bg-cyan-500/20 transition">
+                    <Layout className="w-4 h-4 text-cyan-400" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-bold text-white group-hover:text-cyan-300 transition">{model.label}</div>
+                    <div className="text-[11px] text-gray-400 mt-0.5">{model.preview}</div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Modal: Escolher Modelo de Rodapé ─── */}
+      {isFooterPickerOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={() => setIsFooterPickerOpen(false)}>
+          <div className="bg-[#121217] border border-white/10 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-pink-500/10 border border-pink-500/20 flex items-center justify-center text-pink-400">
+                  <PanelBottom className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-white">Modelos de Rodapé</h3>
+                  <p className="text-[11px] text-gray-400">Selecione um estilo de rodapé para aplicar no site</p>
+                </div>
+              </div>
+              <button onClick={() => setIsFooterPickerOpen(false)} className="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center text-gray-400 hover:text-white transition cursor-pointer">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-4 space-y-2.5 max-h-[60vh] overflow-y-auto no-scrollbar">
+              {FOOTER_MODELS.map(model => (
+                <button
+                  key={model.id}
+                  type="button"
+                  onClick={() => {
+                    const titleMatch = currentHtml.match(/<title>([^<]+)<\/title>/i);
+                    const brand = titleMatch ? titleMatch[1].split(/[-|•]/)[0].trim() : 'Minha Empresa';
+                    const footerHtml = model.html(brand);
+
+                    let html = currentHtml;
+                    const footerRegex = /<footer[\s\S]*?<\/footer>/;
+                    if (footerRegex.test(html)) {
+                      html = html.replace(footerRegex, footerHtml);
+                    } else {
+                      html = html.replace('</body>', footerHtml + '\n</body>');
+                    }
+                    if (!html.includes('lucide.createIcons')) {
+                      html = html.replace('</body>', `<script>if(window.lucide)lucide.createIcons();<\/script>\n</body>`);
+                    }
+
+                    setCurrentHtml(html);
+                    setEditedCode(html);
+                    setIsFooterPickerOpen(false);
+                    setToastMessage('Modelo de Rodapé aplicado com sucesso!');
+                    setTimeout(() => setToastMessage(null), 3000);
+                  }}
+                  className="w-full flex items-start gap-3.5 p-3.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.06] hover:border-pink-500/40 text-left transition cursor-pointer group"
+                >
+                  <div className="w-9 h-9 rounded-lg bg-pink-500/10 border border-pink-500/20 flex items-center justify-center shrink-0 group-hover:bg-pink-500/20 transition">
+                    <PanelBottom className="w-4 h-4 text-pink-400" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-bold text-white group-hover:text-pink-300 transition">{model.label}</div>
+                    <div className="text-[11px] text-gray-400 mt-0.5">{model.preview}</div>
+                  </div>
+                </button>
+              ))}
             </div>
           </div>
         </div>
