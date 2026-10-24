@@ -188,32 +188,63 @@ export default function EmailDomainsPage() {
 
   const handleCreateDomain = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!newDomainName.trim()) {
+      setToast({ type: 'error', message: 'Por favor, insira o nome do domínio.' });
+      return;
+    }
+
     setIsCreating(true);
 
     try {
+      console.log('[Admin Email Domains] Iniciando criação de domínio:', newDomainName.trim());
       const response = await fetch('/api/email-providers/migadu/domains', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          domainName: newDomainName,
-          customerId: newCustomerId,
+          domainName: newDomainName.trim().toLowerCase(),
+          customerId: newCustomerId || 'system',
           createDefaultAddresses: false
         })
       });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => ({ error: 'Resposta inválida do servidor' }));
       
-      if (data.success) {
-        setToast({ type: 'success', message: 'Domain created successfully' });
+      if (response.ok && data.success) {
+        console.log('[Admin Email Domains] [SUCESSO] Domínio processado:', data);
+        setToast({ 
+          type: 'success', 
+          message: data.message || 'Domínio adicionado com sucesso!' 
+        });
         setShowCreateModal(false);
         setNewDomainName('');
-        setNewCustomerId('');
+        setNewCustomerId('system');
         fetchDomains();
       } else {
-        setToast({ type: 'error', message: data.error || 'Failed to create domain' });
+        // Log estruturado informando se é erro normal ou falha de sistema
+        if (data.isNormalError) {
+          console.warn('[Admin Email Domains] [ERRO_NORMAL] Erro esperado de validação/duplicação:', {
+            errorType: data.errorType,
+            message: data.error,
+            details: data.details,
+            httpStatus: response.status
+          });
+        } else {
+          console.error('[Admin Email Domains] [ERRO_SISTEMA] Falha técnica/servidor:', {
+            errorType: data.errorType,
+            message: data.error,
+            details: data.details,
+            httpStatus: response.status
+          });
+        }
+
+        setToast({ 
+          type: 'error', 
+          message: data.error || `Erro (${response.status}): Falha ao criar domínio` 
+        });
       }
     } catch (error) {
-      setToast({ type: 'error', message: 'Failed to create domain' });
+      console.error('[Admin Email Domains] [ERRO_REDE] Erro ao comunicar com a API:', error);
+      setToast({ type: 'error', message: 'Erro de comunicação ao criar domínio. Verifique a rede.' });
     } finally {
       setIsCreating(false);
     }
@@ -749,7 +780,7 @@ export default function EmailDomainsPage() {
                   placeholder="Buscar e-mail..."
                   value={emailSearchTerm}
                   onChange={(e) => setEmailSearchTerm(e.target.value)}
-                  className="pl-9 pr-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                  className="pl-9 pr-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 text-gray-900 bg-white placeholder:text-gray-400 font-medium"
                 />
               </div>
               <button
@@ -880,56 +911,56 @@ export default function EmailDomainsPage() {
 
       {/* Create Domain Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full border border-gray-100 overflow-hidden">
             <div className="p-6">
               <h2 className="text-xl font-bold text-gray-900 mb-4">Add New Domain</h2>
               <form onSubmit={handleCreateDomain}>
                 <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Domain Name
                   </label>
                   <input
                     type="text"
                     value={newDomainName}
                     onChange={(e) => setNewDomainName(e.target.value)}
-                    placeholder="example.com"
+                    placeholder="exemplo.co.mz"
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-gray-900 bg-white placeholder:text-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 font-medium text-sm outline-none transition"
                   />
                 </div>
                 <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Cliente / Proprietário (Opcional)
                   </label>
                   <select
                     value={newCustomerId}
                     onChange={(e) => setNewCustomerId(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm font-medium"
+                    className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-gray-900 bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 font-medium text-sm outline-none transition"
                   >
-                    <option value="system">⚙️ Sistema (Não Atribuído a Cliente)</option>
+                    <option value="system" className="text-gray-900 bg-white">⚙️ Sistema (Não Atribuído a Cliente)</option>
                     {users.map((u) => (
-                      <option key={u.id || u.email} value={u.email}>
+                      <option key={u.id || u.email} value={u.email} className="text-gray-900 bg-white">
                         👤 {u.name ? `${u.name} (${u.email})` : u.email}
                       </option>
                     ))}
                   </select>
-                  <p className="text-[11px] text-gray-500 mt-1">
+                  <p className="text-[12px] text-gray-500 mt-1.5">
                     Selecione o cliente que terá este domínio no seu painel ou deixe como Sistema.
                   </p>
                 </div>
-                <div className="flex justify-end space-x-3">
+                <div className="flex justify-end space-x-3 pt-2">
                   <button
                     type="button"
                     onClick={() => setShowCreateModal(false)}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-100 transition font-semibold text-sm shadow-xs"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isCreating}
-                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition disabled:opacity-50"
+                    className="px-5 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition font-semibold text-sm shadow-xs disabled:opacity-50"
                   >
                     {isCreating ? 'Creating...' : 'Create Domain'}
                   </button>
@@ -942,8 +973,8 @@ export default function EmailDomainsPage() {
 
       {/* Quick Create Modal */}
       {showQuickCreateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full border border-gray-100 overflow-hidden">
             <div className="p-6">
               <div className="flex items-center space-x-3 mb-4">
                 <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-2 rounded-lg">
@@ -956,7 +987,7 @@ export default function EmailDomainsPage() {
               </div>
               <form onSubmit={handleQuickCreate}>
                 <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Domain Name
                   </label>
                   <input
@@ -965,11 +996,11 @@ export default function EmailDomainsPage() {
                     onChange={(e) => setQuickCreateData({...quickCreateData, domainName: e.target.value})}
                     placeholder="empresa.co.mz"
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-gray-900 bg-white placeholder:text-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-medium text-sm outline-none transition"
                   />
                 </div>
                 <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Mailbox Name (e.g., info, suporte, admin)
                   </label>
                   <input
@@ -978,12 +1009,12 @@ export default function EmailDomainsPage() {
                     onChange={(e) => setQuickCreateData({...quickCreateData, mailboxName: e.target.value})}
                     placeholder="info"
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-gray-900 bg-white placeholder:text-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-medium text-sm outline-none transition"
                   />
                   <p className="text-xs text-gray-500 mt-1">Email will be: {quickCreateData.mailboxName}@{quickCreateData.domainName || 'dominio.com'}</p>
                 </div>
                 <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Full Name
                   </label>
                   <input
@@ -992,11 +1023,11 @@ export default function EmailDomainsPage() {
                     onChange={(e) => setQuickCreateData({...quickCreateData, mailboxFullName: e.target.value})}
                     placeholder="João Silva"
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-gray-900 bg-white placeholder:text-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-medium text-sm outline-none transition"
                   />
                 </div>
                 <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Password
                   </label>
                   <input
@@ -1006,22 +1037,22 @@ export default function EmailDomainsPage() {
                     placeholder="••••••••"
                     required
                     minLength={8}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-gray-900 bg-white placeholder:text-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-medium text-sm outline-none transition"
                   />
                   <p className="text-xs text-gray-500 mt-1">Minimum 8 characters</p>
                 </div>
-                <div className="flex justify-end space-x-3">
+                <div className="flex justify-end space-x-3 pt-2">
                   <button
                     type="button"
                     onClick={() => setShowQuickCreateModal(false)}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-100 transition font-semibold text-sm shadow-xs"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isQuickCreating}
-                    className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 transition disabled:opacity-50 shadow-md"
+                    className="px-5 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 transition disabled:opacity-50 font-semibold text-sm shadow-md"
                   >
                     {isQuickCreating ? 'Creating...' : 'Create Email'}
                   </button>

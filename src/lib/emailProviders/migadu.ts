@@ -95,13 +95,22 @@ export class MigaduEmailProvider extends EmailProvider {
       }
 
       if (!response.ok) {
-        const error = await response.json().catch(() => ({ message: 'Unknown error' }));
-        console.error('[Migadu API Request] API error:', error);
+        const errorData = await response.json().catch(() => ({ message: `HTTP ${response.status} ${response.statusText}` }));
+        const errorMessage = 
+          (typeof errorData === 'string' ? errorData : null) ||
+          errorData.message || 
+          errorData.error || 
+          errorData.description || 
+          (Array.isArray(errorData.errors) ? errorData.errors.join(', ') : null) ||
+          (typeof errorData.error === 'object' ? JSON.stringify(errorData.error) : null) ||
+          `API request failed with status ${response.status}`;
+
+        console.error(`[Migadu API Request] API error (${response.status}):`, errorMessage, errorData);
         throw new EmailProviderError(
-          error.message || `API request failed with status ${response.status}`,
+          errorMessage,
           `API_ERROR_${response.status}`,
           response.status,
-          error
+          errorData
         );
       }
 

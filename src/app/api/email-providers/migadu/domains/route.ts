@@ -154,95 +154,233 @@ export async function GET(request: NextRequest) {
 // POST - Create domain
 export async function POST(request: NextRequest) {
   try {
-    // Temporarily disabled auth check for testing
-    // const user = await auth.getCurrentUser();
-    // if (!user || (user.role !== 'admin' && user.role !== 'user')) {
-    //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    // }
-
-    const body = await request.json();
+    const body = await request.json().catch(() => ({}));
     const { domainName, customerId = 'system', createDefaultAddresses = false } = body;
 
-    if (!domainName) {
+    if (!domainName || typeof domainName !== 'string' || !domainName.trim()) {
+      console.warn('[Migadu Domains POST] [NORMAL_ERROR] Rejected: domainName is missing or empty.');
       return NextResponse.json(
-        { error: 'domainName is required' },
+        { 
+          success: false,
+          error: 'O nome do domínio é obrigatório.',
+          errorType: 'MISSING_DOMAIN_NAME',
+          isNormalError: true
+        },
+        { status: 400 }
+      );
+    }
+
+    const cleanDomainName = domainName.trim().toLowerCase();
+
+    // Validação de formato de domínio
+    const domainRegex = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/i;
+    if (!domainRegex.test(cleanDomainName)) {
+      console.warn(`[Migadu Domains POST] [NORMAL_ERROR] Invalid domain format submitted: "${domainName}"`);
+      return NextResponse.json(
+        { 
+          success: false,
+          error: `Formato de domínio inválido: "${domainName}". Exemplo: empresa.co.mz ou meudominio.com`,
+          errorType: 'INVALID_DOMAIN_FORMAT',
+          isNormalError: true
+        },
         { status: 400 }
       );
     }
 
     const effectiveCustomerId = customerId || 'system';
 
-    // Check if domain already exists in our database
+    // Check if domain already exists in our MongoDB database
     await connectDB();
-    const existingDomain = await EmailDomain.findOne({ domainName: new RegExp(`^${domainName}$`, 'i') });
+    const existingDomain = await EmailDomain.findOne({ domainName: new RegExp(`^${cleanDomainName}$`, 'i') });
     if (existingDomain) {
+      console.warn(`[Migadu Domains POST] [NORMAL_ERROR] Domain "${cleanDomainName}" already exists in local database.`);
       return NextResponse.json(
-        { error: 'Domain already exists' },
+        { 
+          success: false,
+          error: `O domínio "${cleanDomainName}" já se encontra cadastrado no sistema.`,
+          errorType: 'DOMAIN_ALREADY_EXISTS_DB',
+          isNormalError: true,
+          details: 'Este domínio já se encontra registado na base de dados.'
+        },
         { status: 409 }
       );
     }
 
-    console.log('[Migadu Domains POST] Creating domain:', domainName, 'for customer:', effectiveCustomerId);
+    console.log(`[Migadu Domains POST] Initiating domain creation: "${cleanDomainName}" for customer: "${effectiveCustomerId}"`);
     
     const provider = getEmailProvider();
-    console.log('[Migadu Domains POST] Provider configured:', provider.isConfigured());
+    const isConfigured = provider.isConfigured();
+    console.log('[Migadu Domains POST] Provider configured status:', isConfigured);
     
-    if (!provider.isConfigured()) {
+    if (!isConfigured) {
+      console.error('[Migadu Domains POST] [SYSTEM_ERROR] Email provider not configured. MIGADU_USERNAME or MIGADU_API_KEY is missing.');
       return NextResponse.json(
-        { error: 'Email provider not configured. Please check MIGADU_USERNAME and MIGADU_API_KEY environment variables.' },
+        { 
+          success: false,
+          error: 'Provedor de e-mail não configurado no servidor. Verifique as credenciais da Migadu (MIGADU_USERNAME / MIGADU_API_KEY).',
+          errorType: 'PROVIDER_NOT_CONFIGURED',
+          isNormalError: false,
+          details: 'MIGADU_USERNAME ou MIGADU_API_KEY não estão definidas.'
+        },
         { status: 500 }
       );
     }
 
-    const domain = await provider.createDomain({
-      domainName,
-      createDefaultAddresses,
-      hostedDns: false
-    });
+    let domain: any = null;
+    let isExistingAdopted = false;
 
-    console.log('[Migadu Domains POST] Domain created in Migadu:', domain);
+    try {
+      domain = await provider.createDomain({
+        domainName: cleanDomainName,
+        createDefaultAddresses,
+        hostedDns: false
+      });
+      console.log(`[Migadu Domains POST] Domain "${cleanDomainName}" successfully created on Migadu.`);
+    } catch (migaduErr: any) {
+      console.warn(`[Migadu Domains POST] Migadu createDomain failed for "${cleanDomainName}":`, migaduErr);
 
-    // Save to MongoDB
-    const newDomain = new EmailDomain({
-      ...domain,
-      customerId: effectiveCustomerId,
-      id: domain.id // Use the provider's ID
-    });
-    await newDomain.save();
+      const statusCode = migaduErr.statusCode || 500;
+      const rawMessage = (migaduErr.message || '').toString();
+      const rawDetails = (typeof migaduErr.details === 'string' ? migaduErr.details : JSON.stringify(migaduErr.details || ''));
 
-    // If assigned to a client, also ensure it's registered in SiteModel for dashboard/sites
+      // Verifica se o erro é de domínio já existente na Migadu
+      const isAlreadyExists = 
+        statusCode === 409 || 
+        statusCode === 422 || 
+        /already|exists|taken|regist/i.test(rawMessage) || 
+        /already|exists|taken|regist/i.test(rawDetails);
+
+      if (isAlreadyExists) {
+        // Tenta buscar o domínio existente na nossa conta Migadu para reaproveitar
+        try {
+          console.log(`[Migadu Domains POST] [NORMAL_CHECK] Domain might already exist in our Migadu account. Fetching details for "${cleanDomainName}"...`);
+          const existingMigaduDomain = await provider.getDomain(cleanDomainName);
+          if (existingMigaduDomain) {
+            console.log(`[Migadu Domains POST] [NORMAL_INFO] Domain "${cleanDomainName}" verified in Migadu account! Adopting and syncing to database.`);
+            domain = existingMigaduDomain;
+            isExistingAdopted = true;
+          }
+        } catch (fetchErr) {
+          console.warn(`[Migadu Domains POST] Domain exists in Migadu, but cannot be fetched directly (might belong to another Migadu account):`, fetchErr);
+        }
+      }
+
+      // Se não conseguimos adotar nem criar, categorizamos o erro de forma clara
+      if (!domain) {
+        let errorType = 'UNKNOWN_PROVIDER_ERROR';
+        let isNormalError = false;
+        let userMessage = rawMessage || 'Erro ao processar criação de domínio na Migadu.';
+
+        if (statusCode === 409 || isAlreadyExists) {
+          errorType = 'DOMAIN_ALREADY_EXISTS_ON_MIGADU';
+          isNormalError = true;
+          userMessage = `O domínio "${cleanDomainName}" já se encontra registado na Migadu ou pertence a outra conta.`;
+        } else if (statusCode === 400 || statusCode === 422) {
+          errorType = 'INVALID_DOMAIN_ON_MIGADU';
+          isNormalError = true;
+          userMessage = `O domínio "${cleanDomainName}" foi rejeitado pela Migadu (formato inválido ou restrito).`;
+        } else if (statusCode === 401 || migaduErr.code === 'AUTHENTICATION_ERROR') {
+          errorType = 'AUTHENTICATION_ERROR';
+          isNormalError = false;
+          userMessage = 'Erro de autenticação com a API da Migadu. Verifique as credenciais configuradas no servidor.';
+        } else if (statusCode === 429 || migaduErr.code === 'RATE_LIMIT_ERROR') {
+          errorType = 'RATE_LIMIT_ERROR';
+          isNormalError = false;
+          userMessage = 'Limite de requisições excedido na Migadu. Tente novamente em instantes.';
+        } else if (statusCode === 503 || statusCode >= 500 || migaduErr.code === 'PROVIDER_UNAVAILABLE') {
+          errorType = 'PROVIDER_UNAVAILABLE';
+          isNormalError = false;
+          userMessage = 'Serviço da Migadu temporariamente indisponível. Tente novamente mais tarde.';
+        }
+
+        if (isNormalError) {
+          console.warn(`[Migadu Domains POST] [NORMAL_ERROR] Type: ${errorType} | Domain: "${cleanDomainName}" | HTTP Status: ${statusCode} | Message: ${userMessage}`);
+        } else {
+          console.error(`[Migadu Domains POST] [SYSTEM_ERROR] Type: ${errorType} | Domain: "${cleanDomainName}" | HTTP Status: ${statusCode} | Error:`, migaduErr);
+        }
+
+        return NextResponse.json(
+          {
+            success: false,
+            error: userMessage,
+            errorType,
+            isNormalError,
+            statusCode,
+            details: rawMessage
+          },
+          { status: statusCode >= 400 && statusCode < 600 ? statusCode : 500 }
+        );
+      }
+    }
+
+    // Grava ou atualiza no MongoDB de forma resiliente
+    const savedDomain = await EmailDomain.findOneAndUpdate(
+      { domainName: cleanDomainName },
+      {
+        $set: {
+          domainName: cleanDomainName,
+          customerId: effectiveCustomerId,
+          status: domain.status || 'pending_dns',
+          provider: 'migadu',
+          providerDomainId: domain.providerDomainId || domain.id,
+          canSend: !!domain.canSend,
+          canReceive: !!domain.canReceive,
+          activatedAt: domain.activatedAt,
+          updatedAt: new Date()
+        },
+        $setOnInsert: {
+          createdAt: new Date()
+        }
+      },
+      { upsert: true, new: true }
+    );
+
+    // Se associado a um cliente com e-mail, sincroniza com SiteModel para visualização nos sites
     if (effectiveCustomerId && effectiveCustomerId !== 'system' && effectiveCustomerId.includes('@')) {
       await SiteModel.findOneAndUpdate(
-        { domain: new RegExp(`^${domainName}$`, 'i') },
+        { domain: new RegExp(`^${cleanDomainName}$`, 'i') },
         {
           $set: {
-            domain: domainName.toLowerCase().trim(),
-            name: domainName,
+            domain: cleanDomainName,
+            name: cleanDomainName,
             userEmail: effectiveCustomerId.toLowerCase().trim(),
-            status: newDomain.status === 'active' ? 'active' : 'pending',
+            status: savedDomain.status === 'active' ? 'active' : 'pending',
             storage: 10,
             bandwidth: 100,
-            createdAt: new Date().toISOString()
+            updatedAt: new Date().toISOString()
           },
           $setOnInsert: {
-            id: `site_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`
+            id: `site_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+            createdAt: new Date().toISOString()
           }
         },
         { upsert: true, new: true }
-      ).catch(() => {});
+      ).catch((err) => {
+        console.warn('[Migadu Domains POST] Non-critical warning updating SiteModel:', err);
+      });
     }
 
-    console.log('[Migadu Domains POST] Domain saved to MongoDB:', newDomain._id);
+    console.log(`[Migadu Domains POST] [SUCCESS] Domain "${cleanDomainName}" saved in MongoDB: ${savedDomain._id} | Adopted: ${isExistingAdopted}`);
 
     return NextResponse.json({
       success: true,
-      domain: newDomain
+      domain: savedDomain,
+      isExistingAdopted,
+      message: isExistingAdopted 
+        ? `O domínio "${cleanDomainName}" já existia na sua conta Migadu e foi vinculado com sucesso!` 
+        : `Domínio "${cleanDomainName}" criado com sucesso!`
     });
   } catch (error) {
-    console.error('[Migadu Domains POST] Error:', error);
+    console.error('[Migadu Domains POST] [CRITICAL_UNCAUGHT_ERROR]:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
-      { error: `Failed to create domain: ${errorMessage}`, details: String(error) },
+      { 
+        success: false,
+        error: `Erro interno no servidor ao criar domínio: ${errorMessage}`,
+        errorType: 'INTERNAL_SERVER_ERROR',
+        isNormalError: false,
+        details: String(error)
+      },
       { status: 500 }
     );
   }
