@@ -18,6 +18,7 @@ interface Story {
   status: string;
   featured: boolean;
   views: number;
+  commentsCount?: number;
   readingTime?: number;
   publishedAt?: string;
   createdAt: string;
@@ -556,6 +557,11 @@ export default function AdminRevistaPage() {
                         <div className="ar-excerpt">{story.excerpt}</div>
                         <div style={{ fontSize: '0.72rem', color: '#7B2CBF', marginTop: '3px', display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
                           <span style={{ fontWeight: 600 }}>/revista/{story.slug}</span>
+                          {story.commentsCount != null && story.commentsCount > 0 && (
+                            <span style={{ color: '#6366f1', fontWeight: 600 }}>
+                              💬 {story.commentsCount} {story.commentsCount === 1 ? 'comentário' : 'comentários'}
+                            </span>
+                          )}
                           {story.publishedAt && (
                             <span style={{ color: '#94a3b8' }}>
                               • {new Date(story.publishedAt).toLocaleDateString('pt-MZ', { day: 'numeric', month: 'short', year: 'numeric' })}

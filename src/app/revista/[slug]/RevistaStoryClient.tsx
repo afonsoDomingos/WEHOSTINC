@@ -7,9 +7,10 @@ import {
   ArrowLeft, Clock, Eye, Calendar, Share2,
   Instagram, Linkedin, Twitter, Code2, ChevronRight,
   Globe, Github, Maximize2, X, Copy, Check, MessageCircle, Send, Facebook, Mail, Download,
-  Flame, Lightbulb, Heart, Rocket, Sparkles, ChevronUp, ChevronDown
+  Flame, Lightbulb, Heart, Rocket, Sparkles, ChevronUp, ChevronDown, MessageSquare
 } from 'lucide-react';
 import AdSenseBanner from '@/components/AdSenseBanner';
+import RevistaCommentsSection from './RevistaCommentsSection';
 
 interface Story {
   id: string;
@@ -20,6 +21,7 @@ interface Story {
   coverImage?: string;
   author: {
     name: string;
+    email?: string;
     avatar?: string;
     bio?: string;
     website?: string;
@@ -2581,6 +2583,13 @@ export default function RevistaStoryClient({ initialStory }: { initialStory?: St
           </div>
         </article>
 
+        {/* ── Secção de Comentários & Discussão da Comunidade ── */}
+        <RevistaCommentsSection
+          storySlug={story.slug}
+          storyTitle={story.title}
+          storyAuthorEmail={story.author?.email}
+        />
+
         {/* ── Prev / Next Story Navigation ── */}
         {(prevStory || nextStory) && (
           <nav className="story-adjacent-nav" aria-label="Navegar entre histórias">
@@ -2934,6 +2943,20 @@ export default function RevistaStoryClient({ initialStory }: { initialStory?: St
             >
               <span style={{ fontSize: '0.85rem' }}>🚀</span>
               <span>{reactions.rocket}</span>
+            </button>
+
+            <span className="float-bar-divider" />
+
+            {/* Botão de Comentários */}
+            <button
+              className="float-bar-btn"
+              onClick={() => {
+                document.getElementById('comentarios')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              title="Ver e deixar comentários"
+            >
+              <MessageSquare size={13} />
+              <span className="float-bar-text">Comentar</span>
             </button>
 
             <span className="float-bar-divider" />

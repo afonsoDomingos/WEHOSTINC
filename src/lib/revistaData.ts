@@ -27,6 +27,7 @@ export interface StoryItem {
   featured: boolean;
   views: number;
   claps?: number;
+  commentsCount?: number;
   reactions?: {
     fire?: number;
     insight?: number;

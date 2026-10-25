@@ -25,6 +25,7 @@ export interface IRevistaStory extends Document {
   featured: boolean;
   views: number;
   claps?: number;
+  commentsCount?: number;
   reactions?: {
     fire?: number;
     insight?: number;
@@ -85,6 +86,7 @@ const RevistaStorySchema = new Schema<IRevistaStory>(
     featured: { type: Boolean, default: false },
     views: { type: Number, default: 0 },
     claps: { type: Number, default: 0 },
+    commentsCount: { type: Number, default: 0 },
     reactions: {
       fire: { type: Number, default: 0 },
       insight: { type: Number, default: 0 },
