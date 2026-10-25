@@ -192,3 +192,31 @@ body {
   animation: slideInUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* ─── Forçar modo claro e texto preto em inputs, selects, options e modais ─── */
+.modal-light,
+.bg-white,
+input:not([type="checkbox"]):not([type="radio"]),
+select,
+textarea,
+option {
+  color-scheme: light !important;
+}
+
+/* Garante texto preto/escuro legível em inputs, selects e options mesmo quando o sistema operativo está em Dark Mode */
+.bg-white input:not([type="checkbox"]):not([type="radio"]),
+.bg-white select,
+.bg-white textarea,
+input.text-gray-900,
+select.text-gray-900 {
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827 !important;
+}
+
+select option,
+select optgroup {
+  color: #111827 !important;
+  background-color: #ffffff !important;
+  -webkit-text-fill-color: #111827 !important;
+}
+
+

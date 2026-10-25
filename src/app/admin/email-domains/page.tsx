@@ -912,12 +912,15 @@ export default function EmailDomainsPage() {
       {/* Create Domain Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full border border-gray-100 overflow-hidden">
+          <div 
+            className="bg-white rounded-2xl shadow-2xl max-w-md w-full border border-gray-100 overflow-hidden"
+            style={{ colorScheme: 'light', color: '#111827' }}
+          >
             <div className="p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Add New Domain</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-4" style={{ color: '#111827' }}>Add New Domain</h2>
               <form onSubmit={handleCreateDomain}>
                 <div className="mb-4">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2" style={{ color: '#374151' }}>
                     Domain Name
                   </label>
                   <input
@@ -926,26 +929,47 @@ export default function EmailDomainsPage() {
                     onChange={(e) => setNewDomainName(e.target.value)}
                     placeholder="exemplo.co.mz"
                     required
-                    className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-gray-900 bg-white placeholder:text-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 font-medium text-sm outline-none transition"
+                    style={{
+                      color: '#000000',
+                      WebkitTextFillColor: '#000000',
+                      backgroundColor: '#ffffff',
+                      colorScheme: 'light'
+                    }}
+                    className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-black bg-white placeholder:text-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 font-medium text-sm outline-none transition"
                   />
                 </div>
                 <div className="mb-6">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2" style={{ color: '#374151' }}>
                     Cliente / Proprietário (Opcional)
                   </label>
                   <select
                     value={newCustomerId}
                     onChange={(e) => setNewCustomerId(e.target.value)}
-                    className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-gray-900 bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 font-medium text-sm outline-none transition"
+                    style={{
+                      color: '#000000',
+                      WebkitTextFillColor: '#000000',
+                      backgroundColor: '#ffffff',
+                      colorScheme: 'light'
+                    }}
+                    className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-black bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 font-medium text-sm outline-none transition"
                   >
-                    <option value="system" className="text-gray-900 bg-white">⚙️ Sistema (Não Atribuído a Cliente)</option>
+                    <option 
+                      value="system" 
+                      style={{ color: '#000000', WebkitTextFillColor: '#000000', backgroundColor: '#ffffff' }}
+                    >
+                      ⚙️ Sistema (Não Atribuído a Cliente)
+                    </option>
                     {users.map((u) => (
-                      <option key={u.id || u.email} value={u.email} className="text-gray-900 bg-white">
+                      <option 
+                        key={u.id || u.email} 
+                        value={u.email} 
+                        style={{ color: '#000000', WebkitTextFillColor: '#000000', backgroundColor: '#ffffff' }}
+                      >
                         👤 {u.name ? `${u.name} (${u.email})` : u.email}
                       </option>
                     ))}
                   </select>
-                  <p className="text-[12px] text-gray-500 mt-1.5">
+                  <p className="text-[12px] text-gray-500 mt-1.5" style={{ color: '#6b7280' }}>
                     Selecione o cliente que terá este domínio no seu painel ou deixe como Sistema.
                   </p>
                 </div>
@@ -953,6 +977,11 @@ export default function EmailDomainsPage() {
                   <button
                     type="button"
                     onClick={() => setShowCreateModal(false)}
+                    style={{
+                      color: '#374151',
+                      WebkitTextFillColor: '#374151',
+                      backgroundColor: '#ffffff'
+                    }}
                     className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-100 transition font-semibold text-sm shadow-xs"
                   >
                     Cancel
@@ -960,6 +989,10 @@ export default function EmailDomainsPage() {
                   <button
                     type="submit"
                     disabled={isCreating}
+                    style={{
+                      color: '#ffffff',
+                      WebkitTextFillColor: '#ffffff'
+                    }}
                     className="px-5 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition font-semibold text-sm shadow-xs disabled:opacity-50"
                   >
                     {isCreating ? 'Creating...' : 'Create Domain'}
@@ -974,20 +1007,23 @@ export default function EmailDomainsPage() {
       {/* Quick Create Modal */}
       {showQuickCreateModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full border border-gray-100 overflow-hidden">
+          <div 
+            className="bg-white rounded-2xl shadow-2xl max-w-lg w-full border border-gray-100 overflow-hidden"
+            style={{ colorScheme: 'light', color: '#111827' }}
+          >
             <div className="p-6">
               <div className="flex items-center space-x-3 mb-4">
                 <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-2 rounded-lg">
                   <Zap className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900">Quick Create Email</h2>
-                  <p className="text-sm text-gray-500">Create domain + mailbox in one step</p>
+                  <h2 className="text-xl font-bold text-gray-900" style={{ color: '#111827' }}>Quick Create Email</h2>
+                  <p className="text-sm text-gray-500" style={{ color: '#6b7280' }}>Create domain + mailbox in one step</p>
                 </div>
               </div>
               <form onSubmit={handleQuickCreate}>
                 <div className="mb-4">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2" style={{ color: '#374151' }}>
                     Domain Name
                   </label>
                   <input
@@ -996,11 +1032,17 @@ export default function EmailDomainsPage() {
                     onChange={(e) => setQuickCreateData({...quickCreateData, domainName: e.target.value})}
                     placeholder="empresa.co.mz"
                     required
-                    className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-gray-900 bg-white placeholder:text-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-medium text-sm outline-none transition"
+                    style={{
+                      color: '#000000',
+                      WebkitTextFillColor: '#000000',
+                      backgroundColor: '#ffffff',
+                      colorScheme: 'light'
+                    }}
+                    className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-black bg-white placeholder:text-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-medium text-sm outline-none transition"
                   />
                 </div>
                 <div className="mb-4">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2" style={{ color: '#374151' }}>
                     Mailbox Name (e.g., info, suporte, admin)
                   </label>
                   <input
@@ -1009,12 +1051,18 @@ export default function EmailDomainsPage() {
                     onChange={(e) => setQuickCreateData({...quickCreateData, mailboxName: e.target.value})}
                     placeholder="info"
                     required
-                    className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-gray-900 bg-white placeholder:text-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-medium text-sm outline-none transition"
+                    style={{
+                      color: '#000000',
+                      WebkitTextFillColor: '#000000',
+                      backgroundColor: '#ffffff',
+                      colorScheme: 'light'
+                    }}
+                    className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-black bg-white placeholder:text-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-medium text-sm outline-none transition"
                   />
-                  <p className="text-xs text-gray-500 mt-1">Email will be: {quickCreateData.mailboxName}@{quickCreateData.domainName || 'dominio.com'}</p>
+                  <p className="text-xs text-gray-500 mt-1" style={{ color: '#6b7280' }}>Email will be: {quickCreateData.mailboxName}@{quickCreateData.domainName || 'dominio.com'}</p>
                 </div>
                 <div className="mb-4">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2" style={{ color: '#374151' }}>
                     Full Name
                   </label>
                   <input
@@ -1023,11 +1071,17 @@ export default function EmailDomainsPage() {
                     onChange={(e) => setQuickCreateData({...quickCreateData, mailboxFullName: e.target.value})}
                     placeholder="João Silva"
                     required
-                    className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-gray-900 bg-white placeholder:text-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-medium text-sm outline-none transition"
+                    style={{
+                      color: '#000000',
+                      WebkitTextFillColor: '#000000',
+                      backgroundColor: '#ffffff',
+                      colorScheme: 'light'
+                    }}
+                    className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-black bg-white placeholder:text-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-medium text-sm outline-none transition"
                   />
                 </div>
                 <div className="mb-6">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2" style={{ color: '#374151' }}>
                     Password
                   </label>
                   <input
@@ -1037,14 +1091,25 @@ export default function EmailDomainsPage() {
                     placeholder="••••••••"
                     required
                     minLength={8}
-                    className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-gray-900 bg-white placeholder:text-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-medium text-sm outline-none transition"
+                    style={{
+                      color: '#000000',
+                      WebkitTextFillColor: '#000000',
+                      backgroundColor: '#ffffff',
+                      colorScheme: 'light'
+                    }}
+                    className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-black bg-white placeholder:text-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-medium text-sm outline-none transition"
                   />
-                  <p className="text-xs text-gray-500 mt-1">Minimum 8 characters</p>
+                  <p className="text-xs text-gray-500 mt-1" style={{ color: '#6b7280' }}>Minimum 8 characters</p>
                 </div>
                 <div className="flex justify-end space-x-3 pt-2">
                   <button
                     type="button"
                     onClick={() => setShowQuickCreateModal(false)}
+                    style={{
+                      color: '#374151',
+                      WebkitTextFillColor: '#374151',
+                      backgroundColor: '#ffffff'
+                    }}
                     className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-100 transition font-semibold text-sm shadow-xs"
                   >
                     Cancel
@@ -1052,6 +1117,10 @@ export default function EmailDomainsPage() {
                   <button
                     type="submit"
                     disabled={isQuickCreating}
+                    style={{
+                      color: '#ffffff',
+                      WebkitTextFillColor: '#ffffff'
+                    }}
                     className="px-5 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 transition disabled:opacity-50 font-semibold text-sm shadow-md"
                   >
                     {isQuickCreating ? 'Creating...' : 'Create Email'}
