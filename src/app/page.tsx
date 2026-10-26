@@ -272,7 +272,7 @@ export default function Home() {
               <div className="absolute -inset-3 bg-gradient-to-r from-blue-600/20 via-sky-500/20 to-indigo-600/20 rounded-[36px] blur-2xl opacity-75 group-hover:opacity-100 transition duration-1000 -z-10" />
 
               {/* Main Showcase Card */}
-              <div className="relative rounded-2xl sm:rounded-3xl lg:rounded-[32px] overflow-hidden bg-slate-950 border border-slate-800/80 shadow-2xl group">
+              <div className="relative rounded-2xl sm:rounded-3xl lg:rounded-[32px] overflow-hidden bg-white shadow-2xl shadow-blue-950/10 group">
                 
                 {/* Robot Builder Banner Image */}
                 <div className="relative w-full h-[320px] sm:h-[440px] lg:h-[500px] overflow-hidden">
