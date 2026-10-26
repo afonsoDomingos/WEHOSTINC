@@ -15,10 +15,14 @@ import InteractiveSteps from '@/components/InteractiveSteps';
 import PartnersSection from '@/components/PartnersSection';
 import NewsletterForm from '@/components/NewsletterForm';
 import NewsletterPopup from '@/components/NewsletterPopup';
+import { soundEffects } from '@/lib/soundEffects';
 
 export default function Home() {
   const { t, language } = useLanguage();
   const [durationMonths, setDurationMonths] = useState<number>(1);
+  const [activePricingPlan, setActivePricingPlan] = useState<'basic' | 'pro' | 'enterprise'>('pro');
+  const [isPricingInteracted, setIsPricingInteracted] = useState(false);
+  const [isPricingHovered, setIsPricingHovered] = useState(false);
   const [blogPosts, setBlogPosts] = useState<any[]>([]);
   const [blogLoading, setBlogLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -26,6 +30,28 @@ export default function Home() {
   const [isPaused, setIsPaused] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+
+  // Alternância dinâmica automática de períodos e cartões de planos (Opção 3 Combo)
+  useEffect(() => {
+    if (isPricingInteracted || isPricingHovered) return;
+
+    const steps: Array<{ months: number; plan: 'basic' | 'pro' | 'enterprise' }> = [
+      { months: 1, plan: 'basic' },
+      { months: 3, plan: 'pro' },
+      { months: 6, plan: 'pro' },
+      { months: 12, plan: 'pro' },
+      { months: 12, plan: 'enterprise' },
+    ];
+
+    let stepIndex = 0;
+    const interval = setInterval(() => {
+      stepIndex = (stepIndex + 1) % steps.length;
+      setDurationMonths(steps[stepIndex].months);
+      setActivePricingPlan(steps[stepIndex].plan);
+    }, 3200);
+
+    return () => clearInterval(interval);
+  }, [isPricingInteracted, isPricingHovered]);
 
   // Ticker animado pelos tipos de sites e seus preços
   const tickerTypes = websiteTypes.filter(t => t.basePrice < 100000);
@@ -407,7 +433,13 @@ export default function Home() {
       </section>
 
       {/* Pricing */}
-      <section id="planos" ref={pricingRef} className="anim-fade-up py-12 sm:py-20 px-3 sm:px-4 bg-blue-50">
+      <section
+        id="planos"
+        ref={pricingRef}
+        onMouseEnter={() => setIsPricingHovered(true)}
+        onMouseLeave={() => setIsPricingHovered(false)}
+        className="anim-fade-up py-12 sm:py-20 px-3 sm:px-4 bg-blue-50"
+      >
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-6 sm:mb-10">
             <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">
@@ -421,18 +453,26 @@ export default function Home() {
             <div className="inline-flex flex-wrap items-center justify-center bg-gray-200 p-1.5 rounded-2xl border border-gray-300 shadow-inner gap-1 max-w-full">
               <button
                 type="button"
-                onClick={() => setDurationMonths(1)}
-                className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-[10px] sm:text-xs sm:text-sm font-bold transition cursor-pointer hover:scale-105 active:scale-95 ${
-                  durationMonths === 1 ? 'bg-white text-gray-900 shadow-md' : 'text-gray-600 hover:text-gray-900'
+                onClick={() => {
+                  soundEffects.playClickSound();
+                  setIsPricingInteracted(true);
+                  setDurationMonths(1);
+                }}
+                className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-[10px] sm:text-xs sm:text-sm font-bold transition-all duration-300 cursor-pointer hover:scale-105 active:scale-95 ${
+                  durationMonths === 1 ? 'bg-white text-gray-900 shadow-md scale-105' : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
                 {t('pricing.1month')}
               </button>
               <button
                 type="button"
-                onClick={() => setDurationMonths(3)}
-                className={`px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-[10px] sm:text-xs sm:text-sm font-bold transition flex items-center space-x-0.5 sm:space-x-1 cursor-pointer hover:scale-105 active:scale-95 ${
-                  durationMonths === 3 ? 'bg-blue-600 text-white shadow-md' : 'text-gray-600 hover:text-gray-900'
+                onClick={() => {
+                  soundEffects.playClickSound();
+                  setIsPricingInteracted(true);
+                  setDurationMonths(3);
+                }}
+                className={`px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-[10px] sm:text-xs sm:text-sm font-bold transition-all duration-300 flex items-center space-x-0.5 sm:space-x-1 cursor-pointer hover:scale-105 active:scale-95 ${
+                  durationMonths === 3 ? 'bg-blue-600 text-white shadow-md scale-105' : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
                 <span>{t('pricing.3months')}</span>
@@ -442,9 +482,13 @@ export default function Home() {
               </button>
               <button
                 type="button"
-                onClick={() => setDurationMonths(6)}
-                className={`px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-[10px] sm:text-xs sm:text-sm font-bold transition flex items-center space-x-0.5 sm:space-x-1 cursor-pointer hover:scale-105 active:scale-95 ${
-                  durationMonths === 6 ? 'bg-purple-600 text-white shadow-md' : 'text-gray-600 hover:text-gray-900'
+                onClick={() => {
+                  soundEffects.playClickSound();
+                  setIsPricingInteracted(true);
+                  setDurationMonths(6);
+                }}
+                className={`px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-[10px] sm:text-xs sm:text-sm font-bold transition-all duration-300 flex items-center space-x-0.5 sm:space-x-1 cursor-pointer hover:scale-105 active:scale-95 ${
+                  durationMonths === 6 ? 'bg-purple-600 text-white shadow-md scale-105' : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
                 <span>{t('pricing.6months')}</span>
@@ -454,9 +498,13 @@ export default function Home() {
               </button>
               <button
                 type="button"
-                onClick={() => setDurationMonths(12)}
-                className={`px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-[10px] sm:text-xs sm:text-sm font-bold transition flex items-center space-x-0.5 sm:space-x-1.5 cursor-pointer hover:scale-105 active:scale-95 ${
-                  durationMonths === 12 ? 'bg-primary-600 text-white shadow-md' : 'text-gray-600 hover:text-gray-900'
+                onClick={() => {
+                  soundEffects.playClickSound();
+                  setIsPricingInteracted(true);
+                  setDurationMonths(12);
+                }}
+                className={`px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-[10px] sm:text-xs sm:text-sm font-bold transition-all duration-300 flex items-center space-x-0.5 sm:space-x-1.5 cursor-pointer hover:scale-105 active:scale-95 ${
+                  durationMonths === 12 ? 'bg-primary-600 text-white shadow-md scale-105' : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
                 <span>{t('pricing.1year')}</span>
@@ -469,7 +517,18 @@ export default function Home() {
 
           <div className="grid md:grid-cols-3 gap-4 sm:gap-8 items-stretch">
             {/* Basic Plan */}
-            <div className="bg-white rounded-xl shadow-lg p-5 sm:p-8 flex flex-col justify-between border border-gray-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group">
+            <div
+              onClick={() => {
+                soundEffects.playClickSound();
+                setIsPricingInteracted(true);
+                setActivePricingPlan('basic');
+              }}
+              className={`rounded-2xl p-5 sm:p-8 flex flex-col justify-between transition-all duration-500 cursor-pointer group ${
+                activePricingPlan === 'basic'
+                  ? 'bg-white border-2 border-primary-500 shadow-2xl -translate-y-3 ring-4 ring-primary-500/20'
+                  : 'bg-white border border-gray-100 shadow-lg hover:shadow-2xl hover:-translate-y-2'
+              }`}
+            >
               <div>
                 <h3 className="text-lg sm:text-2xl font-bold text-gray-900 mb-2 group-hover:text-primary-600 transition-colors">{t('pricing.basic_name')}</h3>
                 <p className="text-sm sm:text-base text-gray-600 mb-4">{t('pricing.basic_desc')}</p>
@@ -517,14 +576,29 @@ export default function Home() {
               </div>
               <Link
                 href={`/checkout?plan=basic&billingCycle=${durationMonths === 12 ? 'annual' : 'monthly'}`}
-                className="block w-full py-2.5 sm:py-3 text-center border-2 border-primary-600 text-primary-600 font-bold rounded-xl hover:bg-primary-50 hover:scale-105 active:scale-95 transition-all duration-300 text-xs sm:text-sm"
+                className={`block w-full py-2.5 sm:py-3 text-center border-2 border-primary-600 font-bold rounded-xl hover:scale-105 active:scale-95 transition-all duration-300 text-xs sm:text-sm ${
+                  activePricingPlan === 'basic'
+                    ? 'bg-primary-600 text-white shadow-md'
+                    : 'text-primary-600 hover:bg-primary-50'
+                }`}
               >
                 {t('pricing.btn_subscribe')}
               </Link>
             </div>
 
             {/* Pro Plan */}
-            <div className="bg-primary-600 rounded-xl shadow-xl p-5 sm:p-8 text-white flex flex-col justify-between relative transform lg:-translate-y-2 border border-primary-500 hover:shadow-2xl hover:-translate-y-4 transition-all duration-300 group">
+            <div
+              onClick={() => {
+                soundEffects.playClickSound();
+                setIsPricingInteracted(true);
+                setActivePricingPlan('pro');
+              }}
+              className={`rounded-2xl p-5 sm:p-8 text-white flex flex-col justify-between relative transform transition-all duration-500 cursor-pointer group ${
+                activePricingPlan === 'pro'
+                  ? 'bg-primary-600 lg:-translate-y-4 shadow-2xl border-2 border-amber-300 ring-4 ring-amber-400/30 scale-[1.02]'
+                  : 'bg-primary-600 lg:-translate-y-2 border border-primary-500 shadow-xl hover:shadow-2xl hover:-translate-y-4'
+              }`}
+            >
               <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-amber-400 text-gray-900 text-[10px] sm:text-xs font-black px-3 sm:px-4 py-1 rounded-full uppercase tracking-wider shadow group-hover:scale-110 transition-transform">
                 {t('pricing.most_popular')}
               </div>
@@ -586,7 +660,18 @@ export default function Home() {
             </div>
 
             {/* Enterprise Plan */}
-            <div className="bg-white rounded-xl shadow-lg p-5 sm:p-8 flex flex-col justify-between border border-gray-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group">
+            <div
+              onClick={() => {
+                soundEffects.playClickSound();
+                setIsPricingInteracted(true);
+                setActivePricingPlan('enterprise');
+              }}
+              className={`rounded-2xl p-5 sm:p-8 flex flex-col justify-between transition-all duration-500 cursor-pointer group ${
+                activePricingPlan === 'enterprise'
+                  ? 'bg-white border-2 border-primary-500 shadow-2xl -translate-y-3 ring-4 ring-primary-500/20'
+                  : 'bg-white border border-gray-100 shadow-lg hover:shadow-2xl hover:-translate-y-2'
+              }`}
+            >
               <div>
                 <h3 className="text-lg sm:text-2xl font-bold text-gray-900 mb-2 group-hover:text-primary-600 transition-colors">{t('pricing.enterprise_name')}</h3>
                 <p className="text-sm sm:text-base text-gray-600 mb-4">{t('pricing.enterprise_desc')}</p>
@@ -638,7 +723,11 @@ export default function Home() {
               </div>
               <Link
                 href={`/checkout?plan=enterprise&billingCycle=${durationMonths === 12 ? 'annual' : 'monthly'}`}
-                className="block w-full py-2.5 sm:py-3 text-center border-2 border-primary-600 text-primary-600 font-bold rounded-xl hover:bg-primary-50 hover:scale-105 active:scale-95 transition-all duration-300 text-xs sm:text-sm"
+                className={`block w-full py-2.5 sm:py-3 text-center border-2 border-primary-600 font-bold rounded-xl hover:scale-105 active:scale-95 transition-all duration-300 text-xs sm:text-sm ${
+                  activePricingPlan === 'enterprise'
+                    ? 'bg-primary-600 text-white shadow-md'
+                    : 'text-primary-600 hover:bg-primary-50'
+                }`}
               >
                 {t('pricing.btn_enterprise')}
               </Link>
