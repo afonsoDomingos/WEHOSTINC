@@ -35,69 +35,78 @@ export default function DomainSearch({ onFocusChange }: DomainSearchProps = {}) 
   const [isFocused, setIsFocused] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
 
-  // Efeito dinâmico de digitação no placeholder após 5 segundos
+  // Efeito dinâmico de digitação no placeholder e alternância automática de cartões
   const [animatedPlaceholder, setAnimatedPlaceholder] = useState('');
   const [isTypingActive, setIsTypingActive] = useState(false);
+  const [hasUserInteracted, setHasUserInteracted] = useState(false);
 
   useEffect(() => {
-    // Se o utilizador já começou a escrever ou tem foco no campo, desativa a animação
-    if (isFocused || query) {
+    // Se o utilizador já interagiu, começou a escrever ou tem foco no campo, desativa a animação
+    if (hasUserInteracted || isFocused || query) {
       setIsTypingActive(false);
       setAnimatedPlaceholder('');
       return;
     }
 
-    const words = ['suaempresa.com', 'suaempresa.co.mz', 'minhaloja.com'];
-    let wordIndex = 0;
+    const demoItems = [
+      { name: 'suaempresa', tld: '.co.mz' },
+      { name: 'suaempresa', tld: '.com' },
+      { name: 'minhaempresa', tld: '.org.mz' },
+      { name: 'startup', tld: '.net' },
+    ];
+
+    let itemIndex = 0;
     let charIndex = 0;
     let isDeleting = false;
     let timeoutId: NodeJS.Timeout | null = null;
 
-    // Aguardar 5 segundos antes de começar a animação
+    // Iniciar logo no primeiro instante (350ms para estabilidade de hidratação)
     const startTimeout = setTimeout(() => {
       setIsTypingActive(true);
 
       const typeLoop = () => {
-        const currentWord = words[wordIndex];
+        const currentItem = demoItems[itemIndex];
+        // Sincroniza o cartão e o select automaticamente
+        setSelectedTld(currentItem.tld);
 
         if (!isDeleting) {
           // Digitando caractere a caractere
           charIndex++;
-          setAnimatedPlaceholder(currentWord.slice(0, charIndex));
+          setAnimatedPlaceholder(currentItem.name.slice(0, charIndex));
 
-          if (charIndex === currentWord.length) {
-            // Palavra completa: pausar por 3 segundos para leitura
+          if (charIndex === currentItem.name.length) {
+            // Palavra completa: pausa para leitura confortável
             isDeleting = true;
-            timeoutId = setTimeout(typeLoop, 3000);
+            timeoutId = setTimeout(typeLoop, 2400);
             return;
           }
-          // Velocidade de digitação natural (~100ms por caractere)
-          timeoutId = setTimeout(typeLoop, 100);
+          // Velocidade de digitação natural (~90ms)
+          timeoutId = setTimeout(typeLoop, 90);
         } else {
           // Apagando caractere a caractere
           charIndex--;
-          setAnimatedPlaceholder(currentWord.slice(0, charIndex));
+          setAnimatedPlaceholder(currentItem.name.slice(0, charIndex));
 
           if (charIndex === 0) {
-            // Palavra completamente apagada: passa para a próxima após pausa breve
+            // Palavra completamente apagada: passa para o próximo item
             isDeleting = false;
-            wordIndex = (wordIndex + 1) % words.length;
-            timeoutId = setTimeout(typeLoop, 600);
+            itemIndex = (itemIndex + 1) % demoItems.length;
+            timeoutId = setTimeout(typeLoop, 450);
             return;
           }
-          // Velocidade para apagar (~40ms por caractere)
-          timeoutId = setTimeout(typeLoop, 40);
+          // Velocidade de apagar rápida (~35ms)
+          timeoutId = setTimeout(typeLoop, 35);
         }
       };
 
       typeLoop();
-    }, 5000);
+    }, 350);
 
     return () => {
       clearTimeout(startTimeout);
       if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [isFocused, query]);
+  }, [hasUserInteracted, isFocused, query]);
 
   // Notificar o componente pai (page.tsx) para manter o banner expandido e o mascote fora
   // enquanto houver foco, pesquisa em andamento ou resultado de pesquisa ativo
@@ -108,6 +117,7 @@ export default function DomainSearch({ onFocusChange }: DomainSearchProps = {}) 
 
   const handleContainerFocus = () => {
     setIsFocused(true);
+    setHasUserInteracted(true);
   };
 
   const handleContainerBlur = (e: React.FocusEvent) => {
@@ -293,13 +303,14 @@ export default function DomainSearch({ onFocusChange }: DomainSearchProps = {}) 
         <form onSubmit={handleSearch} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2.5 w-full">
           
           {/* Input do nome de domínio */}
-          <div className="relative flex-1 w-full">
-            <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
+          <div className="relative flex-1 w-full min-w-0">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
             <input
               type="text"
               value={query}
               onChange={(e) => {
                 const val = e.target.value;
+                setHasUserInteracted(true);
                 setQuery(val);
                 if (!val.trim() && result) {
                   setResult(null);
@@ -311,14 +322,14 @@ export default function DomainSearch({ onFocusChange }: DomainSearchProps = {}) 
                   ? (animatedPlaceholder || ' ')
                   : t('hero.search_placeholder')
               }
-              className="w-full pl-10 sm:pl-12 pr-10 sm:pr-12 py-2.5 sm:py-3.5 bg-gray-50 border border-gray-200 rounded-xl sm:rounded-2xl outline-none focus:ring-2 focus:ring-primary-500 font-medium text-gray-900 text-xs sm:text-sm md:text-base placeholder-gray-400"
+              className="w-full pl-9 sm:pl-10 pr-8 sm:pr-9 py-2.5 sm:py-3.5 bg-gray-50 border border-gray-200 rounded-xl sm:rounded-2xl outline-none focus:ring-2 focus:ring-primary-500 font-medium text-gray-900 text-xs sm:text-sm md:text-base placeholder-gray-400"
               required
             />
             {(query || result) && (
               <button
                 type="button"
                 onClick={handleClearSearch}
-                className="absolute right-2.5 sm:right-3 top-1/2 transform -translate-y-1/2 p-1 text-gray-400 hover:text-gray-700 hover:bg-gray-200/70 rounded-full transition cursor-pointer"
+                className="absolute right-2 sm:right-2.5 top-1/2 transform -translate-y-1/2 p-1 text-gray-400 hover:text-gray-700 hover:bg-gray-200/70 rounded-full transition cursor-pointer"
                 title="Limpar pesquisa"
               >
                 <X className="h-4 w-4" />
@@ -327,15 +338,18 @@ export default function DomainSearch({ onFocusChange }: DomainSearchProps = {}) 
           </div>
 
           {/* Seletor de Extensão TLD + Botão Pesquisar */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-1.5 sm:gap-2 w-full sm:w-auto shrink-0">
             <select
               value={selectedTld}
-              onChange={(e) => setSelectedTld(e.target.value)}
-              className="w-full sm:w-auto px-3 sm:px-4 py-2.5 sm:py-3.5 bg-gray-100 border border-gray-200 rounded-xl sm:rounded-2xl font-bold text-gray-800 text-xs sm:text-sm outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer text-center sm:text-left"
+              onChange={(e) => {
+                setSelectedTld(e.target.value);
+                setHasUserInteracted(true);
+              }}
+              className="w-full sm:w-auto px-2.5 sm:px-3.5 py-2.5 sm:py-3.5 bg-gray-100 border border-gray-200 rounded-xl sm:rounded-2xl font-bold text-gray-800 text-xs sm:text-sm outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer text-center sm:text-left shrink-0"
             >
               {DOMAIN_PRICES.map((tld) => (
                 <option key={tld.extension} value={tld.extension}>
-                  {tld.extension} ({tld.price.toLocaleString('pt-MZ')} MT{t('pricing.per_year')})
+                  {tld.extension} ({tld.price.toLocaleString('pt-MZ')} MT)
                 </option>
               ))}
             </select>
@@ -343,7 +357,7 @@ export default function DomainSearch({ onFocusChange }: DomainSearchProps = {}) 
             <button
               type="submit"
               disabled={isSearching}
-              className="w-full sm:w-auto px-5 sm:px-7 py-2.5 sm:py-3.5 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 text-white font-bold rounded-xl sm:rounded-2xl shadow-lg hover:shadow-xl transition text-xs sm:text-sm md:text-base flex items-center justify-center space-x-1.5 sm:space-x-2 cursor-pointer"
+              className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3.5 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 text-white font-bold rounded-xl sm:rounded-2xl shadow-lg hover:shadow-xl transition text-xs sm:text-sm md:text-base flex items-center justify-center space-x-1.5 sm:space-x-2 cursor-pointer shrink-0"
             >
               {isSearching ? (
                 <>
@@ -368,6 +382,7 @@ export default function DomainSearch({ onFocusChange }: DomainSearchProps = {}) 
               type="button"
               onClick={() => {
                 soundEffects.playClickSound();
+                setHasUserInteracted(true);
                 setSelectedTld(tld.extension);
                 if (query.trim()) {
                   let cleaned = query.trim();
@@ -377,13 +392,17 @@ export default function DomainSearch({ onFocusChange }: DomainSearchProps = {}) 
                   setQuery(cleaned + tld.extension);
                 }
               }}
-              className={`p-2 sm:p-2.5 rounded-lg sm:rounded-xl border text-center transition flex flex-col items-center justify-center cursor-pointer ${
+              className={`p-2 sm:p-2.5 rounded-lg sm:rounded-xl border text-center transition-all duration-300 flex flex-col items-center justify-center cursor-pointer ${
                 selectedTld === tld.extension
-                  ? 'bg-primary-50 border-primary-300 ring-2 ring-primary-500/20'
+                  ? 'bg-primary-50 border-primary-400 ring-2 ring-primary-500/30 shadow-md scale-[1.03]'
                   : 'bg-gray-50/70 border-gray-200 hover:bg-gray-100'
               }`}
             >
-              <span className="text-[10px] sm:text-xs font-bold text-gray-900">{tld.extension}</span>
+              <span className={`text-[10px] sm:text-xs font-bold transition-colors ${
+                selectedTld === tld.extension ? 'text-primary-800 font-extrabold' : 'text-gray-900'
+              }`}>
+                {tld.extension}
+              </span>
               <span className="text-[10px] sm:text-xs font-extrabold text-primary-600 mt-0.5">
                 {tld.price.toLocaleString('pt-MZ')} MT<span className="text-[9px] sm:text-[10px] font-normal text-gray-500">/ano</span>
               </span>

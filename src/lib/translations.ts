@@ -25,7 +25,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'hero.title2': 'Moçambique',
     'hero.title_full': 'Domínio, Hospedagem, Email e Site',
     'hero.subtitle': 'Tudo o que a sua empresa precisa para ter uma presença online de alta performance em Moçambique com servidores ultrarrápidos, certificado SSL grátis e suporte local 24/7.',
-    'hero.search_placeholder': 'Digite o nome do seu domínio (ex: minhaempresa.co.mz)...',
+    'hero.search_placeholder': 'Digite o seu domínio (ex: suaempresa)...',
     'hero.search_btn': 'Pesquisar',
     'hero.searching': 'A pesquisar...',
 
@@ -295,7 +295,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'hero.title2': 'Mozambique',
     'hero.title_full': 'Domain, Hosting, Email and Website',
     'hero.subtitle': 'Everything your business needs for a high-performance online presence in Mozambique with ultra-fast servers, free SSL certificate and 24/7 local support.',
-    'hero.search_placeholder': 'Enter your domain name (e.g. mycompany.co.mz)...',
+    'hero.search_placeholder': 'Enter your domain (e.g. yourcompany)...',
     'hero.search_btn': 'Search',
     'hero.searching': 'Searching...',
 

@@ -146,7 +146,7 @@ export default function Home() {
                 : 'items-center lg:items-start text-center lg:text-left'
             }`}
             style={{
-              flex: isSearchFocused ? '1 1 100%' : '1 1 50%',
+              flex: isSearchFocused ? '1 1 100%' : '1 1 60%',
               transition: 'flex 0.5s cubic-bezier(0.4,0,0.2,1)',
             }}
           >
@@ -172,7 +172,7 @@ export default function Home() {
           <div
             className="hidden lg:flex items-end justify-center relative"
             style={{
-              flex: isSearchFocused ? '0 0 0%' : '0 0 50%',
+              flex: isSearchFocused ? '0 0 0%' : '0 0 40%',
               opacity: isSearchFocused ? 0 : 1,
               transform: isSearchFocused ? 'translateX(60px) scale(0.8)' : 'translateX(0px) scale(1)',
               transition: 'flex 0.5s cubic-bezier(0.4,0,0.2,1), opacity 0.4s ease, transform 0.5s cubic-bezier(0.4,0,0.2,1)',
