@@ -1914,29 +1914,22 @@ export default function AiSiteBuilderStudio() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session, status]);
 
-  // Inicializar projeto em modo demonstração para visitantes
+  // Inicializar projeto em modo demonstração para visitantes (tela limpa sem poluição visual)
   const initGuestProject = () => {
     setProjectId('site_guest_demo');
-    setProjectTitle('Website de Demonstração');
+    setProjectTitle('Novo Projeto');
     setProjectSlug('demo-preview');
     setIsPublished(false);
-    setCurrentHtml(DEMO_STARTER_HTML);
-    setEditedCode(DEMO_STARTER_HTML);
+    setCurrentHtml('');
+    setEditedCode('');
     setIsEditingCode(false);
-    setVersions([
-      {
-        versionNumber: 1,
-        html: DEMO_STARTER_HTML,
-        prompt: 'Layout Inicial de Apresentação',
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      }
-    ]);
+    setVersions([]);
     setSelectedVersionIndex('latest');
     setMessages([
       {
         id: 'msg_guest_welcome',
         role: 'assistant',
-        content: 'ðŸ‘‹ Olá! Bem-vindo ao Construtor de Sites IA da WEHOSTHERE no Modo Demonstração.\n\nPode explorar o preview em tempo real, alternar entre modos (Computador, Tablet e Telemóvel) e inspecionar o código fonte. Para gerar novos designs com IA, salvar projetos e publicar com domínio próprio, crie uma conta gratuita ou inicie sessão!',
+        content: '👋 Olá! Bem-vindo ao Construtor de Sites IA da WEHOSTHERE no Modo Demonstração.\n\nDescreva no chat o website que deseja criar ou escolha um modelo abaixo. Para salvar múltiplos projetos e publicar na internet com domínio próprio, crie a sua conta gratuita ou inicie sessão!',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }
     ]);
