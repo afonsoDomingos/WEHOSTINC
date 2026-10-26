@@ -277,7 +277,7 @@ export default function Home() {
                 {/* Robot Builder Banner Image */}
                 <div className="relative w-full h-[320px] sm:h-[440px] lg:h-[500px] overflow-hidden">
                   <Image
-                    src="/bulder ai.jpg"
+                    src="/bulder ai.png"
                     alt="WEHOSTHERE Construtor de Sites IA"
                     fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 60vw, 720px"
