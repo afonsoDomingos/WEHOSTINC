@@ -35,6 +35,70 @@ export default function DomainSearch({ onFocusChange }: DomainSearchProps = {}) 
   const [isFocused, setIsFocused] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
 
+  // Efeito dinâmico de digitação no placeholder após 5 segundos
+  const [animatedPlaceholder, setAnimatedPlaceholder] = useState('');
+  const [isTypingActive, setIsTypingActive] = useState(false);
+
+  useEffect(() => {
+    // Se o utilizador já começou a escrever ou tem foco no campo, desativa a animação
+    if (isFocused || query) {
+      setIsTypingActive(false);
+      setAnimatedPlaceholder('');
+      return;
+    }
+
+    const words = ['suaempresa.com', 'suaempresa.co.mz', 'minhaloja.com'];
+    let wordIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    let timeoutId: NodeJS.Timeout | null = null;
+
+    // Aguardar 5 segundos antes de começar a animação
+    const startTimeout = setTimeout(() => {
+      setIsTypingActive(true);
+
+      const typeLoop = () => {
+        const currentWord = words[wordIndex];
+
+        if (!isDeleting) {
+          // Digitando caractere a caractere
+          charIndex++;
+          setAnimatedPlaceholder(currentWord.slice(0, charIndex));
+
+          if (charIndex === currentWord.length) {
+            // Palavra completa: pausar por 3 segundos para leitura
+            isDeleting = true;
+            timeoutId = setTimeout(typeLoop, 3000);
+            return;
+          }
+          // Velocidade de digitação natural (~100ms por caractere)
+          timeoutId = setTimeout(typeLoop, 100);
+        } else {
+          // Apagando caractere a caractere
+          charIndex--;
+          setAnimatedPlaceholder(currentWord.slice(0, charIndex));
+
+          if (charIndex === 0) {
+            // Palavra completamente apagada: passa para a próxima após pausa breve
+            isDeleting = false;
+            wordIndex = (wordIndex + 1) % words.length;
+            timeoutId = setTimeout(typeLoop, 600);
+            return;
+          }
+          // Velocidade para apagar (~40ms por caractere)
+          timeoutId = setTimeout(typeLoop, 40);
+        }
+      };
+
+      typeLoop();
+    }, 5000);
+
+    return () => {
+      clearTimeout(startTimeout);
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [isFocused, query]);
+
   // Notificar o componente pai (page.tsx) para manter o banner expandido e o mascote fora
   // enquanto houver foco, pesquisa em andamento ou resultado de pesquisa ativo
   useEffect(() => {
@@ -241,7 +305,12 @@ export default function DomainSearch({ onFocusChange }: DomainSearchProps = {}) 
                   setResult(null);
                 }
               }}
-              placeholder={t('hero.search_placeholder')}
+              onFocus={handleContainerFocus}
+              placeholder={
+                isTypingActive
+                  ? (animatedPlaceholder || ' ')
+                  : t('hero.search_placeholder')
+              }
               className="w-full pl-10 sm:pl-12 pr-10 sm:pr-12 py-2.5 sm:py-3.5 bg-gray-50 border border-gray-200 rounded-xl sm:rounded-2xl outline-none focus:ring-2 focus:ring-primary-500 font-medium text-gray-900 text-xs sm:text-sm md:text-base placeholder-gray-400"
               required
             />
