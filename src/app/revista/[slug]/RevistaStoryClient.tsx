@@ -41,6 +41,7 @@ interface Story {
   publishedAt?: string;
   status?: string;
   claps?: number;
+  commentsCount?: number;
   reactions?: {
     fire?: number;
     insight?: number;
@@ -2339,6 +2340,18 @@ export default function RevistaStoryClient({ initialStory }: { initialStory?: St
             <span className="story-meta-item">
               <Eye size={13} /> {story.views} leituras
             </span>
+            <button
+              type="button"
+              onClick={() => {
+                if (typeof window !== 'undefined') {
+                  window.dispatchEvent(new CustomEvent('open-revista-chat'));
+                }
+              }}
+              className="story-meta-item hover:text-purple-600 transition cursor-pointer"
+              title="Abrir Chat da História"
+            >
+              <MessageSquare size={13} /> {story.commentsCount || 0} comentários
+            </button>
           </div>
 
           {/* Socials / Partilha */}
