@@ -2480,6 +2480,13 @@ export default function RevistaStoryClient({ initialStory }: { initialStory?: St
             {renderContent(story.content)}
           </div>
 
+          {/* ── Mini-Chat Estratégico (logo após o fim do texto) ── */}
+          <RevistaCommentsSection
+            storySlug={story.slug}
+            storyTitle={story.title}
+            storyAuthorEmail={story.author?.email}
+          />
+
           {/* AdSense — Fim do Artigo */}
           <div className="story-bottom-ad my-8 p-4 rounded-2xl bg-slate-50/80 border border-dashed border-slate-200/80 text-center">
             <span className="text-[10px] uppercase font-bold tracking-widest text-slate-400 block mb-2 select-none">
@@ -2517,13 +2524,6 @@ export default function RevistaStoryClient({ initialStory }: { initialStory?: St
             </div>
           </div>
         </article>
-
-        {/* ── Secção de Comentários & Discussão da Comunidade ── */}
-        <RevistaCommentsSection
-          storySlug={story.slug}
-          storyTitle={story.title}
-          storyAuthorEmail={story.author?.email}
-        />
 
         {/* ── Prev / Next Story Navigation ── */}
         {(prevStory || nextStory) && (
