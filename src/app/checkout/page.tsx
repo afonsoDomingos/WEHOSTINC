@@ -1043,47 +1043,40 @@ function CheckoutContent() {
         // Track payment initiation
         analytics.trackPaymentInitiated(paymentMethod, grandTotal);
         
-        fetch(apiEndpoint(apiUrl), {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            msisdn: phone,
-            amount: grandTotal,
-            reference: paymentReference,
-            thirdPartyReference: `ORDER_${Date.now().toString().slice(-6)}`,
-            clientName: name,
-            clientEmail: email,
-            serviceName: serviceName
-          })
-        }).catch(err => console.warn(`${paymentMethod.toUpperCase()} API Call:`, err));
-
-        // 🔗 Registrar lead de checkout associado ao domínio pesquisado
-        if (domainParam) {
-          fetch(apiEndpoint('/api/admin/domain-search-logs'), {
+        setLoading(true);
+        try {
+          const payResponse = await fetch(apiEndpoint(apiUrl), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              domain: domainParam,
-              userName: name,
-              userEmail: email,
-              userPhone: phone,
-              checkoutStatus: 'pending',
-              checkoutOrderId: paymentReference
+              msisdn: phone,
+              amount: grandTotal,
+              reference: paymentReference,
+              thirdPartyReference: `ORDER_${Date.now().toString().slice(-6)}`,
+              clientName: name,
+              clientEmail: email,
+              serviceName: serviceName
             })
-          }).catch(() => {});
-        }
+          });
 
-        // 🔒 SEGURANÇA: Salvar reference para polling - NÃO confirmar imediatamente
-        setCurrentReference(paymentReference);
-        
-        // Open PUSH visual countdown modal
-        setCountdown(60); // Countdown aumentado para 60 segundos
-        setPushStatus('waiting');
-        setPushModal(true);
-        
-        // 🔧 CORREÇÃO: Sempre resetar o loading após abrir o modal de confirmação.
-        // O botão principal não deve ficar travado em "Processando..." enquanto o modal está aberto.
-        setLoading(false);
+          const payData = await payResponse.json().catch(() => ({}));
+          if (!payResponse.ok) {
+            throw new Error(payData.error || 'Falha ao iniciar cobrança junto da operadora');
+          }
+
+          // 🔒 SEGURANÇA: Salvar reference para polling - NÃO confirmar imediatamente
+          setCurrentReference(paymentReference);
+          
+          // Open PUSH visual countdown modal
+          setCountdown(60);
+          setPushStatus('waiting');
+          setPushModal(true);
+        } catch (payErr: any) {
+          console.error('[Checkout Push Error]:', payErr);
+          setError(payErr.message || 'Erro ao comunicar com a operadora');
+        } finally {
+          setLoading(false);
+        }
       } else if (paymentMethod === 'bank_transfer') {
         // 🔗 Registrar lead de checkout para transferência bancária
         if (domainParam) {
