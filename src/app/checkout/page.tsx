@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { 
   Server, ShieldCheck, Lock, Check, CreditCard, 
-  Smartphone, Bitcoin, ArrowLeft, CheckCircle2, AlertCircle, RefreshCw,
+  Smartphone, Bitcoin, ArrowLeft, CheckCircle2, AlertCircle, RefreshCw, XCircle,
   Landmark, Paperclip, FileText, Image as ImageIcon, Upload, Loader2, Lock as LockIcon,
   Globe, MessageCircle, Copy, ArrowRight, User, Mail, Edit3, Sparkles, Clock
 } from 'lucide-react';
@@ -280,7 +280,8 @@ function CheckoutContent() {
   }, [analytics, domainParam, grandTotal, isAffiliateVerification, isCoursePayment, selectedPlan, siteTypeName]);
 
   const [pushModal, setPushModal] = useState(false);
-  const [pushStatus, setPushStatus] = useState<'waiting' | 'expired'>('waiting');
+  const [pushStatus, setPushStatus] = useState<'waiting' | 'expired' | 'failed' | 'cancelled'>('waiting');
+  const [pushFailureReason, setPushFailureReason] = useState<string>('');
   const [countdown, setCountdown] = useState(60); // Aumentado de 45 para 60 segundos
   const [currentOrderId, setCurrentOrderId] = useState<string | null>(null);
   const [currentReference, setCurrentReference] = useState<string | null>(null);
@@ -394,14 +395,15 @@ function CheckoutContent() {
             // Criar pedido com status completed e finalizar
             await finalizeOrder();
           } else if (data.status === 'cancelled' || data.status === 'failed') {
-            console.log('[PAYMENT POLLING] Pagamento falhou/cancelado');
+            console.log('[PAYMENT POLLING] Pagamento falhou/cancelado:', data.failureReason);
             stopped = true;
             clearInterval(pollingInterval);
             setIsPollingPayment(false);
-            setLoading(false); // 🔧 CORREÇÃO: desbloquear botão quando pagamento falha
-            setPushStatus('expired');
+            setLoading(false);
+            setPushStatus(data.status === 'cancelled' ? 'cancelled' : 'failed');
+            setPushFailureReason(data.failureReason || 'Transação cancelada no telemóvel ou saldo insuficiente');
             setRetryCount(0);
-            setError('Pagamento não foi confirmado. Por favor, tente novamente.');
+            setError(data.failureReason || 'Pagamento não foi confirmado. Por favor, tente novamente.');
           } else {
             // Continua polling com exponential backoff
             attempt++;
@@ -469,6 +471,7 @@ function CheckoutContent() {
 
   const handleRetryPush = async () => {
     setPushStatus('waiting');
+    setPushFailureReason('');
     setCountdown(60); // Countdown aumentado para 60 segundos
     setRetryCount(prev => prev + 1);
     
@@ -1070,6 +1073,8 @@ function CheckoutContent() {
           // Open PUSH visual countdown modal
           setCountdown(60);
           setPushStatus('waiting');
+          setPushFailureReason('');
+          setIsPollingPayment(true);
           setPushModal(true);
         } catch (payErr: any) {
           console.error('[Checkout Push Error]:', payErr);
@@ -1397,6 +1402,69 @@ function CheckoutContent() {
                     className="w-full py-3 text-xs font-semibold text-gray-500 hover:text-gray-800 transition min-h-[44px]"
                   >
                     Cancelar ou Alterar número
+                  </button>
+                </div>
+              </>
+            ) : pushStatus === 'failed' || pushStatus === 'cancelled' ? (
+              <>
+                <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-200 animate-in zoom-in-75">
+                  <XCircle className="h-9 w-9" />
+                </div>
+
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                  {pushStatus === 'cancelled' ? 'Pagamento Cancelado' : 'Pagamento Não Concluído'}
+                </h3>
+                <p className="text-sm text-gray-600 mb-3">
+                  A transação no telemóvel <span className="font-bold text-gray-900">{ddi} {phonePayment || whatsapp}</span> não foi aprovada.
+                </p>
+
+                {pushFailureReason && (
+                  <div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-4 text-xs font-semibold text-red-800 text-center">
+                    Motivo: {pushFailureReason}
+                  </div>
+                )}
+
+                <div className="bg-gray-50 border border-gray-200 rounded-xl p-3.5 mb-6 text-left text-xs text-gray-700 space-y-1">
+                  <p className="font-semibold text-gray-900 text-xs mb-1">Dicas úteis:</p>
+                  <p>• Verifique se possui saldo suficiente no M-Pesa/e-Mola com taxas incluídas.</p>
+                  <p>• Confirme se digitou o seu código PIN de 4 dígitos corretamente.</p>
+                  <p>• Se cancelou sem querer, clique em <strong>Reenviar Notificação</strong> abaixo.</p>
+                </div>
+
+                <div className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={handleRetryPush}
+                    className="w-full py-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow transition text-sm flex items-center justify-center gap-2 cursor-pointer min-h-[52px]"
+                  >
+                    <RefreshCw className="h-5 w-5" />
+                    <span>Reenviar Notificação PUSH Agora</span>
+                  </button>
+
+                  <a
+                    href={`https://wa.me/258848335618?text=${encodeURIComponent(
+                      `Olá WeHost! Tive dificuldades no pagamento M-Pesa/e-Mola (${ddi} ${phonePayment || whatsapp}) para ${
+                        domainParam ? `o domínio ${domainParam}` : selectedPlan?.name || 'serviço'
+                      } (Valor: ${(isCoursePayment ? courseAmountParam : (isAffiliateVerification ? verificationAmount : grandTotal)).toLocaleString('pt-MZ')} MT). Motivo: ${pushFailureReason || 'Falhou'}. Podem ajudar-me?`
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow transition text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer min-h-[46px]"
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                    <span>Concluir Pagamento pelo WhatsApp</span>
+                  </a>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPushModal(false);
+                      setIsPollingPayment(false);
+                      setLoading(false);
+                    }}
+                    className="w-full py-3 text-xs font-semibold text-gray-600 hover:text-gray-900 border border-gray-200 rounded-xl transition min-h-[44px]"
+                  >
+                    {t.changeNumberOrMethod}
                   </button>
                 </div>
               </>

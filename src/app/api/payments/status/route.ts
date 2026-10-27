@@ -52,12 +52,32 @@ export async function GET(req: Request) {
       );
     }
 
+    // Se ainda estiver pending e tiver kivoraPaymentId, sincronizar com a Kivora em tempo real
+    if (order && (order as any).status === 'pending' && (order as any).kivoraPaymentId) {
+      try {
+        const { kivora } = await import('@/lib/kivora');
+        const liveKivora = await kivora.getC2BPayment((order as any).kivoraPaymentId);
+        if (liveKivora) {
+          if (liveKivora.status === 'paid') {
+            await OrderModel.findOneAndUpdate({ id: (order as any).id }, { status: 'completed' });
+            (order as any).status = 'completed';
+          } else if (liveKivora.status === 'failed') {
+            await OrderModel.findOneAndUpdate({ id: (order as any).id }, { status: 'cancelled' });
+            (order as any).status = 'cancelled';
+          }
+        }
+      } catch (kivoraErr) {
+        // consulta em background não bloqueante
+      }
+    }
+
     console.log('[PAYMENT STATUS] Consulta:', { orderId, reference, status: (order as any).status });
 
     return NextResponse.json({
       orderId: (order as any).id,
       reference: (order as any).reference,
       status: (order as any).status,
+      failureReason: (order as any).failureReason || null,
       amount: (order as any).amount,
       paymentMethod: (order as any).paymentMethod,
       createdAt: (order as any).createdAt

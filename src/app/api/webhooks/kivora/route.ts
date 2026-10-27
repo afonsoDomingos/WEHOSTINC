@@ -231,8 +231,8 @@ export async function POST(req: Request) {
         
         console.log('[KIVORA WEBHOOK] Detalhes da falha:', { failureCode, failureReason });
         
-        // Atualizar status do pedido para 'cancelled' (com retry — igual ao payment.completed)
-        await withRetry(() => updateOrderStatus(eventData.reference || '', 'cancelled', eventData.id, eventData, metadata));
+        // Atualizar status do pedido para 'cancelled' e salvar motivo da falha (com retry)
+        await withRetry(() => updateOrderStatus(eventData.reference || '', 'cancelled', eventData.id, eventData, metadata, failureReason));
         // Enviar notificação de falha por email para cliente com motivo específico
         if (clientEmail) {
           await sendPaymentNotification(clientEmail, clientName, serviceName, 'failed', eventData.amount, failureReason, eventData.reference);
@@ -509,7 +509,8 @@ async function updateOrderStatus(
   status: 'completed' | 'cancelled',
   kivoraPaymentId?: string,
   eventData?: any,
-  metadata?: any
+  metadata?: any,
+  failureReason?: string
 ) {
   try {
     await connectDB();
@@ -531,12 +532,13 @@ async function updateOrderStatus(
       : null;
 
     if (order) {
-      console.log(`[KIVORA WEBHOOK] Atualizando pedido ${order.id} para status: ${status}`);
+      console.log(`[KIVORA WEBHOOK] Atualizando pedido ${order.id} para status: ${status}${failureReason ? ` (Motivo: ${failureReason})` : ''}`);
       await OrderModel.findOneAndUpdate(
         { id: order.id },
         { 
           status,
-          ...(kivoraPaymentId && !order.kivoraPaymentId ? { kivoraPaymentId } : {})
+          ...(kivoraPaymentId && !order.kivoraPaymentId ? { kivoraPaymentId } : {}),
+          ...(failureReason ? { failureReason } : {})
         }
       );
     } else if (status === 'completed' && (kivoraPaymentId || reference)) {
