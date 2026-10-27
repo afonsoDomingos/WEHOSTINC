@@ -99,34 +99,20 @@ export const kivora = {
       phone = phone.substring(3);
     }
 
-    const customerData = data.customer || {
-      name: data.metadata?.clientName || '',
-      email: data.metadata?.clientEmail || '',
-      phone: data.metadata?.clientPhone || phone
-    };
-
-    const payload = {
+    // 🔒 CONFORMIDADE OPENAPI 3.1.0: C2BRequest possui additionalProperties: false
+    // Apenas phone, amount, currency, reference e description são permitidos no payload da Kivora.
+    const payload: {
+      phone: string;
+      amount: number;
+      currency: string;
+      reference: string;
+      description?: string;
+    } = {
       phone,
-      amount: data.amount,
+      amount: Number(data.amount),
       currency: data.currency || 'MZN',
-      reference: data.reference,
-      description: data.description,
-      senderName: data.senderName || 'WEHOSTHERE', // Nome da entidade que aparece no telemóvel
-      customer: (customerData.name || customerData.email) ? {
-        name: customerData.name || undefined,
-        email: customerData.email || undefined,
-        phone: customerData.phone || undefined
-      } : undefined,
-      metadata: {
-        ...data.metadata,
-        clientName: customerData.name || undefined,
-        clientEmail: customerData.email || undefined,
-        clientPhone: customerData.phone || undefined,
-        customerName: customerData.name || undefined,
-        customerEmail: customerData.email || undefined,
-        name: customerData.name || undefined,
-        email: customerData.email || undefined
-      }
+      reference: (data.reference || `REF_${Date.now()}`).slice(0, 128),
+      ...(data.description ? { description: String(data.description).slice(0, 255) } : {})
     };
 
     try {
