@@ -1,9 +1,99 @@
 import { NextResponse } from 'next/server';
+import crypto from 'crypto';
 import { connectDB } from '@/lib/mongodb';
 import WebhookEventModel from '@/lib/models/WebhookEvent';
 import OrderModel from '@/lib/models/Order';
 import { apiEndpoint } from '@/lib/siteConfig';
 
+const KIVORA_WEBHOOK_SECRET = process.env.KIVORA_WEBHOOK_SECRET || 'whsec_Wr7vSNrJGVNcso7rR7gRM8IpPY9OZMQb';
+
+// 🔒 SEGURANÇA: Validação criptográfica da assinatura HMAC-SHA256 da Kivora
+function verifyKivoraSignature(rawBody: string, req: Request): { valid: boolean; reason?: string } {
+  const secret = KIVORA_WEBHOOK_SECRET;
+  if (!secret) {
+    return { valid: true };
+  }
+
+  const headers = req.headers;
+  const url = new URL(req.url);
+  const querySecret = url.searchParams.get('secret');
+
+  // 1. Verificação por parâmetro secreto na URL (?secret=whsec_...)
+  if (querySecret && querySecret === secret) {
+    return { valid: true };
+  }
+
+  // 2. Verificação por cabeçalho secreto direto (x-webhook-secret / x-kivora-secret)
+  const directSecret = headers.get('x-webhook-secret') || headers.get('x-kivora-secret');
+  if (directSecret && directSecret === secret) {
+    return { valid: true };
+  }
+
+  // 3. Verificação por Authorization Bearer
+  const authHeader = headers.get('authorization');
+  if (authHeader && (authHeader === `Bearer ${secret}` || authHeader === secret)) {
+    return { valid: true };
+  }
+
+  // 4. Verificação por cabeçalhos padrão de assinatura HMAC-SHA256
+  const signatureHeader = 
+    headers.get('x-kivora-signature') ||
+    headers.get('kivora-signature') ||
+    headers.get('x-signature') ||
+    headers.get('webhook-signature') ||
+    headers.get('x-webhook-signature');
+
+  if (!signatureHeader) {
+    return { valid: false, reason: 'Assinatura ou segredo ausente nos cabeçalhos' };
+  }
+
+  try {
+    // Caso especial: o gateway enviou o próprio segredo no cabeçalho de assinatura
+    if (signatureHeader === secret) {
+      return { valid: true };
+    }
+
+    // Formato com timestamp (t=timestamp,v1=signature)
+    if (signatureHeader.includes('v1=') && signatureHeader.includes('t=')) {
+      const parts = signatureHeader.split(',');
+      const timestampPart = parts.find(p => p.trim().startsWith('t='))?.trim().slice(2);
+      const signaturePart = parts.find(p => p.trim().startsWith('v1='))?.trim().slice(3);
+
+      if (timestampPart && signaturePart) {
+        const payloadToSign = `${timestampPart}.${rawBody}`;
+        const hmac = crypto.createHmac('sha256', secret);
+        const expected = hmac.update(payloadToSign).digest('hex');
+        const expectedBuf = Buffer.from(expected, 'hex');
+        const receivedBuf = Buffer.from(signaturePart, 'hex');
+        if (expectedBuf.length === receivedBuf.length && crypto.timingSafeEqual(expectedBuf, receivedBuf)) {
+          return { valid: true };
+        }
+      }
+    }
+
+    // Formato HMAC Hexadecimal direto
+    const cleanSignature = signatureHeader.replace(/^sha256=/, '').trim();
+    const hmacHex = crypto.createHmac('sha256', secret).update(rawBody).digest('hex');
+    const expectedHexBuf = Buffer.from(hmacHex, 'utf-8');
+    const receivedHexBuf = Buffer.from(cleanSignature, 'utf-8');
+    if (expectedHexBuf.length === receivedHexBuf.length && crypto.timingSafeEqual(expectedHexBuf, receivedHexBuf)) {
+      return { valid: true };
+    }
+
+    // Formato HMAC Base64
+    const hmacBase64 = crypto.createHmac('sha256', secret).update(rawBody).digest('base64');
+    const expectedB64Buf = Buffer.from(hmacBase64, 'utf-8');
+    const receivedB64Buf = Buffer.from(cleanSignature, 'utf-8');
+    if (expectedB64Buf.length === receivedB64Buf.length && crypto.timingSafeEqual(expectedB64Buf, receivedB64Buf)) {
+      return { valid: true };
+    }
+  } catch (err) {
+    console.error('[KIVORA SIGNATURE ERROR]:', err);
+    return { valid: false, reason: 'Erro ao processar assinatura' };
+  }
+
+  return { valid: false, reason: 'Assinatura inválida' };
+}
 
 // 🔒 BACKEND ROBUSTEZ: Sistema de retry para webhooks falhados
 const WEBHOOK_RETRY_ATTEMPTS = 3;
@@ -35,10 +125,29 @@ async function withRetry<T>(
 export async function POST(req: Request) {
   let processed = false;
   let errorMessage = '';
-  // Ler o body UMA SÓ VEZ antes do try — req.json() só pode ser chamado uma vez
+
+  // 1. Ler o body em texto puro para cálculo e validação do hash HMAC
+  let rawBody = '';
+  try {
+    rawBody = await req.text();
+  } catch {
+    return NextResponse.json({ error: 'Erro ao ler corpo da requisição' }, { status: 400 });
+  }
+
+  // 2. 🔒 VERIFICAÇÃO DE ASSINATURA / SEGREDO DO WEBHOOK
+  const sigCheck = verifyKivoraSignature(rawBody, req);
+  if (!sigCheck.valid) {
+    console.warn('[KIVORA WEBHOOK] ⚠️ Requisição rejeitada por segurança:', sigCheck.reason);
+    return NextResponse.json(
+      { error: 'Não autorizado: assinatura inválida ou ausente.', reason: sigCheck.reason },
+      { status: 401 }
+    );
+  }
+
+  // 3. Converter body para JSON
   let body: any = null;
   try {
-    body = await req.json();
+    body = JSON.parse(rawBody);
   } catch {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
@@ -461,11 +570,34 @@ async function updateOrderStatus(
 }
 
 // Endpoint GET para o painel admin consultar os últimos eventos de webhook registrados
-export async function GET() {
+export async function GET(req: Request) {
+  // 🔒 SEGURANÇA: Restringir acesso a chamadas autorizadas (same-origin ou token interno)
+  const origin = req.headers.get('origin');
+  const referer = req.headers.get('referer');
+  const authHeader = req.headers.get('x-internal-auth') || req.headers.get('authorization');
+  const internalSecret = process.env.NEXTAUTH_SECRET || '';
+
+  const isInternal = authHeader && (authHeader === internalSecret || authHeader === `Bearer ${internalSecret}`);
+  const isSameOrigin = (origin && (
+    origin === 'https://wehosthere.com' ||
+    origin === 'https://www.wehosthere.com' ||
+    origin === 'http://localhost:3000' ||
+    origin === 'http://localhost:3001'
+  )) || (referer && (
+    referer.startsWith('https://wehosthere.com') ||
+    referer.startsWith('https://www.wehosthere.com') ||
+    referer.startsWith('http://localhost:3000') ||
+    referer.startsWith('http://localhost:3001')
+  ));
+
+  if (!isInternal && !isSameOrigin) {
+    return NextResponse.json({ error: 'Acesso não autorizado aos registos' }, { status: 401 });
+  }
+
   try {
     await connectDB();
     const events = await WebhookEventModel.find({})
-      .sort({ receivedAt: -1 })
+      .sort({ createdAt: -1 })
       .limit(50)
       .lean();
 

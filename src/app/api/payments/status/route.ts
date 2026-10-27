@@ -29,11 +29,13 @@ export async function GET(req: Request) {
     if (reference) {
       queryConditions.push({ reference });
       queryConditions.push({ kivoraPaymentId: reference });
-      // Suportar referências com prefixo REF_ ou ORDER_
-      const cleanRef = reference.replace('REF_', '').replace('ORDER_', '');
-      if (cleanRef && cleanRef !== reference) {
-        queryConditions.push({ reference: { $regex: new RegExp(cleanRef, 'i') } });
-        queryConditions.push({ id: { $regex: new RegExp(cleanRef, 'i') } });
+      // 🔒 SEGURANÇA: Sanitizar referência e prevenir Regex Injection / ReDoS
+      const cleanRef = reference.replace(/^REF_|^ORDER_/i, '').trim();
+      // Apenas aceitar padrão alfanumérico seguro com pelo menos 3 caracteres
+      if (cleanRef && cleanRef !== reference && /^[a-zA-Z0-9_-]{3,64}$/.test(cleanRef)) {
+        const escapedRef = cleanRef.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        queryConditions.push({ reference: { $regex: new RegExp(escapedRef, 'i') } });
+        queryConditions.push({ id: { $regex: new RegExp(escapedRef, 'i') } });
       }
     }
 
