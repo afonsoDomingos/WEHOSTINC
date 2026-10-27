@@ -100,9 +100,10 @@ export async function POST(req: Request) {
 
     return NextResponse.json(result);
   } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : 'Falha ao processar pagamento via eMola';
     console.error('Erro na rota API eMola C2B (via Kivora):', error);
     return NextResponse.json(
-      { error: 'Falha ao processar pagamento via eMola' },
+      { error: errorMsg },
       { status: 500 }
     );
   }

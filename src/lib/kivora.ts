@@ -73,13 +73,22 @@ export interface KivoraError {
   };
 }
 
-const KIVORA_BASE_URL = process.env.KIVORA_BASE_URL || 'https://kivorapayments-nu.vercel.app';
+let rawBaseUrl = process.env.KIVORA_BASE_URL || 'https://www.kivorapayments.com';
+if (rawBaseUrl.includes('kivorapayments.com') && !rawBaseUrl.includes('www.kivorapayments.com')) {
+  rawBaseUrl = rawBaseUrl.replace('kivorapayments.com', 'www.kivorapayments.com');
+}
+const KIVORA_BASE_URL = rawBaseUrl.replace(/\/+$/, '');
 const KIVORA_API_KEY = process.env.KIVORA_API_KEY || '';
 
-const getHeaders = () => ({
-  'Content-Type': 'application/json',
-  'Authorization': `Bearer ${KIVORA_API_KEY}`
-});
+const getHeaders = () => {
+  if (!KIVORA_API_KEY) {
+    console.warn('[KIVORA] ATENÇÃO: KIVORA_API_KEY não está definida nas variáveis de ambiente!');
+  }
+  return {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${KIVORA_API_KEY}`
+  };
+};
 
 export const kivora = {
   // Iniciar cobrança C2B (Customer to Business)
@@ -134,8 +143,14 @@ export const kivora = {
       console.log('[KIVORA C2B] Response body:', responseText);
 
       if (!response.ok) {
-        const errorData: KivoraError = JSON.parse(responseText);
-        throw new Error(errorData.error?.message || `Erro Kivora: ${response.status}`);
+        let errorMsg = `Erro Kivora: HTTP ${response.status}`;
+        try {
+          const errorData: any = JSON.parse(responseText);
+          errorMsg = errorData.error?.message || errorData.message || errorMsg;
+        } catch {
+          if (responseText) errorMsg += ` - ${responseText.slice(0, 100)}`;
+        }
+        throw new Error(errorMsg);
       }
 
       const result: KivoraC2BResponse = JSON.parse(responseText);
