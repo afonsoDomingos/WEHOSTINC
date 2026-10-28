@@ -1329,63 +1329,49 @@ function CheckoutContent() {
           aria-modal="true"
           aria-labelledby="modal-title"
         >
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 text-center border border-gray-200 animate-in fade-in zoom-in duration-300 ease-out">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-5 sm:p-6 text-center border border-gray-100 animate-in fade-in zoom-in duration-200">
             {pushStatus === 'waiting' ? (
               <>
-                <div className="relative w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                <div className="relative w-14 h-14 mx-auto mb-3 flex items-center justify-center">
                   <div className="absolute inset-0 bg-red-100 rounded-full animate-ping opacity-75"></div>
-                  <div className="absolute inset-0 bg-red-200 rounded-full animate-pulse"></div>
-                  <div className="relative w-16 h-16 bg-red-600 text-white rounded-full flex items-center justify-center shadow-lg animate-bounce">
-                    <Smartphone className="h-8 w-8" />
+                  <div className="relative w-12 h-12 bg-red-600 text-white rounded-full flex items-center justify-center shadow-md">
+                    <Smartphone className="h-6 w-6" />
                   </div>
                 </div>
 
-                <h3 id="modal-title" className="text-xl font-bold text-gray-900 mb-2">
+                <h3 id="modal-title" className="text-lg font-bold text-gray-900 mb-1">
                   {t.authorizeOnPhone}
                 </h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  {t.pushSent} <span className="font-bold text-gray-900">{ddi} {phonePayment || whatsapp}</span>.
+                <p className="text-xs text-gray-500 mb-3">
+                  Insira o PIN no telemóvel <span className="font-semibold text-gray-800">{ddi} {phonePayment || whatsapp}</span>
                 </p>
 
-                <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 text-left text-sm text-red-900 space-y-1">
-                  <p className="font-semibold text-red-700">{t.instructions}</p>
-                  <p>{t.instruction1}</p>
-                  <p>{t.instruction2} <strong>PIN {paymentMethod.toUpperCase()}</strong> {t.instruction3} <strong>{grandTotal.toLocaleString('pt-MZ')} MT</strong>.</p>
+                <div className="bg-gray-50 border border-gray-200/80 rounded-xl py-2 px-3 mb-4 text-xs text-gray-700 font-medium">
+                  Confirmar valor de: <strong className="text-gray-900 font-bold">{grandTotal.toLocaleString('pt-MZ')} MT</strong>
                 </div>
 
-                <div className="mb-6">
-                  <div className="text-xs text-gray-400 font-semibold mb-1 uppercase tracking-wider">{t.waitingConfirmation}</div>
-                  <div className="text-3xl font-mono font-bold text-gray-800">
+                <div className="mb-4">
+                  <div className="text-2xl font-mono font-bold text-gray-800 tracking-wider">
                     00:{countdown < 10 ? `0${countdown}` : countdown}
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                  <div className="w-full bg-gray-100 rounded-full h-1.5 mt-2">
                     <div 
-                      className="bg-red-600 h-2 rounded-full transition-all duration-1000 ease-linear"
+                      className="bg-red-600 h-1.5 rounded-full transition-all duration-1000 ease-linear"
                       style={{ width: `${(countdown / 60) * 100}%` }}
                     ></div>
                   </div>
-                  {retryCount > 0 && (
-                    <div className="text-xs text-amber-600 mt-1 font-medium">
-                      {language === 'pt' ? `Tentativa ${retryCount + 1} de 3` : language === 'en' ? `Attempt ${retryCount + 1} of 3` : `Intento ${retryCount + 1} de 3`}
-                    </div>
-                  )}
                 </div>
 
                 <div className="space-y-2">
                   <button
                     type="button"
-                    onClick={() => {
-                      // 🔒 SEGURANÇA: Iniciar polling ao invés de confirmar imediatamente
-                      setIsPollingPayment(true);
-                    }}
+                    onClick={() => setIsPollingPayment(true)}
                     disabled={isPollingPayment}
-                    aria-label="Verificar pagamento"
-                    aria-busy={isPollingPayment}
-                    className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl shadow transition text-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 min-h-[52px]"
+                    className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-xs sm:text-sm shadow-sm transition flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50"
                   >
                     {isPollingPayment ? (
                       <>
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
                         <span>{t.verifyingPayment}</span>
                       </>
                     ) : (
@@ -1397,120 +1383,64 @@ function CheckoutContent() {
                     onClick={() => {
                       setPushModal(false);
                       setIsPollingPayment(false);
-                      setLoading(false); // 🔧 CORREÇÃO: garantir que o botão principal fica desbloqueado
-                    }}
-                    className="w-full py-3 text-xs font-semibold text-gray-500 hover:text-gray-800 transition min-h-[44px]"
-                  >
-                    Cancelar ou Alterar número
-                  </button>
-                </div>
-              </>
-            ) : pushStatus === 'failed' || pushStatus === 'cancelled' ? (
-              <>
-                <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-200 animate-in zoom-in-75">
-                  <XCircle className="h-9 w-9" />
-                </div>
-
-                <h3 className="text-xl font-bold text-gray-900 mb-2">
-                  {pushStatus === 'cancelled' ? 'Pagamento Cancelado' : 'Pagamento Não Concluído'}
-                </h3>
-                <p className="text-sm text-gray-600 mb-3">
-                  A transação no telemóvel <span className="font-bold text-gray-900">{ddi} {phonePayment || whatsapp}</span> não foi aprovada.
-                </p>
-
-                {pushFailureReason && (
-                  <div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-4 text-xs font-semibold text-red-800 text-center">
-                    Motivo: {pushFailureReason}
-                  </div>
-                )}
-
-                <div className="bg-gray-50 border border-gray-200 rounded-xl p-3.5 mb-6 text-left text-xs text-gray-700 space-y-1">
-                  <p className="font-semibold text-gray-900 text-xs mb-1">Dicas úteis:</p>
-                  <p>• Verifique se possui saldo suficiente no M-Pesa/e-Mola com taxas incluídas.</p>
-                  <p>• Confirme se digitou o seu código PIN de 4 dígitos corretamente.</p>
-                  <p>• Se cancelou sem querer, clique em <strong>Reenviar Notificação</strong> abaixo.</p>
-                </div>
-
-                <div className="space-y-2">
-                  <button
-                    type="button"
-                    onClick={handleRetryPush}
-                    className="w-full py-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow transition text-sm flex items-center justify-center gap-2 cursor-pointer min-h-[52px]"
-                  >
-                    <RefreshCw className="h-5 w-5" />
-                    <span>Reenviar Notificação PUSH Agora</span>
-                  </button>
-
-                  <a
-                    href={`https://wa.me/258848335618?text=${encodeURIComponent(
-                      `Olá WeHost! Tive dificuldades no pagamento M-Pesa/e-Mola (${ddi} ${phonePayment || whatsapp}) para ${
-                        domainParam ? `o domínio ${domainParam}` : selectedPlan?.name || 'serviço'
-                      } (Valor: ${(isCoursePayment ? courseAmountParam : (isAffiliateVerification ? verificationAmount : grandTotal)).toLocaleString('pt-MZ')} MT). Motivo: ${pushFailureReason || 'Falhou'}. Podem ajudar-me?`
-                    )}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow transition text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer min-h-[46px]"
-                  >
-                    <MessageCircle className="h-4 w-4" />
-                    <span>Concluir Pagamento pelo WhatsApp</span>
-                  </a>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setPushModal(false);
-                      setIsPollingPayment(false);
                       setLoading(false);
                     }}
-                    className="w-full py-3 text-xs font-semibold text-gray-600 hover:text-gray-900 border border-gray-200 rounded-xl transition min-h-[44px]"
+                    className="w-full py-1.5 text-xs text-gray-400 hover:text-gray-700 transition"
                   >
-                    {t.changeNumberOrMethod}
+                    Cancelar
                   </button>
                 </div>
               </>
             ) : (
               <>
-                <div className="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-4 border border-amber-200">
-                  <AlertCircle className="h-9 w-9" />
+                <div className="w-12 h-12 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-3 border border-red-100">
+                  {pushStatus === 'expired' ? (
+                    <Clock className="h-6 w-6 text-amber-600" />
+                  ) : (
+                    <XCircle className="h-6 w-6 text-red-600" />
+                  )}
                 </div>
 
-                <h3 className="text-xl font-bold text-gray-900 mb-2">
-                  {t.pinNotEntered}
+                <h3 className="text-base font-bold text-gray-900 mb-1">
+                  {pushStatus === 'expired' 
+                    ? 'Tempo Limite Excedido' 
+                    : pushStatus === 'cancelled' 
+                    ? 'Pagamento Cancelado' 
+                    : 'Pagamento Não Concluído'}
                 </h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  {t.noConfirmationReceived} <span className="font-bold text-gray-900">{ddi} {phonePayment || whatsapp}</span>.
+                
+                <p className="text-xs text-gray-500 mb-3">
+                  {pushStatus === 'expired'
+                    ? `Não recebemos a confirmação no ${ddi} ${phonePayment || whatsapp} a tempo.`
+                    : `A transação no ${ddi} ${phonePayment || whatsapp} não foi aprovada.`}
                 </p>
 
-                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 text-left text-xs text-amber-900 space-y-1">
-                  <p className="font-semibold text-amber-800 text-sm mb-1">{t.whatHappened}</p>
-                  <p>{t.reason1}</p>
-                  <p>{t.reason2}</p>
-                  <p>{t.reason3}</p>
-                  <p>{t.reason4}</p>
-                </div>
+                {pushFailureReason && (
+                  <div className="bg-red-50 border border-red-100 rounded-lg py-1.5 px-3 mb-4 text-[11px] font-medium text-red-700">
+                    {pushFailureReason}
+                  </div>
+                )}
 
-                <div className="space-y-2">
+                <div className="space-y-2 mt-2">
                   <button
                     type="button"
                     onClick={handleRetryPush}
-                    className="w-full py-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow transition text-sm flex items-center justify-center gap-2 cursor-pointer min-h-[52px]"
+                    className="w-full py-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl text-xs sm:text-sm shadow-sm transition flex items-center justify-center gap-2 cursor-pointer"
                   >
-                    <RefreshCw className="h-5 w-5" />
-                    {t.resendPush}
+                    <RefreshCw className="h-4 w-4" />
+                    <span>Tentar Novamente</span>
                   </button>
 
                   <a
                     href={`https://wa.me/258848335618?text=${encodeURIComponent(
-                      `Olá WeHost! Tive dificuldades com a notificação do PIN no M-Pesa/e-Mola (${ddi} ${phonePayment || whatsapp}) para ${
-                        domainParam ? `o domínio ${domainParam}` : selectedPlan?.name || 'serviço'
-                      } (Valor: ${(isCoursePayment ? courseAmountParam : (isAffiliateVerification ? verificationAmount : grandTotal)).toLocaleString('pt-MZ')} MT). Podem ajudar-me a finalizar?`
+                      `Olá WeHost! Tive dificuldades no pagamento M-Pesa/e-Mola (${ddi} ${phonePayment || whatsapp}) de ${grandTotal.toLocaleString('pt-MZ')} MT. Podem ajudar-me?`
                     )}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow transition text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer min-h-[46px]"
+                    className="w-full py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/60 font-semibold rounded-xl text-xs flex items-center justify-center gap-1.5 transition"
                   >
-                    <MessageCircle className="h-4 w-4" />
-                    <span>Concluir Pagamento pelo WhatsApp</span>
+                    <MessageCircle className="h-3.5 w-3.5" />
+                    <span>Ajuda pelo WhatsApp</span>
                   </a>
 
                   <button
@@ -1520,9 +1450,9 @@ function CheckoutContent() {
                       setIsPollingPayment(false);
                       setLoading(false);
                     }}
-                    className="w-full py-3 text-xs font-semibold text-gray-600 hover:text-gray-900 border border-gray-200 rounded-xl transition min-h-[44px]"
+                    className="w-full py-1.5 text-xs text-gray-400 hover:text-gray-700 transition"
                   >
-                    {t.changeNumberOrMethod}
+                    Alterar número ou método
                   </button>
                 </div>
               </>
