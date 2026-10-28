@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { 
   LayoutDashboard, Globe, Mail, Database, Settings as SettingsIcon, 
   LifeBuoy, Link2, FileText, Star, Package, BookOpen, Activity, Bell, Users,
-  LayoutTemplate, Sparkles, Layers
+  LayoutTemplate, Sparkles, Layers, Zap, Crown, Building2, Shield, Calendar, ArrowRight
 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { auth, User } from '@/lib/auth';
@@ -24,34 +24,63 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
     setUser(auth.getCurrentUser());
   }, []);
 
-  const getPlanBadge = (plan?: string) => {
+  const getPlanConfig = (plan?: string) => {
     switch (plan) {
       case 'enterprise':
-        return { name: 'Plano Empresarial', icon: '🏢', bg: 'bg-amber-50 text-amber-900 border-amber-200' };
+        return { 
+          name: 'Empresarial', 
+          icon: Building2, 
+          iconColor: 'text-amber-600', 
+          iconBg: 'bg-amber-100',
+          border: 'border-amber-200/90',
+          bg: 'from-amber-50/60 to-white'
+        };
       case 'pro':
-        return { name: 'Plano Profissional', icon: '🚀', bg: 'bg-purple-50 text-purple-900 border-purple-200' };
+        return { 
+          name: 'Profissional', 
+          icon: Crown, 
+          iconColor: 'text-purple-600', 
+          iconBg: 'bg-purple-100',
+          border: 'border-purple-200/90',
+          bg: 'from-purple-50/60 to-white'
+        };
       case 'basic':
-        return { name: 'Plano Básico', icon: '⭐', bg: 'bg-blue-50 text-blue-900 border-blue-200' };
+        return { 
+          name: 'Plano Básico', 
+          icon: Zap, 
+          iconColor: 'text-blue-600', 
+          iconBg: 'bg-blue-100',
+          border: 'border-blue-200/90',
+          bg: 'from-blue-50/60 to-white'
+        };
       default:
-        return { name: 'Sem Plano Ativo', icon: '⚪', bg: 'bg-gray-50 text-gray-700 border-gray-200' };
+        return { 
+          name: 'Sem Plano', 
+          icon: Shield, 
+          iconColor: 'text-gray-500', 
+          iconBg: 'bg-gray-100',
+          border: 'border-gray-200',
+          bg: 'from-gray-50/60 to-white'
+        };
     }
   };
 
-  const getStatusBadge = (status?: string) => {
+  const getStatusConfig = (status?: string) => {
     switch (status) {
       case 'active':
-        return { text: 'Ativo', color: 'text-emerald-700 bg-emerald-100 border-emerald-300' };
+        return { text: 'Ativo', badge: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500' };
       case 'suspended':
-        return { text: 'Suspenso', color: 'text-rose-700 bg-rose-100 border-rose-300' };
+        return { text: 'Suspenso', badge: 'bg-rose-50 text-rose-700 border-rose-200', dot: 'bg-rose-500' };
       case 'pending':
-        return { text: 'Pendente', color: 'text-amber-700 bg-amber-100 border-amber-300' };
+        return { text: 'Pendente', badge: 'bg-amber-50 text-amber-700 border-amber-200', dot: 'bg-amber-500' };
       default:
-        return { text: 'Ativo', color: 'text-emerald-700 bg-emerald-100 border-emerald-300' };
+        return { text: 'Ativo', badge: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500' };
     }
   };
 
-  const planInfo = getPlanBadge(user?.plan);
-  const statusInfo = getStatusBadge(user?.status);
+  const planInfo = getPlanConfig(user?.plan);
+  const statusInfo = getStatusConfig(user?.status);
+  const PlanIcon = planInfo.icon;
 
   const navItems = [
     { href: '/dashboard', label: t('dash.nav_dashboard'), icon: LayoutDashboard },
@@ -73,32 +102,42 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
   ];
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
-      {/* Card do Plano Atual do Cliente */}
+    <div className="bg-white rounded-xl shadow-sm p-3.5 sm:p-5">
+      {/* Micro-Card Compacto do Plano Atual */}
       {user && (
-        <div className={`mb-4 p-3.5 rounded-xl border shadow-2xs ${planInfo.bg}`}>
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Plano Atual</span>
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${statusInfo.color}`}>
+        <div className={`mb-3 p-2.5 rounded-xl border bg-gradient-to-b ${planInfo.bg} ${planInfo.border} shadow-2xs`}>
+          <div className="flex items-center justify-between gap-1.5">
+            <div className="flex items-center space-x-1.5 min-w-0">
+              <div className={`p-1 rounded-md shrink-0 ${planInfo.iconBg}`}>
+                <PlanIcon className={`h-3.5 w-3.5 ${planInfo.iconColor}`} />
+              </div>
+              <span className="text-xs font-extrabold text-gray-900 truncate">{planInfo.name}</span>
+            </div>
+            <span className={`inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full border shrink-0 ${statusInfo.badge}`}>
+              <span className={`w-1 h-1 rounded-full ${statusInfo.dot}`}></span>
               {statusInfo.text}
             </span>
           </div>
-          <div className="flex items-center space-x-2">
-            <span className="text-lg">{planInfo.icon}</span>
-            <span className="text-sm font-extrabold text-gray-900">{planInfo.name}</span>
+
+          <div className="mt-2 pt-1.5 border-t border-gray-100 flex items-center justify-between text-[10px] text-gray-500">
+            {user.dueDate ? (
+              <span className="flex items-center gap-1 text-gray-500 truncate">
+                <Calendar className="h-2.5 w-2.5 text-gray-400 shrink-0" />
+                <span>Vence dia <strong className="text-gray-800">{user.dueDate}</strong></span>
+              </span>
+            ) : (
+              <span className="text-gray-400">Mensal</span>
+            )}
+            <Link
+              href="/dashboard/billing"
+              className="flex items-center gap-1 font-bold text-primary-700 hover:text-primary-800 transition group ml-auto shrink-0"
+              title="Baixar faturas e recibos"
+            >
+              <FileText className="h-2.5 w-2.5 text-primary-600" />
+              <span>Faturas</span>
+              <ArrowRight className="h-2.5 w-2.5 group-hover:translate-x-0.5 transition-transform" />
+            </Link>
           </div>
-          {user.dueDate && (
-            <p className="text-[11px] text-gray-600 mt-1">
-              Vencimento: <strong className="text-gray-900 font-bold">Dia {user.dueDate}</strong> de cada mês
-            </p>
-          )}
-          <Link
-            href="/dashboard/billing"
-            className="mt-2.5 flex items-center justify-between text-xs font-bold text-primary-700 hover:text-primary-800 transition group pt-2 border-t border-gray-200/60"
-          >
-            <span>📄 Baixar Faturas &amp; Recibos</span>
-            <span className="group-hover:translate-x-0.5 transition-transform text-primary-600 font-bold">➔</span>
-          </Link>
         </div>
       )}
 

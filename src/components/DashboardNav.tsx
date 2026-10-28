@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { 
   Server, LayoutDashboard, Globe, Mail, 
   Database, Settings as SettingsIcon, LogOut, Menu, X, User, LifeBuoy, Sparkles, Link2, RefreshCw, FileText, Star, Package, BookOpen, Bell, Users, Activity,
-  LayoutTemplate, Layers
+  LayoutTemplate, Layers, Zap, Crown, Building2, Shield
 } from 'lucide-react';
 
 import BrandLogo from '@/components/BrandLogo';
@@ -38,31 +38,32 @@ export default function DashboardNav({ userName, userAvatar, onLogout, onRefresh
   const getPlanBadge = (plan?: string) => {
     switch (plan) {
       case 'enterprise':
-        return { name: 'Plano Empresarial', icon: '🏢', bg: 'bg-amber-50 text-amber-900 border-amber-300 hover:bg-amber-100' };
+        return { name: 'Empresarial', icon: Building2, iconColor: 'text-amber-600', bg: 'bg-amber-50 text-amber-900 border-amber-200 hover:bg-amber-100' };
       case 'pro':
-        return { name: 'Plano Profissional', icon: '🚀', bg: 'bg-purple-50 text-purple-900 border-purple-300 hover:bg-purple-100' };
+        return { name: 'Profissional', icon: Crown, iconColor: 'text-purple-600', bg: 'bg-purple-50 text-purple-900 border-purple-200 hover:bg-purple-100' };
       case 'basic':
-        return { name: 'Plano Básico', icon: '⭐', bg: 'bg-blue-50 text-blue-900 border-blue-300 hover:bg-blue-100' };
+        return { name: 'Plano Básico', icon: Zap, iconColor: 'text-blue-600', bg: 'bg-blue-50 text-blue-900 border-blue-200 hover:bg-blue-100' };
       default:
-        return { name: 'Sem Plano Ativo', icon: '⚪', bg: 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200' };
+        return { name: 'Sem Plano', icon: Shield, iconColor: 'text-gray-500', bg: 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100' };
     }
   };
 
   const getStatusBadge = (status?: string) => {
     switch (status) {
       case 'active':
-        return { text: 'Ativo', color: 'text-emerald-700 bg-emerald-100 border-emerald-300' };
+        return { text: 'Ativo', color: 'text-emerald-700 bg-emerald-50 border-emerald-200', dot: 'bg-emerald-500' };
       case 'suspended':
-        return { text: 'Suspenso', color: 'text-rose-700 bg-rose-100 border-rose-300' };
+        return { text: 'Suspenso', color: 'text-rose-700 bg-rose-50 border-rose-200', dot: 'bg-rose-500' };
       case 'pending':
-        return { text: 'Pendente', color: 'text-amber-700 bg-amber-100 border-amber-300' };
+        return { text: 'Pendente', color: 'text-amber-700 bg-amber-50 border-amber-200', dot: 'bg-amber-500' };
       default:
-        return { text: 'Ativo', color: 'text-emerald-700 bg-emerald-100 border-emerald-300' };
+        return { text: 'Ativo', color: 'text-emerald-700 bg-emerald-50 border-emerald-200', dot: 'bg-emerald-500' };
     }
   };
 
   const planBadge = getPlanBadge(currentUser?.plan);
   const statusBadge = getStatusBadge(currentUser?.status);
+  const NavPlanIcon = planBadge.icon;
 
   const handleRefreshClick = () => {
     setIsRefreshing(true);
@@ -145,12 +146,13 @@ export default function DashboardNav({ userName, userAvatar, onLogout, onRefresh
               {currentUser && (
                 <Link
                   href="/dashboard/billing"
-                  className={`hidden sm:flex items-center space-x-2 px-3 py-1.5 text-xs font-bold rounded-lg border transition shadow-2xs cursor-pointer ${planBadge.bg}`}
+                  className={`hidden sm:flex items-center space-x-2 px-2.5 py-1.5 text-xs font-bold rounded-lg border transition shadow-2xs cursor-pointer ${planBadge.bg}`}
                   title="Ver detalhes do plano, faturamento e renovação"
                 >
-                  <span className="text-sm">{planBadge.icon}</span>
+                  <NavPlanIcon className={`h-3.5 w-3.5 ${planBadge.iconColor}`} />
                   <span className="font-extrabold">{planBadge.name}</span>
-                  <span className={`inline-flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded-full border ${statusBadge.color}`}>
+                  <span className={`inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${statusBadge.color}`}>
+                    <span className={`w-1 h-1 rounded-full ${statusBadge.dot}`}></span>
                     {statusBadge.text}
                   </span>
                 </Link>
@@ -236,17 +238,20 @@ export default function DashboardNav({ userName, userAvatar, onLogout, onRefresh
               <Link
                 href="/dashboard/billing"
                 onClick={closeMobileMenu}
-                className={`flex items-center justify-between p-3 rounded-xl border text-xs font-bold transition ${planBadge.bg}`}
+                className={`flex items-center justify-between p-2.5 rounded-xl border text-xs font-bold transition ${planBadge.bg}`}
               >
                 <div className="flex items-center space-x-2.5">
-                  <span className="text-lg">{planBadge.icon}</span>
+                  <div className="p-1.5 rounded-lg bg-white/80 border border-gray-200/60 shadow-2xs">
+                    <NavPlanIcon className={`h-4 w-4 ${planBadge.iconColor}`} />
+                  </div>
                   <div>
                     <p className="text-[10px] uppercase font-bold text-gray-500">Meu Plano</p>
                     <p className="text-xs font-extrabold text-gray-900">{planBadge.name}</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${statusBadge.color}`}>
+                  <span className={`inline-flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-full border ${statusBadge.color}`}>
+                    <span className={`w-1 h-1 rounded-full ${statusBadge.dot}`}></span>
                     {statusBadge.text}
                   </span>
                   <span className="text-gray-400 text-xs">➔</span>
