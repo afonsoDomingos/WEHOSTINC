@@ -401,7 +401,7 @@ function CheckoutContent() {
             setIsPollingPayment(false);
             setLoading(false);
             setPushStatus(data.status === 'cancelled' ? 'cancelled' : 'failed');
-            setPushFailureReason(data.failureReason || 'Transação cancelada no telemóvel ou saldo insuficiente');
+            setPushFailureReason(data.failureReason || 'PIN incorreto, saldo insuficiente ou cancelado no telemóvel');
             setRetryCount(0);
             setError(data.failureReason || 'Pagamento não foi confirmado. Por favor, tente novamente.');
           } else {
