@@ -22,6 +22,7 @@ export default function DomainSearch({ onFocusChange }: DomainSearchProps = {}) 
   const [selectedTld, setSelectedTld] = useState('.co.mz');
   const [isSearching, setIsSearching] = useState(false);
   const [result, setResult] = useState<DomainCheckResult | null>(null);
+  const [showFullOptions, setShowFullOptions] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedHostingPlan, setSelectedHostingPlan] = useState<'basic' | 'pro' | 'enterprise'>('basic');
   const [hostingCycle, setHostingCycle] = useState<'annual' | 'monthly'>('monthly');
@@ -131,6 +132,7 @@ export default function DomainSearch({ onFocusChange }: DomainSearchProps = {}) 
     soundEffects.playClickSound();
     setQuery('');
     setResult(null);
+    setShowFullOptions(false);
     setIsSearching(false);
     setIsFocused(false);
     setShowSuggestions(false);
@@ -183,6 +185,7 @@ export default function DomainSearch({ onFocusChange }: DomainSearchProps = {}) 
     setNetworkError(null);
     setIsSearching(true);
     setShowSuggestions(false);
+    setShowFullOptions(false);
     setResult(null);
 
     let fullQuery = query.trim();
@@ -490,8 +493,34 @@ export default function DomainSearch({ onFocusChange }: DomainSearchProps = {}) 
             </div>
           </div>
 
-          {/* Opções de Contratação com Preços Transparentes */}
-          {result.isAvailable && (
+          {/* Botão de Expansão/Colapso para manter a tela limpa */}
+          <div className="mt-3 pt-2.5 border-t border-gray-100 flex items-center justify-center">
+            <button
+              type="button"
+              onClick={() => {
+                soundEffects.playClickSound();
+                setShowFullOptions(prev => !prev);
+              }}
+              className="inline-flex items-center gap-2 px-4 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-bold text-gray-700 bg-gray-50 hover:bg-emerald-50 hover:text-emerald-800 border border-gray-200/90 hover:border-emerald-300 shadow-xs transition-all duration-200 cursor-pointer group select-none hover:shadow-sm"
+              aria-expanded={showFullOptions}
+            >
+              <Sparkles className="w-3.5 h-3.5 text-emerald-600 group-hover:scale-110 transition-transform" />
+              <span>
+                {showFullOptions 
+                  ? 'Ocultar opções e alternativas' 
+                  : (result.isAvailable 
+                      ? 'Ver pacotes com hospedagem, criação de site & outras extensões' 
+                      : 'Ver sugestões e outras extensões disponíveis')}
+              </span>
+              <ChevronDown className={`w-4 h-4 text-gray-400 group-hover:text-emerald-700 transition-transform duration-300 ${showFullOptions ? 'rotate-180' : ''}`} />
+            </button>
+          </div>
+
+          {/* Conteúdo Expansível (Opções de Contratação, Sugestões IA e Alternativas) */}
+          {showFullOptions && (
+            <div className="mt-4 sm:mt-5 pt-3 border-t border-gray-100 animate-in fade-in slide-in-from-top-2 duration-300 space-y-4 sm:space-y-6">
+              {/* Opções de Contratação com Preços Transparentes */}
+              {result.isAvailable && (
             <div className="mt-4 sm:mt-5">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 sm:gap-3.5">
                 {/* Opção 1: Apenas Domínio */}
@@ -766,6 +795,8 @@ export default function DomainSearch({ onFocusChange }: DomainSearchProps = {}) 
                   </div>
                 ))}
               </div>
+            </div>
+          )}
             </div>
           )}
         </div>
