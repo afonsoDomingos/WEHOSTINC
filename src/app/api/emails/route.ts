@@ -61,10 +61,26 @@ export async function GET() {
       try {
         const provider = getEmailProvider();
         if (provider.isConfigured()) {
-          const migaduDomainNames = dbDomains.map(d => d.domainName).filter(Boolean);
-          if (!migaduDomainNames.includes('wehosthere.com')) {
-            migaduDomainNames.push('wehosthere.com');
-          }
+          const migaduDomainSet = new Set<string>();
+          dbDomains.forEach(d => { if (d.domainName) migaduDomainSet.add(d.domainName.toLowerCase().trim()); });
+          try {
+            const SiteModel = (await import('@/lib/models/Site')).default;
+            const dbSites = await SiteModel.find({}).lean();
+            dbSites.forEach((s: any) => { if (s.domain) migaduDomainSet.add(s.domain.toLowerCase().trim()); });
+          } catch {}
+          migaduDomainSet.add('wehosthere.com');
+
+          try {
+            const liveDomains = await provider.listDomains();
+            if (Array.isArray(liveDomains)) {
+              liveDomains.forEach((ld: any) => {
+                const dn = (ld.domainName || ld.name || '').toLowerCase().trim();
+                if (dn) migaduDomainSet.add(dn);
+              });
+            }
+          } catch {}
+
+          const migaduDomainNames = Array.from(migaduDomainSet);
           for (const dName of migaduDomainNames) {
             try {
               const cleanDName = dName.toLowerCase().trim();

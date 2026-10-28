@@ -30,6 +30,22 @@ export async function GET(
     const provider = getEmailProvider();
     let providerMailboxes: any[] = [];
 
+    // Resolver o dono legítimo deste domínio (cliente associado)
+    let domainOwner = 'admin@wehosthere.com';
+    try {
+      const SiteModel = (await import('@/lib/models/Site')).default;
+      const matchingSite = await SiteModel.findOne({
+        domain: { $regex: new RegExp(`^${domainName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') }
+      }).lean();
+      if (matchingSite && (matchingSite as any).userEmail) {
+        domainOwner = (matchingSite as any).userEmail.trim().toLowerCase();
+      } else if (domain && (domain as any).customerId && (domain as any).customerId !== 'system') {
+        domainOwner = (domain as any).customerId.trim().toLowerCase();
+      }
+    } catch (ownerErr) {
+      console.warn('[Migadu Mailboxes] Erro ao identificar dono do domínio:', ownerErr);
+    }
+
     if (provider.isConfigured()) {
       try {
         providerMailboxes = await provider.listMailboxes(domainName);
@@ -57,7 +73,7 @@ export async function GET(
             { email: emailLower },
             {
               domainId: domain._id.toString(),
-              customerId: mb.customerId || 'system',
+              customerId: mb.customerId || domainOwner || 'system',
               localPart,
               email: emailLower,
               name: mb.name || localPart,
@@ -71,7 +87,7 @@ export async function GET(
             { upsert: true, new: true }
           );
 
-          // Sync into EmailAccountModel
+          // Sync into EmailAccountModel with legitimate owner email
           await EmailAccountModel.findOneAndUpdate(
             { email: emailLower },
             {
@@ -79,7 +95,7 @@ export async function GET(
               email: emailLower,
               domain: domainName,
               status: mb.status || 'active',
-              userEmail: 'admin@wehosthere.com',
+              userEmail: domainOwner,
               createdAt: new Date().toISOString()
             },
             { upsert: true, new: true }

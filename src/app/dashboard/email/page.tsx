@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
@@ -96,6 +96,104 @@ export default function EmailPage() {
   // Toast State
   const [toastMsg, setToastMsg] = useState<{ title?: string; message: string; type: 'success' | 'error' | 'warning' | 'info' } | null>(null);
   const [deleteEmailConfirm, setDeleteEmailConfirm] = useState<{ isOpen: boolean; id: string; emailStr?: string } | null>(null);
+  const [isSyncingMigadu, setIsSyncingMigadu] = useState(false);
+
+  const refreshData = useCallback((newEmails?: EmailAccount[], overrideUserEmail?: string) => {
+    const userEmailFilter = overrideUserEmail || user?.email || auth.getCurrentUser()?.email || '';
+    if (!userEmailFilter) return;
+
+    const rawEmails = newEmails || dataManager.getEmails(userEmailFilter);
+    const loadedEmails = rawEmails.map(email => ({
+      ...email,
+      storage: email.storage || 1
+    }));
+    
+    loadedEmails.forEach(email => {
+      const prevStatus = prevEmailStatusRef.current[email.email];
+      if (prevStatus === 'pending' && email.status === 'active') {
+        setCelebration({ show: true, name: email.email });
+      }
+      prevEmailStatusRef.current[email.email] = email.status;
+    });
+
+    setEmails(loadedEmails);
+    const loadedSites = dataManager.getSites().filter(s =>
+      !s.userEmail || s.userEmail.toLowerCase() === userEmailFilter.toLowerCase()
+    );
+    setSites(loadedSites);
+    const siteDomains = loadedSites.map(s => s.domain).filter(Boolean);
+    setUserDomains(prev => Array.from(new Set([...prev, ...siteDomains])));
+  }, [user?.email]);
+
+  const fetchMigaduDomains = useCallback(async (overrideUserEmail?: string) => {
+    const userEmailFilter = overrideUserEmail || user?.email || auth.getCurrentUser()?.email || '';
+    if (!userEmailFilter) return;
+
+    // 1. Obter todos os domínios pertencentes ao cliente a partir de Meus Sites
+    const userSiteDomains = dataManager.getSites().filter(s =>
+      !s.userEmail || s.userEmail.toLowerCase() === userEmailFilter.toLowerCase()
+    ).map(s => (s.domain || '').trim().toLowerCase()).filter(Boolean);
+
+    let migaduDomainNames: string[] = [];
+
+    try {
+      const response = await fetch('/api/email-providers/migadu/domains');
+      const data = await response.json();
+      if (data.success && Array.isArray(data.domains)) {
+        setMigaduDomains(data.domains);
+        const cleanUser = userEmailFilter.toLowerCase();
+        const userDoms = data.domains.filter((d: any) => 
+          !d.customerId || 
+          d.customerId === 'system' || 
+          d.customerId.toLowerCase() === cleanUser
+        );
+        migaduDomainNames = (userDoms.length > 0 ? userDoms : data.domains).map((d: any) => d.domainName).filter(Boolean);
+      }
+    } catch (error) {
+      console.error('Failed to fetch Migadu domains:', error);
+    }
+
+    // Unir domínios do cliente vindos do Migadu e de Meus Sites
+    const allActiveDomains = Array.from(new Set([...migaduDomainNames, ...userSiteDomains]));
+    if (allActiveDomains.length > 0) {
+      setUserDomains(prev => Array.from(new Set([...prev, ...allActiveDomains])));
+      setSelectedDomain(prev => prev || allActiveDomains[0]);
+    }
+
+    // Sincronizar ao vivo as caixas de correio do Migadu para cada domínio do cliente
+    for (const dName of allActiveDomains) {
+      try {
+        const mbRes = await fetch(`/api/email-providers/migadu/domains/${dName}/mailboxes`);
+        const mbData = await mbRes.json();
+        const mailboxes = mbData.mailboxes || mbData || [];
+        if (Array.isArray(mailboxes) && mailboxes.length > 0) {
+          const currentLocal = dataManager.getEmails(userEmailFilter);
+          let addedCount = 0;
+          for (const mb of mailboxes) {
+            const fullEmail = (mb.email || `${mb.localPart || mb.local_part}@${dName}`).toLowerCase().trim();
+            if (fullEmail && !currentLocal.some(e => e.email.toLowerCase() === fullEmail)) {
+              const newAcc: EmailAccount = {
+                id: `email_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+                email: fullEmail,
+                domain: dName,
+                storage: 1,
+                status: 'active',
+                userEmail: userEmailFilter,
+                createdAt: new Date().toISOString()
+              };
+              dataManager.addEmail(newAcc);
+              addedCount++;
+            }
+          }
+          if (addedCount > 0) {
+            refreshData(undefined, userEmailFilter);
+          }
+        }
+      } catch (syncErr) {
+        console.warn(`[Email Sync] Erro ao sincronizar caixas de ${dName}:`, syncErr);
+      }
+    }
+  }, [user?.email, refreshData]);
 
   useEffect(() => {
     if (status === 'loading') return;
@@ -135,82 +233,7 @@ export default function EmailPage() {
 
     dataManager.initUserEmails(userEmailFilter);
 
-    const fetchMigaduDomains = async () => {
-      try {
-        const response = await fetch('/api/email-providers/migadu/domains');
-        const data = await response.json();
-        if (data.success) {
-          setMigaduDomains(data.domains);
-          const cleanUser = userEmailFilter.toLowerCase();
-          const userDoms = data.domains.filter((d: any) => 
-            !d.customerId || 
-            d.customerId === 'system' || 
-            d.customerId.toLowerCase() === cleanUser
-          );
-          const migaduDomainNames: string[] = (userDoms.length > 0 ? userDoms : data.domains).map((d: any) => d.domainName).filter(Boolean);
-          setUserDomains(prev => Array.from(new Set([...prev, ...migaduDomainNames])));
-          if (migaduDomainNames.length > 0 && !selectedDomain) {
-            setSelectedDomain(migaduDomainNames[0]);
-          }
-
-          for (const dName of migaduDomainNames) {
-            try {
-              const mbRes = await fetch(`/api/email-providers/migadu/domains/${dName}/mailboxes`);
-              const mbData = await mbRes.json();
-              const mailboxes = mbData.mailboxes || mbData || [];
-              if (Array.isArray(mailboxes) && mailboxes.length > 0) {
-                const currentLocal = dataManager.getEmails(userEmailFilter);
-                for (const mb of mailboxes) {
-                  const fullEmail = (mb.email || `${mb.localPart || mb.local_part}@${dName}`).toLowerCase().trim();
-                  if (fullEmail && !currentLocal.some(e => e.email.toLowerCase() === fullEmail)) {
-                    const newAcc: EmailAccount = {
-                      id: `email_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
-                      email: fullEmail,
-                      domain: dName,
-                      storage: 1,
-                      status: 'active',
-                      userEmail: userEmailFilter,
-                      createdAt: new Date().toISOString()
-                    };
-                    dataManager.addEmail(newAcc);
-                  }
-                }
-                refreshData();
-              }
-            } catch {}
-          }
-        }
-      } catch (error) {
-        console.error('Failed to fetch Migadu domains:', error);
-      }
-    };
-
-    const refreshData = (newEmails?: EmailAccount[]) => {
-      const rawEmails = newEmails || dataManager.getEmails(userEmailFilter);
-      
-      const loadedEmails = rawEmails.map(email => ({
-        ...email,
-        storage: email.storage || 1
-      }));
-      
-      loadedEmails.forEach(email => {
-        const prevStatus = prevEmailStatusRef.current[email.email];
-        if (prevStatus === 'pending' && email.status === 'active') {
-          setCelebration({ show: true, name: email.email });
-        }
-        prevEmailStatusRef.current[email.email] = email.status;
-      });
-
-      setEmails(loadedEmails);
-      const loadedSites = dataManager.getSites().filter(s =>
-        !s.userEmail || s.userEmail.toLowerCase() === userEmailFilter.toLowerCase()
-      );
-      setSites(loadedSites);
-      const siteDomains = loadedSites.map(s => s.domain).filter(Boolean);
-      setUserDomains(prev => Array.from(new Set([...prev, ...siteDomains])));
-    };
-
-    refreshData();
+    refreshData(undefined, userEmailFilter);
     const initialSites = dataManager.getSites().filter(s =>
       !s.userEmail || s.userEmail.toLowerCase() === userEmailFilter.toLowerCase()
     );
@@ -222,15 +245,15 @@ export default function EmailPage() {
     setCached('email:accounts', dataManager.getEmails(userEmailFilter));
     setCached('email:sites', initialSites);
 
-    fetchMigaduDomains();
+    fetchMigaduDomains(userEmailFilter);
 
-    dataManager.fetchEmailsAsync(userEmailFilter).then(emails => refreshData(emails));
-    dataManager.fetchSitesAsync().then(() => refreshData());
+    dataManager.fetchEmailsAsync(userEmailFilter).then(emails => refreshData(emails, userEmailFilter));
+    dataManager.fetchSitesAsync().then(() => refreshData(undefined, userEmailFilter));
 
     const syncAllData = () => {
-      dataManager.fetchEmailsAsync(userEmailFilter).then(emails => refreshData(emails));
-      dataManager.fetchSitesAsync().then(() => refreshData());
-      fetchMigaduDomains();
+      dataManager.fetchEmailsAsync(userEmailFilter).then(emails => refreshData(emails, userEmailFilter));
+      dataManager.fetchSitesAsync().then(() => refreshData(undefined, userEmailFilter));
+      fetchMigaduDomains(userEmailFilter);
     };
 
     const interval = setInterval(syncAllData, 10000);
@@ -241,7 +264,7 @@ export default function EmailPage() {
       window.removeEventListener('focus', syncAllData);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session, status, router]);
+  }, [session, status, router, fetchMigaduDomains, refreshData]);
 
   // Carregar Aliases do domínio atual quando alternar para a aba de aliases ou mudar domínio
   const currentActiveDomain: string = (selectedDomain || userDomains[0] || (emails.length > 0 ? (emails[0].domain || '') : '')) || '';
@@ -647,13 +670,34 @@ export default function EmailPage() {
                   </div>
 
                   {activeTab === 'mailboxes' && (
-                    <button
-                      onClick={() => setShowCreateModal(true)}
-                      className="flex items-center justify-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-xs transition cursor-pointer shrink-0"
-                    >
-                      <Plus className="h-4 w-4" />
-                      <span>Nova Conta de Email</span>
-                    </button>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        onClick={async () => {
+                          setIsSyncingMigadu(true);
+                          try {
+                            await fetchMigaduDomains();
+                            setToastMsg({ type: 'success', message: 'Sincronização com o Migadu concluída!' });
+                          } catch {
+                            setToastMsg({ type: 'error', message: 'Erro ao sincronizar com o Migadu.' });
+                          } finally {
+                            setIsSyncingMigadu(false);
+                          }
+                        }}
+                        disabled={isSyncingMigadu}
+                        className="flex items-center justify-center space-x-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs sm:text-sm px-3.5 py-2.5 rounded-xl transition cursor-pointer disabled:opacity-60"
+                        title="Puxar contas de e-mail existentes diretamente do Migadu"
+                      >
+                        <RefreshCw className={`h-4 w-4 ${isSyncingMigadu ? 'animate-spin text-blue-600' : ''}`} />
+                        <span className="hidden sm:inline">Sincronizar Migadu</span>
+                      </button>
+                      <button
+                        onClick={() => setShowCreateModal(true)}
+                        className="flex items-center justify-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-xs transition cursor-pointer"
+                      >
+                        <Plus className="h-4 w-4" />
+                        <span>Nova Conta de Email</span>
+                      </button>
+                    </div>
                   )}
 
                   {activeTab === 'aliases' && (
