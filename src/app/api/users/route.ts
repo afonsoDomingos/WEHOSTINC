@@ -476,6 +476,23 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true, users: FALLBACK_USERS });
     }
 
+    if (action === 'update_plan') {
+      const targetId = String(userId || body.id || '').trim();
+      const targetEmail = (body.email || body.userEmail || '').trim().toLowerCase();
+      const targetPlan = plan || body.plan || 'basic';
+      if (useMongo) {
+        const filter = buildUserFilter(targetId, targetEmail);
+        await UserModel.updateMany(filter, { plan: targetPlan, status: 'active' });
+        const users = await UserModel.find({}).lean();
+        return NextResponse.json({ success: true, users });
+      }
+      FALLBACK_USERS = FALLBACK_USERS.map(u =>
+        (targetId && (u.id === targetId || u.id.toLowerCase() === targetId.toLowerCase())) || (targetEmail && u.email.toLowerCase() === targetEmail)
+          ? { ...u, plan: targetPlan, status: 'active' } : u
+      );
+      return NextResponse.json({ success: true, users: FALLBACK_USERS });
+    }
+
     if (action === 'update_due_date') {
       const targetId = String(userId || body.id || '').trim();
       const targetEmail = (body.email || body.userEmail || '').trim().toLowerCase();

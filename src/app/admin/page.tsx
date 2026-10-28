@@ -900,16 +900,13 @@ export default function AdminPage() {
     const targetOrder = orders.find(o => o.id === id);
     if (!targetOrder) return;
 
-    // 🔒 SEGURANÇA: Impedir alteração manual de status para M-Pesa/eMola
-    // Apenas webhook do gateway pode confirmar esses pagamentos
-    if ((targetOrder.paymentMethod === 'mpesa' || targetOrder.paymentMethod === 'emola') && 
-        newStatus === 'completed') {
-      setToastMsg({
-        title: '⚠️ Ação Não Permitida',
-        message: 'Pagamentos via M-Pesa/eMola devem ser confirmados automaticamente pelo webhook do gateway. Não é possível alterar manualmente para "completed".',
-        type: 'error'
-      });
-      return;
+    // 🔒 SEGURANÇA: Permitir alteração manual se for transferência bancária, tiver comprovativo ou se o admin confirmar
+    const isMobileMoney = (targetOrder.paymentMethod === 'mpesa' || targetOrder.paymentMethod === 'emola');
+    if (isMobileMoney && !targetOrder.proofUrl && newStatus === 'completed') {
+      const confirmApproval = window.confirm(
+        '⚠️ Este pedido foi iniciado via M-Pesa/eMola sem comprovativo anexado. Deseja realmente aprovar manualmente este pagamento?'
+      );
+      if (!confirmApproval) return;
     }
 
     dataManager.updateOrderStatus(id, newStatus);
@@ -917,8 +914,62 @@ export default function AdminPage() {
     setOrders(updatedOrders);
 
     if (targetOrder) {
-      const clientEmail = targetOrder.clientEmail || targetOrder.userEmail || '';
+      const clientEmail = (targetOrder.clientEmail || targetOrder.userEmail || '').trim();
       const clientName = targetOrder.clientName || targetOrder.userName || clientEmail.split('@')[0] || 'Cliente';
+      const serviceName = (targetOrder.serviceName || '').toLowerCase();
+
+      // Se foi aprovado ('completed'), auto-ativar o plano e a conta do cliente!
+      if (newStatus === 'completed' && clientEmail) {
+        let detectedPlan: 'basic' | 'pro' | 'enterprise' | null = null;
+        if (serviceName.includes('básico') || serviceName.includes('basico') || serviceName.includes('basic')) {
+          detectedPlan = 'basic';
+        } else if (serviceName.includes('profissional') || serviceName.includes('pro')) {
+          detectedPlan = 'pro';
+        } else if (serviceName.includes('empresarial') || serviceName.includes('enterprise')) {
+          detectedPlan = 'enterprise';
+        }
+
+        const allUsers = auth.getUsers();
+        const matchedUser = allUsers.find(u => u.email.toLowerCase() === clientEmail.toLowerCase());
+        
+        if (matchedUser) {
+          if (detectedPlan) {
+            auth.updatePlan(matchedUser.id, detectedPlan);
+          }
+          auth.updateUserStatus(matchedUser.id, 'active');
+          setUsers(auth.getUsers());
+        }
+
+        // Sincronizar também no backend MongoDB
+        fetch(apiEndpoint('/api/users'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'update_plan',
+            email: clientEmail,
+            plan: detectedPlan || 'basic',
+            status: 'active'
+          })
+        }).catch(err => console.error('Erro ao sincronizar plano:', err));
+
+        // Ativar sites pendentes deste cliente
+        const clientSites = sites.filter(s => s.userEmail?.toLowerCase() === clientEmail.toLowerCase() && s.status === 'pending');
+        clientSites.forEach(s => {
+          handleUpdateSiteStatus(s.id, 'active');
+        });
+
+        setToastMsg({
+          title: '✅ Pedido Aprovado com Sucesso!',
+          message: `O pedido #${id} foi marcado como Concluído. O plano ${detectedPlan ? detectedPlan.toUpperCase() : 'de Hospedagem'} de ${clientName} foi ativado!`,
+          type: 'success'
+        });
+      } else {
+        setToastMsg({
+          title: `Status do Pedido Atualizado: #${id}`,
+          message: `O pedido foi alterado para: ${newStatus}`,
+          type: 'success'
+        });
+      }
 
       // 1. Notificar o Administrador
       addAdminNotification({
@@ -938,7 +989,7 @@ export default function AdminPage() {
         templateId,
         variables: {
           numero_pedido: targetOrder.id,
-          valor: `${(targetOrder.valorPorFaturar || targetOrder.valorFaturado || 0).toLocaleString('pt-MZ')} MT`,
+          valor: `${(targetOrder.valorPorFaturar || targetOrder.valorFaturado || targetOrder.amount || 0).toLocaleString('pt-MZ')} MT`,
           estado_pedido: newStatus === 'completed' ? 'Aprovado / Concluído' : newStatus === 'cancelled' ? 'Cancelado' : newStatus
         },
         isAutomatic: true,
@@ -3324,27 +3375,75 @@ export default function AdminPage() {
                       </td>
                       <td className="py-2.5 sm:py-3.5 px-2 sm:px-4">
                         <span className="font-bold text-gray-900 text-[10px] sm:text-sm block">{getOrderAmount(order).toLocaleString('pt-MZ')} MT</span>
-                        <span className="text-[9px] sm:text-xs text-gray-500 block uppercase">{order.paymentMethod || 'mpesa'}</span>
+                        <span className="text-[9px] sm:text-xs text-gray-500 block uppercase font-mono">{order.paymentMethod || 'mpesa'}</span>
+                        {order.proofUrl && (
+                          <a
+                            href={order.proofUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 mt-1 px-1.5 py-0.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded text-[9px] sm:text-[10px] font-semibold transition cursor-pointer"
+                            title="Ver / Baixar Comprovativo Bancário"
+                          >
+                            <FileText className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-blue-600" />
+                            <span>Comprovativo</span>
+                            <ExternalLink className="h-2 w-2 text-blue-400" />
+                          </a>
+                        )}
                       </td>
                       <td className="py-2.5 sm:py-3.5 px-2 sm:px-4">
-                        <span className={`inline-block px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[9px] sm:text-xs font-bold ${
-                          order.status === 'completed' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' :
-                          order.status === 'in_progress' ? 'bg-blue-100 text-blue-700 border border-blue-200' :
-                          order.status === 'pending' ? 'bg-amber-100 text-amber-700 border border-amber-200' :
-                          order.status === 'cancelled' ? 'bg-red-100 text-red-700 border border-red-200' :
-                          'bg-gray-100 text-gray-700 border border-gray-200'
-                        }`}>
-                          {order.status === 'completed' ? '✓ Concluído' : order.status === 'in_progress' ? '⚙️ Em Progresso' : order.status === 'pending' ? '⏰ Pendente' : order.status === 'cancelled' ? '✗ Cancelado' : order.status}
-                        </span>
-                      </td>
-                      <td className="py-2.5 sm:py-3.5 px-2 sm:px-4">
-                        <button
-                          onClick={() => handleAdminDeleteOrder(order.id)}
-                          className="p-1 sm:p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition cursor-pointer"
-                          title="Eliminar pedido"
+                        <select
+                          value={order.status}
+                          onChange={(e) => handleUpdateOrderStatus(order.id, e.target.value as any)}
+                          className={`text-[9px] sm:text-xs font-bold rounded-lg px-2 py-1 border transition cursor-pointer ${
+                            order.status === 'completed' ? 'bg-emerald-50 text-emerald-800 border-emerald-300' :
+                            order.status === 'in_progress' ? 'bg-blue-50 text-blue-800 border-blue-300' :
+                            order.status === 'pending' ? 'bg-amber-50 text-amber-800 border-amber-300' :
+                            order.status === 'cancelled' ? 'bg-red-50 text-red-800 border-red-300' :
+                            'bg-gray-50 text-gray-800 border-gray-300'
+                          }`}
                         >
-                          <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
-                        </button>
+                          <option value="pending">⏰ Pendente</option>
+                          <option value="in_progress">⚙️ Em Progresso</option>
+                          <option value="completed">✓ Concluído</option>
+                          <option value="cancelled">✗ Cancelado</option>
+                        </select>
+                      </td>
+                      <td className="py-2.5 sm:py-3.5 px-2 sm:px-4">
+                        <div className="flex items-center gap-1.5">
+                          {order.status !== 'completed' ? (
+                            <button
+                              onClick={() => handleUpdateOrderStatus(order.id, 'completed')}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] sm:text-xs font-bold transition shadow-sm cursor-pointer whitespace-nowrap"
+                              title="Aprovar pedido e ativar plano imediatamente"
+                            >
+                              <CheckCircle2 className="h-3.5 w-3.5" />
+                              <span>Aprovar</span>
+                            </button>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                              <CheckCircle className="h-3 w-3 text-emerald-600" />
+                              <span>Ativo</span>
+                            </span>
+                          )}
+                          {order.proofUrl && (
+                            <a
+                              href={order.proofUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="p-1 sm:p-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-md transition cursor-pointer"
+                              title="Abrir Comprovativo em nova aba"
+                            >
+                              <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4" />
+                            </a>
+                          )}
+                          <button
+                            onClick={() => handleAdminDeleteOrder(order.id)}
+                            className="p-1 sm:p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition cursor-pointer"
+                            title="Eliminar pedido"
+                          >
+                            <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}

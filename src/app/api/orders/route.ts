@@ -6,6 +6,7 @@ import { generateHostingCredentials } from '@/lib/provisioning';
 import Affiliate from '@/lib/models/Affiliate';
 import Commission from '@/lib/models/Commission';
 import AffiliateClick from '@/lib/models/AffiliateClick';
+import UserModel from '@/lib/models/User';
 
 let FALLBACK_ORDERS: any[] = [];
 
@@ -197,11 +198,11 @@ export async function POST(req: Request) {
       if (useMongo) {
         orderDoc = await OrderModel.findOne({ id: orderId }).lean();
         
-        // Impedir alteração manual para 'completed' em pagamentos M-Pesa/eMola
-        if (orderDoc && (orderDoc.paymentMethod === 'mpesa' || orderDoc.paymentMethod === 'emola') && 
-            status === 'completed') {
+        // Permitir aprovação manual se for transferência bancária, tiver comprovativo anexado, ou se forceAdmin for verdadeiro
+        const isMobileMoney = (orderDoc.paymentMethod === 'mpesa' || orderDoc.paymentMethod === 'emola');
+        if (orderDoc && isMobileMoney && !orderDoc.proofUrl && !body.forceAdmin && status === 'completed') {
           return NextResponse.json(
-            { error: 'Pagamentos via M-Pesa/eMola devem ser confirmados apenas pelo webhook do gateway. Alteração manual não permitida.' },
+            { error: 'Pagamentos via M-Pesa/eMola devem ser confirmados apenas pelo webhook do gateway ou aprovados com comprovativo anexado.' },
             { status: 403 }
           );
         }
@@ -252,6 +253,30 @@ export async function POST(req: Request) {
               isAutomatic: true,
               eventType: `order_${status}`
             });
+
+            // 🚀 ATIVAR PLANO NO MODELO DE UTILIZADOR
+            if (status === 'approved' || status === 'completed' || status === 'active') {
+              try {
+                const sName = (orderDoc.serviceName || '').toLowerCase();
+                let detectedPlan: 'basic' | 'pro' | 'enterprise' | null = null;
+                if (sName.includes('básico') || sName.includes('basico') || sName.includes('basic')) {
+                  detectedPlan = 'basic';
+                } else if (sName.includes('profissional') || sName.includes('pro')) {
+                  detectedPlan = 'pro';
+                } else if (sName.includes('empresarial') || sName.includes('enterprise')) {
+                  detectedPlan = 'enterprise';
+                }
+
+                if (detectedPlan && orderDoc.clientEmail) {
+                  await UserModel.findOneAndUpdate(
+                    { email: { $regex: new RegExp(`^${orderDoc.clientEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } },
+                    { plan: detectedPlan, status: 'active' }
+                  );
+                }
+              } catch (planErr) {
+                console.error('Erro ao atualizar plano do usuário no MongoDB:', planErr);
+              }
+            }
 
             // 🔑 AUTO-PROVISIONAMENTO: Se o pedido foi APROVADO, enviar credenciais de acesso
             if (status === 'approved' || status === 'completed' || status === 'active') {
