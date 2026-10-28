@@ -385,6 +385,19 @@ export async function POST(req: Request) {
           console.warn('[Orders API] Falha não impeditiva ao disparar push:', pushErr);
         }
 
+        // 📧 Notificação imediata por e-mail para o Administrador
+        try {
+          const { sendEmail } = await import('@/lib/sendgrid');
+          const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL || process.env.ADMIN_EMAIL || 'info@wehosthere.com';
+          await sendEmail({
+            to: adminEmail,
+            subject: `🛒 Novo Pedido #${orderData.id}: ${orderData.clientName || 'Cliente'} - ${orderData.serviceName || 'Serviço'}`,
+            text: `Olá Administrador,\n\nUm novo pedido foi registado na plataforma:\n\n• Pedido: #${orderData.id}\n• Cliente: ${orderData.clientName || 'Cliente'} (${orderData.clientEmail || orderData.userEmail || 'N/A'})\n• Serviço: ${orderData.serviceName || 'Plano de Hospedagem / Domínio'}\n• Valor: ${(orderData.valorPorFaturar || orderData.amount || 0).toLocaleString('pt-MZ')} MT\n• Método de Pagamento: ${orderData.paymentMethod || 'N/A'}\n• Estado: ${orderData.status || 'Pendente'}\n• Data: ${new Date().toLocaleString('pt-MZ')}\n\nAceda ao painel administrativo para verificar:\nhttps://wehosthere.com/admin?tab=orders\n\nAtenciosamente,\nSistema de Notificações WEHOSTHERE`
+          });
+        } catch (adminMailErr) {
+          console.warn('[Orders API] Falha não impeditiva ao enviar email ao admin:', adminMailErr);
+        }
+
         // Enviar e-mail ao cliente
         dispatchMessage({
           recipientEmail: orderData.clientEmail || orderData.userEmail || '',
@@ -428,6 +441,19 @@ export async function POST(req: Request) {
         });
       } catch (pushErr) {
         console.warn('[Orders API Fallback] Falha não impeditiva ao disparar push:', pushErr);
+      }
+
+      // 📧 Notificação imediata por e-mail para o Administrador (fallback)
+      try {
+        const { sendEmail } = await import('@/lib/sendgrid');
+        const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL || process.env.ADMIN_EMAIL || 'info@wehosthere.com';
+        await sendEmail({
+          to: adminEmail,
+          subject: `📦 Novo Pedido #${orderData.id}: ${orderData.clientName || 'Cliente'} - ${orderData.serviceName || 'Serviço'}`,
+          text: `Olá Administrador,\n\nUm novo pedido foi registado na plataforma:\n\n• Pedido: #${orderData.id}\n• Cliente: ${orderData.clientName || 'Cliente'} (${orderData.clientEmail || orderData.userEmail || 'N/A'})\n• Serviço: ${orderData.serviceName || 'Plano de Hospedagem / Domínio'}\n• Valor: ${(orderData.valorPorFaturar || orderData.amount || 0).toLocaleString('pt-MZ')} MT\n• Método de Pagamento: ${orderData.paymentMethod || 'N/A'}\n• Estado: ${orderData.status || 'Pendente'}\n• Data: ${new Date().toLocaleString('pt-MZ')}\n\nAceda ao painel administrativo para verificar:\nhttps://wehosthere.com/admin?tab=orders\n\nAtenciosamente,\nSistema de Notificações WEHOSTHERE`
+        });
+      } catch (adminMailErr) {
+        console.warn('[Orders API Fallback] Falha ao enviar email ao admin:', adminMailErr);
       }
 
       dispatchMessage({
