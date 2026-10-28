@@ -1340,7 +1340,7 @@ function CheckoutContent() {
                 </div>
 
                 <h3 id="modal-title" className="text-lg font-bold text-gray-900 mb-1">
-                  {t.authorizeOnPhone}
+                  Autorize no seu Telemóvel
                 </h3>
                 <p className="text-xs text-gray-500 mb-3">
                   Insira o PIN no telemóvel <span className="font-semibold text-gray-800">{ddi} {phonePayment || whatsapp}</span>
@@ -1372,10 +1372,10 @@ function CheckoutContent() {
                     {isPollingPayment ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                        <span>{t.verifyingPayment}</span>
+                        <span>A verificar pagamento...</span>
                       </>
                     ) : (
-                      <span>{t.alreadyTypedPin}</span>
+                      <span>Já confirmei o PIN (Verificar)</span>
                     )}
                   </button>
                   <button
@@ -1387,7 +1387,7 @@ function CheckoutContent() {
                     }}
                     className="w-full py-1.5 text-xs text-gray-400 hover:text-gray-700 transition"
                   >
-                    Cancelar
+                    Cancelar ou Alterar número
                   </button>
                 </div>
               </>

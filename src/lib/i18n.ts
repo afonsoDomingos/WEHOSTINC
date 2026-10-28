@@ -301,14 +301,8 @@ export const getLanguage = (): Language => {
     if (savedLang && translations[savedLang]) {
       return savedLang;
     }
-    
-    // Detectar idioma do navegador
-    const browserLang = navigator.language.split('-')[0] as Language;
-    if (translations[browserLang]) {
-      return browserLang;
-    }
   }
-  return 'pt'; // Padrão: português
+  return 'pt'; // Predefinição: sempre Português
 };
 
 export const setLanguage = (language: Language) => {
