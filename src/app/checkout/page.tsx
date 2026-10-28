@@ -1315,6 +1315,12 @@ function CheckoutContent() {
             </div>
           )}
         </div>
+
+        {/* Modal de Recibo PDF */}
+        <ReceiptModal
+          receipt={selectedReceipt}
+          onClose={() => setSelectedReceipt(null)}
+        />
       </div>
     );
   }
