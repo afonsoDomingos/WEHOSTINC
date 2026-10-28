@@ -24,8 +24,8 @@ import { useAnalytics } from '@/lib/analytics';
 function CheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [language, setLanguageState] = useState<Language>(getLanguage());
-  const t = useTranslation(language);
+  const [language, setLanguageState] = useState<Language>('pt');
+  const t = useTranslation('pt');
   const analytics = useAnalytics();
   const rawPlanId = searchParams.get('plan');
   const planIdParam = rawPlanId === 'none' ? 'none' : (rawPlanId || 'pro');

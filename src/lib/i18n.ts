@@ -292,17 +292,17 @@ export const translations = {
 };
 
 export const useTranslation = (language: Language = 'pt') => {
-  return translations[language];
+  return translations[language] || translations.pt;
 };
 
 export const getLanguage = (): Language => {
   if (typeof window !== 'undefined') {
-    const savedLang = (localStorage.getItem('wehost_lang') || localStorage.getItem('language')) as Language;
-    if (savedLang && translations[savedLang]) {
-      return savedLang;
+    const savedLang = localStorage.getItem('wehost_lang') as Language;
+    if (savedLang === 'pt') {
+      return 'pt';
     }
   }
-  return 'pt'; // Predefinição: sempre Português
+  return 'pt'; // Sempre Português em Moçambique
 };
 
 export const setLanguage = (language: Language) => {
