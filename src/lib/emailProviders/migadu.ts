@@ -80,8 +80,21 @@ export class MigaduEmailProvider extends EmailProvider {
       
       // Handle different status codes
       if (response.status === 401) {
-        console.error('[Migadu API Request] Authentication failed');
-        throw new AuthenticationError();
+        const rawBody = await response.text().catch(() => '');
+        console.error('[Migadu API Request] 401 Authentication failed. URL:', url, 'Raw body:', rawBody);
+        let errorMsg = 'Authentication failed';
+        try {
+          const parsed = JSON.parse(rawBody);
+          errorMsg = parsed.error || parsed.message || errorMsg;
+        } catch {
+          if (rawBody) errorMsg = rawBody;
+        }
+        throw new EmailProviderError(
+          `Autenticação Migadu falhou (401): ${errorMsg}`,
+          'AUTHENTICATION_ERROR',
+          401,
+          { rawBody, url, username: this.config.username, apiKeyLength: this.config.apiKey?.length || 0 }
+        );
       }
       
       if (response.status === 429) {
@@ -90,12 +103,19 @@ export class MigaduEmailProvider extends EmailProvider {
       }
       
       if (response.status === 503 || response.status >= 500) {
-        console.error('[Migadu API Request] Provider unavailable');
+        const rawBody = await response.text().catch(() => '');
+        console.error('[Migadu API Request] Provider unavailable (5xx). Status:', response.status, 'Body:', rawBody);
         throw new ProviderUnavailableError();
       }
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: `HTTP ${response.status} ${response.statusText}` }));
+        const rawText = await response.text().catch(() => '');
+        let errorData: any = {};
+        try {
+          errorData = JSON.parse(rawText);
+        } catch {
+          errorData = { message: rawText || `HTTP ${response.status} ${response.statusText}` };
+        }
         const errorMessage = 
           (typeof errorData === 'string' ? errorData : null) ||
           errorData.message || 
@@ -103,14 +123,14 @@ export class MigaduEmailProvider extends EmailProvider {
           errorData.description || 
           (Array.isArray(errorData.errors) ? errorData.errors.join(', ') : null) ||
           (typeof errorData.error === 'object' ? JSON.stringify(errorData.error) : null) ||
-          `API request failed with status ${response.status}`;
+          `API request failed with status ${response.status}: ${rawText}`;
 
         console.error(`[Migadu API Request] API error (${response.status}):`, errorMessage, errorData);
         throw new EmailProviderError(
           errorMessage,
           `API_ERROR_${response.status}`,
           response.status,
-          errorData
+          { rawText, errorData, url }
         );
       }
 

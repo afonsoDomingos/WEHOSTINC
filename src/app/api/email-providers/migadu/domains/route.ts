@@ -282,7 +282,7 @@ export async function POST(request: NextRequest) {
         } else if (statusCode === 401 || migaduErr.code === 'AUTHENTICATION_ERROR') {
           errorType = 'AUTHENTICATION_ERROR';
           isNormalError = false;
-          userMessage = 'Erro de autenticação com a API da Migadu. Verifique as credenciais configuradas no servidor.';
+          userMessage = `Erro de autenticação com a API da Migadu: ${migaduErr.message || rawMessage || 'Token inválido ou expirado'}`;
         } else if (statusCode === 429 || migaduErr.code === 'RATE_LIMIT_ERROR') {
           errorType = 'RATE_LIMIT_ERROR';
           isNormalError = false;
@@ -293,10 +293,18 @@ export async function POST(request: NextRequest) {
           userMessage = 'Serviço da Migadu temporariamente indisponível. Tente novamente mais tarde.';
         }
 
+        const diagnostic = {
+          rawMigaduError: migaduErr.details?.rawBody || migaduErr.details?.rawText || rawMessage,
+          migaduErrDetails: migaduErr.details,
+          usernameUsed: process.env.MIGADU_USERNAME ? `${process.env.MIGADU_USERNAME.slice(0, 4)}***${process.env.MIGADU_USERNAME.slice(-10)}` : 'NÃO_DEFINIDO',
+          apiKeyLength: process.env.MIGADU_API_KEY?.length || 0,
+          apiKeyPrefix: process.env.MIGADU_API_KEY ? `${process.env.MIGADU_API_KEY.slice(0, 6)}...` : 'NÃO_DEFINIDO'
+        };
+
         if (isNormalError) {
-          console.warn(`[Migadu Domains POST] [NORMAL_ERROR] Type: ${errorType} | Domain: "${cleanDomainName}" | HTTP Status: ${statusCode} | Message: ${userMessage}`);
+          console.warn(`[Migadu Domains POST] [NORMAL_ERROR] Type: ${errorType} | Domain: "${cleanDomainName}" | HTTP Status: ${statusCode} | Message: ${userMessage}`, diagnostic);
         } else {
-          console.error(`[Migadu Domains POST] [SYSTEM_ERROR] Type: ${errorType} | Domain: "${cleanDomainName}" | HTTP Status: ${statusCode} | Error:`, migaduErr);
+          console.error(`[Migadu Domains POST] [SYSTEM_ERROR] Type: ${errorType} | Domain: "${cleanDomainName}" | HTTP Status: ${statusCode} | Error:`, migaduErr, diagnostic);
         }
 
         return NextResponse.json(
@@ -306,7 +314,8 @@ export async function POST(request: NextRequest) {
             errorType,
             isNormalError,
             statusCode,
-            details: rawMessage
+            details: rawMessage || migaduErr.message,
+            diagnostic
           },
           { status: statusCode >= 400 && statusCode < 600 ? statusCode : 500 }
         );
