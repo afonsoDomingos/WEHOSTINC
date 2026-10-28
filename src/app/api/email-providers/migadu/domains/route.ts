@@ -123,16 +123,31 @@ export async function GET(request: NextRequest) {
       console.error('[Migadu Domains GET] Error fetching platform domains from DB:', dbError);
     }
     
-    // If user is not admin, filter domains by customerId
-    if (user && user.role !== 'admin') {
-      const userDomains = allDomains.filter(domain => domain.customerId === user.id || domain.customerId === user.email);
+    const reqEmail = (customerId || searchParams.get('userEmail') || '').trim().toLowerCase();
+    
+    // 🔒 ISOLAMENTO RIGOROSO DE TENANT:
+    // Se a requisição vem de um cliente específico (não é o Super Admin global),
+    // NUNCA retornar domínios que pertençam a outros clientes ou sem dono associado!
+    if (reqEmail && reqEmail !== 'admin@wehosthere.com') {
+      let userSiteDomains = new Set<string>();
+      try {
+        const userSiteDocs = await SiteModel.find({ userEmail: reqEmail }).lean();
+        userSiteDomains = new Set(userSiteDocs.map((s: any) => (s.domain || '').toLowerCase().trim()));
+      } catch {}
+
+      const userDomains = allDomains.filter(domain => {
+        const dName = (domain.domainName || domain.name || '').toLowerCase().trim();
+        const cId = (domain.customerId || '').toLowerCase().trim();
+        return (cId === reqEmail) || userSiteDomains.has(dName);
+      });
+
       return NextResponse.json({
         success: true,
         domains: userDomains
       });
     }
 
-    // Admin sees all domains
+    // Apenas Super Administrador sem filtro de cliente vê todos os domínios
     return NextResponse.json({
       success: true,
       domains: allDomains

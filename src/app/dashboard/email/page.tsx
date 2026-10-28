@@ -99,7 +99,7 @@ export default function EmailPage() {
   const [isSyncingMigadu, setIsSyncingMigadu] = useState(false);
 
   const refreshData = useCallback((newEmails?: EmailAccount[], overrideUserEmail?: string) => {
-    const userEmailFilter = overrideUserEmail || user?.email || auth.getCurrentUser()?.email || '';
+    const userEmailFilter = (overrideUserEmail || user?.email || auth.getCurrentUser()?.email || '').trim().toLowerCase();
     if (!userEmailFilter) return;
 
     const rawEmails = newEmails || dataManager.getEmails(userEmailFilter);
@@ -117,50 +117,56 @@ export default function EmailPage() {
     });
 
     setEmails(loadedEmails);
+
+    // 🔒 ISOLAMENTO RIGOROSO: Apenas sites comprovadamente pertencentes a este cliente
     const loadedSites = dataManager.getSites().filter(s =>
-      !s.userEmail || s.userEmail.toLowerCase() === userEmailFilter.toLowerCase()
+      s.userEmail && s.userEmail.trim().toLowerCase() === userEmailFilter
     );
     setSites(loadedSites);
-    const siteDomains = loadedSites.map(s => s.domain).filter(Boolean);
-    setUserDomains(prev => Array.from(new Set([...prev, ...siteDomains])));
+
+    const siteDomains = loadedSites.map(s => (s.domain || '').trim().toLowerCase()).filter(Boolean);
+    const emailDomains = loadedEmails.map(e => (e.domain || e.email.split('@')[1] || '').trim().toLowerCase()).filter(Boolean);
+    const myStrictDomains = Array.from(new Set([...siteDomains, ...emailDomains]));
+
+    setUserDomains(myStrictDomains);
+    if (myStrictDomains.length > 0) {
+      setSelectedDomain(prev => myStrictDomains.includes(prev) ? prev : myStrictDomains[0]);
+    }
   }, [user?.email]);
 
   const fetchMigaduDomains = useCallback(async (overrideUserEmail?: string) => {
-    const userEmailFilter = overrideUserEmail || user?.email || auth.getCurrentUser()?.email || '';
+    const userEmailFilter = (overrideUserEmail || user?.email || auth.getCurrentUser()?.email || '').trim().toLowerCase();
     if (!userEmailFilter) return;
 
-    // 1. Obter todos os domínios pertencentes ao cliente a partir de Meus Sites
+    // 1. Obter ESTRITAMENTE os domínios pertencentes ao cliente a partir de Meus Sites
     const userSiteDomains = dataManager.getSites().filter(s =>
-      !s.userEmail || s.userEmail.toLowerCase() === userEmailFilter.toLowerCase()
+      s.userEmail && s.userEmail.trim().toLowerCase() === userEmailFilter
     ).map(s => (s.domain || '').trim().toLowerCase()).filter(Boolean);
 
     let migaduDomainNames: string[] = [];
 
     try {
-      const response = await fetch('/api/email-providers/migadu/domains');
+      const response = await fetch(`/api/email-providers/migadu/domains?customerId=${encodeURIComponent(userEmailFilter)}`);
       const data = await response.json();
       if (data.success && Array.isArray(data.domains)) {
         setMigaduDomains(data.domains);
-        const cleanUser = userEmailFilter.toLowerCase();
-        const userDoms = data.domains.filter((d: any) => 
-          !d.customerId || 
-          d.customerId === 'system' || 
-          d.customerId.toLowerCase() === cleanUser
-        );
-        migaduDomainNames = (userDoms.length > 0 ? userDoms : data.domains).map((d: any) => d.domainName).filter(Boolean);
+        // Filtrar estritamente: apenas aceitar domínios que o utilizador possui
+        migaduDomainNames = data.domains
+          .map((d: any) => (d.domainName || d.name || '').trim().toLowerCase())
+          .filter((d: string) => d && (userSiteDomains.includes(d) || d === userEmailFilter.split('@')[1]));
       }
     } catch (error) {
       console.error('Failed to fetch Migadu domains:', error);
     }
 
-    // Unir domínios do cliente vindos do Migadu e de Meus Sites
+    // Unir unicamente os domínios comprovadamente legítimos deste utilizador
     const allActiveDomains = Array.from(new Set([...migaduDomainNames, ...userSiteDomains]));
     if (allActiveDomains.length > 0) {
-      setUserDomains(prev => Array.from(new Set([...prev, ...allActiveDomains])));
-      setSelectedDomain(prev => prev || allActiveDomains[0]);
+      setUserDomains(allActiveDomains);
+      setSelectedDomain(prev => allActiveDomains.includes(prev) ? prev : allActiveDomains[0]);
     }
 
-    // Sincronizar ao vivo as caixas de correio do Migadu para cada domínio do cliente
+    // Sincronizar ao vivo as caixas de correio do Migadu APENAS para os domínios do cliente
     for (const dName of allActiveDomains) {
       try {
         const mbRes = await fetch(`/api/email-providers/migadu/domains/${dName}/mailboxes`);
@@ -235,7 +241,7 @@ export default function EmailPage() {
 
     refreshData(undefined, userEmailFilter);
     const initialSites = dataManager.getSites().filter(s =>
-      !s.userEmail || s.userEmail.toLowerCase() === userEmailFilter.toLowerCase()
+      s.userEmail && s.userEmail.toLowerCase().trim() === userEmailFilter.toLowerCase().trim()
     );
     if (initialSites.length > 0 && initialSites[0].domain) {
       setSelectedDomain(initialSites[0].domain);
@@ -670,25 +676,30 @@ export default function EmailPage() {
                   </div>
 
                   {activeTab === 'mailboxes' && (
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex flex-wrap items-center gap-2 shrink-0">
                       <button
                         onClick={async () => {
                           setIsSyncingMigadu(true);
                           try {
                             await fetchMigaduDomains();
-                            setToastMsg({ type: 'success', message: 'Sincronização com o Migadu concluída!' });
+                            if (user?.email) {
+                              await dataManager.fetchEmailsAsync(user.email);
+                            }
+                            refreshData();
+                            soundEffects.playSuccessSound();
+                            setToastMsg({ type: 'success', message: 'Sincronização em tempo real concluída com sucesso!' });
                           } catch {
-                            setToastMsg({ type: 'error', message: 'Erro ao sincronizar com o Migadu.' });
+                            setToastMsg({ type: 'error', message: 'Erro ao sincronizar em tempo real.' });
                           } finally {
                             setIsSyncingMigadu(false);
                           }
                         }}
                         disabled={isSyncingMigadu}
-                        className="flex items-center justify-center space-x-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs sm:text-sm px-3.5 py-2.5 rounded-xl transition cursor-pointer disabled:opacity-60"
-                        title="Puxar contas de e-mail existentes diretamente do Migadu"
+                        className="flex items-center justify-center space-x-1.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-800 font-bold text-xs sm:text-sm px-3.5 py-2.5 rounded-xl transition cursor-pointer disabled:opacity-60 shadow-xs"
+                        title="Forçar sincronização em tempo real de caixas de correio"
                       >
-                        <RefreshCw className={`h-4 w-4 ${isSyncingMigadu ? 'animate-spin text-blue-600' : ''}`} />
-                        <span className="hidden sm:inline">Sincronizar Migadu</span>
+                        <RefreshCw className={`h-4 w-4 ${isSyncingMigadu ? 'animate-spin text-emerald-600' : 'text-emerald-700'}`} />
+                        <span>{isSyncingMigadu ? 'A Sincronizar...' : 'Sincronizar em Tempo Real'}</span>
                       </button>
                       <button
                         onClick={() => setShowCreateModal(true)}
@@ -722,22 +733,28 @@ export default function EmailPage() {
                   )}
                 </div>
 
-                {/* Seletor de Domínio Ativo (caso haja mais de um) */}
-                {userDomains.length > 1 && (
-                  <div className="flex items-center space-x-2 bg-gray-50 p-2 rounded-xl border border-gray-200 mb-4 max-w-md">
-                    <Globe className="h-4 w-4 text-gray-500 shrink-0" />
-                    <span className="text-xs font-semibold text-gray-600 shrink-0">Domínio selecionado:</span>
+                {/* Seletor ou Indicador de Domínio Ativo - NUNCA mostrar domínios de terceiros */}
+                {userDomains.length > 1 ? (
+                  <div className="flex items-center space-x-2 bg-gray-50 p-2.5 rounded-xl border border-gray-200 mb-4 max-w-md">
+                    <Globe className="h-4 w-4 text-blue-600 shrink-0" />
+                    <span className="text-xs font-semibold text-gray-700 shrink-0">Domínio selecionado:</span>
                     <select
                       value={selectedDomain}
                       onChange={(e) => setSelectedDomain(e.target.value)}
-                      className="bg-transparent font-bold text-xs text-gray-900 focus:outline-none flex-1"
+                      className="bg-transparent font-bold text-xs text-gray-900 focus:outline-none flex-1 cursor-pointer"
                     >
                       {userDomains.map(d => (
                         <option key={d} value={d}>{d}</option>
                       ))}
                     </select>
                   </div>
-                )}
+                ) : userDomains.length === 1 ? (
+                  <div className="inline-flex items-center gap-2 bg-blue-50/80 border border-blue-200 text-blue-900 px-3 py-1.5 rounded-xl mb-4 text-xs font-medium">
+                    <Globe className="h-3.5 w-3.5 text-blue-600 shrink-0" />
+                    <span className="text-blue-700">Domínio Ativo:</span>
+                    <span className="font-mono font-bold text-blue-950">{userDomains[0]}</span>
+                  </div>
+                ) : null}
 
                 {/* Abas */}
                 <div className="flex space-x-2 overflow-x-auto no-scrollbar">
@@ -790,15 +807,40 @@ export default function EmailPage() {
                         <Mail className="h-16 w-16 text-gray-300 mx-auto mb-3" />
                         <h3 className="text-base font-bold text-gray-900 mb-1">Nenhuma conta de email criada</h3>
                         <p className="text-gray-500 text-xs sm:text-sm max-w-sm mx-auto mb-4">
-                          Crie a sua primeira conta de email profissional com o seu domínio corporativo.
+                          Crie a sua primeira conta de email profissional com o seu domínio corporativo ou sincronize as contas já existentes no servidor.
                         </p>
-                        <button
-                          onClick={() => setShowCreateModal(true)}
-                          className="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-2.5 rounded-xl font-bold text-xs shadow-sm hover:shadow transition cursor-pointer"
-                        >
-                          <Plus className="h-4 w-4" />
-                          <span>Criar Primeira Conta</span>
-                        </button>
+                        <div className="flex flex-wrap items-center justify-center gap-2.5">
+                          <button
+                            onClick={async () => {
+                              setIsSyncingMigadu(true);
+                              try {
+                                await fetchMigaduDomains();
+                                if (user?.email) {
+                                  await dataManager.fetchEmailsAsync(user.email);
+                                }
+                                refreshData();
+                                soundEffects.playSuccessSound();
+                                setToastMsg({ type: 'success', message: 'Sincronização em tempo real concluída!' });
+                              } catch {
+                                setToastMsg({ type: 'error', message: 'Erro ao sincronizar contas.' });
+                              } finally {
+                                setIsSyncingMigadu(false);
+                              }
+                            }}
+                            disabled={isSyncingMigadu}
+                            className="inline-flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl font-bold text-xs shadow-sm hover:shadow transition cursor-pointer disabled:opacity-60"
+                          >
+                            <RefreshCw className={`h-4 w-4 ${isSyncingMigadu ? 'animate-spin' : ''}`} />
+                            <span>{isSyncingMigadu ? 'A Sincronizar...' : 'Sincronizar em Tempo Real'}</span>
+                          </button>
+                          <button
+                            onClick={() => setShowCreateModal(true)}
+                            className="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-2.5 rounded-xl font-bold text-xs shadow-sm hover:shadow transition cursor-pointer"
+                          >
+                            <Plus className="h-4 w-4" />
+                            <span>Criar Primeira Conta</span>
+                          </button>
+                        </div>
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 gap-4">
