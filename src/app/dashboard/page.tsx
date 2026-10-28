@@ -341,10 +341,10 @@ export default function DashboardPage() {
 
     if (typeof dueDay !== 'number') return null;
 
-    if (dueDay >= currentDay) {
+    if (dueDay > currentDay) {
       return dueDay - currentDay;
     } else {
-      // Se o dia de vencimento já passou neste mês, calcula para o próximo mês
+      // Se o dia de vencimento é hoje ou já passou neste mês, calcula para o próximo mês (+30 dias)
       const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, dueDay);
       const diffTime = nextMonth.getTime() - today.getTime();
       return Math.ceil(diffTime / (1000 * 60 * 60 * 24));

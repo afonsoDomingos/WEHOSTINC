@@ -645,6 +645,33 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true, users: FALLBACK_USERS });
     }
 
+    if (action === 'update_plan') {
+      const targetEmail = (email || body.email || '').trim().toLowerCase();
+      const targetUserId = (userId || body.userId || '').trim();
+      const newPlan = body.plan || 'basic';
+      const newStatus = body.status || 'active';
+      const newDueDate = body.dueDate || new Date().getDate();
+
+      if (useMongo) {
+        const filter = targetUserId ? { id: targetUserId } : { email: new RegExp(`^${targetEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') };
+        await UserModel.findOneAndUpdate(
+          filter,
+          { $set: { plan: newPlan, status: newStatus, dueDate: newDueDate } },
+          { new: true }
+        );
+        const users = await UserModel.find({}).lean();
+        return NextResponse.json({ success: true, users });
+      }
+
+      FALLBACK_USERS = FALLBACK_USERS.map(u => {
+        if ((targetEmail && u.email.toLowerCase() === targetEmail) || (targetUserId && u.id === targetUserId)) {
+          return { ...u, plan: newPlan, status: newStatus, dueDate: newDueDate };
+        }
+        return u;
+      });
+      return NextResponse.json({ success: true, users: FALLBACK_USERS });
+    }
+
     if (action === 'delete') {
       const targetId = (userId || body.userId || '').toLowerCase().trim();
       const targetEmail = (body.email || body.userEmail || '').toLowerCase().trim();

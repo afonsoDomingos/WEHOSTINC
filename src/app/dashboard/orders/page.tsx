@@ -15,6 +15,7 @@ import DashboardNav from '@/components/DashboardNav';
 import DashboardSidebar from '@/components/DashboardSidebar';
 import PageLoader from '@/components/PageLoader';
 import StatusBadge from '@/components/StatusBadge';
+import ReceiptModal, { ReceiptData } from '@/components/ReceiptModal';
 
 export default function OrdersPage() {
   const router = useRouter();
@@ -22,6 +23,7 @@ export default function OrdersPage() {
   const [user, setUser] = useState<User | null>(null);
   const [orders, setOrders] = useState<ServiceOrder[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedReceipt, setSelectedReceipt] = useState<ReceiptData | null>(null);
 
   useEffect(() => {
     // Aguardar NextAuth carregar
@@ -276,11 +278,33 @@ export default function OrdersPage() {
                       )}
 
                       {order.status === 'completed' && (
-                        <div className="mt-1 sm:mt-1.5 sm:mt-2 md:mt-3 p-1 sm:p-1.5 sm:p-2 md:p-2.5 lg:p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-[7px] sm:text-[8px] sm:text-[9px] md:text-[10px] lg:text-xs text-emerald-800 flex items-center gap-0.5 sm:gap-1 sm:gap-1.5 md:gap-2">
-                          <CheckCircle className="h-2 w-2 sm:h-2.5 sm:w-2.5 md:h-3 md:w-3.5 lg:h-4 lg:w-4 text-emerald-600 flex-shrink-0" />
-                          <span className="line-clamp-2 sm:line-clamp-1">
-                            <strong>Concluído:</strong> O seu pedido foi concluído com sucesso! Verifique a secção &quot;Meus Sites&quot; para aceder ao seu projeto.
-                          </span>
+                        <div className="mt-1.5 sm:mt-2 md:mt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2 sm:p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-900">
+                          <div className="flex items-center gap-2">
+                            <CheckCircle className="h-4 w-4 text-emerald-600 shrink-0" />
+                            <span className="text-xs font-semibold">
+                              Pagamento confirmado e plano ativo!
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => {
+                              setSelectedReceipt({
+                                id: order.id,
+                                clientName: order.clientName || user?.name || 'Cliente',
+                                clientEmail: order.clientEmail || user?.email || '',
+                                clientPhone: order.clientPhone,
+                                serviceName: order.serviceName,
+                                amount: order.valorFaturado || order.amount || 550,
+                                valorFaturado: order.valorFaturado || order.amount || 550,
+                                paymentMethod: (order.paymentMethod || 'bank_transfer').toUpperCase(),
+                                status: 'Concluído / Pago',
+                                createdAt: order.createdAt || new Date().toISOString()
+                              });
+                            }}
+                            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition shadow-xs cursor-pointer shrink-0"
+                          >
+                            <Download className="h-3.5 w-3.5" />
+                            <span>Baixar Recibo Oficial (PDF)</span>
+                          </button>
                         </div>
                       )}
 
@@ -310,6 +334,12 @@ export default function OrdersPage() {
           </div>
         </div>
       </div>
+
+      {/* Modal de Recibo Oficial PDF */}
+      <ReceiptModal
+        receipt={selectedReceipt}
+        onClose={() => setSelectedReceipt(null)}
+      />
     </div>
   );
 }

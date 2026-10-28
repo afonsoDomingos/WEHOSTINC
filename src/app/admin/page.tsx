@@ -929,6 +929,9 @@ export default function AdminPage() {
           detectedPlan = 'enterprise';
         }
 
+        const today = new Date();
+        const renewalDueDay = today.getDate();
+
         const allUsers = auth.getUsers();
         const matchedUser = allUsers.find(u => u.email.toLowerCase() === clientEmail.toLowerCase());
         
@@ -937,6 +940,11 @@ export default function AdminPage() {
             auth.updatePlan(matchedUser.id, detectedPlan);
           }
           auth.updateUserStatus(matchedUser.id, 'active');
+          if (typeof window !== 'undefined') {
+            const uData = JSON.parse(localStorage.getItem(`user_${matchedUser.id}`) || '{}');
+            uData.dueDate = renewalDueDay;
+            localStorage.setItem(`user_${matchedUser.id}`, JSON.stringify(uData));
+          }
           setUsers(auth.getUsers());
         }
 
@@ -948,7 +956,8 @@ export default function AdminPage() {
             action: 'update_plan',
             email: clientEmail,
             plan: detectedPlan || 'basic',
-            status: 'active'
+            status: 'active',
+            dueDate: renewalDueDay
           })
         }).catch(err => console.error('Erro ao sincronizar plano:', err));
 
@@ -960,7 +969,7 @@ export default function AdminPage() {
 
         setToastMsg({
           title: '✅ Pedido Aprovado com Sucesso!',
-          message: `O pedido #${id} foi marcado como Concluído. O plano ${detectedPlan ? detectedPlan.toUpperCase() : 'de Hospedagem'} de ${clientName} foi ativado!`,
+          message: `O pedido #${id} foi aprovado. O plano ${detectedPlan ? detectedPlan.toUpperCase() : 'de Hospedagem'} de ${clientName} foi ativado com vencimento para daqui a 30 dias!`,
           type: 'success'
         });
       } else {
@@ -981,19 +990,21 @@ export default function AdminPage() {
         link: '/admin?tab=orders'
       });
 
-      // 2. Disparar e-mail automático ao cliente
-      const templateId = newStatus === 'completed' ? 'order-approved' : newStatus === 'cancelled' ? 'order-cancelled' : 'order-status-changed';
+      // 2. Disparar e-mail automático oficial de confirmação de pagamento para o cliente
+      const orderAmountVal = getOrderAmount(targetOrder);
+      const templateId = newStatus === 'completed' ? 'payment-confirmed' : newStatus === 'cancelled' ? 'order-cancelled' : 'order-status-changed';
       dispatchMessage({
         recipientEmail: clientEmail,
         recipientName: clientName,
         templateId,
         variables: {
           numero_pedido: targetOrder.id,
-          valor: `${(targetOrder.valorPorFaturar || targetOrder.valorFaturado || targetOrder.amount || 0).toLocaleString('pt-MZ')} MT`,
-          estado_pedido: newStatus === 'completed' ? 'Aprovado / Concluído' : newStatus === 'cancelled' ? 'Cancelado' : newStatus
+          valor: `${orderAmountVal.toLocaleString('pt-MZ')} MT`,
+          data: new Date().toLocaleDateString('pt-BR'),
+          estado_pedido: newStatus === 'completed' ? 'Confirmado / Ativo' : newStatus === 'cancelled' ? 'Cancelado' : newStatus
         },
         isAutomatic: true,
-        eventType: `order_${newStatus}`
+        eventType: newStatus === 'completed' ? 'payment_approved' : `order_${newStatus}`
       });
     }
   };
