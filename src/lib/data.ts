@@ -622,28 +622,26 @@ const getEmailsKey = (userEmail?: string): string => {
   return EMAILS_KEY;
 };
 
-// Clears email data that doesn't belong to the current user from shared localStorage
+// Clears email data that doesn't belong to the current user's domains from localStorage
 const cleanupStaleEmails = (currentUserEmail: string): void => {
   if (typeof window === 'undefined') return;
-  // Remove old shared key data that may contain other users' emails
-  const sharedData = localStorage.getItem(EMAILS_KEY);
-  if (sharedData) {
+  const cleanEmail = currentUserEmail.trim().toLowerCase();
+  const userSites = dataManager.getSites(cleanEmail);
+  const allowedDomains = new Set(userSites.map(s => (s.domain || '').toLowerCase().trim()).filter(Boolean));
+  if (cleanEmail.includes('@')) {
+    allowedDomains.add(cleanEmail.split('@')[1].trim().toLowerCase());
+  }
+
+  const userKey = getEmailsKey(cleanEmail);
+  const existing = localStorage.getItem(userKey);
+  if (existing) {
     try {
-      const all: EmailAccount[] = JSON.parse(sharedData);
-      // Keep only emails that strictly belong to current user
-      const mine = all.filter(e => e.userEmail && e.userEmail.toLowerCase() === currentUserEmail.toLowerCase());
-      // Move them to user-specific key
-      const userKey = getEmailsKey(currentUserEmail);
-      const existing = localStorage.getItem(userKey);
-      const existingEmails: EmailAccount[] = existing ? JSON.parse(existing) : [];
-      // Merge without duplicates
-      const merged = [...existingEmails];
-      mine.forEach(m => {
-        if (!merged.find(e => e.email.toLowerCase() === m.email.toLowerCase())) {
-          merged.push(m);
-        }
+      const list: EmailAccount[] = JSON.parse(existing);
+      const cleanList = list.filter(e => {
+        const d = (e.domain || e.email.split('@')[1] || '').trim().toLowerCase();
+        return allowedDomains.has(d);
       });
-      localStorage.setItem(userKey, JSON.stringify(merged));
+      localStorage.setItem(userKey, JSON.stringify(cleanList));
     } catch { /* ignore */ }
   }
 };
@@ -890,9 +888,29 @@ export const dataManager = {
   getEmails: (userEmail?: string): EmailAccount[] => {
     if (typeof window === 'undefined') return [];
     if (userEmail) {
-      const userKey = getEmailsKey(userEmail);
+      const cleanUserEmail = userEmail.trim().toLowerCase();
+      const userKey = getEmailsKey(cleanUserEmail);
       const data = localStorage.getItem(userKey);
-      return data ? JSON.parse(data) : [];
+      const list: EmailAccount[] = data ? JSON.parse(data) : [];
+
+      const userSites = dataManager.getSites(cleanUserEmail);
+      const allowedDomains = new Set(userSites.map(s => (s.domain || '').toLowerCase().trim()).filter(Boolean));
+      if (cleanUserEmail.includes('@')) {
+        allowedDomains.add(cleanUserEmail.split('@')[1].trim().toLowerCase());
+      }
+
+      // Filtrar estritamente: NUNCA retornar contas de domínios que o cliente não possui
+      const filtered = list.filter(e => {
+        const d = (e.domain || e.email.split('@')[1] || '').trim().toLowerCase();
+        return allowedDomains.has(d);
+      });
+
+      // Se havia emails estranhos (como hinguiliartes), purgar do localStorage imediatamente
+      if (filtered.length !== list.length) {
+        localStorage.setItem(userKey, JSON.stringify(filtered));
+      }
+
+      return filtered;
     }
     const data = localStorage.getItem(EMAILS_KEY);
     return data ? JSON.parse(data) : [];
@@ -906,7 +924,8 @@ export const dataManager = {
 
   fetchEmailsAsync: async (currentUserEmail?: string): Promise<EmailAccount[]> => {
     try {
-      const res = await fetch(apiEndpoint('/api/emails'));
+      const queryParam = currentUserEmail ? `?userEmail=${encodeURIComponent(currentUserEmail.trim().toLowerCase())}` : '';
+      const res = await fetch(apiEndpoint(`/api/emails${queryParam}`));
       if (res.ok) {
         const data = await res.json();
         if (data.emails && Array.isArray(data.emails)) {
@@ -916,12 +935,14 @@ export const dataManager = {
             const cleanUserEmail = currentUserEmail.trim().toLowerCase();
             const userSites = dataManager.getSites(currentUserEmail);
             const userDomainNames = new Set(userSites.map(s => (s.domain || '').toLowerCase().trim()).filter(Boolean));
+            if (cleanUserEmail.includes('@')) {
+              userDomainNames.add(cleanUserEmail.split('@')[1].trim().toLowerCase());
+            }
 
-            // Match emails by userEmail OR by user domains
+            // Match emails ONLY if their domain belongs to userDomainNames
             const myServerEmails = serverEmails.filter(e => {
-              const u = (e.userEmail || '').trim().toLowerCase();
               const d = (e.domain || e.email?.split('@')[1] || '').trim().toLowerCase();
-              return u === cleanUserEmail || (d && userDomainNames.has(d));
+              return d && userDomainNames.has(d);
             });
 
             const userKey = getEmailsKey(currentUserEmail);
@@ -931,8 +952,11 @@ export const dataManager = {
             const updated: EmailAccount[] = [];
             const processedKeys = new Set<string>();
 
-            // 1. Preservar TODOS os e-mails locais criados e atualizar com dados do servidor
+            // 1. Preservar apenas e-mails locais pertencentes a domínios do cliente
             localEmails.forEach(local => {
+              const d = (local.domain || local.email.split('@')[1] || '').trim().toLowerCase();
+              if (!userDomainNames.has(d)) return; // DESCARTA e-mails de terceiros como hinguiliartes
+
               const key = local.email.toLowerCase();
               processedKeys.add(key);
 
@@ -948,7 +972,7 @@ export const dataManager = {
                   userEmail: serverMatch.userEmail || local.userEmail || currentUserEmail
                 });
               } else {
-                // Preservar e-mails locais permanentemente e enviar ao servidor
+                // Preservar e-mails locais do cliente e enviar ao servidor
                 updated.push({
                   ...local,
                   userEmail: local.userEmail || currentUserEmail

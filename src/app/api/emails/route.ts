@@ -18,8 +18,11 @@ import { EmailMailbox } from '@/models/EmailMailbox';
 import { EmailDomain } from '@/models/EmailDomain';
 import { getEmailProvider } from '@/lib/emailProviders/base';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const filterUserEmail = searchParams.get('userEmail')?.trim().toLowerCase();
+
     if (await tryMongo()) {
       const [emailAccounts, dbMailboxes, dbDomains] = await Promise.all([
         EmailAccountModel.find({}).lean(),
@@ -147,6 +150,26 @@ export async function GET() {
           EmailAccountModel.findOneAndUpdate({ email: defaultAdmin }, defaultObj, { upsert: true }).catch(() => {});
         }
       });
+
+      // 🔒 ISOLAMENTO MULTI-TENANT: Se o cliente requisitar, devolver APENAS os seus domínios
+      if (filterUserEmail) {
+        const allowedDomains = new Set<string>();
+        if (filterUserEmail.includes('@')) {
+          allowedDomains.add(filterUserEmail.split('@')[1].trim().toLowerCase());
+        }
+        domainOwnerMap.forEach((owner, d) => {
+          if (owner.toLowerCase() === filterUserEmail) {
+            allowedDomains.add(d);
+          }
+        });
+
+        const userStrictEmails = allEmails.filter(e => {
+          const d = (e.domain || e.email?.split('@')[1] || '').toLowerCase().trim();
+          return allowedDomains.has(d);
+        });
+
+        return NextResponse.json({ emails: userStrictEmails });
+      }
 
       return NextResponse.json({ emails: allEmails });
     }

@@ -102,12 +102,33 @@ export default function EmailPage() {
     const userEmailFilter = (overrideUserEmail || user?.email || auth.getCurrentUser()?.email || '').trim().toLowerCase();
     if (!userEmailFilter) return;
 
+    // 🔒 ISOLAMENTO RIGOROSO: Apenas sites comprovadamente pertencentes a este cliente
+    const loadedSites = dataManager.getSites().filter(s =>
+      s.userEmail && s.userEmail.trim().toLowerCase() === userEmailFilter
+    );
+    setSites(loadedSites);
+
+    const siteDomains = loadedSites.map(s => (s.domain || '').trim().toLowerCase()).filter(Boolean);
+    const userEmailDomain = userEmailFilter.includes('@') ? userEmailFilter.split('@')[1].trim().toLowerCase() : '';
+    const myStrictDomains = Array.from(new Set([...siteDomains, ...(userEmailDomain ? [userEmailDomain] : [])]));
+
+    setUserDomains(myStrictDomains);
+    if (myStrictDomains.length > 0) {
+      setSelectedDomain(prev => myStrictDomains.includes(prev) ? prev : myStrictDomains[0]);
+    }
+
+    // Filtrar emails: APENAS emails cujos domínios pertencem comprovadamente a este utilizador
     const rawEmails = newEmails || dataManager.getEmails(userEmailFilter);
-    const loadedEmails = rawEmails.map(email => ({
-      ...email,
-      storage: email.storage || 1
-    }));
-    
+    const loadedEmails = rawEmails
+      .filter(email => {
+        const d = (email.domain || email.email.split('@')[1] || '').trim().toLowerCase();
+        return myStrictDomains.includes(d);
+      })
+      .map(email => ({
+        ...email,
+        storage: email.storage || 1
+      }));
+
     loadedEmails.forEach(email => {
       const prevStatus = prevEmailStatusRef.current[email.email];
       if (prevStatus === 'pending' && email.status === 'active') {
@@ -117,21 +138,6 @@ export default function EmailPage() {
     });
 
     setEmails(loadedEmails);
-
-    // 🔒 ISOLAMENTO RIGOROSO: Apenas sites comprovadamente pertencentes a este cliente
-    const loadedSites = dataManager.getSites().filter(s =>
-      s.userEmail && s.userEmail.trim().toLowerCase() === userEmailFilter
-    );
-    setSites(loadedSites);
-
-    const siteDomains = loadedSites.map(s => (s.domain || '').trim().toLowerCase()).filter(Boolean);
-    const emailDomains = loadedEmails.map(e => (e.domain || e.email.split('@')[1] || '').trim().toLowerCase()).filter(Boolean);
-    const myStrictDomains = Array.from(new Set([...siteDomains, ...emailDomains]));
-
-    setUserDomains(myStrictDomains);
-    if (myStrictDomains.length > 0) {
-      setSelectedDomain(prev => myStrictDomains.includes(prev) ? prev : myStrictDomains[0]);
-    }
   }, [user?.email]);
 
   const fetchMigaduDomains = useCallback(async (overrideUserEmail?: string) => {
@@ -565,10 +571,17 @@ export default function EmailPage() {
     }, 400);
   };
 
+  // Emails filtrados pelo domínio ativo selecionado (ou todos os domínios comprovados do utilizador)
+  const displayEmails = emails.filter(email => {
+    if (!selectedDomain) return true;
+    const d = (email.domain || email.email.split('@')[1] || '').trim().toLowerCase();
+    return d === selectedDomain.trim().toLowerCase();
+  });
+
   // Métricas Globais
-  const totalEmailsCount = emails.length;
-  const totalStorageAllocatedGB = emails.reduce((acc, curr) => acc + (curr.storage || 1), 0);
-  const totalStorageUsedMB = emails.reduce((acc, curr, idx) => acc + getMailboxStorageStats(curr, idx).usedMB, 0);
+  const totalEmailsCount = displayEmails.length;
+  const totalStorageAllocatedGB = displayEmails.reduce((acc, curr) => acc + (curr.storage || 1), 0);
+  const totalStorageUsedMB = displayEmails.reduce((acc, curr, idx) => acc + getMailboxStorageStats(curr, idx).usedMB, 0);
   const totalStoragePercent = totalStorageAllocatedGB > 0 
     ? Math.min(100, Math.round((totalStorageUsedMB / (totalStorageAllocatedGB * 1024)) * 100))
     : 0;
@@ -780,7 +793,7 @@ export default function EmailPage() {
                     }`}
                   >
                     <Mail className="h-4 w-4" />
-                    <span>Caixas de Correio ({emails.length})</span>
+                    <span>Caixas de Correio ({displayEmails.length})</span>
                   </button>
 
                   <button
@@ -815,7 +828,7 @@ export default function EmailPage() {
                 {/* ───── ABA 1: CAIXAS DE CORREIO ───── */}
                 {activeTab === 'mailboxes' && (
                   <div className="space-y-4">
-                    {emails.length === 0 ? (
+                    {displayEmails.length === 0 ? (
                       <div className="text-center py-12">
                         <Mail className="h-16 w-16 text-gray-300 mx-auto mb-3" />
                         <h3 className="text-base font-bold text-gray-900 mb-1">Nenhuma conta de email criada</h3>
@@ -861,7 +874,7 @@ export default function EmailPage() {
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 gap-4">
-                        {emails.map((email, idx) => {
+                        {displayEmails.map((email, idx) => {
                           const storageStats = getMailboxStorageStats(email, idx);
 
                           return (
