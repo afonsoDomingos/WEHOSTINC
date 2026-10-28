@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
@@ -12,7 +12,7 @@ import {
 import BrandLogo from '@/components/BrandLogo';
 import LanguageSelector from '@/components/LanguageSelector';
 import AdminClientViewBanner from '@/components/AdminClientViewBanner';
-import { auth } from '@/lib/auth';
+import { auth, User as AuthUser } from '@/lib/auth';
 import { useLanguage } from '@/context/LanguageContext';
 
 interface DashboardNavProps {
@@ -26,9 +26,43 @@ export default function DashboardNav({ userName, userAvatar, onLogout, onRefresh
   const { t } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const pathname = usePathname();
   const actualUser = auth.getActualUser();
   const isActualAdmin = auth.isAdminUser(actualUser);
+
+  useEffect(() => {
+    setCurrentUser(auth.getCurrentUser());
+  }, []);
+
+  const getPlanBadge = (plan?: string) => {
+    switch (plan) {
+      case 'enterprise':
+        return { name: 'Plano Empresarial', icon: '🏢', bg: 'bg-amber-50 text-amber-900 border-amber-300 hover:bg-amber-100' };
+      case 'pro':
+        return { name: 'Plano Profissional', icon: '🚀', bg: 'bg-purple-50 text-purple-900 border-purple-300 hover:bg-purple-100' };
+      case 'basic':
+        return { name: 'Plano Básico', icon: '⭐', bg: 'bg-blue-50 text-blue-900 border-blue-300 hover:bg-blue-100' };
+      default:
+        return { name: 'Sem Plano Ativo', icon: '⚪', bg: 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200' };
+    }
+  };
+
+  const getStatusBadge = (status?: string) => {
+    switch (status) {
+      case 'active':
+        return { text: 'Ativo', color: 'text-emerald-700 bg-emerald-100 border-emerald-300' };
+      case 'suspended':
+        return { text: 'Suspenso', color: 'text-rose-700 bg-rose-100 border-rose-300' };
+      case 'pending':
+        return { text: 'Pendente', color: 'text-amber-700 bg-amber-100 border-amber-300' };
+      default:
+        return { text: 'Ativo', color: 'text-emerald-700 bg-emerald-100 border-emerald-300' };
+    }
+  };
+
+  const planBadge = getPlanBadge(currentUser?.plan);
+  const statusBadge = getStatusBadge(currentUser?.status);
 
   const handleRefreshClick = () => {
     setIsRefreshing(true);
@@ -107,6 +141,21 @@ export default function DashboardNav({ userName, userAvatar, onLogout, onRefresh
                 <span>{isRefreshing ? t('dash.refreshing') : t('dash.refresh')}</span>
               </button>
 
+              {/* Distintivo do Plano do Cliente */}
+              {currentUser && (
+                <Link
+                  href="/dashboard/billing"
+                  className={`hidden sm:flex items-center space-x-2 px-3 py-1.5 text-xs font-bold rounded-lg border transition shadow-2xs cursor-pointer ${planBadge.bg}`}
+                  title="Ver detalhes do plano, faturamento e renovação"
+                >
+                  <span className="text-sm">{planBadge.icon}</span>
+                  <span className="font-extrabold">{planBadge.name}</span>
+                  <span className={`inline-flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded-full border ${statusBadge.color}`}>
+                    {statusBadge.text}
+                  </span>
+                </Link>
+              )}
+
               {userName && (
                 <div className="flex items-center space-x-2 text-sm text-gray-700 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200/60">
                   {userAvatar ? (
@@ -180,6 +229,29 @@ export default function DashboardNav({ userName, userAvatar, onLogout, onRefresh
                   {t('dash.logout')}
                 </button>
               </div>
+            )}
+
+            {/* Distintivo do Plano no Mobile */}
+            {currentUser && (
+              <Link
+                href="/dashboard/billing"
+                onClick={closeMobileMenu}
+                className={`flex items-center justify-between p-3 rounded-xl border text-xs font-bold transition ${planBadge.bg}`}
+              >
+                <div className="flex items-center space-x-2.5">
+                  <span className="text-lg">{planBadge.icon}</span>
+                  <div>
+                    <p className="text-[10px] uppercase font-bold text-gray-500">Meu Plano</p>
+                    <p className="text-xs font-extrabold text-gray-900">{planBadge.name}</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${statusBadge.color}`}>
+                    {statusBadge.text}
+                  </span>
+                  <span className="text-gray-400 text-xs">➔</span>
+                </div>
+              </Link>
             )}
 
             <nav className="flex flex-col space-y-1.5">
