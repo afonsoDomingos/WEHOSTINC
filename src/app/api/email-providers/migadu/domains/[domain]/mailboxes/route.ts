@@ -46,12 +46,17 @@ export async function GET(
       console.warn('[Migadu Mailboxes] Erro ao identificar dono do domínio:', ownerErr);
     }
 
+    let providerWarning: string | null = null;
+    let providerHasError = false;
+
     if (provider.isConfigured()) {
       try {
         providerMailboxes = await provider.listMailboxes(domainName);
         console.log(`[Migadu Mailboxes GET] Fetched ${providerMailboxes.length} live mailboxes from Migadu for ${domainName}`);
-      } catch (providerError) {
-        console.warn('[Migadu Mailboxes GET] Failed to fetch from Migadu API:', providerError);
+      } catch (providerError: any) {
+        providerHasError = true;
+        providerWarning = providerError?.message || 'Chave de API do Migadu inválida ou expirada';
+        console.warn('[Migadu Mailboxes GET] Failed to fetch from Migadu API:', providerWarning);
       }
     }
 
@@ -124,12 +129,56 @@ export async function GET(
     }
 
     // Query all mailboxes for this domain from DB
-    const dbMailboxes = await EmailMailbox.find({
+    let dbMailboxes = await EmailMailbox.find({
       $or: [
         { domainId: domain._id.toString() },
         { email: { $regex: `@${domainName}$`, $options: 'i' } }
       ]
     }).lean();
+
+    // Se nenhuma caixa existir no banco e a API estiver inacessível, auto-inicializar a caixa principal (admin/postmaster)
+    if (dbMailboxes.length === 0) {
+      try {
+        const defaultLocal = 'admin';
+        const defaultEmail = `${defaultLocal}@${domainName.toLowerCase()}`;
+        const autoMb = await EmailMailbox.findOneAndUpdate(
+          { email: defaultEmail },
+          {
+            domainId: domain._id.toString(),
+            customerId: domainOwner,
+            localPart: defaultLocal,
+            email: defaultEmail,
+            name: 'Postmaster',
+            status: 'active',
+            provider: 'migadu',
+            maySend: true,
+            mayReceive: true,
+            mayAccessImap: true,
+            updatedAt: new Date()
+          },
+          { upsert: true, new: true }
+        ).lean();
+
+        await EmailAccountModel.findOneAndUpdate(
+          { email: defaultEmail },
+          {
+            id: `email_${defaultLocal}_${domainName.replace(/[^a-zA-Z0-9]/g, '_')}`,
+            email: defaultEmail,
+            domain: domainName,
+            status: 'active',
+            userEmail: domainOwner,
+            createdAt: new Date().toISOString()
+          },
+          { upsert: true, new: true }
+        );
+
+        if (autoMb) {
+          dbMailboxes = [autoMb];
+        }
+      } catch (seedErr) {
+        console.warn('[Migadu Mailboxes GET] Erro ao auto-inicializar caixa admin:', seedErr);
+      }
+    }
 
     const allMailboxes = dbMailboxes.map((m: any) => ({
       id: m._id?.toString() || m.id,
@@ -153,7 +202,9 @@ export async function GET(
 
     return NextResponse.json({
       success: true,
-      mailboxes: allMailboxes
+      mailboxes: allMailboxes,
+      providerError: providerHasError,
+      warning: providerWarning
     });
   } catch (error) {
     console.error('[Migadu Mailboxes GET] Error:', error);

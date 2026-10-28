@@ -41,9 +41,31 @@ export async function GET(
       } catch {}
     }
 
-    const aliases = await EmailAlias.find({
+    let aliases = await EmailAlias.find({
       domain: new RegExp(`^${domainName}$`, 'i')
     }).sort({ createdAt: -1 });
+
+    if (aliases.length === 0) {
+      try {
+        const seedAlias = await EmailAlias.findOneAndUpdate(
+          { domain: domainName.toLowerCase(), alias: 'postmaster' },
+          {
+            domain: domainName.toLowerCase(),
+            alias: 'postmaster',
+            destination: `admin@${domainName.toLowerCase()}`,
+            type: 'alias',
+            status: 'active',
+            updatedAt: new Date()
+          },
+          { upsert: true, new: true }
+        );
+        if (seedAlias) {
+          aliases = [seedAlias];
+        }
+      } catch (aliasErr) {
+        console.warn('[Aliases GET] Erro ao auto-inicializar alias postmaster:', aliasErr);
+      }
+    }
 
     return NextResponse.json({
       success: true,

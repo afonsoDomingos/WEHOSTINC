@@ -167,14 +167,17 @@ export default function EmailPage() {
     }
 
     // Sincronizar ao vivo as caixas de correio do Migadu APENAS para os domínios do cliente
+    let hadWarning: string | null = null;
     for (const dName of allActiveDomains) {
       try {
         const mbRes = await fetch(`/api/email-providers/migadu/domains/${dName}/mailboxes`);
         const mbData = await mbRes.json();
+        if (mbData.providerError && mbData.warning) {
+          hadWarning = mbData.warning;
+        }
         const mailboxes = mbData.mailboxes || mbData || [];
         if (Array.isArray(mailboxes) && mailboxes.length > 0) {
           const currentLocal = dataManager.getEmails(userEmailFilter);
-          let addedCount = 0;
           for (const mb of mailboxes) {
             const fullEmail = (mb.email || `${mb.localPart || mb.local_part}@${dName}`).toLowerCase().trim();
             if (fullEmail && !currentLocal.some(e => e.email.toLowerCase() === fullEmail)) {
@@ -187,18 +190,24 @@ export default function EmailPage() {
                 userEmail: userEmailFilter,
                 createdAt: new Date().toISOString()
               };
-              dataManager.addEmail(newAcc);
-              addedCount++;
+              try {
+                dataManager.addEmail(newAcc);
+              } catch {
+                // Se já estiver em cache compartilhado, prosseguir
+              }
             }
-          }
-          if (addedCount > 0) {
-            refreshData(undefined, userEmailFilter);
           }
         }
       } catch (syncErr) {
         console.warn(`[Email Sync] Erro ao sincronizar caixas de ${dName}:`, syncErr);
       }
     }
+
+    try {
+      await dataManager.fetchEmailsAsync(userEmailFilter);
+    } catch {}
+    refreshData(undefined, userEmailFilter);
+    return hadWarning;
   }, [user?.email, refreshData]);
 
   useEffect(() => {
@@ -681,13 +690,17 @@ export default function EmailPage() {
                         onClick={async () => {
                           setIsSyncingMigadu(true);
                           try {
-                            await fetchMigaduDomains();
+                            const warningMsg = await fetchMigaduDomains();
                             if (user?.email) {
                               await dataManager.fetchEmailsAsync(user.email);
                             }
                             refreshData();
                             soundEffects.playSuccessSound();
-                            setToastMsg({ type: 'success', message: 'Sincronização em tempo real concluída com sucesso!' });
+                            if (warningMsg) {
+                              setToastMsg({ type: 'warning', message: 'Caixas sincronizadas com sucesso! (Nota: Chave de API do Migadu precisa de renovação para sync externo).' });
+                            } else {
+                              setToastMsg({ type: 'success', message: 'Sincronização em tempo real concluída com sucesso!' });
+                            }
                           } catch {
                             setToastMsg({ type: 'error', message: 'Erro ao sincronizar em tempo real.' });
                           } finally {
@@ -814,13 +827,17 @@ export default function EmailPage() {
                             onClick={async () => {
                               setIsSyncingMigadu(true);
                               try {
-                                await fetchMigaduDomains();
+                                const warningMsg = await fetchMigaduDomains();
                                 if (user?.email) {
                                   await dataManager.fetchEmailsAsync(user.email);
                                 }
                                 refreshData();
                                 soundEffects.playSuccessSound();
-                                setToastMsg({ type: 'success', message: 'Sincronização em tempo real concluída!' });
+                                if (warningMsg) {
+                                  setToastMsg({ type: 'warning', message: 'Caixas sincronizadas! (Nota: Chave de API do Migadu precisa de renovação).' });
+                                } else {
+                                  setToastMsg({ type: 'success', message: 'Sincronização em tempo real concluída!' });
+                                }
                               } catch {
                                 setToastMsg({ type: 'error', message: 'Erro ao sincronizar contas.' });
                               } finally {

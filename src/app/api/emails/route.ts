@@ -130,6 +130,24 @@ export async function GET() {
         }
       });
 
+      // Garantir que a caixa mestre admin do domínio do cliente esteja sempre presente
+      domainOwnerMap.forEach((owner, d) => {
+        const defaultAdmin = `admin@${d}`;
+        if (!existingEmails.has(defaultAdmin)) {
+          existingEmails.add(defaultAdmin);
+          const defaultObj = {
+            id: `email_admin_${d.replace(/[^a-zA-Z0-9]/g, '_')}`,
+            email: defaultAdmin,
+            domain: d,
+            status: 'active',
+            userEmail: owner,
+            createdAt: new Date().toISOString()
+          };
+          allEmails.push(defaultObj);
+          EmailAccountModel.findOneAndUpdate({ email: defaultAdmin }, defaultObj, { upsert: true }).catch(() => {});
+        }
+      });
+
       return NextResponse.json({ emails: allEmails });
     }
   } catch (e) { console.error('MongoDB indisponível (emails):', e); }
