@@ -74,6 +74,7 @@ export default function DashboardPage() {
   const [showBirthdayBanner, setShowBirthdayBanner] = useState(false);
   const [birthdayInput, setBirthdayInput] = useState('');
   const [savingBirthday, setSavingBirthday] = useState(false);
+  const [orders, setOrders] = useState<any[]>([]);
   
   const {
     permission,
@@ -128,21 +129,41 @@ export default function DashboardPage() {
       return;
     }
 
-    // 🔄 Se o utilizador não tem role de admin localmente, verificar imediatamente no servidor
-    // para utilizadores que foram promovidos a Super Admin recentemente
-    if (!auth.isClientViewActive() && currentUser.email) {
-      console.log('[Dashboard Auth Check] Verificando no servidor para:', currentUser.email);
+    // 🔄 Sincronizar dados atualizados do utilizador do servidor MongoDB (plano, status, dueDate, role)
+    if (currentUser.email) {
       fetch('/api/users?email=' + encodeURIComponent(currentUser.email))
         .then(r => r.json())
         .then(data => {
-          console.log('[Dashboard Server User Response]:', data);
           const serverUser = data.user || (data.users && data.users.find((u: any) => u.email?.toLowerCase() === currentUser?.email?.toLowerCase()));
-          if (serverUser && (serverUser.role === 'admin' || serverUser.role === 'super_admin')) {
-            console.log('[Dashboard] 👑 Utilizador promovido no servidor detectado! Redirecionando para /admin:', serverUser);
-            const updated = { ...currentUser, role: serverUser.role, status: serverUser.status || 'active', plan: serverUser.plan || 'enterprise' };
-            localStorage.setItem('wehosthere_auth', JSON.stringify({ user: updated }));
-            localStorage.setItem(`user_${serverUser.id || currentUser?.id}`, JSON.stringify(updated));
-            window.location.replace('/admin');
+          if (serverUser) {
+            if (!auth.isClientViewActive() && (serverUser.role === 'admin' || serverUser.role === 'super_admin')) {
+              const updated = { ...currentUser, role: serverUser.role, status: serverUser.status || 'active', plan: serverUser.plan || 'enterprise' };
+              localStorage.setItem('wehosthere_auth', JSON.stringify({ user: updated }));
+              localStorage.setItem(`user_${serverUser.id || currentUser?.id}`, JSON.stringify(updated));
+              window.location.replace('/admin');
+              return;
+            }
+
+            // Sincronizar dados do utilizador do MongoDB
+            const updatedUser: User = {
+              ...currentUser,
+              plan: serverUser.plan || currentUser.plan,
+              status: serverUser.status || currentUser.status,
+              dueDate: serverUser.dueDate !== undefined ? serverUser.dueDate : currentUser.dueDate,
+              createdAt: serverUser.createdAt || currentUser.createdAt
+            };
+            setUser(updatedUser);
+            if (typeof window !== 'undefined') {
+              const sessStr = localStorage.getItem('wehosthere_auth');
+              if (sessStr) {
+                try {
+                  const sess = JSON.parse(sessStr);
+                  sess.user = { ...sess.user, ...updatedUser };
+                  localStorage.setItem('wehosthere_auth', JSON.stringify(sess));
+                } catch {}
+              }
+              localStorage.setItem(`user_${serverUser.id || currentUser?.id}`, JSON.stringify(updatedUser));
+            }
           }
         })
         .catch(err => console.error('[Dashboard Server User Error]:', err));
@@ -183,11 +204,12 @@ export default function DashboardPage() {
       }
     }
 
-    // Sincronizar assincronamente os contadores via API MongoDB
+    // Sincronizar assincronamente os contadores e pedidos via API MongoDB
     Promise.all([
       dataManager.fetchSitesAsync(userEmail),
-      dataManager.fetchEmailsAsync(userEmail)
-    ]).then(([fetchedSites, fetchedEmails]) => {
+      dataManager.fetchEmailsAsync(userEmail),
+      fetch(`/api/orders?userEmail=${encodeURIComponent(userEmail)}`).then(r => r.json()).catch(() => ({ orders: [] }))
+    ]).then(([fetchedSites, fetchedEmails, ordersData]) => {
       setSiteCount(fetchedSites.length);
       setEmailCount(fetchedEmails.length);
       const used = fetchedSites.reduce((sum, s) => sum + (s.storage || 0), 0)
@@ -197,6 +219,10 @@ export default function DashboardPage() {
       const r = Math.min(limits.ram, Math.round((0.4 + fetchedSites.length * 0.3) * 10) / 10);
       setBandwidthUsed(bw);
       setRamUsed(r);
+      const rawOrders = ordersData?.orders || [];
+      if (Array.isArray(rawOrders)) {
+        setOrders(rawOrders);
+      }
       setIsSyncingCounts(false);
     }).catch(() => {
       setIsSyncingCounts(false);
@@ -334,17 +360,47 @@ export default function DashboardPage() {
 
   // Calcular dias até expiração do plano
   const getDaysUntilExpiry = () => {
-    if (!user.dueDate || user.status !== 'active') return null;
+    if (!user || user.status !== 'active' || user.plan === 'none') return null;
+
     const today = new Date();
+
+    // 1. Verificar se existe um pagamento recente de plano concluído nos últimos 30 dias
+    const completedOrders = orders.filter((o: any) => {
+      const isCompleted = o.status === 'completed' || o.status === 'approved' || o.status === 'active';
+      return isCompleted;
+    });
+
+    if (completedOrders.length > 0) {
+      completedOrders.sort((a: any, b: any) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+      const latestOrder = completedOrders[0];
+      const orderDate = new Date(latestOrder.createdAt || today);
+      const diffMs = today.getTime() - orderDate.getTime();
+      const daysSincePayment = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+      // Se o pagamento foi concluído nos últimos 30 dias (ex: hoje = 0 dias), restam (30 - dias)
+      if (daysSincePayment >= 0 && daysSincePayment < 30) {
+        return 30 - daysSincePayment;
+      }
+    }
+
+    // 2. Se a conta ou plano foi ativado recentemente (últimos 30 dias), calcular 30 dias desde a criação
+    if (user.createdAt) {
+      const createdDate = new Date(user.createdAt);
+      const diffMs = today.getTime() - createdDate.getTime();
+      const daysSinceCreation = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      if (daysSinceCreation >= 0 && daysSinceCreation < 30) {
+        return 30 - daysSinceCreation;
+      }
+    }
+
+    // 3. Fallback: Cálculo baseado em dueDate
+    if (!user.dueDate || typeof user.dueDate !== 'number') return null;
     const currentDay = today.getDate();
     const dueDay = user.dueDate;
-
-    if (typeof dueDay !== 'number') return null;
 
     if (dueDay > currentDay) {
       return dueDay - currentDay;
     } else {
-      // Se o dia de vencimento é hoje ou já passou neste mês, calcula para o próximo mês (+30 dias)
       const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, dueDay);
       const diffTime = nextMonth.getTime() - today.getTime();
       return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
