@@ -669,7 +669,7 @@ export const auth = {
   },
 
   // Atualizar plano do usuário
-  updatePlan: (userId: string, plan: 'basic' | 'pro' | 'enterprise'): void => {
+  updatePlan: (userId: string, plan: 'none' | 'basic' | 'pro' | 'enterprise'): void => {
     if (typeof window === 'undefined') return;
     const userData = JSON.parse(localStorage.getItem(`user_${userId}`) || '{}');
     userData.plan = plan;

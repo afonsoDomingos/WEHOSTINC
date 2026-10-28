@@ -2978,22 +2978,49 @@ export default function AdminPage() {
                       </td>
 
                       <td className="py-2.5 sm:py-3.5 px-2 sm:px-4">
-                        {userClientOrders.length > 0 || userClientSites.length > 0 ? (
-                          <div className="space-y-0.5 sm:space-y-1">
-                            {userClientOrders.slice(0, 2).map((ord) => (
-                              <span key={ord.id} className="inline-block px-1.5 sm:px-2 py-0.5 rounded text-[9px] sm:text-[11px] font-bold bg-blue-50 text-blue-800 border border-blue-200 mr-0.5 sm:mr-1">
-                                📦 {ord.serviceName.length > 15 ? ord.serviceName.substring(0, 15) + '...' : ord.serviceName}
-                              </span>
-                            ))}
-                            {userClientOrders.length > 2 && (
-                              <span className="text-[9px] sm:text-[10px] text-gray-500 font-bold block">+ {userClientOrders.length - 2}</span>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="inline-block px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[9px] sm:text-xs font-semibold bg-gray-100 text-gray-600 border border-gray-200">
-                            Sem Serviço
-                          </span>
-                        )}
+                        <div className="flex flex-col gap-1">
+                          <select
+                            value={user.plan || 'none'}
+                            onChange={(e) => {
+                              const newPl = e.target.value as 'none' | 'basic' | 'pro' | 'enterprise';
+                              auth.updatePlan(user.id, newPl);
+                              setUsers(prev => prev.map(u => u.id === user.id ? { ...u, plan: newPl } : u));
+                              fetch(apiEndpoint('/api/users'), {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                  action: 'update_plan',
+                                  email: user.email,
+                                  plan: newPl,
+                                  status: user.status || 'active',
+                                  dueDate: user.dueDate || 28
+                                })
+                              }).catch(() => {});
+                              setToastMsg({
+                                title: 'Plano Atualizado',
+                                message: `Plano de ${user.name} alterado para ${newPl === 'basic' ? 'Básico' : newPl === 'pro' ? 'Profissional' : newPl === 'enterprise' ? 'Empresarial' : 'Nenhum'}.`,
+                                type: 'success'
+                              });
+                            }}
+                            className="bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-800 text-[11px] sm:text-xs font-bold rounded-lg px-2 py-1 outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer"
+                            title="Alterar plano de hospedagem"
+                          >
+                            <option value="none">⚪ Sem Plano</option>
+                            <option value="basic">⭐ Plano Básico</option>
+                            <option value="pro">🚀 Plano Profissional</option>
+                            <option value="enterprise">🏢 Plano Empresarial</option>
+                          </select>
+
+                          {userClientOrders.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-0.5">
+                              {userClientOrders.slice(0, 2).map((ord) => (
+                                <span key={ord.id} className="inline-block px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-50 text-blue-800 border border-blue-200">
+                                  📦 {ord.serviceName.length > 14 ? ord.serviceName.substring(0, 14) + '...' : ord.serviceName}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </td>
                       <td className="py-2.5 sm:py-3.5 px-2 sm:px-4 text-gray-600 text-[10px] sm:text-sm font-medium hidden sm:table-cell">
                         {isTargetAdmin ? (
