@@ -60,13 +60,13 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
     { href: '/dashboard/sites', label: t('dash.nav_sites'), icon: Globe },
     { href: '/dashboard/systems', label: t('dash.nav_systems'), icon: Package },
     { href: '/dashboard/orders', label: t('dash.nav_orders'), icon: FileText },
+    { href: '/dashboard/billing', label: t('dash.nav_billing'), icon: Database },
     { href: '/dashboard/site-quote', label: t('dash.nav_quote'), icon: Sparkles },
     { href: '/dashboard/academy', label: t('dash.nav_academy'), icon: BookOpen },
     { href: '/dashboard/domains', label: t('dash.nav_domains'), icon: Link2 },
     { href: '/dashboard/email', label: t('dash.nav_email'), icon: Mail },
     { href: '/dashboard/notifications', label: t('dash.nav_notifications'), icon: Bell },
     { href: '/dashboard/affiliates', label: t('dash.nav_affiliates'), icon: Users },
-    { href: '/dashboard/billing', label: t('dash.nav_billing'), icon: Database },
     { href: '/dashboard/tickets', label: t('dash.nav_tickets'), icon: LifeBuoy },
     { href: '/dashboard/uptime', label: t('dash.nav_uptime'), icon: Activity },
     { href: '/dashboard/settings', label: t('dash.nav_settings'), icon: SettingsIcon },
@@ -96,8 +96,8 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
             href="/dashboard/billing"
             className="mt-2.5 flex items-center justify-between text-xs font-bold text-primary-700 hover:text-primary-800 transition group pt-2 border-t border-gray-200/60"
           >
-            <span>Faturamento &amp; Renovação</span>
-            <span className="group-hover:translate-x-0.5 transition-transform text-primary-600">➔</span>
+            <span>📄 Baixar Faturas &amp; Recibos</span>
+            <span className="group-hover:translate-x-0.5 transition-transform text-primary-600 font-bold">➔</span>
           </Link>
         </div>
       )}
