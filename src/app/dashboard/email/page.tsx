@@ -71,6 +71,7 @@ export default function EmailPage() {
   const [editStorage, setEditStorage] = useState(1);
   const [editSuccessMsg, setEditSuccessMsg] = useState('');
   const [editErrorMsg, setEditErrorMsg] = useState('');
+  const [isUpdatingEmail, setIsUpdatingEmail] = useState(false);
 
   // Aliases State
   const [aliases, setAliases] = useState<EmailAliasItem[]>([]);
@@ -485,7 +486,7 @@ export default function EmailPage() {
     setEditErrorMsg('');
   };
 
-  const handleSaveEditEmail = (e: React.FormEvent) => {
+  const handleSaveEditEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editEmailAccount) return;
 
@@ -501,20 +502,60 @@ export default function EmailPage() {
       return;
     }
 
-    const updates: Partial<EmailAccount> = {
-      storage: editStorage
-    };
-
-    dataManager.updateEmail(editEmailAccount.id, updates);
-    setEmails(emails.map(e => e.id === editEmailAccount.id ? { ...e, ...updates } : e));
-
-    soundEffects.playSuccessSound();
+    setIsUpdatingEmail(true);
     setEditErrorMsg('');
-    setEditSuccessMsg('Configurações e cota atualizadas com sucesso!');
-    setTimeout(() => {
-      setEditEmailAccount(null);
-      setEditSuccessMsg('');
-    }, 1800);
+
+    try {
+      const emailStr = editEmailAccount.email;
+      const [localPart, domain] = emailStr.split('@');
+
+      // Se o cliente definiu uma nova senha, atualizar diretamente no Migadu
+      if (editPassword && domain && localPart) {
+        try {
+          const res = await fetch(`/api/email-providers/migadu/domains/${domain}/mailboxes/${localPart}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              password: editPassword,
+              name: (editEmailAccount as any).name || localPart
+            })
+          });
+
+          if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            console.warn('[EditEmail] Migadu provider update warning:', errData);
+          }
+        } catch (provErr) {
+          console.warn('[EditEmail] Error sending password to provider:', provErr);
+        }
+      }
+
+      const updates: Partial<EmailAccount> = {
+        storage: editStorage
+      };
+
+      dataManager.updateEmail(editEmailAccount.id, updates);
+      setEmails(emails.map(e => e.id === editEmailAccount.id ? { ...e, ...updates } : e));
+
+      soundEffects.playSuccessSound();
+      setEditSuccessMsg(editPassword ? 'Senha e configurações da caixa atualizadas com sucesso!' : 'Configurações atualizadas com sucesso!');
+      setToastMsg({
+        type: 'success',
+        title: 'Conta Atualizada',
+        message: editPassword ? `A senha da conta ${editEmailAccount.email} foi alterada com sucesso!` : 'Configurações da conta atualizadas.'
+      });
+
+      setTimeout(() => {
+        setEditEmailAccount(null);
+        setEditSuccessMsg('');
+      }, 1600);
+    } catch (err: any) {
+      console.error('Erro ao atualizar conta de e-mail:', err);
+      soundEffects.playErrorSound();
+      setEditErrorMsg('Erro ao atualizar senha no servidor. Tente novamente.');
+    } finally {
+      setIsUpdatingEmail(false);
+    }
   };
 
   const confirmDeleteEmail = () => {
@@ -928,10 +969,11 @@ export default function EmailPage() {
                                   <button
                                     type="button"
                                     onClick={() => handleOpenEditModal(email)}
-                                    className="p-2 text-gray-500 hover:text-blue-600 hover:bg-gray-100 rounded-xl transition cursor-pointer"
-                                    title="Configurar Senha & Cota"
+                                    className="px-2.5 py-1.5 text-gray-700 hover:text-blue-700 hover:bg-blue-50 border border-gray-200 hover:border-blue-200 rounded-xl transition cursor-pointer flex items-center space-x-1.5 text-xs font-bold"
+                                    title="Alterar Senha e Cota"
                                   >
-                                    <Settings className="h-4 w-4" />
+                                    <Key className="h-3.5 w-3.5 text-blue-600" />
+                                    <span className="hidden sm:inline">Alterar Senha</span>
                                   </button>
 
                                   <button
@@ -1571,9 +1613,17 @@ export default function EmailPage() {
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs py-2.5 rounded-xl shadow-xs transition cursor-pointer"
+                    disabled={isUpdatingEmail}
+                    className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 text-white font-bold text-xs py-2.5 rounded-xl shadow-xs transition cursor-pointer flex items-center justify-center space-x-1.5"
                   >
-                    Salvar Alterações
+                    {isUpdatingEmail ? (
+                      <>
+                        <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                        <span>A Atualizar...</span>
+                      </>
+                    ) : (
+                      <span>Salvar Alterações</span>
+                    )}
                   </button>
                 </div>
               </form>

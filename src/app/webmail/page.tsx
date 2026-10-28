@@ -504,9 +504,24 @@ function WebmailContent() {
         return;
       }
 
-      // Update password
+      // Update portal login password
       auth.updatePassword(currentUser.email, newPassword);
       
+      // Sincronizar nova senha com o servidor Migadu se houver caixa de e-mail ativa
+      if (selectedAccountEmail && selectedAccountEmail.includes('@')) {
+        const [localPart, domain] = selectedAccountEmail.split('@');
+        try {
+          await fetch(`/api/email-providers/migadu/domains/${domain}/mailboxes/${localPart}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: newPassword })
+          });
+          setMailboxPassword(newPassword);
+        } catch (migErr) {
+          console.warn('[Webmail] Warning syncing new password with Migadu:', migErr);
+        }
+      }
+
       setPasswordSuccess('Senha alterada com sucesso!');
       setCurrentPassword('');
       setNewPassword('');
