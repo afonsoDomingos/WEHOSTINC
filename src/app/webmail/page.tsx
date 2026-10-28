@@ -2183,11 +2183,11 @@ function WebmailContent() {
                   const isHtml = /<[a-z][\s\S]*>/i.test(cleanBody);
                   return isHtml ? (
                     <div 
-                      className="prose prose-sm max-w-none text-gray-800 font-sans break-words overflow-x-auto leading-relaxed [&_p]:my-1.5 [&_div]:my-1"
+                      className="prose prose-sm max-w-none text-gray-900 font-sans break-words overflow-x-auto leading-relaxed [&_p]:my-1.5 [&_div]:my-1 [&_*]:text-gray-900"
                       dangerouslySetInnerHTML={{ __html: cleanBody }}
                     />
                   ) : (
-                    <div className="whitespace-pre-line text-sm text-gray-800 leading-relaxed font-sans">
+                    <div className="whitespace-pre-line text-sm text-gray-900 leading-relaxed font-sans font-normal">
                       {cleanBody}
                     </div>
                   );
@@ -2745,7 +2745,39 @@ function WebmailContent() {
                       </button>
                     </div>
                   </div>
-                  <div className={`bg-gray-50 border border-gray-200 rounded-2xl overflow-hidden transition-all duration-300 ${isMessageEditorExpanded ? 'fixed inset-4 z-50 rounded-3xl shadow-2xl' : ''}`}>
+                  <div className={`bg-white border border-gray-200 rounded-2xl overflow-hidden transition-all duration-300 text-gray-900 ${isMessageEditorExpanded ? 'fixed inset-4 z-50 rounded-3xl shadow-2xl' : ''}`}>
+                    <style>{`
+                      .webmail-quill-editor .ql-toolbar.ql-snow {
+                        background-color: #ffffff !important;
+                        border-top-left-radius: 1rem !important;
+                        border-top-right-radius: 1rem !important;
+                        border-color: #e5e7eb !important;
+                      }
+                      .webmail-quill-editor .ql-container.ql-snow {
+                        background-color: #ffffff !important;
+                        border-bottom-left-radius: 1rem !important;
+                        border-bottom-right-radius: 1rem !important;
+                        border-color: #e5e7eb !important;
+                      }
+                      .webmail-quill-editor .ql-editor {
+                        color: #000000 !important;
+                        -webkit-text-fill-color: #000000 !important;
+                        caret-color: #000000 !important;
+                        background-color: #ffffff !important;
+                        font-size: 13.5px !important;
+                        font-family: inherit !important;
+                        line-height: 1.6 !important;
+                      }
+                      .webmail-quill-editor .ql-editor * {
+                        color: #000000 !important;
+                        -webkit-text-fill-color: #000000 !important;
+                      }
+                      .webmail-quill-editor .ql-editor.ql-blank::before {
+                        color: #6b7280 !important;
+                        -webkit-text-fill-color: #6b7280 !important;
+                        font-style: normal !important;
+                      }
+                    `}</style>
                     {typeof window !== 'undefined' && (
                       <ReactQuill
                         theme="snow"
@@ -2760,7 +2792,7 @@ function WebmailContent() {
                             ['clean']
                           ]
                         }}
-                        className="text-xs"
+                        className="text-xs text-gray-900 bg-white webmail-quill-editor"
                         style={{ minHeight: isMessageEditorExpanded ? 'calc(100vh - 200px)' : '150px' }}
                       />
                     )}

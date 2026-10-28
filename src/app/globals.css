@@ -202,12 +202,14 @@ option {
   color-scheme: light !important;
 }
 
-/* Garante texto preto/escuro legível em inputs, selects e options mesmo quando o sistema operativo está em Dark Mode */
+/* Garante texto preto/escuro legível em inputs, selects, textareas e editores mesmo quando o sistema operativo está em Dark Mode */
 .bg-white input:not([type="checkbox"]):not([type="radio"]),
 .bg-white select,
 .bg-white textarea,
 input.text-gray-900,
-select.text-gray-900 {
+select.text-gray-900,
+textarea,
+textarea.text-gray-900 {
   color: #111827 !important;
   -webkit-text-fill-color: #111827 !important;
 }
@@ -217,6 +219,70 @@ select optgroup {
   color: #111827 !important;
   background-color: #ffffff !important;
   -webkit-text-fill-color: #111827 !important;
+}
+
+/* ─── ReactQuill & Webmail Editor: Garantir texto preto e legibilidade máxima ─── */
+.ql-container,
+.ql-editor,
+.ql-toolbar {
+  color-scheme: light !important;
+}
+
+.ql-toolbar.ql-snow {
+  background-color: #ffffff !important;
+  border-color: #e5e7eb !important;
+}
+
+.ql-toolbar.ql-snow .ql-stroke {
+  stroke: #374151 !important;
+}
+
+.ql-toolbar.ql-snow .ql-fill {
+  fill: #374151 !important;
+}
+
+.ql-toolbar.ql-snow .ql-picker {
+  color: #1f2937 !important;
+}
+
+.ql-toolbar.ql-snow .ql-picker-options {
+  background-color: #ffffff !important;
+  border-color: #e5e7eb !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+}
+
+.ql-toolbar.ql-snow .ql-picker-item {
+  color: #111827 !important;
+}
+
+.ql-toolbar.ql-snow .ql-picker-item:hover {
+  background-color: #f3f4f6 !important;
+  color: #2563eb !important;
+}
+
+.ql-container.ql-snow {
+  background-color: #ffffff !important;
+  border-color: #e5e7eb !important;
+}
+
+.ql-editor {
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
+  caret-color: #000000 !important;
+  background-color: #ffffff !important;
+  font-size: 0.875rem !important;
+  line-height: 1.6 !important;
+}
+
+.ql-editor * {
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
+}
+
+.ql-editor.ql-blank::before {
+  color: #6b7280 !important;
+  -webkit-text-fill-color: #6b7280 !important;
+  font-style: normal !important;
 }
 
 
