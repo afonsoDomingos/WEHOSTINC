@@ -896,7 +896,7 @@ export default function CashvibeAdminPage() {
                   {loans.length === 0 ? (
                     <tr>
                       <td colSpan={8} className="px-5 py-12 text-center text-slate-400">
-                        Nenhum empréstimo encontrado. Conceda o primeiro clicando no botão "Novo Empréstimo".
+                        Nenhum empréstimo encontrado. Conceda o primeiro clicando no botão &quot;Novo Empréstimo&quot;.
                       </td>
                     </tr>
                   ) : (

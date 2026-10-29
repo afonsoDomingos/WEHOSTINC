@@ -8,7 +8,7 @@ import {
   Type, AlignLeft, AlignCenter, AlignRight, AlignJustify,
   Palette, Move, Box, Frame, Monitor, Tablet, Smartphone,
   ChevronDown, ChevronRight, Eye, EyeOff, Lock, Unlock,
-  Bold, Italic, Underline, Link, Image, Sparkles,
+  Bold, Italic, Underline, Link, Image as ImageIcon, Sparkles,
   Layers, MousePointerClick, Globe, Hash, ArrowUpDown, FileText,
 } from 'lucide-react';
 import { SiteDocument, VisualComponent, StyleProps, DeviceBreakpoint } from '@/lib/builder/types';
@@ -604,7 +604,7 @@ function ContentPanel({
             onClick={() => onOpenImagePicker && onOpenImagePicker(comp.id, content.src || '')}
             className="w-full py-2 px-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition flex items-center justify-center gap-2 shadow-xs cursor-pointer"
           >
-            <Image className="w-3.5 h-3.5" />
+            <ImageIcon className="w-3.5 h-3.5" />
             <span>Mudar Imagem</span>
           </button>
           <input
