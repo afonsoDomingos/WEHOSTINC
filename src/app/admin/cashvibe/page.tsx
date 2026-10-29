@@ -7,7 +7,7 @@ import {
   CheckCircle2, Clock, Calendar, Phone, MessageSquare, 
   Printer, FileText, ChevronRight, RefreshCw, X, Shield, 
   CreditCard, TrendingUp, Sparkles, Filter, Trash2, Edit3, 
-  Wallet, Award, ExternalLink, Send
+  Wallet, Award, ExternalLink, Send, Download, Upload, Image as ImageIcon, Eye
 } from 'lucide-react';
 import PageLoader from '@/components/PageLoader';
 import Toast from '@/components/Toast';
@@ -36,6 +36,8 @@ interface IClient {
     documentNumber?: string;
   };
   collateralDescription?: string;
+  biPhotoUrl?: string;
+  collateralPhotoUrl?: string;
   status: 'active' | 'blacklisted' | 'inactive';
   rating: 'A' | 'B' | 'C' | 'D';
   totalLoansCount?: number;
@@ -124,6 +126,10 @@ export default function CashvibeAdminPage() {
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
   const [activeReceipt, setActiveReceipt] = useState<any | null>(null);
 
+  // Estados de Fotos KYC e Preview
+  const [uploadingPhoto, setUploadingPhoto] = useState<'bi' | 'collateral' | null>(null);
+  const [previewImage, setPreviewImage] = useState<{ url: string; title: string } | null>(null);
+
   // Form states - Cliente
   const [clientForm, setClientForm] = useState({
     name: '',
@@ -143,6 +149,8 @@ export default function CashvibeAdminPage() {
     guarantorPhone: '',
     guarantorRelation: '',
     collateralDescription: '',
+    biPhotoUrl: '',
+    collateralPhotoUrl: '',
     rating: 'A',
     notes: '',
   });
@@ -240,6 +248,8 @@ export default function CashvibeAdminPage() {
           relationship: clientForm.guarantorRelation,
         },
         collateralDescription: clientForm.collateralDescription,
+        biPhotoUrl: clientForm.biPhotoUrl,
+        collateralPhotoUrl: clientForm.collateralPhotoUrl,
         rating: clientForm.rating,
         notes: clientForm.notes,
       };
@@ -360,10 +370,101 @@ export default function CashvibeAdminPage() {
       guarantorPhone: c.guarantor?.phone || '',
       guarantorRelation: c.guarantor?.relationship || '',
       collateralDescription: c.collateralDescription || '',
+      biPhotoUrl: c.biPhotoUrl || '',
+      collateralPhotoUrl: c.collateralPhotoUrl || '',
       rating: c.rating || 'A',
       notes: (c as any).notes || '',
     });
     setIsClientModalOpen(true);
+  };
+
+  // Upload de Fotos de BI e Garantia
+  const handleUploadPhoto = async (file: File, field: 'bi' | 'collateral') => {
+    setUploadingPhoto(field);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.url) {
+        if (field === 'bi') {
+          setClientForm(prev => ({ ...prev, biPhotoUrl: data.url }));
+        } else {
+          setClientForm(prev => ({ ...prev, collateralPhotoUrl: data.url }));
+        }
+        setToast({ message: 'Foto anexada com sucesso!', type: 'success' });
+      } else {
+        throw new Error(data.error || 'Falha no upload');
+      }
+    } catch (err: any) {
+      setToast({ message: err.message || 'Erro ao fazer upload da foto', type: 'error' });
+    } finally {
+      setUploadingPhoto(null);
+    }
+  };
+
+  // Exportar Relatório de Empréstimos para Excel/CSV
+  const exportLoansCSV = () => {
+    if (loans.length === 0) {
+      setToast({ message: 'Sem empréstimos para exportar', type: 'info' });
+      return;
+    }
+    const headers = ['ID', 'Mutuário', 'Telefone', 'Capital (MT)', 'Taxa (%)', 'Total (MT)', 'Pago (MT)', 'Saldo Devedor (MT)', 'Parcelas', 'Vencimento Final', 'Status'];
+    const rows = loans.map(l => [
+      l.id,
+      `"${l.clientName.replace(/"/g, '""')}"`,
+      `"${l.clientPhone}"`,
+      l.principalAmount,
+      l.interestRate,
+      l.totalAmount,
+      l.totalPaid,
+      l.totalRemaining,
+      l.installmentsCount,
+      l.finalDueDate,
+      l.status
+    ]);
+    const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `Cashvibe_Emprestimos_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setToast({ message: 'Relatório CSV exportado com sucesso!', type: 'success' });
+  };
+
+  // Exportar Lista de Clientes Mutuários para Excel/CSV
+  const exportClientsCSV = () => {
+    if (clients.length === 0) {
+      setToast({ message: 'Sem clientes para exportar', type: 'info' });
+      return;
+    }
+    const headers = ['ID', 'Nome', 'Documento', 'Telefone', 'Bairro', 'Profissão', 'Renda (MT)', 'Fiador', 'Score', 'Dívida Ativa (MT)'];
+    const rows = clients.map(c => [
+      c.id,
+      `"${c.name.replace(/"/g, '""')}"`,
+      `"${c.documentType}: ${c.documentNumber}"`,
+      `"${c.phone}"`,
+      `"${c.address?.neighborhood || c.address?.city || 'Maputo'}"`,
+      `"${c.occupation || 'N/A'}"`,
+      c.monthlyIncome || 0,
+      `"${c.guarantor?.name || 'Sem Fiador'}"`,
+      c.rating || 'A',
+      c.totalDebt || 0
+    ]);
+    const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `Cashvibe_Mutuarios_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setToast({ message: 'Lista de clientes exportada para CSV!', type: 'success' });
   };
 
   // Helper de Status Badge
@@ -424,7 +525,9 @@ export default function CashvibeAdminPage() {
                     secondaryPhone: '', email: '', province: 'Maputo', city: 'Maputo',
                     neighborhood: '', street: '', occupation: '', workplace: '',
                     monthlyIncome: '', guarantorName: '', guarantorPhone: '',
-                    guarantorRelation: '', collateralDescription: '', rating: 'A', notes: ''
+                    guarantorRelation: '', collateralDescription: '',
+                    biPhotoUrl: '', collateralPhotoUrl: '',
+                    rating: 'A', notes: ''
                   });
                   setIsClientModalOpen(true);
                 }}
@@ -756,6 +859,15 @@ export default function CashvibeAdminPage() {
                 </select>
 
                 <button
+                  onClick={exportLoansCSV}
+                  className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 transition"
+                  title="Exportar dados para Excel / CSV"
+                >
+                  <Download className="w-3.5 h-3.5 text-emerald-600" />
+                  <span className="hidden sm:inline">Exportar CSV</span>
+                </button>
+
+                <button
                   onClick={loadData}
                   className="p-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition"
                   title="Atualizar"
@@ -857,10 +969,20 @@ export default function CashvibeAdminPage() {
                                 setIsContractModalOpen(true);
                               }}
                               className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-700 transition"
-                              title="Contrato de Microcrédito"
+                              title="Ver Contrato"
                             >
                               <FileText className="w-3.5 h-3.5 text-blue-600" />
                             </button>
+
+                            <a
+                              href={`/api/admin/cashvibe/loans/${loan.id}/pdf`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="p-1.5 rounded-lg border border-slate-200 hover:bg-emerald-50 text-emerald-700 transition"
+                              title="Baixar Contrato em PDF"
+                            >
+                              <Download className="w-3.5 h-3.5" />
+                            </a>
 
                             <button
                               onClick={() => handleOpenWhatsApp(loan.clientPhone, loan.clientName, loan.totalRemaining, loan.finalDueDate, loan.status === 'overdue')}
@@ -896,23 +1018,36 @@ export default function CashvibeAdminPage() {
                 />
               </div>
 
-              <button
-                onClick={() => {
-                  setEditingClient(null);
-                  setClientForm({
-                    name: '', documentType: 'BI', documentNumber: '', phone: '',
-                    secondaryPhone: '', email: '', province: 'Maputo', city: 'Maputo',
-                    neighborhood: '', street: '', occupation: '', workplace: '',
-                    monthlyIncome: '', guarantorName: '', guarantorPhone: '',
-                    guarantorRelation: '', collateralDescription: '', rating: 'A', notes: ''
-                  });
-                  setIsClientModalOpen(true);
-                }}
-                className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs transition"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Adicionar Mutuário</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={exportClientsCSV}
+                  className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 transition"
+                  title="Exportar clientes para Excel / CSV"
+                >
+                  <Download className="w-3.5 h-3.5 text-emerald-600" />
+                  <span className="hidden sm:inline">Exportar CSV</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setEditingClient(null);
+                    setClientForm({
+                      name: '', documentType: 'BI', documentNumber: '', phone: '',
+                      secondaryPhone: '', email: '', province: 'Maputo', city: 'Maputo',
+                      neighborhood: '', street: '', occupation: '', workplace: '',
+                      monthlyIncome: '', guarantorName: '', guarantorPhone: '',
+                      guarantorRelation: '', collateralDescription: '',
+                      biPhotoUrl: '', collateralPhotoUrl: '',
+                      rating: 'A', notes: ''
+                    });
+                    setIsClientModalOpen(true);
+                  }}
+                  className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs transition"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Adicionar Mutuário</span>
+                </button>
+              </div>
             </div>
 
             <div className="overflow-x-auto">
@@ -945,7 +1080,18 @@ export default function CashvibeAdminPage() {
                         </td>
 
                         <td className="px-5 py-4 font-mono text-[11px]">
-                          <span className="font-bold text-slate-800">{c.documentType}:</span> {c.documentNumber}
+                          <div className="flex items-center gap-1.5">
+                            <span><span className="font-bold text-slate-800">{c.documentType}:</span> {c.documentNumber}</span>
+                            {c.biPhotoUrl && (
+                              <button
+                                onClick={() => setPreviewImage({ url: c.biPhotoUrl!, title: `Foto do ${c.documentType} - ${c.name}` })}
+                                className="p-1 rounded bg-blue-50 hover:bg-blue-100 text-blue-700 transition"
+                                title="Ver foto do documento"
+                              >
+                                <ImageIcon className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
                         </td>
 
                         <td className="px-5 py-4 font-semibold text-slate-800">
@@ -969,6 +1115,16 @@ export default function CashvibeAdminPage() {
                             </div>
                           ) : (
                             <span className="text-slate-300">-</span>
+                          )}
+                          {c.collateralPhotoUrl && (
+                            <button
+                              onClick={() => setPreviewImage({ url: c.collateralPhotoUrl!, title: `Foto da Garantia/Penhor - ${c.name} (${c.collateralDescription || 'Garantia'})` })}
+                              className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-50 hover:bg-amber-100 text-amber-700 text-[10px] font-bold transition"
+                              title="Ver foto da garantia"
+                            >
+                              <ImageIcon className="w-3 h-3" />
+                              <span>Foto Penhor</span>
+                            </button>
                           )}
                         </td>
 
@@ -1419,6 +1575,94 @@ export default function CashvibeAdminPage() {
                   />
                 </div>
 
+                {/* Uploads KYC (Anti-Fraude) */}
+                <div className="sm:col-span-2 pt-2 border-t border-slate-100">
+                  <h4 className="text-xs font-bold text-slate-900 mb-2 flex items-center gap-1.5">
+                    <Shield className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Documentos & Fotos KYC (Anti-Fraude)</span>
+                  </h4>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    
+                    {/* Foto do Documento / BI */}
+                    <div className="p-3 rounded-xl border border-dashed border-slate-300 bg-slate-50">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-xs font-bold text-slate-700">Foto do Documento (BI)</label>
+                        {uploadingPhoto === 'bi' && <span className="text-[10px] text-emerald-600 font-bold animate-pulse">A carregar...</span>}
+                      </div>
+
+                      {clientForm.biPhotoUrl ? (
+                        <div className="relative rounded-lg overflow-hidden border border-slate-200">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={clientForm.biPhotoUrl} alt="Foto BI" className="w-full h-24 object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => setClientForm({ ...clientForm, biPhotoUrl: '' })}
+                            className="absolute top-1 right-1 p-1 bg-red-600 text-white rounded-md text-xs"
+                            title="Remover foto"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ) : (
+                        <label className="flex flex-col items-center justify-center p-3 border border-slate-200 rounded-lg bg-white cursor-pointer hover:bg-slate-50 transition text-center">
+                          <Upload className="w-5 h-5 text-slate-400 mb-1" />
+                          <span className="text-[11px] font-semibold text-slate-600">Carregar Foto do BI</span>
+                          <span className="text-[9px] text-slate-400">PNG, JPG até 5MB</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            disabled={uploadingPhoto === 'bi'}
+                            onChange={(e) => {
+                              if (e.target.files?.[0]) handleUploadPhoto(e.target.files[0], 'bi');
+                            }}
+                          />
+                        </label>
+                      )}
+                    </div>
+
+                    {/* Foto da Garantia */}
+                    <div className="p-3 rounded-xl border border-dashed border-slate-300 bg-slate-50">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-xs font-bold text-slate-700">Foto do Bem em Garantia</label>
+                        {uploadingPhoto === 'collateral' && <span className="text-[10px] text-amber-600 font-bold animate-pulse">A carregar...</span>}
+                      </div>
+
+                      {clientForm.collateralPhotoUrl ? (
+                        <div className="relative rounded-lg overflow-hidden border border-slate-200">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={clientForm.collateralPhotoUrl} alt="Foto Garantia" className="w-full h-24 object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => setClientForm({ ...clientForm, collateralPhotoUrl: '' })}
+                            className="absolute top-1 right-1 p-1 bg-red-600 text-white rounded-md text-xs"
+                            title="Remover foto"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ) : (
+                        <label className="flex flex-col items-center justify-center p-3 border border-slate-200 rounded-lg bg-white cursor-pointer hover:bg-slate-50 transition text-center">
+                          <Upload className="w-5 h-5 text-slate-400 mb-1" />
+                          <span className="text-[11px] font-semibold text-slate-600">Carregar Foto Penhor</span>
+                          <span className="text-[9px] text-slate-400">TV, Telemóvel, Factura</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            disabled={uploadingPhoto === 'collateral'}
+                            onChange={(e) => {
+                              if (e.target.files?.[0]) handleUploadPhoto(e.target.files[0], 'collateral');
+                            }}
+                          />
+                        </label>
+                      )}
+                    </div>
+
+                  </div>
+                </div>
+
               </div>
 
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
@@ -1723,20 +1967,32 @@ export default function CashvibeAdminPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-4">
-              <button
-                onClick={() => window.print()}
-                className="px-4 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition flex items-center gap-1.5"
+            <div className="flex items-center justify-between pt-4 gap-2">
+              <a
+                href={`/api/admin/cashvibe/payments/${activeReceipt.receiptNumber}/pdf`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3.5 py-2 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl transition flex items-center gap-1.5"
               >
-                <Printer className="w-4 h-4" />
-                <span>Imprimir Recibo</span>
-              </button>
-              <button
-                onClick={() => setIsReceiptModalOpen(false)}
-                className="px-5 py-2 text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 rounded-xl transition"
-              >
-                Fechar
-              </button>
+                <Download className="w-4 h-4" />
+                <span>Baixar PDF Oficial</span>
+              </a>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => window.print()}
+                  className="px-3.5 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition flex items-center gap-1.5"
+                >
+                  <Printer className="w-4 h-4" />
+                  <span>Imprimir</span>
+                </button>
+                <button
+                  onClick={() => setIsReceiptModalOpen(false)}
+                  className="px-4 py-2 text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 rounded-xl transition"
+                >
+                  Fechar
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -1792,17 +2048,78 @@ export default function CashvibeAdminPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-4 border-t border-slate-200">
-              <button
-                onClick={() => window.print()}
-                className="px-4 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition flex items-center gap-1.5"
+            <div className="flex items-center justify-between pt-4 border-t border-slate-200 gap-2">
+              <a
+                href={`/api/admin/cashvibe/loans/${selectedLoanForContract.id}/pdf`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3.5 py-2 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl transition flex items-center gap-1.5"
               >
-                <Printer className="w-4 h-4" />
-                <span>Imprimir Contrato</span>
-              </button>
+                <Download className="w-4 h-4" />
+                <span>Baixar Contrato em PDF Oficial</span>
+              </a>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => window.print()}
+                  className="px-3.5 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition flex items-center gap-1.5"
+                >
+                  <Printer className="w-4 h-4" />
+                  <span>Imprimir</span>
+                </button>
+                <button
+                  onClick={() => setIsContractModalOpen(false)}
+                  className="px-4 py-2 text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 rounded-xl transition"
+                >
+                  Fechar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===================== MODAL PREVIEW DE FOTO KYC ===================== */}
+      {previewImage && (
+        <div 
+          onClick={() => setPreviewImage(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-xs cursor-pointer"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()} 
+            className="bg-white rounded-2xl max-w-xl w-full p-4 shadow-2xl overflow-hidden cursor-default"
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
+              <h4 className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                <ImageIcon className="w-4 h-4 text-emerald-600" />
+                <span>{previewImage.title}</span>
+              </h4>
               <button
-                onClick={() => setIsContractModalOpen(false)}
-                className="px-5 py-2 text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 rounded-xl transition"
+                onClick={() => setPreviewImage(null)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="rounded-xl overflow-hidden bg-slate-100 max-h-[70vh] flex items-center justify-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={previewImage.url} alt={previewImage.title} className="max-w-full max-h-[70vh] object-contain" />
+            </div>
+
+            <div className="flex items-center justify-between pt-3 border-t border-slate-100 mt-3">
+              <a
+                href={previewImage.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs font-bold text-emerald-700 hover:underline flex items-center gap-1"
+              >
+                <span>Abrir Imagem Original</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+              <button
+                onClick={() => setPreviewImage(null)}
+                className="px-4 py-1.5 text-xs font-bold text-white bg-slate-900 rounded-xl"
               >
                 Fechar
               </button>

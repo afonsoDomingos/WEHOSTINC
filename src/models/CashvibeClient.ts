@@ -24,6 +24,8 @@ export interface ICashvibeClient extends Document {
     documentNumber?: string;
   };
   collateralDescription?: string;
+  biPhotoUrl?: string;
+  collateralPhotoUrl?: string;
   status: 'active' | 'blacklisted' | 'inactive';
   rating: 'A' | 'B' | 'C' | 'D';
   notes?: string;
@@ -60,6 +62,8 @@ const CashvibeClientSchema = new Schema<ICashvibeClient>(
       documentNumber: { type: String, default: '' },
     },
     collateralDescription: { type: String, default: '' },
+    biPhotoUrl: { type: String, default: '' },
+    collateralPhotoUrl: { type: String, default: '' },
     status: { 
       type: String, 
       enum: ['active', 'blacklisted', 'inactive'], 

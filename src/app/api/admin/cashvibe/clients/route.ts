@@ -106,6 +106,8 @@ export async function POST(request: NextRequest) {
       monthlyIncome: Number(monthlyIncome) || 0,
       guarantor: guarantor || { name: '', phone: '', relationship: '', documentNumber: '' },
       collateralDescription,
+      biPhotoUrl: body.biPhotoUrl || '',
+      collateralPhotoUrl: body.collateralPhotoUrl || '',
       rating,
       notes,
       status: 'active',
