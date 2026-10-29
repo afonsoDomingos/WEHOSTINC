@@ -11,7 +11,7 @@ import {
   ShoppingBag, MessageSquare, ExternalLink, Trash2, LifeBuoy, Send, ShieldCheck, CheckCircle2, AlertCircle,
   Paperclip, FileText, Image as ImageIcon, Download, File, X, Loader2, Tag, Shield, AlertTriangle,
   Activity, Eye, EyeOff, Globe, Wifi, WifiOff, BarChart2, RefreshCw, UserPlus, Star, Plus, Edit, BookOpen, Bell, CreditCard, GraduationCap,
-  Handshake, MessageSquareHeart, Key
+  Handshake, MessageSquareHeart, Key, Wallet
 } from 'lucide-react';
 import { auth, User } from '@/lib/auth';
 import { dataManager, ServiceOrder, SupportTicket, TicketMessage, TicketAttachment, SecurityLog, SystemForRent, RentalRequest, SystemAccess, SocialProof } from '@/lib/data';
@@ -1609,6 +1609,15 @@ export default function AdminPage() {
               >
                 <BookOpen className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-500" />
                 <span>Blog</span>
+              </Link>
+
+              <Link
+                href="/admin/cashvibe"
+                className="flex items-center space-x-1.5 text-slate-800 hover:text-emerald-600 font-bold transition text-[10px] sm:text-xs sm:text-sm shrink-0 whitespace-nowrap px-2.5 py-1.5 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200/80 shadow-2xs hover:bg-emerald-100/70"
+                title="Cashvibe - Sistema de Microcrédito Integrado"
+              >
+                <Wallet className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-600" />
+                <span>Cashvibe (Crédito)</span>
               </Link>
 
               <Link
