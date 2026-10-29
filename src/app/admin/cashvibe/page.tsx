@@ -158,11 +158,11 @@ export default function CashvibeAdminPage() {
   // Form states - Empréstimo
   const [loanForm, setLoanForm] = useState({
     clientId: '',
-    principalAmount: '5000',
-    interestRate: '20',
+    principalAmount: '1000',
+    interestRate: '30',
     durationValue: '1',
     durationUnit: 'months',
-    installmentsCount: '1',
+    installmentsCount: '2',
     disbursementDate: new Date().toISOString().split('T')[0],
     purpose: 'Capital de Giro para Comércio',
     collateral: '',
@@ -181,9 +181,9 @@ export default function CashvibeAdminPage() {
     notes: '',
   });
 
-  // Simulador State
-  const [simPrincipal, setSimPrincipal] = useState(10000);
-  const [simRate, setSimRate] = useState(20);
+  // Simulador State - Padrão Cashvibe (1.000 MT, 30% juros, 1 mês, 2 parcelas de 650 MT)
+  const [simPrincipal, setSimPrincipal] = useState(1000);
+  const [simRate, setSimRate] = useState(30);
   const [simDuration, setSimDuration] = useState(1);
   const [simInstallments, setSimInstallments] = useState(2);
 

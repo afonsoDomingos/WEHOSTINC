@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
     const {
       clientId,
       principalAmount,
-      interestRate = 20, // 20% padrão de microcrédito
+      interestRate = 30, // 30% padrão Cashvibe
       durationValue = 1,
       durationUnit = 'months',
       installmentsCount = 1,
