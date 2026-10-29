@@ -126,9 +126,12 @@ export default function CashvibeAdminPage() {
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
   const [activeReceipt, setActiveReceipt] = useState<any | null>(null);
 
-  // Estados de Fotos KYC e Preview
+  // Estados de Fotos KYC, Preview e Fila de Cobrança em Massa
   const [uploadingPhoto, setUploadingPhoto] = useState<'bi' | 'collateral' | null>(null);
   const [previewImage, setPreviewImage] = useState<{ url: string; title: string } | null>(null);
+  const [isBatchQueueOpen, setIsBatchQueueOpen] = useState(false);
+  const [dispatchedIds, setDispatchedIds] = useState<string[]>([]);
+  const [batchQueueFilter, setBatchQueueFilter] = useState<'all' | 'overdue' | 'upcoming'>('all');
 
   // Form states - Cliente
   const [clientForm, setClientForm] = useState({
@@ -333,20 +336,90 @@ export default function CashvibeAdminPage() {
     }
   };
 
-  // Gerador de Mensagem WhatsApp de Cobrança
-  const handleOpenWhatsApp = (phone: string, clientName: string, amount: number, dueDate: string, isOverdue: boolean, days?: number) => {
+  // Automação: Envio de Recibo de Pagamento com Link do PDF no WhatsApp
+  const handleSendReceiptWhatsApp = (receipt: any, loan?: any) => {
+    const client = clients.find(c => c.id === receipt.clientId);
+    const phone = client?.phone || '';
+    const cleanPhone = phone.replace(/\D/g, '');
+    const fullPhone = cleanPhone.startsWith('258') ? cleanPhone : `258${cleanPhone}`;
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://wehosthere.com';
+    const pdfUrl = `${origin}/api/admin/cashvibe/payments/${receipt.receiptNumber}/pdf`;
+    
+    const msg = `🧾 *Recibo Oficial de Pagamento — Cashvibe*\n\n` +
+      `Olá *${receipt.clientName}*, confirmamos a recepção do seu pagamento com sucesso!\n\n` +
+      `• *Valor Amortizado:* ${Number(receipt.amount).toLocaleString('pt-MZ')} MT\n` +
+      `• *Empréstimo:* ${receipt.loanId}\n` +
+      `• *Nº do Recibo:* ${receipt.receiptNumber}\n` +
+      (receipt.transactionReference ? `• *Referência:* ${receipt.transactionReference}\n` : '') +
+      (loan ? `• *Saldo Devedor Restante:* ${Number(loan.totalRemaining).toLocaleString('pt-MZ')} MT\n\n` : '\n') +
+      `📥 *Baixe o seu Recibo Oficial em PDF:* ${pdfUrl}\n\n` +
+      `_Agradecemos a sua pontualidade e preferência!_ ✨\n*Cashvibe Microcrédito (by WeHost Inc.)*`;
+
+    window.open(`https://wa.me/${fullPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+  };
+
+  // Automação: Envio de Contrato de Mútuo com Link do PDF no WhatsApp
+  const handleSendContractWhatsApp = (loan: ILoan) => {
+    const cleanPhone = loan.clientPhone.replace(/\D/g, '');
+    const fullPhone = cleanPhone.startsWith('258') ? cleanPhone : `258${cleanPhone}`;
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://wehosthere.com';
+    const pdfUrl = `${origin}/api/admin/cashvibe/loans/${loan.id}/pdf`;
+    
+    const msg = `📄 *Contrato de Mútuo Oficial — Cashvibe Microcrédito*\n\n` +
+      `Olá *${loan.clientName}*, o seu microcrédito foi concedido e ativado com sucesso!\n\n` +
+      `• *Capital Concedido:* ${loan.principalAmount.toLocaleString('pt-MZ')} MT\n` +
+      `• *Total a Reembolsar:* ${loan.totalAmount.toLocaleString('pt-MZ')} MT\n` +
+      `• *Modalidade:* ${loan.installmentsCount} parcela(s)\n` +
+      `• *Vencimento Final:* ${loan.finalDueDate}\n\n` +
+      `📥 *Aceda ao seu Contrato Oficial em PDF:* ${pdfUrl}\n\n` +
+      `Para qualquer esclarecimento ou pagamento via M-Pesa, fale connosco neste mesmo contacto. Tenha um excelente dia! ✨\n*Cashvibe Microcrédito*`;
+
+    window.open(`https://wa.me/${fullPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+  };
+
+  // Automação: Disparador de Templates no WhatsApp
+  const handleOpenWhatsAppTemplate = (
+    phone: string,
+    clientName: string,
+    amount: number,
+    dueDate: string,
+    templateType: 'preventive' | 'due_today' | 'overdue_mild' | 'overdue_severe' | 'rollover',
+    days?: number,
+    itemKey?: string
+  ) => {
     const cleanPhone = phone.replace(/\D/g, '');
     const fullPhone = cleanPhone.startsWith('258') ? cleanPhone : `258${cleanPhone}`;
     
     let msg = '';
-    if (isOverdue) {
-      msg = `Olá ${clientName}, esperamos que esteja bem. Registamos no sistema da *Cashvibe Microcrédito* que a sua parcela no valor de *${amount.toLocaleString('pt-MZ')} MT* venceu em *${dueDate}* (${days || 1} dias de atraso). Solicitamos a regularização via M-Pesa para evitar taxas adicionais de mora. Por favor, envie o comprovativo assim que efetuar. Obrigado pela confiança!`;
-    } else {
-      msg = `Olá ${clientName}, tudo bem? Lembramos cordialmente que a próxima parcela do seu microcrédito *Cashvibe* no valor de *${amount.toLocaleString('pt-MZ')} MT* vence no dia *${dueDate}*. Pode efetuar o pagamento via M-Pesa. Agradecemos a pontualidade e preferência!`;
+    switch (templateType) {
+      case 'preventive':
+        msg = `🔔 *Lembrete Preventivo — Cashvibe*\n\nOlá ${clientName}, tudo bem? Lembramos cordialmente que a sua parcela no valor de *${amount.toLocaleString('pt-MZ')} MT* vence em 2 dias (*${dueDate}*).\n\nPode efetuar o pagamento via M-Pesa para a nossa conta oficial. Agradecemos a pontualidade! ✨`;
+        break;
+      case 'due_today':
+        msg = `⏰ *Vencimento Hoje — Cashvibe*\n\nBom dia ${clientName}! Lembramos que a sua parcela de *${amount.toLocaleString('pt-MZ')} MT* vence hoje (*${dueDate}*).\n\nPor favor, envie o comprovativo M-Pesa assim que efetuar o pagamento para emissão do seu recibo oficial. Obrigado!`;
+        break;
+      case 'overdue_mild':
+        msg = `⚠️ *Aviso de Vencimento — Cashvibe*\n\nOlá ${clientName}, registamos que a sua parcela no valor de *${amount.toLocaleString('pt-MZ')} MT* venceu em *${dueDate}* (${days || 1} dias em aberto).\n\nSolicitamos a regularização hoje via M-Pesa para evitar taxas adicionais de mora. Contamos com a sua colaboração!`;
+        break;
+      case 'overdue_severe':
+        msg = `🚨 *Aviso Formal de Cobrança — Cashvibe*\n\nPrezado(a) ${clientName}, o seu microcrédito encontra-se em atraso há *${days} dias* (Total atualizado com mora: *${amount.toLocaleString('pt-MZ')} MT*).\n\nSolicitamos a regularização imediata ou contacto urgente com a gerência para evitar a execução da garantia/penhor e medidas legais cabíveis. Aguardamos o seu retorno.`;
+        break;
+      case 'rollover':
+        msg = `🤝 *Renovação de Crédito — Cashvibe*\n\nOlá ${clientName}, se não for possível liquidar o capital integral na data de vencimento, informamos que pode optar pela *Renovação de Prazo por mais 30 dias* mediante o pagamento exclusivo da taxa de juro acordada (300 MT).\n\nResponda a esta mensagem caso pretenda solicitar a prorrogação imediata.`;
+        break;
+    }
+
+    if (itemKey && !dispatchedIds.includes(itemKey)) {
+      setDispatchedIds(prev => [...prev, itemKey]);
     }
 
     const url = `https://wa.me/${fullPhone}?text=${encodeURIComponent(msg)}`;
     window.open(url, '_blank');
+  };
+
+  // Gerador de Mensagem WhatsApp Padrão
+  const handleOpenWhatsApp = (phone: string, clientName: string, amount: number, dueDate: string, isOverdue: boolean, days?: number) => {
+    handleOpenWhatsAppTemplate(phone, clientName, amount, dueDate, isOverdue ? 'overdue_mild' : 'due_today', days);
   };
 
   // Abrir Modal de Edição de Cliente
@@ -985,9 +1058,17 @@ export default function CashvibeAdminPage() {
                             </a>
 
                             <button
+                              onClick={() => handleSendContractWhatsApp(loan)}
+                              className="p-1.5 rounded-lg border border-slate-200 hover:bg-emerald-50 text-emerald-700 transition"
+                              title="Enviar Contrato via WhatsApp com link PDF"
+                            >
+                              <Send className="w-3.5 h-3.5" />
+                            </button>
+
+                            <button
                               onClick={() => handleOpenWhatsApp(loan.clientPhone, loan.clientName, loan.totalRemaining, loan.finalDueDate, loan.status === 'overdue')}
                               className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-700 transition"
-                              title="WhatsApp"
+                              title="Mensagem de Cobrança / Lembrete WhatsApp"
                             >
                               <MessageSquare className="w-3.5 h-3.5 text-emerald-600" />
                             </button>
@@ -1186,11 +1267,21 @@ export default function CashvibeAdminPage() {
                 </p>
               </div>
 
-              <div className="text-right bg-rose-950/60 p-4 rounded-xl border border-rose-800/50">
-                <div className="text-xs text-rose-300 font-semibold uppercase">Total em Atraso</div>
-                <div className="text-2xl font-black text-rose-300">
-                  {Number(stats?.totalOverdueDebt || 0).toLocaleString('pt-MZ')} MT
+              <div className="flex flex-col sm:flex-row items-center gap-3">
+                <div className="text-right bg-rose-950/60 p-4 rounded-xl border border-rose-800/50 w-full sm:w-auto">
+                  <div className="text-xs text-rose-300 font-semibold uppercase">Total em Atraso</div>
+                  <div className="text-2xl font-black text-rose-300">
+                    {Number(stats?.totalOverdueDebt || 0).toLocaleString('pt-MZ')} MT
+                  </div>
                 </div>
+
+                <button
+                  onClick={() => setIsBatchQueueOpen(true)}
+                  className="w-full sm:w-auto px-5 py-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs shadow-lg shadow-emerald-500/25 transition flex items-center justify-center gap-2"
+                >
+                  <Send className="w-4 h-4" />
+                  <span>Fila de Disparos Rápidos</span>
+                </button>
               </div>
             </div>
 
@@ -1201,6 +1292,14 @@ export default function CashvibeAdminPage() {
                   <AlertTriangle className="w-4 h-4 text-rose-600" />
                   Parcelas em Atraso Ativo ({overdueInstallments.length})
                 </h3>
+
+                <button
+                  onClick={() => setIsBatchQueueOpen(true)}
+                  className="text-xs font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1.5"
+                >
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  <span>Disparar Cobranças em Lote</span>
+                </button>
               </div>
 
               <div className="overflow-x-auto">
@@ -1225,50 +1324,94 @@ export default function CashvibeAdminPage() {
                         </td>
                       </tr>
                     ) : (
-                      overdueInstallments.map((inst, idx) => (
-                        <tr key={idx} className="hover:bg-rose-50/40 transition">
-                          <td className="px-5 py-4">
-                            <div className="font-bold text-slate-900">{inst.clientName}</div>
-                            <div className="text-[11px] text-slate-400 font-mono">{inst.loanId} • Parcela #{inst.installmentNumber}</div>
-                          </td>
+                      overdueInstallments.map((inst, idx) => {
+                        const itemKey = `${inst.loanId}-${inst.installmentNumber}`;
+                        const isDispatched = dispatchedIds.includes(itemKey);
+                        return (
+                          <tr key={idx} className="hover:bg-rose-50/40 transition">
+                            <td className="px-5 py-4">
+                              <div className="font-bold text-slate-900">{inst.clientName}</div>
+                              <div className="text-[11px] text-slate-400 font-mono">{inst.loanId} • Parcela #{inst.installmentNumber}</div>
+                            </td>
 
-                          <td className="px-5 py-4 font-semibold text-slate-800">
-                            {inst.clientPhone}
-                          </td>
+                            <td className="px-5 py-4 font-semibold text-slate-800">
+                              {inst.clientPhone}
+                            </td>
 
-                          <td className="px-5 py-4 text-slate-600 font-medium">
-                            {inst.dueDate}
-                          </td>
+                            <td className="px-5 py-4 text-slate-600 font-medium">
+                              {inst.dueDate}
+                            </td>
 
-                          <td className="px-5 py-4">
-                            <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 font-black text-xs">
-                              {inst.daysOverdue} dias
-                            </span>
-                          </td>
+                            <td className="px-5 py-4">
+                              <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 font-black text-xs">
+                                {inst.daysOverdue} dias
+                              </span>
+                            </td>
 
-                          <td className="px-5 py-4 font-semibold text-slate-900">
-                            {inst.remainingAmount.toLocaleString('pt-MZ')} MT
-                          </td>
+                            <td className="px-5 py-4 font-semibold text-slate-900">
+                              {inst.remainingAmount.toLocaleString('pt-MZ')} MT
+                            </td>
 
-                          <td className="px-5 py-4 font-semibold text-rose-700">
-                            +{inst.calculatedLateFee.toLocaleString('pt-MZ')} MT
-                          </td>
+                            <td className="px-5 py-4 font-semibold text-rose-700">
+                              +{inst.calculatedLateFee.toLocaleString('pt-MZ')} MT
+                            </td>
 
-                          <td className="px-5 py-4 font-black text-slate-900">
-                            {inst.totalWithLateFee.toLocaleString('pt-MZ')} MT
-                          </td>
+                            <td className="px-5 py-4 font-black text-slate-900">
+                              {inst.totalWithLateFee.toLocaleString('pt-MZ')} MT
+                            </td>
 
-                          <td className="px-5 py-4 text-right">
-                            <button
-                              onClick={() => handleOpenWhatsApp(inst.clientPhone, inst.clientName, inst.remainingAmount, inst.dueDate, true, inst.daysOverdue)}
-                              className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-2xs transition inline-flex items-center gap-1.5"
-                            >
-                              <MessageSquare className="w-3.5 h-3.5" />
-                              <span>WhatsApp</span>
-                            </button>
-                          </td>
-                        </tr>
-                      ))
+                            <td className="px-5 py-4 text-right">
+                              <div className="flex items-center justify-end gap-1.5">
+                                <button
+                                  onClick={() => handleOpenWhatsAppTemplate(
+                                    inst.clientPhone, 
+                                    inst.clientName, 
+                                    inst.totalWithLateFee, 
+                                    inst.dueDate, 
+                                    inst.daysOverdue > 7 ? 'overdue_severe' : 'overdue_mild', 
+                                    inst.daysOverdue, 
+                                    itemKey
+                                  )}
+                                  className={`px-3 py-1.5 rounded-xl font-bold text-xs shadow-2xs transition inline-flex items-center gap-1.5 ${
+                                    isDispatched 
+                                      ? 'bg-slate-100 text-slate-700 hover:bg-slate-200' 
+                                      : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                                  }`}
+                                  title="Enviar Notificação no WhatsApp"
+                                >
+                                  {isDispatched ? (
+                                    <>
+                                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                      <span>Enviado</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <MessageSquare className="w-3.5 h-3.5" />
+                                      <span>Cobrar</span>
+                                    </>
+                                  )}
+                                </button>
+
+                                <button
+                                  onClick={() => handleOpenWhatsAppTemplate(
+                                    inst.clientPhone, 
+                                    inst.clientName, 
+                                    inst.remainingAmount, 
+                                    inst.dueDate, 
+                                    'rollover', 
+                                    inst.daysOverdue, 
+                                    `${itemKey}-roll`
+                                  )}
+                                  className="px-2.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-bold text-xs transition inline-flex items-center gap-1"
+                                  title="Propor Renovação de Prazo (300 MT Juros)"
+                                >
+                                  <span>Renovar</span>
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
                     )}
                   </tbody>
                 </table>
@@ -1967,18 +2110,29 @@ export default function CashvibeAdminPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-4 gap-2">
-              <a
-                href={`/api/admin/cashvibe/payments/${activeReceipt.receiptNumber}/pdf`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-3.5 py-2 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl transition flex items-center gap-1.5"
-              >
-                <Download className="w-4 h-4" />
-                <span>Baixar PDF Oficial</span>
-              </a>
+            <div className="flex flex-col sm:flex-row items-center justify-between pt-4 gap-2">
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <a
+                  href={`/api/admin/cashvibe/payments/${activeReceipt.receiptNumber}/pdf`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 sm:flex-none px-3.5 py-2 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl transition flex items-center justify-center gap-1.5"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Baixar PDF</span>
+                </a>
 
-              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleSendReceiptWhatsApp(activeReceipt, selectedLoanForPayment)}
+                  className="flex-1 sm:flex-none px-3.5 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition flex items-center justify-center gap-1.5 shadow-2xs"
+                  title="Enviar Recibo Oficial com Link PDF pelo WhatsApp"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  <span>Enviar WhatsApp</span>
+                </button>
+              </div>
+
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                 <button
                   onClick={() => window.print()}
                   className="px-3.5 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition flex items-center gap-1.5"
@@ -2048,18 +2202,29 @@ export default function CashvibeAdminPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-4 border-t border-slate-200 gap-2">
-              <a
-                href={`/api/admin/cashvibe/loans/${selectedLoanForContract.id}/pdf`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-3.5 py-2 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl transition flex items-center gap-1.5"
-              >
-                <Download className="w-4 h-4" />
-                <span>Baixar Contrato em PDF Oficial</span>
-              </a>
+            <div className="flex flex-col sm:flex-row items-center justify-between pt-4 border-t border-slate-200 gap-2">
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <a
+                  href={`/api/admin/cashvibe/loans/${selectedLoanForContract.id}/pdf`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 sm:flex-none px-3.5 py-2 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl transition flex items-center justify-center gap-1.5"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Baixar PDF</span>
+                </a>
 
-              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleSendContractWhatsApp(selectedLoanForContract)}
+                  className="flex-1 sm:flex-none px-3.5 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition flex items-center justify-center gap-1.5 shadow-2xs"
+                  title="Enviar Contrato via WhatsApp com link PDF"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  <span>Enviar WhatsApp</span>
+                </button>
+              </div>
+
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                 <button
                   onClick={() => window.print()}
                   className="px-3.5 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition flex items-center gap-1.5"
@@ -2079,7 +2244,278 @@ export default function CashvibeAdminPage() {
         </div>
       )}
 
-      {/* ===================== MODAL PREVIEW DE FOTO KYC ===================== */}
+      {/* ===================== MODAL FILA DE DISPAROS RÁPIDOS WHATSAPP ===================== */}
+      {isBatchQueueOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-3xl w-full p-6 shadow-2xl my-8 text-slate-900 max-h-[90vh] flex flex-col">
+            
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100 flex-shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-600">
+                  <MessageSquare className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">
+                    Fila Inteligente de Disparos no WhatsApp
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Cobranças em atraso, lembretes preventivos e propostas de renovação (Rollover)
+                  </p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setIsBatchQueueOpen(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Sub-header / Filtros & Status */}
+            <div className="py-3 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 flex-shrink-0">
+              <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl">
+                <button
+                  onClick={() => setBatchQueueFilter('all')}
+                  className={`px-3 py-1.5 text-xs font-bold rounded-lg transition ${
+                    batchQueueFilter === 'all' 
+                      ? 'bg-white text-slate-900 shadow-2xs' 
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Todos ({overdueInstallments.length + upcomingInstallments.length})
+                </button>
+                <button
+                  onClick={() => setBatchQueueFilter('overdue')}
+                  className={`px-3 py-1.5 text-xs font-bold rounded-lg transition ${
+                    batchQueueFilter === 'overdue' 
+                      ? 'bg-white text-rose-700 shadow-2xs' 
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Em Atraso ({overdueInstallments.length})
+                </button>
+                <button
+                  onClick={() => setBatchQueueFilter('upcoming')}
+                  className={`px-3 py-1.5 text-xs font-bold rounded-lg transition ${
+                    batchQueueFilter === 'upcoming' 
+                      ? 'bg-white text-blue-700 shadow-2xs' 
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Próximos 7 Dias ({upcomingInstallments.length})
+                </button>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-500">
+                  Enviados nesta sessão: <strong className="text-emerald-700">{dispatchedIds.length}</strong>
+                </span>
+                {dispatchedIds.length > 0 && (
+                  <button
+                    onClick={() => setDispatchedIds([])}
+                    className="text-[11px] font-semibold text-slate-400 hover:text-rose-600 underline transition"
+                  >
+                    Resetar Fila
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Lista Rolável de Disparos */}
+            <div className="flex-1 overflow-y-auto py-4 space-y-3">
+              {/* Parcelas em Atraso */}
+              {(batchQueueFilter === 'all' || batchQueueFilter === 'overdue') && (
+                <>
+                  {overdueInstallments.map((inst, idx) => {
+                    const itemKey = `${inst.loanId}-${inst.installmentNumber}`;
+                    const isDispatched = dispatchedIds.includes(itemKey);
+                    return (
+                      <div 
+                        key={`overdue-${idx}`}
+                        className={`p-4 rounded-xl border transition flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                          isDispatched 
+                            ? 'bg-slate-50/70 border-slate-200 opacity-80' 
+                            : 'bg-rose-50/40 border-rose-200/80 shadow-2xs'
+                        }`}
+                      >
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-rose-100 text-rose-800">
+                              {inst.daysOverdue} dias em atraso
+                            </span>
+                            <span className="text-xs font-bold text-slate-900">{inst.clientName}</span>
+                            <span className="text-[11px] text-slate-500 font-mono">({inst.clientPhone})</span>
+                          </div>
+                          <div className="text-xs text-slate-600 mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5">
+                            <span>Empréstimo: <strong className="font-mono">{inst.loanId}</strong> (P#{inst.installmentNumber})</span>
+                            <span>Vencimento: <strong>{inst.dueDate}</strong></span>
+                            <span>Multa acumulada: <strong className="text-rose-700">+{inst.calculatedLateFee} MT</strong></span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 self-end sm:self-center">
+                          <div className="text-right">
+                            <div className="text-sm font-black text-rose-700">
+                              {inst.totalWithLateFee.toLocaleString('pt-MZ')} MT
+                            </div>
+                            <div className="text-[10px] text-slate-400">Total com mora</div>
+                          </div>
+
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              onClick={() => handleOpenWhatsAppTemplate(
+                                inst.clientPhone,
+                                inst.clientName,
+                                inst.totalWithLateFee,
+                                inst.dueDate,
+                                inst.daysOverdue > 7 ? 'overdue_severe' : 'overdue_mild',
+                                inst.daysOverdue,
+                                itemKey
+                              )}
+                              className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs ${
+                                isDispatched
+                                  ? 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                                  : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                              }`}
+                              title={inst.daysOverdue > 7 ? 'Cobrança Formal com Multa' : 'Aviso Amigável de Vencimento'}
+                            >
+                              {isDispatched ? (
+                                <>
+                                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                  <span>Enviado</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Send className="w-3.5 h-3.5" />
+                                  <span>{inst.daysOverdue > 7 ? 'Cobrança Formal' : 'Aviso Cobrança'}</span>
+                                </>
+                              )}
+                            </button>
+
+                            <button
+                              onClick={() => handleOpenWhatsAppTemplate(
+                                inst.clientPhone,
+                                inst.clientName,
+                                inst.remainingAmount,
+                                inst.dueDate,
+                                'rollover',
+                                inst.daysOverdue,
+                                `${itemKey}-roll`
+                              )}
+                              className="px-2.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-bold transition flex items-center gap-1"
+                              title="Propor Renovação de Prazo por mais 30 dias (300 MT Juro)"
+                            >
+                              <span>Renovação</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </>
+              )}
+
+              {/* Próximos Vencimentos (Prevenção) */}
+              {(batchQueueFilter === 'all' || batchQueueFilter === 'upcoming') && (
+                <>
+                  {upcomingInstallments.map((inst, idx) => {
+                    const itemKey = `${inst.loanId}-${inst.installmentNumber}-up`;
+                    const isDispatched = dispatchedIds.includes(itemKey);
+                    return (
+                      <div 
+                        key={`upcoming-${idx}`}
+                        className={`p-4 rounded-xl border transition flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                          isDispatched 
+                            ? 'bg-slate-50/70 border-slate-200 opacity-80' 
+                            : 'bg-blue-50/40 border-blue-200/80 shadow-2xs'
+                        }`}
+                      >
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-blue-100 text-blue-800">
+                              Lembrete Preventivo
+                            </span>
+                            <span className="text-xs font-bold text-slate-900">{inst.clientName}</span>
+                            <span className="text-[11px] text-slate-500 font-mono">({inst.clientPhone})</span>
+                          </div>
+                          <div className="text-xs text-slate-600 mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5">
+                            <span>Empréstimo: <strong className="font-mono">{inst.loanId}</strong> (P#{inst.installmentNumber})</span>
+                            <span>Vencimento em: <strong className="text-blue-800">{inst.dueDate}</strong></span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 self-end sm:self-center">
+                          <div className="text-right">
+                            <div className="text-sm font-black text-slate-900">
+                              {inst.remainingAmount.toLocaleString('pt-MZ')} MT
+                            </div>
+                            <div className="text-[10px] text-slate-400">Valor da parcela</div>
+                          </div>
+
+                          <button
+                            onClick={() => handleOpenWhatsAppTemplate(
+                              inst.clientPhone,
+                              inst.clientName,
+                              inst.remainingAmount,
+                              inst.dueDate,
+                              'preventive',
+                              0,
+                              itemKey
+                            )}
+                            className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs ${
+                              isDispatched
+                                ? 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                                : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                            }`}
+                            title="Enviar Lembrete Preventivo de Pagamento via WhatsApp"
+                          >
+                            {isDispatched ? (
+                              <>
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                <span>Enviado</span>
+                              </>
+                            ) : (
+                              <>
+                                <Send className="w-3.5 h-3.5" />
+                                <span>Lembrar (48h)</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </>
+              )}
+
+              {/* Estado Vazio */}
+              {((batchQueueFilter === 'overdue' && overdueInstallments.length === 0) ||
+                (batchQueueFilter === 'upcoming' && upcomingInstallments.length === 0) ||
+                (batchQueueFilter === 'all' && overdueInstallments.length === 0 && upcomingInstallments.length === 0)) && (
+                <div className="py-12 text-center text-slate-400 text-xs flex flex-col items-center gap-2">
+                  <CheckCircle2 className="w-8 h-8 text-emerald-500" />
+                  <span>Não existem notificações pendentes neste filtro. A carteira está em dia!</span>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="pt-4 border-t border-slate-100 flex items-center justify-between flex-shrink-0">
+              <span className="text-xs text-slate-500">
+                Os links do WhatsApp abrem numa nova aba diretamente com a mensagem pré-formatada.
+              </span>
+              <button
+                onClick={() => setIsBatchQueueOpen(false)}
+                className="px-5 py-2 text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 rounded-xl transition"
+              >
+                Fechar Fila
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
       {previewImage && (
         <div 
           onClick={() => setPreviewImage(null)}
