@@ -127,7 +127,8 @@ export default function EmailPage() {
       })
       .map(email => ({
         ...email,
-        storage: email.storage || 1
+        storage: email.storage || 1,
+        storageUsed: email.storageUsed || 0
       }));
 
     loadedEmails.forEach(email => {
@@ -193,6 +194,7 @@ export default function EmailPage() {
                 email: fullEmail,
                 domain: dName,
                 storage: 1,
+                storageUsed: mb.storageUsed || 0,
                 status: 'active',
                 userEmail: userEmailFilter,
                 createdAt: new Date().toISOString()
@@ -201,6 +203,14 @@ export default function EmailPage() {
                 dataManager.addEmail(newAcc);
               } catch {
                 // Se já estiver em cache compartilhado, prosseguir
+              }
+            } else if (fullEmail && mb.storageUsed !== undefined) {
+              const existing = currentLocal.find(e => e.email.toLowerCase() === fullEmail);
+              if (existing && existing.storageUsed !== mb.storageUsed) {
+                existing.storageUsed = mb.storageUsed;
+                try {
+                  dataManager.updateEmail(existing.id, { storageUsed: mb.storageUsed });
+                } catch {}
               }
             }
           }
@@ -575,14 +585,17 @@ export default function EmailPage() {
     }
   };
 
-  // Cálculo de Cota por E-mail (Estimativa e Armazenamento Utilizado)
-  const getMailboxStorageStats = (emailAcc: EmailAccount, index: number) => {
+  // Cálculo de Cota por E-mail (Armazenamento Real Utilizado)
+  const getMailboxStorageStats = (emailAcc: EmailAccount, _index?: number) => {
     const limitGB = emailAcc.storage || 1;
     const limitMB = limitGB * 1024;
-    // Variação simulada baseada no índice para dar dinâmica realística caso API retorne 0
-    const mockUsageMB = (emailAcc as any).storageUsed || [180, 420, 890, 940, 260][index % 5];
-    const usedMB = Math.min(mockUsageMB, limitMB);
-    const percentage = Math.min(100, Math.round((usedMB / limitMB) * 100));
+    // Obter armazenamento real em MB retornado pelo servidor/caixa (0 para contas vazias/não utilizadas)
+    const rawUsage = (emailAcc as any).storageUsed ?? (emailAcc as any).usedMB ?? 0;
+    const parsedMB = typeof rawUsage === 'number' 
+      ? (rawUsage > 1024 * 1024 ? Math.round(rawUsage / (1024 * 1024)) : Math.round(rawUsage))
+      : 0;
+    const usedMB = Math.min(parsedMB, limitMB);
+    const percentage = limitMB > 0 ? Math.min(100, Math.round((usedMB / limitMB) * 100)) : 0;
     
     return {
       usedMB,

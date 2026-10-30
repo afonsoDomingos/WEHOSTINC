@@ -521,8 +521,10 @@ export class MigaduEmailProvider extends EmailProvider {
       passwordRecoveryEmail: migaduMailbox.password_recovery_email,
       createdAt: migaduMailbox.created_at ? new Date(migaduMailbox.created_at) : new Date(),
       updatedAt: migaduMailbox.updated_at ? new Date(migaduMailbox.updated_at) : new Date(),
-      lastLoginAt: migaduMailbox.last_login_at ? new Date(migaduMailbox.last_login_at) : undefined,
-      storageUsed: migaduMailbox.storage_used || 0,
+      storageUsed: (() => {
+        const raw = migaduMailbox.storage_used ?? migaduMailbox.storage_usage ?? migaduMailbox.usage_bytes ?? migaduMailbox.storage_usage_bytes ?? 0;
+        return typeof raw === 'number' ? (raw > 1024 * 1024 ? Math.round(raw / (1024 * 1024)) : Math.round(raw)) : 0;
+      })(),
       storageLimit: migaduMailbox.storage_limit
     };
   }

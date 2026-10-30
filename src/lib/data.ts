@@ -292,6 +292,7 @@ export interface EmailAccount {
   status: 'active' | 'pending' | 'suspended';
   createdAt: string;
   storage: number;
+  storageUsed?: number;
   userEmail?: string;
 }
 

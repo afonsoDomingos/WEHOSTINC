@@ -87,6 +87,7 @@ export async function GET(
               maySend: mb.maySend !== false,
               mayReceive: mb.mayReceive !== false,
               mayAccessImap: mb.mayAccessImap !== false,
+              storageUsed: mb.storageUsed || 0,
               updatedAt: new Date()
             },
             { upsert: true, new: true }
@@ -100,6 +101,7 @@ export async function GET(
               email: emailLower,
               domain: domainName,
               status: mb.status || 'active',
+              storageUsed: mb.storageUsed || 0,
               userEmail: domainOwner,
               createdAt: new Date().toISOString()
             },

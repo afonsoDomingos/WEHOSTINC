@@ -52,12 +52,13 @@ export async function GET(request: Request) {
       const allEmails: any[] = emailAccounts.map(e => {
         const domain = (e.domain || e.email?.split('@')[1] || '').toLowerCase().trim();
         const owner = domainOwnerMap.get(domain);
+        const storageUsed = (e as any).storageUsed || 0;
         if (owner && (!e.userEmail || e.userEmail === 'admin@wehosthere.com' || e.userEmail === 'Cliente')) {
           // Update in memory and database
           EmailAccountModel.updateOne({ _id: e._id }, { $set: { userEmail: owner } }).catch(() => {});
-          return { ...e, userEmail: owner };
+          return { ...e, userEmail: owner, storageUsed };
         }
-        return e;
+        return { ...e, storageUsed };
       });
 
       // Try fetching live mailboxes for Migadu domains if provider configured
@@ -98,6 +99,7 @@ export async function GET(request: Request) {
                     email: em,
                     domain: dName,
                     status: mb.status || 'active',
+                    storageUsed: mb.storageUsed || 0,
                     userEmail: domainOwner,
                     createdAt: new Date().toISOString()
                   };
@@ -127,6 +129,7 @@ export async function GET(request: Request) {
             email: em,
             domain: domain,
             status: mb.status || 'active',
+            storageUsed: mb.storageUsed || 0,
             userEmail: domainOwner,
             createdAt: mb.createdAt || new Date().toISOString()
           });
@@ -143,6 +146,7 @@ export async function GET(request: Request) {
             email: defaultAdmin,
             domain: d,
             status: 'active',
+            storageUsed: 0,
             userEmail: owner,
             createdAt: new Date().toISOString()
           };

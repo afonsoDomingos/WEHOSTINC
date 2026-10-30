@@ -592,7 +592,10 @@ export default function DomainMailboxesPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-500">
                         {(() => {
                           const limitMB = (mailbox.storageLimit || 1) * 1024;
-                          const usedMB = mailbox.storageUsed || 240;
+                          const rawStorage = mailbox.storageUsed || 0;
+                          const usedMB = typeof rawStorage === 'number'
+                            ? (rawStorage > 1024 * 1024 ? Math.round(rawStorage / (1024 * 1024)) : Math.round(rawStorage))
+                            : 0;
                           const percentage = Math.min(100, Math.round((usedMB / limitMB) * 100));
                           const isCritical = percentage >= 90;
                           const isNearLimit = percentage >= 80 && percentage < 90;

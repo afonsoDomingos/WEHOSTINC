@@ -8,6 +8,7 @@ export interface IEmailAccount extends Document {
   quotaGB?: number;
   usedGB?: number;
   storage?: number;
+  storageUsed?: number;
   userEmail?: string;
   createdAt?: string;
 }
@@ -20,6 +21,7 @@ const EmailAccountSchema = new Schema<IEmailAccount>({
   quotaGB: { type: Number, default: 5 },
   usedGB: { type: Number, default: 0 },
   storage: { type: Number, default: 5 },
+  storageUsed: { type: Number, default: 0 },
   userEmail: { type: String, lowercase: true, trim: true },
   createdAt: { type: String, default: () => new Date().toISOString() },
 }, { timestamps: false, versionKey: false });
