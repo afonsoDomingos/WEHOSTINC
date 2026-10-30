@@ -7,10 +7,13 @@ import {
   CheckCircle2, Clock, Calendar, Phone, MessageSquare, 
   Printer, FileText, ChevronRight, RefreshCw, X, Shield, 
   CreditCard, TrendingUp, Sparkles, Filter, Trash2, Edit3, 
-  Wallet, Award, ExternalLink, Send, Download, Upload, Image as ImageIcon, Eye
+  Wallet, Award, ExternalLink, Send, Download, Upload, Image as ImageIcon, Eye,
+  BarChart3, PieChart, Repeat, Zap, AlertCircle, Ban, CheckSquare
 } from 'lucide-react';
 import PageLoader from '@/components/PageLoader';
 import Toast from '@/components/Toast';
+import { parseMobileMoneyMessage, IParsedTransaction } from '@/lib/cashvibeSmsParser';
+import { calculateCreditScore } from '@/lib/cashvibeScore';
 
 interface IClient {
   id: string;
@@ -99,12 +102,13 @@ interface IPayment {
 }
 
 export default function CashvibeAdminPage() {
-  const [activeTab, setActiveTab] = useState<'overview' | 'loans' | 'clients' | 'collections' | 'simulator'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'cashflow' | 'loans' | 'clients' | 'collections' | 'simulator'>('overview');
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
 
   // Dados principais
   const [stats, setStats] = useState<any>(null);
+  const [cashflowData, setCashflowData] = useState<{ dre: any; weeks: any[] } | null>(null);
   const [upcomingInstallments, setUpcomingInstallments] = useState<any[]>([]);
   const [overdueInstallments, setOverdueInstallments] = useState<any[]>([]);
   const [loans, setLoans] = useState<ILoan[]>([]);
@@ -125,6 +129,24 @@ export default function CashvibeAdminPage() {
   const [selectedLoanForContract, setSelectedLoanForContract] = useState<ILoan | null>(null);
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
   const [activeReceipt, setActiveReceipt] = useState<any | null>(null);
+
+  // Modal e Estado de Rollover / Prorrogação
+  const [isRolloverModalOpen, setIsRolloverModalOpen] = useState(false);
+  const [selectedLoanForRollover, setSelectedLoanForRollover] = useState<ILoan | null>(null);
+  const [rolloverForm, setRolloverForm] = useState({
+    rolloverFee: '300',
+    extensionDays: '30',
+    paymentMethod: 'mpesa',
+    transactionReference: '',
+    notes: '',
+  });
+
+  // Modal e Estado de Conciliação Automática de SMS M-Pesa
+  const [isSmsParserModalOpen, setIsSmsParserModalOpen] = useState(false);
+  const [smsInputText, setSmsInputText] = useState('');
+  const [parsedSmsResult, setParsedSmsResult] = useState<IParsedTransaction | null>(null);
+  const [matchedLoanForSms, setMatchedLoanForSms] = useState<ILoan | null>(null);
+  const [matchedClientForSms, setMatchedClientForSms] = useState<IClient | null>(null);
 
   // Estados de Fotos KYC, Preview e Fila de Cobrança em Massa
   const [uploadingPhoto, setUploadingPhoto] = useState<'bi' | 'collateral' | null>(null);
@@ -171,6 +193,7 @@ export default function CashvibeAdminPage() {
     collateral: '',
     lateFeeDaily: '50',
     notes: '',
+    riskOverrideConfirmed: false,
   });
 
   // Form states - Pagamento
@@ -194,16 +217,18 @@ export default function CashvibeAdminPage() {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [statsRes, loansRes, clientsRes] = await Promise.all([
+      const [statsRes, loansRes, clientsRes, cashflowRes] = await Promise.all([
         fetch('/api/admin/cashvibe/stats'),
         fetch(`/api/admin/cashvibe/loans?search=${encodeURIComponent(loanSearch)}&status=${loanStatusFilter}`),
         fetch(`/api/admin/cashvibe/clients?search=${encodeURIComponent(clientSearch)}`),
+        fetch('/api/admin/cashvibe/stats/cashflow'),
       ]);
 
-      const [statsData, loansData, clientsData] = await Promise.all([
+      const [statsData, loansData, clientsData, cashflowResData] = await Promise.all([
         statsRes.json(),
         loansRes.json(),
         clientsRes.json(),
+        cashflowRes.json(),
       ]);
 
       if (statsData.success) {
@@ -213,6 +238,12 @@ export default function CashvibeAdminPage() {
       }
       if (loansData.success) setLoans(loansData.loans || []);
       if (clientsData.success) setClients(clientsData.clients || []);
+      if (cashflowResData.success) {
+        setCashflowData({
+          dre: cashflowResData.dre,
+          weeks: cashflowResData.weeks || [],
+        });
+      }
     } catch (err: any) {
       console.error(err);
       setToast({ message: 'Erro ao carregar dados do Cashvibe', type: 'error' });
@@ -422,6 +453,124 @@ export default function CashvibeAdminPage() {
     handleOpenWhatsAppTemplate(phone, clientName, amount, dueDate, isOverdue ? 'overdue_mild' : 'due_today', days);
   };
 
+  // Automação: Executar Rollover / Prorrogação em 1 Clique
+  const handleExecuteRollover = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedLoanForRollover) return;
+
+    try {
+      const res = await fetch(`/api/admin/cashvibe/loans/${selectedLoanForRollover.id}/rollover`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(rolloverForm),
+      });
+
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error);
+
+      setToast({ message: data.message || 'Rollover aplicado com sucesso!', type: 'success' });
+      setIsRolloverModalOpen(false);
+
+      // Auto-abrir recibo da taxa de rollover
+      if (data.payment) {
+        setActiveReceipt(data.payment);
+        setIsReceiptModalOpen(true);
+      }
+
+      loadData();
+    } catch (err: any) {
+      setToast({ message: err.message || 'Erro ao processar rollover', type: 'error' });
+    }
+  };
+
+  // Conciliador SMS: Analisar mensagem M-Pesa / Mobile Money
+  const handleParseSms = (text: string) => {
+    setSmsInputText(text);
+    if (!text.trim()) {
+      setParsedSmsResult(null);
+      setMatchedLoanForSms(null);
+      setMatchedClientForSms(null);
+      return;
+    }
+
+    const parsed = parseMobileMoneyMessage(text);
+    setParsedSmsResult(parsed);
+
+    // Tentar localizar cliente e empréstimo ativo pelo telefone
+    if (parsed.phone) {
+      const cleanTarget = parsed.phone.slice(-8);
+      const client = clients.find(c => {
+        const p1 = (c.phone || '').replace(/\D/g, '');
+        const p2 = (c.secondaryPhone || '').replace(/\D/g, '');
+        return p1.endsWith(cleanTarget) || p2.endsWith(cleanTarget);
+      });
+
+      if (client) {
+        setMatchedClientForSms(client);
+        const activeLoan = loans.find(l => l.clientId === client.id && ['active', 'overdue'].includes(l.status));
+        setMatchedLoanForSms(activeLoan || null);
+      } else {
+        setMatchedClientForSms(null);
+        setMatchedLoanForSms(null);
+      }
+    } else {
+      setMatchedClientForSms(null);
+      setMatchedLoanForSms(null);
+    }
+  };
+
+  // Conciliador SMS: Transferir dados para o formulário de pagamento
+  const handleApplySmsToPayment = (loan?: ILoan | null) => {
+    const targetLoan = loan || matchedLoanForSms;
+    if (!targetLoan || !parsedSmsResult) {
+      setToast({ message: 'Selecione ou vincule um empréstimo para amortizar.', type: 'info' });
+      return;
+    }
+
+    setSelectedLoanForPayment(targetLoan);
+    setPaymentForm({
+      amount: parsedSmsResult.amount ? String(parsedSmsResult.amount) : String(targetLoan.totalRemaining),
+      installmentNumber: '1',
+      paymentMethod: parsedSmsResult.source === 'unknown' ? 'mpesa' : parsedSmsResult.source,
+      transactionReference: parsedSmsResult.reference || '',
+      receivedBy: 'Conciliador M-Pesa',
+      paymentDate: new Date().toISOString().split('T')[0],
+      notes: `Autoconciliado via SMS ${parsedSmsResult.source.toUpperCase()}`,
+    });
+
+    setIsSmsParserModalOpen(false);
+    setIsPaymentModalOpen(true);
+  };
+
+  // Central de Risco: Alternar Lista Negra / Bloqueio
+  const handleToggleBlacklist = async (client: IClient) => {
+    const newStatus = client.status === 'blacklisted' ? 'active' : 'blacklisted';
+    const confirmMsg = newStatus === 'blacklisted'
+      ? `Tem a certeza que deseja colocar ${client.name} na LISTA NEGRA? O sistema bloqueará novas concessões de crédito.`
+      : `Deseja desbloquear ${client.name} e restaurar para status Ativo?`;
+
+    if (!window.confirm(confirmMsg)) return;
+
+    try {
+      const res = await fetch(`/api/admin/cashvibe/clients/${client.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error);
+
+      setToast({
+        message: newStatus === 'blacklisted' ? 'Cliente bloqueado na Lista Negra.' : 'Cliente reativado com sucesso.',
+        type: 'success',
+      });
+      loadData();
+    } catch (err: any) {
+      setToast({ message: err.message || 'Erro ao atualizar status do cliente', type: 'error' });
+    }
+  };
+
   // Abrir Modal de Edição de Cliente
   const openEditClient = (c: IClient) => {
     setEditingClient(c);
@@ -589,7 +738,43 @@ export default function CashvibeAdminPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={() => {
+                  setSmsInputText('');
+                  setParsedSmsResult(null);
+                  setMatchedLoanForSms(null);
+                  setMatchedClientForSms(null);
+                  setIsSmsParserModalOpen(true);
+                }}
+                className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs transition"
+                title="Colar mensagem SMS do M-Pesa para autoconciliação"
+              >
+                <Zap className="w-4 h-4 text-amber-600 fill-amber-500" />
+                <span>Conciliar M-Pesa</span>
+              </button>
+
+              <a
+                href="/api/admin/cashvibe/reports/financial-pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 shadow-2xs transition"
+                title="Baixar Relatório Executivo e Balancete Oficial em PDF"
+              >
+                <FileText className="w-4 h-4 text-emerald-600" />
+                <span>Balancete PDF</span>
+              </a>
+
+              <Link
+                href="/cashvibe/meu-credito"
+                target="_blank"
+                className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 shadow-2xs transition"
+                title="Abrir Portal Público de Auto-Atendimento do Mutuário"
+              >
+                <Eye className="w-4 h-4 text-blue-600" />
+                <span>Portal do Mutuário</span>
+              </Link>
+
               <button
                 onClick={() => {
                   setEditingClient(null);
@@ -617,7 +802,7 @@ export default function CashvibeAdminPage() {
                     setIsClientModalOpen(true);
                     return;
                   }
-                  setLoanForm(prev => ({ ...prev, clientId: clients[0].id }));
+                  setLoanForm(prev => ({ ...prev, clientId: clients[0].id, riskOverrideConfirmed: false }));
                   setIsLoanModalOpen(true);
                 }}
                 className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20 transition"
@@ -641,6 +826,18 @@ export default function CashvibeAdminPage() {
             >
               <TrendingUp className="w-4 h-4" />
               <span>Visão Geral & KPIs</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('cashflow')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap ${
+                activeTab === 'cashflow'
+                  ? 'bg-emerald-700 text-white shadow-sm'
+                  : 'text-slate-600 hover:bg-slate-100'
+              }`}
+            >
+              <BarChart3 className="w-4 h-4" />
+              <span>Fluxo & DRE (30d)</span>
             </button>
 
             <button
@@ -902,6 +1099,162 @@ export default function CashvibeAdminPage() {
           </div>
         )}
 
+        {/* ===================== TAB: FLUXO DE CAIXA & DRE ===================== */}
+        {activeTab === 'cashflow' && (
+          <div className="space-y-6">
+            
+            {/* Header do DRE */}
+            <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 text-white p-6 rounded-2xl shadow-xl flex flex-col md:flex-row items-center justify-between gap-4">
+              <div>
+                <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-xs font-bold uppercase tracking-wider">
+                  Controladoria & DRE
+                </span>
+                <h2 className="text-xl font-bold mt-2">Demonstrativo de Resultados & Fluxo de Caixa Projetado</h2>
+                <p className="text-xs text-slate-300 max-w-xl mt-1">
+                  Acompanhe em tempo real o lucro realizado, o juro a receber e as entradas previstas semana a semana para os próximos 30 dias.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <a
+                  href="/api/admin/cashvibe/reports/financial-pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs shadow-lg shadow-emerald-500/20 transition flex items-center gap-2 whitespace-nowrap"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Baixar Balancete Executivo em PDF</span>
+                </a>
+              </div>
+            </div>
+
+            {/* Cards do DRE Operacional */}
+            {cashflowData && (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  
+                  <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
+                    <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Receita Realizada (Juros)</div>
+                    <div className="text-2xl font-black text-emerald-600 mt-2">
+                      +{Number(cashflowData.dre.realizedInterest || 0).toLocaleString('pt-MZ')} <span className="text-xs font-semibold text-slate-400">MT</span>
+                    </div>
+                    <div className="text-[11px] text-slate-500 mt-1">
+                      Capital amortizado: <strong className="text-slate-700">{Number(cashflowData.dre.realizedPrincipal || 0).toLocaleString('pt-MZ')} MT</strong>
+                    </div>
+                  </div>
+
+                  <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
+                    <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Juros Futuros em Carteira</div>
+                    <div className="text-2xl font-black text-blue-600 mt-2">
+                      +{Number(cashflowData.dre.totalProjectedInterest - cashflowData.dre.realizedInterest || 0).toLocaleString('pt-MZ')} <span className="text-xs font-semibold text-slate-400">MT</span>
+                    </div>
+                    <div className="text-[11px] text-slate-500 mt-1">
+                      A receber nos contratos ativos
+                    </div>
+                  </div>
+
+                  <div className="bg-white p-5 rounded-2xl border border-rose-200 shadow-2xs">
+                    <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Provisão de Perdas (PDD &gt;30d)</div>
+                    <div className="text-2xl font-black text-rose-600 mt-2">
+                      -{Number(cashflowData.dre.pddAmount || 0).toLocaleString('pt-MZ')} <span className="text-xs font-semibold text-slate-400">MT</span>
+                    </div>
+                    <div className="text-[11px] text-rose-700 mt-1 font-semibold">
+                      Créditos com atraso superior a 30 dias
+                    </div>
+                  </div>
+
+                  <div className="bg-white p-5 rounded-2xl border border-emerald-300 shadow-2xs bg-gradient-to-b from-white to-emerald-50/30">
+                    <div className="text-xs font-semibold text-emerald-800 uppercase tracking-wider">Lucro Operacional Líquido</div>
+                    <div className="text-2xl font-black text-slate-900 mt-2">
+                      {Number(cashflowData.dre.netOperatingProfit || 0).toLocaleString('pt-MZ')} <span className="text-xs font-semibold text-slate-400">MT</span>
+                    </div>
+                    <div className="text-[11px] text-emerald-700 mt-1 font-semibold">
+                      Taxa de Retorno de Carteira: {cashflowData.dre.recoveryRate}%
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* Tabela de Fluxo de Caixa Semanal */}
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
+                  <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between">
+                    <div>
+                      <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-emerald-600" />
+                        <span>Previsão de Entradas Semana a Semana (Próximos 30 Dias)</span>
+                      </h3>
+                      <p className="text-xs text-slate-500">Distribuição cronológica das parcelas a vencer</p>
+                    </div>
+
+                    <button
+                      onClick={loadData}
+                      className="p-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition"
+                      title="Atualizar Projeção"
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs text-slate-700">
+                      <thead className="bg-slate-50 text-slate-500 uppercase font-semibold text-[10px] tracking-wider border-b border-slate-200">
+                        <tr>
+                          <th className="px-5 py-3.5">Período / Semana</th>
+                          <th className="px-5 py-3.5">Parcelas Previstas</th>
+                          <th className="px-5 py-3.5">Capital a Retornar</th>
+                          <th className="px-5 py-3.5">Lucro em Juros</th>
+                          <th className="px-5 py-3.5 text-right">Total Esperado</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {cashflowData.weeks.map((week) => (
+                          <tr key={week.id} className="hover:bg-slate-50/70 transition">
+                            <td className="px-5 py-4 font-bold text-slate-900">
+                              {week.label}
+                            </td>
+                            <td className="px-5 py-4">
+                              <span className="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 font-bold text-xs">
+                                {week.count} parcela(s)
+                              </span>
+                            </td>
+                            <td className="px-5 py-4 font-semibold text-slate-800">
+                              {Number(week.principal).toLocaleString('pt-MZ')} MT
+                            </td>
+                            <td className="px-5 py-4 font-bold text-emerald-600">
+                              +{Number(week.interest).toLocaleString('pt-MZ')} MT
+                            </td>
+                            <td className="px-5 py-4 font-black text-slate-900 text-right">
+                              {Number(week.total).toLocaleString('pt-MZ')} MT
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                      <tfoot className="bg-slate-50 font-bold border-t border-slate-200">
+                        <tr>
+                          <td className="px-5 py-3.5 text-slate-900 uppercase text-[11px]">Total Projetado (30 Dias):</td>
+                          <td className="px-5 py-3.5 text-slate-900">
+                            {cashflowData.weeks.reduce((sum, w) => sum + w.count, 0)} parcelas
+                          </td>
+                          <td className="px-5 py-3.5 text-slate-900">
+                            {cashflowData.weeks.reduce((sum, w) => sum + w.principal, 0).toLocaleString('pt-MZ')} MT
+                          </td>
+                          <td className="px-5 py-3.5 text-emerald-700">
+                            +{cashflowData.weeks.reduce((sum, w) => sum + w.interest, 0).toLocaleString('pt-MZ')} MT
+                          </td>
+                          <td className="px-5 py-3.5 text-right font-black text-slate-900">
+                            {cashflowData.weeks.reduce((sum, w) => sum + w.total, 0).toLocaleString('pt-MZ')} MT
+                          </td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                </div>
+              </>
+            )}
+
+          </div>
+        )}
+
         {/* ===================== TAB 2: EMPRÉSTIMOS ===================== */}
         {activeTab === 'loans' && (
           <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
@@ -1014,26 +1367,47 @@ export default function CashvibeAdminPage() {
                         <td className="px-5 py-4 text-right">
                           <div className="flex items-center justify-end gap-1.5">
                             {loan.status !== 'paid' && (
-                              <button
-                                onClick={() => {
-                                  setSelectedLoanForPayment(loan);
-                                  setPaymentForm({
-                                    amount: String(loan.totalRemaining),
-                                    installmentNumber: '1',
-                                    paymentMethod: 'mpesa',
-                                    transactionReference: '',
-                                    receivedBy: 'Admin Cashvibe',
-                                    paymentDate: new Date().toISOString().split('T')[0],
-                                    notes: '',
-                                  });
-                                  setIsPaymentModalOpen(true);
-                                }}
-                                className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] shadow-2xs transition flex items-center gap-1"
-                                title="Amortizar Parcela"
-                              >
-                                <DollarSign className="w-3.5 h-3.5" />
-                                <span>Pagar</span>
-                              </button>
+                              <>
+                                <button
+                                  onClick={() => {
+                                    setSelectedLoanForPayment(loan);
+                                    setPaymentForm({
+                                      amount: String(loan.totalRemaining),
+                                      installmentNumber: '1',
+                                      paymentMethod: 'mpesa',
+                                      transactionReference: '',
+                                      receivedBy: 'Admin Cashvibe',
+                                      paymentDate: new Date().toISOString().split('T')[0],
+                                      notes: '',
+                                    });
+                                    setIsPaymentModalOpen(true);
+                                  }}
+                                  className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] shadow-2xs transition flex items-center gap-1"
+                                  title="Amortizar Parcela"
+                                >
+                                  <DollarSign className="w-3.5 h-3.5" />
+                                  <span>Pagar</span>
+                                </button>
+
+                                <button
+                                  onClick={() => {
+                                    setSelectedLoanForRollover(loan);
+                                    setRolloverForm({
+                                      rolloverFee: String(loan.interestAmount || 300),
+                                      extensionDays: '30',
+                                      paymentMethod: 'mpesa',
+                                      transactionReference: '',
+                                      notes: 'Renovação de prazo por mais 30 dias',
+                                    });
+                                    setIsRolloverModalOpen(true);
+                                  }}
+                                  className="px-2.5 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold text-[11px] transition flex items-center gap-1"
+                                  title="Prorrogar Prazo / Rollover de 30 dias (Taxa de Juro)"
+                                >
+                                  <Repeat className="w-3.5 h-3.5 text-amber-600" />
+                                  <span>Rollover</span>
+                                </button>
+                              </>
                             )}
 
                             <button
@@ -1210,20 +1584,44 @@ export default function CashvibeAdminPage() {
                         </td>
 
                         <td className="px-5 py-4">
-                          <span className={`px-2 py-0.5 rounded-full text-xs font-black ${
-                            c.rating === 'A' ? 'bg-emerald-100 text-emerald-800' :
-                            c.rating === 'B' ? 'bg-blue-100 text-blue-800' :
-                            c.rating === 'C' ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800'
-                          }`}>
-                            Nota {c.rating}
-                          </span>
+                          {(() => {
+                            const scoreData = calculateCreditScore({
+                              monthlyIncome: c.monthlyIncome || 0,
+                              totalLoans: c.totalLoansCount || 0,
+                              paidLoans: Math.max(0, (c.totalLoansCount || 0) - (c.activeLoansCount || 0)),
+                              overdueLoans: c.hasOverdue ? 1 : 0,
+                              maxDaysOverdue: c.hasOverdue ? 10 : 0,
+                              isBlacklisted: c.status === 'blacklisted',
+                            });
+
+                            return (
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-1.5">
+                                  <span className={`px-2 py-0.5 rounded-full text-xs font-black ${
+                                    c.status === 'blacklisted' ? 'bg-red-200 text-red-900 border border-red-300' :
+                                    scoreData.rating === 'A' ? 'bg-emerald-100 text-emerald-800' :
+                                    scoreData.rating === 'B' ? 'bg-blue-100 text-blue-800' :
+                                    scoreData.rating === 'C' ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800'
+                                  }`}>
+                                    {c.status === 'blacklisted' ? 'Bloqueado' : `Nota ${scoreData.rating}`}
+                                  </span>
+                                  <span className="font-mono text-[11px] font-bold text-slate-700">
+                                    {scoreData.score} pts
+                                  </span>
+                                </div>
+                                <div className="text-[10px] text-slate-400">
+                                  Risco {scoreData.riskLevel}
+                                </div>
+                              </div>
+                            );
+                          })()}
                         </td>
 
                         <td className="px-5 py-4 text-right">
                           <div className="flex items-center justify-end gap-1.5">
                             <button
                               onClick={() => {
-                                setLoanForm(prev => ({ ...prev, clientId: c.id }));
+                                setLoanForm(prev => ({ ...prev, clientId: c.id, riskOverrideConfirmed: false }));
                                 setIsLoanModalOpen(true);
                               }}
                               className="px-2 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-[11px] transition"
@@ -1238,6 +1636,18 @@ export default function CashvibeAdminPage() {
                               title="Editar Dados"
                             >
                               <Edit3 className="w-3.5 h-3.5" />
+                            </button>
+
+                            <button
+                              onClick={() => handleToggleBlacklist(c)}
+                              className={`p-1.5 rounded-lg border transition ${
+                                c.status === 'blacklisted'
+                                  ? 'border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                                  : 'border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100'
+                              }`}
+                              title={c.status === 'blacklisted' ? 'Desbloquear da Lista Negra' : 'Bloquear / Lista Negra'}
+                            >
+                              {c.status === 'blacklisted' ? <Shield className="w-3.5 h-3.5" /> : <Ban className="w-3.5 h-3.5" />}
                             </button>
                           </div>
                         </td>
@@ -1533,6 +1943,7 @@ export default function CashvibeAdminPage() {
                             collateral: '',
                             lateFeeDaily: '50',
                             notes: 'Gerado a partir do simulador',
+                            riskOverrideConfirmed: false,
                           });
                           setIsLoanModalOpen(true);
                         }}
@@ -1848,16 +2259,66 @@ export default function CashvibeAdminPage() {
                 <select
                   required
                   value={loanForm.clientId}
-                  onChange={(e) => setLoanForm({ ...loanForm, clientId: e.target.value })}
+                  onChange={(e) => setLoanForm({ ...loanForm, clientId: e.target.value, riskOverrideConfirmed: false })}
                   className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 font-bold text-slate-900 focus:outline-emerald-500"
                 >
                   {clients.map((c) => (
                     <option key={c.id} value={c.id}>
-                      {c.name} ({c.phone}) - Score {c.rating}
+                      {c.name} ({c.phone}) - {c.status === 'blacklisted' ? 'LISTA NEGRA (BLOQUEADO)' : `Score Nota ${c.rating}`}
                     </option>
                   ))}
                 </select>
               </div>
+
+              {/* Avaliação Automática de Risco & Credit Score */}
+              {(() => {
+                const selectedClient = clients.find(c => c.id === loanForm.clientId);
+                if (!selectedClient) return null;
+                const scoreInfo = calculateCreditScore({
+                  monthlyIncome: selectedClient.monthlyIncome || 0,
+                  totalLoans: selectedClient.totalLoansCount || 0,
+                  paidLoans: Math.max(0, (selectedClient.totalLoansCount || 0) - (selectedClient.activeLoansCount || 0)),
+                  overdueLoans: selectedClient.hasOverdue ? 1 : 0,
+                  maxDaysOverdue: selectedClient.hasOverdue ? 10 : 0,
+                  isBlacklisted: selectedClient.status === 'blacklisted',
+                });
+
+                const isRisky = selectedClient.status === 'blacklisted' || selectedClient.hasOverdue || scoreInfo.rating === 'D';
+
+                if (!isRisky) {
+                  return (
+                    <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-center justify-between">
+                      <span>Score de Crédito: <strong>{scoreInfo.score} pts (Nota {scoreInfo.rating} • {scoreInfo.label})</strong></span>
+                      <span className="text-[11px] font-semibold text-emerald-700">Risco Baixo</span>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-300 text-rose-900 text-xs space-y-2">
+                    <div className="flex items-center gap-2 font-bold text-rose-800">
+                      <AlertTriangle className="w-4 h-4 text-rose-600 flex-shrink-0" />
+                      <span>Alerta de Risco — Score {scoreInfo.score} pts (Nota {scoreInfo.rating} • Risco {scoreInfo.riskLevel})</span>
+                    </div>
+                    <p className="text-[11px] leading-relaxed text-rose-700">
+                      {selectedClient.status === 'blacklisted'
+                        ? 'Este mutuário está na LISTA NEGRA. A concessão é de altíssimo risco.'
+                        : selectedClient.hasOverdue
+                        ? 'Este mutuário possui parcelas em atraso ativo na carteira.'
+                        : 'Pontuação de crédito baixa com histórico de atrasos frequentes.'}
+                    </p>
+                    <label className="flex items-center gap-2 pt-1 font-bold text-slate-900 cursor-pointer text-xs">
+                      <input
+                        type="checkbox"
+                        checked={loanForm.riskOverrideConfirmed}
+                        onChange={(e) => setLoanForm({ ...loanForm, riskOverrideConfirmed: e.target.checked })}
+                        className="rounded text-rose-600 focus:ring-rose-500 w-4 h-4"
+                      />
+                      <span>Confirmo a avaliação de risco e autorizo a concessão extraordinária</span>
+                    </label>
+                  </div>
+                );
+              })()}
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -1971,7 +2432,13 @@ export default function CashvibeAdminPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-md shadow-emerald-600/20 transition"
+                  disabled={(() => {
+                    const sel = clients.find(c => c.id === loanForm.clientId);
+                    if (!sel) return false;
+                    const isRisky = sel.status === 'blacklisted' || sel.hasOverdue;
+                    return isRisky && !loanForm.riskOverrideConfirmed;
+                  })()}
+                  className="px-5 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-md shadow-emerald-600/20 transition disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Conceder Empréstimo
                 </button>
@@ -2000,7 +2467,24 @@ export default function CashvibeAdminPage() {
 
             <form onSubmit={handleSavePayment} className="mt-4 space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Valor do Pagamento (MT) *</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs font-bold text-slate-700">Valor do Pagamento (MT) *</label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSmsInputText('');
+                      setParsedSmsResult(null);
+                      setMatchedLoanForSms(selectedLoanForPayment);
+                      setMatchedClientForSms(clients.find(c => c.id === selectedLoanForPayment.clientId) || null);
+                      setIsSmsParserModalOpen(true);
+                    }}
+                    className="text-[11px] text-amber-700 hover:text-amber-800 font-bold flex items-center gap-1 transition"
+                    title="Colar mensagem SMS do M-Pesa para preencher o valor e referência"
+                  >
+                    <Zap className="w-3 h-3 text-amber-500 fill-amber-500" />
+                    <span>Autopreencher com SMS</span>
+                  </button>
+                </div>
                 <input
                   type="number"
                   required
@@ -2559,6 +3043,254 @@ export default function CashvibeAdminPage() {
               >
                 Fechar
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===================== MODAL DE PRORROGAÇÃO / ROLLOVER ===================== */}
+      {isRolloverModalOpen && selectedLoanForRollover && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl text-slate-900">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-amber-50 text-amber-700 border border-amber-200">
+                  <Repeat className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Prorrogação de Prazo (Rollover)</h3>
+                  <p className="text-xs text-slate-500 font-mono">{selectedLoanForRollover.clientName} • {selectedLoanForRollover.id}</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setIsRolloverModalOpen(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Resumo do Crédito */}
+            <div className="my-4 p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs grid grid-cols-2 gap-2">
+              <div>
+                <span className="text-slate-500">Capital Concedido:</span>
+                <div className="font-bold text-slate-900">{selectedLoanForRollover.principalAmount.toLocaleString('pt-MZ')} MT</div>
+              </div>
+              <div>
+                <span className="text-slate-500">Saldo Devedor Atual:</span>
+                <div className="font-bold text-rose-700">{selectedLoanForRollover.totalRemaining.toLocaleString('pt-MZ')} MT</div>
+              </div>
+              <div>
+                <span className="text-slate-500">Vencimento Atual:</span>
+                <div className="font-mono text-slate-800">{selectedLoanForRollover.finalDueDate}</div>
+              </div>
+              <div>
+                <span className="text-slate-500">Status Atual:</span>
+                <div className="font-bold text-amber-700 uppercase text-[10px]">{selectedLoanForRollover.status}</div>
+              </div>
+            </div>
+
+            <form onSubmit={handleExecuteRollover} className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Taxa de Juro / Rollover (MT) *</label>
+                  <input
+                    type="number"
+                    required
+                    value={rolloverForm.rolloverFee}
+                    onChange={(e) => setRolloverForm({ ...rolloverForm, rolloverFee: e.target.value })}
+                    className="w-full px-3.5 py-2 text-sm font-black text-emerald-700 rounded-xl border border-slate-300 focus:outline-emerald-500"
+                  />
+                  <span className="text-[10px] text-slate-400">Padrão Cashvibe: 300 MT</span>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Dias de Prorrogação *</label>
+                  <input
+                    type="number"
+                    required
+                    min="7"
+                    value={rolloverForm.extensionDays}
+                    onChange={(e) => setRolloverForm({ ...rolloverForm, extensionDays: e.target.value })}
+                    className="w-full px-3.5 py-2 text-sm font-bold text-slate-900 rounded-xl border border-slate-300 focus:outline-emerald-500"
+                  />
+                  <span className="text-[10px] text-slate-400">Padrão: +30 dias</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Meio de Pagamento da Taxa</label>
+                <select
+                  value={rolloverForm.paymentMethod}
+                  onChange={(e) => setRolloverForm({ ...rolloverForm, paymentMethod: e.target.value })}
+                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 focus:outline-emerald-500 font-semibold"
+                >
+                  <option value="mpesa">M-Pesa</option>
+                  <option value="emola">e-Mola</option>
+                  <option value="bank_transfer">Transferência Bancária</option>
+                  <option value="cash">Dinheiro em Mão</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Referência M-Pesa / Talão (Opcional)</label>
+                <input
+                  type="text"
+                  value={rolloverForm.transactionReference}
+                  onChange={(e) => setRolloverForm({ ...rolloverForm, transactionReference: e.target.value })}
+                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 font-mono uppercase focus:outline-emerald-500"
+                  placeholder="Ex: 8J192K90A"
+                />
+              </div>
+
+              <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-[11px] leading-relaxed">
+                ℹ️ <strong>O que acontece ao confirmar:</strong> O sistema registra a receita da taxa de juro, gera o recibo oficial de quitação da prorrogação e estende o vencimento final do contrato por mais {rolloverForm.extensionDays} dias, restaurando o status para <strong>Ativo</strong>.
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsRolloverModalOpen(false)}
+                  className="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-xl shadow-md shadow-amber-600/20 transition flex items-center gap-1.5"
+                >
+                  <Repeat className="w-4 h-4" />
+                  <span>Confirmar & Emitir Recibo</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ===================== MODAL CONCILIADOR INTELIGENTE DE SMS ===================== */}
+      {isSmsParserModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl text-slate-900 my-8">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-amber-50 text-amber-600 border border-amber-200">
+                  <Zap className="w-5 h-5 fill-amber-500" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Leitor & Conciliador de SMS M-Pesa</h3>
+                  <p className="text-xs text-slate-500">Cole o SMS de pagamento para extração instantânea</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setIsSmsParserModalOpen(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="mt-4 space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Mensagem SMS Recebida no Telemóvel:
+                </label>
+                <textarea
+                  rows={4}
+                  value={smsInputText}
+                  onChange={(e) => handleParseSms(e.target.value)}
+                  placeholder="Cole aqui o SMS recebido do M-Pesa ou e-Mola. Exemplo:&#10;8J192K90A Confirmado. Recebeu 650.00MT de 841234567 em 30/10/2026 às 09:30..."
+                  className="w-full p-3 text-xs rounded-xl border border-slate-300 focus:outline-emerald-500 font-mono"
+                />
+              </div>
+
+              {/* Prévia dos Dados Extraídos */}
+              {parsedSmsResult && (
+                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+                  <div className="text-xs font-bold text-slate-900 flex items-center justify-between">
+                    <span>Dados Extraídos com Sucesso</span>
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-black text-[10px] uppercase">
+                      {parsedSmsResult.source}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="bg-white p-2.5 rounded-lg border border-slate-100">
+                      <span className="text-[10px] text-slate-400 font-medium uppercase">Valor Detectado</span>
+                      <div className="text-base font-black text-emerald-600 mt-0.5">
+                        {parsedSmsResult.amount ? `${parsedSmsResult.amount.toLocaleString('pt-MZ')} MT` : 'Não localizado'}
+                      </div>
+                    </div>
+
+                    <div className="bg-white p-2.5 rounded-lg border border-slate-100">
+                      <span className="text-[10px] text-slate-400 font-medium uppercase">Referência</span>
+                      <div className="text-xs font-mono font-black text-slate-900 mt-1 truncate">
+                        {parsedSmsResult.reference || 'Não localizado'}
+                      </div>
+                    </div>
+
+                    <div className="bg-white p-2.5 rounded-lg border border-slate-100">
+                      <span className="text-[10px] text-slate-400 font-medium uppercase">Telefone Remetente</span>
+                      <div className="text-xs font-mono font-bold text-slate-800 mt-1">
+                        {parsedSmsResult.phone || 'Não localizado'}
+                      </div>
+                    </div>
+
+                    <div className="bg-white p-2.5 rounded-lg border border-slate-100">
+                      <span className="text-[10px] text-slate-400 font-medium uppercase">Remetente / Data</span>
+                      <div className="text-xs font-bold text-slate-800 mt-1 truncate">
+                        {parsedSmsResult.senderName || parsedSmsResult.dateTime || '-'}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Mutuário Correspondente */}
+                  {matchedClientForSms ? (
+                    <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-xs">
+                      <div className="font-bold text-emerald-900 flex items-center gap-1.5">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                        <span>Mutuário Identificado: {matchedClientForSms.name}</span>
+                      </div>
+                      {matchedLoanForSms ? (
+                        <div className="mt-1 text-[11px] text-emerald-800 flex items-center justify-between">
+                          <span>Empréstimo Ativo: <strong>{matchedLoanForSms.id}</strong> (Resta: {matchedLoanForSms.totalRemaining.toLocaleString('pt-MZ')} MT)</span>
+                        </div>
+                      ) : (
+                        <div className="mt-1 text-[11px] text-amber-700">
+                          Este cliente não tem empréstimo ativo no momento.
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="p-3 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-800">
+                      Nenhum mutuário encontrado automaticamente com o telefone detectado. Poderá selecionar o empréstimo manualmente após transferir.
+                    </div>
+                  )}
+
+                  {/* Ação de Amortizar */}
+                  <div className="pt-2">
+                    <button
+                      type="button"
+                      disabled={!parsedSmsResult.amount}
+                      onClick={() => handleApplySmsToPayment(matchedLoanForSms)}
+                      className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-md shadow-emerald-600/20 transition flex items-center justify-center gap-1.5 disabled:opacity-50"
+                    >
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>Transferir Dados para Amortização</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-center justify-end pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsSmsParserModalOpen(false)}
+                  className="px-4 py-2 text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 rounded-xl transition"
+                >
+                  Fechar
+                </button>
+              </div>
             </div>
           </div>
         </div>

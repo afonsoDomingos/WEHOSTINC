@@ -372,3 +372,217 @@ export async function generatePaymentReceiptPdf(payment: any, loan?: any): Promi
 
   return await pdfDoc.save();
 }
+
+export async function generateFinancialReportPdf(data: {
+  dre: any;
+  weeks: any[];
+  stats: any;
+}): Promise<Uint8Array> {
+  const pdfDoc = await PDFDocument.create();
+  const page = pdfDoc.addPage([595.28, 841.89]); // A4
+  const { width, height } = page.getSize();
+
+  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+  const primaryColor = rgb(0.06, 0.45, 0.32); // Emerald Dark
+  const darkSlate = rgb(0.08, 0.12, 0.18);
+  const textColor = rgb(0.15, 0.15, 0.15);
+  const mutedText = rgb(0.45, 0.48, 0.52);
+  const bgBox = rgb(0.96, 0.97, 0.98);
+  const borderColor = rgb(0.85, 0.88, 0.92);
+
+  // 1. Cabeçalho Executivo
+  page.drawRectangle({
+    x: 0,
+    y: height - 100,
+    width,
+    height: 100,
+    color: primaryColor,
+  });
+
+  page.drawText('CASHVIBE MICROCRÉDITO', {
+    x: 45,
+    y: height - 45,
+    size: 20,
+    font: boldFont,
+    color: rgb(1, 1, 1),
+  });
+
+  page.drawText('RELATÓRIO FINANCEIRO EXECUTIVO & DRE DA CARTEIRA', {
+    x: 45,
+    y: height - 65,
+    size: 10,
+    font: boldFont,
+    color: rgb(0.85, 0.98, 0.9),
+  });
+
+  page.drawText(`Emissão: ${new Date().toLocaleDateString('pt-MZ')} • Moeda: Meticais (MT)`, {
+    x: 45,
+    y: height - 82,
+    size: 8,
+    font,
+    color: rgb(0.75, 0.92, 0.85),
+  });
+
+  let currentY = height - 125;
+
+  // 2. Resumo da Carteira (4 Caixas de Destaque)
+  const boxW = (width - 90 - 30) / 4;
+  const boxes = [
+    { title: 'Capital Concedido', val: `${Number(data.stats.totalPrincipalDisbursed || 0).toLocaleString('pt-MZ')} MT` },
+    { title: 'Total Recuperado', val: `${Number(data.stats.totalCollected || 0).toLocaleString('pt-MZ')} MT` },
+    { title: 'Em Carteira (Ativo)', val: `${Number(data.stats.totalOutstandingDebt || 0).toLocaleString('pt-MZ')} MT` },
+    { title: 'Capital em Risco', val: `${Number(data.stats.totalOverdueDebt || 0).toLocaleString('pt-MZ')} MT` },
+  ];
+
+  boxes.forEach((b, i) => {
+    const xPos = 45 + i * (boxW + 10);
+    page.drawRectangle({
+      x: xPos,
+      y: currentY - 50,
+      width: boxW,
+      height: 50,
+      color: bgBox,
+      borderColor,
+      borderWidth: 1,
+    });
+    page.drawText(b.title.toUpperCase(), { x: xPos + 8, y: currentY - 18, size: 6.5, font: boldFont, color: mutedText });
+    page.drawText(b.val, { x: xPos + 8, y: currentY - 38, size: 10, font: boldFont, color: darkSlate });
+  });
+
+  currentY -= 75;
+
+  // 3. Demonstrativo de Resultados do Exercício (DRE Operacional)
+  page.drawText('1. DEMONSTRATIVO DE RESULTADOS (DRE OPERACIONAL)', {
+    x: 45,
+    y: currentY,
+    size: 11,
+    font: boldFont,
+    color: primaryColor,
+  });
+
+  currentY -= 15;
+
+  page.drawRectangle({
+    x: 45,
+    y: currentY - 110,
+    width: width - 90,
+    height: 110,
+    color: bgBox,
+    borderColor,
+    borderWidth: 1,
+  });
+
+  const dreRows = [
+    { label: '(+) Receita Realizada de Juros & Amortizações:', val: `${Number(data.dre.realizedInterest || 0).toLocaleString('pt-MZ')} MT`, isBold: false },
+    { label: '(+) Juros Futuros Projetados em Carteira:', val: `${Number(data.dre.totalProjectedInterest - data.dre.realizedInterest || 0).toLocaleString('pt-MZ')} MT`, isBold: false },
+    { label: '(-) Provisão para Devedores Duvidosos (PDD > 30 dias):', val: `-${Number(data.dre.pddAmount || 0).toLocaleString('pt-MZ')} MT`, isBold: false },
+    { label: '(=) Lucro Operacional Líquido Realizado:', val: `${Number(data.dre.netOperatingProfit || 0).toLocaleString('pt-MZ')} MT`, isBold: true },
+    { label: 'Taxa de Retorno & Recuperação de Capital:', val: `${data.dre.recoveryRate || 0}%`, isBold: true },
+  ];
+
+  let dreY = currentY - 20;
+  dreRows.forEach((row) => {
+    page.drawText(row.label, { x: 60, y: dreY, size: 8.5, font: row.isBold ? boldFont : font, color: textColor });
+    page.drawText(row.val, { x: width - 180, y: dreY, size: 9, font: boldFont, color: row.isBold ? primaryColor : darkSlate });
+    dreY -= 18;
+  });
+
+  currentY -= 135;
+
+  // 4. Projeção de Fluxo de Caixa (Próximas 4 Semanas)
+  page.drawText('2. PROJEÇÃO DO FLUXO DE CAIXA DE ENTRADA (PRÓXIMOS 30 DIAS)', {
+    x: 45,
+    y: currentY,
+    size: 11,
+    font: boldFont,
+    color: primaryColor,
+  });
+
+  currentY -= 15;
+
+  // Header da Tabela
+  page.drawRectangle({
+    x: 45,
+    y: currentY - 22,
+    width: width - 90,
+    height: 22,
+    color: darkSlate,
+  });
+
+  page.drawText('PERÍODO', { x: 55, y: currentY - 15, size: 8, font: boldFont, color: rgb(1, 1, 1) });
+  page.drawText('PARCELAS', { x: 220, y: currentY - 15, size: 8, font: boldFont, color: rgb(1, 1, 1) });
+  page.drawText('CAPITAL (MT)', { x: 300, y: currentY - 15, size: 8, font: boldFont, color: rgb(1, 1, 1) });
+  page.drawText('JUROS (MT)', { x: 400, y: currentY - 15, size: 8, font: boldFont, color: rgb(1, 1, 1) });
+  page.drawText('TOTAL ESPERADO', { x: width - 135, y: currentY - 15, size: 8, font: boldFont, color: rgb(1, 1, 1) });
+
+  currentY -= 22;
+
+  (data.weeks || []).forEach((w: any, idx: number) => {
+    const isEven = idx % 2 === 0;
+    page.drawRectangle({
+      x: 45,
+      y: currentY - 24,
+      width: width - 90,
+      height: 24,
+      color: isEven ? bgBox : rgb(1, 1, 1),
+      borderColor,
+      borderWidth: 0.5,
+    });
+
+    page.drawText(w.label, { x: 55, y: currentY - 16, size: 8, font: boldFont, color: textColor });
+    page.drawText(`${w.count} parcelas`, { x: 220, y: currentY - 16, size: 8, font, color: mutedText });
+    page.drawText(`${Number(w.principal).toLocaleString('pt-MZ')} MT`, { x: 300, y: currentY - 16, size: 8, font, color: textColor });
+    page.drawText(`${Number(w.interest).toLocaleString('pt-MZ')} MT`, { x: 400, y: currentY - 16, size: 8, font, color: primaryColor });
+    page.drawText(`${Number(w.total).toLocaleString('pt-MZ')} MT`, { x: width - 135, y: currentY - 16, size: 8.5, font: boldFont, color: darkSlate });
+
+    currentY -= 24;
+  });
+
+  currentY -= 50;
+
+  // 5. Bloco de Assinaturas Executivas
+  const sigW = (width - 90 - 40) / 2;
+  page.drawLine({
+    start: { x: 45, y: currentY },
+    end: { x: 45 + sigW, y: currentY },
+    thickness: 1,
+    color: darkSlate,
+  });
+
+  page.drawLine({
+    start: { x: 45 + sigW + 40, y: currentY },
+    end: { x: width - 45, y: currentY },
+    thickness: 1,
+    color: darkSlate,
+  });
+
+  page.drawText('Direção Executiva • Cashvibe Microcrédito', {
+    x: 45 + 15,
+    y: currentY - 15,
+    size: 8,
+    font: boldFont,
+    color: darkSlate,
+  });
+
+  page.drawText('Auditoria & Controladoria Financeira', {
+    x: 45 + sigW + 55,
+    y: currentY - 15,
+    size: 8,
+    font: boldFont,
+    color: darkSlate,
+  });
+
+  // Rodapé Oficial
+  page.drawText('Documento gerado automaticamente pelo Sistema Cashvibe Microcrédito (by WeHost Inc.) • Confidencial', {
+    x: 60,
+    y: 25,
+    size: 7,
+    font,
+    color: mutedText,
+  });
+
+  return await pdfDoc.save();
+}
+
