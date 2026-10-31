@@ -84,20 +84,20 @@ export default function DashboardSidebar({ currentPath }: DashboardSidebarProps)
 
   const navItems = [
     { href: '/dashboard', label: t('dash.nav_dashboard'), icon: LayoutDashboard },
+    { href: '/dashboard/sites', label: t('dash.nav_sites'), icon: Globe },
+    { href: '/dashboard/email', label: t('dash.nav_email'), icon: Mail },
+    { href: '/dashboard/domains', label: t('dash.nav_domains'), icon: Link2 },
+    { href: '/dashboard/billing', label: t('dash.nav_billing'), icon: Database },
+    { href: '/dashboard/orders', label: t('dash.nav_orders'), icon: FileText },
     { href: '/dashboard/builder', label: 'Construtor IA', icon: LayoutTemplate, isAi: true },
     { href: '/dashboard/visual-builder', label: 'Editor Visual Pro', icon: Layers, isAi: true },
-    { href: '/dashboard/sites', label: t('dash.nav_sites'), icon: Globe },
-    { href: '/dashboard/systems', label: t('dash.nav_systems'), icon: Package },
-    { href: '/dashboard/orders', label: t('dash.nav_orders'), icon: FileText },
-    { href: '/dashboard/billing', label: t('dash.nav_billing'), icon: Database },
     { href: '/dashboard/site-quote', label: t('dash.nav_quote'), icon: Sparkles },
+    { href: '/dashboard/systems', label: t('dash.nav_systems'), icon: Package },
     { href: '/dashboard/academy', label: t('dash.nav_academy'), icon: BookOpen },
-    { href: '/dashboard/domains', label: t('dash.nav_domains'), icon: Link2 },
-    { href: '/dashboard/email', label: t('dash.nav_email'), icon: Mail },
-    { href: '/dashboard/notifications', label: t('dash.nav_notifications'), icon: Bell },
     { href: '/dashboard/affiliates', label: t('dash.nav_affiliates'), icon: Users },
     { href: '/dashboard/tickets', label: t('dash.nav_tickets'), icon: LifeBuoy },
     { href: '/dashboard/uptime', label: t('dash.nav_uptime'), icon: Activity },
+    { href: '/dashboard/notifications', label: t('dash.nav_notifications'), icon: Bell },
     { href: '/dashboard/settings', label: t('dash.nav_settings'), icon: SettingsIcon },
   ];
 

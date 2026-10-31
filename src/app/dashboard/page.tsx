@@ -558,11 +558,25 @@ export default function DashboardPage() {
                 </p>
               <div className="flex flex-wrap gap-2 sm:gap-3">
                 <Link
-                  href="/site-quote"
-                  className="flex items-center space-x-1.5 sm:space-x-2 bg-amber-400 hover:bg-amber-300 text-gray-900 px-3 sm:px-5 py-2 sm:py-3 rounded-lg font-extrabold text-[10px] sm:text-sm shadow-md transition"
+                  href="/dashboard/sites"
+                  className="flex items-center space-x-1.5 sm:space-x-2 bg-emerald-500 hover:bg-emerald-400 text-white px-3 sm:px-5 py-2 sm:py-3 rounded-lg font-bold text-[10px] sm:text-sm shadow-md transition"
                 >
-                  <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-gray-900" />
-                  <span>{t('dash.btn_request_site')}</span>
+                  <Globe className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <span>{t('dash.btn_new_site')}</span>
+                </Link>
+                <Link
+                  href="/dashboard/email"
+                  className="flex items-center space-x-1.5 sm:space-x-2 bg-primary-600 hover:bg-primary-500 text-white px-3 sm:px-5 py-2 sm:py-3 rounded-lg font-bold text-[10px] sm:text-sm shadow-md transition"
+                >
+                  <Mail className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <span>{t('dash.btn_email')}</span>
+                </Link>
+                <Link
+                  href="/dashboard/domains"
+                  className="flex items-center space-x-1.5 sm:space-x-2 bg-white text-gray-900 hover:bg-gray-100 px-3 sm:px-5 py-2 sm:py-3 rounded-lg transition font-bold text-[10px] sm:text-sm shadow-sm"
+                >
+                  <Plus className="h-4 w-4 sm:h-5 sm:w-5 text-primary-600" />
+                  <span>Registar Domínio</span>
                 </Link>
                 <Link
                   href="/dashboard/visual-builder"
@@ -572,11 +586,11 @@ export default function DashboardPage() {
                   <span>Editor Visual Pro</span>
                 </Link>
                 <Link
-                  href="/dashboard/sites"
-                  className="flex items-center space-x-1.5 sm:space-x-2 bg-white text-primary-600 px-3 sm:px-5 py-2 sm:py-3 rounded-lg hover:bg-gray-100 transition font-semibold text-[10px] sm:text-sm"
+                  href="/site-quote"
+                  className="flex items-center space-x-1.5 sm:space-x-2 bg-amber-400 hover:bg-amber-300 text-gray-900 px-3 sm:px-5 py-2 sm:py-3 rounded-lg font-extrabold text-[10px] sm:text-sm shadow-md transition"
                 >
-                  <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span>{t('dash.btn_new_site')}</span>
+                  <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-gray-900" />
+                  <span>{t('dash.btn_request_site')}</span>
                 </Link>
                 <Link
                   href="/dashboard/systems"
@@ -586,17 +600,10 @@ export default function DashboardPage() {
                   <span>{t('dash.btn_systems')}</span>
                 </Link>
                 <Link
-                  href="/dashboard/email"
-                  className="flex items-center space-x-1.5 sm:space-x-2 bg-primary-500 text-white px-3 sm:px-5 py-2 sm:py-3 rounded-lg hover:bg-primary-400 transition font-semibold text-[10px] sm:text-sm"
-                >
-                  <Mail className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span>{t('dash.btn_email')}</span>
-                </Link>
-                <Link
                   href="/dashboard/uptime"
-                  className="flex items-center space-x-1.5 sm:space-x-2 bg-emerald-500 text-white px-3 sm:px-5 py-2 sm:py-3 rounded-lg hover:bg-emerald-400 transition font-semibold text-[10px] sm:text-sm"
+                  className="flex items-center space-x-1.5 sm:space-x-2 bg-slate-800 text-slate-200 hover:text-white px-3 sm:px-5 py-2 sm:py-3 rounded-lg hover:bg-slate-700 transition font-semibold text-[10px] sm:text-sm"
                 >
-                  <Activity className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <Activity className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-400" />
                   <span>{t('dash.btn_uptime')}</span>
                 </Link>
                 </div>
