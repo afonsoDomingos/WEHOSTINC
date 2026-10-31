@@ -26,6 +26,7 @@ import AdminPushBanner from '@/components/AdminPushBanner';
 import { dispatchMessage, addAdminNotification } from '@/lib/notifications';
 import { soundEffects } from '@/lib/soundEffects';
 import AdminAiTopBar from '@/components/AdminAiTopBar';
+import AdminSidebar from '@/components/AdminSidebar';
 
 const ADMIN_CANNED_RESPONSES = [
   {
@@ -1707,12 +1708,29 @@ export default function AdminPage() {
         <AdminAiTopBar />
       </div>
 
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
-        {/* Banner de Incentivo Push para Admin (Ativação e Teste no Telemóvel) */}
-        <AdminPushBanner />
+      <div className="max-w-[1700px] mx-auto px-2 sm:px-4 lg:px-6 py-4 sm:py-6">
+        <div className="flex items-start gap-4 xl:gap-6">
+          {/* Sidebar Fixa / Sticky no Desktop */}
+          <AdminSidebar
+            pendingOrdersCount={orders.filter(o => o.status === 'pending' || o.status === 'in_progress').length}
+            openTicketsCount={tickets.filter(t => t.status === 'open' || t.status === 'in_progress').length}
+            pendingEmailsCount={emails.filter(e => e.status === 'pending' || !e.status).length}
+            pendingDomainsCount={sites.filter(s => s.status === 'pending').length}
+            totalUsersCount={users.length}
+            onlineUsersCount={onlineUsers.length}
+            isRefreshing={isRefreshingAdmin}
+            onRefresh={handleRefreshAdminData}
+            hideSensitive={hideSensitiveValues}
+            onToggleSensitive={() => setHideSensitiveValues(!hideSensitiveValues)}
+          />
+
+          {/* Conteúdo Principal do Painel */}
+          <div className="flex-1 min-w-0">
+            {/* Banner de Incentivo Push para Admin (Ativação e Teste no Telemóvel) */}
+            <AdminPushBanner />
 
         {/* ───── ANALYTICS — Quem está Online & Visitantes ───── */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+        <div id="sec-online-analytics" className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8 scroll-mt-28">
 
           {/* Painel: Utilizadores Online Agora */}
           <div className="lg:col-span-1 bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
@@ -1928,7 +1946,7 @@ export default function AdminPage() {
         </div>
 
         {/* Top KPIs */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
+        <div id="sec-kpis" className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8 scroll-mt-28">
           <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition">
             <div className="flex items-center justify-between mb-3 sm:mb-4">
               <Users className="h-6 w-6 sm:h-8 sm:w-8 text-primary-600" />
@@ -1995,7 +2013,7 @@ export default function AdminPage() {
         </div>
 
         {/* Módulo de Análise Financeira & Métricas Recorrentes */}
-        <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm mb-6 sm:mb-8">
+        <div id="sec-faturamento" className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm mb-6 sm:mb-8 scroll-mt-28">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 sm:mb-6">
             <div>
               <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center space-x-2">
@@ -2236,7 +2254,7 @@ export default function AdminPage() {
         </div>
 
         {/* ───── GESTÃO DE PAYOUTS B2C (ENVIAR DINHEIRO PARA CLIENTES) ───── */}
-        <div className="bg-white border border-green-200 rounded-xl p-4 sm:p-6 shadow-sm mb-6 sm:mb-8">
+        <div id="sec-payouts" className="bg-white border border-green-200 rounded-xl p-4 sm:p-6 shadow-sm mb-6 sm:mb-8 scroll-mt-28">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 sm:mb-4">
             <div>
               <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center space-x-2">
@@ -2377,7 +2395,7 @@ export default function AdminPage() {
         </div>
 
         {/* ───── GESTÃO DE ASSINATURAS RECURRENTES ───── */}
-        <div className="bg-white border border-blue-200 rounded-xl p-4 sm:p-6 shadow-sm mb-6 sm:mb-8">
+        <div id="sec-assinaturas" className="bg-white border border-blue-200 rounded-xl p-4 sm:p-6 shadow-sm mb-6 sm:mb-8 scroll-mt-28">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 sm:mb-4">
             <div>
               <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center space-x-2">
@@ -2558,7 +2576,7 @@ export default function AdminPage() {
         </div>
 
         {/* ───── GESTÃO DE PROVAS SOCIAIS / NOTIFICAÇÕES AO VIVO ───── */}
-        <div className="bg-white border border-purple-200 rounded-xl p-4 sm:p-6 shadow-sm mb-6 sm:mb-8">
+        <div id="sec-provas-sociais" className="bg-white border border-purple-200 rounded-xl p-4 sm:p-6 shadow-sm mb-6 sm:mb-8 scroll-mt-28">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
             <div>
               <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center space-x-2">
@@ -2768,7 +2786,7 @@ export default function AdminPage() {
         </div>
 
         {/* Users Table */}
-        <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm mb-6 sm:mb-8">
+        <div id="sec-usuarios" className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm mb-6 sm:mb-8 scroll-mt-28">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 sm:mb-6">
             <div>
               <h2 className="text-lg sm:text-xl font-bold text-gray-900">Usuários Cadastrados</h2>
@@ -3370,7 +3388,7 @@ export default function AdminPage() {
         </div>
 
         {/* Gestão de Pedidos de Serviços */}
-        <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm mb-6 sm:mb-8">
+        <div id="sec-pedidos" className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm mb-6 sm:mb-8 scroll-mt-28">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 sm:mb-6">
             <div>
               <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center space-x-2">
@@ -3501,7 +3519,7 @@ export default function AdminPage() {
         </div>
 
         {/* Gestão e Aprovação de Contas de E-mail Corporativo */}
-        <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm mb-6 sm:mb-8">
+        <div id="sec-emails-aprovacao" className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm mb-6 sm:mb-8 scroll-mt-28">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 sm:mb-6">
             <div>
               <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center space-x-2">
@@ -3609,7 +3627,7 @@ export default function AdminPage() {
         </div>
 
         {/* Gestão de Tickets de Suporte (Helpdesk) */}
-        <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm mb-6 sm:mb-8">
+        <div id="sec-tickets" className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm mb-6 sm:mb-8 scroll-mt-28">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 sm:mb-6">
             <div>
               <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center space-x-2">
@@ -3763,7 +3781,7 @@ export default function AdminPage() {
         </div>
 
         {/* Gestão de Domínios e Sites */}
-        <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm mb-6 sm:mb-8">
+        <div id="sec-dominios" className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm mb-6 sm:mb-8 scroll-mt-28">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 sm:mb-6">
             <div>
               <h2 className="text-lg sm:text-xl font-bold text-gray-900">Gestão de Domínios e Sites</h2>
@@ -3865,7 +3883,7 @@ export default function AdminPage() {
         </div>
 
         {/* Gestão Global de Contas de E-mail Corporativo */}
-        <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm mb-6 sm:mb-8">
+        <div id="sec-emails-global" className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm mb-6 sm:mb-8 scroll-mt-28">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 sm:mb-6">
             <div>
               <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center space-x-2">
@@ -3944,7 +3962,7 @@ export default function AdminPage() {
         </div>
 
         {/* Recent Activity */}
-        <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm mb-6 sm:mb-8">
+        <div id="sec-auditoria" className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm mb-6 sm:mb-8 scroll-mt-28">
           <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-4 sm:mb-6">Atividade Recente</h2>
           <div className="space-y-3 sm:space-y-4">
             {users.length > 0 && (
@@ -3987,7 +4005,7 @@ export default function AdminPage() {
         </div>
 
         {/* Plan Distribution */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+        <div id="sec-distribuicao" className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8 scroll-mt-28">
           <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm">
             <h3 className="font-bold text-gray-900 text-sm sm:text-base mb-3 sm:mb-4">Distribuição de Planos</h3>
             <div className="space-y-3 sm:space-y-4">
@@ -4128,6 +4146,8 @@ export default function AdminPage() {
                 <span className="text-[10px] sm:text-sm font-bold text-gray-900">{orders.length}</span>
               </div>
             </div>
+          </div>
+        </div>
           </div>
         </div>
       </div>
