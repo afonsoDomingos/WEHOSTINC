@@ -280,7 +280,7 @@ function CheckoutContent() {
   }, [analytics, domainParam, grandTotal, isAffiliateVerification, isCoursePayment, selectedPlan, siteTypeName]);
 
   const [pushModal, setPushModal] = useState(false);
-  const [pushStatus, setPushStatus] = useState<'waiting' | 'expired' | 'failed' | 'cancelled'>('waiting');
+  const [pushStatus, setPushStatus] = useState<'initiating' | 'waiting' | 'expired' | 'failed' | 'cancelled'>('waiting');
   const [pushFailureReason, setPushFailureReason] = useState<string>('');
   const [countdown, setCountdown] = useState(60); // Aumentado de 45 para 60 segundos
   const [currentOrderId, setCurrentOrderId] = useState<string | null>(null);
@@ -470,9 +470,8 @@ function CheckoutContent() {
 
 
   const handleRetryPush = async () => {
-    setPushStatus('waiting');
+    setPushStatus('initiating');
     setPushFailureReason('');
-    setCountdown(60); // Countdown aumentado para 60 segundos
     setRetryCount(prev => prev + 1);
     
     const phone = isAffiliateVerification 
@@ -518,6 +517,7 @@ function CheckoutContent() {
       console.log('[PUSH RETRY] Nova solicitação enviada:', data);
       
       if (response.ok) {
+        setCountdown(60);
         setPushStatus('waiting');
         setIsPollingPayment(true);
       } else {
@@ -1050,7 +1050,12 @@ function CheckoutContent() {
         // Track payment initiation
         analytics.trackPaymentInitiated(paymentMethod, grandTotal);
         
+        // 🚀 Feedback visual imediato: abre o modal de imediato enquanto conecta à rede M-Pesa
+        setPushStatus('initiating');
+        setPushFailureReason('');
+        setPushModal(true);
         setLoading(true);
+
         try {
           const payResponse = await fetch(apiEndpoint(apiUrl), {
             method: 'POST',
@@ -1071,17 +1076,15 @@ function CheckoutContent() {
             throw new Error(payData.error || 'Falha ao iniciar cobrança junto da operadora');
           }
 
-          // 🔒 SEGURANÇA: Salvar reference para polling - NÃO confirmar imediatamente
+          // 🔒 SEGURANÇA: Salvar reference para polling - transição suave para PIN
           setCurrentReference(paymentReference);
-          
-          // Open PUSH visual countdown modal
           setCountdown(60);
           setPushStatus('waiting');
-          setPushFailureReason('');
           setIsPollingPayment(true);
-          setPushModal(true);
         } catch (payErr: any) {
           console.error('[Checkout Push Error]:', payErr);
+          setPushStatus('failed');
+          setPushFailureReason(payErr.message || 'Erro ao comunicar com a operadora');
           setError(payErr.message || 'Erro ao comunicar com a operadora');
         } finally {
           setLoading(false);
@@ -1340,7 +1343,52 @@ function CheckoutContent() {
           aria-labelledby="modal-title"
         >
           <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-5 sm:p-6 text-center border border-gray-100 animate-in fade-in zoom-in duration-200">
-            {pushStatus === 'waiting' ? (
+            {pushStatus === 'initiating' ? (
+              <div className="py-2">
+                <div className="relative w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                  <div className="absolute inset-0 bg-red-100 rounded-full animate-ping opacity-75"></div>
+                  <div className="relative w-14 h-14 bg-gradient-to-tr from-red-600 to-rose-500 text-white rounded-full flex items-center justify-center shadow-lg">
+                    <Smartphone className="h-7 w-7 animate-pulse" />
+                  </div>
+                </div>
+
+                <h3 id="modal-title" className="text-lg font-bold text-gray-900 mb-1">
+                  A Contactar a Rede M-Pesa...
+                </h3>
+                <p className="text-xs text-gray-600 mb-3">
+                  A enviar pedido PUSH para o telemóvel <strong className="text-gray-900 font-mono">{phonePayment || whatsapp}</strong>
+                </p>
+
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4 text-left space-y-1.5 text-xs text-amber-900">
+                  <div className="flex items-center space-x-1.5 font-bold text-amber-900">
+                    <Clock className="w-4 h-4 text-amber-600 shrink-0" />
+                    <span>Tempo de resposta das operadoras:</span>
+                  </div>
+                  <p className="text-[11px] text-amber-800 leading-relaxed">
+                    A rede Vodacom M-Pesa leva habitualmente entre <strong>10 a 30 segundos</strong> a emitir a mensagem USSD no seu telemóvel.
+                  </p>
+                  <p className="text-[11px] text-amber-950 font-bold">
+                    💡 Mantenha o seu telemóvel desbloqueado.
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-center space-x-2 text-xs text-gray-500 py-1">
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-red-600 border-t-transparent"></div>
+                  <span>Aguardando sinal da rede Vodacom...</span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPushModal(false);
+                    setLoading(false);
+                  }}
+                  className="mt-3 w-full py-1.5 text-xs text-gray-400 hover:text-gray-700 transition cursor-pointer"
+                >
+                  Cancelar
+                </button>
+              </div>
+            ) : pushStatus === 'waiting' ? (
               <>
                 <div className="relative w-14 h-14 mx-auto mb-3 flex items-center justify-center">
                   <div className="absolute inset-0 bg-red-100 rounded-full animate-ping opacity-75"></div>

@@ -22,18 +22,20 @@ export async function POST(req: Request) {
     const paymentRef = reference || thirdPartyReference || `REF_${Date.now()}`;
     const orderId = thirdPartyReference || `ORD-${Date.now().toString().slice(-6)}`;
 
-    // 🔔 Push imediato: pagamento M-Pesa (dispara ANTES da Kivora para garantir alerta mesmo em caso de erro no gateway)
-    try {
-      const { sendPushToAdmins } = await import('@/lib/pushService');
-      await sendPushToAdmins({
-        title: '💰 Pagamento M-Pesa',
-        message: `${clientName || 'Um cliente'} (${msisdn}) iniciou pagamento de ${amount} MZN para "${serviceName || 'Serviço'}".`,
-        url: '/admin?tab=orders',
-        tag: `mpesa-payment-${orderId}`
-      });
-    } catch (pushErr) {
-      console.warn('[M-PESA C2B] Falha não impeditiva ao disparar push:', pushErr);
-    }
+    // 🔔 Push em background (NÃO bloqueia a resposta ao cliente nem o gateway)
+    (async () => {
+      try {
+        const { sendPushToAdmins } = await import('@/lib/pushService');
+        await sendPushToAdmins({
+          title: '💰 Pagamento M-Pesa',
+          message: `${clientName || 'Um cliente'} (${msisdn}) iniciou pagamento de ${amount} MZN para "${serviceName || 'Serviço'}".`,
+          url: '/admin?tab=orders',
+          tag: `mpesa-payment-${orderId}`
+        });
+      } catch (pushErr) {
+        console.warn('[M-PESA C2B] Falha não impeditiva ao disparar push:', pushErr);
+      }
+    })();
 
     // Usar API Kivora como gateway para processar pagamento M-Pesa
     const result = await kivora.createC2BPayment({
@@ -58,44 +60,46 @@ export async function POST(req: Request) {
 
     console.log('[M-PESA C2B VIA KIVORA RESPONSE]:', result);
 
-    // Persistir/Criar o pedido imediatamente no MongoDB com status 'pending' para que apareça no painel admin
+    // Persistir o pedido no MongoDB em background para que a resposta ao cliente seja instantânea
     if (result.id) {
-      try {
-        const { connectDB } = await import('@/lib/mongodb');
-        const OrderModel = (await import('@/lib/models/Order')).default;
-        await connectDB();
+      (async () => {
+        try {
+          const { connectDB } = await import('@/lib/mongodb');
+          const OrderModel = (await import('@/lib/models/Order')).default;
+          await connectDB();
 
-        await OrderModel.findOneAndUpdate(
-          {
-            $or: [
-              { id: orderId },
-              { reference: paymentRef },
-              { kivoraPaymentId: result.id }
-            ]
-          },
-          {
-            $set: {
-              id: orderId,
-              clientName: clientName || 'Cliente M-Pesa',
-              clientEmail: clientEmail || 'cliente@mpesa.mz',
-              clientPhone: msisdn,
-              serviceName: serviceName || 'Pagamento M-Pesa',
-              amount,
-              paymentMethod: 'mpesa',
-              kivoraPaymentId: result.id,
-              reference: paymentRef,
-              status: 'pending'
+          await OrderModel.findOneAndUpdate(
+            {
+              $or: [
+                { id: orderId },
+                { reference: paymentRef },
+                { kivoraPaymentId: result.id }
+              ]
             },
-            $setOnInsert: {
-              createdAt: new Date().toISOString()
-            }
-          },
-          { upsert: true, new: true }
-        );
-        console.log(`[M-PESA C2B] Pedido ${orderId} registado no MongoDB com kivoraPaymentId ${result.id}`);
-      } catch (dbErr) {
-        console.error('[M-PESA C2B] Erro ao gravar pedido no MongoDB:', dbErr);
-      }
+            {
+              $set: {
+                id: orderId,
+                clientName: clientName || 'Cliente M-Pesa',
+                clientEmail: clientEmail || 'cliente@mpesa.mz',
+                clientPhone: msisdn,
+                serviceName: serviceName || 'Pagamento M-Pesa',
+                amount,
+                paymentMethod: 'mpesa',
+                kivoraPaymentId: result.id,
+                reference: paymentRef,
+                status: 'pending'
+              },
+              $setOnInsert: {
+                createdAt: new Date().toISOString()
+              }
+            },
+            { upsert: true, new: true }
+          );
+          console.log(`[M-PESA C2B] Pedido ${orderId} registado no MongoDB com kivoraPaymentId ${result.id}`);
+        } catch (dbErr) {
+          console.error('[M-PESA C2B] Erro ao gravar pedido no MongoDB:', dbErr);
+        }
+      })();
     }
 
     return NextResponse.json(result);
