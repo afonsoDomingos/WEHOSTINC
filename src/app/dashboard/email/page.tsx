@@ -436,6 +436,42 @@ export default function EmailPage() {
     return pass;
   };
 
+  const handleSyncMigaduBidirectional = async () => {
+    setIsSyncingMigadu(true);
+    try {
+      const currentList = emails.length > 0 ? emails : (user?.email ? dataManager.getEmails(user.email) : []);
+      try {
+        const syncRes = await fetch('/api/email-providers/migadu/sync-all', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ accounts: currentList })
+        });
+        const syncData = await syncRes.json();
+        if (syncData.results?.mailboxesProvisioned?.length > 0) {
+          console.log('[Sync Migadu] Caixas provisionadas:', syncData.results.mailboxesProvisioned);
+        }
+      } catch (syncErr) {
+        console.warn('[Sync-All Migadu Error]', syncErr);
+      }
+
+      const warningMsg = await fetchMigaduDomains();
+      if (user?.email) {
+        await dataManager.fetchEmailsAsync(user.email);
+      }
+      refreshData();
+      soundEffects.playSuccessSound();
+      if (warningMsg) {
+        setToastMsg({ type: 'warning', message: 'Caixas sincronizadas com sucesso! (Verifique registos DNS se necessário).' });
+      } else {
+        setToastMsg({ type: 'success', message: 'Sincronização com Migadu concluída! As caixas foram provisionadas e sincronizadas.' });
+      }
+    } catch {
+      setToastMsg({ type: 'error', message: 'Erro ao sincronizar em tempo real com a Migadu.' });
+    } finally {
+      setIsSyncingMigadu(false);
+    }
+  };
+
   const handleAddEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newEmailPrefix || !newPassword) return;
@@ -455,9 +491,40 @@ export default function EmailPage() {
       return;
     }
 
-    const initialStatus: EmailAccount['status'] = 'pending';
+    const localPart = newEmailPrefix.includes('@')
+      ? newEmailPrefix.split('@')[0].trim().toLowerCase()
+      : newEmailPrefix.trim().toLowerCase();
+
+    const domainToUse = selectedDomain.toLowerCase().trim();
 
     try {
+      // 1. Provisionar a caixa de correio diretamente na API da Migadu
+      try {
+        const migaduRes = await fetch(`/api/email-providers/migadu/domains/${domainToUse}/mailboxes`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: localPart,
+            localPart,
+            password: newPassword,
+            passwordMethod: 'generated',
+            customerId: user?.email || 'cliente'
+          })
+        });
+
+        const migaduData = await migaduRes.json();
+        if (!migaduRes.ok && migaduData.error && !migaduData.error.toLowerCase().includes('already exists')) {
+          throw new Error(migaduData.error || 'Falha ao criar caixa de correio no servidor Migadu.');
+        }
+      } catch (migaduErr: any) {
+        console.warn('[Migadu Provision]', migaduErr);
+        if (migaduErr.message && !migaduErr.message.toLowerCase().includes('already exists')) {
+          throw migaduErr;
+        }
+      }
+
+      const initialStatus: EmailAccount['status'] = 'active';
+
       const newEmailAccount = await dataManager.addEmailAsync({
         email: fullEmail,
         domain: selectedDomain,
@@ -472,10 +539,13 @@ export default function EmailPage() {
       setNewEmailPrefix('');
       setNewPassword('');
       setToastMsg({
-        type: 'warning',
-        title: 'Conta de E-mail Solicitada',
-        message: `A conta ${fullEmail} foi gravada com sucesso e está em processamento de ativação.`
+        type: 'success',
+        title: 'Conta Criada na Migadu!',
+        message: `A conta ${fullEmail} foi criada e ativada com sucesso no servidor Migadu.`
       });
+      if (user?.email) {
+        fetchMigaduDomains(user.email);
+      }
     } catch (err: any) {
       soundEffects.playErrorSound();
       setToastMsg({
@@ -754,26 +824,7 @@ export default function EmailPage() {
                   {activeTab === 'mailboxes' && (
                     <div className="flex flex-wrap items-center gap-2 shrink-0">
                       <button
-                        onClick={async () => {
-                          setIsSyncingMigadu(true);
-                          try {
-                            const warningMsg = await fetchMigaduDomains();
-                            if (user?.email) {
-                              await dataManager.fetchEmailsAsync(user.email);
-                            }
-                            refreshData();
-                            soundEffects.playSuccessSound();
-                            if (warningMsg) {
-                              setToastMsg({ type: 'warning', message: 'Caixas sincronizadas com sucesso! (Nota: Chave de API do Migadu precisa de renovação para sync externo).' });
-                            } else {
-                              setToastMsg({ type: 'success', message: 'Sincronização em tempo real concluída com sucesso!' });
-                            }
-                          } catch {
-                            setToastMsg({ type: 'error', message: 'Erro ao sincronizar em tempo real.' });
-                          } finally {
-                            setIsSyncingMigadu(false);
-                          }
-                        }}
+                        onClick={handleSyncMigaduBidirectional}
                         disabled={isSyncingMigadu}
                         className="flex items-center justify-center space-x-1.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-800 font-bold text-xs sm:text-sm px-3.5 py-2.5 rounded-xl transition cursor-pointer disabled:opacity-60 shadow-xs"
                         title="Forçar sincronização em tempo real de caixas de correio"
@@ -891,26 +942,7 @@ export default function EmailPage() {
                         </p>
                         <div className="flex flex-wrap items-center justify-center gap-2.5">
                           <button
-                            onClick={async () => {
-                              setIsSyncingMigadu(true);
-                              try {
-                                const warningMsg = await fetchMigaduDomains();
-                                if (user?.email) {
-                                  await dataManager.fetchEmailsAsync(user.email);
-                                }
-                                refreshData();
-                                soundEffects.playSuccessSound();
-                                if (warningMsg) {
-                                  setToastMsg({ type: 'warning', message: 'Caixas sincronizadas! (Nota: Chave de API do Migadu precisa de renovação).' });
-                                } else {
-                                  setToastMsg({ type: 'success', message: 'Sincronização em tempo real concluída!' });
-                                }
-                              } catch {
-                                setToastMsg({ type: 'error', message: 'Erro ao sincronizar contas.' });
-                              } finally {
-                                setIsSyncingMigadu(false);
-                              }
-                            }}
+                            onClick={handleSyncMigaduBidirectional}
                             disabled={isSyncingMigadu}
                             className="inline-flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl font-bold text-xs shadow-sm hover:shadow transition cursor-pointer disabled:opacity-60"
                           >

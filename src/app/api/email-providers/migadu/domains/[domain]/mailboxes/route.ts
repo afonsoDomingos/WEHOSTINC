@@ -248,22 +248,36 @@ export async function POST(
       );
     }
 
-    const domain = await EmailDomain.findOne({ domainName });
+    let domain = await EmailDomain.findOne({ domainName: new RegExp(`^${domainName}$`, 'i') });
     if (!domain) {
-      return NextResponse.json({ error: 'Domain not found' }, { status: 404 });
+      domain = await EmailDomain.create({
+        domainName,
+        customerId: customerId || 'system',
+        status: 'active',
+        provider: 'migadu',
+        canSend: true,
+        canReceive: true
+      });
     }
 
-    // Check if mailbox already exists
-    const email = `${localPart}@${domainName}`;
-    const existingMailbox = await EmailMailbox.findOne({ email });
-    if (existingMailbox) {
+    const email = `${localPart}@${domainName}`.toLowerCase();
+    const provider = getEmailProvider();
+
+    // Check if mailbox already exists on Migadu
+    let existsOnProvider = false;
+    try {
+      const liveMb = await provider.getMailbox(domainName, localPart);
+      if (liveMb) existsOnProvider = true;
+    } catch {
+      existsOnProvider = false;
+    }
+
+    if (existsOnProvider) {
       return NextResponse.json(
-        { error: 'Mailbox already exists' },
+        { error: 'Mailbox already exists on Migadu' },
         { status: 409 }
       );
     }
-
-    const provider = getEmailProvider();
     const mailbox = await provider.createMailbox(domainName, {
       name,
       localPart,

@@ -19,6 +19,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    let body: any = {};
+    try {
+      body = await request.json();
+    } catch {
+      // Body vazio é aceitável
+    }
+
     // 1. Fetch all domains currently registered on Migadu
     let migaduDomains: any[] = [];
     try {
@@ -29,11 +36,25 @@ export async function POST(request: NextRequest) {
     const migaduDomainSet = new Set(migaduDomains.map(d => (d.domainName || d.name || '').toLowerCase().trim()));
 
     // 2. Fetch all domains and emails in our platform database
-    const [sites, emailAccounts, dbDomains] = await Promise.all([
+    const [sites, dbEmailAccounts, dbDomains] = await Promise.all([
       SiteModel.find({}).lean(),
       EmailAccountModel.find({}).lean(),
       EmailDomain.find({}).lean()
     ]);
+
+    // Combinar contas do banco com quaisquer contas passadas pelo cliente
+    const incomingAccounts = Array.isArray(body?.accounts) ? body.accounts : [];
+    const emailAccountMap = new Map<string, any>();
+    dbEmailAccounts.forEach((acc: any) => {
+      if (acc.email) emailAccountMap.set(acc.email.toLowerCase().trim(), acc);
+    });
+    incomingAccounts.forEach((acc: any) => {
+      if (acc.email) {
+        const k = acc.email.toLowerCase().trim();
+        emailAccountMap.set(k, { ...emailAccountMap.get(k), ...acc });
+      }
+    });
+    const emailAccounts = Array.from(emailAccountMap.values());
 
     // Collect all unique domain names across the platform
     const platformDomainMap = new Map<string, { customerId: string }>();
@@ -60,6 +81,7 @@ export async function POST(request: NextRequest) {
       domainsProvisioned: [] as string[],
       domainsAlreadyOnMigadu: [] as string[],
       mailboxesProvisioned: [] as string[],
+      mailboxesAlreadyActive: [] as string[],
       errors: [] as string[]
     };
 
@@ -69,8 +91,8 @@ export async function POST(request: NextRequest) {
         results.domainsAlreadyOnMigadu.push(domainName);
       } else {
         try {
-          console.log(`[Sync-All] Provisioning ${domainName} to Migadu...`);
-          const created = await provider.createDomain({
+          console.log(`[Sync-All] Provisioning domain ${domainName} to Migadu...`);
+          await provider.createDomain({
             domainName,
             createDefaultAddresses: false,
             hostedDns: false
@@ -117,10 +139,11 @@ export async function POST(request: NextRequest) {
 
         if (!existsOnMigadu) {
           console.log(`[Sync-All] Creating mailbox ${acc.email} on Migadu...`);
+          const initialPass = acc.password || 'Mudar123@#';
           await provider.createMailbox(domainName, {
             name: localPart,
             localPart,
-            password: 'User@2024!',
+            password: initialPass,
             passwordMethod: 'generated',
             maySend: true,
             mayReceive: true,
@@ -128,15 +151,30 @@ export async function POST(request: NextRequest) {
             mayAccessPop3: false
           });
           results.mailboxesProvisioned.push(acc.email);
+        } else {
+          results.mailboxesAlreadyActive.push(acc.email);
         }
+
+        // Atualizar status para ativo no banco
+        await Promise.all([
+          EmailAccountModel.findOneAndUpdate(
+            { email: acc.email.toLowerCase().trim() },
+            { status: 'active' }
+          ),
+          EmailMailbox.findOneAndUpdate(
+            { email: acc.email.toLowerCase().trim() },
+            { status: 'active', updatedAt: new Date() }
+          )
+        ]);
       } catch (mbErr: any) {
         console.warn(`[Sync-All] Mailbox ${acc.email} creation note:`, mbErr?.message || mbErr);
+        results.errors.push(`E-mail ${acc.email}: ${mbErr?.message || 'Falha ao provisionar na Migadu'}`);
       }
     }
 
     return NextResponse.json({
       success: true,
-      message: `Sincronização concluída! ${results.domainsProvisioned.length} domínios provisionados na Migadu.`,
+      message: `Sincronização concluída! ${results.mailboxesProvisioned.length} caixa(s) provisionadas na Migadu.`,
       results
     });
   } catch (error: any) {
