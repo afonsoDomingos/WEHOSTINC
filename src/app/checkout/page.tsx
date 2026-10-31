@@ -991,7 +991,13 @@ function CheckoutContent() {
     setLoading(true);
 
     try {
-      if (paymentMethod === 'mpesa' || paymentMethod === 'emola') {
+      if (paymentMethod === 'emola') {
+        setError('O pagamento automático via e-Mola encontra-se temporariamente em desenvolvimento. Por favor, utilize M-Pesa ou Transferência / Comprovativo.');
+        setLoading(false);
+        return;
+      }
+
+      if (paymentMethod === 'mpesa') {
         // Para verificação de afiliado, usar o número digitado pelo usuário
         const phone = isAffiliateVerification 
           ? affiliatePhone 
@@ -1016,9 +1022,7 @@ function CheckoutContent() {
           return;
         }
         
-        const apiUrl = paymentMethod === 'mpesa' 
-          ? '/api/payments/mpesa/c2b'
-          : '/api/payments/emola/c2b';
+        const apiUrl = '/api/payments/mpesa/c2b';
         
         // Gerar referência única e mais segura para este pagamento
         const generateSecureReference = () => {
@@ -1103,7 +1107,7 @@ function CheckoutContent() {
         await finalizeOrder(false);
       } else if (paymentMethod === 'card') {
         // 🔒 CARTÃO NÃO IMPLEMENTADO - Não permitir pagamento por cartão
-        setError('Pagamento por cartão ainda não disponível. Por favor, use M-Pesa ou eMola.');
+        setError('Pagamento por cartão ainda não disponível. Por favor, use M-Pesa ou Transferência / Comprovativo.');
         setLoading(false);
         return;
       }
@@ -1855,12 +1859,13 @@ function CheckoutContent() {
                     console.log('[Checkout] Método de pagamento selecionado: eMola');
                     setPaymentMethod('emola');
                   }}
-                  className={`p-2 sm:p-2.5 border-2 rounded-xl text-center flex flex-col items-center justify-center transition cursor-pointer ${
+                  className={`relative p-2 sm:p-2.5 border-2 rounded-xl text-center flex flex-col items-center justify-center transition cursor-pointer ${
                     paymentMethod === 'emola'
-                      ? 'border-blue-600 bg-blue-50/50 shadow-sm ring-2 ring-blue-500/20'
+                      ? 'border-amber-500 bg-amber-50/50 shadow-sm ring-2 ring-amber-500/20'
                       : 'border-gray-200 bg-white hover:border-gray-300'
                   }`}
                 >
+                  <span className="absolute -top-1.5 -right-1.5 bg-amber-500 text-white text-[8px] font-bold px-1.5 py-0.2 rounded-full uppercase tracking-wide">Em Breve</span>
                   <img src="/emola.png" alt="eMola" className="h-5 sm:h-6 w-auto object-contain mb-0.5" />
                   <span className="text-[11px] sm:text-xs font-bold text-gray-800">eMola</span>
                 </button>
@@ -1901,10 +1906,10 @@ function CheckoutContent() {
               </div>
 
               {/* Dynamic Payment Details Input */}
-              {(paymentMethod === 'mpesa' || paymentMethod === 'emola') && (
+              {paymentMethod === 'mpesa' && (
                 <div className="mt-2.5 p-3 bg-gray-50 rounded-xl border border-gray-200">
                   <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    Número {paymentMethod === 'mpesa' ? 'M-Pesa' : 'eMola'} para cobrança
+                    Número M-Pesa para cobrança
                     {isAffiliateVerification && <span className="text-red-500 ml-1">*</span>}
                   </label>
                   <div className="flex items-center space-x-2">
@@ -1913,19 +1918,63 @@ function CheckoutContent() {
                       type="tel"
                       value={isAffiliateVerification ? affiliatePhone : phonePayment}
                       onChange={(e) => isAffiliateVerification ? setAffiliatePhone(e.target.value) : setPhonePayment(e.target.value)}
-                      placeholder={paymentMethod === 'mpesa' ? '84 123 4567 ou 85 123 4567' : '86 123 4567 ou 87 123 4567'}
+                      placeholder="84 123 4567 ou 85 123 4567"
                       className="w-full px-3.5 py-2 bg-white border border-gray-300 rounded-lg text-xs sm:text-sm outline-none focus:ring-2 focus:ring-primary-500 min-h-[40px]"
                     />
                   </div>
                   {isAffiliateVerification ? (
                     <p className="text-[11px] text-gray-500 mt-1">
-                      Digite o número {paymentMethod === 'mpesa' ? 'M-Pesa' : 'eMola'} para receber o pagamento de verificação e suas comissões futuras.
+                      Digite o número M-Pesa para receber o pagamento de verificação e suas comissões futuras.
                     </p>
                   ) : (
                     <p className="text-[11px] text-gray-500 mt-1">
-                      Ao clicar em comprar, receberá um pedido PUSH no seu celular para introduzir o PIN do {paymentMethod === 'mpesa' ? 'M-Pesa' : 'eMola'}.
+                      Ao clicar em comprar, receberá um pedido PUSH no seu celular para introduzir o PIN do M-Pesa.
                     </p>
                   )}
+                </div>
+              )}
+
+              {paymentMethod === 'emola' && (
+                <div className="mt-2.5 p-4 bg-amber-50/90 rounded-xl border border-amber-300 text-amber-900 shadow-sm animate-fadeIn">
+                  <div className="flex items-start space-x-3">
+                    <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <span className="font-bold text-xs sm:text-sm text-amber-900">
+                          Pagamento via e-Mola em Desenvolvimento
+                        </span>
+                        <span className="bg-amber-200 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
+                          Em Breve
+                        </span>
+                      </div>
+                      <p className="text-xs text-amber-800 leading-relaxed">
+                        A integração de cobrança automática via <strong>e-Mola</strong> encontra-se atualmente em fase de desenvolvimento.
+                      </p>
+                      <p className="text-xs text-amber-900 font-medium">
+                        Para ativação imediata do seu serviço, por favor escolha <strong>M-Pesa</strong> ou opte por <strong>Transferência / Comprovativo</strong>.
+                      </p>
+                      <div className="pt-1 flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setPaymentMethod('mpesa')}
+                          className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition shadow-sm cursor-pointer flex items-center space-x-1.5"
+                        >
+                          <img src="/mpesa.jpg" alt="M-Pesa" className="h-3.5 w-auto rounded-sm object-contain brightness-110" />
+                          <span>Pagar com M-Pesa (Recomendado)</span>
+                        </button>
+                        {!isAffiliateVerification && (
+                          <button
+                            type="button"
+                            onClick={() => setPaymentMethod('bank_transfer')}
+                            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition shadow-sm cursor-pointer flex items-center space-x-1.5"
+                          >
+                            <Landmark className="h-3.5 w-3.5" />
+                            <span>Transferência / Comprovativo</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
 
@@ -2299,7 +2348,7 @@ function CheckoutContent() {
                 {/* CTA Button */}
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || paymentMethod === 'emola'}
                   onClick={() => console.log('[Checkout] Botão de compra clicado')}
                   className="w-full py-3 sm:py-3.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-extrabold text-sm sm:text-base rounded-xl shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 hover:scale-[1.01]"
                 >
@@ -2307,6 +2356,11 @@ function CheckoutContent() {
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                       <span>Processando...</span>
+                    </>
+                  ) : paymentMethod === 'emola' ? (
+                    <>
+                      <AlertCircle className="h-4 w-4" />
+                      <span>e-Mola em Desenvolvimento (Selecione M-Pesa ou Transferência)</span>
                     </>
                   ) : (
                     <>

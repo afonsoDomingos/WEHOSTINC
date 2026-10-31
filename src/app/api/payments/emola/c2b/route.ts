@@ -6,12 +6,13 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { msisdn, amount, reference, thirdPartyReference, clientName, clientEmail, serviceName } = body;
 
-    if (!msisdn || !amount) {
-      return NextResponse.json(
-        { error: 'Parâmetros msisdn e amount são obrigatórios.' },
-        { status: 400 }
-      );
-    }
+    return NextResponse.json(
+      {
+        error: 'O pagamento automático via e-Mola encontra-se temporariamente em desenvolvimento. Por favor, utilize M-Pesa ou Transferência / Comprovativo.',
+        status: 'in_development'
+      },
+      { status: 400 }
+    );
 
     // Normalizar número de telefone para Kivora (remover +258 se presente)
     let phone = msisdn.replace(/\D/g, '');
