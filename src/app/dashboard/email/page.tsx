@@ -438,6 +438,7 @@ export default function EmailPage() {
 
   const handleSyncMigaduBidirectional = async () => {
     setIsSyncingMigadu(true);
+    let syncErrors: string[] = [];
     try {
       const currentList = emails.length > 0 ? emails : (user?.email ? dataManager.getEmails(user.email) : []);
       try {
@@ -447,11 +448,18 @@ export default function EmailPage() {
           body: JSON.stringify({ accounts: currentList })
         });
         const syncData = await syncRes.json();
+        if (syncData.error) {
+          syncErrors.push(syncData.error);
+        }
+        if (syncData.results?.errors && syncData.results.errors.length > 0) {
+          syncErrors.push(...syncData.results.errors);
+        }
         if (syncData.results?.mailboxesProvisioned?.length > 0) {
           console.log('[Sync Migadu] Caixas provisionadas:', syncData.results.mailboxesProvisioned);
         }
-      } catch (syncErr) {
+      } catch (syncErr: any) {
         console.warn('[Sync-All Migadu Error]', syncErr);
+        syncErrors.push(syncErr?.message || 'Erro ao comunicar com o servidor');
       }
 
       const warningMsg = await fetchMigaduDomains();
@@ -459,13 +467,25 @@ export default function EmailPage() {
         await dataManager.fetchEmailsAsync(user.email);
       }
       refreshData();
-      soundEffects.playSuccessSound();
-      if (warningMsg) {
-        setToastMsg({ type: 'warning', message: 'Caixas sincronizadas com sucesso! (Verifique registos DNS se necessário).' });
+
+      if (syncErrors.length > 0 || warningMsg) {
+        soundEffects.playErrorSound();
+        const primaryError = syncErrors[0] || warningMsg || 'Chave de API do Migadu inválida ou expirada';
+        setToastMsg({
+          type: 'error',
+          title: 'Erro na API da Migadu',
+          message: `${primaryError}. Verifique a API Key nas definições da Migadu.`
+        });
       } else {
-        setToastMsg({ type: 'success', message: 'Sincronização com Migadu concluída! As caixas foram provisionadas e sincronizadas.' });
+        soundEffects.playSuccessSound();
+        setToastMsg({
+          type: 'success',
+          title: 'Sincronização Concluída',
+          message: 'As caixas de correio foram provisionadas e sincronizadas com a Migadu!'
+        });
       }
     } catch {
+      soundEffects.playErrorSound();
       setToastMsg({ type: 'error', message: 'Erro ao sincronizar em tempo real com a Migadu.' });
     } finally {
       setIsSyncingMigadu(false);
